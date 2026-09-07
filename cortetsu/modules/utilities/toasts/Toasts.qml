@@ -5,9 +5,9 @@ import "../../../services"
 Item {
     id: root
 
-    readonly property int spacing: CortetsuDesign.spacingStandard
+    readonly property int spacing: CortetsuDesign.spacingCompact
     readonly property var visibleToasts: CortetsuToaster.toasts.slice(0, 5)
-    implicitWidth: 360
+    implicitWidth: 368
     implicitHeight: column.childrenRect.height
     width: implicitWidth
     height: implicitHeight
@@ -28,22 +28,27 @@ Item {
             model: root.visibleToasts
 
             delegate: ToastItem {
+                id: toastItem
                 required property int index
                 width: root.width
                 toast: root.visibleToasts[index]
+                opacity: 1
                 onDismissed: CortetsuToaster.dismiss(root.visibleToasts[index].id)
-            }
-        }
-    }
 
-    MouseArea {
-        anchors.fill: parent
-        z: 1000
-        acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
-        onClicked: {
-            root.forceActiveFocus();
-            if (root.visibleToasts.length > 0)
-                CortetsuToaster.dismiss(root.visibleToasts[0].id);
+                Behavior on y {
+                    NumberAnimation {
+                        duration: CortetsuDesign.motionStandardMs
+                        easing.type: Easing.OutCubic
+                    }
+                }
+
+                Behavior on opacity {
+                    NumberAnimation {
+                        duration: CortetsuDesign.motionFastMs
+                        easing.type: Easing.OutCubic
+                    }
+                }
+            }
         }
     }
 
