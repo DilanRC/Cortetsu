@@ -627,7 +627,10 @@ FocusScope {
 
             Rectangle {
                 width: parent.width
-                height: parent.height - 58 - 320 - 168 - 36
+                // Content.qml overlays the three footer controls at the bottom
+                // of this panel. Reserve that area so the dry-run card never
+                // sits underneath "Apply safely" at 1920x1080.
+                height: parent.height - 58 - 320 - 168 - 36 - 150
                 radius: CortetsuDesign.radiusLarge
                 color: CortetsuDesign.colorSurface
                 border.width: 1
