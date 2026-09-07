@@ -100,6 +100,8 @@ by the existing action services, so the label is a reflection of real routing.
 OSD keeps live volume and brightness readback while adding a small Cortetsu
 feedback signature: a two-piece indigo/Washi geometry and `SYSTEM FEEDBACK`
 label. The visual stays compact and uses the existing fast motion timing.
+When a monitor has no supported backlight, the brightness row says `Unavailable`
+and does not render a false zero value.
 
 ## BottomHub system cluster
 

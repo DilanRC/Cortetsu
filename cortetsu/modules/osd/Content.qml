@@ -137,10 +137,12 @@ CortetsuPopupSurface {
                                 anchors.right: parent.right
                                 text: indicator.modelData.muted
                                     ? qsTr("Muted")
+                                    : indicator.modelData.value < 0
+                                        ? qsTr("Unavailable")
                                     : qsTr("%1%").arg(Math.round(indicator.modelData.value * 100))
                                 textSize: CortetsuTypography.labelSmallPx
                                 font.weight: Font.DemiBold
-                                color: indicator.modelData.muted
+                                color: indicator.modelData.muted || indicator.modelData.value < 0
                                     ? CortetsuDesign.colorOnSurfaceVariant
                                     : CortetsuDesign.colorOnSurface
                             }
@@ -156,7 +158,7 @@ CortetsuPopupSurface {
                                 width: parent.width * Math.max(0, Math.min(1, indicator.modelData.value))
                                 height: parent.height
                                 radius: parent.radius
-                                color: indicator.modelData.muted
+                                color: indicator.modelData.muted || indicator.modelData.value < 0
                                     ? CortetsuDesign.colorOnSurfaceVariant
                                     : CortetsuDesign.colorPrimary
 
@@ -183,7 +185,7 @@ CortetsuPopupSurface {
                                 CortetsuAudio.incrementVolume();
                             else
                                 CortetsuAudio.decrementVolume();
-                        } else if (root.monitor) {
+                        } else if (root.monitor?.supported) {
                             root.monitor.setBrightness(
                                 root.brightness + (event.angleDelta.y > 0 ? 0.05 : -0.05)
                             );

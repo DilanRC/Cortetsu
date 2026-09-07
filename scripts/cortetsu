@@ -401,6 +401,7 @@ verify_cmd() {
     run_python_test "scripts/features/eval-cortetsu-osd-identity.py"
     run_python_test "scripts/features/test-cortetsu-system-cluster.py"
     run_python_test "scripts/features/eval-cortetsu-system-cluster.py"
+    run_python_test "scripts/features/test-cortetsu-osd-state.py"
     run_python_test "scripts/features/test-retained-surfaces-host.py"
     run_python_test "scripts/features/eval-retained-surfaces-host.py"
     run_python_test "cortetsu/tests/test-runtime-contract.py"

@@ -14,7 +14,7 @@ Item {
     property real sidebarOffset: sidebarOrSessionVisible ? CortetsuDesign.spacingStandard : 0
     property real volume: CortetsuAudio.volume
     property bool muted: CortetsuAudio.muted
-    property real brightness: monitor?.brightness ?? 0
+    property real brightness: monitor?.supported ? monitor.brightness : -1
     // Interactions.qml controls hover state through the wrapper instance.
     // Expose the child state instead of assigning an undeclared property.
     property alias hovered: content.hovered
@@ -48,7 +48,7 @@ Item {
     Connections {
         target: monitor
         function onBrightnessChanged(): void {
-            root.brightness = monitor.brightness;
+            root.brightness = monitor?.supported ? monitor.brightness : -1;
             root.show();
         }
     }
