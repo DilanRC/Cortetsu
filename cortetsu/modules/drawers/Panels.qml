@@ -118,6 +118,7 @@ Item {
     }
     Dashboard.Wrapper {
         id: dashboard
+        visible: false
         screenState: root.screenState
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: parent.top

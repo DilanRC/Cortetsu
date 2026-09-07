@@ -69,6 +69,17 @@ read/write backend show an explicit staged boundary instead of a fake switch.
 The Settings host closes on Escape and uses exclusive keyboard focus only while
 open.
 
+## Dashboard
+
+Dashboard now has its own `cortetsu-dashboard` layer and no longer relies on the
+legacy drawer panel as its visual consumer. The dominant surface is a wide
+context view: Cortetsu identity and time in the header, live weather as the
+hero, compact Now Playing beside it, and a restrained system rail for CPU,
+memory, battery, and network. Values come from existing Cortetsu services;
+missing weather or media is presented as an honest empty state. The old panel
+wrapper remains available as migration scaffolding but is hidden from the
+rendered product.
+
 ## Delivery order
 
 The redesign is delivered in product slices: design foundation, real state

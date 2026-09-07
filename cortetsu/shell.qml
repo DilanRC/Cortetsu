@@ -22,6 +22,7 @@ ShellRoot {
     BottomHub {}
     AreaPicker {}
     QsdHost {}
+    DashboardHost {}
     SettingsHost {}
     Lock { id: lock }
     Shortcuts {}
