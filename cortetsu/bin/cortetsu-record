@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """First-party GPU Screen Recorder controller for Cortetsu."""
 import argparse
+import contextlib
+import errno
 import json
 import os
 import re
@@ -21,20 +23,59 @@ def xdg(name: str, fallback: Path) -> Path:
 STATE_DIR = xdg("XDG_STATE_HOME", HOME / ".local/state") / "cortetsu/record"
 VIDEOS_DIR = xdg("XDG_VIDEOS_DIR", HOME / "Videos")
 RECORDINGS_DIR = xdg("CORTETSU_RECORDINGS_DIR", VIDEOS_DIR / "Recordings")
-RECORDING_PATH = STATE_DIR / "recording.mp4"
-NOTIF_PATH = STATE_DIR / "notifid.txt"
+STATE_PATH = STATE_DIR / "state.json"
+LOCK_PATH = STATE_DIR / "lock"
 CONFIG_PATH = xdg("XDG_CONFIG_HOME", HOME / ".config") / "cortetsu/cli.json"
 
-def recorder_pids() -> list[int]:
-    result = subprocess.run(["pidof", RECORDER], text=True, capture_output=True)
-    return [int(pid) for pid in result.stdout.split() if pid.isdigit()] if result.returncode == 0 else []
-
-def signal_recorders(signum: signal.Signals) -> None:
-    for pid in recorder_pids():
+@contextlib.contextmanager
+def state_lock():
+    STATE_DIR.mkdir(parents=True, exist_ok=True)
+    handle = LOCK_PATH.open("a+", encoding="utf-8")
+    try:
+        import fcntl
         try:
-            os.kill(pid, signum)
-        except ProcessLookupError:
-            pass
+            fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except OSError as error:
+            if error.errno == errno.EWOULDBLOCK:
+                raise RuntimeError("another Cortetsu recording operation is active") from error
+            raise
+        yield handle
+    finally:
+        import fcntl
+        fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+        handle.close()
+
+def atomic_write_json(path: Path, payload: dict) -> None:
+    temporary = path.with_name(f".{path.name}.{os.getpid()}.tmp")
+    temporary.write_text(json.dumps(payload, sort_keys=True) + "\n", encoding="utf-8")
+    os.replace(temporary, path)
+
+def load_state() -> dict:
+    try:
+        value = json.loads(STATE_PATH.read_text(encoding="utf-8"))
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+    return value if isinstance(value, dict) else {}
+
+def recorder_is_ours(state: dict) -> bool:
+    pid = state.get("pid")
+    if not isinstance(pid, int) or pid <= 1:
+        return False
+    try:
+        command = Path(f"/proc/{pid}/cmdline").read_bytes().replace(b"\0", b" ").decode(errors="replace")
+    except FileNotFoundError:
+        return False
+    return RECORDER in command
+
+def owned_state() -> dict:
+    state = load_state()
+    return state if recorder_is_ours(state) else {}
+
+def signal_owned(state: dict, signum: signal.Signals) -> None:
+    try:
+        os.kill(int(state["pid"]), signum)
+    except (KeyError, ValueError, ProcessLookupError):
+        pass
 
 def notify(*args: str, wait: bool = False) -> str:
     command = ["notify-send", "-a", "cortetsu", *args]
@@ -87,43 +128,67 @@ def start_args(args: argparse.Namespace) -> list[str]:
     return command + [str(value) for value in extra]
 
 def start(args: argparse.Namespace) -> int:
-    STATE_DIR.mkdir(parents=True, exist_ok=True)
-    command = [RECORDER, *start_args(args), "-o", str(RECORDING_PATH)]
-    process = subprocess.Popen(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
-    try:
-        if process.wait(1) != 0:
-            notify("Recording failed", f"Command failed with exit code {process.returncode}")
-            return process.returncode or 1
-    except subprocess.TimeoutExpired:
-        pass
-    NOTIF_PATH.write_text(notify("-p", "Recording started", "Recording...", wait=True), encoding="utf-8")
-    return 0
+    with state_lock():
+        current = owned_state()
+        if current:
+            return 0
+        timestamp = datetime.now().astimezone().isoformat()
+        output = STATE_DIR / f"recording-{os.getpid()}-{int(time.time())}.mp4"
+        command = [RECORDER, *start_args(args), "-o", str(output)]
+        process = subprocess.Popen(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
+        try:
+            if process.wait(1) != 0:
+                notify("Recording failed", f"Command failed with exit code {process.returncode}")
+                return process.returncode or 1
+        except subprocess.TimeoutExpired:
+            pass
+        state = {
+            "pid": process.pid,
+            "mode": "region" if args.region else "fullscreen",
+            "sound": bool(args.sound),
+            "region": args.region or "",
+            "paused": False,
+            "startedAt": timestamp,
+            "outputTempPath": str(output),
+            "notificationId": notify("-p", "Recording started", "Recording...", wait=True),
+        }
+        atomic_write_json(STATE_PATH, state)
+        return 0
 
 def stop(args: argparse.Namespace) -> int:
-    signal_recorders(signal.SIGINT)
-    deadline = time.monotonic() + 5
-    while recorder_pids() and time.monotonic() < deadline:
-        time.sleep(0.1)
-    if not RECORDING_PATH.exists():
-        notify("Recording failed", f"No temporary recording was written at {RECORDING_PATH}")
-        return 1
-    RECORDINGS_DIR.mkdir(parents=True, exist_ok=True)
-    new_path = RECORDINGS_DIR / f"recording_{datetime.now().strftime('%Y%m%d_%H-%M-%S')}.mp4"
-    shutil.move(RECORDING_PATH, new_path)
-    try:
-        close_notification(NOTIF_PATH.read_text(encoding="utf-8"))
-    except OSError:
-        pass
-    if args.clipboard:
-        subprocess.run(["wl-copy", "--type", "text/uri-list"], input=(new_path.resolve().as_uri() + "\n").encode(), check=False)
-    notify("Recording stopped", f"Recording saved in {new_path}")
-    print(new_path)
-    return 0
+    with state_lock():
+        state = load_state()
+        if not state:
+            return 0
+        if recorder_is_ours(state):
+            signal_owned(state, signal.SIGINT)
+        deadline = time.monotonic() + 5
+        while recorder_is_ours(state) and time.monotonic() < deadline:
+            time.sleep(0.1)
+        recording_path = Path(state["outputTempPath"])
+        if not recording_path.exists():
+            STATE_PATH.unlink(missing_ok=True)
+            notify("Recording failed", f"No temporary recording was written at {recording_path}")
+            return 1
+        RECORDINGS_DIR.mkdir(parents=True, exist_ok=True)
+        new_path = RECORDINGS_DIR / f"recording_{datetime.now().strftime('%Y%m%d_%H-%M-%S')}.mp4"
+        shutil.move(recording_path, new_path)
+        notification_id = str(state.get("notificationId", ""))
+        if notification_id:
+            notify("-r", notification_id, "-t", "5000", "Recording stopped", f"Recording saved in {new_path}")
+        else:
+            notify("Recording stopped", f"Recording saved in {new_path}")
+        STATE_PATH.unlink(missing_ok=True)
+        if args.clipboard:
+            subprocess.run(["wl-copy", "--type", "text/uri-list"], input=(new_path.resolve().as_uri() + "\n").encode(), check=False)
+        print(new_path)
+        return 0
 
 def self_test() -> None:
     assert parse_monitors("eDP-1|1920x1080\n") == {"eDP-1"}
     assert capture_target("eDP-1", {"screen", "eDP-1"}) == "eDP-1"
     assert capture_target("HDMI-A-1", {"screen", "eDP-1"}) == "screen"
+    assert not recorder_is_ours({"pid": os.getpid()})
 
 def main() -> int:
     parser = argparse.ArgumentParser(prog="cortetsu-record")
@@ -137,13 +202,20 @@ def main() -> int:
     if args.self_test:
         self_test()
         return 0
-    if args.pause:
-        signal_recorders(signal.SIGUSR2)
+    if args.pause or args.action == "pause":
+        with state_lock():
+            state = owned_state()
+            if state:
+                signal_owned(state, signal.SIGUSR2)
+                state["paused"] = not bool(state.get("paused", False))
+                atomic_write_json(STATE_PATH, state)
         return 0
     if args.action == "status":
-        return 0 if recorder_pids() else 1
-    if args.action == "stop" or recorder_pids():
+        return 0 if owned_state() else 1
+    if args.action == "stop":
         return stop(args)
+    if owned_state():
+        return 0
     return start(args)
 
 if __name__ == "__main__":

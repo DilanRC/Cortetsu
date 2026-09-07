@@ -54,6 +54,18 @@ Singleton {
     IpcHandler {
         target: "notifs"
         function clear(): void { root.clear(); }
+        function inspect(): string {
+            return JSON.stringify(root.list.map(item => ({
+                id: item.notificationId,
+                summary: item.summary,
+                popup: item.popup,
+                closed: item.closed,
+                resident: item.resident,
+                urgency: item.urgency,
+                expireTimeout: item.expireTimeout,
+                actions: item.actions.length
+            })));
+        }
         function isDndEnabled(): bool { return root.dnd; }
         function toggleDnd(): void { root.dnd = !root.dnd; }
         function enableDnd(): void { root.dnd = true; }

@@ -11,10 +11,9 @@ Item {
     property Item sessionPanel
     property Item utilitiesPanel
 
-    readonly property var visibleNotifications: Notifs.popups.filter(item => !item.closed)
     implicitWidth: 352
     implicitHeight: list.implicitHeight
-    visible: visibleNotifications.length > 0
+    visible: Notifs.popups.length > 0
 
     Column {
         id: list
@@ -40,10 +39,8 @@ Item {
         }
 
         Repeater {
-            model: root.visibleNotifications
+            model: Notifs.popups
             delegate: Notification {
-                required property int index
-                modelData: root.visibleNotifications[index]
                 width: list.width
                 props: ({})
                 expanded: false

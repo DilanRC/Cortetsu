@@ -2,18 +2,20 @@ from pathlib import Path
 
 repo = Path(__file__).resolve().parents[2]
 helper = (repo / "cortetsu/bin/cortetsu-record").read_text(encoding="utf-8")
-service = (repo / "cortetsu/services/Recorder.qml").read_text(encoding="utf-8")
 module = (repo / "cortetsu/modules/CortetsuRecorder.qml").read_text(encoding="utf-8")
 hub = (repo / "cortetsu/modules/BottomHub.qml").read_text(encoding="utf-8")
 cli = (repo / "scripts/cortetsu").read_text(encoding="utf-8")
 keybinds = (repo / "dotfiles/home/.config/hypr/hyprland/keybinds.lua").read_text(encoding="utf-8")
 
 assert 'RECORDER = "gpu-screen-recorder"' in helper
-assert "os.kill(pid, signum)" in helper and "pkill" not in helper
-assert '"cortetsu-record", "start"' in service
-assert '"cortetsu-record", "pause"' in service
-assert '"cortetsu-record", "stop"' in service
-assert 'command: ["cortetsu-record", "status"]' in service
+assert "def signal_owned" in helper and "pidof" not in helper
+assert "STATE_PATH" in helper and "outputTempPath" in helper
+assert "atomic_write_json" in helper and "state_lock" in helper
+assert '"cortetsu-record", "start"' in module
+assert '"cortetsu-record", "pause"' in module
+assert '"cortetsu-record", "stop"' in module
+assert 'watchChanges: false' in module and 'stateFile.reload()' in module
+assert 'Timer { interval: 2000' not in module
 assert '"cortetsu-record", "stop"' in module
 assert "CortetsuRecorder.running" in hub and "CortetsuRecorder.stop()" in hub
 assert "record) record_cmd" in cli

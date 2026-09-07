@@ -155,7 +155,6 @@ for required in \
     services/Audio.qml \
     services/Players.qml \
     services/Lyrics.qml \
-    services/Recorder.qml \
     services/ShellState.qml \
     modules/CortetsuStateLayer.qml \
     modules/CortetsuMask.qml \
