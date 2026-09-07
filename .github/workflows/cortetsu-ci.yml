@@ -100,6 +100,7 @@ jobs:
           test ! -e scripts/features/install-theme-bridge.py
           test ! -e cortetsu/bin/ensure-upstream.sh
           test ! -e scripts/features/test-upstream-bootstrap.sh
+          test ! -e caelestia/compatibility.json
           test -f profiles/base.toml
           test -f profiles/personal.toml
           test -f packages/arch.toml
@@ -112,7 +113,6 @@ jobs:
           grep -q '^\[group.personal-shell\]' packages/arch.toml
           grep -q 'packages = \["fish"\]' packages/arch.toml
           grep -q '"personal-shell"' profiles/personal.toml
-          grep -q '"upstreamRepo": "https://github.com/caelestia-dots/shell.git"' caelestia/compatibility.json
           ! grep -q 'ensure-upstream.sh' cortetsu/bin/build-runtime.sh
           grep -q 'CortetsuBottomHubView.qml' cortetsu/bin/build-runtime.sh
           ! grep -q 'native-bottom-hub.py' cortetsu/bin/build-runtime.sh
