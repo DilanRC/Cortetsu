@@ -47,6 +47,7 @@ var outlineWidth = 1
 var controlHeight = 36
 var rowHeight = 52
 
+// Typography aliases keep QML surfaces on the single generated design contract.
 var labelSmallPx = 11
 var labelMediumPx = 12
 var labelLargePx = 14
