@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Wayland
 import Quickshell.Bluetooth
 import qs.components
 import qs.modules 1.0
@@ -13,6 +14,7 @@ import "../CortetsuTypography.js" as CortetsuTypography
 Item {
     id: root
     required property var screenState
+    required property ShellScreen screen
 
     ColumnLayout {
         anchors.fill: parent

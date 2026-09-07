@@ -13,6 +13,8 @@ hypr = (ROOT / "dotfiles/home/.config/hypr/hyprland/keybinds.lua").read_text(enc
 assert (qsd / "qmldir").is_file()
 for marker in ("Brightness.getMonitorForScreen", "CortetsuAudio.setVolume", "CortetsuNotifications.dnd", "Network unavailable"):
     assert marker in content, marker
+assert "required property ShellScreen screen" in content
+assert "screen: window.modelData" in host
 for marker in ("Variants", "StyledWindow", 'name: "qsd"', "WlrLayer.Overlay", "width: 400", "Content"):
     assert marker in host, marker
 assert 'qsd: null' in window

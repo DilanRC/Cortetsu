@@ -55,6 +55,7 @@ Scope {
                     anchors.fill: parent
                     anchors.margins: CortetsuDesign.spacingSection
                     screenState: window.screenState
+                    screen: window.modelData
                 }
 
                 MouseArea {
