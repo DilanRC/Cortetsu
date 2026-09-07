@@ -33,6 +33,15 @@ separate raster variants. The diagonal cuts are structural, not decorative.
 The mark is used selectively in product-entry surfaces such as Settings,
 Dashboard, Lock, and About. It is not repeated in every popup.
 
+## Brightness contract
+
+Brightness is a capability, not a display-name assumption. Cortetsu discovers
+the real `brightnessctl` device with the `backlight` class, reads its maximum
+range from `/sys/class/backlight/<device>/max_brightness`, normalizes the raw
+value against that range, writes a clamped raw value, and reads it back. A
+monitor without a discovered backlight reports unsupported instead of showing
+`0%`. The current machine exposes `amdgpu_bl2` with a `0..65535` range.
+
 ## Delivery order
 
 The redesign is delivered in product slices: design foundation, real state

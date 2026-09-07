@@ -10,6 +10,39 @@ Singleton {
     id: root
 
     readonly property list<Monitor> monitors: variants.instances
+    property string backlightDevice: ""
+    property int backlightMax: 0
+
+    onBacklightDeviceChanged: {
+        monitors.forEach(monitor => monitor.reload());
+    }
+    onBacklightMaxChanged: monitors.forEach(monitor => monitor.reload())
+
+    readonly property Process discoverProcess: Process {
+        command: ["brightnessctl", "-l", "-m"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const line = text.split("\n").find(item => item.split(",")[1] === "backlight");
+                if (!line)
+                    return;
+                const fields = line.split(",");
+                root.backlightDevice = fields[0] ?? "";
+            }
+        }
+    }
+
+    readonly property Process maxProcess: Process {
+        command: ["cat", "/sys/class/backlight/" + root.backlightDevice + "/max_brightness"]
+        running: root.backlightDevice.length > 0
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const maximum = Number(text.trim());
+                root.backlightMax = Number.isFinite(maximum) ? maximum : 0;
+            }
+        }
+    }
+
+    Component.onCompleted: discoverProcess.running = true
 
     function getMonitorForScreen(screen: ShellScreen): var {
         return monitors.find(m => m.modelData === screen) ?? null;
@@ -46,6 +79,11 @@ Singleton {
         target: "brightness"
         function get(): real { return root.getMonitor("active")?.brightness ?? -1; }
         function getFor(query: string): real { return root.getMonitor(query)?.brightness ?? -1; }
+        function status(): string {
+            const monitor = root.getMonitor("active");
+            return JSON.stringify({ device: root.backlightDevice, maximum: root.backlightMax,
+                supported: monitor?.supported ?? false, brightness: monitor?.brightness ?? -1 });
+        }
         function set(value: string): string { return setFor("active", value); }
         function setFor(query: string, value: string): string {
             const monitor = root.getMonitor(query);
@@ -64,18 +102,47 @@ Singleton {
     component Monitor: QtObject {
         id: monitor
         required property ShellScreen modelData
-        property real brightness: 0
+        property real brightness: -1
         readonly property string monitorName: modelData?.name ?? ""
+        readonly property bool supported: root.backlightDevice.length > 0 && root.backlightMax > 0
         readonly property Process readProcess: Process {
             command: monitor.monitorName.length > 0
-                ? ["brightnessctl", "-d", "*" + monitor.monitorName + "*", "g"]
+                ? ["brightnessctl", "-d", root.backlightDevice, "g"]
                 : ["true"]
-            stdout: StdioCollector { onStreamFinished: monitor.brightness = Math.max(0, Math.min(1, Number(text.trim()) / 100)) }
+            stdout: StdioCollector {
+                onStreamFinished: {
+                    const raw = Number(text.trim());
+                    monitor.brightness = monitor.supported && Number.isFinite(raw)
+                        ? Math.max(0, Math.min(1, raw / root.backlightMax))
+                        : -1;
+                }
+            }
         }
+        readonly property Process writeProcess: Process {
+            command: ["brightnessctl", "-d", root.backlightDevice, "s", String(Math.round(monitor.pendingBrightness * root.backlightMax))]
+            onExited: monitor.readProcess.running = monitor.supported
+        }
+        property real pendingBrightness: 0
+        readonly property Timer reloadTimer: Timer {
+            interval: 50
+            onTriggered: {
+                readProcess.running = false;
+                readProcess.running = monitor.supported;
+            }
+        }
+
+        function reload(): void {
+            if (!supported)
+                brightness = -1;
+            reloadTimer.restart();
+        }
+
         function setBrightness(value: real): void {
-            brightness = Math.max(0, Math.min(1, value));
-            Quickshell.execDetached(["brightnessctl", "-d", "*" + modelData.name + "*", "s", Math.round(brightness * 100) + "%"]);
+            if (!supported)
+                return;
+            pendingBrightness = Math.max(0, Math.min(1, value));
+            writeProcess.running = true;
         }
-        Component.onCompleted: readProcess.running = true
+        Component.onCompleted: reload()
     }
 }
