@@ -14,7 +14,7 @@ Scope {
         onPressed: {
             if (root.hasFullscreen) return;
             const state = ShellState.forActive();
-            state.launcher = state.dashboard = state.osd = state.utilities = !(state.launcher || state.dashboard || state.osd || state.utilities);
+            state.launcher = state.dashboard = state.osd = state.utilities = state.qsd = !(state.launcher || state.dashboard || state.osd || state.utilities || state.qsd);
         }
     }
     CustomShortcut { name: "dashboard"; description: "Toggle dashboard"; onPressed: if (!root.hasFullscreen) ShellState.forActive().dashboard = !ShellState.forActive().dashboard }
@@ -38,13 +38,14 @@ Scope {
         }
     }
     CustomShortcut { name: "utilities"; description: "Toggle utilities"; onPressed: if (!root.hasFullscreen) ShellState.forActive().utilities = !ShellState.forActive().utilities }
+    CustomShortcut { name: "qsd"; description: "Toggle Quick Settings Drawer"; onPressed: if (!root.hasFullscreen) ShellState.forActive().qsd = !ShellState.forActive().qsd }
 
     IpcHandler {
         target: "drawers"
         function toggle(drawer: string): void {
             const state = ShellState.forActive();
             if (!state || typeof state[drawer] !== "boolean") return;
-            if (root.hasFullscreen && ["launcher", "session", "dashboard"].includes(drawer)) return;
+            if (root.hasFullscreen && ["launcher", "session", "dashboard", "qsd"].includes(drawer)) return;
             state[drawer] = !state[drawer];
         }
         function list(): string { const state = ShellState.forActive(); return state ? Object.keys(state).filter(k => typeof state[k] === "boolean").join("\n") : ""; }

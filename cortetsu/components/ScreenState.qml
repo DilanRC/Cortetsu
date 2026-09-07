@@ -16,6 +16,7 @@ PersistentProperties {
     property bool launcher
     property bool dashboard
     property bool utilities
+    property bool qsd
     property bool sidebar
     property int dashboardTab
     property date dashboardDate: new Date()
@@ -28,9 +29,9 @@ PersistentProperties {
     property bool wallpaperManager
 
     readonly property bool retainedOverlayOpen: overview || calendar || clipboard || hardware || displayManager || wallpaperManager
-    readonly property bool requiresOverlayLayer: retainedOverlayOpen || launcher || session
+    readonly property bool requiresOverlayLayer: retainedOverlayOpen || launcher || session || qsd
     readonly property bool requiresFullInputMask: retainedOverlayOpen
-    readonly property bool requiresWindowKeyboardFocus: requiresFullInputMask || launcher || session
+    readonly property bool requiresWindowKeyboardFocus: requiresFullInputMask || launcher || session || qsd
 
     Component.onCompleted: CortetsuShellState.registerState(modelData, root)
     Component.onDestruction: CortetsuShellState.unregisterState(modelData, root)

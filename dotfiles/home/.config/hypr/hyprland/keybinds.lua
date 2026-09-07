@@ -57,6 +57,7 @@ create_bind(vars.kbShowSidebar, hl.dsp.global("cortetsu:sidebar"))
 create_bind(vars.kbClearNotifs, hl.dsp.global("cortetsu:clearNotifs"), locked)
 create_bind(vars.kbShowPanels, hl.dsp.global("cortetsu:showall"))
 create_bind(vars.kbLock, hl.dsp.global("cortetsu:lock"))
+create_bind("SUPER + SLASH", hl.dsp.global("cortetsu:qsd"))
 
 -- Restore lock
 create_bind(vars.kbRestoreLock, function()

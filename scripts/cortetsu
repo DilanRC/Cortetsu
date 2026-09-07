@@ -321,6 +321,8 @@ test_cmd() {
         "scripts/features/test-cortetsu-time.py"
         "scripts/features/test-cortetsu-brightness.py"
         "scripts/features/eval-cortetsu-brightness.py"
+        "scripts/features/test-cortetsu-qsd.py"
+        "scripts/features/eval-cortetsu-qsd.py"
         "scripts/features/test-cortetsu-players.py"
         "scripts/features/test-config-migration.py"
         "scripts/features/test-legacy-process-migration.py"

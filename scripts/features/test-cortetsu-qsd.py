@@ -1,0 +1,22 @@
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+qsd = ROOT / "cortetsu/modules/qsd"
+content = (qsd / "Content.qml").read_text(encoding="utf-8")
+panels = (ROOT / "cortetsu/modules/drawers/Panels.qml").read_text(encoding="utf-8")
+window = (ROOT / "cortetsu/modules/drawers/ContentWindow.qml").read_text(encoding="utf-8")
+host = (ROOT / "cortetsu/modules/QsdHost.qml").read_text(encoding="utf-8")
+state = (ROOT / "cortetsu/components/ScreenState.qml").read_text(encoding="utf-8")
+shortcuts = (ROOT / "cortetsu/modules/Shortcuts.qml").read_text(encoding="utf-8")
+hypr = (ROOT / "dotfiles/home/.config/hypr/hyprland/keybinds.lua").read_text(encoding="utf-8")
+
+assert (qsd / "qmldir").is_file()
+for marker in ("Brightness.getMonitorForScreen", "CortetsuAudio.setVolume", "CortetsuNotifications.dnd", "Network unavailable"):
+    assert marker in content, marker
+for marker in ("Variants", "StyledWindow", 'name: "qsd"', "WlrLayer.Overlay", "width: 400", "Content"):
+    assert marker in host, marker
+assert 'qsd: null' in window
+assert "property bool qsd" in state and "|| qsd" in state
+assert 'name: "qsd"' in shortcuts
+assert 'hl.dsp.global("cortetsu:qsd")' in hypr
+print("PASS: QSD is a first-party right-side surface with real controls and shortcut ownership")

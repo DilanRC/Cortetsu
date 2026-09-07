@@ -42,6 +42,18 @@ value against that range, writes a clamped raw value, and reads it back. A
 monitor without a discovered backlight reports unsupported instead of showing
 `0%`. The current machine exposes `amdgpu_bl2` with a `0..65535` range.
 
+## Quick Settings Drawer
+
+QSD is a dedicated first-party layer named `cortetsu-qsd`, separate from the
+BottomHub and transient OSD. The host layer remains allocated so the first open
+does not race layer allocation; only the drawer content is transient. Its visual contract is a 400 px right-side drawer
+with a Cortetsu header, live audio and notification controls, real brightness
+and volume sliders, and network/Bluetooth status. The state belongs to the
+canonical per-screen state, while `SUPER + /` owns the shortcut. The drawer
+uses the shared 120/180/240 ms motion scale and is excluded from the legacy
+panel host's focus-grab cleanup so opening its own layer cannot immediately
+close it.
+
 ## Delivery order
 
 The redesign is delivered in product slices: design foundation, real state

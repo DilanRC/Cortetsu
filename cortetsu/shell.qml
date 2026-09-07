@@ -21,6 +21,7 @@ ShellRoot {
     Drawers {}
     BottomHub {}
     AreaPicker {}
+    QsdHost {}
     Lock { id: lock }
     Shortcuts {}
     BatteryMonitor {}
