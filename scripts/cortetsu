@@ -307,6 +307,7 @@ test_cmd() {
         "scripts/features/test-zero-caelestia-gate.py"
         "scripts/features/test-shortcut-namespace.py"
         "scripts/features/test-cortetsu-screenshot.py"
+        "scripts/features/eval-cortetsu-screenshot.py"
         "scripts/features/test-cortetsu-emoji.py"
         "scripts/features/test-cortetsu-network-idle.py"
         "scripts/features/test-cortetsu-network-dbus.py"

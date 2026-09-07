@@ -1,0 +1,60 @@
+#!/usr/bin/env python3
+"""Capture a selected area without constructing a shell command."""
+
+from __future__ import annotations
+
+import argparse
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+
+GEOMETRY = re.compile(r"^-?\d+,-?\d+ \d+x\d+$")
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("geometry")
+    parser.add_argument("path", type=Path)
+    parser.add_argument("--clipboard", action="store_true")
+    return parser.parse_args()
+
+
+def main() -> int:
+    args = parse_args()
+    if not GEOMETRY.fullmatch(args.geometry):
+        print("invalid capture geometry", file=sys.stderr)
+        return 2
+
+    result = subprocess.run(["grim", "-g", args.geometry, str(args.path)])
+    if result.returncode != 0:
+        return result.returncode
+
+    if args.clipboard:
+        with args.path.open("rb") as image:
+            clipboard = subprocess.run(
+                ["wl-copy", "--type", "image/png"],
+                stdin=image,
+            )
+        if clipboard.returncode != 0:
+            return clipboard.returncode
+        subprocess.Popen(
+            [
+                "notify-send",
+                "-a",
+                "cortetsu",
+                "-i",
+                str(args.path),
+                "Screenshot taken",
+                "Screenshot copied to clipboard",
+            ],
+            start_new_session=True,
+        )
+        return 0
+
+    return subprocess.run(["swappy", "-f", str(args.path)]).returncode
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
