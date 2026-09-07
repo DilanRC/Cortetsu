@@ -391,6 +391,8 @@ verify_cmd() {
     run_python_test "scripts/features/eval-cortetsu-settings.py"
     run_python_test "scripts/features/test-cortetsu-dashboard.py"
     run_python_test "scripts/features/eval-cortetsu-dashboard.py"
+    run_python_test "scripts/features/test-cortetsu-lock.py"
+    run_python_test "scripts/features/eval-cortetsu-lock.py"
     run_python_test "cortetsu/tests/test-runtime-contract.py"
     run_bash_test "cortetsu/tests/test-calendar-readonly.sh"
     dotfiles_cmd verify

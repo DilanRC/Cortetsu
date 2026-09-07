@@ -80,6 +80,16 @@ missing weather or media is presented as an honest empty state. The old panel
 wrapper remains available as migration scaffolding but is hidden from the
 rendered product.
 
+## Lock screen
+
+The lock surface now lives in the first-party `cortetsu/modules/lock` module.
+`WlSessionLock` and the existing PAM provider remain the authentication and
+session boundary; the new UI only consumes that backend. It uses the current
+screen capture with controlled dimming, Cortetsu mark, clock/date, password
+echo, failure feedback, battery/network status, and a restrained keyboard hint.
+The real lock shortcut and IPC are unchanged. The lock action was not triggered
+during development to avoid interrupting the active session.
+
 ## Delivery order
 
 The redesign is delivered in product slices: design foundation, real state
