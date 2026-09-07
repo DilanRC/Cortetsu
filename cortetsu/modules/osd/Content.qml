@@ -7,12 +7,15 @@ import "../../services"
 
 CortetsuPopupSurface {
     id: root
+
     required property var monitor
     required property var screenState
     required property real volume
     required property bool muted
     required property real brightness
-    implicitWidth: 264
+    property bool hovered: false
+
+    implicitWidth: 248
     implicitHeight: indicators.implicitHeight + CortetsuDesign.spacingStandard * 2
 
     Column {
@@ -23,51 +26,131 @@ CortetsuPopupSurface {
 
         Repeater {
             model: [
-                { icon: root.muted ? "volume_off" : "volume_up", label: qsTr("Volume"), value: root.volume },
-                { icon: "brightness_6", label: qsTr("Brightness"), value: root.brightness }
+                {
+                    icon: root.muted ? "volume_off" : "volume_up",
+                    label: qsTr("Volume"),
+                    value: root.volume,
+                    muted: root.muted
+                },
+                {
+                    icon: "brightness_6",
+                    label: qsTr("Brightness"),
+                    value: root.brightness,
+                    muted: false
+                }
             ]
-            delegate: CortetsuSurface {
+
+            delegate: Item {
+                id: indicator
                 required property var modelData
                 implicitWidth: indicators.width
-                implicitHeight: 62
-                radiusValue: CortetsuDesign.radiusMedium
-                baseColor: CortetsuDesign.colorSurfaceHigh
-                outlined: false
+                implicitHeight: 58
 
-                Column {
+                CortetsuSurface {
+                    anchors.fill: parent
+                    radiusValue: CortetsuDesign.radiusMedium
+                    baseColor: Qt.alpha(CortetsuDesign.colorSurfaceHigh, 0.88)
+                    outlineColor: Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.18)
+                    outlined: true
+                    hovered: indicatorMouse.containsMouse
+                }
+
+                Row {
                     anchors.fill: parent
                     anchors.margins: CortetsuDesign.spacingStandard
-                    spacing: CortetsuDesign.spacingCompact
+                    spacing: CortetsuDesign.spacingStandard
 
-                    Row {
-                        width: parent.width
-                        spacing: CortetsuDesign.spacingStandard
-                        CortetsuIcon { text: modelData.icon; color: root.muted && index === 0 ? CortetsuDesign.colorOnSurfaceVariant : CortetsuDesign.colorPrimary; iconSize: CortetsuTypography.iconMediumPx }
-                        CortetsuText { text: `${modelData.label}  ${Math.round(modelData.value * 100)}%`; textSize: CortetsuTypography.bodyPx; anchors.verticalCenter: parent.verticalCenter }
+                    Item {
+                        width: 32
+                        height: 32
+                        anchors.verticalCenter: parent.verticalCenter
+
+                        CortetsuSurface {
+                            anchors.fill: parent
+                            radiusValue: CortetsuDesign.radiusSmall
+                            baseColor: indicator.modelData.muted
+                                ? Qt.alpha(CortetsuDesign.colorOnSurfaceVariant, 0.10)
+                                : Qt.alpha(CortetsuDesign.colorPrimary, 0.14)
+                        }
+
+                        CortetsuIcon {
+                            anchors.centerIn: parent
+                            text: indicator.modelData.icon
+                            color: indicator.modelData.muted
+                                ? CortetsuDesign.colorOnSurfaceVariant
+                                : CortetsuDesign.colorPrimary
+                            iconSize: CortetsuTypography.iconMediumPx
+                        }
                     }
 
-                    Rectangle {
-                        width: parent.width
-                        height: 4
-                        radius: 2
-                        color: CortetsuDesign.colorOutlineVariant
+                    Column {
+                        width: Math.max(0, parent.width - x)
+                        anchors.verticalCenter: parent.verticalCenter
+                        spacing: 5
+
+                        Row {
+                            width: parent.width
+
+                            CortetsuText {
+                                text: indicator.modelData.label
+                                textSize: CortetsuTypography.labelSmallPx
+                                color: CortetsuDesign.colorOnSurfaceVariant
+                            }
+
+                            CortetsuText {
+                                anchors.right: parent.right
+                                text: indicator.modelData.muted
+                                    ? qsTr("Muted")
+                                    : qsTr("%1%").arg(Math.round(indicator.modelData.value * 100))
+                                textSize: CortetsuTypography.labelSmallPx
+                                font.weight: Font.DemiBold
+                                color: indicator.modelData.muted
+                                    ? CortetsuDesign.colorOnSurfaceVariant
+                                    : CortetsuDesign.colorOnSurface
+                            }
+                        }
 
                         Rectangle {
-                            width: parent.width * Math.max(0, Math.min(1, modelData.value))
-                            height: parent.height
-                            radius: parent.radius
-                            color: root.muted && index === 0 ? CortetsuDesign.colorOnSurfaceVariant : CortetsuDesign.colorPrimary
+                            width: parent.width
+                            height: 4
+                            radius: 2
+                            color: Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.72)
+
+                            Rectangle {
+                                width: parent.width * Math.max(0, Math.min(1, indicator.modelData.value))
+                                height: parent.height
+                                radius: parent.radius
+                                color: indicator.modelData.muted
+                                    ? CortetsuDesign.colorOnSurfaceVariant
+                                    : CortetsuDesign.colorPrimary
+
+                                Behavior on width {
+                                    NumberAnimation {
+                                        duration: CortetsuDesign.motionFastMs
+                                        easing.type: Easing.OutCubic
+                                    }
+                                }
+                            }
                         }
                     }
                 }
+
                 MouseArea {
+                    id: indicatorMouse
                     anchors.fill: parent
+                    hoverEnabled: true
+                    onEntered: root.hovered = true
+                    onExited: root.hovered = false
                     onWheel: event => {
                         if (index === 0) {
-                            if (event.angleDelta.y > 0) CortetsuAudio.incrementVolume();
-                            else CortetsuAudio.decrementVolume();
+                            if (event.angleDelta.y > 0)
+                                CortetsuAudio.incrementVolume();
+                            else
+                                CortetsuAudio.decrementVolume();
                         } else if (root.monitor) {
-                            root.monitor.setBrightness(root.brightness + (event.angleDelta.y > 0 ? 0.05 : -0.05));
+                            root.monitor.setBrightness(
+                                root.brightness + (event.angleDelta.y > 0 ? 0.05 : -0.05)
+                            );
                         }
                     }
                 }

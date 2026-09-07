@@ -5,11 +5,11 @@ import "../../services"
 
 Item {
     id: root
+
     required property var screen
     required property var screenState
     required property bool sidebarOrSessionVisible
     readonly property var monitor: Brightness.getMonitorForScreen(screen)
-    property bool hovered: false
     property real offsetScale: screenState.osd ? 0 : 1
     property real sidebarOffset: sidebarOrSessionVisible ? CortetsuDesign.spacingStandard : 0
     property real volume: CortetsuAudio.volume
@@ -22,16 +22,53 @@ Item {
     }
 
     visible: offsetScale < 1
-    anchors.rightMargin: (-implicitWidth - CortetsuDesign.spacingStandard - sidebarOffset) * offsetScale
+    anchors.rightMargin:
+        (-implicitWidth - CortetsuDesign.spacingStandard - sidebarOffset) * offsetScale
     implicitWidth: content.implicitWidth
     implicitHeight: content.implicitHeight
     opacity: 1 - offsetScale
+    scale: 1 - 0.015 * offsetScale
+    transformOrigin: Item.Right
 
-    Connections { target: CortetsuAudio; function onVolumeChanged(): void { root.volume = CortetsuAudio.volume; root.show(); } function onMutedChanged(): void { root.muted = CortetsuAudio.muted; root.show(); } }
-    Connections { target: monitor; function onBrightnessChanged(): void { root.brightness = monitor.brightness; root.show(); } }
+    Connections {
+        target: CortetsuAudio
+        function onVolumeChanged(): void {
+            root.volume = CortetsuAudio.volume;
+            root.show();
+        }
+        function onMutedChanged(): void {
+            root.muted = CortetsuAudio.muted;
+            root.show();
+        }
+    }
 
-    Behavior on offsetScale { NumberAnimation { duration: CortetsuDesign.motionStandardMs; easing.type: Easing.OutCubic } }
-    Timer { id: hideTimer; interval: 1800; onTriggered: if (!root.hovered) root.screenState.osd = false }
+    Connections {
+        target: monitor
+        function onBrightnessChanged(): void {
+            root.brightness = monitor.brightness;
+            root.show();
+        }
+    }
+
+    Behavior on offsetScale {
+        NumberAnimation {
+            duration: screenState.osd
+                ? CortetsuDesign.motionStandardMs
+                : CortetsuDesign.motionFastMs
+            easing.type: screenState.osd ? Easing.OutCubic : Easing.InCubic
+        }
+    }
+
+    Timer {
+        id: hideTimer
+        interval: 1500
+        onTriggered: {
+            if (!content.hovered)
+                root.screenState.osd = false;
+            else
+                restart();
+        }
+    }
 
     Content {
         id: content
