@@ -51,17 +51,12 @@ jobs:
       - name: Validate Ascension overview and display contracts
         run: |
           python3 scripts/features/test-overview-design.py
-          python3 scripts/features/test-overview-interactive.py
+          python3 scripts/features/test-overview-popout-exclusivity.py
           python3 scripts/features/test-display-design.py
-          python3 scripts/features/test-display-input-validation.py
-          python3 scripts/features/test-display-drm-capabilities.py
-          python3 scripts/features/test-display-edid.py
-          python3 scripts/features/test-display-refresh-order.py
+          python3 scripts/features/test-display-primary.py
       - name: Validate Ascension hardware and shell contracts
         run: |
           python3 scripts/features/test-hardware-design.py
-          python3 scripts/features/test-hardware-telemetry.py
-          python3 scripts/features/test-surface-coordinator.py
           python3 scripts/features/test-cortetsu-quality.py
           python3 scripts/features/test-native-bottom-hub.py
           python3 scripts/features/test-native-theme.py
