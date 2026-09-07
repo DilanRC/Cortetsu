@@ -35,7 +35,7 @@ Item {
     scale: root.pressed
         ? 0.965
         : root.hovered
-            ? 1.018
+            ? CortetsuDesign.hoverScale
             : 1
 
     Behavior on scale {
