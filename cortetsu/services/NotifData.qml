@@ -60,6 +60,10 @@ QtObject {
         if (closed)
             return;
 
+        // Remove the live popup before the delegate destruction handshake.
+        // Otherwise a dismissed notification stays in Notifs.popups with
+        // opacity 0 while the UI lock keeps the model item alive.
+        popup = false;
         closed = true;
         if (locks.size === 0)
             dismissAndRemove();
