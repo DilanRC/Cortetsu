@@ -74,6 +74,22 @@ Singleton {
         interval: 1000
         repeat: true
         running: root.running
-        onTriggered: if (state.startedAt) state.elapsed = Math.max(0, (Date.now() - Date.parse(state.startedAt)) / 1000)
+        onTriggered: {
+            status.running = true;
+            if (state.startedAt)
+                state.elapsed = Math.max(0, (Date.now() - Date.parse(state.startedAt)) / 1000);
+        }
+    }
+
+    Process {
+        id: status
+        command: ["cortetsu-record", "status"]
+        onExited: code => {
+            if (code !== 0) {
+                state.running = false;
+                state.paused = false;
+                state.startedAt = "";
+            }
+        }
     }
 }

@@ -98,7 +98,7 @@ def assert_controller(text: str) -> None:
         "CortetsuNetwork.activeEthernet",
         "Bluetooth.devices.values",
         "UPower.displayDevice",
-        "Recorder.stop()",
+        "CortetsuRecorder.stop()",
         "CortetsuNotifications.dnd = !CortetsuNotifications.dnd",
         "CortetsuIdleInhibitor.enabled = !CortetsuIdleInhibitor.enabled",
         "hubRoot.toggleLauncherFor(win.modelData)",

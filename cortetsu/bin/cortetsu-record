@@ -63,9 +63,14 @@ def recorder_is_ours(state: dict) -> bool:
         return False
     try:
         command = Path(f"/proc/{pid}/cmdline").read_bytes().replace(b"\0", b" ").decode(errors="replace")
+        stat = Path(f"/proc/{pid}/stat").read_text(encoding="utf-8")
     except FileNotFoundError:
         return False
-    return RECORDER in command
+    try:
+        current_starttime = int(stat.rsplit(")", 1)[1].split()[19])
+    except (IndexError, ValueError):
+        return False
+    return RECORDER in command and state.get("starttime") == current_starttime
 
 def owned_state() -> dict:
     state = load_state()
@@ -142,8 +147,16 @@ def start(args: argparse.Namespace) -> int:
                 return process.returncode or 1
         except subprocess.TimeoutExpired:
             pass
+        try:
+            stat = Path(f"/proc/{process.pid}/stat").read_text(encoding="utf-8")
+            starttime = int(stat.rsplit(")", 1)[1].split()[19])
+        except (FileNotFoundError, IndexError, ValueError):
+            signal_owned({"pid": process.pid}, signal.SIGINT)
+            notify("Recording failed", "Could not establish recorder process ownership")
+            return 1
         state = {
             "pid": process.pid,
+            "starttime": starttime,
             "mode": "region" if args.region else "fullscreen",
             "sound": bool(args.sound),
             "region": args.region or "",
@@ -202,21 +215,25 @@ def main() -> int:
     if args.self_test:
         self_test()
         return 0
-    if args.pause or args.action == "pause":
-        with state_lock():
-            state = owned_state()
-            if state:
-                signal_owned(state, signal.SIGUSR2)
-                state["paused"] = not bool(state.get("paused", False))
-                atomic_write_json(STATE_PATH, state)
-        return 0
-    if args.action == "status":
-        return 0 if owned_state() else 1
-    if args.action == "stop":
-        return stop(args)
-    if owned_state():
-        return 0
-    return start(args)
+    try:
+        if args.pause or args.action == "pause":
+            with state_lock():
+                state = owned_state()
+                if state:
+                    signal_owned(state, signal.SIGUSR2)
+                    state["paused"] = not bool(state.get("paused", False))
+                    atomic_write_json(STATE_PATH, state)
+            return 0
+        if args.action == "status":
+            return 0 if owned_state() else 1
+        if args.action == "stop":
+            return stop(args)
+        if owned_state():
+            return 0
+        return start(args)
+    except RuntimeError as error:
+        print(f"busy: {error}", file=sys.stderr)
+        return 75
 
 if __name__ == "__main__":
     sys.exit(main())

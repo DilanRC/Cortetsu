@@ -111,7 +111,7 @@ return {
 
     -- Apps
     kbTerminal                 = "SUPER + Return",
-    kbBrowser                  = "SUPER + W",
+    kbBrowser                  = "SUPER + B",
     kbEditor                   = "SUPER + C",
     kbFileExplorer             = "SUPER + E",
     kbAudioSettings            = "CTRL + ALT + V",
@@ -123,7 +123,7 @@ return {
     kbRecord                   = "CTRL + ALT + R",
     kbRecordSound              = "SUPER + ALT + R",
     kbRecordRegion             = "SUPER + SHIFT + ALT + R",
-    kbColorPicker              = "SUPER + SHIFT + C",
+    kbColorPicker              = "SUPER + SHIFT + P",
 
     -- Media
     kbMediaToggle              = "CTRL + SUPER + Space",

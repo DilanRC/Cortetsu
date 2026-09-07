@@ -201,8 +201,6 @@ create_bind(
 create_bind(vars.kbSleep, hl.dsp.exec_cmd(vars.sleepGestureCmd), locked)
 
 -- Clipboard and emoji picker
-create_bind(vars.kbClipboard, hl.dsp.exec_cmd("kitty --class clipse -e clipse"))
-create_bind(vars.kbClipboardDel, hl.dsp.exec_cmd("kitty --class clipse -e clipse"))
 create_bind(vars.kbEmoji, hl.dsp.exec_cmd("pkill fuzzel || cortetsu emoji -p"))
 create_bind(
     vars.kbClipboardPasteLatest,

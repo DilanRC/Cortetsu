@@ -39,7 +39,7 @@ CortetsuSurface {
                 }
 
                 radius: CortetsuTokens.rounding.full
-                color: Recorder.running ? CortetsuColours.palette.m3secondary : CortetsuColours.palette.m3secondaryContainer
+                color: CortetsuRecorder.running ? CortetsuColours.palette.m3secondary : CortetsuColours.palette.m3secondaryContainer
 
                 CortetsuIcon {
                     id: icon
@@ -47,7 +47,7 @@ CortetsuSurface {
                     anchors.centerIn: parent
                     anchors.verticalCenterOffset: 1
                     text: "screen_record"
-                    color: Recorder.running ? CortetsuColours.palette.m3onSecondary : CortetsuColours.palette.m3onSecondaryContainer
+                    color: CortetsuRecorder.running ? CortetsuColours.palette.m3onSecondary : CortetsuColours.palette.m3onSecondaryContainer
                     fontStyle: CortetsuTokens.font.icon.large
                 }
             }
@@ -65,7 +65,7 @@ CortetsuSurface {
 
                 CortetsuText {
                     Layout.fillWidth: true
-                    text: Recorder.paused ? qsTr("Paused") : Recorder.running ? qsTr("Running...") : qsTr("Ready")
+                    text: CortetsuRecorder.paused ? qsTr("Paused") : CortetsuRecorder.running ? qsTr("Running...") : qsTr("Ready")
                     color: CortetsuColours.palette.m3onSurfaceVariant
                     font: CortetsuTokens.font.body.small
                     elide: Text.ElideRight
@@ -74,7 +74,7 @@ CortetsuSurface {
             }
 
             SplitButton {
-                disabled: Recorder.running
+                disabled: CortetsuRecorder.running
 
                 active: menuItems.find(m => root.props.recordingMode === m.icon + m.text) ?? menuItems[0]
                 menu.onItemSelected: item => root.props.recordingMode = item.icon + item.text
@@ -84,25 +84,25 @@ CortetsuSurface {
                         icon: "fullscreen"
                         text: qsTr("Record fullscreen")
                         activeText: qsTr("Fullscreen")
-                        onClicked: Recorder.start()
+                        onClicked: CortetsuRecorder.start()
                     },
                     MenuItem {
                         icon: "screenshot_region"
                         text: qsTr("Record region")
                         activeText: qsTr("Region")
-                        onClicked: Recorder.start(["-r"])
+                        onClicked: CortetsuRecorder.start(["-r"])
                     },
                     MenuItem {
                         icon: "select_to_speak"
                         text: qsTr("Record fullscreen with sound")
                         activeText: qsTr("Fullscreen")
-                        onClicked: Recorder.start(["-s"])
+                        onClicked: CortetsuRecorder.start(["-s"])
                     },
                     MenuItem {
                         icon: "volume_up"
                         text: qsTr("Record region with sound")
                         activeText: qsTr("Region")
-                        onClicked: Recorder.start(["-sr"])
+                        onClicked: CortetsuRecorder.start(["-sr"])
                     }
                 ]
             }
@@ -111,7 +111,7 @@ CortetsuSurface {
         Loader {
             id: listOrControls
 
-            property bool running: Recorder.running
+            property bool running: CortetsuRecorder.running
 
             asynchronous: true
             Layout.fillWidth: true
@@ -181,7 +181,7 @@ CortetsuSurface {
 
             CortetsuSurface {
                 radius: CortetsuTokens.rounding.full
-                color: Recorder.paused ? CortetsuColours.palette.m3tertiary : CortetsuColours.palette.m3error
+                color: CortetsuRecorder.paused ? CortetsuColours.palette.m3tertiary : CortetsuColours.palette.m3error
 
                 implicitWidth: recText.implicitWidth + CortetsuTokens.padding.medium * 2
                 implicitHeight: recText.implicitHeight + CortetsuTokens.padding.large
@@ -191,8 +191,8 @@ CortetsuSurface {
 
                     anchors.centerIn: parent
                     animate: true
-                    text: Recorder.paused ? "PAUSED" : "REC"
-                    color: Recorder.paused ? CortetsuColours.palette.m3onTertiary : CortetsuColours.palette.m3onError
+                    text: CortetsuRecorder.paused ? "PAUSED" : "REC"
+                    color: CortetsuRecorder.paused ? CortetsuColours.palette.m3onTertiary : CortetsuColours.palette.m3onError
                     font: CortetsuTokens.font.mono.small
                 }
 
@@ -201,7 +201,7 @@ CortetsuSurface {
                 }
 
                 SequentialAnimation on opacity {
-                    running: !Recorder.paused
+                    running: !CortetsuRecorder.paused
                     alwaysRunToEnd: true
                     loops: Animation.Infinite
 
@@ -223,7 +223,7 @@ CortetsuSurface {
             CortetsuText {
                 Layout.fillWidth: true
                 text: {
-                    const elapsed = Recorder.elapsed;
+                    const elapsed = CortetsuRecorder.elapsed;
 
                     const hours = Math.floor(elapsed / 3600);
                     const mins = Math.floor((elapsed % 3600) / 60);
@@ -248,14 +248,14 @@ CortetsuSurface {
                     shapeMorph: true
                     isRound: true
                     label.animate: true
-                    icon: Recorder.paused ? "play_arrow" : "pause"
+                    icon: CortetsuRecorder.paused ? "play_arrow" : "pause"
                     isToggle: true
-                    checked: Recorder.paused
+                    checked: CortetsuRecorder.paused
                     type: IconButton.Tonal
                     font: CortetsuTokens.font.icon.medium
                     onClicked: {
-                        Recorder.togglePause();
-                        internalChecked = Recorder.paused;
+                        CortetsuRecorder.togglePause();
+                        internalChecked = CortetsuRecorder.paused;
                     }
 
                     implicitWidth: {
@@ -274,7 +274,7 @@ CortetsuSurface {
                     inactiveColour: CortetsuColours.palette.m3error
                     inactiveOnColour: CortetsuColours.palette.m3onError
                     font: CortetsuTokens.font.icon.medium
-                    onClicked: Recorder.stop()
+                    onClicked: CortetsuRecorder.stop()
 
                     implicitWidth: {
                         // Ensure even size so icon is centered properly
