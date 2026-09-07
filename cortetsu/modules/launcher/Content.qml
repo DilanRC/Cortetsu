@@ -4,12 +4,7 @@ import QtQuick
 import QtQuick.Controls
 import ".."
 import "../CortetsuDesign.js" as CortetsuDesign
-import "../CortetsuTypography.js" as CortetsuTypography
-import "../CortetsuSurface.qml"
-import "../CortetsuText.qml"
-import "../CortetsuIcon.qml"
 import "../CortetsuSearchBar.qml"
-import "../../components"
 import qs.modules.launcher.services
 
 Item {
@@ -19,51 +14,33 @@ Item {
     required property var panels
     required property real maxHeight
 
-    readonly property int padding: CortetsuDesign.spacingComfortable
+    readonly property int padding: CortetsuDesign.spacingStandard
     readonly property int rounding: CortetsuDesign.radiusLarge
 
     implicitWidth: listWrapper.width + padding * 2
     implicitHeight:
         padding +
-        heading.implicitHeight +
-        CortetsuDesign.spacingCompact +
         search.implicitHeight +
-        padding +
-        listWrapper.implicitHeight +
         CortetsuDesign.spacingStandard +
-        keyboardHint.implicitHeight +
+        listWrapper.implicitHeight +
         padding
 
     CortetsuPopupSurface {
         anchors.fill: parent
-        baseColor: Qt.alpha(CortetsuDesign.colorTetsu, 0.96)
-        outlineColor: Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.28)
+        baseColor: Qt.alpha(CortetsuDesign.colorTetsu, 0.94)
+        outlineColor: Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.16)
     }
 
-    CortetsuSectionHeader {
-        id: heading
+    CortetsuSearchBar {
+        id: search
+        objectName: "launcherSearch"
         anchors.top: parent.top
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.topMargin: root.padding
         anchors.leftMargin: root.padding
         anchors.rightMargin: root.padding
-        title: qsTr("Launcher")
-        detail: search.text.length > 0
-            ? qsTr("Search active")
-            : qsTr("Applications and commands")
-    }
-
-    CortetsuSearchBar {
-        id: search
-        objectName: "launcherSearch"
-        anchors.top: heading.bottom
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.topMargin: CortetsuDesign.spacingCompact
-        anchors.leftMargin: root.padding
-        anchors.rightMargin: root.padding
-        placeholderText: qsTr("Search apps or type \"%1\" for commands").arg(CortetsuConfig.actionPrefix)
+        placeholderText: qsTr("Search apps, files or commands…")
 
         onAccepted: {
             const currentItem = list.currentList?.currentItem;
@@ -163,7 +140,7 @@ Item {
         implicitWidth: list.width
         implicitHeight: list.height
         anchors.top: search.bottom
-        anchors.topMargin: root.padding
+        anchors.topMargin: CortetsuDesign.spacingStandard
         anchors.horizontalCenter: parent.horizontalCenter
 
         ContentList {
@@ -174,22 +151,10 @@ Item {
             maxHeight:
                 root.maxHeight -
                 search.implicitHeight -
-                heading.implicitHeight -
-                keyboardHint.implicitHeight -
-                root.padding * 4
+                root.padding * 3
             search: search
             padding: root.padding
             rounding: root.rounding
         }
-    }
-
-    CortetsuText {
-        id: keyboardHint
-        anchors.top: listWrapper.bottom
-        anchors.topMargin: CortetsuDesign.spacingStandard
-        anchors.horizontalCenter: parent.horizontalCenter
-        text: qsTr("↑ ↓ ← → navigate   ·   Enter open   ·   Esc close")
-        textSize: CortetsuTypography.labelSmallPx
-        color: Qt.alpha(CortetsuDesign.colorOnSurfaceVariant, 0.72)
     }
 }
