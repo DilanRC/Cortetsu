@@ -19,6 +19,16 @@ Item {
     implicitWidth: row.implicitWidth + CortetsuDesign.spacingStandard * 2
     implicitHeight: compact ? 32 : CortetsuDesign.controlHeight
     opacity: disabled ? 0.48 : 1
+    scale: mouse.pressed ? 0.98 : mouse.containsMouse ? 1.008 : 1
+
+    Behavior on scale {
+        NumberAnimation {
+            duration: mouse.pressed
+                ? CortetsuDesign.motionInstantMs
+                : CortetsuDesign.motionFastMs
+            easing.type: Easing.OutCubic
+        }
+    }
 
     CortetsuSurface {
         id: surface
@@ -28,8 +38,17 @@ Item {
         danger: root.danger
         disabled: root.disabled
         focused: root.activeFocus
-        baseColor: root.active ? CortetsuDesign.colorPrimary : CortetsuDesign.colorSurfaceGlass
-        outlined: !root.active
+        baseColor: root.danger
+            ? Qt.alpha(CortetsuDesign.colorVermillion, 0.08)
+            : root.active
+                ? CortetsuDesign.colorPrimary
+                : Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.86)
+        hoverColor: root.danger
+            ? Qt.alpha(CortetsuDesign.colorVermillion, 0.14)
+            : root.active
+                ? Qt.lighter(CortetsuDesign.colorPrimary, 1.08)
+                : CortetsuDesign.colorSurfaceGlassStrong
+        outlined: !root.active || root.danger
         hovered: mouse.containsMouse
         pressed: mouse.pressed
     }
@@ -42,16 +61,29 @@ Item {
         CortetsuIcon {
             visible: root.icon.length > 0
             text: root.icon
-            iconSize: root.compact ? CortetsuTypography.iconSmallPx : CortetsuTypography.iconMediumPx
-            color: root.active ? CortetsuDesign.colorOnPrimary : CortetsuDesign.colorOnSurface
+            iconSize: root.compact
+                ? CortetsuTypography.iconSmallPx
+                : CortetsuTypography.iconMediumPx
+            color: root.danger
+                ? CortetsuDesign.colorVermillion
+                : root.active
+                    ? CortetsuDesign.colorOnPrimary
+                    : CortetsuDesign.colorOnSurface
             anchors.verticalCenter: parent.verticalCenter
         }
 
         CortetsuText {
             visible: root.label.length > 0
             text: root.label
-            textSize: root.compact ? CortetsuTypography.labelMediumPx : CortetsuTypography.bodyPx
-            color: root.active ? CortetsuDesign.colorOnPrimary : CortetsuDesign.colorOnSurface
+            textSize: root.compact
+                ? CortetsuTypography.labelMediumPx
+                : CortetsuTypography.bodyPx
+            color: root.danger
+                ? CortetsuDesign.colorVermillion
+                : root.active
+                    ? CortetsuDesign.colorOnPrimary
+                    : CortetsuDesign.colorOnSurface
+            font.weight: root.active ? Font.DemiBold : Font.Normal
             anchors.verticalCenter: parent.verticalCenter
         }
     }
@@ -62,6 +94,7 @@ Item {
         enabled: !root.disabled
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
+        onPressed: root.forceActiveFocus()
         onClicked: root.clicked()
     }
 
