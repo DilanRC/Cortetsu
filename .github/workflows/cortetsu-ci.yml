@@ -77,7 +77,7 @@ jobs:
           test -f core/theme.py
           test -f core/shell_lifecycle.py
           test -f core/import_fish.py
-          test -f core/retire_legacy_theme.py
+          test -f scripts/maintenance/retire_legacy_theme.py
           test -x scripts/features/test-dotfiles-platform.py
           test -x scripts/features/test-system-generations.py
           test -f scripts/features/test-shell-lifecycle.py
@@ -119,7 +119,7 @@ jobs:
           grep -q 'core/dotfiles.py' scripts/install-cortetsu.sh
           grep -q 'core/system.py' scripts/install-cortetsu.sh
           grep -q 'core/theme.py' scripts/install-cortetsu.sh
-          grep -q 'core/retire_legacy_theme.py' scripts/install-cortetsu.sh
+          grep -q 'scripts/maintenance/retire_legacy_theme.py' scripts/install-cortetsu.sh
           grep -q 'core/shell_lifecycle.py' scripts/install-cortetsu.sh
           grep -q 'theme) theme_cmd' scripts/cortetsu
           grep -q 'rollback) rollback_cmd' scripts/cortetsu
