@@ -87,8 +87,9 @@ Item {
         clip: false
         implicitWidth: session.implicitWidth * (1 - session.offsetScale)
         implicitHeight: session.implicitHeight
-        Session.Wrapper {
-            id: session
+    Session.Wrapper {
+        id: session
+        visible: false
             screenState: root.screenState
             sidebarVisible: sidebar.visible
             anchors.verticalCenter: parent.verticalCenter
