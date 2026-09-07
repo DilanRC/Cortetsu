@@ -14,7 +14,7 @@ Scope {
         onPressed: {
             if (root.hasFullscreen) return;
             const state = ShellState.forActive();
-            state.launcher = state.dashboard = state.osd = state.utilities = state.qsd = !(state.launcher || state.dashboard || state.osd || state.utilities || state.qsd);
+            state.launcher = state.dashboard = state.osd = state.utilities = state.qsd = state.settings = !(state.launcher || state.dashboard || state.osd || state.utilities || state.qsd || state.settings);
         }
     }
     CustomShortcut { name: "dashboard"; description: "Toggle dashboard"; onPressed: if (!root.hasFullscreen) ShellState.forActive().dashboard = !ShellState.forActive().dashboard }
@@ -39,6 +39,7 @@ Scope {
     }
     CustomShortcut { name: "utilities"; description: "Toggle utilities"; onPressed: if (!root.hasFullscreen) ShellState.forActive().utilities = !ShellState.forActive().utilities }
     CustomShortcut { name: "qsd"; description: "Toggle Quick Settings Drawer"; onPressed: if (!root.hasFullscreen) ShellState.forActive().qsd = !ShellState.forActive().qsd }
+    CustomShortcut { name: "settings"; description: "Toggle Cortetsu Settings Center"; onPressed: if (!root.hasFullscreen) ShellState.forActive().settings = !ShellState.forActive().settings }
 
     IpcHandler {
         target: "drawers"

@@ -22,7 +22,7 @@ Item {
             Layout.fillWidth: true
             spacing: CortetsuDesign.spacingStandard
 
-            CortetsuIcon { text: "hexagon"; iconSize: CortetsuTypography.iconMediumPx; color: CortetsuDesign.colorPrimary }
+            Image { source: Quickshell.shellPath("assets/branding/cortetsu-mark.svg"); sourceSize.width: 24; sourceSize.height: 24; Layout.preferredWidth: 24; Layout.preferredHeight: 24; fillMode: Image.PreserveAspectFit }
             ColumnLayout {
                 Layout.fillWidth: true
                 spacing: 0

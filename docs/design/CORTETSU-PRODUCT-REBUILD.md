@@ -31,7 +31,10 @@ monochrome, on dark or light surfaces, and with Indigo without maintaining
 separate raster variants. The diagonal cuts are structural, not decorative.
 
 The mark is used selectively in product-entry surfaces such as Settings,
-Dashboard, Lock, and About. It is not repeated in every popup.
+Dashboard, Lock, and About. It is not repeated in every popup. The shipped SVG
+uses a Washi monochrome foreground so external `Image` loading stays legible
+on the dark shell surface; recolouring remains a presentation concern rather
+than a second logo asset.
 
 ## Brightness contract
 
@@ -53,6 +56,18 @@ canonical per-screen state, while `SUPER + /` owns the shortcut. The drawer
 uses the shared 120/180/240 ms motion scale and is excluded from the legacy
 panel host's focus-grab cleanup so opening its own layer cannot immediately
 close it.
+
+## Settings Center
+
+`SUPER + I` now opens a dedicated `cortetsu-settings` full surface. The left
+navigation is searchable and groups settings by product area; the content area
+uses sections instead of a wall of equal cards. Appearance includes a live
+gallery backed by `cortetsu-scheme list`, with five swatches per installed
+family/flavour and direct selection. Exposed toggles call `CortetsuConfig` and
+persist through its XDG preferences contract. Categories without a connected
+read/write backend show an explicit staged boundary instead of a fake switch.
+The Settings host closes on Escape and uses exclusive keyboard focus only while
+open.
 
 ## Delivery order
 

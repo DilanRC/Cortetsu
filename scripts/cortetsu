@@ -387,6 +387,8 @@ verify_cmd() {
     fi
     theme_cmd check
     run_python_test "scripts/features/test-cortetsu-quality.py"
+    run_python_test "scripts/features/test-cortetsu-settings.py"
+    run_python_test "scripts/features/eval-cortetsu-settings.py"
     run_python_test "cortetsu/tests/test-runtime-contract.py"
     run_bash_test "cortetsu/tests/test-calendar-readonly.sh"
     dotfiles_cmd verify
