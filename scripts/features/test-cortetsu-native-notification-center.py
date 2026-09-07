@@ -36,7 +36,8 @@ assert "dismissalRequested" in notif_data
 assert "function dismissAndRemove" in notif_data
 assert "if (closed)" in notif_data
 wrapper = (ROOT / "cortetsu/modules/notifications/Wrapper.qml").read_text(encoding="utf-8")
-assert "modelData: root.visibleNotifications[index]" in wrapper
+assert "model: Notifs.popups" in wrapper
+assert "visibleNotifications" not in wrapper
 assert "modelData: root.active[index]" in content
 assert "required property var modelData" in notification
 assert "modelData.timeStr" in content
