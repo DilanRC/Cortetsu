@@ -17,5 +17,7 @@ assert "CortetsuRecorder.running" in utilities
 assert "Math.max(0, Math.min(1, indicator.modelData.value))" in osd
 assert "CortetsuAudio.incrementVolume" in osd
 assert "setBrightness" in osd
+assert "id: indicatorSummary" in osd
+assert "Row {\n                            CortetsuText" not in osd
 
 print("PASS: Wave 4 Quick Settings and OSD stay first-party and state-legible")

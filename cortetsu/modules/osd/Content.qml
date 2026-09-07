@@ -88,16 +88,20 @@ CortetsuPopupSurface {
                         anchors.verticalCenter: parent.verticalCenter
                         spacing: 5
 
-                        Row {
+                        Item {
+                            id: indicatorSummary
                             width: parent.width
+                            height: Math.max(indicatorLabel.implicitHeight, indicatorValue.implicitHeight)
 
                             CortetsuText {
+                                id: indicatorLabel
                                 text: indicator.modelData.label
                                 textSize: CortetsuTypography.labelSmallPx
                                 color: CortetsuDesign.colorOnSurfaceVariant
                             }
 
                             CortetsuText {
+                                id: indicatorValue
                                 anchors.right: parent.right
                                 text: indicator.modelData.muted
                                     ? qsTr("Muted")

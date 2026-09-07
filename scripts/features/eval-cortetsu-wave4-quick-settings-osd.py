@@ -21,6 +21,7 @@ checks = {
     "osd keeps brightness wheel control": "root.monitor.setBrightness" in osd,
     "osd renders a bounded level": "Math.max(0, Math.min(1, indicator.modelData.value))" in osd,
     "osd distinguishes mute": "indicator.modelData.muted" in osd,
+    "osd summary avoids invalid Row anchors": "id: indicatorSummary" in osd and "Row {\n                            CortetsuText" not in osd,
     "surfaces avoid legacy ownership": all(
         legacy not in utilities and legacy not in osd
         for legacy in ("Caelestia", "GlobalConfig", "qs.services", "qs.components", "Tokens", "Colours")
