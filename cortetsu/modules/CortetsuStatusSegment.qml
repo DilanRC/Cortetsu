@@ -42,10 +42,19 @@ Item {
     width: implicitWidth
     height: implicitHeight
 
+    component Hairline: Rectangle {
+        anchors.verticalCenter: parent.verticalCenter
+        width: 1
+        height: 24
+        radius: 1
+        color: Qt.alpha(CortetsuDesign.colorMuted, 0.18)
+    }
+
     CortetsuSurface {
         anchors.fill: parent
         radiusValue: CortetsuDesign.radiusLarge
-        baseColor: CortetsuDesign.colorTetsu
+        baseColor: Qt.alpha(CortetsuDesign.colorSurfaceHigh, 0.72)
+        outlineColor: Qt.alpha(CortetsuDesign.colorMuted, 0.2)
         outlined: true
     }
 
@@ -59,6 +68,9 @@ Item {
             buttonSize: 40
             iconSize: CortetsuTypography.iconMediumPx
             icon: root.volumeIcon
+            iconColor: root.volumeMuted
+                ? Qt.alpha(CortetsuDesign.colorMuted, 0.68)
+                : CortetsuDesign.colorMuted
             tooltip: root.volumeMuted ? qsTr("Unmute") : qsTr("Mute")
             onHoveredChanged: {
                 if (hovered)
@@ -112,6 +124,8 @@ Item {
             onClicked: root.attachedControlRequested("battery", root.centerFor(batteryButton))
         }
 
+        Hairline {}
+
         Item {
             implicitWidth: 44
             implicitHeight: 44
@@ -132,10 +146,14 @@ Item {
                 visible: root.notificationCount > 0
                 anchors.top: parent.top
                 anchors.right: parent.right
-                width: 18
-                height: 18
+                anchors.topMargin: 1
+                anchors.rightMargin: 1
+                width: 17
+                height: 17
                 radius: 9
                 color: CortetsuDesign.colorIndigo
+                border.width: 1
+                border.color: Qt.alpha(CortetsuDesign.colorWashi, 0.22)
 
                 CortetsuText {
                     anchors.centerIn: parent
@@ -155,6 +173,8 @@ Item {
             onToggleIdleInhibitorRequested: root.toggleIdleInhibitorRequested()
         }
 
+        Hairline {}
+
         Item {
             implicitWidth: 74
             implicitHeight: 44
@@ -165,9 +185,13 @@ Item {
 
             CortetsuSurface {
                 anchors.fill: parent
+                anchors.margins: 2
                 radiusValue: CortetsuDesign.radiusSmall
                 baseColor: "transparent"
-                hoverColor: Qt.lighter(CortetsuDesign.colorTetsu, 1.18)
+                hoverColor: Qt.alpha(CortetsuDesign.colorSurfaceHigh, 0.94)
+                outlineColor: parent.activeFocus
+                    ? Qt.alpha(CortetsuDesign.colorWashi, 0.82)
+                    : Qt.alpha(CortetsuDesign.colorMuted, 0.12)
                 hovered: clockMouse.containsMouse
                 focused: parent.activeFocus
                 outlined: false
@@ -212,8 +236,10 @@ Item {
             icon: "power_settings_new"
             active: root.sessionActive
             tooltip: qsTr("Session")
-            activeColor: CortetsuDesign.colorVermillion
-            iconColor: active ? CortetsuDesign.colorWashi : CortetsuDesign.colorMuted
+            activeColor: Qt.alpha(CortetsuDesign.colorVermillion, 0.74)
+            iconColor: active || hovered || activeFocus
+                ? CortetsuDesign.colorWashi
+                : CortetsuDesign.colorMuted
             onClicked: root.sessionRequested()
         }
     }

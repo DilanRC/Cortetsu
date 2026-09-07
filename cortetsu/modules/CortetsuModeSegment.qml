@@ -24,14 +24,15 @@ Item {
     CortetsuSurface {
         anchors.fill: parent
         radiusValue: CortetsuDesign.radiusLarge
-        baseColor: CortetsuDesign.colorTetsu
+        baseColor: Qt.alpha(CortetsuDesign.colorSurfaceHigh, 0.72)
+        outlineColor: Qt.alpha(CortetsuDesign.colorMuted, 0.2)
         outlined: true
     }
 
     Row {
         id: content
         anchors.centerIn: parent
-        spacing: 2
+        spacing: 3
 
         HubButton {
             buttonSize: 44
@@ -48,6 +49,14 @@ Item {
             active: root.wallpaperActive
             tooltip: qsTr("Wallpaper manager")
             onClicked: root.wallpaperRequested()
+        }
+
+        Rectangle {
+            anchors.verticalCenter: parent.verticalCenter
+            width: 1
+            height: 24
+            radius: 1
+            color: Qt.alpha(CortetsuDesign.colorMuted, 0.18)
         }
 
         CortetsuWorkspaceDots {

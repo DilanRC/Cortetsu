@@ -53,22 +53,22 @@ Item {
     signal sessionRequested()
 
     readonly property real rightOccupiedWidth:
-        statusSegment.width + (traySegment.visible ? traySegment.width + 8 : 0)
+        statusSegment.width + (traySegment.visible ? traySegment.width + 6 : 0)
     readonly property real appRailMaxWidth: Math.max(
         180,
-        width - Math.max(leftSegment.width, rightOccupiedWidth) * 2 - 48
+        width - Math.max(leftSegment.width, rightOccupiedWidth) * 2 - 64
     )
 
     implicitHeight: 60
 
-    // The dock is one product surface; the segments remain separate only for
-    // interaction and popup anchoring.
+    // The dock is one restrained steel surface; individual segments keep
+    // their own hierarchy only for interaction, keyboard focus and anchoring.
     CortetsuSurface {
         id: dockBackdrop
 
         anchors.fill: parent
         radiusValue: 0
-        baseColor: Qt.alpha(CortetsuDesign.colorSumi, 0.82)
+        baseColor: Qt.alpha(CortetsuDesign.colorSumi, 0.9)
         outlined: false
     }
 
@@ -77,14 +77,22 @@ Item {
         anchors.right: parent.right
         anchors.top: parent.top
         height: 1
-        color: Qt.alpha(CortetsuDesign.colorWashi, 0.12)
+        color: Qt.alpha(CortetsuDesign.colorWashi, 0.16)
+    }
+
+    Rectangle {
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        height: 1
+        color: Qt.alpha(CortetsuDesign.colorSumi, 0.72)
     }
 
     CortetsuModeSegment {
         id: leftSegment
 
         anchors.left: parent.left
-        anchors.leftMargin: 2
+        anchors.leftMargin: 6
         anchors.verticalCenter: parent.verticalCenter
         launcherActive: root.launcherActive
         wallpaperActive: root.wallpaperActive
@@ -115,7 +123,7 @@ Item {
         id: traySegment
 
         anchors.right: statusSegment.left
-        anchors.rightMargin: 8
+        anchors.rightMargin: 6
         anchors.verticalCenter: parent.verticalCenter
         items: root.trayItems
         onHoverRequested: (itemId, centerX) => root.trayHoverRequested(
@@ -130,7 +138,7 @@ Item {
         id: statusSegment
 
         anchors.right: parent.right
-        anchors.rightMargin: 2
+        anchors.rightMargin: 6
         anchors.verticalCenter: parent.verticalCenter
         volumeIcon: root.volumeIcon
         volumeMuted: root.volumeMuted
