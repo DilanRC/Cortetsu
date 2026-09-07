@@ -51,7 +51,7 @@ Item {
                     height: implicitHeight
                     focus: true
                     activeFocusOnTab: true
-                    scale: appMouse.pressed ? 0.97 : appMouse.containsMouse ? 1.015 : 1
+                    scale: appMouse.pressed ? 0.97 : appMouse.containsMouse ? CortetsuDesign.hoverScale : 1
 
                     Behavior on scale {
                         NumberAnimation {
