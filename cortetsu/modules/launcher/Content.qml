@@ -40,7 +40,7 @@ Item {
         anchors.topMargin: root.padding
         anchors.leftMargin: root.padding
         anchors.rightMargin: root.padding
-        placeholderText: qsTr("Search apps, files or commands…")
+        placeholderText: qsTr("Search apps or commands…")
 
         onAccepted: {
             const currentItem = list.currentList?.currentItem;
