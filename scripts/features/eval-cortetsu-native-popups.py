@@ -11,7 +11,7 @@ for name in required:
 network = (popouts / "CortetsuNetworkPopup.qml").read_text(encoding="utf-8")
 assert "activeEthernet" in network
 assert "wiredActive" in network
-assert 'icon: "lan"' in network
+assert ': "lan"' in network
 popup_surface = (ROOT / "cortetsu/components/CortetsuPopupSurface.qml").read_text(encoding="utf-8")
 assert "CortetsuSurface" in popup_surface
 assert "CortetsuDesign.radiusLarge" in popup_surface

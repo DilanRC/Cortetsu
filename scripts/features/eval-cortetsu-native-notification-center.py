@@ -15,6 +15,7 @@ assert 'import "../CortetsuDesign.js" as CortetsuDesign' in notification
 assert 'import "../CortetsuTypography.js" as CortetsuTypography' in notification
 assert "modelData.appName" in notification and "modelData.image" in notification
 assert "modelData.urgency >= 2" in notification
+assert "root.modelData.actions.length > 0 || root.hovered || root.expanded || root.activeFocus" in notification
 assert 'label: qsTr("Dismiss")' in notification
 assert "dismissalRequested" in notif_data
 assert "function dismissAndRemove" in notif_data

@@ -10,10 +10,11 @@ for source in (utilities, osd):
         assert legacy not in source, legacy
 
 assert "CortetsuPopupSurface" in utilities
-assert "Recording active" in utilities
+assert "Screen recording active" in utilities
+assert "Cortetsu is ready" in utilities
 assert "CortetsuIdleInhibitor.enabled" in utilities
 assert "CortetsuRecorder.running" in utilities
-assert "Math.max(0, Math.min(1, modelData.value))" in osd
+assert "Math.max(0, Math.min(1, indicator.modelData.value))" in osd
 assert "CortetsuAudio.incrementVolume" in osd
 assert "setBrightness" in osd
 

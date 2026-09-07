@@ -12,7 +12,7 @@ criteria = {
     "host tracks repeater children": "implicitHeight: column.childrenRect.height" in view,
     "toast host stays above panels": "z: 100" in view,
     "toast requests active keyboard focus": "forceActiveFocus()" in view,
-    "mouse dismissal exists": "MouseArea" in view and "CortetsuToaster.dismiss(root.visibleToasts[0].id)" in view,
+    "mouse dismissal exists": "MouseArea" in item and "onClicked: root.dismissed()" in item,
     "toast shares the bar layer": 'import "utilities/toasts" as Toasts' in bottom_hub,
     "toast sits above the bar": "anchors.bottom: bottomHubView.top" in bottom_hub,
     "toast window expands for content": "toasts.implicitHeight" in bottom_hub,

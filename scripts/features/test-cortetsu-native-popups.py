@@ -29,8 +29,9 @@ assert "sourceComponent: CortetsuAudioPopup" in content
 assert "sourceComponent: CortetsuBluetoothPopup" in content
 assert "sourceComponent: CortetsuWifiPasswordPopup" in content
 network = (popouts / "CortetsuNetworkPopup.qml").read_text(encoding="utf-8")
-assert "activeEthernet" in network and 'icon: "lan"' in network
-assert "Ethernet connected" in network and "Network unavailable" in network
+assert "activeEthernet" in network and ': "lan"' in network
+assert 'qsTr("Ethernet")' in network and 'qsTr("Connected")' in network
+assert "Network unavailable" in network
 assert "function closeAllPopouts(): void" in hub
 assert "closeAllPopouts();" in hub
 assert "id: hideTimer" in hub and "interval: 500" in hub
