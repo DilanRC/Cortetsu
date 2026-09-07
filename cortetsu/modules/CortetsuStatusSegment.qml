@@ -1,4 +1,5 @@
 import QtQuick
+import "../components"
 import "CortetsuDesign.js" as CortetsuDesign
 import "CortetsuTypography.js" as CortetsuTypography
 
@@ -8,6 +9,7 @@ Item {
     required property string volumeIcon
     required property bool volumeMuted
     required property string networkIcon
+    required property string networkTooltip
     required property bool networkActive
     required property string bluetoothIcon
     required property bool bluetoothActive
@@ -50,6 +52,16 @@ Item {
         color: Qt.alpha(CortetsuDesign.colorMuted, 0.14)
     }
 
+    CortetsuSurface {
+        anchors.fill: parent
+        anchors.margins: 1
+        z: -1
+        radiusValue: CortetsuDesign.radiusLarge
+        baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.72)
+        outlineColor: Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.38)
+        outlined: true
+    }
+
     Row {
         id: statusRow
         anchors.centerIn: parent
@@ -78,7 +90,7 @@ Item {
             iconSize: CortetsuTypography.iconMediumPx
             icon: root.networkIcon
             active: root.networkActive
-            tooltip: qsTr("Network")
+        tooltip: root.networkTooltip
             onHoveredChanged: {
                 if (hovered)
                     root.attachedControlRequested("network", root.centerFor(networkButton));

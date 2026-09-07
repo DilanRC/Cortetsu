@@ -314,10 +314,19 @@ Scope {
             readonly property string volumeIcon: Icons.getVolumeIcon(CortetsuAudio.volume, CortetsuAudio.muted)
             readonly property string networkIcon: CortetsuNetwork.activeEthernet
                 ? "cable"
+                : CortetsuNetwork.connecting
+                    ? "sync"
                 : CortetsuNetwork.active
                     ? Icons.getNetworkIcon(CortetsuNetwork.active.strength ?? 0)
                     : "wifi_off"
-            readonly property bool networkActive: CortetsuNetwork.activeEthernet || !!CortetsuNetwork.active
+            readonly property bool networkActive: CortetsuNetwork.connecting || CortetsuNetwork.activeEthernet || !!CortetsuNetwork.active
+            readonly property string networkTooltip: CortetsuNetwork.connecting
+                ? qsTr("Connecting to network")
+                : CortetsuNetwork.activeEthernet
+                    ? qsTr("Ethernet connected")
+                    : CortetsuNetwork.active
+                        ? qsTr("%1 · signal %2%").arg(CortetsuNetwork.active.ssid).arg(Math.round(CortetsuNetwork.active.strength ?? 0))
+                        : qsTr("Network unavailable")
             readonly property bool bluetoothActive: Bluetooth.devices.values.some(device => device.connected)
             readonly property string bluetoothIcon: !Bluetooth.defaultAdapter?.enabled
                 ? "bluetooth_disabled"
@@ -699,6 +708,7 @@ Scope {
                 volumeIcon: win.volumeIcon
                 volumeMuted: CortetsuAudio.muted
                 networkIcon: win.networkIcon
+                networkTooltip: win.networkTooltip
                 networkActive: win.networkActive
                 bluetoothIcon: win.bluetoothIcon
                 bluetoothActive: win.bluetoothActive

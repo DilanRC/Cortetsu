@@ -101,6 +101,14 @@ OSD keeps live volume and brightness readback while adding a small Cortetsu
 feedback signature: a two-piece indigo/Washi geometry and `SYSTEM FEEDBACK`
 label. The visual stays compact and uses the existing fast motion timing.
 
+## BottomHub system cluster
+
+The right-side system controls now sit inside one grouped surface with shared
+40 px hit targets. Network state distinguishes Ethernet, connecting, offline,
+and Wi-Fi signal strength; its tooltip reports the SSID and signal when the
+backend provides them. Existing audio, Bluetooth, battery, notification, and
+session controls keep their live providers and hover popout ownership.
+
 ## Delivery order
 
 The redesign is delivered in product slices: design foundation, real state

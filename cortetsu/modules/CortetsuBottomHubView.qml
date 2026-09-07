@@ -17,6 +17,7 @@ Item {
     required property string volumeIcon
     required property bool volumeMuted
     required property string networkIcon
+    required property string networkTooltip
     required property bool networkActive
     required property string bluetoothIcon
     required property bool bluetoothActive
@@ -143,6 +144,7 @@ Item {
         volumeIcon: root.volumeIcon
         volumeMuted: root.volumeMuted
         networkIcon: root.networkIcon
+        networkTooltip: root.networkTooltip
         networkActive: root.networkActive
         bluetoothIcon: root.bluetoothIcon
         bluetoothActive: root.bluetoothActive
