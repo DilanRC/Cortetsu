@@ -27,33 +27,38 @@ warning = "#C49A62"
 
 [shape]
 radius_small = 8
-radius_medium = 14
-radius_large = 22
+radius_medium = 12
+radius_large = 20
+radius_surface = 28
 radius_pill = 999
 
 [spacing]
 unit = 4
 compact = 8
 standard = 12
-comfortable = 20
-spacious = 28
+comfortable = 16
+spacious = 24
+section = 32
 
 [density]
 control_height = 36
 row_height = 52
+control_height_primary = 40
 outline_width = 1
 overlay_opacity = 0.94
 scrim_opacity = 0.22
 
 [motion]
-instant_ms = 50
-fast_ms = 80
-standard_ms = 120
-deliberate_ms = 160
-panel_ms = 170
+instant_ms = 80
+fast_ms = 120
+standard_ms = 180
+deliberate_ms = 240
+panel_ms = 240
 hover_scale = 1.025
 
 [principles]
 space = "ma"
 material = "sumi-tetsu-washi"
 accent = "vermillion"
+accent_policy = "indigo-for-interaction-vermillion-for-danger"
+success_policy = "healthy-connected-success-only"

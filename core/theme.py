@@ -127,6 +127,7 @@ var colorWarning = "{s['warning']}"
 var radiusSmall = {shape['radius_small']}
 var radiusMedium = {shape['radius_medium']}
 var radiusLarge = {shape['radius_large']}
+var radiusSurface = {shape['radius_surface']}
 var radiusPill = {shape['radius_pill']}
 
 var spacingUnit = {spacing['unit']}
@@ -134,12 +135,14 @@ var spacingCompact = {spacing['compact']}
 var spacingStandard = {spacing['standard']}
 var spacingComfortable = {spacing['comfortable']}
 var spacingSpacious = {spacing['spacious']}
+var spacingSection = {spacing['section']}
 
 var overlayOpacity = {density['overlay_opacity']}
 var scrimOpacity = {density['scrim_opacity']}
 var outlineWidth = {density['outline_width']}
 var controlHeight = {density['control_height']}
 var rowHeight = {density['row_height']}
+var controlHeightPrimary = {density['control_height_primary']}
 
 // Typography aliases keep QML surfaces on the single generated design contract.
 var labelSmallPx = 11
