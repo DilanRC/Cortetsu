@@ -3,9 +3,9 @@
 Verdict: **DO_NOT_MERGE**
 
 SHA inicial: `4851e64df526378df81d55a6e5cdf52f94ac04ad`  
-SHA final: `23ff682daad99009e8188d6dc9e083d0911b9f12`  
+SHA final: `43fc473ba9f8ce886436aab3ad36469760333d31`  
 Rama: `ascension/product-elevation`  
-Generado: `2026-09-07T16:46:42.831212+00:00`
+Generado: `2026-09-07T16:58:27.242680+00:00`
 
 ## Gate
 
@@ -13,8 +13,8 @@ Generado: `2026-09-07T16:46:42.831212+00:00`
 
 | Área | PASS | FAIL | PENDING | BLOCKED_EXTERNAL | SKIPPED_SAFETY | NOT_APPLICABLE |
 |---|---:|---:|---:|---:|---:|---:|
-| Functional contracts | 15 | 0 | 0 | 2 | 0 | 0 |
-| Keybinds | 0 | 0 | 0 | 180 | 2 | 0 |
+| Functional contracts | 16 | 0 | 0 | 2 | 0 | 0 |
+| Keybinds | 9 | 0 | 0 | 171 | 2 | 0 |
 | Design surfaces | 3 | 0 | 0 | 1 | 0 | 0 |
 
 ## Confirmed fixes
