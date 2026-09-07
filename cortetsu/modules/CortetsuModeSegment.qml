@@ -16,23 +16,15 @@ Item {
     signal wallpaperRequested()
     signal workspaceRequested(int workspaceId)
 
-    implicitWidth: content.implicitWidth + CortetsuDesign.spacingStandard
-    implicitHeight: 52
+    implicitWidth: content.implicitWidth + CortetsuDesign.spacingCompact
+    implicitHeight: 50
     width: implicitWidth
     height: implicitHeight
-
-    CortetsuSurface {
-        anchors.fill: parent
-        radiusValue: CortetsuDesign.radiusLarge
-        baseColor: Qt.alpha(CortetsuDesign.colorSurfaceHigh, 0.72)
-        outlineColor: Qt.alpha(CortetsuDesign.colorMuted, 0.2)
-        outlined: true
-    }
 
     Row {
         id: content
         anchors.centerIn: parent
-        spacing: 3
+        spacing: 2
 
         HubButton {
             buttonSize: 44
@@ -54,9 +46,9 @@ Item {
         Rectangle {
             anchors.verticalCenter: parent.verticalCenter
             width: 1
-            height: 24
+            height: 22
             radius: 1
-            color: Qt.alpha(CortetsuDesign.colorMuted, 0.18)
+            color: Qt.alpha(CortetsuDesign.colorMuted, 0.14)
         }
 
         CortetsuWorkspaceDots {

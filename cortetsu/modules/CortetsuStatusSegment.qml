@@ -37,31 +37,23 @@ Item {
         return item.x + item.width / 2;
     }
 
-    implicitWidth: statusRow.implicitWidth + CortetsuDesign.spacingCompact
-    implicitHeight: 52
+    implicitWidth: statusRow.implicitWidth + CortetsuDesign.spacingUnit
+    implicitHeight: 50
     width: implicitWidth
     height: implicitHeight
 
     component Hairline: Rectangle {
         anchors.verticalCenter: parent.verticalCenter
         width: 1
-        height: 24
+        height: 22
         radius: 1
-        color: Qt.alpha(CortetsuDesign.colorMuted, 0.18)
-    }
-
-    CortetsuSurface {
-        anchors.fill: parent
-        radiusValue: CortetsuDesign.radiusLarge
-        baseColor: Qt.alpha(CortetsuDesign.colorSurfaceHigh, 0.72)
-        outlineColor: Qt.alpha(CortetsuDesign.colorMuted, 0.2)
-        outlined: true
+        color: Qt.alpha(CortetsuDesign.colorMuted, 0.14)
     }
 
     Row {
         id: statusRow
         anchors.centerIn: parent
-        spacing: 2
+        spacing: 1
 
         HubButton {
             id: volumeButton
@@ -152,8 +144,7 @@ Item {
                 height: 17
                 radius: 9
                 color: CortetsuDesign.colorIndigo
-                border.width: 1
-                border.color: Qt.alpha(CortetsuDesign.colorWashi, 0.22)
+                border.width: 0
 
                 CortetsuText {
                     anchors.centerIn: parent
@@ -176,7 +167,7 @@ Item {
         Hairline {}
 
         Item {
-            implicitWidth: 74
+            implicitWidth: 72
             implicitHeight: 44
             width: implicitWidth
             height: implicitHeight
@@ -188,13 +179,13 @@ Item {
                 anchors.margins: 2
                 radiusValue: CortetsuDesign.radiusSmall
                 baseColor: "transparent"
-                hoverColor: Qt.alpha(CortetsuDesign.colorSurfaceHigh, 0.94)
+                hoverColor: Qt.alpha(CortetsuDesign.colorSurfaceGlassStrong, 0.72)
                 outlineColor: parent.activeFocus
-                    ? Qt.alpha(CortetsuDesign.colorWashi, 0.82)
-                    : Qt.alpha(CortetsuDesign.colorMuted, 0.12)
+                    ? Qt.alpha(CortetsuDesign.colorWashi, 0.72)
+                    : "transparent"
                 hovered: clockMouse.containsMouse
                 focused: parent.activeFocus
-                outlined: false
+                outlined: parent.activeFocus
             }
 
             Column {

@@ -16,25 +16,17 @@ Item {
     signal closeRequested(string key)
     signal cycleRequested(string key, int direction)
 
-    implicitWidth: Math.min(appRailContent.implicitWidth + 16, maxWidth)
-    implicitHeight: 52
+    implicitWidth: Math.min(appRailContent.implicitWidth + CortetsuDesign.spacingCompact, maxWidth)
+    implicitHeight: 50
     width: implicitWidth
     height: implicitHeight
     clip: true
 
-    CortetsuSurface {
-        anchors.fill: parent
-        radiusValue: CortetsuDesign.radiusLarge
-        baseColor: Qt.alpha(CortetsuDesign.colorSurfaceHigh, 0.72)
-        outlineColor: Qt.alpha(CortetsuDesign.colorMuted, 0.2)
-        outlined: true
-    }
-
     Flickable {
         id: appRail
         anchors.fill: parent
-        anchors.leftMargin: CortetsuDesign.spacingCompact
-        anchors.rightMargin: CortetsuDesign.spacingCompact
+        anchors.leftMargin: CortetsuDesign.spacingUnit
+        anchors.rightMargin: CortetsuDesign.spacingUnit
         contentWidth: appRailContent.implicitWidth
         contentHeight: height
         boundsBehavior: Flickable.StopAtBounds
@@ -44,7 +36,7 @@ Item {
         Row {
             id: appRailContent
             height: parent.height
-            spacing: CortetsuDesign.spacingUnit
+            spacing: 2
 
             Repeater {
                 model: root.items
@@ -53,17 +45,13 @@ Item {
                     id: appItem
                     required property var modelData
 
-                    implicitWidth: 44
-                    implicitHeight: 52
+                    implicitWidth: 46
+                    implicitHeight: 50
                     width: implicitWidth
                     height: implicitHeight
                     focus: true
                     activeFocusOnTab: true
-                    scale: appMouse.pressed
-                        ? 0.97
-                        : appMouse.containsMouse
-                            ? 1.018
-                            : 1
+                    scale: appMouse.pressed ? 0.97 : appMouse.containsMouse ? 1.015 : 1
 
                     Behavior on scale {
                         NumberAnimation {
@@ -76,30 +64,27 @@ Item {
 
                     CortetsuSurface {
                         anchors.fill: parent
-                        anchors.topMargin: 3
-                        anchors.bottomMargin: 3
+                        anchors.margins: 3
                         radiusValue: CortetsuDesign.radiusMedium
-                        baseColor: "transparent"
-                        hoverColor: Qt.alpha(CortetsuDesign.colorSurfaceHigh, 0.94)
-                        activeColor: Qt.alpha(CortetsuDesign.colorIndigo, 0.52)
+                        baseColor: appItem.modelData.active
+                            ? Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.62)
+                            : "transparent"
+                        hoverColor: Qt.alpha(CortetsuDesign.colorSurfaceGlassStrong, 0.84)
                         outlineColor: appItem.activeFocus
-                            ? Qt.alpha(CortetsuDesign.colorWashi, 0.82)
-                            : appItem.modelData.active
-                                ? Qt.alpha(CortetsuDesign.colorWashi, 0.2)
-                                : Qt.alpha(CortetsuDesign.colorMuted, 0.12)
+                            ? Qt.alpha(CortetsuDesign.colorWashi, 0.72)
+                            : "transparent"
                         hovered: appMouse.containsMouse
                         pressed: appMouse.pressed
-                        active: appItem.modelData.active
                         focused: appItem.activeFocus
-                        outlined: appItem.modelData.active
+                        outlined: appItem.activeFocus
                     }
 
                     Image {
                         anchors.horizontalCenter: parent.horizontalCenter
                         anchors.top: parent.top
-                        anchors.topMargin: appItem.modelData.active ? 7 : 8
-                        width: 30
-                        height: 30
+                        anchors.topMargin: appItem.modelData.running ? 6 : 8
+                        width: 31
+                        height: 31
                         source: appItem.modelData.iconSource
                         sourceSize.width: 64
                         sourceSize.height: 64
@@ -108,9 +93,7 @@ Item {
                         fillMode: Image.PreserveAspectFit
                         smooth: true
                         mipmap: true
-                        opacity: appItem.modelData.running || appMouse.containsMouse || appItem.activeFocus
-                            ? 1
-                            : 0.68
+                        opacity: appItem.modelData.running || appMouse.containsMouse || appItem.activeFocus ? 1 : 0.72
 
                         Behavior on anchors.topMargin {
                             NumberAnimation {
@@ -118,7 +101,6 @@ Item {
                                 easing.type: Easing.OutCubic
                             }
                         }
-
                         Behavior on opacity {
                             NumberAnimation {
                                 duration: CortetsuDesign.motionFastMs
@@ -133,16 +115,16 @@ Item {
                         anchors.right: parent.right
                         anchors.topMargin: 7
                         anchors.rightMargin: 5
-                        width: 6
-                        height: 6
+                        width: 5
+                        height: 5
                         radius: 3
-                        color: Qt.alpha(CortetsuDesign.colorMuted, 0.82)
+                        color: Qt.alpha(CortetsuDesign.colorMuted, 0.66)
                     }
 
                     Row {
                         anchors.horizontalCenter: parent.horizontalCenter
                         anchors.bottom: parent.bottom
-                        anchors.bottomMargin: 5
+                        anchors.bottomMargin: 4
                         spacing: 3
                         visible: appItem.modelData.running
 
@@ -151,13 +133,13 @@ Item {
 
                             Rectangle {
                                 required property int index
-                                width: appItem.modelData.active ? 9 : 4
+                                width: appItem.modelData.active ? 10 : 4
                                 height: 3
                                 radius: 2
                                 color: appItem.modelData.active
                                     ? CortetsuDesign.colorWashi
                                     : CortetsuDesign.colorMuted
-                                opacity: index < 3 ? 0.92 : 0.52
+                                opacity: index < 3 ? 0.88 : 0.48
 
                                 Behavior on width {
                                     NumberAnimation {
@@ -183,12 +165,10 @@ Item {
                                 root.togglePinnedRequested(appItem.modelData.key);
                                 return;
                             }
-
                             if (event.button === Qt.MiddleButton) {
                                 root.closeRequested(appItem.modelData.key);
                                 return;
                             }
-
                             root.activateRequested(appItem.modelData.key);
                         }
 
@@ -197,7 +177,6 @@ Item {
                                 root.cycleRequested(appItem.modelData.key, -1);
                             else if (wheel.angleDelta.y < 0)
                                 root.cycleRequested(appItem.modelData.key, 1);
-
                             wheel.accepted = true;
                         }
                     }
@@ -219,7 +198,7 @@ Item {
                         background: CortetsuSurface {
                             radiusValue: CortetsuDesign.radiusSmall
                             baseColor: CortetsuDesign.colorTetsu
-                            outlineColor: Qt.alpha(CortetsuDesign.colorMuted, 0.28)
+                            outlineColor: Qt.alpha(CortetsuDesign.colorMuted, 0.24)
                             outlined: true
                         }
 
