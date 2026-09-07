@@ -89,7 +89,8 @@ assert content.count("cache: true") >= 4
 assert "id: panel\n        z: 1" in content and "Item {\n        id: panel" in content
 assert "CortetsuDesign.colorSurfaceHigh, 0.68" in content
 assert 'root.currentPath === CortetsuWallpapers.actualCurrent ? qsTr("Current") : qsTr("Preview")' in content
-assert "shouldBeActive && presentationReady" in wrapper
+assert "opacity: shouldBeActive ? 1 : 0" in wrapper
+assert "Content.qml owns the honest empty state" in wrapper
 assert "CortetsuDesign.colorScrim, 0.18" in wrapper
 assert "CortetsuDesign.colorScrim, 0.44" not in wrapper
 assert 'color: "black"' not in content

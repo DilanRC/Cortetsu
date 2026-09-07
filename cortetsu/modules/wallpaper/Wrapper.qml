@@ -25,9 +25,11 @@ Item {
             OverlayPolicy.closeForWallpaper(CortetsuShellState.forScreen(candidate));
     }
 
+    // The manager must remain discoverable even when the catalog is empty or
+    // an image is still loading. Content.qml owns the honest empty state.
     visible: opacity > 0.001
-    opacity: shouldBeActive && presentationReady ? 1 : 0
-    scale: shouldBeActive && presentationReady ? 1 : 0.96
+    opacity: shouldBeActive ? 1 : 0
+    scale: shouldBeActive ? 1 : 0.96
     transformOrigin: Item.Center
 
     Behavior on opacity { NumberAnimation { duration: 240; easing.type: Easing.OutCubic } }

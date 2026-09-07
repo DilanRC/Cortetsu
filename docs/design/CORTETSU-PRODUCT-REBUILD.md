@@ -109,6 +109,12 @@ and Wi-Fi signal strength; its tooltip reports the SSID and signal when the
 backend provides them. Existing audio, Bluetooth, battery, notification, and
 session controls keep their live providers and hover popout ownership.
 
+## Retained surface ownership
+
+Overview, Hardware, Display, Wallpaper, Calendar, and Clipboard now render through `RetainedSurfacesHost.qml`, a dedicated overlay window with per-screen state and explicit keyboard ownership. The legacy `Panels` entries remain as compatibility handles while consumers migrate. This keeps full surfaces from competing with BottomHub and transient popouts in the shared drawer window.
+
+First-party Dashboard, QSD, Launcher, Settings, and retained surfaces now read the same `CortetsuShellState` registry. This makes the exclusivity policy observable: opening a full surface cannot leave a first-party surface hidden behind it because each controller closes the same state owner.
+
 ## Delivery order
 
 The redesign is delivered in product slices: design foundation, real state

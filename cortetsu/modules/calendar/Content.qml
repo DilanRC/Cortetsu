@@ -143,12 +143,14 @@ Item {
 
     Component.onCompleted: {
         load();
-        if (screenState.cortetsuState?.calendar) requestCalendarSync();
+        if (screenState && screenState.cortetsuState && screenState.cortetsuState.calendar)
+            requestCalendarSync();
     }
     Connections {
-        target: root.screenState.cortetsuState
+        target: root.screenState ? root.screenState.cortetsuState : null
         function onCalendarChanged(): void {
-            if (root.screenState.cortetsuState?.calendar) root.requestCalendarSync();
+            if (root.screenState && root.screenState.cortetsuState && root.screenState.cortetsuState.calendar)
+                root.requestCalendarSync();
         }
     }
     FileView { id: cache; path: root.cachePath; watchChanges: true; printErrors: false; onLoaded: root.loadCalendar(); onFileChanged: root.loadCalendar() }

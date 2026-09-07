@@ -50,7 +50,7 @@ def main() -> None:
     require(HYPR, '"SUPER + I",\n    hl.dsp.global("cortetsu:utilities")', "SUPER+I a Quick settings")
     require(HYPR, '"SUPER + H",\n    hl.dsp.global("cortetsu:hardware")', "SUPER+H a Hardware Center")
     require(HUB, "hubRoot.toggleLauncherFor(state.modelData);", "SUPER alterna el launcher")
-    require(SHORTCUTS, "const state = ShellState.forActive(), open = !(state.sidebar || state.utilities);", "SUPER+N abre ambos centros")
+    require(SHORTCUTS, "const state = CortetsuShellState.forActive(), open = !(state.sidebar || state.utilities);", "SUPER+N abre ambos centros")
     require(SHORTCUTS, 'Quickshell.env("XDG_CONFIG_HOME") ||', "ruta XDG del launcher")
     forbid(SHORTCUTS, "/quickshell/caelestia/current", "ruta legacy del launcher")
     require(PANELS, "anchors.right: root.screenState.utilities ? utilities.left : parent.right", "centros adyacentes")

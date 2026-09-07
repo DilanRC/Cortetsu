@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Io
 import "../components/misc"
 import "../services"
+import qs.modules
 
 Scope {
     id: root
@@ -13,12 +14,12 @@ Scope {
         name: "showall"; description: "Toggle launcher, dashboard and osd"
         onPressed: {
             if (root.hasFullscreen) return;
-            const state = ShellState.forActive();
+            const state = CortetsuShellState.forActive();
             state.launcher = state.dashboard = state.osd = state.utilities = state.qsd = state.settings = !(state.launcher || state.dashboard || state.osd || state.utilities || state.qsd || state.settings);
         }
     }
-    CustomShortcut { name: "dashboard"; description: "Toggle dashboard"; onPressed: if (!root.hasFullscreen) ShellState.forActive().dashboard = !ShellState.forActive().dashboard }
-    CustomShortcut { name: "session"; description: "Toggle session menu"; onPressed: if (!root.hasFullscreen) ShellState.forActive().session = !ShellState.forActive().session }
+    CustomShortcut { name: "dashboard"; description: "Toggle dashboard"; onPressed: if (!root.hasFullscreen) CortetsuShellState.forActive().dashboard = !CortetsuShellState.forActive().dashboard }
+    CustomShortcut { name: "session"; description: "Toggle session menu"; onPressed: if (!root.hasFullscreen) CortetsuShellState.forActive().session = !CortetsuShellState.forActive().session }
     CustomShortcut {
         name: "launcher"; description: "Toggle launcher"
         onPressed: root.launcherInterrupted = false
@@ -33,23 +34,23 @@ Scope {
         name: "sidebar"; description: "Toggle sidebar"
         onPressed: {
             if (root.hasFullscreen) return;
-            const state = ShellState.forActive(), open = !(state.sidebar || state.utilities);
+            const state = CortetsuShellState.forActive(), open = !(state.sidebar || state.utilities);
             state.sidebar = open; state.utilities = open; state.cortetsuState?.setRetained("wallpaperManager", false);
         }
     }
-    CustomShortcut { name: "utilities"; description: "Toggle utilities"; onPressed: if (!root.hasFullscreen) ShellState.forActive().utilities = !ShellState.forActive().utilities }
-    CustomShortcut { name: "qsd"; description: "Toggle Quick Settings Drawer"; onPressed: if (!root.hasFullscreen) ShellState.forActive().qsd = !ShellState.forActive().qsd }
-    CustomShortcut { name: "settings"; description: "Toggle Cortetsu Settings Center"; onPressed: if (!root.hasFullscreen) ShellState.forActive().settings = !ShellState.forActive().settings }
+    CustomShortcut { name: "utilities"; description: "Toggle utilities"; onPressed: if (!root.hasFullscreen) CortetsuShellState.forActive().utilities = !CortetsuShellState.forActive().utilities }
+    CustomShortcut { name: "qsd"; description: "Toggle Quick Settings Drawer"; onPressed: if (!root.hasFullscreen) CortetsuShellState.forActive().qsd = !CortetsuShellState.forActive().qsd }
+    CustomShortcut { name: "settings"; description: "Toggle Cortetsu Settings Center"; onPressed: if (!root.hasFullscreen) CortetsuShellState.forActive().settings = !CortetsuShellState.forActive().settings }
 
     IpcHandler {
         target: "drawers"
         function toggle(drawer: string): void {
-            const state = ShellState.forActive();
+            const state = CortetsuShellState.forActive();
             if (!state || typeof state[drawer] !== "boolean") return;
             if (root.hasFullscreen && ["launcher", "session", "dashboard", "qsd"].includes(drawer)) return;
             state[drawer] = !state[drawer];
         }
-        function list(): string { const state = ShellState.forActive(); return state ? Object.keys(state).filter(k => typeof state[k] === "boolean").join("\n") : ""; }
-        function isOpen(drawer: string): string { const state = ShellState.forActive(); return !state || typeof state[drawer] !== "boolean" ? "unknown" : state[drawer] ? "1" : "0"; }
+        function list(): string { const state = CortetsuShellState.forActive(); return state ? Object.keys(state).filter(k => typeof state[k] === "boolean").join("\n") : ""; }
+        function isOpen(drawer: string): string { const state = CortetsuShellState.forActive(); return !state || typeof state[drawer] !== "boolean" ? "unknown" : state[drawer] ? "1" : "0"; }
     }
 }

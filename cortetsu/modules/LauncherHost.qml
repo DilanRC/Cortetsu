@@ -5,6 +5,7 @@ import Quickshell
 import Quickshell.Wayland
 import qs.components.containers
 import qs.services
+import qs.modules
 import "launcher"
 import "CortetsuDesign.js" as CortetsuDesign
 
@@ -14,7 +15,7 @@ Scope {
         StyledWindow {
             id: window
             required property ShellScreen modelData
-            readonly property var screenState: ShellState.forActive()
+            readonly property var screenState: CortetsuShellState.forActive()
             screen: modelData
             name: "launcher"
             visible: true

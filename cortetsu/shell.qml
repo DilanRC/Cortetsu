@@ -25,6 +25,7 @@ ShellRoot {
     DashboardHost {}
     LauncherHost {}
     SettingsHost {}
+    RetainedSurfacesHost {}
     Lock { id: lock }
     Shortcuts {}
     BatteryMonitor {}
