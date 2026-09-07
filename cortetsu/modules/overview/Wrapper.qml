@@ -11,27 +11,26 @@ Item {
     required property var screenState
 
     readonly property bool shouldBeActive: screenState.cortetsuState?.overview ?? false
-
     property real visibilityProgress: shouldBeActive ? 1 : 0
 
     visible: visibilityProgress > 0.001
     opacity: visibilityProgress
-    scale: 0.96 + 0.04 * visibilityProgress
+    scale: 0.975 + 0.025 * visibilityProgress
     transformOrigin: Item.Center
 
     Behavior on visibilityProgress {
         NumberAnimation {
-            duration: CortetsuDesign.motionStandardMs
-            easing.type: Easing.OutCubic
+            duration: root.shouldBeActive
+                ? CortetsuDesign.motionPanelMs
+                : CortetsuDesign.motionStandardMs
+            easing.type: root.shouldBeActive ? Easing.OutCubic : Easing.InCubic
         }
     }
 
     Loader {
         id: contentLoader
-
         anchors.fill: parent
         active: root.shouldBeActive || root.visible
-
         sourceComponent: Content {
             screen: root.screen
             screenState: root.screenState
