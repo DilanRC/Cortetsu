@@ -25,10 +25,12 @@ Item {
     property real offsetScale: shouldBeActive ? 0 : 1
 
     onShouldBeActiveChanged: {
-        if (shouldBeActive)
+        if (shouldBeActive) {
             implicitHeight = Qt.binding(() => content.implicitHeight);
-        else
+            Qt.callLater(() => content.item?.focusSearch());
+        } else {
             implicitHeight = implicitHeight;
+        }
     }
 
     visible: offsetScale < 1

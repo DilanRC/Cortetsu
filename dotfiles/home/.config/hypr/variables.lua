@@ -9,7 +9,7 @@ return {
     terminal                   = "/home/dilan/.local/bin/kitty-tab",
     browser                    = "firefox",
     editor                     = "codium",
-    fileExplorer               = "thunar",
+    fileExplorer               = "dolphin",
     audioSettings              = "pavucontrol",
 
     -- Touchpad

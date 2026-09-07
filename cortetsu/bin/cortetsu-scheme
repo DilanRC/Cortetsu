@@ -31,13 +31,42 @@ def write_state(value: dict) -> None:
     os.replace(temporary, path)
 
 
+def catalog() -> dict:
+    """Return every shipped scheme, not only the currently selected state."""
+    pack = Path(__file__).resolve().parents[1] / "data/schemes/cortetsu-pack"
+    palette_file = Path(__file__).resolve().parents[1] / "data/schemes/palettes.json"
+    import json as _json
+    allowed = set(_json.loads(palette_file.read_text(encoding="utf-8"))) if palette_file.exists() else None
+    result: dict[str, dict[str, dict[str, str]]] = {}
+    for file in sorted(pack.glob("*/**/dark.txt")):
+        relative = file.relative_to(pack)
+        if len(relative.parts) != 3:
+            continue
+        name, flavour = relative.parts[:2]
+        if allowed is not None and f"{name}/{flavour}" not in allowed:
+            continue
+        colours = {}
+        for line in file.read_text(encoding="utf-8").splitlines():
+            parts = line.split(None, 1)
+            if len(parts) == 2:
+                colours[parts[0]] = parts[1].strip().lower()
+        result.setdefault(name, {})[flavour] = colours
+    return result
+
+
 def main(argv: list[str]) -> int:
     state = read_state()
     if argv == ["list"]:
-        name = state.get("name", "dynamic")
-        flavour = state.get("flavour", "default")
-        colours = state.get("colours", {})
-        print(json.dumps({name: {flavour: colours}}, separators=(",", ":")))
+        schemes = catalog()
+        current_name = state.get("name")
+        current_flavour = state.get("flavour", "default")
+        if current_name and current_name not in schemes:
+            schemes[current_name] = {current_flavour: state.get("colours", {})}
+        if not schemes:
+            name = state.get("name", "dynamic")
+            flavour = state.get("flavour", "default")
+            schemes = {name: {flavour: state.get("colours", {})}}
+        print(json.dumps(schemes, separators=(",", ":")))
         return 0
     if argv == ["get", "-nfv"]:
         print(state.get("name", "dynamic"))

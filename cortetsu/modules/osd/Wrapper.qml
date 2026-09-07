@@ -15,6 +15,9 @@ Item {
     property real volume: CortetsuAudio.volume
     property bool muted: CortetsuAudio.muted
     property real brightness: monitor?.brightness ?? 0
+    // Interactions.qml controls hover state through the wrapper instance.
+    // Expose the child state instead of assigning an undeclared property.
+    property alias hovered: content.hovered
 
     function show(): void {
         screenState.osd = true;

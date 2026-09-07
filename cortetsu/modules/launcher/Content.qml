@@ -18,6 +18,11 @@ Item {
     readonly property int padding: CortetsuDesign.spacingStandard
     readonly property int rounding: CortetsuDesign.radiusLarge
 
+    function focusSearch(): void {
+        search.forceActiveFocus();
+        search.cursorPosition = search.text.length;
+    }
+
     implicitWidth: listWrapper.width + padding * 2
     implicitHeight:
         padding +
@@ -119,11 +124,13 @@ Item {
             }
         }
 
-        Component.onCompleted: forceActiveFocus()
+        Component.onCompleted: root.focusSearch()
 
         Connections {
             function onLauncherChanged(): void {
-                if (!root.screenState.launcher)
+                if (root.screenState.launcher)
+                    Qt.callLater(root.focusSearch);
+                else
                     search.text = "";
             }
 
