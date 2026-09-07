@@ -45,7 +45,7 @@ jobs:
           python3 cortetsu/tests/test-runtime-contract.py
       - name: Validate Ascension launcher contracts
         run: |
-          python3 scripts/features/test-launcher-runtime.py
+          python3 scripts/features/test-cortetsu-launcher.py
           python3 scripts/features/test-launcher-fonts.py
           python3 scripts/features/test-launcher-process-scope.py
       - name: Validate Ascension overview and display contracts
