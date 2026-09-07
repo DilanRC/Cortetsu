@@ -1,29 +1,25 @@
 #!/usr/bin/env python3
-"""Guard launcher applications against Cortetsu shell cgroup ownership."""
+"""Guard the direct detached desktop-entry launch contract."""
 
 from pathlib import Path
 
 
 REPO = Path(__file__).resolve().parents[2]
-# Launched from a Caelestia patch on top of upstream services/Apps.qml;
-# now a first-party file owned outright under cortetsu/modules/launcher.
 SOURCE = REPO / "cortetsu/modules/launcher/services/Apps.qml"
 MANIFEST = REPO / "cortetsu/contracts/patch-debt.tsv"
 
 text = SOURCE.read_text(encoding="utf-8")
 manifest = MANIFEST.read_text(encoding="utf-8")
 
-assert '"systemd-run"' in text
-for token in ('"--user"', '"--scope"', '"--collect"', '"--unit"', '"--"'):
-    assert token in text, f"falta opción de scope: {token}"
-assert "entry.execute();" not in text
+assert '"systemd-run"' not in text
+assert '"--scope"' not in text
+assert "Array.from(entry.command ?? [])" in text
 assert "entry.workingDirectory" in text
-assert "Date.now()" in text
-assert "const steam = command.some(token => token === \"steam\" || token.endsWith(\"/steam\"));" in text
-assert "Quickshell.execDetached({ command, workingDirectory: entry.workingDirectory });" in text
-assert 'token.endsWith("/steam")' in text
-assert "GlobalConfig" not in text
+assert "Quickshell.execDetached({" in text
+assert "command," in text
 assert "CortetsuConfig.terminalCommand" in text
+assert "wrap_term_launch.sh" in text
+assert "GlobalConfig" not in text
 assert "modules__launcher__services__Apps.qml.patch" not in manifest
 
-print("PASS: launcher applications use independent scopes; Steam stays detached")
+print("PASS: launcher desktop entries use Quickshell direct detached execution")

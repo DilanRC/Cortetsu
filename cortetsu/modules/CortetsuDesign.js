@@ -47,7 +47,6 @@ var outlineWidth = 1
 var controlHeight = 36
 var rowHeight = 52
 
-// Typography aliases keep QML surfaces on the single generated design contract.
 var labelSmallPx = 11
 var labelMediumPx = 12
 var labelLargePx = 14
@@ -57,9 +56,9 @@ var bodyLargePx = 14
 var iconSmallPx = 18
 var iconMediumPx = 22
 
-var hoverScale = 1.04
-var motionInstantMs = 70
-var motionFastMs = 100
-var motionStandardMs = 160
-var motionDeliberateMs = 220
-var motionPanelMs = 260
+var hoverScale = 1.025
+var motionInstantMs = 50
+var motionFastMs = 80
+var motionStandardMs = 120
+var motionDeliberateMs = 160
+var motionPanelMs = 170

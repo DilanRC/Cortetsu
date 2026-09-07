@@ -12,11 +12,6 @@ indigo = "#334E68"
 vermillion = "#D64B32"
 muted = "#8A919B"
 
-# Material-3-style semantic roles, layered on top of the six base colours
-# above. surface/on-surface/primary/tertiary/outline alias base palette
-# entries directly; the rest are literal because no combination of the base
-# six reproduces them. Consumed by ~26 QML modules via CortetsuDesign.js --
-# see core/theme.py:render_design.
 [palette.semantic]
 surface_high = "#222831"
 primary_container = "#263E53"
@@ -51,12 +46,12 @@ overlay_opacity = 0.94
 scrim_opacity = 0.22
 
 [motion]
-instant_ms = 70
-fast_ms = 100
-standard_ms = 160
-deliberate_ms = 220
-panel_ms = 260
-hover_scale = 1.04
+instant_ms = 50
+fast_ms = 80
+standard_ms = 120
+deliberate_ms = 160
+panel_ms = 170
+hover_scale = 1.025
 
 [principles]
 space = "ma"

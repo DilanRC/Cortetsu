@@ -38,15 +38,13 @@ Item {
     implicitHeight: content.implicitHeight
     implicitWidth: content.implicitWidth || 630
     opacity: 1 - offsetScale
-    scale: 1 - 0.02 * offsetScale
-    transformOrigin: Item.Bottom
 
     Component.onCompleted: Qt.callLater(() => Apps)
 
     Behavior on offsetScale {
         NumberAnimation {
             duration: root.shouldBeActive
-                ? CortetsuDesign.motionPanelMs
+                ? CortetsuDesign.motionStandardMs
                 : CortetsuDesign.motionFastMs
             easing.type: root.shouldBeActive ? Easing.OutCubic : Easing.InCubic
         }

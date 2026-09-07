@@ -15,14 +15,12 @@ Item {
 
     visible: visibilityProgress > 0.001
     opacity: visibilityProgress
-    scale: 0.975 + 0.025 * visibilityProgress
-    transformOrigin: Item.Center
 
     Behavior on visibilityProgress {
         NumberAnimation {
             duration: root.shouldBeActive
-                ? CortetsuDesign.motionPanelMs
-                : CortetsuDesign.motionStandardMs
+                ? CortetsuDesign.motionStandardMs
+                : CortetsuDesign.motionFastMs
             easing.type: root.shouldBeActive ? Easing.OutCubic : Easing.InCubic
         }
     }
@@ -30,7 +28,7 @@ Item {
     Loader {
         id: contentLoader
         anchors.fill: parent
-        active: root.shouldBeActive || root.visible
+        active: true
         sourceComponent: Content {
             screen: root.screen
             screenState: root.screenState
