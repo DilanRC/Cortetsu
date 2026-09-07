@@ -9,6 +9,7 @@ assert 'kbBrowser                  = "SUPER + B"' in variables
 assert 'kbColorPicker              = "SUPER + SHIFT + P"' in variables
 assert 'create_bind(vars.kbClipboard,' not in keybinds
 assert 'create_bind(vars.kbClipboardDel,' not in keybinds
+assert '"SUPER + CTRL + " .. key' not in user
 assert '"SUPER + W"' in user and "linux-wallpaper-engine-once" in user
 assert '"SUPER + V"' in user and 'cortetsu:clipboard' in user
 assert '"SUPER + SHIFT + C"' in user and 'cortetsu:calendar' in user

@@ -265,13 +265,6 @@ for i = 1, 10 do
     hl.bind("SUPER + SHIFT + " .. key, fn.wsaction("move", "", i))
 
     hl.bind(
-        "SUPER + CTRL + " .. key,
-        hl.dsp.focus({
-            workspace = workspace
-        })
-    )
-
-    hl.bind(
         "SUPER + CTRL + SHIFT + " .. key,
         hl.dsp.window.move({
             workspace = workspace
