@@ -25,6 +25,8 @@ Item {
     required property bool sessionActive
 
     signal attachedControlRequested(string mode, real centerX)
+    signal attachedControlEntered(string mode, real centerX)
+    signal attachedControlExited()
     signal detachedControlRequested(string mode)
     signal volumeMuteRequested()
     signal volumeWheel(real delta)
@@ -77,8 +79,12 @@ Item {
                 : CortetsuDesign.colorMuted
             tooltip: root.volumeMuted ? qsTr("Unmute") : qsTr("Mute")
             onHoveredChanged: {
-                if (hovered)
+                if (hovered) {
+                    root.attachedControlEntered("audio", root.centerFor(volumeButton));
                     root.attachedControlRequested("audio", root.centerFor(volumeButton));
+                } else {
+                    root.attachedControlExited();
+                }
             }
             onClicked: root.volumeMuteRequested()
             onWheel: delta => root.volumeWheel(delta)
@@ -92,8 +98,12 @@ Item {
             active: root.networkActive
         tooltip: root.networkTooltip
             onHoveredChanged: {
-                if (hovered)
+                if (hovered) {
+                    root.attachedControlEntered("network", root.centerFor(networkButton));
                     root.attachedControlRequested("network", root.centerFor(networkButton));
+                } else {
+                    root.attachedControlExited();
+                }
             }
             onClicked: root.attachedControlRequested("network", root.centerFor(networkButton))
         }
@@ -106,8 +116,12 @@ Item {
             active: root.bluetoothActive
             tooltip: qsTr("Bluetooth")
             onHoveredChanged: {
-                if (hovered)
+                if (hovered) {
+                    root.attachedControlEntered("bluetooth", root.centerFor(bluetoothButton));
                     root.attachedControlRequested("bluetooth", root.centerFor(bluetoothButton));
+                } else {
+                    root.attachedControlExited();
+                }
             }
             onClicked: root.attachedControlRequested("bluetooth", root.centerFor(bluetoothButton))
         }
@@ -122,8 +136,12 @@ Item {
                 : CortetsuDesign.colorMuted
             tooltip: root.batteryTooltip
             onHoveredChanged: {
-                if (hovered)
+                if (hovered) {
+                    root.attachedControlEntered("battery", root.centerFor(batteryButton));
                     root.attachedControlRequested("battery", root.centerFor(batteryButton));
+                } else {
+                    root.attachedControlExited();
+                }
             }
             onClicked: root.attachedControlRequested("battery", root.centerFor(batteryButton))
         }

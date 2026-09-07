@@ -18,6 +18,14 @@ Scope {
 
     property bool shown: true
 
+    CortetsuHoverSurfaceController {
+        id: hoverSurfaceController
+
+        onOpenRequested: (screen, mode, anchorCenter) =>
+            hubRoot.openAttachedControlNow(screen, mode, anchorCenter)
+        onCloseRequested: hubRoot.closeAllPopouts()
+    }
+
     Timer {
         id: hideTimer
         interval: 500
@@ -193,7 +201,7 @@ Scope {
         shown = true;
     }
 
-    function showAttachedControlFor(screen, mode, anchorCenter = -1): void {
+    function openAttachedControlNow(screen, mode, anchorCenter = -1): void {
         const popouts = CortetsuShellState.componentsFor(screen)?.popouts;
         if (!popouts)
             return;
@@ -207,6 +215,19 @@ Scope {
         popouts.currentName = mode;
         popouts.hasCurrent = true;
         shown = true;
+    }
+
+    function showAttachedControlFor(screen, mode, anchorCenter = -1): void {
+        hoverSurfaceController.request(screen, mode, anchorCenter);
+    }
+
+    function enterAttachedControl(screen, mode, anchorCenter = -1): void {
+        hoverSurfaceController.enterTrigger();
+        hoverSurfaceController.request(screen, mode, anchorCenter);
+    }
+
+    function leaveAttachedControl(): void {
+        hoverSurfaceController.leaveTrigger();
     }
 
     IpcHandler {
@@ -742,6 +763,12 @@ Scope {
                     mode,
                     win.hubMargin + centerX
                 )
+                onAttachedControlEntered: (mode, centerX) => hubRoot.enterAttachedControl(
+                    win.modelData,
+                    mode,
+                    win.hubMargin + centerX
+                )
+                onAttachedControlExited: hubRoot.leaveAttachedControl()
                 onDetachedControlRequested: mode => hubRoot.toggleDetachedControlFor(win.modelData, mode)
                 onVolumeMuteRequested: {
                     if (CortetsuAudio.sink?.audio)

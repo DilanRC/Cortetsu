@@ -23,7 +23,7 @@ for (const mode of ['network', 'audio', 'traymenu0']) {
     const open = vm.createContext({ popouts: popup, screen: {}, mode, anchorCenter: 720,
         CortetsuShellState: { componentsFor: () => ({ popouts: popup }) },
         closeAllLaunchers() {}, closeAllPanels() {} });
-    vm.runInContext('(function() {' + body(read('BottomHub.qml'), 'showAttachedControlFor') + '})()', open);
+    vm.runInContext('(function() {' + body(read('BottomHub.qml'), 'openAttachedControlNow') + '})()', open);
     assert.equal(pending, false, 'old close must be cancelled even when hasCurrent was already true');
     assert.equal(popup.closing, false);
     assert.equal(popup.currentName, mode);
