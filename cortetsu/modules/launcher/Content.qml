@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls
 import ".."
+import "../../components"
 import "../CortetsuDesign.js" as CortetsuDesign
 import "../CortetsuSearchBar.qml"
 import qs.modules.launcher.services
