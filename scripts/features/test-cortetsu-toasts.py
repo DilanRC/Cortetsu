@@ -26,7 +26,7 @@ assert "implicitHeight: column.childrenRect.height" in view
 assert "z: 100" in view
 assert "onVisibleToastsChanged" in view
 assert "forceActiveFocus()" in view
-assert "MouseArea" in view
+assert "Keys.onEscapePressed" in view
 assert "CortetsuToaster.dismiss(root.visibleToasts[0].id)" in view
 assert "height: implicitHeight" in item
 assert "pomodoroNotification" in hub
