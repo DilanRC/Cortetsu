@@ -22,12 +22,6 @@ Item {
     readonly property int padding: CortetsuDesign.spacingComfortable
     readonly property int rounding: CortetsuDesign.radiusLarge
 
-    /*
-     * Search on top, results underneath.
-     *
-     * The upstream launcher places SearchBar at the bottom. For the dock
-     * layout it is clearer at the top and keeps the dock visually separate.
-     */
     implicitWidth: listWrapper.width + padding * 2
     implicitHeight:
         padding +
@@ -36,25 +30,40 @@ Item {
         search.implicitHeight +
         padding +
         listWrapper.implicitHeight +
+        CortetsuDesign.spacingStandard +
+        keyboardHint.implicitHeight +
         padding
+
+    CortetsuPopupSurface {
+        anchors.fill: parent
+        baseColor: Qt.alpha(CortetsuDesign.colorTetsu, 0.96)
+        outlineColor: Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.28)
+    }
+
+    CortetsuSectionHeader {
+        id: heading
+        anchors.top: parent.top
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.topMargin: root.padding
+        anchors.leftMargin: root.padding
+        anchors.rightMargin: root.padding
+        title: qsTr("Launcher")
+        detail: search.text.length > 0
+            ? qsTr("Search active")
+            : qsTr("Applications and commands")
+    }
 
     CortetsuSearchBar {
         id: search
-
         objectName: "launcherSearch"
-
         anchors.top: heading.bottom
         anchors.left: parent.left
         anchors.right: parent.right
-
         anchors.topMargin: CortetsuDesign.spacingCompact
         anchors.leftMargin: root.padding
         anchors.rightMargin: root.padding
-
-        topPadding: Math.round((CortetsuDesign.spacingStandard + CortetsuDesign.spacingComfortable) / 2)
-        bottomPadding: Math.round((CortetsuDesign.spacingStandard + CortetsuDesign.spacingComfortable) / 2)
-
-        placeholderText: qsTr("Type \"%1\" for commands").arg(CortetsuConfig.actionPrefix)
+        placeholderText: qsTr("Search apps or type \"%1\" for commands").arg(CortetsuConfig.actionPrefix)
 
         onAccepted: {
             const currentItem = list.currentList?.currentItem;
@@ -96,7 +105,6 @@ Item {
                 list.currentList?.decrementCurrentIndex();
             else
                 list.currentList?.moveGridLeft();
-
             event.accepted = true;
         }
 
@@ -105,15 +113,13 @@ Item {
                 list.currentList?.incrementCurrentIndex();
             else
                 list.currentList?.moveGridRight();
-
             event.accepted = true;
         }
 
         Keys.onEscapePressed: root.screenState.launcher = false
 
         Keys.onPressed: event => {
-            if (CortetsuConfig.vimKeybinds &&
-                    (event.modifiers & Qt.ControlModifier)) {
+            if (CortetsuConfig.vimKeybinds && (event.modifiers & Qt.ControlModifier)) {
                 if (event.key === Qt.Key_J || event.key === Qt.Key_N) {
                     list.currentList?.incrementCurrentIndex();
                     event.accepted = true;
@@ -125,13 +131,11 @@ Item {
                 }
             }
 
-            if (event.key === Qt.Key_Tab &&
-                    !(event.modifiers & Qt.ShiftModifier)) {
+            if (event.key === Qt.Key_Tab && !(event.modifiers & Qt.ShiftModifier)) {
                 list.currentList?.incrementCurrentIndex();
                 event.accepted = true;
             } else if (event.key === Qt.Key_Backtab ||
-                    (event.key === Qt.Key_Tab &&
-                     (event.modifiers & Qt.ShiftModifier))) {
+                    (event.key === Qt.Key_Tab && (event.modifiers & Qt.ShiftModifier))) {
                 list.currentList?.decrementCurrentIndex();
                 event.accepted = true;
             }
@@ -154,44 +158,38 @@ Item {
         }
     }
 
-    CortetsuSectionHeader {
-        id: heading
-
-        anchors.top: parent.top
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.topMargin: root.padding
-        anchors.leftMargin: root.padding
-        anchors.rightMargin: root.padding
-        title: qsTr("Launcher")
-        detail: qsTr("Applications and commands")
-    }
-
     Item {
         id: listWrapper
-
         implicitWidth: list.width
         implicitHeight: list.height
-
         anchors.top: search.bottom
         anchors.topMargin: root.padding
         anchors.horizontalCenter: parent.horizontalCenter
 
         ContentList {
             id: list
-
             content: root
             screenState: root.screenState
             panels: root.panels
-
             maxHeight:
                 root.maxHeight -
                 search.implicitHeight -
-                root.padding * 3
-
+                heading.implicitHeight -
+                keyboardHint.implicitHeight -
+                root.padding * 4
             search: search
             padding: root.padding
             rounding: root.rounding
         }
+    }
+
+    CortetsuText {
+        id: keyboardHint
+        anchors.top: listWrapper.bottom
+        anchors.topMargin: CortetsuDesign.spacingStandard
+        anchors.horizontalCenter: parent.horizontalCenter
+        text: qsTr("↑ ↓ ← → navigate   ·   Enter open   ·   Esc close")
+        textSize: CortetsuTypography.labelSmallPx
+        color: Qt.alpha(CortetsuDesign.colorOnSurfaceVariant, 0.72)
     }
 }
