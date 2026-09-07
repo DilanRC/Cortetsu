@@ -7,12 +7,28 @@ import "../CortetsuTypography.js" as CortetsuTypography
 Column {
     id: root
     required property var screenState
+    property var pendingAction: null
     padding: CortetsuDesign.spacingStandard
     spacing: CortetsuDesign.spacingCompact
 
-    function run(command: list<string>): void {
-        Quickshell.execDetached(command);
+    function run(action): void {
+        if (!action)
+            return;
+        if (pendingAction !== action) {
+            pendingAction = action;
+            confirmTimer.restart();
+            return;
+        }
+        pendingAction = null;
+        confirmTimer.stop();
+        Quickshell.execDetached(action.command);
         root.screenState.session = false;
+    }
+
+    Timer {
+        id: confirmTimer
+        interval: 4000
+        onTriggered: root.pendingAction = null
     }
 
     Repeater {
@@ -42,7 +58,9 @@ Column {
                 }
                 Text {
                     anchors.verticalCenter: parent.verticalCenter
-                    text: modelData.label
+                    text: root.pendingAction === modelData
+                        ? qsTr("Confirm %1").arg(modelData.label)
+                        : modelData.label
                     color: CortetsuDesign.colorWashi
                     font.family: CortetsuTypography.uiFamily
                     font.pixelSize: CortetsuTypography.bodyPx

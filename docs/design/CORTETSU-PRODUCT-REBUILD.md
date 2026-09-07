@@ -115,6 +115,10 @@ Overview, Hardware, Display, Wallpaper, Calendar, and Clipboard now render throu
 
 First-party Dashboard, QSD, Launcher, Settings, and retained surfaces now read the same `CortetsuShellState` registry. This makes the exclusivity policy observable: opening a full surface cannot leave a first-party surface hidden behind it because each controller closes the same state owner.
 
+## Session and power
+
+The session surface keeps the real system actions, but destructive actions now require a second explicit activation within a four-second confirmation window. The first activation arms the action and changes its label to `Confirm ...`; no shutdown, reboot, hibernate, or logout command is run during the armed state.
+
 ## Delivery order
 
 The redesign is delivered in product slices: design foundation, real state
