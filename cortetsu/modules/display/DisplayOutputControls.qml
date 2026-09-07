@@ -5,7 +5,7 @@ import ".."
 import "../CortetsuDesign.js" as CortetsuDesign
 import "../CortetsuTypography.js" as CortetsuTypography
 
-Rectangle {
+Item {
     id: root
 
     required property var editorItem
@@ -20,11 +20,6 @@ Rectangle {
     readonly property string cm: String(candidate?.cm ?? "srgb")
     readonly property int vrr: Number(candidate?.vrr ?? (monitor?.vrr ? 1 : 0))
 
-    radius: CortetsuDesign.radiusLarge
-    color: CortetsuDesign.colorSurfaceHigh
-    border.width: 1
-    border.color: CortetsuDesign.colorOutlineVariant
-
     function setColor(bitdepth, cm): void {
         editorItem.updateSelected("bitdepth", bitdepth)
         editorItem.updateSelected("cm", cm)
@@ -35,72 +30,124 @@ Rectangle {
         editorItem.updateSelected("vrr", vrr > 0 ? 0 : 1)
     }
 
-    function vrrLabel(): string {
-        if (!vrrProven) return qsTr("unsupported/unknown")
-        return vrr > 0 ? qsTr("on") : qsTr("off")
-    }
-
     Column {
         anchors.fill: parent
-        anchors.margins: 11
-        spacing: 6
+        anchors.margins: CortetsuDesign.spacingUnit
+        spacing: CortetsuDesign.spacingCompact
 
         Row {
             width: parent.width
-            height: 22
-            CortetsuText { width: parent.width * 0.58; text: qsTr("Color & VRR"); color: CortetsuDesign.colorOnSurface; textSize: CortetsuTypography.titleSmallPx }
-            CortetsuText { width: parent.width * 0.42; text: `${root.monitor?.current_format ?? "—"}`; color: CortetsuDesign.colorOutline; textSize: CortetsuTypography.labelSmallPx; horizontalAlignment: Text.AlignRight; elide: Text.ElideLeft }
+            height: 24
+
+            CortetsuText {
+                width: parent.width * 0.6
+                text: qsTr("Color & VRR")
+                color: CortetsuDesign.colorOnSurface
+                textSize: CortetsuTypography.titleSmallPx
+                font.weight: Font.DemiBold
+            }
+            CortetsuText {
+                width: parent.width * 0.4
+                text: `${root.monitor?.current_format ?? "—"}`
+                color: CortetsuDesign.colorOutline
+                textSize: CortetsuTypography.labelSmallPx
+                horizontalAlignment: Text.AlignRight
+                elide: Text.ElideLeft
+            }
         }
 
         Row {
             width: parent.width
-            height: 35
-            spacing: 5
+            height: 36
+            spacing: CortetsuDesign.spacingUnit
+
             Repeater {
                 model: [
-                    { label: qsTr("SDR 8"), enabled: true, active: root.bitdepth === 8 && root.cm === "srgb", action: () => root.setColor(8, "srgb") },
-                    { label: qsTr("10-bit Auto"), enabled: root.tenBitProven, active: root.bitdepth === 10 && root.cm === "auto", action: () => root.setColor(10, "auto") },
+                    { label: qsTr("SDR"), enabled: true, active: root.bitdepth === 8 && root.cm === "srgb", action: () => root.setColor(8, "srgb") },
+                    { label: qsTr("10-bit"), enabled: root.tenBitProven, active: root.bitdepth === 10 && root.cm === "auto", action: () => root.setColor(10, "auto") },
                     { label: qsTr("Wide"), enabled: root.wideProven, active: root.bitdepth === 10 && root.cm === "wide", action: () => root.setColor(10, "wide") },
                     { label: qsTr("HDR"), enabled: root.hdrProven, active: root.bitdepth === 10 && (root.cm === "hdr" || root.cm === "hdredid"), action: () => root.setColor(10, "hdredid") }
                 ]
-                delegate: Rectangle {
+
+                delegate: Item {
                     required property var modelData
-                    width: (parent.width - 15) / 4
-                    height: 35
-                    radius: CortetsuDesign.radiusSmall
+                    width: (parent.width - parent.spacing * 3) / 4
+                    height: 36
                     enabled: modelData.enabled
-                    opacity: enabled ? 1 : 0.45
-                    color: modelData.active ? CortetsuDesign.colorSecondaryContainer : CortetsuDesign.colorSurface
-                    CortetsuStateLayer { radius: parent.radius; onClicked: modelData.action() }
-                    CortetsuText { anchors.centerIn: parent; text: modelData.label; color: modelData.active ? CortetsuDesign.colorOnSecondaryContainer : CortetsuDesign.colorOnSurfaceVariant; textSize: CortetsuTypography.labelSmallPx }
+                    opacity: enabled ? 1 : 0.35
+
+                    CortetsuSurface {
+                        anchors.fill: parent
+                        radiusValue: CortetsuDesign.radiusMedium
+                        baseColor: modelData.active
+                            ? Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.8)
+                            : modeLayer.containsMouse
+                                ? CortetsuDesign.colorSurfaceGlass
+                                : "transparent"
+                        outlined: false
+                    }
+                    CortetsuStateLayer {
+                        id: modeLayer
+                        anchors.fill: parent
+                        radius: CortetsuDesign.radiusMedium
+                        disabled: !parent.enabled
+                        onClicked: modelData.action()
+                    }
+                    CortetsuText {
+                        anchors.centerIn: parent
+                        text: modelData.label
+                        color: modelData.active ? CortetsuDesign.colorOnPrimaryContainer : CortetsuDesign.colorOnSurfaceVariant
+                        textSize: CortetsuTypography.labelSmallPx
+                        font.weight: modelData.active ? Font.DemiBold : Font.Normal
+                    }
                 }
             }
         }
 
-        Rectangle {
+        Item {
             width: parent.width
-            height: 35
-            radius: CortetsuDesign.radiusSmall
-            color: root.vrr > 0 && root.vrrProven ? CortetsuDesign.colorSecondaryContainer : CortetsuDesign.colorSurface
+            height: 36
             enabled: root.vrrProven
-            opacity: enabled ? 1 : 0.5
-            CortetsuStateLayer { radius: parent.radius; onClicked: root.toggleVrr() }
+            opacity: enabled ? 1 : 0.4
+
+            CortetsuSurface {
+                anchors.fill: parent
+                radiusValue: CortetsuDesign.radiusMedium
+                baseColor: root.vrr > 0 && root.vrrProven
+                    ? Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.8)
+                    : vrrLayer.containsMouse
+                        ? CortetsuDesign.colorSurfaceGlass
+                        : "transparent"
+                outlined: false
+            }
+            CortetsuStateLayer {
+                id: vrrLayer
+                anchors.fill: parent
+                radius: CortetsuDesign.radiusMedium
+                disabled: !parent.enabled
+                onClicked: root.toggleVrr()
+            }
             Row {
                 anchors.fill: parent
-                anchors.margins: 8
-                CortetsuText { width: parent.width * 0.36; anchors.verticalCenter: parent.verticalCenter; text: qsTr("VRR"); color: CortetsuDesign.colorOutline; textSize: CortetsuTypography.labelSmallPx }
-                CortetsuText { width: parent.width * 0.64; anchors.verticalCenter: parent.verticalCenter; text: root.vrrLabel(); color: root.vrr > 0 ? CortetsuDesign.colorOnSurface : CortetsuDesign.colorOnSurfaceVariant; textSize: CortetsuTypography.labelSmallPx; horizontalAlignment: Text.AlignRight; elide: Text.ElideLeft }
-            }
-        }
+                anchors.leftMargin: CortetsuDesign.spacingStandard
+                anchors.rightMargin: CortetsuDesign.spacingStandard
 
-        CortetsuText {
-            width: parent.width
-            text: qsTr("10-bit/HDR/Wide/VRR unlock only when DRM/EDID establishes support. Unknown stays disabled.")
-            color: CortetsuDesign.colorOutline
-            textSize: CortetsuTypography.labelSmallPx
-            wrapMode: Text.WordWrap
-            maximumLineCount: 2
-            elide: Text.ElideRight
+                CortetsuText {
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: parent.width * 0.5
+                    text: qsTr("Variable refresh")
+                    color: CortetsuDesign.colorOnSurfaceVariant
+                    textSize: CortetsuTypography.labelSmallPx
+                }
+                CortetsuText {
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: parent.width * 0.5
+                    text: !root.vrrProven ? qsTr("Unavailable") : root.vrr > 0 ? qsTr("On") : qsTr("Off")
+                    color: root.vrr > 0 ? CortetsuDesign.colorOnSurface : CortetsuDesign.colorOutline
+                    textSize: CortetsuTypography.labelSmallPx
+                    horizontalAlignment: Text.AlignRight
+                }
+            }
         }
     }
 }
