@@ -157,10 +157,8 @@ create_bind(vars.kbAudioSettings, hl.dsp.exec_cmd(vars.audioSettings))
 
 -- Utilities
 create_bind(vars.kbScreenshot, hl.dsp.exec_cmd("cortetsu screenshot"), locked)
--- kbScreenshotFreeze/kbScreenshotRegion already target cortetsu:* IPC names,
--- but no CortetsuShortcut receiver implements them yet (see cortetsu/modules;
--- Task 18/screenshot backend). Leaving them orphaned rather than pretending
--- they work -- not a caelestia dependency, just an unbuilt receiver.
+-- Freeze and region shortcuts target the first-party AreaPicker receiver.
+-- The Cortetsu runtime exposes both names through its picker IPC handler.
 create_bind(vars.kbScreenshotFreeze, hl.dsp.global("cortetsu:screenshotFreeze"))
 create_bind(vars.kbScreenshotRegion, hl.dsp.global("cortetsu:screenshot"))
 create_bind(vars.kbRecord, hl.dsp.exec_cmd("cortetsu-record start"))

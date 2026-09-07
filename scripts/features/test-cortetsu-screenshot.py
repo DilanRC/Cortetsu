@@ -4,6 +4,7 @@ from pathlib import Path
 repo = Path(__file__).resolve().parents[2]
 cli = repo / "scripts/cortetsu"
 hypr = (repo / "config/hypr-user.lua").read_text(encoding="utf-8")
+keybinds = (repo / "dotfiles/home/.config/hypr/hyprland/keybinds.lua").read_text(encoding="utf-8")
 text = cli.read_text(encoding="utf-8")
 picker = (repo / "cortetsu/modules/areapicker/AreaPicker.qml").read_text(encoding="utf-8")
 picker_content = (repo / "cortetsu/modules/areapicker/Picker.qml").read_text(encoding="utf-8")
@@ -15,6 +16,7 @@ assert 'ipc call picker open' in text
 assert "/usr/bin/caelestia" not in text
 assert 'cortetsu screenshot -r -f' in hypr
 assert "caelestia screenshot" not in hypr
+assert "Leaving them orphaned" not in keybinds
 for source in (picker, picker_content):
     for legacy in ("Caelestia", "CUtils", "Colours.", "Tokens.", "StyledRect", "StyledText", "MaterialIcon", "qs.services", "qs.components"):
         assert legacy not in source, legacy
