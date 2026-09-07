@@ -98,6 +98,7 @@ Item {
 
     Launcher.Wrapper {
         id: launcher
+        visible: false
         screen: root.screen
         screenState: root.screenState
         panels: root

@@ -90,6 +90,17 @@ echo, failure feedback, battery/network status, and a restrained keyboard hint.
 The real lock shortcut and IPC are unchanged. The lock action was not triggered
 during development to avoid interrupting the active session.
 
+## Launcher and system feedback
+
+Launcher now has a dedicated overlay host with exclusive keyboard focus. Its
+search-first behavior remains intact, but the header makes the active mode
+explicit: Apps, Command, Theme, or Wallpaper. Prefixes continue to be owned
+by the existing action services, so the label is a reflection of real routing.
+
+OSD keeps live volume and brightness readback while adding a small Cortetsu
+feedback signature: a two-piece indigo/Washi geometry and `SYSTEM FEEDBACK`
+label. The visual stays compact and uses the existing fast motion timing.
+
 ## Delivery order
 
 The redesign is delivered in product slices: design foundation, real state

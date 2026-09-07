@@ -23,6 +23,7 @@ ShellRoot {
     AreaPicker {}
     QsdHost {}
     DashboardHost {}
+    LauncherHost {}
     SettingsHost {}
     Lock { id: lock }
     Shortcuts {}

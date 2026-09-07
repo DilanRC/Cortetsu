@@ -67,12 +67,12 @@ StyledWindow {
     }
 
     name: "drawers"
-    focusable: panels.popouts.hasCurrent || screenState.cortetsuState?.requiresWindowKeyboardFocus
+    focusable: panels.popouts.hasCurrent || (screenState.cortetsuState?.requiresWindowKeyboardFocus && !screenState.launcher)
     WlrLayershell.exclusionMode: ExclusionMode.Ignore
     WlrLayershell.layer: screenState.cortetsuState?.overview ? WlrLayer.Overlay : ((fsTransitionProg > 0 && CortetsuOverlayConfig.general.showOverFullscreen) || (hasSpecialWorkspace && hasFullscreenOnNormalWs) ? WlrLayer.Overlay : WlrLayer.Top)
     WlrLayershell.keyboardFocus: panels.popouts.hasCurrent
         ? WlrKeyboardFocus.Exclusive
-        : screenState.cortetsuState?.requiresWindowKeyboardFocus
+        : (screenState.cortetsuState?.requiresWindowKeyboardFocus && !screenState.launcher)
             ? WlrKeyboardFocus.OnDemand
             : WlrKeyboardFocus.None
 
@@ -131,7 +131,7 @@ StyledWindow {
                 return true;
             if (s.cortetsuState?.retainedOverlayOpen)
                 return true;
-            if ((s.launcher && conf.launcher.enabled) || (s.session && conf.session.enabled) || (s.sidebar && conf.sidebar.enabled) || (s.utilities && conf.utilities.enabled))
+            if ((s.session && conf.session.enabled) || (s.sidebar && conf.sidebar.enabled) || (s.utilities && conf.utilities.enabled))
                 return true;
             if (!conf.dashboard.showOnHover && s.dashboard && conf.dashboard.enabled)
                 return true;

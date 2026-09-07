@@ -16,11 +16,43 @@ CortetsuPopupSurface {
     property bool hovered: false
 
     implicitWidth: 248
-    implicitHeight: indicators.implicitHeight + CortetsuDesign.spacingStandard * 2
+    implicitHeight: indicators.implicitHeight + CortetsuDesign.spacingStandard * 2 + 24
+
+    Rectangle {
+        x: CortetsuDesign.spacingStandard
+        y: CortetsuDesign.spacingCompact
+        width: 34
+        height: 3
+        radius: 1
+        color: CortetsuDesign.colorPrimary
+    }
+    Rectangle {
+        x: CortetsuDesign.spacingStandard + 28
+        y: CortetsuDesign.spacingCompact
+        width: 12
+        height: 3
+        radius: 1
+        rotation: 45
+        color: CortetsuDesign.colorWashi
+        opacity: 0.82
+    }
+    CortetsuText {
+        anchors.top: parent.top
+        anchors.right: parent.right
+        anchors.topMargin: CortetsuDesign.spacingCompact
+        anchors.rightMargin: CortetsuDesign.spacingStandard
+        text: qsTr("SYSTEM FEEDBACK")
+        textSize: CortetsuTypography.labelSmallPx
+        color: CortetsuDesign.colorOnSurfaceVariant
+    }
 
     Column {
         id: indicators
-        anchors.fill: parent
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        anchors.topMargin: 24
         anchors.margins: CortetsuDesign.spacingStandard
         spacing: CortetsuDesign.spacingCompact
 

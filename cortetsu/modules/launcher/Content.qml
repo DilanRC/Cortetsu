@@ -5,6 +5,7 @@ import QtQuick.Controls
 import ".."
 import "../../components"
 import "../CortetsuDesign.js" as CortetsuDesign
+import "../CortetsuTypography.js" as CortetsuTypography
 import "../CortetsuSearchBar.qml"
 import qs.modules.launcher.services
 
@@ -23,11 +24,27 @@ Item {
         search.cursorPosition = search.text.length;
     }
 
+    function modeLabel(): string {
+        if (search.text.startsWith(`${CortetsuConfig.actionPrefix}scheme `)) return qsTr("Theme");
+        if (search.text.startsWith(`${CortetsuConfig.actionPrefix}wallpaper `)) return qsTr("Wallpaper");
+        if (search.text.startsWith(CortetsuConfig.actionPrefix)) return qsTr("Command");
+        return qsTr("Apps");
+    }
+
+    function modeIcon(): string {
+        if (modeLabel() === qsTr("Theme")) return "palette";
+        if (modeLabel() === qsTr("Wallpaper")) return "wallpaper";
+        if (modeLabel() === qsTr("Command")) return "terminal";
+        return "apps";
+    }
+
     implicitWidth: listWrapper.width + padding * 2
     implicitHeight:
         padding +
         search.implicitHeight +
         CortetsuDesign.spacingStandard +
+        mode.implicitHeight +
+        CortetsuDesign.spacingCompact +
         listWrapper.implicitHeight +
         padding
 
@@ -35,6 +52,27 @@ Item {
         anchors.fill: parent
         baseColor: Qt.alpha(CortetsuDesign.colorTetsu, 0.94)
         outlineColor: Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.16)
+    }
+
+    CortetsuSurface {
+        id: mode
+        anchors.top: search.bottom
+        anchors.left: search.left
+        anchors.right: search.right
+        anchors.topMargin: CortetsuDesign.spacingCompact
+        implicitHeight: 32
+        radiusValue: CortetsuDesign.radiusSmall
+        baseColor: Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.42)
+        outlined: true
+        Row {
+            anchors.fill: parent
+            anchors.leftMargin: CortetsuDesign.spacingCompact
+            anchors.rightMargin: CortetsuDesign.spacingCompact
+            spacing: CortetsuDesign.spacingCompact
+            CortetsuIcon { anchors.verticalCenter: parent.verticalCenter; text: root.modeIcon(); iconSize: CortetsuTypography.iconSmallPx; color: CortetsuDesign.colorPrimary }
+            CortetsuText { anchors.verticalCenter: parent.verticalCenter; text: root.modeLabel(); textSize: CortetsuTypography.labelSmallPx; font.weight: Font.DemiBold; color: CortetsuDesign.colorOnPrimaryContainer }
+            CortetsuText { anchors.verticalCenter: parent.verticalCenter; text: root.modeLabel() === qsTr("Apps") ? qsTr("Search-first") : qsTr("Prefix mode"); textSize: CortetsuTypography.labelSmallPx; color: CortetsuDesign.colorOnSurfaceVariant }
+        }
     }
 
     CortetsuSearchBar {
@@ -147,8 +185,8 @@ Item {
         id: listWrapper
         implicitWidth: list.width
         implicitHeight: list.height
-        anchors.top: search.bottom
-        anchors.topMargin: CortetsuDesign.spacingStandard
+        anchors.top: mode.bottom
+        anchors.topMargin: CortetsuDesign.spacingCompact
         anchors.horizontalCenter: parent.horizontalCenter
 
         ContentList {
