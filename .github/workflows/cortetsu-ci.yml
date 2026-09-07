@@ -50,8 +50,6 @@ jobs:
           while IFS= read -r -d '' file; do bash -n "$file"; done < <(find scripts cortetsu/bin -type f -name '*.sh' -print0)
           bash -n scripts/cortetsu
           bash -n scripts/migrate-cortetsu-v2.sh
-          bash -n cortetsu/bin/ensure-upstream.sh
-          bash -n scripts/features/test-upstream-bootstrap.sh
       - name: Validate shell quality
         run: python3 scripts/features/test-cortetsu-quality.py
       - name: Validate first-party Bottom Hub
@@ -100,11 +98,12 @@ jobs:
           test -f dotfiles/generated/theme/home/.config/kdeglobals
           test ! -e dotfiles/imported/desktop/home/.config/kitty/caelestia-theme.conf
           test ! -e scripts/features/install-theme-bridge.py
+          test ! -e cortetsu/bin/ensure-upstream.sh
+          test ! -e scripts/features/test-upstream-bootstrap.sh
           test -f profiles/base.toml
           test -f profiles/personal.toml
           test -f packages/arch.toml
           test -f config/systemd/user/cortetsu-shell.service
-          test -f cortetsu/bin/ensure-upstream.sh
           test -f docs/CORTETSU_ARCHITECTURE.md
           test -f docs/DOTFILES_PLATFORM.md
           test -f docs/IDENTITY.md
@@ -114,7 +113,7 @@ jobs:
           grep -q 'packages = \["fish"\]' packages/arch.toml
           grep -q '"personal-shell"' profiles/personal.toml
           grep -q '"upstreamRepo": "https://github.com/caelestia-dots/shell.git"' caelestia/compatibility.json
-          grep -q 'ensure-upstream.sh' cortetsu/bin/build-runtime.sh
+          ! grep -q 'ensure-upstream.sh' cortetsu/bin/build-runtime.sh
           grep -q 'CortetsuBottomHubView.qml' cortetsu/bin/build-runtime.sh
           ! grep -q 'native-bottom-hub.py' cortetsu/bin/build-runtime.sh
           grep -q 'core/dotfiles.py' scripts/install-cortetsu.sh
@@ -126,7 +125,7 @@ jobs:
           grep -q 'rollback) rollback_cmd' scripts/cortetsu
           ! grep -q 'install-theme-bridge.py' scripts/install-cortetsu.sh
           ! grep -q 'caelestia-theme.conf' dotfiles/manifest.toml
-          ! git grep -n -I -E 'caerice-|CAERICE_|~/.config/caerice|~/.local/state/caerice' -- ':!docs/history/**' ':!docs/PROVENANCE.md' ':!scripts/migrate-cortetsu-v2.sh' ':!scripts/features/test-v2-migration-unreadable.sh' ':!scripts/features/test-upstream-bootstrap.sh' ':!cortetsu/bin/ensure-upstream.sh' ':!cortetsu/tests/test-runtime-contract.py' ':!.github/workflows/**'
+          ! git grep -n -I -E 'caerice-|CAERICE_|~/.config/caerice|~/.local/state/caerice' -- ':!docs/history/**' ':!docs/PROVENANCE.md' ':!scripts/migrate-cortetsu-v2.sh' ':!cortetsu/tests/test-runtime-contract.py' ':!.github/workflows/**'
           ! git grep -n -I 'sh -c' -- '*.qml'
           ! git grep -n -I 'CORTETSU_DATA_ROOT:-${CORTETSU_DATA_ROOT' -- ':!docs/history/**' ':!.github/workflows/**'
           ! git grep -n -I 'CORTETSU_RUNTIME_ROOT:-${CORTETSU_RUNTIME_ROOT' -- ':!docs/history/**' ':!.github/workflows/**'
