@@ -273,6 +273,8 @@ test_cmd() {
         "scripts/features/eval-cortetsu-wave0-foundations.py"
         "scripts/features/test-cortetsu-wave4-quick-settings-osd.py"
         "scripts/features/eval-cortetsu-wave4-quick-settings-osd.py"
+        "scripts/features/test-cortetsu-recorder.py"
+        "scripts/features/eval-cortetsu-recorder.py"
         "scripts/features/test-osd-hover-contract.py"
         "scripts/features/eval-osd-hover-contract.py"
         "scripts/features/test-cortetsu-native-design-system.py"

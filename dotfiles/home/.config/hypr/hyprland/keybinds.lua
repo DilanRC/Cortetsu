@@ -163,14 +163,9 @@ create_bind(vars.kbScreenshot, hl.dsp.exec_cmd("cortetsu screenshot"), locked)
 -- they work -- not a caelestia dependency, just an unbuilt receiver.
 create_bind(vars.kbScreenshotFreeze, hl.dsp.global("cortetsu:screenshotFreeze"))
 create_bind(vars.kbScreenshotRegion, hl.dsp.global("cortetsu:screenshot"))
--- kbRecord/kbRecordSound/kbRecordRegion still call the caelestia CLI: the
--- first-party replacement (cortetsu-record / `cortetsu record`) only has
--- status/stop, no start-recording action yet (Task 19). Migrating these
--- three to it would silently break the "start recording" keybinds, so they
--- stay pointed at caelestia until cortetsu record grows a start action.
-create_bind(vars.kbRecord, hl.dsp.exec_cmd("caelestia record"))
-create_bind(vars.kbRecordSound, hl.dsp.exec_cmd("caelestia record -s"))
-create_bind(vars.kbRecordRegion, hl.dsp.exec_cmd("caelestia record -r"))
+create_bind(vars.kbRecord, hl.dsp.exec_cmd("cortetsu-record start"))
+create_bind(vars.kbRecordSound, hl.dsp.exec_cmd("cortetsu-record start -s"))
+create_bind(vars.kbRecordRegion, hl.dsp.exec_cmd("cortetsu-record start -r"))
 create_bind(vars.kbColorPicker, hl.dsp.exec_cmd("hyprpicker -a"))
 
 -- Brightness
