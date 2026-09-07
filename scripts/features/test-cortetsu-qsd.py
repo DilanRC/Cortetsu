@@ -15,10 +15,18 @@ for marker in ("Brightness.getMonitorForScreen", "CortetsuAudio.setVolume", "Cor
     assert marker in content, marker
 assert "required property ShellScreen screen" in content
 assert "screen: window.modelData" in host
+assert "qsdEdgeHovered" in host
+assert "qsdDrawerHovered" in host
+assert "qsdOpenedByShortcut" in host
+assert "interval: 260" in host
 for marker in ("Variants", "StyledWindow", 'name: "qsd"', "WlrLayer.Overlay", "width: 400", "Content"):
     assert marker in host, marker
 assert 'qsd: null' in window
 assert "property bool qsd" in state and "|| qsd" in state
+assert "property bool qsdEdgeHovered" in state
+assert "property bool qsdDrawerHovered" in state
+assert "property bool qsdOpenedByShortcut" in state
 assert 'name: "qsd"' in shortcuts
+assert 'state.qsdOpenedByShortcut = state.qsd' in shortcuts
 assert 'hl.dsp.global("cortetsu:qsd")' in hypr
 print("PASS: QSD is a first-party right-side surface with real controls and shortcut ownership")

@@ -17,6 +17,9 @@ PersistentProperties {
     property bool dashboard
     property bool utilities
     property bool qsd
+    property bool qsdEdgeHovered
+    property bool qsdDrawerHovered
+    property bool qsdOpenedByShortcut
     property bool settings
     property bool sidebar
     property int dashboardTab

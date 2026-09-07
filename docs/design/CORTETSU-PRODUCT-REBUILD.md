@@ -56,6 +56,10 @@ canonical per-screen state, while `SUPER + /` owns the shortcut. The drawer
 uses the shared 120/180/240 ms motion scale and is excluded from the legacy
 panel host's focus-grab cleanup so opening its own layer cannot immediately
 close it.
+Its state is screen-owned: edge hover uses a 6 px hotspot and 180 ms dwell, the
+drawer keeps itself alive while hovered, and shortcut/keyboard focus keeps it
+pinned until Escape or an explicit close. Auto-close uses a 260 ms grace only
+for edge-opened drawers.
 
 ## Settings Center
 

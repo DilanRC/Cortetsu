@@ -85,6 +85,7 @@ CustomMouseArea {
     onPressed: event => dragStart = Qt.point(event.x, event.y)
     onContainsMouseChanged: {
         if (!containsMouse) {
+            root.screenState.qsdEdgeHovered = false;
             // Only hide if not activated by shortcut
             if (!osdShortcutActive) {
                 screenState.osd = false;
@@ -121,6 +122,7 @@ CustomMouseArea {
         const dragY = y - dragStart.y;
 
         root.qsdEdgePending = x >= width - 6;
+        root.screenState.qsdEdgeHovered = root.qsdEdgePending;
         if (root.qsdEdgePending && !root.pressed && !root.screenState.qsd)
             qsdOpenTimer.restart();
         else if (!root.qsdEdgePending)

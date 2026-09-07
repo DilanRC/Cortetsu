@@ -39,7 +39,17 @@ Scope {
         }
     }
     CustomShortcut { name: "utilities"; description: "Toggle utilities"; onPressed: if (!root.hasFullscreen) CortetsuShellState.forActive().utilities = !CortetsuShellState.forActive().utilities }
-    CustomShortcut { name: "qsd"; description: "Toggle Quick Settings Drawer"; onPressed: if (!root.hasFullscreen) CortetsuShellState.forActive().qsd = !CortetsuShellState.forActive().qsd }
+    CustomShortcut {
+        name: "qsd"; description: "Toggle Quick Settings Drawer"
+        onPressed: {
+            if (root.hasFullscreen)
+                return;
+            const state = CortetsuShellState.forActive();
+            state.qsd = !state.qsd;
+            state.qsdOpenedByShortcut = state.qsd;
+            state.qsdEdgeHovered = false;
+        }
+    }
     CustomShortcut { name: "settings"; description: "Toggle Cortetsu Settings Center"; onPressed: if (!root.hasFullscreen) CortetsuShellState.forActive().settings = !CortetsuShellState.forActive().settings }
 
     IpcHandler {
@@ -49,6 +59,10 @@ Scope {
             if (!state || typeof state[drawer] !== "boolean") return;
             if (root.hasFullscreen && ["launcher", "session", "dashboard", "qsd"].includes(drawer)) return;
             state[drawer] = !state[drawer];
+            if (drawer === "qsd") {
+                state.qsdOpenedByShortcut = state.qsd;
+                state.qsdEdgeHovered = false;
+            }
         }
         function list(): string { const state = CortetsuShellState.forActive(); return state ? Object.keys(state).filter(k => typeof state[k] === "boolean").join("\n") : ""; }
         function isOpen(drawer: string): string { const state = CortetsuShellState.forActive(); return !state || typeof state[drawer] !== "boolean" ? "unknown" : state[drawer] ? "1" : "0"; }

@@ -18,7 +18,7 @@ Scope {
         StyledWindow {
             id: window
             required property ShellScreen modelData
-            readonly property var screenState: CortetsuShellState.forActive()
+            readonly property var screenState: CortetsuShellState.forScreen(modelData)
 
             screen: modelData
             name: "qsd"
@@ -59,16 +59,58 @@ Scope {
                 }
 
                 MouseArea {
+                    id: drawerMouse
                     anchors.fill: parent
                     hoverEnabled: true
                     acceptedButtons: Qt.NoButton
+                    onEntered: window.screenState.qsdDrawerHovered = true
+                    onExited: window.screenState.qsdDrawerHovered = false
+                }
+            }
+
+            Timer {
+                id: closeGrace
+                interval: 260
+                repeat: false
+                onTriggered: {
+                    const state = window.screenState;
+                    if (state?.qsd && !state.qsdOpenedByShortcut
+                        && !state.qsdEdgeHovered && !state.qsdDrawerHovered
+                        && !window.activeFocus)
+                        state.qsd = false;
+                }
+            }
+
+            Connections {
+                target: window.screenState
+                function onQsdChanged(): void {
+                    if (window.screenState.qsd && !window.screenState.qsdOpenedByShortcut)
+                        closeGrace.restart();
+                    else
+                        closeGrace.stop();
+                }
+                function onQsdEdgeHoveredChanged(): void {
+                    if (!window.screenState.qsdEdgeHovered && window.screenState.qsd
+                        && !window.screenState.qsdOpenedByShortcut)
+                        closeGrace.restart();
+                    else if (window.screenState.qsdEdgeHovered)
+                        closeGrace.stop();
+                }
+                function onQsdDrawerHoveredChanged(): void {
+                    if (window.screenState.qsdDrawerHovered)
+                        closeGrace.stop();
+                    else if (window.screenState.qsd && !window.screenState.qsdOpenedByShortcut)
+                        closeGrace.restart();
                 }
             }
 
             Shortcut {
                 sequence: "Escape"
                 enabled: window.screenState?.qsd ?? false
-                onActivated: window.screenState.qsd = false
+                onActivated: {
+                    window.screenState.qsdOpenedByShortcut = false;
+                    window.screenState.qsd = false;
+                }
             }
         }
     }
