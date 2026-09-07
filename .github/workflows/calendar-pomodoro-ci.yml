@@ -43,5 +43,27 @@ jobs:
           python3 cortetsu/tests/test-calendar-polish.py
           python3 cortetsu/tests/test-pomodoro.py
           python3 cortetsu/tests/test-runtime-contract.py
+      - name: Validate Ascension launcher contracts
+        run: |
+          python3 scripts/features/test-launcher-runtime.py
+          python3 scripts/features/test-launcher-fonts.py
+          python3 scripts/features/test-launcher-process-scope.py
+      - name: Validate Ascension overview and display contracts
+        run: |
+          python3 scripts/features/test-overview-design.py
+          python3 scripts/features/test-overview-interactive.py
+          python3 scripts/features/test-display-design.py
+          python3 scripts/features/test-display-input-validation.py
+          python3 scripts/features/test-display-drm-capabilities.py
+          python3 scripts/features/test-display-edid.py
+          python3 scripts/features/test-display-refresh-order.py
+      - name: Validate Ascension hardware and shell contracts
+        run: |
+          python3 scripts/features/test-hardware-design.py
+          python3 scripts/features/test-hardware-telemetry.py
+          python3 scripts/features/test-surface-coordinator.py
+          python3 scripts/features/test-cortetsu-quality.py
+          python3 scripts/features/test-native-bottom-hub.py
+          python3 scripts/features/test-native-theme.py
       - name: Build two isolated generations and roll back
         run: python3 scripts/features/test-cortetsu-build.py
