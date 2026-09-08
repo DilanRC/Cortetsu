@@ -23,10 +23,13 @@ Scope {
             WlrLayershell.exclusionMode: ExclusionMode.Ignore
             WlrLayershell.layer: WlrLayer.Overlay
             WlrLayershell.keyboardFocus: screenState?.settings ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+            mask: window.screenState?.settings ? null : emptyRegion
             anchors.top: true
             anchors.bottom: true
             anchors.left: true
             anchors.right: true
+
+            Region { id: emptyRegion }
 
             Rectangle { anchors.fill: parent; color: Qt.alpha(CortetsuDesign.colorSumi, 0.74); visible: window.screenState?.settings ?? false }
             CortetsuSurface {

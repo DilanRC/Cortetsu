@@ -26,10 +26,13 @@ Scope {
             WlrLayershell.exclusionMode: ExclusionMode.Ignore
             WlrLayershell.layer: WlrLayer.Overlay
             WlrLayershell.keyboardFocus: open ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+            mask: open ? null : emptyRegion
             anchors.top: true
             anchors.bottom: true
             anchors.left: true
             anchors.right: true
+
+            Region { id: emptyRegion }
 
             Rectangle { anchors.fill: parent; visible: window.open; color: Qt.alpha(CortetsuDesign.colorScrim, 0.54) }
 

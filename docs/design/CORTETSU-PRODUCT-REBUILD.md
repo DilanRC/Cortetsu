@@ -129,6 +129,14 @@ between the trigger and its popout does not depend on duplicated timers. The
 popout host remains a single surface and can switch its content when the pointer
 moves from Network to Bluetooth or Battery.
 
+## Input ownership
+
+Every first-party full-surface host remains allocated for stable layer timing,
+but exposes an empty Wayland input region while closed. Its input region becomes
+active only while the surface owns the interaction. This keeps transparent QSD,
+Settings, Dashboard, Launcher, Session, and retained-surface layers from stealing
+clicks from application windows underneath.
+
 ## Session and power
 
 The session surface keeps the real system actions, but destructive actions now require a second explicit activation within a four-second confirmation window. The first activation arms the action and changes its label to `Confirm ...`; no shutdown, reboot, hibernate, or logout command is run during the armed state.

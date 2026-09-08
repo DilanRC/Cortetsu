@@ -405,6 +405,8 @@ verify_cmd() {
     run_python_test "scripts/features/test-cortetsu-session-host.py"
     run_python_test "scripts/features/test-retained-surfaces-host.py"
     run_python_test "scripts/features/test-cortetsu-hover-controller.py"
+    run_python_test "scripts/features/test-cortetsu-input-ownership.py"
+    run_python_test "scripts/features/eval-cortetsu-input-ownership.py"
     run_python_test "scripts/features/eval-retained-surfaces-host.py"
     run_python_test "cortetsu/tests/test-runtime-contract.py"
     run_bash_test "cortetsu/tests/test-calendar-readonly.sh"

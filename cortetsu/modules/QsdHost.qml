@@ -28,12 +28,13 @@ Scope {
             WlrLayershell.exclusionMode: ExclusionMode.Ignore
             WlrLayershell.layer: WlrLayer.Overlay
             WlrLayershell.keyboardFocus: visible ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+            mask: window.screenState?.qsd ? null : emptyRegion
             anchors.top: true
             anchors.bottom: true
             anchors.left: true
             anchors.right: true
 
-            Region { id: empty }
+            Region { id: emptyRegion }
 
             Item {
                 id: drawer

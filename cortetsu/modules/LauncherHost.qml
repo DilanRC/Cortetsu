@@ -22,10 +22,13 @@ Scope {
             WlrLayershell.exclusionMode: ExclusionMode.Ignore
             WlrLayershell.layer: WlrLayer.Overlay
             WlrLayershell.keyboardFocus: screenState?.launcher ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+            mask: window.screenState?.launcher ? null : emptyRegion
             anchors.top: true
             anchors.bottom: true
             anchors.left: true
             anchors.right: true
+
+            Region { id: emptyRegion }
 
             Content {
                 id: launcher

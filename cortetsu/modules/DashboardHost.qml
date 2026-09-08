@@ -23,10 +23,13 @@ Scope {
             WlrLayershell.exclusionMode: ExclusionMode.Ignore
             WlrLayershell.layer: WlrLayer.Overlay
             WlrLayershell.keyboardFocus: screenState?.dashboard ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+            mask: window.screenState?.dashboard ? null : emptyRegion
             anchors.top: true
             anchors.bottom: true
             anchors.left: true
             anchors.right: true
+
+            Region { id: emptyRegion }
 
             Rectangle {
                 anchors.fill: parent

@@ -32,10 +32,13 @@ Scope {
             WlrLayershell.exclusionMode: ExclusionMode.Ignore
             WlrLayershell.layer: WlrLayer.Overlay
             WlrLayershell.keyboardFocus: surfaceOpen ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+            mask: surfaceOpen ? null : emptyRegion
             anchors.top: true
             anchors.bottom: true
             anchors.left: true
             anchors.right: true
+
+            Region { id: emptyRegion }
 
             Rectangle {
                 anchors.fill: parent
