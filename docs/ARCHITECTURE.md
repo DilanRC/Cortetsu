@@ -31,13 +31,13 @@ La migración de `Panels.qml` localiza cada componente por tipo e `id` y modific
 
 `ContentWindow.qml` es una superficie de integración compartida, no un archivo exclusivo del patch de Overview. Clipboard, Hardware Center y Display Manager extienden las mismas cadenas de layer, keyboard focus, input mask, focus grab y cierre. El preflight de Bottom Hub debe preservar esos miembros y validar el estado semántico compuesto; no debe exigir que el archivo vuelva a ser byte por byte el resultado del patch base.
 
-El launcher también continúa siendo el launcher nativo de Caelestia y se desplaza 72 px para aparecer visualmente unido al Bottom Hub.
+El launcher es una superficie nativa de Cortetsu y se desplaza 72 px para aparecer visualmente unido al Bottom Hub.
 
 ## Wallpaper Manager
 
 Wallpaper Manager sigue el límite `ScreenState -> WallpaperController -> ContentWindow -> Panels -> wallpaper/Wrapper -> Content`. `wallpaperManager` es un estado por pantalla y participa en layer overlay, foco OnDemand, máscara nula, focus grab, scrim y cierre en fullscreen. `OverlayPolicy.js` es la única lista de exclusión para launcher, sidebar/notificaciones, overview, clipboard, hardware, display, session, utilities y dashboard. Cada controlador la aplica en todas las pantallas. Además, cada `wallpaper/Wrapper` observa esos estados en todas las pantallas, por lo que un shortcut, drawer o gesto nativo que no pasa por un controlador también cierra Wallpaper Manager y ejecuta `stopPreview`.
 
-`OrbitModel.js` es la fuente determinística para filtros de categoría, resolución exacta/alias único de `actualCurrent`, wrap, intención de wheel, satélites y prefetch. La órbita excluye el índice seleccionado y queda limitada a 11 thumbnails cuando el presupuesto visible es 12; una ventana separada de hasta 18 imágenes a 128 px precarga sólo vecinos. `Content.qml` posee el gate de presentación y el único timer de preview de 220 ms. `services/Wallpapers.qml` continúa siendo el único backend: el patch de upstream añade generación/cola de preview para que A→B→cancel o A→apply no puedan cargar una paleta obsoleta.
+`OrbitModel.js` es la fuente determinística para filtros de categoría, resolución exacta/alias único de `actualCurrent`, wrap, intención de wheel, satélites y prefetch. La órbita excluye el índice seleccionado y queda limitada a 11 thumbnails cuando el presupuesto visible es 12; una ventana separada de hasta 18 imágenes a 128 px precarga sólo vecinos. `Content.qml` posee el gate de presentación y el único timer de preview de 220 ms. `CortetsuWallpapers.qml` es el backend first-party y conserva el ACK del state-file como fuente de verdad: `apply()` y `applyRandom()` comparten una transacción con generación, timeout y señales de éxito/error. Wallpaper Manager muestra Cosmic sólo tras el ACK real; Launcher mantiene su superficie hasta el éxito y bloquea solicitudes duplicadas.
 
 ## Actualizaciones
 

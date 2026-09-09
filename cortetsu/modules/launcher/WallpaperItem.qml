@@ -10,6 +10,7 @@ Item {
 
     required property var modelData
     required property var screenState
+    required property var applyOwner
 
     scale: 0.5
     opacity: 0
@@ -25,10 +26,8 @@ Item {
 
     CortetsuStateLayer {
         radius: CortetsuDesign.radiusLarge
-        onClicked: {
-            CortetsuWallpapers.setWallpaper(root.modelData.path);
-            root.screenState.launcher = false;
-        }
+        disabled: CortetsuWallpapers.applying
+        onClicked: root.applyOwner.requestWallpaper(root.modelData.path)
     }
 
     CortetsuSurface {

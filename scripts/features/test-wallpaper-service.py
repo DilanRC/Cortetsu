@@ -30,7 +30,9 @@ for text in (wallpaper_list, wallpaper_item):
         assert legacy not in text, legacy
 assert "CortetsuWallpapers.query(query)" in wallpaper_list
 assert "CortetsuWallpapers.preview(currentItem.modelData.path)" in wallpaper_list
-assert "CortetsuWallpapers.setWallpaper(root.modelData.path)" in wallpaper_item
+assert "required property var applyOwner" in wallpaper_item
+assert "disabled: CortetsuWallpapers.applying" in wallpaper_item
+assert "root.applyOwner.requestWallpaper(root.modelData.path)" in wallpaper_item
 print("PASS: launcher wallpaper list and delegate are first-party")
 
 for legacy in ("Caelestia", "qs.services", "qs.components", "Colours.", "Tokens.", "StyledRect", "StyledText", "MaterialIcon"):

@@ -5,6 +5,7 @@ import Quickshell
 import Quickshell.Io
 import "."
 import "../services"
+import "CortetsuDesign.js" as CortetsuDesign
 import "CortetsuWallpaperSearch.js" as WallpaperSearch
 
 Singleton {
@@ -24,6 +25,14 @@ Singleton {
     property bool previewColourLock: false
     property string previewSchemeJson: ""
     property int previewGeneration: 0
+    readonly property string pendingApplyPath: applyState.pendingPath
+    readonly property bool applying: pendingApplyPath.length > 0
+    property bool applyFailed: false
+    property bool randomApply: false
+    property int applyGeneration: 0
+
+    signal wallpaperApplySucceeded(string path, int generation)
+    signal wallpaperApplyFailed(string path, int generation)
 
     function entry(path: string): var {
         const slash = path.lastIndexOf("/");
@@ -54,16 +63,71 @@ Singleton {
         scan.running = true;
     }
 
-    function setRandom(): void {
+    function apply(path: string): bool {
+        const target = String(path ?? "").trim();
+        if (!target || applying || target === actualCurrent)
+            return false;
         stopPreview();
-        Quickshell.execDetached(["cortetsu-wallpaper-select", "--random", wallsdir]);
+        applyGeneration += 1;
+        applyState.pendingPath = target;
+        randomApply = false;
+        applyFailed = false;
+        applyTimeout.restart();
+        Quickshell.execDetached(["cortetsu-wallpaper-select", target]);
+        return true;
     }
 
-    function setWallpaper(path: string): void {
+    function applyRandom(): bool {
+        if (applying)
+            return false;
         stopPreview();
-        // The state file is the apply acknowledgement. Do not announce a
-        // successful transformation before the helper has written it.
-        Quickshell.execDetached(["cortetsu-wallpaper-select", path]);
+        applyGeneration += 1;
+        applyState.pendingPath = actualCurrent;
+        randomApply = true;
+        applyFailed = false;
+        applyTimeout.restart();
+        Quickshell.execDetached(["cortetsu-wallpaper-select", "--random", wallsdir]);
+        return true;
+    }
+
+    function setRandom(): void { applyRandom(); }
+
+    function setWallpaper(path: string): void { apply(path); }
+
+    function cancelApply(): void {
+        applyTimeout.stop();
+        applyState.pendingPath = "";
+        randomApply = false;
+        applyFailed = false;
+    }
+
+    function readActual(raw: string): void {
+        const next = String(raw ?? "").trim() || fallback;
+        actualCurrent = next;
+        if (!applying)
+            return;
+        const confirmed = randomApply ? next !== pendingApplyPath : next === pendingApplyPath;
+        if (!confirmed)
+            return;
+        const generation = applyGeneration;
+        applyTimeout.stop();
+        applyState.pendingPath = "";
+        randomApply = false;
+        applyFailed = false;
+        previewColourLock = false;
+        wallpaperApplySucceeded(next, generation);
+    }
+
+    function failApply(): void {
+        if (!applying)
+            return;
+        const path = pendingApplyPath;
+        const generation = applyGeneration;
+        applyState.pendingPath = "";
+        randomApply = false;
+        applyFailed = true;
+        previewColourLock = false;
+        wallpaperApplyFailed(path, generation);
     }
 
     function preview(path: string): void {
@@ -94,16 +158,25 @@ Singleton {
         function list(): string { return root.list.map(w => w.path).join("\n"); }
     }
 
+    QtObject {
+        id: applyState
+        property string pendingPath: ""
+    }
+
+    Timer {
+        id: applyTimeout
+        interval: CortetsuDesign.motionDeliberateMs * 8
+        repeat: false
+        onTriggered: root.failApply()
+    }
+
     FileView {
         path: root.currentNamePath
         watchChanges: true
         printErrors: false
-        onFileChanged: {
-            root.actualCurrent = text().trim() || root.fallback;
-            reload();
-        }
-        onLoaded: root.actualCurrent = text().trim() || root.fallback
-        onLoadFailed: root.actualCurrent = root.fallback
+        onFileChanged: { root.readActual(text()); reload(); }
+        onLoaded: root.readActual(text())
+        onLoadFailed: root.readActual(root.fallback)
     }
 
     Process {

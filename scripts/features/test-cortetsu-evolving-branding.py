@@ -35,7 +35,7 @@ assert 'phase: root.markPhase' in wallpaper
 assert 'pendingApplyPath' in wallpaper and 'cosmicPulse' in wallpaper
 assert 'function closeManager(): void { cancel(); }' in wallpaper
 assert 'actualCurrent = path' not in wallpaper_service
-assert 'onFileChanged:' in wallpaper_service and 'root.actualCurrent = text().trim()' in wallpaper_service
+assert 'onFileChanged:' in wallpaper_service and 'root.readActual(text())' in wallpaper_service
 
 for old in ("forged C + star core", "forged C/star-core", "forged C"):
     for path in (BRANDING / "README.md", BRANDING / "manifest.json", ROOT / "docs/design/CORTETSU-PRODUCT-REBUILD.md"):

@@ -15,7 +15,7 @@ def require(path: Path, *needles: str) -> None:
 
 def main() -> None:
     content = ROOT / "cortetsu/modules/wallpaper/Content.qml"
-    require(content, "Orbit.satellites", "Orbit.prefetch", "Orbit.resolveCurrentIndex", "Orbit.satelliteAngle", "orbitPhase", "Math.min(12", "asynchronous: true", "sourceSize.width", "retainWhileLoading", "cache: true", "presentationReady", "CortetsuWallpapers.setRandom()", "CortetsuMask { maskSource", "layer.enabled: true", "visible: true", "required property int index", "pendingPreviewPath", "interval: 220", "Orbit.wheelIntent", "heroCrossfade")
+    require(content, "Orbit.satellites", "Orbit.prefetch", "Orbit.resolveCurrentIndex", "Orbit.satelliteAngle", "orbitPhase", "Math.min(12", "asynchronous: true", "sourceSize.width", "retainWhileLoading", "cache: true", "presentationReady", "CortetsuWallpapers.applyRandom()", "CortetsuMask { maskSource", "layer.enabled: true", "visible: true", "required property int index", "pendingPreviewPath", "interval: 220", "Orbit.wheelIntent", "heroCrossfade")
     content_text = content.read_text(encoding="utf-8")
     assert "GridView" not in content_text and "Quickshell.exec" not in content_text
     assert "Orbit.visible(filteredEntries, currentIndex" not in content_text, "fixed slots would only swap sources"
@@ -27,7 +27,7 @@ def main() -> None:
     open_body = content_text[open_start:open_end]
     for contract in ("presentationReady = false", "resync();", "Qt.callLater(updatePresentationReady)", "forceActiveFocus();"):
         assert contract in open_body, f"openManager missing {contract}"
-    assert 'if (CortetsuConfig.smartScheme)\n                CortetsuWallpapers.previewColourLock = true;' in content_text
+    assert 'if (accepted && CortetsuConfig.smartScheme)\n                CortetsuWallpapers.previewColourLock = true;' in content_text
     assert "Colours." not in content_text
     assert "Item {\n        id: panel" in content_text and 'color: "black"' not in content_text
     wrapper_text = (ROOT / "cortetsu/modules/wallpaper/Wrapper.qml").read_text(encoding="utf-8")

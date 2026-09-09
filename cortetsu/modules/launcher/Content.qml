@@ -15,6 +15,7 @@ Item {
     required property var screenState
     required property var panels
     required property real maxHeight
+    property string pendingWallpaperPath: ""
 
     readonly property int padding: CortetsuDesign.spacingStandard
     readonly property int rounding: CortetsuDesign.radiusLarge
@@ -36,6 +37,19 @@ Item {
         if (modeLabel() === qsTr("Wallpaper")) return "wallpaper";
         if (modeLabel() === qsTr("Command")) return "terminal";
         return "apps";
+    }
+
+    function requestWallpaper(path: string): void {
+        const target = String(path ?? "").trim();
+        if (!target || CortetsuWallpapers.applying)
+            return;
+        if (target === CortetsuWallpapers.actualCurrent) {
+            pendingWallpaperPath = "";
+            root.screenState.launcher = false;
+            return;
+        }
+        if (CortetsuWallpapers.apply(target))
+            pendingWallpaperPath = target;
     }
 
     implicitWidth: listWrapper.width + padding * 2
@@ -71,7 +85,7 @@ Item {
             spacing: CortetsuDesign.spacingCompact
             CortetsuIcon { anchors.verticalCenter: parent.verticalCenter; text: root.modeIcon(); iconSize: CortetsuTypography.iconSmallPx; color: CortetsuDesign.colorPrimary }
             CortetsuText { anchors.verticalCenter: parent.verticalCenter; text: root.modeLabel(); textSize: CortetsuTypography.labelSmallPx; font.weight: Font.DemiBold; color: CortetsuDesign.colorOnPrimaryContainer }
-            CortetsuText { anchors.verticalCenter: parent.verticalCenter; text: root.modeLabel() === qsTr("Apps") ? qsTr("Search-first") : qsTr("Prefix mode"); textSize: CortetsuTypography.labelSmallPx; color: CortetsuDesign.colorOnSurfaceVariant }
+            CortetsuText { anchors.verticalCenter: parent.verticalCenter; text: CortetsuWallpapers.applyFailed && root.pendingWallpaperPath ? qsTr("Apply failed") : root.modeLabel() === qsTr("Apps") ? qsTr("Search-first") : qsTr("Prefix mode"); textSize: CortetsuTypography.labelSmallPx; color: CortetsuDesign.colorOnSurfaceVariant }
         }
     }
 
@@ -90,11 +104,7 @@ Item {
             const currentItem = list.currentList?.currentItem;
             if (currentItem) {
                 if (list.showWallpapers) {
-                    if (false && currentItem.modelData.path !== CortetsuWallpapers.actualCurrent)
-                        CortetsuWallpapers.previewColourLock = true;
-
-                    CortetsuWallpapers.setWallpaper(currentItem.modelData.path);
-                    root.screenState.launcher = false;
+                    root.requestWallpaper(currentItem.modelData.path);
                 } else if (text.startsWith(CortetsuConfig.actionPrefix)) {
                     if (text.startsWith(`${CortetsuConfig.actionPrefix}calc `))
                         currentItem.onClicked();
@@ -178,6 +188,20 @@ Item {
             }
 
             target: root.screenState
+        }
+    }
+
+    Connections {
+        target: CortetsuWallpapers
+        function onWallpaperApplySucceeded(path: string, generation: int): void {
+            if (path === root.pendingWallpaperPath) {
+                root.pendingWallpaperPath = "";
+                root.screenState.launcher = false;
+            }
+        }
+        function onWallpaperApplyFailed(path: string, generation: int): void {
+            if (path === root.pendingWallpaperPath)
+                root.pendingWallpaperPath = path;
         }
     }
 

@@ -286,6 +286,8 @@ test_cmd() {
         "scripts/features/test-contentwindow-overview-base.py"
         "scripts/features/test-contentwindow-focusgrab-parity.py"
         "scripts/features/test-wallpaper-manager.py"
+        "scripts/features/test-cortetsu-launcher-wallpaper-apply.py"
+        "scripts/features/eval-cortetsu-launcher-wallpaper-apply.py"
         "scripts/features/eval-wallpaper-orbital.py"
         "scripts/features/test-overview-design.py"
         "scripts/features/eval-overview-spatial-bounds.py"

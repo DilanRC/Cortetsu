@@ -1,8 +1,10 @@
 # Wallpaper Manager
 
-`SUPER + SHIFT + W` opens the native Caelestia wallpaper manager on the focused screen. The Bottom Hub thumbnail opens it on that Hub's screen.
+`SUPER + SHIFT + W` opens the native Cortetsu Wallpaper Manager on the focused screen. The Bottom Hub thumbnail opens it on that Hub's screen.
 
-The manager uses only `qs.services.Wallpapers`: preview, apply, random and category metadata. It never invokes a second wallpaper command or assumes a wallpaper directory. Previewed dynamic colours remain owned by `Wallpapers` and `Colours`.
+The manager uses the first-party `CortetsuWallpapers` service for preview, apply, random and category metadata. It never invokes a second wallpaper command or assumes a wallpaper directory. Previewed dynamic colours remain owned by `CortetsuWallpapers` and `CortetsuColours`.
+
+Apply is a shared transaction across Wallpaper Manager and Launcher. The service marks the request as pending, invokes `cortetsu-wallpaper-select`, and completes only when the XDG state file reports the requested path. A bounded timeout emits failure, clears the pending state and releases the preview colour lock. Wallpaper Manager emits its short Cosmic pulse only from the success signal; Launcher remains open while applying, disables duplicate wallpaper requests and closes only after the matching success acknowledgement.
 
 V2 opens neutrally: it reselects `Wallpapers.actualCurrent`, aligns the orbit and focus, and does not preview. Path resolution uses an exact match first, then a basename only when it identifies one list entry, so canonical symlink paths remain safe and duplicate names never select arbitrarily. Explicit navigation coalesces wheel and touchpad deltas at 120 angle units or 40 pixel units. Each event emits at most one move and leaves a residual below its threshold; an opposite direction replaces the old residual. A single 220 ms timer previews only the final stable candidate; navigation replacement, category/model changes, close, Apply and Random cancel it. Cancel and every other-overlay exit call `stopPreview`.
 

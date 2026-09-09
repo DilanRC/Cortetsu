@@ -63,7 +63,10 @@ PathView {
     preferredHighlightEnd: 0.5
     highlightRangeMode: PathView.StrictlyEnforceRange
 
-    delegate: WallpaperItem { screenState: root.screenState }
+    delegate: WallpaperItem {
+        screenState: root.screenState
+        applyOwner: root.content
+    }
 
     path: Path {
         startY: root.height / 2

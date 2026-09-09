@@ -82,7 +82,7 @@ apply_wallpaper = (repo / "cortetsu/bin/cortetsu-apply-wallpaper-colors").read_t
 assert "cortetsu-scheme-posthook" not in apply_wallpaper
 wallpaper_service = (repo / "cortetsu/modules/CortetsuWallpapers.qml").read_text(encoding="utf-8")
 assert '"cortetsu-wallpaper-colours", path' in wallpaper_service
-assert '"cortetsu-wallpaper-select", path' in wallpaper_service
+assert '"cortetsu-wallpaper-select", target' in wallpaper_service
 assert '"cortetsu-wallpaper-select", "--random", wallsdir' in wallpaper_service
 assert 'cortetsu/wallpaper/path.txt' in wallpaper_service
 assert "caelestia" not in wallpaper_service.lower()

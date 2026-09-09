@@ -33,8 +33,9 @@ assert "CortetsuWallpapers.actualCurrent" in resync_body and "Orbit.resolveCurre
 assert "Orbit.resolveCurrentIndex" in body("selectCategory")
 assert "function resolveCurrentIndex" in orbit and "function basename" in orbit
 
-# A→B→C→D has one preview timer, an apply timeout and a short post-apply Cosmic timer.
-assert content.count("Timer {") == 3
+# A→B→C→D has one preview timer and a short post-apply Cosmic timer. The
+# acknowledgement timeout is owned by the shared wallpaper service.
+assert content.count("Timer {") == 2
 assert "interval: 220" in content
 timer_body = content[content.index("id: previewTimer"):content.index("NumberAnimation {", content.index("id: previewTimer"))]
 assert "Orbit.previewEligible" in timer_body
@@ -50,11 +51,14 @@ assert "cancelPreview();" in resync_body
 apply_body = body("apply")
 assert "previewTimer.stop();" in apply_body and "CortetsuWallpapers.previewColourLock = true;" in apply_body
 assert apply_body.index("CortetsuWallpapers.stopPreview();") < apply_body.index("CortetsuWallpapers.previewColourLock = true;")
-assert "cancelPreview();" in body("random") and "CortetsuWallpapers.setRandom();" in body("random")
+assert "cancelPreview();" in body("random") and "CortetsuWallpapers.applyRandom();" in body("random")
 cancel_body = content[content.index("function cancel(): void"):content.find("\n    function ", content.index("function cancel(): void") + 1)]
 assert "cosmicPulseTimer.stop();" in cancel_body and "previewColourLock = false;" in cancel_body
 assert "function closeManager(): void { cancel(); }" in content
 assert "closeManager();" in wrapper and "CortetsuWallpapers.stopPreview();" in wrapper
+assert "readonly property bool applying: CortetsuWallpapers.applying" in content
+assert "onWallpaperApplySucceeded" in content and "onWallpaperApplyFailed" in content
+assert "id: applyTimeout" not in content
 assert "globalOtherOverlayOpen" in wrapper and "onGlobalOtherOverlayOpenChanged" in wrapper
 assert "for (const candidate of CortetsuScreens.screens)" in wrapper
 assert "OverlayPolicy.hasCompetingPanel" in wrapper and "closeCompetingPanels();" in wrapper
@@ -82,7 +86,7 @@ assert "root.selectSatellite(satellite.modelData.index)" in content
 assert "import qs.components.effects" not in content
 assert "import qs.components.controls" not in content
 assert "Image {\n            anchors.fill: parent; anchors.margins" not in content
-assert 'if (CortetsuConfig.smartScheme)\n                CortetsuWallpapers.previewColourLock = true;' in content
+assert 'if (accepted && CortetsuConfig.smartScheme)\n                CortetsuWallpapers.previewColourLock = true;' in content
 assert "Colours." not in content
 
 # V2.1 presentation: bounded shared-cache prefetch, ready-gated entry, and floating surfaces.

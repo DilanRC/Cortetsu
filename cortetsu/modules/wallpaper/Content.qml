@@ -31,10 +31,10 @@ FocusScope {
     property string outgoingHeroPath: ""
     property real newHeroOpacity: 1
     property real oldHeroOpacity: 0
-    property string pendingApplyPath: ""
-    property bool applying: false
-    property bool randomApply: false
-    property bool applyFailed: false
+    readonly property string pendingApplyPath: CortetsuWallpapers.pendingApplyPath
+    readonly property bool applying: CortetsuWallpapers.applying
+    readonly property bool randomApply: CortetsuWallpapers.randomApply
+    readonly property bool applyFailed: CortetsuWallpapers.applyFailed
     property bool cosmicPulse: false
     readonly property int visibleLimit: Math.max(1, Math.min(12, Math.floor((width - 104) / 102)))
     // Keep the orbit model anchored to the last settled selection while a
@@ -184,17 +184,14 @@ FocusScope {
         previewTimer.stop();
         pendingPreviewPath = "";
         if (CortetsuWallpapers.actualCurrent !== currentPath) {
-            pendingApplyPath = currentPath;
-            randomApply = false;
-            applyFailed = false;
-            applying = true;
-            applyTimeout.restart();
             if (previewActive || CortetsuWallpapers.showPreview)
                 CortetsuWallpapers.stopPreview();
             previewActive = false;
-            if (CortetsuConfig.smartScheme)
+            const accepted = CortetsuWallpapers.apply(currentPath);
+            if (accepted && CortetsuConfig.smartScheme)
                 CortetsuWallpapers.previewColourLock = true;
-            CortetsuWallpapers.setWallpaper(currentPath);
+            else if (!accepted)
+                CortetsuWallpapers.previewColourLock = false;
         } else {
             cancelPreview();
             screenState.cortetsuState?.setRetained("wallpaperManager", false);
@@ -202,11 +199,8 @@ FocusScope {
     }
 
     function cancel(): void {
-        applyTimeout.stop();
+        CortetsuWallpapers.cancelApply();
         cosmicPulseTimer.stop();
-        applying = false;
-        randomApply = false;
-        pendingApplyPath = "";
         cosmicPulse = false;
         CortetsuWallpapers.previewColourLock = false;
         cancelPreview();
@@ -217,14 +211,11 @@ FocusScope {
         if (applying)
             return;
         cancelPreview();
-        pendingApplyPath = CortetsuWallpapers.actualCurrent;
-        randomApply = true;
-        applyFailed = false;
-        applying = true;
-        applyTimeout.restart();
-        if (CortetsuConfig.smartScheme)
+        const accepted = CortetsuWallpapers.applyRandom();
+        if (accepted && CortetsuConfig.smartScheme)
             CortetsuWallpapers.previewColourLock = true;
-        CortetsuWallpapers.setRandom();
+        else if (!accepted)
+            CortetsuWallpapers.previewColourLock = false;
     }
 
     function openManager(): void {
@@ -238,7 +229,6 @@ FocusScope {
 
     onCurrentPathChanged: updateHero()
     Component.onDestruction: {
-        applyTimeout.stop();
         cosmicPulseTimer.stop();
         cancelPreview();
     }
@@ -250,21 +240,6 @@ FocusScope {
         onTriggered: {
             root.cosmicPulse = false;
             root.screenState.cortetsuState?.setRetained("wallpaperManager", false);
-        }
-    }
-
-    Timer {
-        id: applyTimeout
-        interval: CortetsuDesign.motionDeliberateMs * 8
-        repeat: false
-        onTriggered: {
-            if (!root.applying)
-                return;
-            root.applying = false;
-            root.randomApply = false;
-            root.pendingApplyPath = "";
-            root.applyFailed = true;
-            CortetsuWallpapers.previewColourLock = false;
         }
     }
 
@@ -312,20 +287,14 @@ FocusScope {
     Connections {
         target: CortetsuWallpapers
         function onActualCurrentChanged(): void {
-            const confirmed = root.applying && (root.randomApply
-                ? root.pendingApplyPath !== CortetsuWallpapers.actualCurrent
-                : root.pendingApplyPath === CortetsuWallpapers.actualCurrent);
-            if (confirmed) {
-                root.applying = false;
-                root.randomApply = false;
-                root.pendingApplyPath = "";
-                root.applyFailed = false;
-                applyTimeout.stop();
-                root.cosmicPulse = true;
-                cosmicPulseTimer.restart();
-            }
             root.resync();
         }
+        function onWallpaperApplySucceeded(path: string, generation: int): void {
+            root.cosmicPulse = true;
+            cosmicPulseTimer.restart();
+            root.resync();
+        }
+        function onWallpaperApplyFailed(path: string, generation: int): void { root.resync(); }
         function onListChanged(): void { root.resync(); }
     }
 
