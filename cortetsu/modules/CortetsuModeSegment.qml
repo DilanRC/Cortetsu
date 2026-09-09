@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell
 import "CortetsuDesign.js" as CortetsuDesign
 
 Item {
@@ -28,7 +29,7 @@ Item {
 
         HubButton {
             buttonSize: 44
-            imageSource: "file:///usr/share/icons/cachyos.svg"
+            imageSource: Quickshell.shellPath("assets/branding/cortetsu-mark.svg")
             active: root.launcherActive
             tooltip: qsTr("Applications")
             onClicked: root.launcherRequested()
