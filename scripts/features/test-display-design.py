@@ -19,6 +19,9 @@ presets = (display / "DisplayPresets.qml").read_text(encoding="utf-8")
 assert 'import "../../components"' in editor
 assert 'import "../../components"' in preview
 assert "CortetsuButton" in editor and "CortetsuButton" in preview
+assert 'tooltipText: qsTr("Previous display mode")' in editor
+assert 'tooltipText: qsTr("Decrease %1").arg(modelData.label)' in editor
+assert 'label: planner.running ? qsTr("Validating…") : qsTr("Dry run candidate")' in editor
 assert 'import "../../components"' in output_controls
 assert "delegate: CortetsuButton" in output_controls
 assert "modeLayer" not in output_controls

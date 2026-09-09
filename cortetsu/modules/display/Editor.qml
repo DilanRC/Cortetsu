@@ -532,33 +532,41 @@ FocusScope {
                                     { label: qsTr("Dual"), action: () => root.applyDualPreset() },
                                     { label: qsTr("External"), action: () => root.applyExternalPreset() }
                                 ]
-                                delegate: Rectangle {
+                                delegate: CortetsuButton {
                                     required property var modelData
                                     width: (parent.width - 14) / 3
                                     height: 34
-                                    radius: CortetsuDesign.radiusSmall
-                                    color: CortetsuDesign.colorSurfaceHigh
-                                    CortetsuStateLayer { radius: parent.radius; onClicked: modelData.action() }
-                                    CortetsuText { anchors.centerIn: parent; text: modelData.label; color: CortetsuDesign.colorOnSurfaceVariant; textSize: CortetsuTypography.labelSmallPx }
+                                    compact: true
+                                    label: modelData.label
+                                    focus: false
+                                    onClicked: modelData.action()
                                 }
                             }
                         }
 
                         Row {
                             width: parent.width; height: 42; spacing: 8
-                            Rectangle {
-                                width: 42; height: 42; radius: CortetsuDesign.radiusMedium; color: CortetsuDesign.colorSurfaceHigh
-                                CortetsuStateLayer { radius: parent.radius; onClicked: root.cycleMode(-1) }
-                                CortetsuIcon { anchors.centerIn: parent; text: "chevron_left"; color: CortetsuDesign.colorOnSurfaceVariant }
+                            CortetsuButton {
+                                width: 42; height: 42
+                                compact: true
+                                label: ""
+                                icon: "chevron_left"
+                                tooltipText: qsTr("Previous display mode")
+                                focus: false
+                                onClicked: root.cycleMode(-1)
                             }
                             Rectangle {
                                 width: parent.width - 92; height: 42; radius: CortetsuDesign.radiusMedium; color: CortetsuDesign.colorSurfaceHigh
                                 CortetsuText { anchors.centerIn: parent; width: parent.width - 12; text: root.selectedCandidate?.mode ?? "—"; color: CortetsuDesign.colorOnSurface; textSize: CortetsuTypography.labelMediumPx; horizontalAlignment: Text.AlignHCenter; elide: Text.ElideMiddle }
                             }
-                            Rectangle {
-                                width: 42; height: 42; radius: CortetsuDesign.radiusMedium; color: CortetsuDesign.colorSurfaceHigh
-                                CortetsuStateLayer { radius: parent.radius; onClicked: root.cycleMode(1) }
-                                CortetsuIcon { anchors.centerIn: parent; text: "chevron_right"; color: CortetsuDesign.colorOnSurfaceVariant }
+                            CortetsuButton {
+                                width: 42; height: 42
+                                compact: true
+                                label: ""
+                                icon: "chevron_right"
+                                tooltipText: qsTr("Next display mode")
+                                focus: false
+                                onClicked: root.cycleMode(1)
                             }
                         }
 
@@ -573,32 +581,37 @@ FocusScope {
                                 required property var modelData
                                 width: parent.width; height: 31; spacing: 7
                                 CortetsuText { width: parent.width * 0.36; anchors.verticalCenter: parent.verticalCenter; text: modelData.label; color: CortetsuDesign.colorOutline; textSize: CortetsuTypography.labelSmallPx }
-                                Rectangle {
-                                    width: 30; height: 30; radius: CortetsuDesign.radiusSmall; color: CortetsuDesign.colorSurfaceHigh
-                                    CortetsuStateLayer { radius: parent.radius; onClicked: modelData.minus() }
-                                    CortetsuIcon { anchors.centerIn: parent; text: "remove"; color: CortetsuDesign.colorOnSurfaceVariant; iconSize: CortetsuTypography.iconSmallPx }
+                                CortetsuButton {
+                                    width: 30; height: 30
+                                    compact: true
+                                    label: ""
+                                    icon: "remove"
+                                    tooltipText: qsTr("Decrease %1").arg(modelData.label)
+                                    focus: false
+                                    onClicked: modelData.minus()
                                 }
                                 CortetsuText { width: parent.width * 0.28; anchors.verticalCenter: parent.verticalCenter; text: modelData.value; color: CortetsuDesign.colorOnSurface; textSize: CortetsuTypography.labelMediumPx; horizontalAlignment: Text.AlignHCenter }
-                                Rectangle {
-                                    width: 30; height: 30; radius: CortetsuDesign.radiusSmall; color: CortetsuDesign.colorSurfaceHigh
-                                    CortetsuStateLayer { radius: parent.radius; onClicked: modelData.plus() }
-                                    CortetsuIcon { anchors.centerIn: parent; text: "add"; color: CortetsuDesign.colorOnSurfaceVariant; iconSize: CortetsuTypography.iconSmallPx }
+                                CortetsuButton {
+                                    width: 30; height: 30
+                                    compact: true
+                                    label: ""
+                                    icon: "add"
+                                    tooltipText: qsTr("Increase %1").arg(modelData.label)
+                                    focus: false
+                                    onClicked: modelData.plus()
                                 }
                             }
                         }
 
-                        Rectangle {
+                        CortetsuButton {
                             width: parent.width
                             height: 32
-                            radius: CortetsuDesign.radiusSmall
-                            color: (root.selectedCandidate?.enabled ?? true) ? CortetsuDesign.colorSecondaryContainer : CortetsuDesign.colorSurfaceHigh
-                            CortetsuStateLayer { radius: parent.radius; onClicked: root.toggleSelectedEnabled() }
-                            Row {
-                                anchors.centerIn: parent
-                                spacing: 7
-                                CortetsuIcon { text: (root.selectedCandidate?.enabled ?? true) ? "toggle_on" : "toggle_off"; color: (root.selectedCandidate?.enabled ?? true) ? CortetsuDesign.colorOnSecondaryContainer : CortetsuDesign.colorOutline }
-                                CortetsuText { text: (root.selectedCandidate?.enabled ?? true) ? qsTr("Output enabled") : qsTr("Output disabled"); color: (root.selectedCandidate?.enabled ?? true) ? CortetsuDesign.colorOnSecondaryContainer : CortetsuDesign.colorOutline; textSize: CortetsuTypography.labelSmallPx }
-                            }
+                            compact: true
+                            icon: (root.selectedCandidate?.enabled ?? true) ? "toggle_on" : "toggle_off"
+                            label: (root.selectedCandidate?.enabled ?? true) ? qsTr("Output enabled") : qsTr("Output disabled")
+                            active: root.selectedCandidate?.enabled ?? true
+                            focus: false
+                            onClicked: root.toggleSelectedEnabled()
                         }
                     }
                 }
@@ -674,14 +687,15 @@ FocusScope {
                         width: parent.width * 0.34 - 14
                         anchors.verticalCenter: parent.verticalCenter
                         spacing: 9
-                        Rectangle {
-                            width: parent.width; height: 46; radius: CortetsuDesign.radiusMedium
-                            color: CortetsuDesign.colorPrimaryContainer
-                            CortetsuStateLayer { radius: parent.radius; onClicked: root.runPlan() }
-                            Row { anchors.centerIn: parent; spacing: 7
-                                CortetsuIcon { text: "fact_check"; color: CortetsuDesign.colorOnPrimaryContainer }
-                                CortetsuText { text: planner.running ? qsTr("Validating…") : qsTr("Dry run candidate"); color: CortetsuDesign.colorOnPrimaryContainer; textSize: CortetsuTypography.labelMediumPx }
-                            }
+                        CortetsuButton {
+                            width: parent.width; height: 46
+                            compact: true
+                            icon: "fact_check"
+                            label: planner.running ? qsTr("Validating…") : qsTr("Dry run candidate")
+                            active: true
+                            disabled: planner.running || !root.candidateOutputs.length
+                            focus: false
+                            onClicked: root.runPlan()
                         }
                         CortetsuText {
                             width: parent.width
