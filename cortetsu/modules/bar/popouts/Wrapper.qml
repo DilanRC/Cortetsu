@@ -20,6 +20,7 @@ Item {
     readonly property real nonAnimHeight: children.find(c => c.shouldBeActive)?.implicitHeight ?? content.implicitHeight
     readonly property Item current: (content.item as Content)?.current ?? null
     readonly property bool isDetached: detachedMode.length > 0
+    readonly property bool pointerInside: popupHover.hovered && bottomAttached && hasCurrent && !closing
 
     property alias currentName: popoutState.currentName
     property alias hasCurrent: popoutState.hasCurrent
@@ -111,6 +112,11 @@ Item {
     implicitWidth: nonAnimWidth
     implicitHeight: nonAnimHeight
     focus: hasCurrent
+
+    HoverHandler {
+        id: popupHover
+        enabled: root.hasCurrent && root.bottomAttached && !root.closing
+    }
 
     Keys.onEscapePressed: {
         if (currentName === "wirelesspassword" && content.item) {
