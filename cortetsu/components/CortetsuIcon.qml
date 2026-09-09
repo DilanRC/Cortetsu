@@ -1,4 +1,5 @@
 import QtQuick
+import "../modules/CortetsuDesign.js" as CortetsuDesign
 import "../modules/CortetsuTypography.js" as CortetsuTypography
 
 Text {
@@ -14,7 +15,7 @@ Text {
         weight: Font.Normal
     })
 
-    color: "white"
+    color: CortetsuDesign.colorOnSurface
     font: fontStyle
     horizontalAlignment: Text.AlignHCenter
     verticalAlignment: Text.AlignVCenter

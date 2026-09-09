@@ -27,12 +27,21 @@ for name in required[:-1]:
     assert "CortetsuDesign" in text, f"{name} does not consume Cortetsu tokens"
     assert "signal" in text or name == "CortetsuSectionHeader.qml", f"{name} has no interaction contract"
 
-for path in (components / "CortetsuButton.qml", components / "CortetsuSectionHeader.qml", ROOT / "cortetsu/modules/osd/Content.qml"):
+for path in (
+    components / "CortetsuButton.qml",
+    components / "CortetsuIcon.qml",
+    components / "CortetsuSectionHeader.qml",
+    ROOT / "cortetsu/modules/CortetsuIcon.qml",
+    ROOT / "cortetsu/modules/osd/Content.qml",
+):
     text = path.read_text(encoding="utf-8")
     assert "CortetsuTypography" in text, f"{path.name} must source font sizes from CortetsuTypography"
     assert "CortetsuDesign.iconMediumPx" not in text
     assert "CortetsuDesign.bodyPx" not in text
     assert "CortetsuDesign.labelLargePx" not in text
     assert "CortetsuDesign.labelSmallPx" not in text
+
+for path in (components / "CortetsuIcon.qml", ROOT / "cortetsu/modules/CortetsuIcon.qml"):
+    assert "color: CortetsuDesign.colorOnSurface" in path.read_text(encoding="utf-8")
 
 print("PASS: Cortetsu design primitives expose shared tokens, states and popup focus contract")
