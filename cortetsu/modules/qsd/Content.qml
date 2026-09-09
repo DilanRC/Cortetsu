@@ -33,6 +33,16 @@ Item {
             : CortetsuNetwork.activeEthernet
                 ? qsTr("Wired connection")
                 : qsTr("Network unavailable")
+    readonly property bool markPressed: soundTile.pressed || dndTile.pressed || bluetoothTile.pressed
+    readonly property bool markIntent: markPressed
+        || soundTile.hovered || soundTile.activeFocus
+        || dndTile.hovered || dndTile.activeFocus
+        || bluetoothTile.hovered || bluetoothTile.activeFocus
+    readonly property string markPhase: markPressed
+        ? "Monster"
+        : markIntent
+            ? "Awakening"
+            : "Human"
 
     function openSettings(): void {
         root.screenState.qsd = false;
@@ -49,8 +59,7 @@ Item {
 
             CortetsuEvolvingMark {
                 id: signatureMark
-                phase: "Ascended"
-                animated: false
+                phase: root.markPhase
                 monochrome: true
                 monochromeColor: CortetsuDesign.colorWashi
                 Layout.preferredWidth: 24
@@ -102,6 +111,7 @@ Item {
             columnSpacing: CortetsuDesign.spacingCompact
 
             CortetsuActionTile {
+                id: soundTile
                 focus: true
                 Layout.fillWidth: true
                 label: CortetsuAudio.muted ? qsTr("Sound muted") : qsTr("Sound")
@@ -115,6 +125,7 @@ Item {
             }
 
             CortetsuActionTile {
+                id: dndTile
                 Layout.fillWidth: true
                 label: CortetsuNotifications.dnd ? qsTr("Do Not Disturb") : qsTr("Notifications")
                 detail: CortetsuNotifications.dnd ? qsTr("Silenced") : qsTr("Allowed")
@@ -125,6 +136,7 @@ Item {
             }
 
             CortetsuActionTile {
+                id: bluetoothTile
                 Layout.fillWidth: true
                 label: qsTr("Bluetooth")
                 detail: root.bluetoothEnabled

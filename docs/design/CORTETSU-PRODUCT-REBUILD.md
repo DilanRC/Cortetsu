@@ -72,7 +72,10 @@ close it.
 Its state is screen-owned: edge hover uses a 6 px hotspot and 180 ms dwell, the
 drawer keeps itself alive while hovered, and shortcut/keyboard focus keeps it
 pinned until Escape or an explicit close. Auto-close uses a 260 ms grace only
-for edge-opened drawers.
+for edge-opened drawers. The header mark is contextual inside its fixed 24 px
+slot: Human at rest, Awakening while a real action tile has hover or keyboard
+focus, and Monster while a tile is pressed. QSD never uses Cosmic; its system
+health states remain separate from the identity phase.
 
 ## Settings Center
 

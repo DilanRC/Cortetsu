@@ -23,6 +23,12 @@ assert "root.screenState.settings = true" in content
 assert '"qsd"' in policy
 assert "import qs." not in content
 assert "CortetsuActionTile" in content
+assert "CortetsuEvolvingMark" in content
+assert 'phase: root.markPhase' in content
+assert 'markPressed: soundTile.pressed || dndTile.pressed || bluetoothTile.pressed' in content
+assert ' ? "Monster"' in content and ' ? "Awakening"' in content and ': "Human"' in content
+assert "Layout.preferredWidth: 24" in content and "Layout.preferredHeight: 24" in content
+assert 'phase: "Ascended"' not in content
 assert "activeFocusOnTab" in action_tile and "Keys.onSpacePressed" in action_tile
 assert "property bool warning" in action_tile
 assert "onEntered: tile.hovered = true" not in content

@@ -23,6 +23,12 @@ for marker in (
     "batteryPercent",
     "openSettings",
     "CortetsuActionTile",
+    "CortetsuEvolvingMark",
+    "readonly property string markPhase",
+    'phase: root.markPhase',
+    'id: soundTile',
+    'id: dndTile',
+    'id: bluetoothTile',
 ):
     assert marker in content, marker
 assert "required property ShellScreen screen" in content
@@ -64,5 +70,10 @@ assert "Keys.onSpacePressed" in action_tile
 assert "onEntered: tile.hovered = true" not in content
 assert "onPressedChanged: tile.pressed" not in content
 assert "focus: true" in content
+assert 'markPressed: soundTile.pressed || dndTile.pressed || bluetoothTile.pressed' in content
+assert 'markIntent: markPressed' in content
+assert ' ? "Monster"' in content and ' ? "Awakening"' in content and ': "Human"' in content
+assert "Layout.preferredWidth: 24" in content and "Layout.preferredHeight: 24" in content
+assert 'phase: "Ascended"' not in content
 
 print("PASS: QSD is a first-party right-side surface with brightness, audio, DND, Bluetooth, power and network context")
