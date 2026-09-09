@@ -114,7 +114,8 @@ python3 "$REPO/core/system.py" promote --repo "$REPO"
 # is safe to adopt on an explicit, guarded shell restart.
 if systemctl --user is-enabled --quiet cortetsu-shell.service 2>/dev/null; then
     printf 'Shell supervision: no se reinicia automáticamente; se conserva el escritorio abierto\n'
-    printf 'Para adoptar el runtime explícitamente: CORTETSU_RESTART_SHELL=1 cortetsu shell restart\n'
+    printf 'Para adoptar el runtime sin cerrar el proceso: cortetsu shell reload\n'
+    printf 'Mantenimiento duro, sólo con el escritorio cerrado: CORTETSU_RESTART_SHELL=1 cortetsu shell restart\n'
 fi
 
 runtime_root="${CORTETSU_RUNTIME_ROOT:-${XDG_CONFIG_HOME:-$HOME/.config}/quickshell/cortetsu}"

@@ -134,8 +134,12 @@ El rollback soportado es el de generaciones Cortetsu:
 ```bash
 cortetsu rollback
 cortetsu verify
-systemctl --user restart cortetsu-shell.service
+cortetsu shell reload
 ```
+
+La recarga suave reutiliza el proceso y las ventanas de Quickshell. No uses el
+reinicio duro mientras ChatGPT Desktop u otra aplicación de bandeja esté
+abierta: el host `StatusNotifier` puede desaparecer durante ese ciclo.
 
 Para diagnosticar una carga QML fallida:
 

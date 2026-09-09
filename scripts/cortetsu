@@ -45,7 +45,7 @@ Usage:
   cortetsu system <action>         promote|verify|status|rollback|gc
   cortetsu dotfiles <action>       plan|apply|verify|status|rollback|gc
   cortetsu theme <action>          check|compile|adopt native desktop theme
-  cortetsu shell <action>          status|adopt|reconcile|restart|disable|logs
+  cortetsu shell <action>          status|adopt|reconcile|reload|restart|disable|logs
   cortetsu legacy-processes <action> scan|migrate
   cortetsu config migrate         Import functional preferences to ~/.config/cortetsu
   cortetsu screenshot [-r] [-f]   Open the Cortetsu regional screenshot picker
@@ -143,6 +143,19 @@ shell_restart_allowed() {
     fi
 }
 
+shell_reload() {
+    local pid after
+    pid="$(systemctl --user show "$SHELL_UNIT" -p MainPID --value 2>/dev/null || true)"
+    [[ "$pid" =~ ^[1-9][0-9]*$ ]] || fail "$SHELL_UNIT no tiene un MainPID válido"
+    systemctl --user is-active --quiet "$SHELL_UNIT" || fail "$SHELL_UNIT no está activo"
+    qs ipc --pid "$pid" call cortetsu-shell reload || fail "no se pudo solicitar la recarga suave de Quickshell"
+    sleep 1
+    systemctl --user is-active --quiet "$SHELL_UNIT" || fail "$SHELL_UNIT dejó de estar activo después de la recarga suave"
+    after="$(systemctl --user show "$SHELL_UNIT" -p MainPID --value 2>/dev/null || true)"
+    [[ "$after" == "$pid" ]] || fail "la recarga suave cambió el proceso de Quickshell: antes=$pid después=$after"
+    printf 'Cortetsu shell: recarga suave completada en el mismo proceso (%s)\n' "$pid"
+}
+
 shell_cmd() {
     require_repo
     local action="${1:-status}"
@@ -164,6 +177,9 @@ shell_cmd() {
             ;;
         reconcile)
             reconcile_shell_lifecycle
+            ;;
+        reload)
+            shell_reload
             ;;
         restart)
             shell_restart_allowed

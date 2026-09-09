@@ -15,4 +15,7 @@ assert "Shell supervision: no se reinicia automáticamente" in installer
 assert "shell_restart_allowed" in cli
 assert 'pgrep -x ChatGPT' in cli
 assert 'CORTETSU_RESTART_SHELL:-0' in cli
-print("Shell application safety eval: 3/3")
+assert 'qs ipc --pid "$pid" call cortetsu-shell reload' in cli
+assert '[[ "$after" == "$pid" ]]' in cli
+assert "Quickshell.reload(false);" in (ROOT / "cortetsu/modules/ShellLifecycle.qml").read_text(encoding="utf-8")
+print("Shell application safety eval: 6/6")

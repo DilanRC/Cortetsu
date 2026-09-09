@@ -16,6 +16,7 @@ ShellRoot {
     id: root
     settings.watchFiles: false
     Binding { target: ShellState; property: "shellRoot"; value: root }
+    ShellLifecycle {}
     ServiceLoader {}
     Background {}
     Drawers {}
