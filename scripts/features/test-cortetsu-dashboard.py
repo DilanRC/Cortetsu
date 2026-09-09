@@ -8,8 +8,9 @@ focus = (ROOT / "cortetsu/modules/dashboard/Focus.qml").read_text(encoding="utf-
 panels = (ROOT / "cortetsu/modules/drawers/Panels.qml").read_text(encoding="utf-8")
 shell = (ROOT / "cortetsu/shell.qml").read_text(encoding="utf-8")
 
-for marker in ('name: "dashboard"', "WlrLayer.Overlay", "CortetsuShellState.forActive()", "Dash", "screenState.dashboard"):
+for marker in ('name: "dashboard"', "WlrLayer.Overlay", "CortetsuShellState.forScreen(modelData)", "Dash", "screenState.dashboard"):
     assert marker in host, marker
+assert "CortetsuShellState.forActive()" not in host
 for marker in ("NOW", "NOW PLAYING", "SYSTEM", "Cpu.percentage", "Memory.percentage", "Players.active", "CortetsuSurface", "Today", "Focus"):
     assert marker in dash, marker
 assert 'icon: "close"' in dash
@@ -42,4 +43,4 @@ assert 'UPower.onBattery' in dash and 'UPowerDeviceState.Charging' in dash
 
 assert "visible: false" in panels
 assert "DashboardHost {}" in shell
-print("PASS: Dashboard is first-party with live Today, Focus, media, system, power and network context")
+print("PASS: Dashboard is monitor-local and first-party with live Today, Focus, media, system, power and network context")
