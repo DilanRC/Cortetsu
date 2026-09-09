@@ -5,6 +5,7 @@ import QtQuick.Shapes
 import QtQuick.Effects
 import Quickshell
 import ".."
+import "../../components"
 import "../CortetsuDesign.js" as CortetsuDesign
 import "../CortetsuTypography.js" as CortetsuTypography
 import "OrbitModel.js" as Orbit
@@ -196,49 +197,6 @@ FocusScope {
     }
 
     function closeManager(): void { cancelPreview(); }
-
-    component OrbitButton: CortetsuSurface {
-        id: button
-
-        required property string label
-        property string icon
-        property bool checked: false
-        property bool primary: false
-        signal clicked()
-
-        outlined: false
-        active: checked || primary
-        baseColor: "transparent"
-        implicitWidth: buttonRow.implicitWidth + CortetsuDesign.spacingStandard * 2
-        implicitHeight: 34
-
-        Row {
-            id: buttonRow
-            anchors.centerIn: parent
-            spacing: CortetsuDesign.spacingCompact
-
-            CortetsuIcon {
-                visible: button.icon.length > 0
-                text: button.icon
-                iconSize: CortetsuTypography.iconSmallPx
-                color: CortetsuDesign.colorOnSurface
-            }
-            CortetsuText {
-                text: button.label
-                textSize: CortetsuTypography.labelMediumPx
-                color: CortetsuDesign.colorOnSurface
-            }
-        }
-
-        MouseArea {
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onContainsMouseChanged: button.hovered = containsMouse
-            onPressedChanged: button.pressed = pressed
-            onClicked: button.clicked()
-        }
-    }
 
     onCurrentPathChanged: updateHero()
     Component.onDestruction: cancelPreview()
@@ -661,9 +619,9 @@ FocusScope {
             Row {
                 anchors.horizontalCenter: parent.horizontalCenter
                 spacing: 8
-                OrbitButton { label: qsTr("Cancel"); onClicked: root.cancel() }
-                OrbitButton { icon: "shuffle"; label: qsTr("Random"); onClicked: root.random() }
-                OrbitButton { label: qsTr("Apply"); primary: true; onClicked: root.apply() }
+                CortetsuButton { compact: true; label: qsTr("Cancel"); onClicked: root.cancel() }
+                CortetsuButton { compact: true; icon: "shuffle"; label: qsTr("Random"); onClicked: root.random() }
+                CortetsuButton { compact: true; label: qsTr("Apply"); active: true; onClicked: root.apply() }
             }
         }
     }

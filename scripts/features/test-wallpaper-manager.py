@@ -68,7 +68,7 @@ assert "CortetsuShellState.forActive()?.modelData" not in wallpaper_controller
 assert "closeOtherPanels();\n        state.setRetained(\"wallpaperManager\", true);" in wallpaper_controller
 
 # V2 visual and native-service contracts.
-for needle in ("Orbit.satellites", "Math.min(12", "Math.cos(angle)", "Math.sin(angle)", "depth", "scale:", "opacity:", "z:", "CortetsuMask { maskSource", "outgoingHeroPath", "heroCrossfade", "component OrbitButton: CortetsuSurface"):
+for needle in ("Orbit.satellites", "Math.min(12", "Math.cos(angle)", "Math.sin(angle)", "depth", "scale:", "opacity:", "z:", "CortetsuMask { maskSource", "outgoingHeroPath", "heroCrossfade", "CortetsuButton {", "active: true"):
     assert needle in content, needle
 for needle in ("id: header", "Wallpaper Forge", "Wallpaper-aware desktop surface", "cortetsu-mark.svg", 'icon: "close"', "onClicked: root.cancel()"):
     assert needle in content, needle
