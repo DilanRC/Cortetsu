@@ -236,7 +236,7 @@ Item {
                             Repeater {
                                 model: Schemes.list
 
-                                delegate: CortetsuSurface {
+                                delegate: CortetsuChoiceCard {
                                     id: schemeCard
                                     required property var modelData
 
@@ -245,80 +245,18 @@ Item {
 
                                     width: 192
                                     height: 116
-                                    radiusValue: CortetsuDesign.radiusMedium
-                                    active: selectedScheme
-                                    activeColor: Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.74)
-                                    baseColor: selectedScheme
-                                        ? Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.74)
-                                        : CortetsuDesign.colorSurfaceGlass
-                                    hoverColor: selectedScheme
-                                        ? Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.84)
-                                        : CortetsuDesign.colorSurfaceHigh
-                                    outlined: true
-                                    outlineColor: selectedScheme
-                                        ? Qt.alpha(CortetsuDesign.colorPrimary, 0.58)
-                                        : Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.52)
+                                    title: schemeCard.schemeData.name
 
-                                    CortetsuText {
-                                        anchors.left: parent.left
-                                        anchors.top: parent.top
-                                        anchors.margins: CortetsuDesign.spacingStandard
-                                        width: parent.width - CortetsuDesign.spacingStandard * 2
-                                        text: schemeCard.schemeData.name
-                                        textSize: CortetsuTypography.bodyPx
-                                        font.weight: Font.DemiBold
-                                        elide: Text.ElideRight
-                                    }
+                                    subtitle: schemeCard.selectedScheme
+                                        ? qsTr("%1 · active").arg(schemeCard.schemeData.flavour)
+                                        : schemeCard.schemeData.flavour
+                                    selected: schemeCard.selectedScheme
+                                    disabled: Schemes.applying
 
-                                    CortetsuText {
-                                        anchors.left: parent.left
-                                        anchors.top: parent.top
-                                        anchors.topMargin: 34
-                                        anchors.leftMargin: CortetsuDesign.spacingStandard
-                                        width: parent.width - CortetsuDesign.spacingStandard * 2
-                                        text: schemeCard.selectedScheme
-                                            ? qsTr("%1 · active").arg(schemeCard.schemeData.flavour)
-                                            : schemeCard.schemeData.flavour
-                                        textSize: CortetsuTypography.labelSmallPx
-                                        color: schemeCard.selectedScheme
-                                            ? CortetsuDesign.colorPrimary
-                                            : CortetsuDesign.colorOnSurfaceVariant
-                                        elide: Text.ElideRight
-                                    }
+                                    swatches: ["primary", "secondary", "tertiary", "surface", "error"].map(key =>
+                                        root.schemeColour(schemeCard.schemeData.colours[key], CortetsuDesign.colorOutlineVariant))
 
-                                    Row {
-                                        anchors.left: parent.left
-                                        anchors.bottom: parent.bottom
-                                        anchors.margins: CortetsuDesign.spacingStandard
-                                        spacing: 4
-
-                                        Repeater {
-                                            model: ["primary", "secondary", "tertiary", "surface", "error"]
-                                            delegate: Rectangle {
-                                                required property string modelData
-                                                width: 22
-                                                height: 22
-                                                radius: 5
-                                                color: root.schemeColour(schemeCard.schemeData.colours[modelData], CortetsuDesign.colorOutlineVariant)
-                                                border.width: 1
-                                                border.color: Qt.alpha(CortetsuDesign.colorWashi, 0.16)
-                                            }
-                                        }
-                                    }
-
-                                    MouseArea {
-                                        anchors.fill: parent
-                                        enabled: !Schemes.applying
-                                        hoverEnabled: true
-                                        cursorShape: Qt.PointingHandCursor
-                                        onEntered: schemeCard.hovered = true
-                                        onExited: {
-                                            schemeCard.hovered = false;
-                                            schemeCard.pressed = false;
-                                        }
-                                        onPressedChanged: schemeCard.pressed = pressed
-                                        onClicked: Schemes.apply(schemeCard.schemeData.name, schemeCard.schemeData.flavour)
-                                    }
+                                    onClicked: Schemes.apply(schemeCard.schemeData.name, schemeCard.schemeData.flavour)
                                 }
                             }
                         }

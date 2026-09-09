@@ -5,6 +5,7 @@ content = (ROOT / "cortetsu/modules/settings/Content.qml").read_text(encoding="u
 system = (ROOT / "cortetsu/modules/settings/SystemPage.qml").read_text(encoding="utf-8")
 controller = (ROOT / "cortetsu/modules/settings/SettingsController.qml").read_text(encoding="utf-8")
 schemes = (ROOT / "cortetsu/modules/launcher/services/Schemes.qml").read_text(encoding="utf-8")
+choice_card = (ROOT / "cortetsu/components/CortetsuChoiceCard.qml").read_text(encoding="utf-8")
 
 assert "CONTROL SURFACES" in content
 assert "schemeColour" in content and "primary" in content
@@ -22,6 +23,11 @@ assert "Schemes.apply(schemeCard.schemeData.name, schemeCard.schemeData.flavour)
 assert "function apply(name: string, flavour: string)" in schemes
 assert "Schemes.catalogCount" in content
 assert "Schemes.currentScheme" in content
+assert "CortetsuChoiceCard" in content
+assert "CortetsuSurface" in choice_card
+assert "activeFocusOnTab" in choice_card and "Keys.onSpacePressed" in choice_card
+assert "property var swatches" in choice_card
+assert "schemeCard.hovered = true" not in content
 assert "Layout.preferredHeight: childrenRect.height" in content
 assert "implicitHeight: childrenRect.height" not in content
 assert "ScrollBar.vertical" in content

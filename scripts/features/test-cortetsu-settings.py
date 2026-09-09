@@ -19,6 +19,9 @@ runtime_builder = (ROOT / "cortetsu/bin/build-runtime.sh").read_text(encoding="u
 
 for filename in ("SettingsController.qml", "Wrapper.qml", "Content.qml", "SystemPage.qml"):
     assert (settings / filename).is_file(), filename
+choice_card = ROOT / "cortetsu/components/CortetsuChoiceCard.qml"
+assert choice_card.is_file()
+choice_card_text = choice_card.read_text(encoding="utf-8")
 
 # Settings follows the actual ShellScreen all the way to hardware controls.
 assert "CortetsuShellState.forScreen(modelData)" in host
@@ -73,6 +76,12 @@ for marker in (
 assert "Schemes.apply(schemeCard.schemeData.name, schemeCard.schemeData.flavour)" in content
 assert "Schemes.currentScheme" in content
 assert "Schemes.catalogCount" in content
+assert "CortetsuChoiceCard" in content
+assert "activeFocusOnTab" in choice_card_text
+assert "Keys.onEnterPressed" in choice_card_text
+assert "Keys.onSpacePressed" in choice_card_text
+assert "schemeCard.hovered = true" not in content
+assert "onPressedChanged: schemeCard.pressed" not in content
 assert "Quickshell.execDetached([\"cortetsu-scheme\", \"set\"" not in content
 assert "Layout.preferredHeight: childrenRect.height" in content
 assert "implicitHeight: childrenRect.height" not in content
