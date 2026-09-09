@@ -22,6 +22,8 @@ for marker in (
     'Quickshell.env("USER")',
     "CortetsuNetwork.activeEthernet",
     "UPower.displayDevice",
+    "Icons.getBatteryIcon",
+    "batteryCharging",
 ):
     assert marker in surface, marker
 

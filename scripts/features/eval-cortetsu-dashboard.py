@@ -12,6 +12,7 @@ assert "Live context" in dash
 assert "Weather" in dash
 assert "Today" in dash and "Focus" in dash
 assert "batterySubtitle" in dash and "networkSubtitle" in dash
+assert "Icons.getBatteryIcon" in dash
 assert "Layout.preferredWidth: 1.35" in dash
 assert "Layout.preferredWidth: 1.1" in dash
 assert "Layout.preferredWidth: 0.95" in dash

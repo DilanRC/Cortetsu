@@ -40,6 +40,7 @@ assert 'title: root.networkTitle' in dash
 assert 'CortetsuNetwork.active?.ssid ?? qsTr("Offline")' in dash
 assert 'subtitle: CortetsuNetwork.active?.ssid ?? qsTr("Network unavailable")' not in dash
 assert 'UPower.onBattery' in dash and 'UPowerDeviceState.Charging' in dash
+assert "Icons.getBatteryIcon" in dash
 
 assert "visible: false" in panels
 assert "DashboardHost {}" in shell

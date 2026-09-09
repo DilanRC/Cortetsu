@@ -8,6 +8,7 @@ import Quickshell.Services.UPower
 import qs.components
 import qs.modules 1.0
 import qs.services 1.0
+import qs.utils 1.0
 import "../CortetsuDesign.js" as CortetsuDesign
 import "../CortetsuTypography.js" as CortetsuTypography
 
@@ -25,6 +26,11 @@ Item {
     readonly property bool bluetoothEnabled: Bluetooth.defaultAdapter?.enabled ?? false
     readonly property int bluetoothConnected: (Bluetooth.devices?.values ?? []).filter(device => device.connected).length
     readonly property int batteryPercent: Math.round((UPower.displayDevice?.percentage ?? 0) * 100)
+    readonly property bool batteryCharging: [
+        UPowerDeviceState.Charging,
+        UPowerDeviceState.FullyCharged,
+        UPowerDeviceState.PendingCharge
+    ].includes(UPower.displayDevice?.state)
     readonly property int volumePercent: Math.round(CortetsuAudio.volume * 100)
     readonly property string networkName: CortetsuNetwork.active?.ssid
         ?? (CortetsuNetwork.activeEthernet ? qsTr("Ethernet") : qsTr("Offline"))
@@ -591,7 +597,7 @@ Item {
                 value: UPower.displayDevice?.isLaptopBattery ? qsTr("%1%").arg(root.batteryPercent) : qsTr("External power")
                 detail: UPower.onBattery ? qsTr("Running on battery") : qsTr("Connected to external power")
                 icon: UPower.displayDevice?.isLaptopBattery
-                    ? (root.batteryPercent <= 20 ? "battery_alert" : "battery_5_bar")
+                    ? Icons.getBatteryIcon(UPower.displayDevice?.percentage ?? 0, root.batteryCharging)
                     : "power"
                 activeState: !UPower.onBattery
                 warningState: UPower.onBattery && root.batteryPercent <= 20

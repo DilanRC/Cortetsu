@@ -6,6 +6,7 @@ import Quickshell
 import Quickshell.Services.UPower
 import "../../components"
 import "../../services"
+import "../../utils"
 import ".."
 import "../CortetsuDesign.js" as CortetsuDesign
 import "../CortetsuTypography.js" as CortetsuTypography
@@ -306,7 +307,7 @@ Item {
 
             CortetsuListRow {
                 Layout.fillWidth: true
-                icon: root.batteryCharging ? "battery_charging_full" : (root.batteryPercent <= 20 ? "battery_alert" : "battery_5_bar")
+                icon: Icons.getBatteryIcon(UPower.displayDevice?.percentage ?? 0, root.batteryCharging)
                 title: UPower.displayDevice?.isLaptopBattery ? qsTr("Battery %1%").arg(root.batteryPercent) : qsTr("Power")
                 subtitle: root.batterySubtitle
                 selected: false

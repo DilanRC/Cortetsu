@@ -16,6 +16,7 @@ assert "Brightness.getMonitorForScreen(root.screen)" in system
 assert "CortetsuAudio.setVolume(value)" in system
 assert "Bluetooth.defaultAdapter.enabled" in system
 assert "UPower.displayDevice" in system
+assert "Icons.getBatteryIcon" in system
 assert "Schemes.apply(schemeCard.schemeData.name, schemeCard.schemeData.flavour)" in content
 assert "function apply(name: string, flavour: string)" in schemes
 assert "Schemes.catalogCount" in content

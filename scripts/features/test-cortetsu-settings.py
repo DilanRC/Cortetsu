@@ -47,6 +47,7 @@ for marker in (
     "UPower.displayDevice",
     'setRetained(flag, true)',
     "CortetsuWallpapers.actualCurrent",
+    "Icons.getBatteryIcon",
 ):
     assert marker in system, marker
 assert 'root.openRetained("displayManager")' in system

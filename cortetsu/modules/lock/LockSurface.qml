@@ -7,6 +7,7 @@ import Quickshell.Io
 import Quickshell.Wayland
 import qs.components
 import qs.services
+import qs.utils
 import "../CortetsuDesign.js" as CortetsuDesign
 import "../CortetsuTypography.js" as CortetsuTypography
 
@@ -20,6 +21,11 @@ WlSessionLockSurface {
     property bool numLock: false
     readonly property string userLabel: Quickshell.env("USER") || qsTr("User")
     readonly property int batteryPercent: Math.round(UPower.displayDevice.percentage * 100)
+    readonly property bool batteryCharging: [
+        UPowerDeviceState.Charging,
+        UPowerDeviceState.FullyCharged,
+        UPowerDeviceState.PendingCharge
+    ].includes(UPower.displayDevice.state)
     readonly property string batteryLabel: UPower.displayDevice?.isLaptopBattery
         ? qsTr("Battery %1%").arg(batteryPercent)
         : qsTr("AC power")
@@ -186,7 +192,9 @@ WlSessionLockSurface {
                     anchors.margins: CortetsuDesign.spacingCompact
                     spacing: CortetsuDesign.spacingCompact
                     CortetsuIcon {
-                        text: UPower.displayDevice?.isLaptopBattery ? (root.batteryPercent <= 20 ? "battery_alert" : "battery_5_bar") : "power"
+                        text: UPower.displayDevice?.isLaptopBattery
+                            ? Icons.getBatteryIcon(UPower.displayDevice?.percentage ?? 0, root.batteryCharging)
+                            : "power"
                         iconSize: CortetsuTypography.iconSmallPx
                         color: CortetsuDesign.colorOnSurfaceVariant
                     }
