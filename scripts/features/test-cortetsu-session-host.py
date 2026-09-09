@@ -10,4 +10,5 @@ for marker in ('name: "session"', "WlrLayer.Overlay", "WlrKeyboardFocus.Exclusiv
 assert "CortetsuShellState.forActive()" not in host
 assert "SessionHost {}" in shell
 assert "id: session" in panels and "visible: false" in panels
+assert "id: sessionWrapper\n        visible: false" in panels
 print("PASS: session is a monitor-local first-party focused surface and the legacy panel is hidden")

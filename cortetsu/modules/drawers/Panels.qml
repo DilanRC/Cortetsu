@@ -82,6 +82,7 @@ Item {
 
     Item {
         id: sessionWrapper
+        visible: false
         anchors.verticalCenter: parent.verticalCenter
         anchors.right: parent.right
         clip: false
