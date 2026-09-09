@@ -10,8 +10,12 @@ import qs.utils
 Searcher {
     id: root
 
-    property string currentScheme
-    property string currentVariant
+    property string currentScheme: ""
+    property string currentVariant: ""
+    property string error: ""
+    readonly property bool loading: getSchemes.running || getCurrent.running
+    readonly property bool applying: applyScheme.running
+    readonly property int catalogCount: schemes.instances?.length ?? 0
 
     function transformSearch(search: string): string {
         return search.slice(`${CortetsuConfig.actionPrefix}scheme `.length);
@@ -22,7 +26,20 @@ Searcher {
     }
 
     function reload(): void {
-        getCurrent.running = true;
+        root.error = "";
+        if (!getSchemes.running)
+            getSchemes.running = true;
+        if (!getCurrent.running)
+            getCurrent.running = true;
+    }
+
+    function apply(name: string, flavour: string): void {
+        if (!name || !flavour || applyScheme.running)
+            return;
+
+        root.error = "";
+        applyScheme.command = ["cortetsu-scheme", "set", "-n", name, flavour];
+        applyScheme.running = true;
     }
 
     list: schemes.instances
@@ -43,19 +60,31 @@ Searcher {
         command: ["cortetsu-scheme", "list"]
         stdout: StdioCollector {
             onStreamFinished: {
-                const schemeData = JSON.parse(text);
-                const list = Object.entries(schemeData).map(([name, f]) => Object.entries(f).map(([flavour, colours]) => ({
+                try {
+                    const schemeData = JSON.parse(text);
+                    if (!schemeData || typeof schemeData !== "object" || Array.isArray(schemeData))
+                        throw new Error("scheme catalog is not an object");
+
+                    const flat = [];
+                    for (const [name, flavours] of Object.entries(schemeData)) {
+                        if (!flavours || typeof flavours !== "object" || Array.isArray(flavours))
+                            continue;
+                        for (const [flavour, colours] of Object.entries(flavours)) {
+                            flat.push({
                                 name,
                                 flavour,
-                                colours
-                            })));
+                                colours: colours && typeof colours === "object" ? colours : ({})
+                            });
+                        }
+                    }
 
-                const flat = [];
-                for (const s of list)
-                    for (const f of s)
-                        flat.push(f);
-
-                schemes.model = flat.sort((a, b) => String(a.name + a.flavour).localeCompare((b.name + b.flavour)));
+                    schemes.model = flat.sort((a, b) =>
+                        String(`${a.name} ${a.flavour}`).localeCompare(String(`${b.name} ${b.flavour}`)));
+                    root.error = "";
+                } catch (error) {
+                    root.error = qsTr("Unable to read the scheme catalog");
+                    console.warn("Cortetsu Schemes: invalid catalog:", error);
+                }
             }
         }
     }
@@ -67,10 +96,29 @@ Searcher {
         command: ["cortetsu-scheme", "get", "-nfv"]
         stdout: StdioCollector {
             onStreamFinished: {
-                const [name, flavour, variant] = text.trim().split("\n");
+                const parts = text.trim().split("\n");
+                const name = parts[0]?.trim() ?? "";
+                const flavour = parts[1]?.trim() ?? "";
+                const variant = parts[2]?.trim() ?? "";
+
+                if (!name || !flavour) {
+                    root.error = root.error || qsTr("Unable to identify the active scheme");
+                    return;
+                }
+
                 root.currentScheme = `${name} ${flavour}`;
                 root.currentVariant = variant;
             }
+        }
+    }
+
+    Process {
+        id: applyScheme
+        command: []
+
+        onRunningChanged: {
+            if (!running && command.length > 0)
+                root.reload();
         }
     }
 
@@ -82,7 +130,7 @@ Searcher {
 
         function onClicked(list: AppList): void {
             list.screenState.launcher = false;
-            Quickshell.execDetached(["cortetsu-scheme", "set", "-n", name, flavour]);
+            root.apply(name, flavour);
         }
     }
 }
