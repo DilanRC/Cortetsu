@@ -28,6 +28,16 @@ Singleton {
     readonly property string pendingApplyPath: applyState.pendingPath
     readonly property bool applying: pendingApplyPath.length > 0
     property bool applyFailed: false
+    property bool applySucceeded: false
+    property string lastApplyPath: ""
+    readonly property string applyStatus: applying
+        ? "applying"
+        : applyFailed
+            ? "failed"
+            : applySucceeded
+                ? "applied"
+                : "idle"
+    readonly property string applyStatusPath: applying ? pendingApplyPath : lastApplyPath
     property bool randomApply: false
     property int applyGeneration: 0
 
@@ -72,6 +82,8 @@ Singleton {
         applyState.pendingPath = target;
         randomApply = false;
         applyFailed = false;
+        applySucceeded = false;
+        lastApplyPath = target;
         applyTimeout.restart();
         Quickshell.execDetached(["cortetsu-wallpaper-select", target]);
         return true;
@@ -85,6 +97,8 @@ Singleton {
         applyState.pendingPath = actualCurrent;
         randomApply = true;
         applyFailed = false;
+        applySucceeded = false;
+        lastApplyPath = "";
         applyTimeout.restart();
         Quickshell.execDetached(["cortetsu-wallpaper-select", "--random", wallsdir]);
         return true;
@@ -99,6 +113,8 @@ Singleton {
         applyState.pendingPath = "";
         randomApply = false;
         applyFailed = false;
+        applySucceeded = false;
+        lastApplyPath = "";
     }
 
     function readActual(raw: string): void {
@@ -114,6 +130,8 @@ Singleton {
         applyState.pendingPath = "";
         randomApply = false;
         applyFailed = false;
+        applySucceeded = true;
+        lastApplyPath = next;
         previewColourLock = false;
         wallpaperApplySucceeded(next, generation);
     }
@@ -126,6 +144,8 @@ Singleton {
         applyState.pendingPath = "";
         randomApply = false;
         applyFailed = true;
+        applySucceeded = false;
+        lastApplyPath = path;
         previewColourLock = false;
         wallpaperApplyFailed(path, generation);
     }

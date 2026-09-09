@@ -50,6 +50,8 @@ for marker in (
     "UPower.displayDevice",
     'setRetained(flag, true)',
     "CortetsuWallpapers.actualCurrent",
+    "CortetsuWallpapers.applyStatus",
+    "CortetsuWallpapers.applyStatusPath",
     "Icons.getBatteryIcon",
 ):
     assert marker in system, marker
@@ -89,6 +91,8 @@ assert "import QtQuick.Controls" in content
 assert "ScrollBar.vertical" in content
 assert "scroller.contentHeight > scroller.height" in content
 assert 'title: qsTr("Visible segments")' in system
+assert 'value: CortetsuWallpapers.applyStatus === "applying"' in system
+assert 'warningState: CortetsuWallpapers.applyStatus === "failed"' in system
 for label in ("Mode and workspaces", "App rail", "Tray", "Status cluster"):
     assert f'title: qsTr("{label}")' in system
 assert "CortetsuConfig.bottomHub.segments" in system

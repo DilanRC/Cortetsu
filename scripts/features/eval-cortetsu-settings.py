@@ -19,6 +19,9 @@ assert "onMoved: nextValue => root.brightnessMonitor?.setBrightness(nextValue)" 
 assert "Bluetooth.defaultAdapter.enabled" in system
 assert "UPower.displayDevice" in system
 assert "Icons.getBatteryIcon" in system
+assert "CortetsuWallpapers.applyStatus" in system
+assert "CortetsuWallpapers.applyStatusPath" in system
+assert 'warningState: CortetsuWallpapers.applyStatus === "failed"' in system
 assert "Schemes.apply(schemeCard.schemeData.name, schemeCard.schemeData.flavour)" in content
 assert "function apply(name: string, flavour: string)" in schemes
 assert "Schemes.catalogCount" in content

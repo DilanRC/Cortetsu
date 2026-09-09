@@ -13,7 +13,7 @@ checks = {
     "BottomHub uses real intent": all(token in mode for token in ('"Monster"', '"Awakening"', '"Human"', "pressed", "activeFocus")),
     "wallpaper waits for acknowledgement": all(token in wallpaper for token in ("pendingApplyPath", "onActualCurrentChanged", "cosmicPulseTimer.restart()")),
     "Cosmic is short and rare": all(token in wallpaper for token in ("cosmicPulse", "? \"Cosmic\"", "interval: CortetsuDesign.motionDeliberateMs")),
-    "wallpaper settled selection ascends": all(token in wallpaper for token in ("applying || animating || applyFailed", "? \"Ascended\"")),
+    "wallpaper settled selection ascends": all(token in wallpaper for token in ('applyStatus === "applying" || animating || applyStatus === "failed"', "? \"Ascended\"")),
     "renderer has no input ownership": all(token not in renderer for token in ("MouseArea", "Keys.", "Window")),
     "fixed geometry": all(token in renderer for token in ("implicitWidth: 64", "implicitHeight: 64", "width: implicitWidth", "height: implicitHeight")),
 }

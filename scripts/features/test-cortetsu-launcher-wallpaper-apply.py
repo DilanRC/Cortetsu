@@ -25,11 +25,19 @@ request_body = launcher[request_start:launcher.index("\n    implicitWidth", requ
 assert "function apply(path: string): bool" in service
 assert "readonly property bool applying: pendingApplyPath.length > 0" in service
 assert "property int applyGeneration: 0" in service
+assert 'readonly property string applyStatus: applying' in service
+assert 'readonly property string applyStatusPath: applying ? pendingApplyPath : lastApplyPath' in service
 assert "signal wallpaperApplySucceeded(string path, int generation)" in service
 assert "signal wallpaperApplyFailed(string path, int generation)" in service
 assert "applyTimeout" in service and "cortetsu-wallpaper-select" in apply_body
+assert "applySucceeded = false;" in apply_body
+assert "lastApplyPath = target;" in apply_body
 assert "wallpaperApplySucceeded(next, generation)" in read_body
+assert "applySucceeded = true;" in read_body
+assert "lastApplyPath = next;" in read_body
 assert "wallpaperApplyFailed(path, generation)" in fail_body
+assert "applySucceeded = false;" in fail_body
+assert "lastApplyPath = path;" in fail_body
 assert "actualCurrent = next" in read_body
 
 assert "function requestWallpaper(path: string): void" in launcher
@@ -48,9 +56,18 @@ assert "root.applyOwner.requestWallpaper(root.modelData.path)" in wallpaper_item
 assert "applyOwner: root.content" in wallpaper_list
 
 assert "readonly property bool applying: CortetsuWallpapers.applying" in manager
+assert "readonly property string applyStatus: CortetsuWallpapers.applyStatus" in manager
+assert 'applyStatus === "applying"' in manager
+assert 'applyStatus === "failed"' in manager
 assert "CortetsuWallpapers.apply(currentPath)" in manager
 assert "CortetsuWallpapers.applyRandom()" in manager
 assert "id: applyTimeout" not in manager
 assert "onWallpaperApplySucceeded" in manager and "onWallpaperApplyFailed" in manager
+
+settings = (ROOT / "cortetsu/modules/settings/SystemPage.qml").read_text(encoding="utf-8")
+assert 'CortetsuWallpapers.applyStatus === "applying"' in settings
+assert 'CortetsuWallpapers.applyStatus === "failed"' in settings
+assert "CortetsuWallpapers.applyStatusPath" in settings
+assert "warningState: CortetsuWallpapers.applyStatus === \"failed\"" in settings
 
 print("test-cortetsu-launcher-wallpaper-apply: OK")

@@ -35,6 +35,7 @@ FocusScope {
     readonly property bool applying: CortetsuWallpapers.applying
     readonly property bool randomApply: CortetsuWallpapers.randomApply
     readonly property bool applyFailed: CortetsuWallpapers.applyFailed
+    readonly property string applyStatus: CortetsuWallpapers.applyStatus
     property bool cosmicPulse: false
     readonly property int visibleLimit: Math.max(1, Math.min(12, Math.floor((width - 104) / 102)))
     // Keep the orbit model anchored to the last settled selection while a
@@ -46,16 +47,16 @@ FocusScope {
     readonly property var currentEntry: currentIndex >= 0 ? filteredEntries[currentIndex] : null
     readonly property string currentPath: currentEntry?.path ?? ""
     readonly property bool currentIsApplied: !!currentPath && currentPath === CortetsuWallpapers.actualCurrent
-    readonly property string currentStateLabel: applying
+    readonly property string currentStateLabel: applyStatus === "applying"
         ? qsTr("Applying")
-        : applyFailed
+        : applyStatus === "failed"
             ? qsTr("Apply failed")
             : currentIsApplied
                 ? qsTr("Applied")
                 : (previewActive ? qsTr("Previewing") : qsTr("Selected"))
     readonly property string markPhase: cosmicPulse
         ? "Cosmic"
-        : applying || animating || applyFailed
+        : applyStatus === "applying" || animating || applyStatus === "failed"
             ? "Awakening"
             : currentPath
                 ? "Ascended"

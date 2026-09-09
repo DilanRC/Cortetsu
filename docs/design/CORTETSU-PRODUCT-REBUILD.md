@@ -195,6 +195,15 @@ or `Applied`, with an Indigo focus outline and a distinct healthy secondary
 state for an applied wallpaper. Left/Right and Up/Down remain keyboard-first;
 Enter/Space apply and Escape closes the surface.
 
+Wallpaper application is one shared transaction owned by
+`CortetsuWallpapers`. Its ephemeral `applyStatus` is `idle`, `applying`,
+`applied`, or `failed`, and `applyStatusPath` identifies the pending or last
+confirmed target without adding another persistence file. Launcher, Wallpaper
+Manager, and Settings consume that same status, so applying and failure do not
+drift between surfaces. `actualCurrent` remains the confirmed wallpaper path;
+Cosmic is emitted only after the backend acknowledgement and never represents
+the idle state.
+
 ## Wallpaper-aware colour bridge
 
 The wallpaper colour daemon writes a validated M3 scheme to the Cortetsu XDG

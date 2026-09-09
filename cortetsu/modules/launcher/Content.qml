@@ -98,7 +98,7 @@ Item {
             }
             CortetsuIcon { anchors.verticalCenter: parent.verticalCenter; text: root.modeIcon(); iconSize: CortetsuTypography.iconSmallPx; color: CortetsuDesign.colorPrimary }
             CortetsuText { anchors.verticalCenter: parent.verticalCenter; text: root.modeLabel(); textSize: CortetsuTypography.labelSmallPx; font.weight: Font.DemiBold; color: CortetsuDesign.colorOnPrimaryContainer }
-            CortetsuText { anchors.verticalCenter: parent.verticalCenter; text: CortetsuWallpapers.applyFailed && root.pendingWallpaperPath ? qsTr("Apply failed") : root.modeLabel() === qsTr("Apps") ? qsTr("Search-first") : qsTr("Prefix mode"); textSize: CortetsuTypography.labelSmallPx; color: CortetsuDesign.colorOnSurfaceVariant }
+            CortetsuText { anchors.verticalCenter: parent.verticalCenter; text: CortetsuWallpapers.applyStatus === "failed" && root.pendingWallpaperPath ? qsTr("Apply failed") : root.modeLabel() === qsTr("Apps") ? qsTr("Search-first") : qsTr("Prefix mode"); textSize: CortetsuTypography.labelSmallPx; color: CortetsuDesign.colorOnSurfaceVariant }
         }
     }
 

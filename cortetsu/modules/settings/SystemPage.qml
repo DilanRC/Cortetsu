@@ -817,11 +817,25 @@ Item {
             }
 
             StatusCard {
-                title: qsTr("Current wallpaper")
-                value: CortetsuWallpapers.actualCurrent.split("/").pop()
-                detail: CortetsuWallpapers.actualCurrent
-                icon: "wallpaper"
+                title: qsTr("Wallpaper")
+                value: CortetsuWallpapers.applyStatus === "applying"
+                    ? qsTr("Applying…")
+                    : CortetsuWallpapers.applyStatus === "failed"
+                        ? qsTr("Apply failed")
+                        : CortetsuWallpapers.applyStatus === "applied"
+                            ? qsTr("Applied")
+                            : CortetsuWallpapers.actualCurrent.split("/").pop()
+                detail: CortetsuWallpapers.applyStatus === "applying" || CortetsuWallpapers.applyStatus === "failed"
+                    ? CortetsuWallpapers.applyStatusPath.split("/").pop()
+                    : CortetsuWallpapers.actualCurrent
+                icon: CortetsuWallpapers.applyStatus === "applying"
+                    ? "sync"
+                    : CortetsuWallpapers.applyStatus === "failed"
+                        ? "error"
+                        : "wallpaper"
                 activeState: CortetsuConfig.wallpaperEnabled
+                    && (CortetsuWallpapers.applyStatus === "applying" || CortetsuWallpapers.applyStatus === "applied")
+                warningState: CortetsuWallpapers.applyStatus === "failed"
             }
 
             PreferenceToggle {
