@@ -110,9 +110,10 @@ When a monitor has no supported backlight, the brightness row says `Unavailable`
 and does not render a false zero value.
 
 Progress feedback is owned by `CortetsuProgressBar`, shared by OSD indicators,
-Dashboard Focus, Hardware metric cards and the Calendar Pomodoro. It keeps the
-track, bounded fill, unavailable-state behavior and width motion in one contract
-while allowing each surface to choose its density and semantic fill color.
+Dashboard Focus, Hardware metric cards, the Calendar Pomodoro and the Battery
+popup. It keeps the track, bounded fill, unavailable-state behavior and width
+motion in one contract while allowing each surface to choose its density and
+semantic fill color, including the Vermillion critical-battery state.
 
 ## BottomHub system cluster
 

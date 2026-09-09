@@ -13,6 +13,7 @@ consumer_paths = [
     ROOT / "cortetsu/modules/hardware/MetricCard.qml",
     ROOT / "cortetsu/modules/osd/Content.qml",
     ROOT / "cortetsu/modules/calendar/Content.qml",
+    ROOT / "cortetsu/modules/bar/popouts/CortetsuBatteryPopup.qml",
 ]
 assert all("CortetsuProgressBar" in path.read_text(encoding="utf-8") for path in consumer_paths)
 assert all("Behavior on width" not in path.read_text(encoding="utf-8") for path in consumer_paths)

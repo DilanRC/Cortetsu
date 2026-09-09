@@ -123,27 +123,16 @@ CortetsuPopupSurface {
                     }
                 }
 
-                Rectangle {
+                CortetsuProgressBar {
                     width: parent.width
-                    height: 5
-                    radius: 3
-                    color: Qt.alpha(CortetsuDesign.colorSurfaceGlassStrong, 0.9)
-
-                    Rectangle {
-                        width: parent.width * Math.max(0, Math.min(1, UPower.displayDevice.percentage))
-                        height: parent.height
-                        radius: parent.radius
-                        color: root.critical
-                            ? CortetsuDesign.colorVermillion
-                            : CortetsuDesign.colorPrimary
-
-                        Behavior on width {
-                            NumberAnimation {
-                                duration: CortetsuDesign.motionStandardMs
-                                easing.type: Easing.OutCubic
-                            }
-                        }
-                    }
+                    value: UPower.displayDevice?.percentage ?? 0
+                    barHeight: 5
+                    barRadius: 3
+                    trackColor: Qt.alpha(CortetsuDesign.colorSurfaceGlassStrong, 0.9)
+                    fillColor: root.critical
+                        ? CortetsuDesign.colorVermillion
+                        : CortetsuDesign.colorPrimary
+                    motionDuration: CortetsuDesign.motionStandardMs
                 }
             }
         }

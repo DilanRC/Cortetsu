@@ -25,10 +25,11 @@ consumers = {
     "cortetsu/modules/hardware/MetricCard.qml": "value: root.progress",
     "cortetsu/modules/osd/Content.qml": "value: indicator.modelData.value",
     "cortetsu/modules/calendar/Content.qml": "value: root.progress()",
+    "cortetsu/modules/bar/popouts/CortetsuBatteryPopup.qml": "value: UPower.displayDevice?.percentage ?? 0",
 }
 for name, token in consumers.items():
     consumer = (ROOT / name).read_text(encoding="utf-8")
     assert "CortetsuProgressBar" in consumer, f"{name} does not use shared progress primitive"
     assert token in consumer, f"{name} lost its progress source"
 
-print("PASS: QSD-adjacent system feedback, Dashboard focus and Hardware metrics share CortetsuProgressBar")
+print("PASS: OSD, Dashboard, Hardware, Calendar and Battery feedback share CortetsuProgressBar")

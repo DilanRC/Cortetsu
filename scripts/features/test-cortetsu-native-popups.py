@@ -26,6 +26,8 @@ assert "Icons.getBatteryIcon" in battery
 assert "UPowerDeviceState.FullyCharged" in battery
 assert 'qsTr("Fully charged")' in battery
 assert 'text: root.hasBattery' in battery
+assert "CortetsuProgressBar" in battery
+assert "fillColor: root.critical" in battery
 assert 'text: UPower.onBattery ? "battery_full" : "bolt"' not in battery
 
 password = (popouts / "CortetsuWifiPasswordPopup.qml").read_text(encoding="utf-8")
