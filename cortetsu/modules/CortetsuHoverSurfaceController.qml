@@ -27,6 +27,15 @@ Item {
         openTimer.restart();
     }
 
+    function cancelPending(): void {
+        openTimer.stop();
+        closeTimer.stop();
+        pendingScreen = null;
+        pendingMode = "";
+        pendingAnchor = -1;
+        triggerHovered = false;
+    }
+
     function enterTrigger(): void {
         triggerHovered = true;
         closeTimer.stop();

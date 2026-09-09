@@ -11,6 +11,8 @@ assert "CortetsuSurface" in segment
 assert "networkTooltip" in segment and "networkTooltip" in hub
 assert '"sync"' in hub and "CortetsuNetwork.connecting" in hub
 assert "signal %2%" in hub
+assert "required property bool statusPopoutsEnabled" in segment
+assert "statusPopoutsEnabled: CortetsuConfig.bar.popouts.statusIcons" in hub
 
 # Rich system controls are one hover island. Individual icons may select a
 # different mode, but only leaving the island starts the close grace period.
@@ -19,6 +21,8 @@ assert "HoverHandler" in segment
 assert segment.count("root.attachedControlExited();") == 1
 for mode in ("audio", "network", "bluetooth", "battery"):
     assert f'root.attachedControlEntered("{mode}"' in segment
+for mode in ("network", "bluetooth", "battery"):
+    assert f'if (root.statusPopoutsEnabled)\n                    root.attachedControlRequested("{mode}"' in segment
 assert segment.count("tooltipOnHover: false") == 4
 assert "property bool tooltipOnHover: true" in button
 

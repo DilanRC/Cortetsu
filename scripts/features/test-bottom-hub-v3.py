@@ -138,9 +138,9 @@ def main() -> None:
     require(status, 'root.attachedControlEntered("battery", root.centerFor(batteryButton))', "anchored battery hover")
     if status.count("root.attachedControlExited();") != 1:
         raise SystemExit("FAIL: attached system controls must close only when the hover island is exited")
-    require(status, 'onClicked: root.attachedControlRequested("network", root.centerFor(networkButton))', "network click request")
-    require(status, 'onClicked: root.attachedControlRequested("bluetooth", root.centerFor(bluetoothButton))', "bluetooth click request")
-    require(status, 'onClicked: root.attachedControlRequested("battery", root.centerFor(batteryButton))', "battery click request")
+    require(status, 'if (root.statusPopoutsEnabled)\n                    root.attachedControlRequested("network", root.centerFor(networkButton))', "guarded network click request")
+    require(status, 'if (root.statusPopoutsEnabled)\n                    root.attachedControlRequested("bluetooth", root.centerFor(bluetoothButton))', "guarded bluetooth click request")
+    require(status, 'if (root.statusPopoutsEnabled)\n                    root.attachedControlRequested("battery", root.centerFor(batteryButton))', "guarded battery click request")
     require(status, "tooltipOnHover: false", "rich popup tooltip suppression")
     require(status, "onClicked: root.calendarRequested()", "clock-click calendar request")
 

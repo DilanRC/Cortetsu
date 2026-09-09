@@ -26,6 +26,17 @@ Scope {
         onCloseRequested: hubRoot.closeAllPopouts()
     }
 
+    Connections {
+        target: CortetsuConfig.bar.popouts
+
+        function onStatusIconsChanged(): void {
+            if (!CortetsuConfig.bar.popouts.statusIcons) {
+                hoverSurfaceController.cancelPending();
+                hubRoot.closeAllPopouts();
+            }
+        }
+    }
+
     Timer {
         id: hideTimer
         interval: 500
@@ -736,6 +747,7 @@ Scope {
                 batteryIcon: win.batteryIcon
                 batteryCritical: win.batteryCritical
                 batteryTooltip: win.batteryTooltip
+                statusPopoutsEnabled: CortetsuConfig.bar.popouts.statusIcons
                 notificationCount: CortetsuNotifications.count
                 sidebarActive: win.screenState?.sidebar ?? false
                 recordingActive: CortetsuRecorder.running

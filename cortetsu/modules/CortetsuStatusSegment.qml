@@ -16,6 +16,7 @@ Item {
     required property string batteryIcon
     required property bool batteryCritical
     required property string batteryTooltip
+    required property bool statusPopoutsEnabled
     required property int notificationCount
     required property bool sidebarActive
     required property bool recordingActive
@@ -95,7 +96,7 @@ Item {
                 tooltip: root.volumeMuted ? qsTr("Unmute") : qsTr("Mute")
                 tooltipOnHover: false
                 onHoveredChanged: {
-                    if (hovered)
+                    if (hovered && root.statusPopoutsEnabled)
                         root.attachedControlEntered("audio", root.centerFor(volumeButton));
                 }
                 onClicked: root.volumeMuteRequested()
@@ -111,10 +112,11 @@ Item {
                 tooltip: root.networkTooltip
                 tooltipOnHover: false
                 onHoveredChanged: {
-                    if (hovered)
+                    if (hovered && root.statusPopoutsEnabled)
                         root.attachedControlEntered("network", root.centerFor(networkButton));
                 }
-                onClicked: root.attachedControlRequested("network", root.centerFor(networkButton))
+                onClicked: if (root.statusPopoutsEnabled)
+                    root.attachedControlRequested("network", root.centerFor(networkButton))
             }
 
             HubButton {
@@ -126,10 +128,11 @@ Item {
                 tooltip: qsTr("Bluetooth")
                 tooltipOnHover: false
                 onHoveredChanged: {
-                    if (hovered)
+                    if (hovered && root.statusPopoutsEnabled)
                         root.attachedControlEntered("bluetooth", root.centerFor(bluetoothButton));
                 }
-                onClicked: root.attachedControlRequested("bluetooth", root.centerFor(bluetoothButton))
+                onClicked: if (root.statusPopoutsEnabled)
+                    root.attachedControlRequested("bluetooth", root.centerFor(bluetoothButton))
             }
 
             HubButton {
@@ -143,10 +146,11 @@ Item {
                 tooltip: root.batteryTooltip
                 tooltipOnHover: false
                 onHoveredChanged: {
-                    if (hovered)
+                    if (hovered && root.statusPopoutsEnabled)
                         root.attachedControlEntered("battery", root.centerFor(batteryButton));
                 }
-                onClicked: root.attachedControlRequested("battery", root.centerFor(batteryButton))
+                onClicked: if (root.statusPopoutsEnabled)
+                    root.attachedControlRequested("battery", root.centerFor(batteryButton))
             }
         }
 

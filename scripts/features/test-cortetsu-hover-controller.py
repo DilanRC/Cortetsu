@@ -17,6 +17,9 @@ assert "hoverSurfaceController.request(screen, mode, anchorCenter)" in hub
 assert "hoverSurfaceController.enterTrigger()" in hub
 assert "hoverSurfaceController.leaveTrigger()" in hub
 assert "openAttachedControlNow" in hub
+assert "function cancelPending(): void" in controller
+assert "hoverSurfaceController.cancelPending();" in hub
+assert "hubRoot.closeAllPopouts();" in hub
 segment = (ROOT / "cortetsu/modules/CortetsuStatusSegment.qml").read_text(encoding="utf-8")
 view = (ROOT / "cortetsu/modules/CortetsuBottomHubView.qml").read_text(encoding="utf-8")
 assert "signal attachedControlEntered" in segment

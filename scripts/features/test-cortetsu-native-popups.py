@@ -46,8 +46,8 @@ assert "id: hideTimer" in hub and "interval: 500" in hub
 assert "hideTimer.restart();" in hub
 assert "root.forceActiveFocus();" in wrapper
 assert "value: WlrKeyboardFocus.Exclusive" in wrapper
-assert 'onClicked: root.attachedControlRequested("network", root.centerFor(networkButton))' in status_segment
-assert 'onClicked: root.attachedControlRequested("bluetooth", root.centerFor(bluetoothButton))' in status_segment
+assert 'if (root.statusPopoutsEnabled)\n                    root.attachedControlRequested("network", root.centerFor(networkButton))' in status_segment
+assert 'if (root.statusPopoutsEnabled)\n                    root.attachedControlRequested("bluetooth", root.centerFor(bluetoothButton))' in status_segment
 assert 'onClicked: root.detachedControlRequested("network")' not in status_segment
 assert 'onClicked: root.detachedControlRequested("bluetooth")' not in status_segment
 assert "sourceComponent: CortetsuDetachedPopup" in wrapper
