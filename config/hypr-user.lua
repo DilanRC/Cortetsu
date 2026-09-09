@@ -9,7 +9,7 @@ local fn = require("utils.functions")
 -- EDID (el DTD marcado preferred) — se adapta sola a lo que esté conectado
 -- en el puerto: 4K@60 en la Smart TV, lo que sea nativo en cualquier otro
 -- monitor/proyector. cm="hdredid" activa HDR solo si esa pantalla lo declara
--- soportado en su EDID; si no, queda en sRGB sin romper nada.
+-- soportar en su EDID; si no, queda en sRGB sin romper nada.
 hl.monitor({
     output = "HDMI-A-1",
     mode = "1920x1080@60",
@@ -76,8 +76,7 @@ hl.bind(
     hl.dsp.global("cortetsu:dashboard")
 )
 
--- Quick Settings Drawer. Keep this aligned with the first-party global bind
--- so the user override cannot open Utilities and QSD at the same time.
+-- Quick Settings Drawer
 hl.bind(
     "SUPER + Slash",
     hl.dsp.global("cortetsu:qsd")
@@ -262,13 +261,87 @@ for i = 1, 10 do
     local key = tostring(i % 10)
     local workspace = i + 10
 
-    hl.bind(
-        "SUPER + CTRL + " .. key,
-        fn.focusws(workspace)
-    )
+    -- SUPER+SHIFT+# is the direct window-to-workspace shortcut. Keep it
+    -- explicit here so the user overlay cannot be shadowed by the grouped
+    -- workspace callback from hyprland/keybinds.lua.
+    hl.bind("SUPER + SHIFT + " .. key, fn.wsaction("move", "", i))
 
     hl.bind(
         "SUPER + CTRL + SHIFT + " .. key,
-        fn.movetows(workspace)
+        hl.dsp.window.move({
+            workspace = workspace
+        })
     )
 end
+
+-- ============================================================
+-- HYPRGLASS
+-- Desactivado globalmente; solo Kitty recibe el efecto.
+-- ============================================================
+
+if hl.plugin.hyprglass then
+    local hyprglass = hl.plugin.hyprglass
+    local scheme = dofile(os.getenv("HOME") .. "/.config/hypr/scheme/current.lua")
+    local tint_source = scheme.background
+    local rgb = tint_source and tint_source:match("%x%x%x%x%x%x") or "000000"
+    local tint = tonumber(rgb, 16) * 0x100 + math.floor(0.35 * 0xff + 0.5)
+
+    hyprglass.config({
+        enabled = false,
+        manage_window_blur = true,
+        default_theme = "dark",
+        default_preset = "terminal_glass",
+    })
+
+    hyprglass.preset("terminal_glass", {
+        blur_strength = 1.5,
+        blur_iterations = 2,
+        refraction_strength = 2.2,
+        chromatic_aberration = 0.18,
+        fresnel_strength = 0.35,
+        specular_strength = 0.45,
+        glass_opacity = 1.0,
+        edge_thickness = 0.03,
+        tint_color = tint,
+        lens_distortion = 0.08,
+        brightness = 0.95,
+        contrast = 1.12,
+        saturation = 0.95,
+        vibrancy = 0.35,
+        vibrancy_darkness = 0.25,
+        adaptive_dim = 0.22,
+        adaptive_boost = 0.08,
+    })
+
+    hl.window_rule({
+        match = { class = "kitty" },
+        tag = "+hyprglass_enabled",
+    })
+
+    hl.window_rule({
+        match = { class = "kitty", title = ".*nvim.*|.*NVIM.*|.*LazyVim.*" },
+        tag = "+hyprglass_enabled",
+    })
+end
+
+-- ============================================================
+-- WINDOW OVERVIEW
+-- SUPER+TAB -> all windows / workspaces / live previews
+-- ============================================================
+
+hl.bind(
+    "SUPER + TAB",
+    hl.dsp.global("cortetsu:overview")
+)
+
+-- Cortetsu app shortcut: The Witcher 3: Wild Hunt (The Witcher 3 Wild Hunt)
+hl.bind(
+    "CTRL + End",
+    hl.dsp.exec_cmd([[steam steam://rungameid/292030]])
+)
+
+-- Cortetsu app shortcut: ChatGPT (chatgpt)
+hl.bind(
+    "CTRL + Down",
+    hl.dsp.exec_cmd([[chatgpt]])
+)
