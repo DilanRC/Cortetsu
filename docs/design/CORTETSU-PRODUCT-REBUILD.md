@@ -121,6 +121,22 @@ Overview, Hardware, Display, Wallpaper, Calendar, and Clipboard now render throu
 
 First-party Dashboard, QSD, Launcher, Settings, and retained surfaces now read the same `CortetsuShellState` registry. This makes the exclusivity policy observable: opening a full surface cannot leave a first-party surface hidden behind it because each controller closes the same state owner.
 
+## Wallpaper orbital selector
+
+The Wallpaper Manager uses a stable orbital model during selection. `windowIndex`
+is the last settled center, while `currentIndex` may update immediately so the
+central preview and its applied/selected state respond without waiting for the
+wallpaper backend. The satellite model remains anchored to `windowIndex` until
+the `220 ms` OutCubic phase animation completes, so the clicked wallpaper stays
+visible while the orbit rotates. `orbitPhase` accumulates between selections;
+it is reset only by a catalog/category resync, not after every move.
+
+Satellite depth is derived from the animated angle and controls position, scale,
+opacity, and z-order. The center preview now exposes `Selected`, `Previewing`,
+or `Applied`, with an Indigo focus outline and a distinct healthy secondary
+state for an applied wallpaper. Left/Right and Up/Down remain keyboard-first;
+Enter/Space apply and Escape closes the surface.
+
 ## Hover surface ownership
 
 BottomHub attached controls now pass through one `CortetsuHoverSurfaceController`.
@@ -140,7 +156,6 @@ clicks from application windows underneath.
 ## Session and power
 
 The session surface keeps the real system actions, but destructive actions now require a second explicit activation within a four-second confirmation window. The first activation arms the action and changes its label to `Confirm ...`; no shutdown, reboot, hibernate, or logout command is run during the armed state.
-The surface now has its own centered overlay host with a compact power identity and exclusive keyboard focus. The older right-side wrapper remains only as a hidden compatibility handle.
 The surface now has its own centered overlay host with a compact power identity and exclusive keyboard focus. The older right-side wrapper remains only as a hidden compatibility handle.
 
 ## Delivery order

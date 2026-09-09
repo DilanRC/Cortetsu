@@ -31,7 +31,9 @@ def main() -> None:
     assert "Colours." not in content_text
     assert "Item {\n        id: panel" in content_text and 'color: "black"' not in content_text
     wrapper_text = (ROOT / "cortetsu/modules/wallpaper/Wrapper.qml").read_text(encoding="utf-8")
-    assert "shouldBeActive && presentationReady" in wrapper_text
+    assert "readonly property bool presentationReady" in wrapper_text
+    assert "visible: opacity > 0.001" in wrapper_text
+    assert "active: root.shouldBeActive || root.opacity > 0.001" in wrapper_text
     assert "Qt.alpha(CortetsuDesign.colorScrim, 0.18)" in wrapper_text
     require(ROOT / "cortetsu/modules/WallpaperController.qml", "wallpaperManager", "CortetsuShortcut", 'name: "wallpapermanager"')
     require(ROOT / "cortetsu/modules/BottomHub.qml", "openWallpaperFor", "CortetsuWallpapers.actualCurrent")

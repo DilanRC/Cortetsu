@@ -1,7 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
   <title id="title">Cortetsu mark</title>
-  <desc id="desc">Angular open C surrounding a chamfered steel T.</desc>
-  <path d="M785 168H382L164 386V638L382 856H785V704H445L316 575V449L445 320H785V168Z" fill="#E7E0D5"/>
-  <path d="M500 386H874L836 462H538L500 386Z" fill="#526D82"/>
-  <path d="M632 444H742V696L687 752L632 696V444Z" fill="#526D82"/>
+  <desc id="desc">Two interlocking steel plates forming a geometric C and T.</desc>
+  <path fill="currentColor" fill-rule="evenodd" d="M40 32h176v48h-64v144H104V80H40V32Zm24 24v16h64v128h24V72h40V56H64Z"/>
+  <path fill="currentColor" d="m40 176 32-32h32v32H72l-32 32v-32Zm176-96-32 32h-32V80h32l32-32v32Z" opacity=".72"/>
 </svg>

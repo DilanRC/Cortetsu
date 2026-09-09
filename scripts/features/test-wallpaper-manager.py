@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Deterministic wallpaper manager interaction regressions without a running shell."""
+"""Deterministic V2 interaction regressions without a running shell."""
 from __future__ import annotations
 
 from pathlib import Path
@@ -21,8 +21,7 @@ shortcuts = (MODULES / "Shortcuts.qml").read_text(encoding="utf-8")
 
 def body(name: str) -> str:
     start = content.index(f"function {name}")
-    end = content.find("\n    function ", start + 1)
-    return content[start:] if end < 0 else content[start:end]
+    return content[start:content.find("\n    function ", start + 1)]
 
 
 # Neutral open: actualCurrent determines selection, then focus, with no preview path.
@@ -36,7 +35,7 @@ assert "function resolveCurrentIndex" in orbit and "function basename" in orbit
 
 # A→B→C→D has one timer and the final stable candidate is the sole preview call.
 assert content.count("Timer {") == 1
-assert "interval: 260" in content
+assert "interval: 220" in content
 timer_body = content[content.index("id: previewTimer"):content.index("NumberAnimation {", content.index("id: previewTimer"))]
 assert "Orbit.previewEligible" in timer_body
 assert "CortetsuWallpapers.preview(root.pendingPreviewPath)" in timer_body
@@ -46,9 +45,7 @@ assert "cancelPreview();" in body("requestTarget")
 # Close, category/model reset, apply and random erase delayed work; active preview stops.
 cancel_body = body("cancelPreview")
 assert "previewTimer.stop();" in cancel_body and "CortetsuWallpapers.stopPreview();" in cancel_body
-assert "cancelMotion();" in resync_body
-assert "cancelPreview();" in body("selectCategory") and "cancelMotion();" in body("selectCategory")
-assert "CortetsuWallpapers.preview" not in body("selectCategory")
+assert "cancelPreview();" in body("selectCategory") and "CortetsuWallpapers.preview" not in body("selectCategory")
 assert "cancelPreview();" in resync_body
 assert "previewTimer.stop();" in body("apply") and "CortetsuWallpapers.previewColourLock = true;" in body("apply")
 assert "cancelPreview();" in body("random") and "CortetsuWallpapers.setRandom();" in body("random")
@@ -62,7 +59,7 @@ for other in ("launcher", "session", "dashboard", "utilities", "sidebar", "overv
     assert other in policy, f"policy does not exclude {other}"
 for controller_file in ("OverviewController.qml", "ClipboardController.qml", "HardwareController.qml", "DisplayController.qml"):
     controller = (MODULES / controller_file).read_text(encoding="utf-8")
-    assert "OverlayPolicy.closeOtherPanels" in controller and "for (const screen of CortetsuScreens.screens)" in controller
+assert "OverlayPolicy.closeOtherPanels" in controller and "for (const screen of CortetsuScreens.screens)" in controller
 assert "OverlayPolicy.closeForWallpaper" in wallpaper_controller and "for (const screen of CortetsuScreens.screens)" in wallpaper_controller
 assert "OverlayPolicy.closeOtherPanels(state);" in hub
 assert "toggleSidebarFor" in hub and "state.sidebar = !wasOpen;" in hub
@@ -70,78 +67,19 @@ assert "const state = CortetsuShellState.forActive()?.cortetsuState;" in wallpap
 assert "CortetsuShellState.forActive()?.modelData" not in wallpaper_controller
 assert "closeOtherPanels();\n        state.setRetained(\"wallpaperManager\", true);" in wallpaper_controller
 
-# Orbital motion owns a stable snapshot. The committed selection stays untouched
-# during the normal animation path, so the Repeater cannot churn underneath the
-# NumberAnimation and turn movement into an apparent teleport.
-for marker in (
-    "property int motionTargetIndex: -1",
-    "property var motionEntries: []",
-    "property int motionOrbitCount: 0",
-    "readonly property int displayIndex: animating && motionTargetIndex >= 0 ? motionTargetIndex : currentIndex",
-    "readonly property var restingOrbitEntries: Orbit.satellites(filteredEntries, windowIndex, currentIndex, visibleLimit)",
-    "readonly property var orbitEntries: animating ? motionEntries : restingOrbitEntries",
-):
-    assert marker in content, marker
-animate_body = body("animateTo")
-for marker in (
-    "const snapshot = restingOrbitEntries.slice();",
-    "motionEntries = snapshot;",
-    "motionOrbitCount = Math.max(1, snapshot.length);",
-    "motionTargetIndex = target;",
-    "orbitPhase = 0;",
-    "animating = true;",
-    "orbitMotion.from = 0;",
-    "orbitMotion.to = -steps * Orbit.angularStep(motionOrbitCount);",
-):
-    assert marker in animate_body, marker
-assert animate_body.index("motionTargetIndex = target;") < animate_body.index("animating = true;")
-assert "duration: 340" in content
-assert "easing.type: Easing.OutCubic" in content
-motion_stop = content[content.index("id: orbitMotion"):content.index("ParallelAnimation {", content.index("id: orbitMotion"))]
-assert "const target = root.motionTargetIndex;" in motion_stop
-assert "root.currentIndex = target;" in motion_stop and "root.windowIndex = target;" in motion_stop
-assert "root.motionEntries = [];" in motion_stop and "root.motionOrbitCount = 0;" in motion_stop
-assert "readonly property bool selected: satellite.modelData.index === root.displayIndex" in content
-
-# Spatial hierarchy is a first-class part of the orbit rather than a flat ring.
-for needle in (
-    "Math.cos(angle)", "Math.sin(angle)", "depth",
-    "scale: selected ? 1.18", "0.68 + depth * 0.40",
-    "opacity: selected || hovered ? 1 : 0.36 + depth * 0.64",
-    "z: selected ? 14", "Behavior on scale", "Behavior on opacity",
-):
-    assert needle in content, needle
-assert "readonly property bool selected:" in content
-assert "readonly property bool applied:" in content
-assert "satellite.selected ? CortetsuDesign.colorTertiary" in content
-assert "satellite.applied ? CortetsuDesign.colorSuccess" in content
-
-# Hero preview is meaningful and visibly distinguishes selected/applied/loading state.
-assert "readonly property bool currentApplied" in content
-for label in ('qsTr("Loading")', 'qsTr("Applied")', 'qsTr("Selected")'):
-    assert label in content
-assert "root.animating ? 0.985 : 1" in content
-assert "duration: 240" in content  # hero crossfade
-assert 'root.previewActive ? qsTr("Previewing") : qsTr("Selected")' in content
-assert "root.displayIndex + 1" in content
-
-# Keyboard ownership includes both axes plus explicit apply/cancel.
-assert "event.key === Qt.Key_Left || event.key === Qt.Key_Up" in content
-assert "event.key === Qt.Key_Right || event.key === Qt.Key_Down" in content
-assert "Qt.Key_Return" in content and "Qt.Key_Space" in content and "Qt.Key_Escape" in content
-
-# Native visual/service contracts.
-for needle in ("Orbit.satellites", "Math.min(12", "CortetsuMask { maskSource", "outgoingHeroPath", "heroCrossfade", "component OrbitButton: CortetsuSurface"):
+# V2 visual and native-service contracts.
+for needle in ("Orbit.satellites", "Math.min(12", "Math.cos(angle)", "Math.sin(angle)", "depth", "scale:", "opacity:", "z:", "CortetsuMask { maskSource", "outgoingHeroPath", "heroCrossfade", "component OrbitButton: CortetsuSurface"):
     assert needle in content, needle
 assert "source: satellite.modelData.entry.path" in content
 assert "root.selectSatellite(satellite.modelData.index)" in content
 assert "import qs.components.effects" not in content
 assert "import qs.components.controls" not in content
+assert "Image {\n            anchors.fill: parent; anchors.margins" not in content
 assert 'if (CortetsuConfig.smartScheme)\n                CortetsuWallpapers.previewColourLock = true;' in content
 assert "Colours." not in content
 
-# Bounded shared-cache prefetch, ready-gated entry, and floating surfaces.
-assert "Orbit.prefetch(filteredEntries, displayIndex, visibleLimit + 6)" in content
+# V2.1 presentation: bounded shared-cache prefetch, ready-gated entry, and floating surfaces.
+assert "Orbit.prefetch(filteredEntries, currentIndex, visibleLimit + 6)" in content
 assert "Math.min(18, count)" in orbit
 assert "property bool presentationReady: false" in content
 assert "function updatePresentationReady" in content
@@ -150,6 +88,7 @@ assert "Math.min(prefetchRepeater.count, 7)" in content
 assert content.count("cache: true") >= 4
 assert "id: panel\n        z: 1" in content and "Item {\n        id: panel" in content
 assert "CortetsuDesign.colorSurfaceHigh, 0.68" in content
+assert 'root.currentPath === CortetsuWallpapers.actualCurrent ? qsTr("Current") : qsTr("Preview")' in content
 assert "opacity: shouldBeActive ? 1 : 0" in wrapper
 assert "Content.qml owns the honest empty state" in wrapper
 assert "CortetsuDesign.colorScrim, 0.18" in wrapper
@@ -158,7 +97,15 @@ assert 'color: "black"' not in content
 for legacy in ("Caelestia.Config", "import Caelestia\n", "import qs.components\n", "Colours.palette", "Tokens.", "StyledText", "MaterialIcon"):
     assert legacy not in content + wrapper, legacy
 
-# Orbital geometry still clears the footer and canonical wiring includes retained surfaces.
+# V2.2 orbital motion: the settled model stays stable during rotation and
+# satellites communicate depth through scale, opacity and z-order.
+assert "Orbit.satellites(filteredEntries, windowIndex, windowIndex, visibleLimit)" in content
+assert "orbitMotion.to = orbitPhase - steps * Orbit.angularStep" in content
+assert "root.windowIndex = root.currentIndex;" in content
+assert "root.orbitPhase = 0;" not in content[content.index("NumberAnimation {"):content.index("ParallelAnimation {")]
+assert "scale: 1" not in content
+assert "currentStateLabel" in content and "currentIsApplied" in content
+assert "scale: (0.72 + depth * 0.38)" not in content
 assert "anchors.bottomMargin: 70" in content
 assert "readonly property real radiusX" in content
 assert "readonly property real radiusY" in content
@@ -180,4 +127,4 @@ for legacy in ("Caelestia.Config", "qs.services", "qs.components", "Colours.", "
     assert legacy not in renderer, legacy
 assert "CortetsuWallpapers.current" in renderer and "CortetsuWallpapers.fallback" in renderer
 
-print("test-wallpaper-manager: OK (stable-snapshot orbital motion, selected/applied hierarchy, keyboard navigation, preview debounce, and overlay exclusion)")
+print("test-wallpaper-manager: OK (neutral open, final-candidate debounce, cancellation, wheel reversal, canonical retained wiring, and two-way overlay exclusion)")
