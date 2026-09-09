@@ -1,13 +1,20 @@
-# Cortetsu Forge identity
+# Cortetsu identity
 
-Selected product identity: a forged **C** surrounding an ember core and four-point star.
+Cortetsu uses an angular **open C** paired with a separate chamfered **T**. The geometry is intentionally direct and mechanical: the C reads as a protective frame while the T reads as the steel working element inside it.
 
-Palette:
-- Graphite `#1D2128`
-- Warm White `#F6F3EC`
-- Ice Blue `#77C8FF`
-- Ember Orange `#FF8A3D`
+## Product palette
 
-`cortetsu-mark.svg` is the canonical shell-safe app mark and intentionally carries its own dark icon tile so it remains legible on both light and dark surfaces. Use the dark/light marks for large standalone treatments and the monochrome variants where colour would compete with system state.
+- Sumi `#0B0D10` — deepest shell surfaces and light-background mark
+- Tetsu `#171B21` — raised dark surfaces
+- Washi `#E7E0D5` — primary mark/foreground on dark surfaces
+- Indigo `#334E68` — primary product accent
+- Steel blue `#526D82` — branding-only companion accent derived from Indigo
+- Vermillion `#D64B32` — danger/error only; never decorative branding
+- Success `#7A9B83` — semantic success only
+- Warning `#C49A62` — semantic warning only
 
-The branding mark is decorative identity, not a replacement for semantic success/warning/error colours in controls.
+`cortetsu-mark.svg` is the canonical shell mark and is optimized for Cortetsu's dark Sumi/Tetsu surfaces. It has a transparent background so it works from BottomHub-scale icons through Lock and Dashboard treatments without carrying a foreign icon tile.
+
+Use `cortetsu-mark-dark.svg` on dark surfaces, `cortetsu-mark-light.svg` on light surfaces, and the monochrome variants only where surrounding UI state should own all colour. `cortetsu-app-icon.svg` is the standalone rounded application tile. Horizontal lockups are intended for About/documentation-sized treatments rather than compact shell controls.
+
+The brand never uses Vermillion or success green decoratively; those colours remain reserved for product state.
