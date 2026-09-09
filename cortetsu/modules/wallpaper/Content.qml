@@ -358,10 +358,11 @@ FocusScope {
                 spacing: 6
                 Repeater {
                     model: root.categoryNames
-                    delegate: OrbitButton {
+                    delegate: CortetsuButton {
                         required property string modelData
+                        compact: true
                         label: modelData
-                        checked: root.selectedCategory === modelData
+                        active: root.selectedCategory === modelData
                         onClicked: root.selectCategory(modelData)
                     }
                 }

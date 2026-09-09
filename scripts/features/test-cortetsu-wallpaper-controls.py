@@ -6,6 +6,7 @@ content = (ROOT / "cortetsu/modules/wallpaper/Content.qml").read_text(encoding="
 
 assert 'import "../../components"' in content
 assert "component OrbitButton" not in content
+assert "OrbitButton" not in content
 assert content.count("CortetsuButton {") >= 4
 for marker in (
     'label: qsTr("Cancel")',
