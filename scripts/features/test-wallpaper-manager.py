@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Deterministic V2 interaction regressions without a running shell."""
+"""Deterministic wallpaper manager interaction regressions without a running shell."""
 from __future__ import annotations
 
 from pathlib import Path
@@ -21,7 +21,8 @@ shortcuts = (MODULES / "Shortcuts.qml").read_text(encoding="utf-8")
 
 def body(name: str) -> str:
     start = content.index(f"function {name}")
-    return content[start:content.find("\n    function ", start + 1)]
+    end = content.find("\n    function ", start + 1)
+    return content[start:] if end < 0 else content[start:end]
 
 
 # Neutral open: actualCurrent determines selection, then focus, with no preview path.
@@ -35,7 +36,7 @@ assert "function resolveCurrentIndex" in orbit and "function basename" in orbit
 
 # A→B→C→D has one timer and the final stable candidate is the sole preview call.
 assert content.count("Timer {") == 1
-assert "interval: 220" in content
+assert "interval: 260" in content
 timer_body = content[content.index("id: previewTimer"):content.index("NumberAnimation {", content.index("id: previewTimer"))]
 assert "Orbit.previewEligible" in timer_body
 assert "CortetsuWallpapers.preview(root.pendingPreviewPath)" in timer_body
@@ -59,7 +60,7 @@ for other in ("launcher", "session", "dashboard", "utilities", "sidebar", "overv
     assert other in policy, f"policy does not exclude {other}"
 for controller_file in ("OverviewController.qml", "ClipboardController.qml", "HardwareController.qml", "DisplayController.qml"):
     controller = (MODULES / controller_file).read_text(encoding="utf-8")
-assert "OverlayPolicy.closeOtherPanels" in controller and "for (const screen of CortetsuScreens.screens)" in controller
+    assert "OverlayPolicy.closeOtherPanels" in controller and "for (const screen of CortetsuScreens.screens)" in controller
 assert "OverlayPolicy.closeForWallpaper" in wallpaper_controller and "for (const screen of CortetsuScreens.screens)" in wallpaper_controller
 assert "OverlayPolicy.closeOtherPanels(state);" in hub
 assert "toggleSidebarFor" in hub and "state.sidebar = !wasOpen;" in hub
@@ -67,18 +68,53 @@ assert "const state = CortetsuShellState.forActive()?.cortetsuState;" in wallpap
 assert "CortetsuShellState.forActive()?.modelData" not in wallpaper_controller
 assert "closeOtherPanels();\n        state.setRetained(\"wallpaperManager\", true);" in wallpaper_controller
 
-# V2 visual and native-service contracts.
-for needle in ("Orbit.satellites", "Math.min(12", "Math.cos(angle)", "Math.sin(angle)", "depth", "scale:", "opacity:", "z:", "CortetsuMask { maskSource", "outgoingHeroPath", "heroCrossfade", "component OrbitButton: CortetsuSurface"):
+# The selected target must remain a visible satellite for the duration of the rotation.
+# This is the regression that previously made selection look like an instant wallpaper swap.
+assert "readonly property int orbitExcludedIndex: animating ? windowIndex : currentIndex" in content
+assert "Orbit.satellites(filteredEntries, windowIndex, orbitExcludedIndex, visibleLimit)" in content
+animate_body = body("animateTo")
+assert "const stableOrbitCount = Math.max(1, orbitEntries.length);" in animate_body
+assert "orbitMotion.to = -steps * Orbit.angularStep(stableOrbitCount);" in animate_body
+assert "duration: 340" in content
+assert "easing.type: Easing.OutCubic" in content
+
+# Spatial hierarchy is a first-class part of the orbit rather than a flat ring.
+for needle in (
+    "Math.cos(angle)", "Math.sin(angle)", "depth",
+    "scale: selected ? 1.18", "0.68 + depth * 0.40",
+    "opacity: selected || hovered ? 1 : 0.36 + depth * 0.64",
+    "z: selected ? 14", "Behavior on scale", "Behavior on opacity",
+):
+    assert needle in content, needle
+assert "readonly property bool selected:" in content
+assert "readonly property bool applied:" in content
+assert "satellite.selected ? CortetsuDesign.colorTertiary" in content
+assert "satellite.applied ? CortetsuDesign.colorSuccess" in content
+
+# Hero preview is meaningful and visibly distinguishes selected/applied/loading state.
+assert "readonly property bool currentApplied" in content
+for label in ('qsTr("Loading")', 'qsTr("Applied")', 'qsTr("Selected")'):
+    assert label in content
+assert "root.animating ? 0.985 : 1" in content
+assert "duration: 240" in content  # hero crossfade
+assert 'root.previewActive ? qsTr("Previewing") : qsTr("Selected")' in content
+
+# Keyboard ownership includes both axes plus explicit apply/cancel.
+assert "event.key === Qt.Key_Left || event.key === Qt.Key_Up" in content
+assert "event.key === Qt.Key_Right || event.key === Qt.Key_Down" in content
+assert "Qt.Key_Return" in content and "Qt.Key_Space" in content and "Qt.Key_Escape" in content
+
+# Native visual/service contracts.
+for needle in ("Orbit.satellites", "Math.min(12", "CortetsuMask { maskSource", "outgoingHeroPath", "heroCrossfade", "component OrbitButton: CortetsuSurface"):
     assert needle in content, needle
 assert "source: satellite.modelData.entry.path" in content
 assert "root.selectSatellite(satellite.modelData.index)" in content
 assert "import qs.components.effects" not in content
 assert "import qs.components.controls" not in content
-assert "Image {\n            anchors.fill: parent; anchors.margins" not in content
 assert 'if (CortetsuConfig.smartScheme)\n                CortetsuWallpapers.previewColourLock = true;' in content
 assert "Colours." not in content
 
-# V2.1 presentation: bounded shared-cache prefetch, ready-gated entry, and floating surfaces.
+# Bounded shared-cache prefetch, ready-gated entry, and floating surfaces.
 assert "Orbit.prefetch(filteredEntries, currentIndex, visibleLimit + 6)" in content
 assert "Math.min(18, count)" in orbit
 assert "property bool presentationReady: false" in content
@@ -88,7 +124,6 @@ assert "Math.min(prefetchRepeater.count, 7)" in content
 assert content.count("cache: true") >= 4
 assert "id: panel\n        z: 1" in content and "Item {\n        id: panel" in content
 assert "CortetsuDesign.colorSurfaceHigh, 0.68" in content
-assert 'root.currentPath === CortetsuWallpapers.actualCurrent ? qsTr("Current") : qsTr("Preview")' in content
 assert "opacity: shouldBeActive ? 1 : 0" in wrapper
 assert "Content.qml owns the honest empty state" in wrapper
 assert "CortetsuDesign.colorScrim, 0.18" in wrapper
@@ -97,9 +132,7 @@ assert 'color: "black"' not in content
 for legacy in ("Caelestia.Config", "import Caelestia\n", "import qs.components\n", "Colours.palette", "Tokens.", "StyledText", "MaterialIcon"):
     assert legacy not in content + wrapper, legacy
 
-# V2.1.1 polish: orbital geometry stays uniform and clears the footer.
-assert "scale: 1" in content
-assert "scale: (0.72 + depth * 0.38)" not in content
+# Orbital geometry still clears the footer and canonical wiring includes retained surfaces.
 assert "anchors.bottomMargin: 70" in content
 assert "readonly property real radiusX" in content
 assert "readonly property real radiusY" in content
@@ -121,4 +154,4 @@ for legacy in ("Caelestia.Config", "qs.services", "qs.components", "Colours.", "
     assert legacy not in renderer, legacy
 assert "CortetsuWallpapers.current" in renderer and "CortetsuWallpapers.fallback" in renderer
 
-print("test-wallpaper-manager: OK (neutral open, final-candidate debounce, cancellation, wheel reversal, canonical retained wiring, and two-way overlay exclusion)")
+print("test-wallpaper-manager: OK (perceptible orbital motion, selected/applied hierarchy, keyboard navigation, preview debounce, and overlay exclusion)")
