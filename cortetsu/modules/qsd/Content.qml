@@ -107,7 +107,8 @@ Item {
                 detail: CortetsuAudio.muted ? qsTr("Tap to unmute") : qsTr("Volume %1%").arg(root.volumePercent)
                 icon: CortetsuAudio.muted ? "volume_off" : "volume_up"
                 highlighted: !CortetsuAudio.muted
-                warning: CortetsuAudio.muted
+                // Mute is a user-selected state, not a fault or danger.
+                warning: false
                 onActivated: if (CortetsuAudio.sink?.audio)
                     CortetsuAudio.sink.audio.muted = !CortetsuAudio.sink.audio.muted
             }
