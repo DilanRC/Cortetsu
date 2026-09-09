@@ -7,6 +7,7 @@ colours = (ROOT / "cortetsu/services/CortetsuColours.qml").read_text(encoding="u
 wallpapers = (ROOT / "cortetsu/modules/CortetsuWallpapers.qml").read_text(encoding="utf-8")
 
 criteria = {
+    "FileView import": "import Quickshell.Io" in colours,
     "current scheme readback": "schemePath" in colours and "onFileChanged: root.load(text(), false)" in colours,
     "validated hex boundary": "normaliseHex" in colours and "#[0-9a-fA-F]{6}" in colours,
     "reactive active palette": "readonly property var activeColours:" in colours and "root.schemeColour(" in colours,

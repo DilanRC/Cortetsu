@@ -7,6 +7,7 @@ colours = (ROOT / "cortetsu/services/CortetsuColours.qml").read_text(encoding="u
 wallpapers = (ROOT / "cortetsu/modules/CortetsuWallpapers.qml").read_text(encoding="utf-8")
 
 for marker in (
+    "import Quickshell.Io",
     "property var currentColours: ({})",
     "property var previewColours: ({})",
     "readonly property var activeColours:",
