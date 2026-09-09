@@ -1,23 +1,23 @@
 import QtQuick
 import Quickshell
-import qs.modules.bar as Bar
-import qs.modules.dashboard as Dashboard
-import qs.modules.launcher as Launcher
-import qs.modules.overview as Overview
-import qs.modules.notifications as Notifications
-import qs.modules.osd as Osd
-import qs.modules.session as Session
-import qs.modules.sidebar as Sidebar
+import "../bar" as Bar
+import "../dashboard" as Dashboard
+import "../launcher" as Launcher
+import "../overview" as Overview
+import "../notifications" as Notifications
+import "../osd" as Osd
+import "../session" as Session
+import "../sidebar" as Sidebar
 import ".."
 import "../../components"
-import qs.modules.utilities as Utilities
-import qs.modules.bar.popouts as BarPopouts
+import "../utilities" as Utilities
+import "../bar/popouts" as BarPopouts
 import "../CortetsuDesign.js" as CortetsuDesign
-import qs.modules.clipboard as Clipboard
-import qs.modules.hardware as Hardware
-import qs.modules.display as Display
-import qs.modules.wallpaper as Wallpaper
-import qs.modules.calendar as Calendar
+import "../clipboard" as Clipboard
+import "../hardware" as Hardware
+import "../display" as Display
+import "../wallpaper" as Wallpaper
+import "../calendar" as Calendar
 
 Item {
     id: root

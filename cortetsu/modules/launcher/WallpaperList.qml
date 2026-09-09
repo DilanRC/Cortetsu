@@ -5,7 +5,7 @@ import QtQuick.Controls
 import Quickshell
 import ".."
 import "../CortetsuDesign.js" as CortetsuDesign
-import qs.modules
+import ".."
 
 PathView {
     id: root

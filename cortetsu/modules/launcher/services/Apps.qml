@@ -3,7 +3,7 @@ pragma Singleton
 import Quickshell
 import QtQml
 import "../.."
-import qs.utils
+import "../../../utils"
 
 // First-party desktop-entry search and launch. DesktopEntry.command is already
 // parsed by Quickshell, so keep the launch path direct and detached: wrapping

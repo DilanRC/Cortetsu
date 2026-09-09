@@ -4,7 +4,7 @@ import QtQuick
 import QtQuick.Controls
 import Quickshell
 import Quickshell.Widgets
-import qs.utils
+import "../../utils"
 import ".."
 import "../CortetsuDesign.js" as CortetsuDesign
 import "../CortetsuTypography.js" as CortetsuTypography
@@ -12,7 +12,7 @@ import "../CortetsuSurface.qml"
 import "../CortetsuText.qml"
 import "../CortetsuIcon.qml"
 import "../CortetsuStateLayer.qml"
-import qs.modules.launcher.services
+import "services"
 
 GridView {
     id: root

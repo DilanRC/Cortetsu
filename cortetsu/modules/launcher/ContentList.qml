@@ -10,7 +10,7 @@ import "../CortetsuText.qml"
 import "../CortetsuIcon.qml"
 import ".."
 import "../../components"
-import qs.utils
+import "../../utils"
 
 Item {
     id: root

@@ -4,7 +4,7 @@ import QtQuick
 import Quickshell.Services.UPower
 import "../../../components"
 import "../../CortetsuDesign.js" as CortetsuDesign
-import qs.utils
+import "../../../utils"
 
 CortetsuPopupSurface {
     id: root

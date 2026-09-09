@@ -2,7 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
-import qs.modules.bar.popouts.kblayout
+import "kblayout"
 import "../../../components"
 import "../../CortetsuDesign.js" as CortetsuDesign
 

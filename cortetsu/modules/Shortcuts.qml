@@ -3,7 +3,7 @@ import Quickshell
 import Quickshell.Io
 import "../components/misc"
 import "../services"
-import qs.modules
+import "."
 import "CortetsuOverlayPolicy.js" as OverlayPolicy
 
 Scope {

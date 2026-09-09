@@ -70,7 +70,7 @@ def main() -> None:
     require(POPOUT, "width: implicitWidth", "bounds visibles del popup")
     require(POPOUT, "height: implicitHeight", "bounds interactivos del popup")
     require(POPOUT, "        x: 0\n        transformOrigin: Item.Bottom", "contenido local al ancla")
-    require(WINDOW_CARD, "import qs.utils", "Overview resuelve Icons sin ReferenceError")
+    require(WINDOW_CARD, 'import "../../utils"', "Overview resuelve Icons sin ReferenceError")
     forbid(POPOUT, "caelestia", "dependencia Caelestia en el wrapper de popup")
 
     print("BottomHub v4 architecture tests: OK")

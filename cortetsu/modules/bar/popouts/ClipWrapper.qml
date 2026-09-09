@@ -2,7 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import Quickshell
-import qs.modules.bar.popouts
+import "."
 import "../../CortetsuDesign.js" as CortetsuDesign
 
 Item {

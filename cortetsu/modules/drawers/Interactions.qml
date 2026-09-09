@@ -4,8 +4,8 @@ import Quickshell
 import ".."
 import "../../components"
 import "../../components/controls"
-import qs.modules.bar as Bar
-import qs.modules.bar.popouts as BarPopouts
+import "../bar" as Bar
+import "../bar/popouts" as BarPopouts
 
 CustomMouseArea {
     id: root

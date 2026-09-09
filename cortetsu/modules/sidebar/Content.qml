@@ -5,7 +5,7 @@ import QtQuick.Layouts
 import "../../components"
 import ".."
 import "../../services"
-import qs.modules.notifications as NotificationComponents
+import "../notifications" as NotificationComponents
 import "../CortetsuDesign.js" as CortetsuDesign
 
 Item {

@@ -4,7 +4,7 @@ import ".."
 import "../.."
 import QtQuick
 import Quickshell
-import qs.utils
+import "../../../utils"
 
 Searcher {
     id: root

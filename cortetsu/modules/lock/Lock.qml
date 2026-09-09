@@ -4,7 +4,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
-import qs.components.misc
+import "../../components/misc"
 
 Scope {
     property alias lock: sessionLock

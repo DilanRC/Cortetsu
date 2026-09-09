@@ -1,7 +1,7 @@
 import QtQuick
 import Quickshell
 import "../../services"
-import qs.modules
+import ".."
 import "../CortetsuDesign.js" as CortetsuDesign
 
 Item {

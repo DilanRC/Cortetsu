@@ -3,7 +3,7 @@ import QtQuick.Layouts
 import "../"
 import "../../components"
 import "../../services"
-import qs.utils
+import "../../utils"
 import "../CortetsuDesign.js" as CortetsuDesign
 import "../CortetsuTypography.js" as CortetsuTypography
 

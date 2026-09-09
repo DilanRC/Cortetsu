@@ -3,7 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import Quickshell.Networking
-import qs.utils
+import "../../../utils"
 import "../../../services"
 import "../../../components"
 import "../../CortetsuDesign.js" as CortetsuDesign

@@ -4,7 +4,7 @@ import QtQuick
 import Quickshell
 import "../CortetsuDesign.js" as CortetsuDesign
 import ".."
-import qs.modules.launcher.services
+import "services"
 
 Item {
     id: root

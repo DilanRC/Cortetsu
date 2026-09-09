@@ -8,8 +8,8 @@ import Quickshell.Bluetooth
 import Quickshell.Services.UPower
 import Quickshell.Services.SystemTray
 import "../services"
-import qs.utils
-import qs.modules.launcher.services
+import "../utils"
+import "launcher/services"
 import "OverlayPolicy.js" as OverlayPolicy
 import "utilities/toasts" as Toasts
 

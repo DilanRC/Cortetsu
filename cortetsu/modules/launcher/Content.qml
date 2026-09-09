@@ -7,7 +7,7 @@ import "../../components"
 import "../CortetsuDesign.js" as CortetsuDesign
 import "../CortetsuTypography.js" as CortetsuTypography
 import "../CortetsuSearchBar.qml"
-import qs.modules.launcher.services
+import "services"
 
 Item {
     id: root

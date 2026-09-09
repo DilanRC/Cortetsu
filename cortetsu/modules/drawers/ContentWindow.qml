@@ -10,7 +10,7 @@ import ".."
 import "../../components"
 import "../../components/containers"
 import "../../services"
-import qs.modules.bar
+import "../bar" as Bar
 import "../CortetsuDesign.js" as CortetsuDesign
 
 StyledWindow {
