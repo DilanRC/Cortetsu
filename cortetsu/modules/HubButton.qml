@@ -33,7 +33,7 @@ Item {
     implicitHeight: buttonSize
     width: implicitWidth
     height: implicitHeight
-    readonly property real visualScale: root.pressed
+    property real visualScale: root.pressed
         ? 0.965
         : root.hovered
             ? CortetsuDesign.hoverScale

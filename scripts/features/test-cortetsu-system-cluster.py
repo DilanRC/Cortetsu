@@ -32,7 +32,7 @@ for mode in ("network", "bluetooth", "battery"):
     assert f'if (root.statusPopoutsEnabled)\n                    root.attachedControlRequested("{mode}"' in segment
 assert segment.count("tooltipOnHover: false") == 4
 assert "property bool tooltipOnHover: true" in button
-assert "readonly property real visualScale" in button
+assert "property real visualScale" in button
 assert "scale: 1" in button
 assert "if (!popouts.bottomAttached" in interactions
 
