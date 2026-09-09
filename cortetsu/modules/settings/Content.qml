@@ -257,7 +257,7 @@ Item {
                         Flow {
                             id: schemeGrid
                             Layout.fillWidth: true
-                            implicitHeight: childrenRect.height
+                            Layout.preferredHeight: childrenRect.height
                             spacing: CortetsuDesign.spacingCompact
 
                             Repeater {

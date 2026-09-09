@@ -20,5 +20,7 @@ assert "Schemes.apply(schemeCard.schemeData.name, schemeCard.schemeData.flavour)
 assert "function apply(name: string, flavour: string)" in schemes
 assert "Schemes.catalogCount" in content
 assert "Schemes.currentScheme" in content
+assert "Layout.preferredHeight: childrenRect.height" in content
+assert "implicitHeight: childrenRect.height" not in content
 
 print("PASS: Settings Center has navigation, live connected pages, honest backend boundaries and scheme ownership")

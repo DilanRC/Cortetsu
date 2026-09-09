@@ -66,6 +66,8 @@ assert "Schemes.apply(schemeCard.schemeData.name, schemeCard.schemeData.flavour)
 assert "Schemes.currentScheme" in content
 assert "Schemes.catalogCount" in content
 assert "Quickshell.execDetached([\"cortetsu-scheme\", \"set\"" not in content
+assert "Layout.preferredHeight: childrenRect.height" in content
+assert "implicitHeight: childrenRect.height" not in content
 
 # User overrides agree with canonical first-party bindings, avoiding a double-open
 # of Utilities plus QSD/Settings for the same keystroke.
