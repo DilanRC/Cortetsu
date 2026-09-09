@@ -136,6 +136,7 @@ Item {
                 model: root.active
                 delegate: NotificationComponents.Notification {
                     required property int index
+                    focus: index === 0
                     width: activeList.width
                     modelData: root.active[index]
                     props: ({})

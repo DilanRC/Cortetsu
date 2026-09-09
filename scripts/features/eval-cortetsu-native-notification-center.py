@@ -13,6 +13,8 @@ assert states >= 2
 assert source.count("CortetsuDesign.") >= 6
 assert "contentLayout.implicitHeight" in notification
 assert "readonly property bool hasModelData" in notification
+assert "focus: false" in notification
+assert "focus: index === 0" in source
 assert "readonly property bool closed: !hasModelData || modelData.closed" in notification
 assert "Component.onDestruction: if (root.hasModelData)" in notification
 assert 'import "../CortetsuDesign.js" as CortetsuDesign' in notification

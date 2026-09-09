@@ -24,6 +24,8 @@ criteria = {
     "event duplicates are suppressed": "property var consumed" in (repo / "cortetsu/modules/BottomHub.qml").read_text(encoding="utf-8"),
     "toast list is capped": "slice(0, 5)" in view,
     "item has an effective height": "height: implicitHeight" in item,
+    "item does not steal initial focus": "focus: false" in item,
+    "host focuses first toast": "focus: index === 0" in view,
     "long messages wrap": "wrapMode: Text.Wrap" in item,
     "critical toasts use urgency color": "toast.type === 2" in item,
     "keyboard dismissal exists": "Keys.onEscapePressed" in item,

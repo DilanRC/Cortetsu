@@ -30,6 +30,7 @@ Item {
             delegate: ToastItem {
                 id: toastItem
                 required property int index
+                focus: index === 0
                 width: root.width
                 toast: root.visibleToasts[index]
                 opacity: 1

@@ -30,7 +30,7 @@ CortetsuSurface {
     implicitHeight: nonAnimHeight
     radiusValue: CortetsuDesign.radiusMedium
     outlined: true
-    focus: true
+    focus: false
     activeFocusOnTab: true
     focused: root.activeFocus
     baseColor: root.urgent

@@ -29,6 +29,8 @@ assert "forceActiveFocus()" in view
 assert "Keys.onEscapePressed" in view
 assert "CortetsuToaster.dismiss(root.visibleToasts[0].id)" in view
 assert "height: implicitHeight" in item
+assert "focus: false" in item
+assert "focus: index === 0" in view
 assert "pomodoroNotification" in hub
 assert "property var consumed" in hub
 assert "CortetsuToaster.toast(event.title, event.message, \"timer\")" in hub

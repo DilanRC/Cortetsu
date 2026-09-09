@@ -53,5 +53,7 @@ assert "model: Notifs.popups()" in wrapper
 assert "visibleNotifications" not in wrapper
 assert "modelData: root.active[index]" in content
 assert "required property var modelData" in notification
+assert "focus: false" in notification
+assert "focus: index === 0" in content
 assert "modelData.timeStr" in content
 print("PASS: notification center owns live, history, DND, clear and empty states")

@@ -41,6 +41,7 @@ Item {
         Repeater {
             model: Notifs.popups()
             delegate: Notification {
+                focus: index === 0
                 width: list.width
                 props: ({})
                 expanded: false

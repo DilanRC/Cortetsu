@@ -18,7 +18,7 @@ CortetsuSurface {
         ? Qt.alpha(CortetsuDesign.colorVermillion, 0.10)
         : Qt.alpha(CortetsuDesign.colorSurfaceHigh, 0.94)
     outlined: true
-    focus: true
+    focus: false
     activeFocusOnTab: true
     focused: root.activeFocus
     outlineColor: root.activeFocus
