@@ -6,7 +6,7 @@ import "../modules/CortetsuTypography.js" as CortetsuTypography
 Item {
     id: root
 
-    focus: root.clickable && !root.disabled
+    focus: false
     activeFocusOnTab: root.clickable && !root.disabled
 
     property string label: ""

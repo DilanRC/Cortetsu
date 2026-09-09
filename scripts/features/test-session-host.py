@@ -7,6 +7,7 @@ for name in ("Wrapper.qml", "Content.qml"):
         assert legacy not in source, f"{name}: {legacy}"
 
 content = (repo / "cortetsu/modules/session/Content.qml").read_text(encoding="utf-8")
+action_row = (repo / "cortetsu/components/CortetsuActionRow.qml").read_text(encoding="utf-8")
 
 # First-party power commands remain explicit and inspectable.
 for marker in (
@@ -26,6 +27,13 @@ assert "property string pendingAction" in content
 assert "action.confirm && pendingAction !== action.id" in content
 assert "Quickshell.execDetached(action.command)" in content
 assert "onClicked: root.run(actionRow.modelData)" in content
+assert "CortetsuActionRow" in content
+assert "activeFocusOnTab" in action_row
+assert "required property int index" in action_row
+assert "focus: root.index === 0" in action_row
+assert "Keys.onEnterPressed" in action_row and "Keys.onSpacePressed" in action_row
+assert "onEntered: actionRow.hovered = true" not in content
+assert "onExited: actionRow.hovered = false" not in content
 assert "root.run(modelData.command)" not in content
 assert "Confirm %1" in content and "Press again within 4 seconds" in content
 

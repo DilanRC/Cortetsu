@@ -101,6 +101,7 @@ Item {
             columnSpacing: CortetsuDesign.spacingCompact
 
             CortetsuActionTile {
+                focus: true
                 Layout.fillWidth: true
                 label: CortetsuAudio.muted ? qsTr("Sound muted") : qsTr("Sound")
                 detail: CortetsuAudio.muted ? qsTr("Tap to unmute") : qsTr("Volume %1%").arg(root.volumePercent)

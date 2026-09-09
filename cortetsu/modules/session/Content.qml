@@ -134,75 +134,22 @@ Column {
     Repeater {
         model: root.actions
 
-        delegate: CortetsuSurface {
+        delegate: CortetsuActionRow {
             id: actionRow
             required property var modelData
 
             width: 328
-            implicitHeight: 58
-            radiusValue: CortetsuDesign.radiusMedium
-            baseColor: hovered
-                ? Qt.alpha(modelData.danger ? CortetsuDesign.colorVermillion : CortetsuDesign.colorSurfaceHigh, modelData.danger ? 0.14 : 1.0)
-                : CortetsuDesign.colorSurface
-            outlined: root.pendingAction === modelData.id
-            outlineColor: modelData.danger ? CortetsuDesign.colorVermillion : CortetsuDesign.colorPrimary
-            property bool hovered: false
-
-            RowLayout {
-                anchors.fill: parent
-                anchors.margins: CortetsuDesign.spacingStandard
-                spacing: CortetsuDesign.spacingStandard
-
-                CortetsuIcon {
-                    text: modelData.icon
-                    iconSize: CortetsuTypography.iconMediumPx
-                    color: modelData.danger ? CortetsuDesign.colorVermillion : CortetsuDesign.colorPrimary
-                }
-
-                ColumnLayout {
-                    Layout.fillWidth: true
-                    spacing: 1
-
-                    CortetsuText {
-                        Layout.fillWidth: true
-                        text: root.pendingAction === modelData.id
-                            ? qsTr("Confirm %1").arg(modelData.label)
-                            : modelData.label
-                        textSize: CortetsuTypography.bodyPx
-                        font.weight: Font.DemiBold
-                        color: root.pendingAction === modelData.id && modelData.danger
-                            ? CortetsuDesign.colorVermillion
-                            : CortetsuDesign.colorOnSurface
-                        elide: Text.ElideRight
-                    }
-
-                    CortetsuText {
-                        Layout.fillWidth: true
-                        text: root.pendingAction === modelData.id
-                            ? qsTr("Press again within 4 seconds")
-                            : modelData.detail
-                        textSize: CortetsuTypography.labelSmallPx
-                        color: CortetsuDesign.colorOnSurfaceVariant
-                        elide: Text.ElideRight
-                    }
-                }
-
-                CortetsuIcon {
-                    text: root.pendingAction === modelData.id ? "warning" : "chevron_right"
-                    iconSize: CortetsuTypography.iconSmallPx
-                    color: root.pendingAction === modelData.id
-                        ? (modelData.danger ? CortetsuDesign.colorVermillion : CortetsuDesign.colorWarning)
-                        : CortetsuDesign.colorOnSurfaceVariant
-                }
-            }
-
-            MouseArea {
-                anchors.fill: parent
-                hoverEnabled: true
-                onEntered: actionRow.hovered = true
-                onExited: actionRow.hovered = false
-                onClicked: root.run(actionRow.modelData)
-            }
+            icon: actionRow.modelData.icon
+            title: root.pendingAction === actionRow.modelData.id
+                ? qsTr("Confirm %1").arg(actionRow.modelData.label)
+                : actionRow.modelData.label
+            subtitle: root.pendingAction === actionRow.modelData.id
+                ? qsTr("Press again within 4 seconds")
+                : actionRow.modelData.detail
+            danger: actionRow.modelData.danger
+            selected: root.pendingAction === actionRow.modelData.id
+            trailingIcon: actionRow.selected ? "warning" : "chevron_right"
+            onClicked: root.run(actionRow.modelData)
         }
     }
 }

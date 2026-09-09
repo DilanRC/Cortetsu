@@ -54,10 +54,12 @@ assert "import qs." not in content
 assert 'import "../../components"' in content
 assert 'import "../../services"' in content
 assert "CortetsuSurface" in action_tile
+assert "focus: false" in action_tile
 assert "activeFocusOnTab" in action_tile
 assert "Keys.onEnterPressed" in action_tile
 assert "Keys.onSpacePressed" in action_tile
 assert "onEntered: tile.hovered = true" not in content
 assert "onPressedChanged: tile.pressed" not in content
+assert "focus: true" in content
 
 print("PASS: QSD is a first-party right-side surface with brightness, audio, DND, Bluetooth, power and network context")
