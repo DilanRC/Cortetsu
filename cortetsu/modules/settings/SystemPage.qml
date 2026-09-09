@@ -364,6 +364,44 @@ Item {
                 checked: CortetsuConfig.bar.scrollActions.volume
                 onChanged: checked => CortetsuConfig.bar.scrollActions.volume = checked
             }
+
+            CortetsuSectionHeader {
+                Layout.fillWidth: true
+                title: qsTr("Visible status controls")
+                detail: qsTr("Choose which hardware controls stay in the BottomHub")
+            }
+
+            PreferenceToggle {
+                title: qsTr("Volume")
+                detail: qsTr("Show the audio control and its contextual popup")
+                icon: "volume_up"
+                checked: CortetsuConfig.bottomHub.statusCluster.audio
+                onChanged: checked => CortetsuConfig.bottomHub.statusCluster.audio = checked
+            }
+
+            PreferenceToggle {
+                title: qsTr("Network")
+                detail: qsTr("Show Wi-Fi and Ethernet state")
+                icon: "wifi"
+                checked: CortetsuConfig.bottomHub.statusCluster.network
+                onChanged: checked => CortetsuConfig.bottomHub.statusCluster.network = checked
+            }
+
+            PreferenceToggle {
+                title: qsTr("Bluetooth")
+                detail: qsTr("Show the Bluetooth adapter and device state")
+                icon: "bluetooth"
+                checked: CortetsuConfig.bottomHub.statusCluster.bluetooth
+                onChanged: checked => CortetsuConfig.bottomHub.statusCluster.bluetooth = checked
+            }
+
+            PreferenceToggle {
+                title: qsTr("Battery")
+                detail: qsTr("Show battery and power state")
+                icon: "battery_full"
+                checked: CortetsuConfig.bottomHub.statusCluster.battery
+                onChanged: checked => CortetsuConfig.bottomHub.statusCluster.battery = checked
+            }
         }
 
         ColumnLayout {

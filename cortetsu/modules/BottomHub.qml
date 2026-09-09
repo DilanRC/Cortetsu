@@ -749,6 +749,10 @@ Scope {
                 batteryIcon: win.batteryIcon
                 batteryCritical: win.batteryCritical
                 batteryTooltip: win.batteryTooltip
+                audioVisible: CortetsuConfig.bottomHub.statusCluster.audio
+                networkVisible: CortetsuConfig.bottomHub.statusCluster.network
+                bluetoothVisible: CortetsuConfig.bottomHub.statusCluster.bluetooth
+                batteryVisible: CortetsuConfig.bottomHub.statusCluster.battery
                 statusPopoutsEnabled: CortetsuConfig.bar.popouts.statusIcons
                 notificationCount: CortetsuNotifications.count
                 sidebarActive: win.screenState?.sidebar ?? false

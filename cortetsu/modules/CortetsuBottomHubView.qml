@@ -24,6 +24,10 @@ Item {
     required property string batteryIcon
     required property bool batteryCritical
     required property string batteryTooltip
+    required property bool audioVisible
+    required property bool networkVisible
+    required property bool bluetoothVisible
+    required property bool batteryVisible
     required property bool statusPopoutsEnabled
     required property int notificationCount
     required property bool sidebarActive
@@ -154,6 +158,10 @@ Item {
         batteryIcon: root.batteryIcon
         batteryCritical: root.batteryCritical
         batteryTooltip: root.batteryTooltip
+        audioVisible: root.audioVisible
+        networkVisible: root.networkVisible
+        bluetoothVisible: root.bluetoothVisible
+        batteryVisible: root.batteryVisible
         statusPopoutsEnabled: root.statusPopoutsEnabled
         notificationCount: root.notificationCount
         sidebarActive: root.sidebarActive

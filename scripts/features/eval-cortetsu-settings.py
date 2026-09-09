@@ -25,5 +25,9 @@ assert "Layout.preferredHeight: childrenRect.height" in content
 assert "implicitHeight: childrenRect.height" not in content
 assert "ScrollBar.vertical" in content
 assert "ScrollBar.AsNeeded" in content
+assert 'title: qsTr("Visible status controls")' in system
+for label in ("Volume", "Network", "Bluetooth", "Battery"):
+    assert f'title: qsTr("{label}")' in system
+assert "CortetsuConfig.bottomHub.statusCluster" in system
 
 print("PASS: Settings Center has navigation, live connected pages, honest backend boundaries and scheme ownership")

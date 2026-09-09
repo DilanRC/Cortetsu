@@ -42,6 +42,10 @@ for marker in ("favouriteApps", "hiddenApps", "hiddenTrayIcons", "terminalComman
     assert marker in config, marker
 assert "entries: bar.entries" in config
 assert "CortetsuConfig.bar.workspaces.perMonitorWorkspaces" in hub
+assert "bottomHub.statusCluster" in config
+assert "saveLegacy();" in config
+assert "payload.bottomHub" in config
+assert "loaded = false;" in config
 assert "bar: { persistent: bar.persistent" in config
 panel_sources = "\n".join(path.read_text(encoding="utf-8") for path in (repo / "cortetsu/base/modules/nexus/pages/panels").glob("*.qml"))
 workspace_sources = "\n".join(path.read_text(encoding="utf-8") for path in (repo / "cortetsu/base/modules/bar/components/workspaces").glob("*.qml"))

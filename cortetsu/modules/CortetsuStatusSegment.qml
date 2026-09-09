@@ -16,6 +16,10 @@ Item {
     required property string batteryIcon
     required property bool batteryCritical
     required property string batteryTooltip
+    required property bool audioVisible
+    required property bool networkVisible
+    required property bool bluetoothVisible
+    required property bool batteryVisible
     required property bool statusPopoutsEnabled
     required property int notificationCount
     required property bool sidebarActive
@@ -93,6 +97,7 @@ Item {
 
             HubButton {
                 id: volumeButton
+                visible: root.audioVisible
                 buttonSize: 40
                 iconSize: CortetsuTypography.iconMediumPx
                 icon: root.volumeIcon
@@ -111,6 +116,7 @@ Item {
 
             HubButton {
                 id: networkButton
+                visible: root.networkVisible
                 buttonSize: 40
                 iconSize: CortetsuTypography.iconMediumPx
                 icon: root.networkIcon
@@ -127,6 +133,7 @@ Item {
 
             HubButton {
                 id: bluetoothButton
+                visible: root.bluetoothVisible
                 buttonSize: 40
                 iconSize: CortetsuTypography.iconMediumPx
                 icon: root.bluetoothIcon
@@ -143,6 +150,7 @@ Item {
 
             HubButton {
                 id: batteryButton
+                visible: root.batteryVisible
                 buttonSize: 40
                 iconSize: CortetsuTypography.iconMediumPx
                 icon: root.batteryIcon

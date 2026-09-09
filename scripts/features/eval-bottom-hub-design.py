@@ -46,6 +46,15 @@ criteria = {
     "audio Cortetsu": "volumeIcon" in status and "volumeWheel" in status,
     "volume scroll preference is honored": "if (!CortetsuConfig.bar.scrollActions.volume)" in hub,
     "workspace scope preference is honored": "CortetsuConfig.bar.workspaces.perMonitorWorkspaces" in hub,
+    "status cluster is configurable": all(
+        token in hub
+        for token in (
+            "CortetsuConfig.bottomHub.statusCluster.audio",
+            "CortetsuConfig.bottomHub.statusCluster.network",
+            "CortetsuConfig.bottomHub.statusCluster.bluetooth",
+            "CortetsuConfig.bottomHub.statusCluster.battery",
+        )
+    ),
     "hover de controles del sistema": all(
         f'root.attachedControlEntered("{mode}"' in status
         for mode in ("audio", "network", "bluetooth", "battery")
