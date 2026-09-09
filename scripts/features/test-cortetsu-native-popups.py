@@ -20,6 +20,14 @@ for name, service in (
     assert "CortetsuDesign" in text and service in text
     assert "No devices nearby" in text or "No networks available" in text or "No device" in text
 
+battery = (popouts / "CortetsuBatteryPopup.qml").read_text(encoding="utf-8")
+assert "CortetsuPopupSurface" in battery
+assert "Icons.getBatteryIcon" in battery
+assert "UPowerDeviceState.FullyCharged" in battery
+assert 'qsTr("Fully charged")' in battery
+assert 'text: root.hasBattery' in battery
+assert 'text: UPower.onBattery ? "battery_full" : "bolt"' not in battery
+
 password = (popouts / "CortetsuWifiPasswordPopup.qml").read_text(encoding="utf-8")
 for token in ("TextField", "Keys.onEscapePressed", "NetworkConnection.connectWithPassword", "8000", "errorText"):
     assert token in password, token

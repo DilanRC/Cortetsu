@@ -49,6 +49,15 @@ checks = {
             "Keys.onSpacePressed",
         )
     ),
+    "battery popup shares power surface and state icon": all(
+        x in battery
+        for x in (
+            "CortetsuPopupSurface",
+            "Icons.getBatteryIcon",
+            "UPowerDeviceState.FullyCharged",
+            'qsTr(\"Fully charged\")',
+        )
+    ),
     "keyboard popup exposes disabled layouts": "disabled: layoutIndex > 3" in keyboard,
     "window info disables unavailable actions": winfo.count("disabled: !root.client") >= 4,
     "notification supports keyboard": all(x in notification for x in ("activeFocusOnTab", "Keys.onEnterPressed", "Keys.onEscapePressed", "CortetsuButton")),
