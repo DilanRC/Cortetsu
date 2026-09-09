@@ -31,10 +31,12 @@ FocusScope {
     property real newHeroOpacity: 1
     property real oldHeroOpacity: 0
     readonly property int visibleLimit: Math.max(1, Math.min(12, Math.floor((width - 104) / 102)))
-    readonly property var orbitEntries: Orbit.satellites(filteredEntries, windowIndex, currentIndex, visibleLimit)
+    readonly property int orbitExcludedIndex: animating ? windowIndex : currentIndex
+    readonly property var orbitEntries: Orbit.satellites(filteredEntries, windowIndex, orbitExcludedIndex, visibleLimit)
     readonly property var prefetchEntries: Orbit.prefetch(filteredEntries, currentIndex, visibleLimit + 6)
     readonly property var currentEntry: currentIndex >= 0 ? filteredEntries[currentIndex] : null
     readonly property string currentPath: currentEntry?.path ?? ""
+    readonly property bool currentApplied: !!currentPath && currentPath === CortetsuWallpapers.actualCurrent
     property bool presentationReady: false
 
     function essentialReady(): bool {
@@ -125,11 +127,12 @@ FocusScope {
         const steps = Orbit.shortestSteps(currentIndex, target, count);
         if (!steps)
             return;
+        const stableOrbitCount = Math.max(1, orbitEntries.length);
         animating = true;
         currentIndex = target;
         updateHero();
         queuePreview();
-        orbitMotion.to = -steps * Orbit.angularStep(orbitEntries.length);
+        orbitMotion.to = -steps * Orbit.angularStep(stableOrbitCount);
         orbitMotion.restart();
     }
 
@@ -237,7 +240,7 @@ FocusScope {
 
     Timer {
         id: previewTimer
-        interval: 220
+        interval: 260
         repeat: false
         onTriggered: {
             if (root.animating || root.queuedDirection) {
@@ -256,7 +259,7 @@ FocusScope {
         id: orbitMotion
         target: root
         property: "orbitPhase"
-        duration: 220
+        duration: 340
         easing.type: Easing.OutCubic
         onStopped: {
             root.windowIndex = root.currentIndex;
@@ -272,8 +275,8 @@ FocusScope {
 
     ParallelAnimation {
         id: heroCrossfade
-        NumberAnimation { target: root; property: "newHeroOpacity"; to: 1; duration: 180; easing.type: Easing.OutCubic }
-        NumberAnimation { target: root; property: "oldHeroOpacity"; to: 0; duration: 180; easing.type: Easing.OutCubic }
+        NumberAnimation { target: root; property: "newHeroOpacity"; to: 1; duration: 240; easing.type: Easing.OutCubic }
+        NumberAnimation { target: root; property: "oldHeroOpacity"; to: 0; duration: 240; easing.type: Easing.OutCubic }
         onStopped: root.outgoingHeroPath = ""
     }
 
@@ -284,8 +287,8 @@ FocusScope {
     }
 
     Keys.onPressed: event => {
-        if (event.key === Qt.Key_Left) { requestMove(-1); event.accepted = true; }
-        else if (event.key === Qt.Key_Right) { requestMove(1); event.accepted = true; }
+        if (event.key === Qt.Key_Left || event.key === Qt.Key_Up) { requestMove(-1); event.accepted = true; }
+        else if (event.key === Qt.Key_Right || event.key === Qt.Key_Down) { requestMove(1); event.accepted = true; }
         else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) { apply(); event.accepted = true; }
         else if (event.key === Qt.Key_Escape) { cancel(); event.accepted = true; }
     }
@@ -400,6 +403,8 @@ FocusScope {
                 anchors.centerIn: parent
                 width: Math.min(parent.width * 0.38, 330)
                 height: Math.min(parent.height * 0.76, 340)
+                scale: root.animating ? 0.985 : 1
+                Behavior on scale { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
 
                 Image {
                     anchors.fill: parent
@@ -439,14 +444,35 @@ FocusScope {
                     }
                 }
 
+                Rectangle {
+                    z: 5
+                    anchors.top: parent.top
+                    anchors.right: parent.right
+                    anchors.margins: 12
+                    implicitWidth: heroStateLabel.implicitWidth + 16
+                    implicitHeight: 26
+                    radius: 13
+                    color: root.currentApplied ? Qt.alpha(CortetsuDesign.colorSuccess, 0.92) : Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.94)
+                    border.width: 1
+                    border.color: Qt.alpha(root.currentApplied ? CortetsuDesign.colorSuccess : CortetsuDesign.colorPrimary, 0.82)
+                    CortetsuText {
+                        id: heroStateLabel
+                        anchors.centerIn: parent
+                        text: heroImage.status === Image.Loading ? qsTr("Loading") : (root.currentApplied ? qsTr("Applied") : qsTr("Selected"))
+                        textSize: CortetsuTypography.labelSmallPx
+                        font.weight: Font.DemiBold
+                        color: CortetsuDesign.colorOnSurface
+                    }
+                }
+
                 Shape {
                     id: heroOutline
                     anchors.fill: parent
                     z: 4
                     ShapePath {
                         fillColor: "transparent"
-                        strokeColor: Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.8)
-                        strokeWidth: 1
+                        strokeColor: root.currentApplied ? Qt.alpha(CortetsuDesign.colorSuccess, 0.9) : Qt.alpha(CortetsuDesign.colorPrimary, 0.84)
+                        strokeWidth: root.currentApplied ? 1.8 : 1.25
                         startX: heroOutline.width * 0.28; startY: 0
                         PathLine { x: heroOutline.width * 0.72; y: 0 }
                         PathLine { x: heroOutline.width; y: heroOutline.height * 0.28 }
@@ -471,13 +497,17 @@ FocusScope {
                     readonly property real radiusX: Math.min(orbitRegion.width * 0.42, 265)
                     readonly property real radiusY: Math.min(orbitRegion.height * 0.52, 195)
                     readonly property bool hovered: satelliteMouse.containsMouse
-                    width: 78
-                    height: 78
-                    scale: 1
-                    opacity: hovered ? 1 : 0.5 + depth * 0.5
-                    z: 2 + Math.round(depth * 8)
+                    readonly property bool selected: satellite.modelData.index === root.currentIndex
+                    readonly property bool applied: satellite.modelData.entry.path === CortetsuWallpapers.actualCurrent
+                    width: 82
+                    height: 82
+                    scale: selected ? 1.18 : (hovered ? 1.12 : 0.68 + depth * 0.40)
+                    opacity: selected || hovered ? 1 : 0.36 + depth * 0.64
+                    z: selected ? 14 : 2 + Math.round(depth * 8)
                     x: orbitRegion.width / 2 + Math.cos(angle) * radiusX - width / 2
                     y: orbitRegion.height / 2 + Math.sin(angle) * radiusY - height / 2
+                    Behavior on scale { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
+                    Behavior on opacity { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
 
                     Shape {
                         id: satelliteMask
@@ -518,8 +548,8 @@ FocusScope {
                         z: 3
                         ShapePath {
                             fillColor: "transparent"
-                            strokeColor: satellite.hovered ? CortetsuDesign.colorPrimary : Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.72)
-                            strokeWidth: satellite.hovered ? 1.5 : 1
+                            strokeColor: satellite.selected ? CortetsuDesign.colorTertiary : (satellite.applied ? CortetsuDesign.colorSuccess : (satellite.hovered ? CortetsuDesign.colorPrimary : Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.72)))
+                            strokeWidth: satellite.selected ? 2 : (satellite.applied || satellite.hovered ? 1.5 : 1)
                             startX: satelliteOutline.width * 0.28; startY: 0
                             PathLine { x: satelliteOutline.width * 0.72; y: 0 }
                             PathLine { x: satelliteOutline.width; y: satelliteOutline.height * 0.28 }
@@ -531,9 +561,22 @@ FocusScope {
                             PathLine { x: satelliteOutline.width * 0.28; y: 0 }
                         }
                     }
+                    Rectangle {
+                        visible: satellite.selected || satellite.applied
+                        z: 4
+                        width: 10
+                        height: 10
+                        radius: 5
+                        anchors.right: parent.right
+                        anchors.bottom: parent.bottom
+                        anchors.margins: 5
+                        color: satellite.selected ? CortetsuDesign.colorTertiary : CortetsuDesign.colorSuccess
+                        border.width: 2
+                        border.color: CortetsuDesign.colorSurface
+                    }
                     MouseArea {
                         id: satelliteMouse
-                        z: 3
+                        z: 5
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
@@ -573,7 +616,7 @@ FocusScope {
             }
             CortetsuText {
                 width: Math.min(440, panel.width - 48)
-                text: root.currentEntry ? qsTr("%1  ·  %2  ·  %3/%4").arg(root.currentPath === CortetsuWallpapers.actualCurrent ? qsTr("Current") : qsTr("Preview")).arg(root.categoryFor(root.currentEntry)).arg(root.currentIndex + 1).arg(root.filteredEntries.length) : qsTr("Add images to the native wallpaper directory")
+                text: root.currentEntry ? qsTr("%1  ·  %2  ·  %3/%4").arg(root.currentApplied ? qsTr("Applied") : (root.previewActive ? qsTr("Previewing") : qsTr("Selected"))).arg(root.categoryFor(root.currentEntry)).arg(root.currentIndex + 1).arg(root.filteredEntries.length) : qsTr("Add images to the native wallpaper directory")
                 horizontalAlignment: Text.AlignHCenter
                 color: CortetsuDesign.colorOnSurfaceVariant
                 textSize: CortetsuTypography.labelMediumPx
@@ -583,7 +626,7 @@ FocusScope {
                 spacing: 8
                 OrbitButton { label: qsTr("Cancel"); onClicked: root.cancel() }
                 OrbitButton { icon: "shuffle"; label: qsTr("Random"); onClicked: root.random() }
-                OrbitButton { label: qsTr("Apply"); primary: true; onClicked: root.apply() }
+                OrbitButton { label: root.currentApplied ? qsTr("Applied") : qsTr("Apply"); primary: !root.currentApplied; checked: root.currentApplied; onClicked: root.apply() }
             }
         }
     }
