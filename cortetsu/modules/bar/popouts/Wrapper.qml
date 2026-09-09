@@ -109,6 +109,15 @@ Item {
         }
     }
 
+    onPointerInsideChanged: {
+        if (pointerInside)
+            CortetsuShellState.enterAttachedPopup(root);
+        else
+            CortetsuShellState.leaveAttachedPopup(root);
+    }
+
+    Component.onDestruction: CortetsuShellState.leaveAttachedPopup(root)
+
     implicitWidth: nonAnimWidth
     implicitHeight: nonAnimHeight
     focus: hasCurrent
