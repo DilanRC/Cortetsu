@@ -129,10 +129,19 @@ def main() -> None:
     if "ColouredIcon" in tray or "Config.bar.tray.recolour" in tray:
         raise SystemExit("FAIL: tray view must not depend on Caelestia recolour primitives")
 
-    require(status, 'root.attachedControlRequested("audio", root.centerFor(volumeButton))', "anchored audio hover")
-    require(status, 'root.attachedControlRequested("network", root.centerFor(networkButton))', "anchored network hover")
-    require(status, 'root.attachedControlRequested("bluetooth", root.centerFor(bluetoothButton))', "anchored bluetooth hover")
-    require(status, 'root.attachedControlRequested("battery", root.centerFor(batteryButton))', "anchored battery hover")
+    require(status, "id: systemControls", "system hover island")
+    require(status, "HoverHandler {", "system hover island handler")
+    require(status, "root.attachedControlExited();", "single island exit")
+    require(status, 'root.attachedControlEntered("audio", root.centerFor(volumeButton))', "anchored audio hover")
+    require(status, 'root.attachedControlEntered("network", root.centerFor(networkButton))', "anchored network hover")
+    require(status, 'root.attachedControlEntered("bluetooth", root.centerFor(bluetoothButton))', "anchored bluetooth hover")
+    require(status, 'root.attachedControlEntered("battery", root.centerFor(batteryButton))', "anchored battery hover")
+    if status.count("root.attachedControlExited();") != 1:
+        raise SystemExit("FAIL: attached system controls must close only when the hover island is exited")
+    require(status, 'onClicked: root.attachedControlRequested("network", root.centerFor(networkButton))', "network click request")
+    require(status, 'onClicked: root.attachedControlRequested("bluetooth", root.centerFor(bluetoothButton))', "bluetooth click request")
+    require(status, 'onClicked: root.attachedControlRequested("battery", root.centerFor(batteryButton))', "battery click request")
+    require(status, "tooltipOnHover: false", "rich popup tooltip suppression")
     require(status, "onClicked: root.calendarRequested()", "clock-click calendar request")
 
     require(bottom, "onLauncherRequested: hubRoot.toggleLauncherFor(win.modelData)", "launcher action")
@@ -147,6 +156,7 @@ def main() -> None:
     require(button, "property int buttonSize: 48", "button size parameter")
     require(button, "property int iconSize:", "button icon size parameter")
     require(button, 'property string imageSource: ""', "image button support")
+    require(button, "property bool tooltipOnHover: true", "tooltip hover policy")
     require(button, "signal wheel(real delta)", "wheel interaction support")
     require(button, "property color activeColor:", "button active color parameter")
     require(button, "property color iconColor:", "button icon color parameter")
