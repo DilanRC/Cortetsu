@@ -21,6 +21,8 @@ for filename in ("SettingsController.qml", "Wrapper.qml", "Content.qml", "System
     assert (settings / filename).is_file(), filename
 
 # Settings follows the actual ShellScreen all the way to hardware controls.
+assert "CortetsuShellState.forScreen(modelData)" in host
+assert "CortetsuShellState.forActive()" not in host
 assert "screen: window.modelData" in host
 assert "required property var screen" in wrapper
 assert "screen: root.screen" in wrapper
@@ -80,4 +82,4 @@ for marker in ('name: "settings"', "WlrLayer.Overlay", "Exclusive", "Wrapper"):
 assert "property bool settings" in state and "|| settings" in state
 assert 'cortetsu/assets/branding' in runtime_builder and 'STAGING/assets/branding' in runtime_builder
 
-print("PASS: Settings owns schemes, connected pages, retained handoffs and aligned SUPER+I/SUPER+/ bindings")
+print("PASS: Settings owns per-monitor state, schemes, connected pages, retained handoffs and aligned SUPER+I/SUPER+/ bindings")
