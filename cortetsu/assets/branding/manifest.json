@@ -1,0 +1,24 @@
+{
+  "name": "Cortetsu Forge",
+  "concept": "forged C + ember star core",
+  "tagline": "SYSTEMS FOR REAL CONTROL",
+  "palette": {
+    "graphite": "#1D2128",
+    "warmWhite": "#F6F3EC",
+    "iceBlue": "#77C8FF",
+    "emberOrange": "#FF8A3D",
+    "deepNavy": "#0D1118"
+  },
+  "canonical": "cortetsu-mark.svg",
+  "variants": [
+    "cortetsu-mark-dark.svg",
+    "cortetsu-mark-light.svg",
+    "cortetsu-mark-monochrome-black.svg",
+    "cortetsu-mark-monochrome-white.svg",
+    "cortetsu-app-icon.svg"
+  ],
+  "lockups": [
+    "cortetsu-lockup-dark.svg",
+    "cortetsu-lockup-light.svg"
+  ]
+}
