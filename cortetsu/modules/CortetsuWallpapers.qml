@@ -61,7 +61,8 @@ Singleton {
 
     function setWallpaper(path: string): void {
         stopPreview();
-        actualCurrent = path;
+        // The state file is the apply acknowledgement. Do not announce a
+        // successful transformation before the helper has written it.
         Quickshell.execDetached(["cortetsu-wallpaper-select", path]);
     }
 
@@ -97,7 +98,10 @@ Singleton {
         path: root.currentNamePath
         watchChanges: true
         printErrors: false
-        onFileChanged: reload()
+        onFileChanged: {
+            root.actualCurrent = text().trim() || root.fallback;
+            reload();
+        }
         onLoaded: root.actualCurrent = text().trim() || root.fallback
         onLoadFailed: root.actualCurrent = root.fallback
     }

@@ -14,7 +14,7 @@ contracts = {
     "depth hierarchy": all(token in content for token in ("scale: satellite.visualScale", "opacity: satellite.hovered ?", "z: 2 + Math.round(depth * 8)")),
     "satellite hitbox stays stable": "scale: 1" in content and "MouseArea" in content,
     "selection state": all(token in content for token in ("currentStateLabel", "currentIsApplied", "heroStateText")),
-    "first-party manager header": all(token in content for token in ("Wallpaper Forge", "Wallpaper-aware desktop surface", "cortetsu-mark.svg", 'icon: "close"')),
+    "first-party manager header": all(token in content for token in ("Wallpaper Forge", "Wallpaper-aware desktop surface", "CortetsuEvolvingMark", "markPhase", 'icon: "close"')),
     "keyboard navigation": all(token in content for token in ("Qt.Key_Left", "Qt.Key_Right", "Qt.Key_Return", "Qt.Key_Escape")),
     "angle contract": all(token in orbit for token in ("function angularStep", "function satelliteAngle", "Math.PI * 2")),
 }

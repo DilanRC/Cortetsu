@@ -73,6 +73,9 @@ python3 "$REPO/scripts/features/test-retained-overlay-wiring.py"
 python3 "$REPO/scripts/features/test-contentwindow-overview-base.py"
 python3 "$REPO/scripts/features/test-contentwindow-focusgrab-parity.py"
 python3 "$REPO/scripts/features/test-wallpaper-manager.py"
+python3 "$REPO/scripts/features/test-cortetsu-branding.py"
+python3 "$REPO/scripts/features/test-cortetsu-evolving-branding.py"
+python3 "$REPO/scripts/features/eval-cortetsu-evolving-branding.py"
 python3 "$REPO/scripts/features/test-keybinds.py"
 python3 "$REPO/scripts/features/test-shell-normalizer.py"
 python3 "$REPO/scripts/features/test-shell-lifecycle.py"
@@ -156,6 +159,7 @@ for required in \
     utils/CortetsuUtils.qml \
     utils/SysInfo.qml \
     modules/CortetsuModeSegment.qml \
+    components/CortetsuEvolvingMark.qml \
     modules/CortetsuWorkspaceDots.qml \
     modules/CortetsuAppRail.qml \
     modules/CortetsuTraySegment.qml \

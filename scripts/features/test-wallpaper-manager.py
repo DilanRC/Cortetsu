@@ -33,8 +33,8 @@ assert "CortetsuWallpapers.actualCurrent" in resync_body and "Orbit.resolveCurre
 assert "Orbit.resolveCurrentIndex" in body("selectCategory")
 assert "function resolveCurrentIndex" in orbit and "function basename" in orbit
 
-# A→B→C→D has one timer and the final stable candidate is the sole preview call.
-assert content.count("Timer {") == 1
+# A→B→C→D has one preview timer, an apply timeout and a short post-apply Cosmic timer.
+assert content.count("Timer {") == 3
 assert "interval: 220" in content
 timer_body = content[content.index("id: previewTimer"):content.index("NumberAnimation {", content.index("id: previewTimer"))]
 assert "Orbit.previewEligible" in timer_body
@@ -47,8 +47,13 @@ cancel_body = body("cancelPreview")
 assert "previewTimer.stop();" in cancel_body and "CortetsuWallpapers.stopPreview();" in cancel_body
 assert "cancelPreview();" in body("selectCategory") and "CortetsuWallpapers.preview" not in body("selectCategory")
 assert "cancelPreview();" in resync_body
-assert "previewTimer.stop();" in body("apply") and "CortetsuWallpapers.previewColourLock = true;" in body("apply")
+apply_body = body("apply")
+assert "previewTimer.stop();" in apply_body and "CortetsuWallpapers.previewColourLock = true;" in apply_body
+assert apply_body.index("CortetsuWallpapers.stopPreview();") < apply_body.index("CortetsuWallpapers.previewColourLock = true;")
 assert "cancelPreview();" in body("random") and "CortetsuWallpapers.setRandom();" in body("random")
+cancel_body = content[content.index("function cancel(): void"):content.find("\n    function ", content.index("function cancel(): void") + 1)]
+assert "cosmicPulseTimer.stop();" in cancel_body and "previewColourLock = false;" in cancel_body
+assert "function closeManager(): void { cancel(); }" in content
 assert "closeManager();" in wrapper and "CortetsuWallpapers.stopPreview();" in wrapper
 assert "globalOtherOverlayOpen" in wrapper and "onGlobalOtherOverlayOpenChanged" in wrapper
 assert "for (const candidate of CortetsuScreens.screens)" in wrapper
@@ -70,7 +75,7 @@ assert "closeOtherPanels();\n        state.setRetained(\"wallpaperManager\", tru
 # V2 visual and native-service contracts.
 for needle in ("Orbit.satellites", "Math.min(12", "Math.cos(angle)", "Math.sin(angle)", "depth", "scale:", "opacity:", "z:", "CortetsuMask { maskSource", "outgoingHeroPath", "heroCrossfade", "CortetsuButton {", "active: true"):
     assert needle in content, needle
-for needle in ("id: header", "Wallpaper Forge", "Wallpaper-aware desktop surface", "cortetsu-mark.svg", 'icon: "close"', "onClicked: root.cancel()"):
+for needle in ("id: header", "Wallpaper Forge", "Wallpaper-aware desktop surface", "CortetsuEvolvingMark", "markPhase", 'icon: "close"', "onClicked: root.cancel()"):
     assert needle in content, needle
 assert "source: satellite.modelData.entry.path" in content
 assert "root.selectSatellite(satellite.modelData.index)" in content

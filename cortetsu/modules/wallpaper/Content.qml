@@ -31,6 +31,11 @@ FocusScope {
     property string outgoingHeroPath: ""
     property real newHeroOpacity: 1
     property real oldHeroOpacity: 0
+    property string pendingApplyPath: ""
+    property bool applying: false
+    property bool randomApply: false
+    property bool applyFailed: false
+    property bool cosmicPulse: false
     readonly property int visibleLimit: Math.max(1, Math.min(12, Math.floor((width - 104) / 102)))
     // Keep the orbit model anchored to the last settled selection while a
     // transition is running.  The newly selected wallpaper stays visible as
@@ -41,7 +46,20 @@ FocusScope {
     readonly property var currentEntry: currentIndex >= 0 ? filteredEntries[currentIndex] : null
     readonly property string currentPath: currentEntry?.path ?? ""
     readonly property bool currentIsApplied: !!currentPath && currentPath === CortetsuWallpapers.actualCurrent
-    readonly property string currentStateLabel: currentIsApplied ? qsTr("Applied") : (previewActive ? qsTr("Previewing") : qsTr("Selected"))
+    readonly property string currentStateLabel: applying
+        ? qsTr("Applying")
+        : applyFailed
+            ? qsTr("Apply failed")
+            : currentIsApplied
+                ? qsTr("Applied")
+                : (previewActive ? qsTr("Previewing") : qsTr("Selected"))
+    readonly property string markPhase: cosmicPulse
+        ? "Cosmic"
+        : currentIsApplied
+            ? "Ascended"
+            : currentPath
+                ? "Awakening"
+                : "Human"
     property bool presentationReady: false
 
     function essentialReady(): bool {
@@ -161,32 +179,52 @@ FocusScope {
     }
 
     function apply(): void {
-        if (!currentPath)
+        if (!currentPath || applying)
             return;
         previewTimer.stop();
         pendingPreviewPath = "";
         if (CortetsuWallpapers.actualCurrent !== currentPath) {
-            if (CortetsuConfig.smartScheme)
-                CortetsuWallpapers.previewColourLock = true;
+            pendingApplyPath = currentPath;
+            randomApply = false;
+            applyFailed = false;
+            applying = true;
+            applyTimeout.restart();
             if (previewActive || CortetsuWallpapers.showPreview)
                 CortetsuWallpapers.stopPreview();
             previewActive = false;
+            if (CortetsuConfig.smartScheme)
+                CortetsuWallpapers.previewColourLock = true;
             CortetsuWallpapers.setWallpaper(currentPath);
         } else {
             cancelPreview();
+            screenState.cortetsuState?.setRetained("wallpaperManager", false);
         }
-        screenState.cortetsuState?.setRetained("wallpaperManager", false);
     }
 
     function cancel(): void {
+        applyTimeout.stop();
+        cosmicPulseTimer.stop();
+        applying = false;
+        randomApply = false;
+        pendingApplyPath = "";
+        cosmicPulse = false;
+        CortetsuWallpapers.previewColourLock = false;
         cancelPreview();
         screenState.cortetsuState?.setRetained("wallpaperManager", false);
     }
 
     function random(): void {
+        if (applying)
+            return;
         cancelPreview();
+        pendingApplyPath = CortetsuWallpapers.actualCurrent;
+        randomApply = true;
+        applyFailed = false;
+        applying = true;
+        applyTimeout.restart();
+        if (CortetsuConfig.smartScheme)
+            CortetsuWallpapers.previewColourLock = true;
         CortetsuWallpapers.setRandom();
-        screenState.cortetsuState?.setRetained("wallpaperManager", false);
     }
 
     function openManager(): void {
@@ -196,10 +234,39 @@ FocusScope {
         forceActiveFocus();
     }
 
-    function closeManager(): void { cancelPreview(); }
+    function closeManager(): void { cancel(); }
 
     onCurrentPathChanged: updateHero()
-    Component.onDestruction: cancelPreview()
+    Component.onDestruction: {
+        applyTimeout.stop();
+        cosmicPulseTimer.stop();
+        cancelPreview();
+    }
+
+    Timer {
+        id: cosmicPulseTimer
+        interval: CortetsuDesign.motionDeliberateMs
+        repeat: false
+        onTriggered: {
+            root.cosmicPulse = false;
+            root.screenState.cortetsuState?.setRetained("wallpaperManager", false);
+        }
+    }
+
+    Timer {
+        id: applyTimeout
+        interval: CortetsuDesign.motionDeliberateMs * 8
+        repeat: false
+        onTriggered: {
+            if (!root.applying)
+                return;
+            root.applying = false;
+            root.randomApply = false;
+            root.pendingApplyPath = "";
+            root.applyFailed = true;
+            CortetsuWallpapers.previewColourLock = false;
+        }
+    }
 
     Timer {
         id: previewTimer
@@ -218,7 +285,7 @@ FocusScope {
         }
     }
 
-        NumberAnimation {
+    NumberAnimation {
         id: orbitMotion
         target: root
         property: "orbitPhase"
@@ -244,7 +311,21 @@ FocusScope {
 
     Connections {
         target: CortetsuWallpapers
-        function onActualCurrentChanged(): void { root.resync(); }
+        function onActualCurrentChanged(): void {
+            const confirmed = root.applying && (root.randomApply
+                ? root.pendingApplyPath !== CortetsuWallpapers.actualCurrent
+                : root.pendingApplyPath === CortetsuWallpapers.actualCurrent);
+            if (confirmed) {
+                root.applying = false;
+                root.randomApply = false;
+                root.pendingApplyPath = "";
+                root.applyFailed = false;
+                applyTimeout.stop();
+                root.cosmicPulse = true;
+                cosmicPulseTimer.restart();
+            }
+            root.resync();
+        }
         function onListChanged(): void { root.resync(); }
     }
 
@@ -288,16 +369,14 @@ FocusScope {
             anchors.right: parent.right
             height: 40
 
-            Image {
+            CortetsuEvolvingMark {
                 id: headerLogo
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
-                source: Quickshell.shellPath("assets/branding/cortetsu-mark.svg")
-                sourceSize.width: 30
-                sourceSize.height: 30
                 width: 30
                 height: 30
-                fillMode: Image.PreserveAspectFit
+                phase: root.markPhase
+                monochromeColor: CortetsuDesign.colorWashi
             }
 
             Column {
@@ -631,8 +710,8 @@ FocusScope {
                 anchors.horizontalCenter: parent.horizontalCenter
                 spacing: 8
                 CortetsuButton { compact: true; label: qsTr("Cancel"); onClicked: root.cancel() }
-                CortetsuButton { compact: true; icon: "shuffle"; label: qsTr("Random"); onClicked: root.random() }
-                CortetsuButton { compact: true; label: qsTr("Apply"); active: true; onClicked: root.apply() }
+                CortetsuButton { compact: true; icon: "shuffle"; label: qsTr("Random"); disabled: root.applying; onClicked: root.random() }
+                CortetsuButton { compact: true; label: root.applying ? qsTr("Applying") : qsTr("Apply"); active: true; disabled: root.applying; onClicked: root.apply() }
             }
         }
     }

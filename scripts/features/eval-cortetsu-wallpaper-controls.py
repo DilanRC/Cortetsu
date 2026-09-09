@@ -10,7 +10,7 @@ checks = {
     "category controls share button primitive": 'delegate: CortetsuButton {' in content and "active: root.selectedCategory === modelData" in content,
     "close action remains shared": 'tooltipText: qsTr("Close Wallpaper Manager")' in content,
     "footer actions share button primitive": content.count("CortetsuButton {") >= 4,
-    "apply remains primary": 'label: qsTr("Apply")' in content and "active: true" in content,
+    "apply remains primary": 'root.applying ? qsTr("Applying") : qsTr("Apply")' in content and "active: true" in content,
     "random action remains wired": 'icon: "shuffle"' in content and "root.random()" in content,
 }
 missing = [name for name, passed in checks.items() if not passed]
