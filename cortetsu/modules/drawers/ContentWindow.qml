@@ -215,7 +215,7 @@ StyledWindow {
 
         }
 
-        BarWrapper {
+        Bar.BarWrapper {
             id: bar
 
             anchors.top: parent.top

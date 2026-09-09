@@ -110,6 +110,11 @@ def block_between(text: str, start: str, end: str) -> str:
 def main() -> None:
     text = (REPO / "cortetsu/modules/drawers/ContentWindow.qml").read_text(encoding="utf-8")
 
+    assert 'import "../bar" as Bar' in text
+    assert "Bar.BarWrapper {" in text
+    assert "\n        BarWrapper {" not in text
+    print("PASS bar-import-boundary")
+
     fullscreen = block_between(text, "onHasFullscreenChanged: {", "panels.popouts.close();")
     escape = block_between(text, 'sequence: "Escape"', "        }\n    }")
     focus_grab = block_between(text, "active: {", "        windows: [root]")

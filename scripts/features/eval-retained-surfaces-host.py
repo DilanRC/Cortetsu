@@ -4,6 +4,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 source = (ROOT / "cortetsu/modules/RetainedSurfacesHost.qml").read_text(encoding="utf-8")
+drawers = (ROOT / "cortetsu/modules/drawers/ContentWindow.qml").read_text(encoding="utf-8")
 checks = {
     "all retained content is first-party hosted": all(name in source for name in (
         "Overview.Wrapper", "Clipboard.Wrapper", "Hardware.Wrapper",
@@ -17,6 +18,7 @@ checks = {
     )) and "CortetsuShellState.forActive()" not in source,
     "escape closes the retained group": "closeRetainedOverlays()" in source,
     "full surfaces own overlay layer": "WlrLayer.Overlay" in source,
+    "drawer resolves bar through explicit import boundary": 'import "../bar" as Bar' in drawers and "Bar.BarWrapper {" in drawers,
 }
 for label, passed in checks.items():
     if not passed:
