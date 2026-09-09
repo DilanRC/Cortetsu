@@ -8,6 +8,7 @@ QtObject {
     id: root
     property bool popup: false
     property bool closed: false
+    property bool interactionActive: false
     property var locks: new Set()
     property bool dismissalRequested: false
     property date time: new Date()
@@ -27,7 +28,7 @@ QtObject {
     property list<var> actions: []
     readonly property Timer timeStrTimer: Timer { running: !root.closed; repeat: true; interval: 30000; onTriggered: root.updateTimeStr() }
     readonly property Timer timer: Timer {
-        running: root.popup && root.expireTimeout > 0
+        running: root.popup && root.expireTimeout > 0 && !root.interactionActive
         interval: root.expireTimeout
         onTriggered: root.popup = false
     }

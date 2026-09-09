@@ -25,12 +25,15 @@ criteria = {
     "toast list is capped": "slice(0, 5)" in view,
     "item has an effective height": "height: implicitHeight" in item,
     "item does not steal initial focus": "focus: false" in item,
+    "toast hitbox stays stable": "scale: 1" in item,
+    "toast exposes pressed visual state": "pressed: toastMouse.pressed" in item,
     "host focuses first toast": "focus: index === 0" in view,
     "long messages wrap": "wrapMode: Text.Wrap" in item,
     "critical toasts use urgency color": "toast.type === 2" in item,
     "keyboard dismissal exists": "Keys.onEscapePressed" in item,
     "toast window captures Escape": "WlrKeyboardFocus.Exclusive" in bottom_hub,
     "automatic expiration exists": "interval: 5000" in item,
+    "focused toast pauses expiration": "running: !root.hovered && !root.activeFocus" in item,
 }
 
 failed = [name for name, passed in criteria.items() if not passed]

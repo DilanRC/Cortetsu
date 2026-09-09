@@ -119,6 +119,11 @@ popup. It keeps the track, bounded fill, unavailable-state behavior and width
 motion in one contract while allowing each surface to choose its density and
 semantic fill color, including the Vermillion critical-battery state.
 
+Notifications use the same interaction rule: the card body and its actions are
+one hover island, and toast stacks keep fixed hitboxes while pausing expiration
+for hover or keyboard focus. The live notification model receives that state as
+well, keeping backend expiry and visible action lifetime in sync.
+
 ## BottomHub system cluster
 
 The right-side system controls now sit inside one grouped surface with shared

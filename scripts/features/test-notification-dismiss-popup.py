@@ -11,4 +11,5 @@ close_body = source[close_start:source.index("Component.onCompleted", close_star
 assert "popup = false" in close_body
 assert "closed = true" in close_body
 assert "dismissAndRemove()" in close_body
+assert "running: root.popup && root.expireTimeout > 0 && !root.interactionActive" in source
 print("PASS: notification close removes popup before model destruction")

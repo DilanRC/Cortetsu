@@ -27,6 +27,11 @@ CortetsuSurface {
     readonly property bool urgent: urgency >= 2
     readonly property real nonAnimHeight: contentLayout.implicitHeight + CortetsuDesign.spacingComfortable * 2
 
+    function syncInteraction(): void {
+        if (root.hasModelData)
+            root.modelData.interactionActive = root.hovered || root.activeFocus;
+    }
+
     implicitHeight: nonAnimHeight
     radiusValue: CortetsuDesign.radiusMedium
     outlined: true
@@ -60,8 +65,29 @@ CortetsuSurface {
         }
     }
 
-    Component.onCompleted: if (root.hasModelData) root.modelData.lock(root)
-    Component.onDestruction: if (root.hasModelData) root.modelData.unlock(root)
+    onHoveredChanged: root.syncInteraction()
+    onActiveFocusChanged: root.syncInteraction()
+
+    Component.onCompleted: {
+        if (root.hasModelData) {
+            root.modelData.lock(root);
+            root.syncInteraction();
+        }
+    }
+    Component.onDestruction: {
+        if (root.hasModelData) {
+            root.modelData.interactionActive = false;
+            root.modelData.unlock(root);
+        }
+    }
+
+    // The card and its action row are one hover island. A child action can
+    // receive the pointer while the card remains hovered, keeping Dismiss and
+    // notification actions visible during the handoff.
+    HoverHandler {
+        id: notificationHover
+        onHoveredChanged: root.hovered = hovered
+    }
 
     Rectangle {
         anchors.left: parent.left
@@ -80,8 +106,6 @@ CortetsuSurface {
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
-        onEntered: root.hovered = true
-        onExited: root.hovered = false
         onPressed: root.forceActiveFocus()
         onClicked: root.expanded = !root.expanded
     }

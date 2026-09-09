@@ -21,19 +21,16 @@ CortetsuSurface {
     focus: false
     activeFocusOnTab: true
     focused: root.activeFocus
+    pressed: toastMouse.pressed
     outlineColor: root.activeFocus
         ? Qt.alpha(CortetsuDesign.colorWashi, 0.82)
         : root.urgent
             ? Qt.alpha(CortetsuDesign.colorVermillion, 0.48)
             : Qt.alpha(CortetsuDesign.colorOutlineVariant, root.hovered ? 0.40 : 0.24)
-    scale: toastMouse.pressed ? 0.992 : root.hovered ? 1.006 : 1
-
-    Behavior on scale {
-        NumberAnimation {
-            duration: CortetsuDesign.motionFastMs
-            easing.type: Easing.OutCubic
-        }
-    }
+    // Keep the toast hitbox and stack geometry stable. Hover and press feedback
+    // is carried by CortetsuSurface color/outline state instead of transforming
+    // the root item beneath the pointer.
+    scale: 1
 
     Rectangle {
         anchors.left: parent.left
@@ -120,7 +117,7 @@ CortetsuSurface {
 
     Timer {
         interval: 5000
-        running: !root.hovered
+        running: !root.hovered && !root.activeFocus
         onTriggered: root.dismissed()
     }
 }
