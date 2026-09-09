@@ -220,6 +220,7 @@ Item {
                                     compact: true
                                     icon: "refresh"
                                     label: ""
+                                    tooltipText: qsTr("Reload schemes")
                                     disabled: Schemes.loading
                                     onClicked: Schemes.reload()
                                 }

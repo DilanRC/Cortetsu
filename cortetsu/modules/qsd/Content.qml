@@ -157,6 +157,7 @@ Item {
                 compact: true
                 icon: "settings"
                 label: ""
+                tooltipText: qsTr("Open Settings")
                 onClicked: root.openSettings()
             }
 
@@ -164,6 +165,7 @@ Item {
                 compact: true
                 icon: "close"
                 label: ""
+                tooltipText: qsTr("Close Quick Settings")
                 onClicked: root.screenState.qsd = false
             }
         }

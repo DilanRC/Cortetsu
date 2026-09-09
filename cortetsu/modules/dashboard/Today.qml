@@ -120,6 +120,7 @@ Item {
                 compact: true
                 icon: "calendar_month"
                 label: ""
+                tooltipText: qsTr("Open Calendar")
                 onClicked: root.openCalendar()
             }
         }

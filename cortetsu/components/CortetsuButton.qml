@@ -14,6 +14,7 @@ Item {
     property bool danger: false
     property bool disabled: false
     property bool compact: false
+    property string tooltipText: ""
     signal clicked()
 
     implicitWidth: row.implicitWidth + CortetsuDesign.spacingStandard * 2
@@ -96,6 +97,13 @@ Item {
         cursorShape: Qt.PointingHandCursor
         onPressed: root.forceActiveFocus()
         onClicked: root.clicked()
+    }
+
+    CortetsuTooltip {
+        target: root
+        hovered: mouse.containsMouse
+        focused: root.activeFocus
+        text: root.tooltipText
     }
 
     Keys.onEnterPressed: root.clicked()

@@ -106,6 +106,7 @@ Item {
                 compact: true
                 icon: "close"
                 label: ""
+                tooltipText: qsTr("Close Dashboard")
                 onClicked: root.screenState.dashboard = false
             }
         }
@@ -256,6 +257,7 @@ Item {
                             compact: true
                             icon: "skip_previous"
                             label: ""
+                            tooltipText: qsTr("Previous track")
                             disabled: !Players.active
                             onClicked: Players.active?.previous()
                         }
@@ -263,6 +265,7 @@ Item {
                             compact: true
                             icon: Players.active?.isPlaying ? "pause" : "play_arrow"
                             label: ""
+                            tooltipText: Players.active?.isPlaying ? qsTr("Pause") : qsTr("Play")
                             active: true
                             disabled: !Players.active
                             onClicked: Players.active?.togglePlaying()
@@ -271,6 +274,7 @@ Item {
                             compact: true
                             icon: "skip_next"
                             label: ""
+                            tooltipText: qsTr("Next track")
                             disabled: !Players.active
                             onClicked: Players.active?.next()
                         }

@@ -366,6 +366,7 @@ FocusScope {
                 compact: true
                 icon: "close"
                 label: ""
+                tooltipText: qsTr("Close Wallpaper Manager")
                 onClicked: root.cancel()
             }
         }

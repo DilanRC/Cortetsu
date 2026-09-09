@@ -191,8 +191,8 @@ Item {
                 Layout.fillWidth: true
                 CortetsuText { Layout.fillWidth: true; text: qsTr("Calendar"); textSize: CortetsuTypography.titleLargePx; color: CortetsuDesign.colorOnSurface }
                 CortetsuText { visible: root.syncStatus.length > 0; text: root.syncStatus; textSize: CortetsuTypography.labelSmallPx; color: CortetsuDesign.colorOnSurfaceVariant }
-                CortetsuButton { compact: true; icon: calendarSync.running ? "sync" : "refresh"; label: ""; disabled: calendarSync.running; onClicked: root.requestCalendarSync(true) }
-                CortetsuButton { compact: true; icon: "close"; label: ""; onClicked: root.screenState.cortetsuState?.setRetained("calendar", false) }
+                CortetsuButton { compact: true; icon: calendarSync.running ? "sync" : "refresh"; label: ""; tooltipText: qsTr("Sync calendar"); disabled: calendarSync.running; onClicked: root.requestCalendarSync(true) }
+                CortetsuButton { compact: true; icon: "close"; label: ""; tooltipText: qsTr("Close Calendar"); onClicked: root.screenState.cortetsuState?.setRetained("calendar", false) }
             }
 
             RowLayout {
@@ -208,10 +208,10 @@ Item {
 
                     RowLayout {
                         Layout.fillWidth: true
-                        CortetsuButton { compact: true; icon: "chevron_left"; label: ""; onClicked: root.changeMonth(-1) }
+                        CortetsuButton { compact: true; icon: "chevron_left"; label: ""; tooltipText: qsTr("Previous month"); onClicked: root.changeMonth(-1) }
                         CortetsuText { Layout.fillWidth: true; horizontalAlignment: Text.AlignHCenter; text: Qt.formatDate(root.selectedDate, "MMMM yyyy"); textSize: CortetsuTypography.titleMediumPx; color: CortetsuDesign.colorOnSurface }
                         CortetsuButton { compact: true; icon: "today"; label: qsTr("Today"); onClicked: root.selectedDate = new Date() }
-                        CortetsuButton { compact: true; icon: "chevron_right"; label: ""; onClicked: root.changeMonth(1) }
+                        CortetsuButton { compact: true; icon: "chevron_right"; label: ""; tooltipText: qsTr("Next month"); onClicked: root.changeMonth(1) }
                     }
 
                     GridLayout {

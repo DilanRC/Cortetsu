@@ -99,6 +99,7 @@ CortetsuPopupSurface {
                 CortetsuButton {
                     compact: true
                     icon: CortetsuAudio.muted ? "volume_off" : "volume_up"
+                    tooltipText: CortetsuAudio.muted ? qsTr("Unmute") : qsTr("Mute")
                     disabled: !CortetsuAudio.sink?.audio
                     onClicked: {
                         if (CortetsuAudio.sink?.audio)
