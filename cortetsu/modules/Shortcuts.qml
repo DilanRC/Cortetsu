@@ -26,6 +26,7 @@ Scope {
         onPressed: {
             if (root.hasFullscreen) return;
             const state = CortetsuShellState.forActive();
+            if (!state) return;
             state.launcher = state.dashboard = state.osd = state.utilities = state.qsd = state.settings = !(state.launcher || state.dashboard || state.osd || state.utilities || state.qsd || state.settings);
         }
     }

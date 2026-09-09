@@ -52,7 +52,9 @@ assert "Caelestia.Config" not in background
 assert 'import ".."' in panels_patch
 assert "import qs.services" not in shell_state
 assert "CortetsuShellState.forScreen(screen)" in shell_service
-assert "states[0]?.state" in shell_state
+assert "states[0]?.state" not in shell_state
+assert "if (!screen)" in shell_state
+assert "if (!monitor)" in shell_state
 assert "model: CortetsuScreens.screens" in shell_service
 assert "ScreenState {}" in shell_service
 assert "component Components: QtObject" in shell_service
@@ -77,6 +79,8 @@ assert "import Caelestia" not in screen_component
 for marker in ("registerState", "unregisterState", "registerComponents", "unregisterComponents", "CortetsuHypr.focusedMonitor"):
     assert marker in shell_state, marker
 assert "function anySidebarOpen" in shell_state
+assert "states.instances[0]" not in shell_service
+assert "?? CortetsuShellState.forActive()" not in shell_service.split("function forScreen", 1)[1].split("function forActive", 1)[0]
 
 # Every retained overlay window is monitor-owned. Using forActive() in a
 # Variants delegate makes all monitor windows mirror the currently focused
