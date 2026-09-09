@@ -6,6 +6,7 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
 import ".."
+import "../../components"
 import "../CortetsuDesign.js" as CortetsuDesign
 import "../CortetsuTypography.js" as CortetsuTypography
 
@@ -323,7 +324,15 @@ Item {
                             anchors.fill: parent; anchors.margins: CortetsuDesign.spacingStandard; spacing: CortetsuDesign.spacingCompact
                             RowLayout { Layout.fillWidth: true; CortetsuText { Layout.fillWidth: true; text: root.phaseLabel(); color: CortetsuDesign.colorOnSecondaryContainer; textSize: CortetsuTypography.labelLargePx } CortetsuText { text: qsTr("%1 sessions").arg(Number(pomodoro.completedSessions || 0)); color: CortetsuDesign.colorOnSecondaryContainer; textSize: CortetsuTypography.labelSmallPx } }
                             CortetsuText { Layout.fillWidth: true; horizontalAlignment: Text.AlignHCenter; text: root.timeLeft(); color: CortetsuDesign.colorOnSecondaryContainer; textSize: CortetsuTypography.titleLargePx }
-                            Rectangle { Layout.fillWidth: true; implicitHeight: 5; radius: 3; color: CortetsuDesign.colorSecondary; Rectangle { height: parent.height; width: parent.width * root.progress(); radius: 3; color: CortetsuDesign.colorOnSecondaryContainer; Behavior on width { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } } } }
+                            CortetsuProgressBar {
+                                Layout.fillWidth: true
+                                value: root.progress()
+                                barHeight: 5
+                                barRadius: 3
+                                trackColor: CortetsuDesign.colorSecondary
+                                fillColor: CortetsuDesign.colorOnSecondaryContainer
+                                motionDuration: CortetsuDesign.motionFastMs
+                            }
                             RowLayout { Layout.fillWidth: true; Item { Layout.fillWidth: true } FocusButton { visible: root.isBreakPhase(pomodoro.phase); label: qsTr("Skip break"); onClicked: root.runPomodoro("skip") } FocusButton { label: root.isActivePhase(pomodoro.phase) ? qsTr("Pause") : pomodoro.phase === "PAUSED" ? qsTr("Resume") : qsTr("Start"); onClicked: root.runPomodoro(root.isActivePhase(pomodoro.phase) ? "pause" : pomodoro.phase === "PAUSED" ? "resume" : "start") } FocusButton { label: qsTr("Reset"); onClicked: root.runPomodoro("reset") } }
                         }
                     }

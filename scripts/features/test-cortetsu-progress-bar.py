@@ -24,6 +24,7 @@ consumers = {
     "cortetsu/modules/dashboard/Focus.qml": "value: root.progress()",
     "cortetsu/modules/hardware/MetricCard.qml": "value: root.progress",
     "cortetsu/modules/osd/Content.qml": "value: indicator.modelData.value",
+    "cortetsu/modules/calendar/Content.qml": "value: root.progress()",
 }
 for name, token in consumers.items():
     consumer = (ROOT / name).read_text(encoding="utf-8")
