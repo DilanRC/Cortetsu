@@ -19,11 +19,25 @@ Item {
     signal openRequested(var screen, string mode, real anchorCenter)
     signal closeRequested()
 
+    function hasPendingPopup(): bool {
+        if (!pendingScreen)
+            return false;
+        const popouts = CortetsuShellState.componentsFor(pendingScreen)?.popouts;
+        return !!popouts && popouts.hasCurrent && popouts.bottomAttached && !popouts.closing;
+    }
+
     function request(screen, mode, anchorCenter): void {
+        const samePending = pendingScreen === screen
+            && pendingMode === mode
+            && pendingAnchor === anchorCenter;
         pendingScreen = screen;
         pendingMode = mode;
         pendingAnchor = anchorCenter;
         closeTimer.stop();
+        // Crossing adjacent controls keeps the original dwell. A real mode
+        // change while a popup is open gets a bounded handoff delay.
+        if (openTimer.running || (samePending && hasPendingPopup()))
+            return;
         openTimer.restart();
     }
 

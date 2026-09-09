@@ -12,12 +12,17 @@ assert controller.startswith("pragma ComponentBehavior: Bound")
 assert "Item {" in controller and "visible: false" in controller
 assert "signal openRequested" in controller
 assert "signal closeRequested" in controller
+assert "MouseArea" not in controller
+assert "Overlay" not in controller
 assert "CortetsuHoverSurfaceController" in hub
 assert "hoverSurfaceController.request(screen, mode, anchorCenter)" in hub
 assert "hoverSurfaceController.enterTrigger()" in hub
 assert "hoverSurfaceController.leaveTrigger()" in hub
 assert "openAttachedControlNow" in hub
 assert "function cancelPending(): void" in controller
+assert "function hasPendingPopup(): bool" in controller
+assert "const samePending = pendingScreen === screen" in controller
+assert "openTimer.running || (samePending && hasPendingPopup())" in controller
 assert "hoverSurfaceController.cancelPending();" in hub
 assert "hubRoot.closeAllPopouts();" in hub
 segment = (ROOT / "cortetsu/modules/CortetsuStatusSegment.qml").read_text(encoding="utf-8")

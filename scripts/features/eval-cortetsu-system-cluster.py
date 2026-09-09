@@ -18,6 +18,9 @@ assert "height: implicitHeight" in segment
 assert "required property bool statusPopoutsEnabled" in segment
 assert "statusPopoutsEnabled: CortetsuConfig.bar.popouts.statusIcons" in hub
 assert "function cancelPending(): void" in hover
+assert "function hasPendingPopup(): bool" in hover
+assert "const samePending = pendingScreen === screen" in hover
+assert "if (openTimer.running || (samePending && hasPendingPopup()))" in hover
 assert "onStatusIconsChanged(): void" in hub
 leave_trigger = hover.split("function leaveTrigger(): void", 1)[1].split("function enterPopup(): void", 1)[0]
 assert "openTimer.stop();" in leave_trigger

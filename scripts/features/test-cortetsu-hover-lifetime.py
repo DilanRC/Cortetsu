@@ -30,6 +30,8 @@ assert "property int openDelay: 120" in controller
 assert "property int closeDelay: 240" in controller
 assert "openTimer.restart();" in controller
 assert "openTimer.stop();" in controller
+assert "const samePending = pendingScreen === screen" in controller
+assert "if (openTimer.running || (samePending && hasPendingPopup()))" in controller
 leave_trigger = controller.split("function leaveTrigger(): void", 1)[1].split("function enterPopup(): void", 1)[0]
 assert "openTimer.stop();" in leave_trigger
 assert "if (!pinned && !triggerHovered && !popupHovered)" in controller
