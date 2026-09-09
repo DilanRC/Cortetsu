@@ -70,6 +70,8 @@ assert "closeOtherPanels();\n        state.setRetained(\"wallpaperManager\", tru
 # V2 visual and native-service contracts.
 for needle in ("Orbit.satellites", "Math.min(12", "Math.cos(angle)", "Math.sin(angle)", "depth", "scale:", "opacity:", "z:", "CortetsuMask { maskSource", "outgoingHeroPath", "heroCrossfade", "component OrbitButton: CortetsuSurface"):
     assert needle in content, needle
+for needle in ("id: header", "Wallpaper Forge", "Wallpaper-aware desktop surface", "cortetsu-mark.svg", 'icon: "close"', "onClicked: root.cancel()"):
+    assert needle in content, needle
 assert "source: satellite.modelData.entry.path" in content
 assert "root.selectSatellite(satellite.modelData.index)" in content
 assert "import qs.components.effects" not in content
@@ -111,8 +113,9 @@ assert "readonly property real radiusX" in content
 assert "readonly property real radiusY" in content
 assert "Math.cos(angle) * radiusX" in content
 assert "Math.sin(angle) * radiusY" in content
-assert "anchors.topMargin: 0" in content
-assert "anchors.topMargin: 56" in content
+assert "height: 40" in content
+assert "anchors.top: header.bottom" in content
+assert "anchors.topMargin: CortetsuDesign.spacingCompact" in content
 assert "anchors.bottomMargin: -4" in content
 wire_line = next(line for line in canonical.splitlines() if line.startswith("WIRE_JSON="))
 assert "wire_sad_shell.py" in wire_line

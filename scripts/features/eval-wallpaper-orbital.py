@@ -13,6 +13,7 @@ contracts = {
     "continuous trigonometric geometry": all(token in content for token in ("Math.cos(angle)", "Math.sin(angle)", "property real orbitPhase")),
     "depth hierarchy": all(token in content for token in ("scale: hovered ?", "opacity: hovered ?", "z: 2 + Math.round(depth * 8)")),
     "selection state": all(token in content for token in ("currentStateLabel", "currentIsApplied", "heroStateText")),
+    "first-party manager header": all(token in content for token in ("Wallpaper Forge", "Wallpaper-aware desktop surface", "cortetsu-mark.svg", 'icon: "close"')),
     "keyboard navigation": all(token in content for token in ("Qt.Key_Left", "Qt.Key_Right", "Qt.Key_Return", "Qt.Key_Escape")),
     "angle contract": all(token in orbit for token in ("function angularStep", "function satelliteAngle", "Math.PI * 2")),
 }

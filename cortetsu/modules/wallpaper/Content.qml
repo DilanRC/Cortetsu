@@ -323,6 +323,53 @@ FocusScope {
         width: Math.min(parent.width - 48, 900)
         height: Math.min(parent.height - 48, 680)
 
+        Item {
+            id: header
+            anchors.top: parent.top
+            anchors.left: parent.left
+            anchors.right: parent.right
+            height: 40
+
+            Image {
+                id: headerLogo
+                anchors.left: parent.left
+                anchors.verticalCenter: parent.verticalCenter
+                source: Quickshell.shellPath("assets/branding/cortetsu-mark.svg")
+                sourceSize.width: 30
+                sourceSize.height: 30
+                width: 30
+                height: 30
+                fillMode: Image.PreserveAspectFit
+            }
+
+            Column {
+                anchors.left: headerLogo.right
+                anchors.leftMargin: CortetsuDesign.spacingStandard
+                anchors.verticalCenter: parent.verticalCenter
+                spacing: 1
+
+                CortetsuText {
+                    text: qsTr("Wallpaper Forge")
+                    textSize: CortetsuTypography.titleMediumPx
+                    font.weight: Font.DemiBold
+                }
+                CortetsuText {
+                    text: qsTr("Wallpaper-aware desktop surface")
+                    textSize: CortetsuTypography.labelSmallPx
+                    color: CortetsuDesign.colorOnSurfaceVariant
+                }
+            }
+
+            CortetsuButton {
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                compact: true
+                icon: "close"
+                label: ""
+                onClicked: root.cancel()
+            }
+        }
+
         Rectangle {
             anchors.fill: categoryStrip
             anchors.leftMargin: -8
@@ -337,8 +384,8 @@ FocusScope {
 
         Flickable {
             id: categoryStrip
-            anchors.top: parent.top
-            anchors.topMargin: 0
+            anchors.top: header.bottom
+            anchors.topMargin: CortetsuDesign.spacingCompact
             anchors.horizontalCenter: parent.horizontalCenter
             width: Math.min(categoryRow.width, parent.width - 40)
             height: 36
