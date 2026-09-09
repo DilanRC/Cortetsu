@@ -38,7 +38,7 @@ Item {
     signal sessionRequested()
 
     function centerFor(item): real {
-        return item.x + item.width / 2;
+        return systemControls.x + item.x + item.width / 2;
     }
 
     implicitWidth: statusRow.implicitWidth + CortetsuDesign.spacingUnit
@@ -69,81 +69,85 @@ Item {
         anchors.centerIn: parent
         spacing: 1
 
-        HubButton {
-            id: volumeButton
-            buttonSize: 40
-            iconSize: CortetsuTypography.iconMediumPx
-            icon: root.volumeIcon
-            iconColor: root.volumeMuted
-                ? Qt.alpha(CortetsuDesign.colorMuted, 0.68)
-                : CortetsuDesign.colorMuted
-            tooltip: root.volumeMuted ? qsTr("Unmute") : qsTr("Mute")
-            onHoveredChanged: {
-                if (hovered) {
-                    root.attachedControlEntered("audio", root.centerFor(volumeButton));
-                    root.attachedControlRequested("audio", root.centerFor(volumeButton));
-                } else {
-                    root.attachedControlExited();
-                }
-            }
-            onClicked: root.volumeMuteRequested()
-            onWheel: delta => root.volumeWheel(delta)
-        }
+        // The four attached system controls form one hover island. Closing on
+        // each individual button's exit caused an enter/exit race while moving
+        // between adjacent icons and while crossing into the popup window.
+        Row {
+            id: systemControls
+            spacing: 1
 
-        HubButton {
-            id: networkButton
-            buttonSize: 40
-            iconSize: CortetsuTypography.iconMediumPx
-            icon: root.networkIcon
-            active: root.networkActive
-        tooltip: root.networkTooltip
-            onHoveredChanged: {
-                if (hovered) {
-                    root.attachedControlEntered("network", root.centerFor(networkButton));
-                    root.attachedControlRequested("network", root.centerFor(networkButton));
-                } else {
-                    root.attachedControlExited();
+            HoverHandler {
+                id: systemControlsHover
+                onHoveredChanged: {
+                    if (!hovered)
+                        root.attachedControlExited();
                 }
             }
-            onClicked: root.attachedControlRequested("network", root.centerFor(networkButton))
-        }
 
-        HubButton {
-            id: bluetoothButton
-            buttonSize: 40
-            iconSize: CortetsuTypography.iconMediumPx
-            icon: root.bluetoothIcon
-            active: root.bluetoothActive
-            tooltip: qsTr("Bluetooth")
-            onHoveredChanged: {
-                if (hovered) {
-                    root.attachedControlEntered("bluetooth", root.centerFor(bluetoothButton));
-                    root.attachedControlRequested("bluetooth", root.centerFor(bluetoothButton));
-                } else {
-                    root.attachedControlExited();
+            HubButton {
+                id: volumeButton
+                buttonSize: 40
+                iconSize: CortetsuTypography.iconMediumPx
+                icon: root.volumeIcon
+                iconColor: root.volumeMuted
+                    ? Qt.alpha(CortetsuDesign.colorMuted, 0.68)
+                    : CortetsuDesign.colorMuted
+                tooltip: root.volumeMuted ? qsTr("Unmute") : qsTr("Mute")
+                tooltipOnHover: false
+                onHoveredChanged: {
+                    if (hovered)
+                        root.attachedControlEntered("audio", root.centerFor(volumeButton));
                 }
+                onClicked: root.volumeMuteRequested()
+                onWheel: delta => root.volumeWheel(delta)
             }
-            onClicked: root.attachedControlRequested("bluetooth", root.centerFor(bluetoothButton))
-        }
 
-        HubButton {
-            id: batteryButton
-            buttonSize: 40
-            iconSize: CortetsuTypography.iconMediumPx
-            icon: root.batteryIcon
-            iconColor: root.batteryCritical
-                ? CortetsuDesign.colorVermillion
-                : CortetsuDesign.colorMuted
-            tooltip: root.batteryTooltip
-            onHoveredChanged: {
-                if (hovered) {
-                    root.attachedControlEntered("battery", root.centerFor(batteryButton));
-                    root.attachedControlRequested("battery", root.centerFor(batteryButton));
-                } else {
-                    root.attachedControlExited();
+            HubButton {
+                id: networkButton
+                buttonSize: 40
+                iconSize: CortetsuTypography.iconMediumPx
+                icon: root.networkIcon
+                active: root.networkActive
+                tooltip: root.networkTooltip
+                tooltipOnHover: false
+                onHoveredChanged: {
+                    if (hovered)
+                        root.attachedControlEntered("network", root.centerFor(networkButton));
                 }
+                onClicked: root.attachedControlRequested("network", root.centerFor(networkButton))
             }
-            onClicked: root.attachedControlRequested("battery", root.centerFor(batteryButton))
+
+            HubButton {
+                id: bluetoothButton
+                buttonSize: 40
+                iconSize: CortetsuTypography.iconMediumPx
+                icon: root.bluetoothIcon
+                active: root.bluetoothActive
+                tooltip: qsTr("Bluetooth")
+                tooltipOnHover: false
+                onHoveredChanged: {
+                    if (hovered)
+                        root.attachedControlEntered("bluetooth", root.centerFor(bluetoothButton));
+                }
+                onClicked: root.attachedControlRequested("bluetooth", root.centerFor(bluetoothButton))
+            }
+
+            HubButton {
+                id: batteryButton
+                buttonSize: 40
+                iconSize: CortetsuTypography.iconMediumPx
+                icon: root.batteryIcon
+                iconColor: root.batteryCritical
+                    ? CortetsuDesign.colorVermillion
+                    : CortetsuDesign.colorMuted
+                tooltip: root.batteryTooltip
+                tooltipOnHover: false
+                onHoveredChanged: {
+                    if (hovered)
+                        root.attachedControlEntered("battery", root.centerFor(batteryButton));
+                }
+                onClicked: root.attachedControlRequested("battery", root.centerFor(batteryButton))
+            }
         }
 
         Hairline {}
