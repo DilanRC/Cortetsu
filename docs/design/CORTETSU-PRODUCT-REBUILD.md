@@ -34,16 +34,20 @@ geometry rule.
 
 ## Brand mark
 
-`cortetsu/assets/branding/cortetsu-mark.svg` is the selected forged C with an
-internal star core. The C body, orbit accents, and core are intentionally part of
-the logo geometry. The canonical asset is transparent and tuned for the dark
-shell, while the branding directory also ships dark-surface, light-surface, app
-icon, monochrome, and lockup variants.
+`cortetsu/assets/branding/cortetsu-mark-ascended.svg` is the approved canonical
+static mark. The live identity is the five-asset Evolving Mark: Human,
+Awakening, Monster, Ascended, and Cosmic. Each phase has its own silhouette and
+is selected by a real product condition, not by a timer or random choice.
 
-The mark is used selectively in product-entry surfaces such as Settings,
-Dashboard, Lock, and About. It is not repeated in every popup. Ember Orange is a
-brand accent inside the mark only; semantic warning and danger states continue to
-come from the shared Cortetsu design contract.
+`CortetsuEvolvingMark.qml` renders the phase inside fixed geometry. BottomHub
+uses Human at rest, Awakening on intent/focus, and Monster while the launcher is
+active or pressed. Wallpaper Manager uses Awakening for a selected candidate,
+Ascended for an applied wallpaper, and a short Cosmic pulse only after the state
+file confirms a successful apply. Static product surfaces use Ascended.
+
+The mark is used selectively and is not repeated in every popup. Its optional
+brand accent is private to the mark; Indigo interaction, Vermillion danger, and
+green success remain the shared semantic UI roles.
 
 ## Brightness contract
 
@@ -113,7 +117,7 @@ explicit: Apps, Command, Theme, or Wallpaper. Prefixes continue to be owned
 by the existing action services, so the label is a reflection of real routing.
 
 OSD keeps live volume and brightness readback while adding a small Cortetsu
-feedback signature: the forged C/star-core geometry and `SYSTEM FEEDBACK` label.
+feedback signature with the canonical Ascended mark and `SYSTEM FEEDBACK` label.
 The visual stays compact and uses the existing fast motion timing.
 When a monitor has no supported backlight, the brightness row says `Unavailable`
 and does not render a false zero value. Volume and brightness share one hover

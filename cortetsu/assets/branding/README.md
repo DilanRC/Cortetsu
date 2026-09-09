@@ -1,30 +1,31 @@
-# Cortetsu identity
+# Cortetsu Evolving Mark
 
-Cortetsu uses a forged **C** with an internal star core. The open body gives the
-mark a strong shell silhouette; the bright core is the product's control signal.
+Cortetsu's approved identity is the **Evolving Mark**: one soul taking five
+deliberate forms through transformation under pressure. The phases are Human,
+Awakening, Monster, Ascended, and Cosmic. Their silhouettes are separate assets,
+extracted from the approved monochrome reference board.
 
-## Selected concept
+## Asset contract
 
-The source package is `Cortetsu Branding Suite (Selected Concept)`. Its palette is
-kept inside the logo assets so the shell's semantic UI colours remain separate:
+- `cortetsu-mark-human.svg` — contained potential and the idle state.
+- `cortetsu-mark-awakening.svg` — interaction intent and adaptation.
+- `cortetsu-mark-monster.svg` — active launcher or pressed action.
+- `cortetsu-mark-ascended.svg` — refined canonical static mark.
+- `cortetsu-mark-cosmic.svg` — rare completed transformation pulse.
 
-- Graphite `#1D2128` — forged body on light surfaces
-- Warm White `#F6F3EC` — forged body on dark surfaces
-- Ice Blue `#77C8FF` — cool orbit accent
-- Ember Orange `#FF8A3D` — brand-core accent only
-- Deep Navy `#0D1118` — app-icon tile
-- Soft Gray `#A7ADB7` — lockup supporting text
+`cortetsu-mark-ascended.svg` is the canonical static mark for the application,
+documentation, About, Settings, Lock, and other non-live contexts. The old
+`cortetsu-mark.svg` filename remains only as a compatibility copy of Ascended;
+new consumers must name the phase explicitly.
 
-`cortetsu-mark.svg` is the canonical shell mark. It is the dark-surface version
-of the selected mark and remains transparent so it works from BottomHub-scale
-icons through Lock, Dashboard, Settings, and Launcher treatments. The shell uses
-this mark wherever a compact Cortetsu identity is needed.
+`CortetsuEvolvingMark.qml` owns the live crossfade. It has fixed geometry,
+receives an explicit phase, and owns no input surface. Consumers decide the phase
+from their own real state. Cosmic is never the default or an idle animation.
 
-Use `cortetsu-mark-dark.svg` on light surfaces and `cortetsu-mark-light.svg` on
-dark surfaces. The monochrome variants are reserved for contexts where the
-surrounding surface owns all colour. `cortetsu-app-icon.svg` is the standalone
-rounded application tile. Horizontal lockups are for About and documentation-sized
-treatments, not compact shell controls.
+The source symbols are monochrome so they survive at compact sizes. The renderer
+can apply a private brand accent or a controlled monochrome colour, but the mark
+does not redefine Indigo interaction, Vermillion danger, or green success roles.
 
-Ember Orange is part of the brand mark only. It must not replace Cortetsu's
-semantic warning, danger, success, or connected-state tokens.
+The extraction source is the approved monochrome board supplied with the branding
+direction on 2026-09-09. The reproducible crop command is kept in
+`scripts/features/extract-cortetsu-evolving-assets.sh`.

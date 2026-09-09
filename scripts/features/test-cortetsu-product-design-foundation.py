@@ -3,13 +3,13 @@ import re
 
 ROOT = Path(__file__).resolve().parents[2]
 design = (ROOT / "cortetsu/modules/CortetsuDesign.js").read_text(encoding="utf-8")
-brand = ROOT / "cortetsu/assets/branding/cortetsu-mark.svg"
+brand = ROOT / "cortetsu/assets/branding/cortetsu-mark-ascended.svg"
 doc = ROOT / "docs/design/CORTETSU-PRODUCT-REBUILD.md"
 
 assert brand.is_file(), "Cortetsu mark is missing"
 svg = brand.read_text(encoding="utf-8")
-assert "#F6F3EC" in svg and "#77C8FF" in svg and "#FF8A3D" in svg
-assert "forged C" in svg and "star core" in svg
+assert "data:image/png;base64" in svg
+assert "Evolving Mark" in svg and "Ascended" in svg
 assert "Caelestia" not in svg
 for name, value in (("spacingUnit", 4), ("spacingCompact", 8), ("spacingStandard", 12),
                     ("spacingComfortable", 16), ("spacingSpacious", 24), ("spacingSection", 32),

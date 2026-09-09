@@ -1,6 +1,6 @@
 {
-  "name": "Cortetsu Branding Suite",
-  "concept": "forged C + star core",
+  "name": "Cortetsu Evolving Mark",
+  "concept": "transformation under pressure",
   "palette": {
     "graphite": "#1D2128",
     "warm_white": "#F6F3EC",
@@ -11,8 +11,13 @@
     "black": "#111317",
     "white": "#FFFFFF"
   },
-  "canonical": "cortetsu-mark.svg",
+  "canonical": "cortetsu-mark-ascended.svg",
   "variants": [
+    "cortetsu-mark-human.svg",
+    "cortetsu-mark-awakening.svg",
+    "cortetsu-mark-monster.svg",
+    "cortetsu-mark-ascended.svg",
+    "cortetsu-mark-cosmic.svg",
     "cortetsu-mark-dark.svg",
     "cortetsu-mark-light.svg",
     "cortetsu-mark-monochrome-black.svg",
@@ -24,8 +29,10 @@
     "cortetsu-lockup-light.svg"
   ],
   "rules": {
-    "canonicalSurface": "dark",
+    "canonicalSurface": "neutral",
     "canonicalBackground": "transparent",
+    "cosmicDefault": false,
+    "brandAccentIsPrivate": true,
     "dangerColourDecorative": false,
     "successColourDecorative": false
   }
