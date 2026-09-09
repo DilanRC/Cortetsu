@@ -17,7 +17,7 @@ Scope {
         StyledWindow {
             id: window
             required property ShellScreen modelData
-            readonly property var screenState: CortetsuShellState.forActive()
+            readonly property var screenState: CortetsuShellState.forScreen(modelData)
             readonly property bool open: screenState?.session ?? false
 
             screen: modelData
