@@ -110,7 +110,8 @@ OSD keeps live volume and brightness readback while adding a small Cortetsu
 feedback signature: the forged C/star-core geometry and `SYSTEM FEEDBACK` label.
 The visual stays compact and uses the existing fast motion timing.
 When a monitor has no supported backlight, the brightness row says `Unavailable`
-and does not render a false zero value.
+and does not render a false zero value. Volume and brightness share one hover
+island, so moving between indicators cannot race the auto-hide timer.
 
 Progress feedback is owned by `CortetsuProgressBar`, shared by OSD indicators,
 Dashboard Focus, Hardware metric cards, the Calendar Pomodoro and the Battery

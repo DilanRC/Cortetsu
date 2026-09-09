@@ -50,6 +50,13 @@ CortetsuPopupSurface {
         anchors.margins: CortetsuDesign.spacingStandard
         spacing: CortetsuDesign.spacingCompact
 
+        // Volume and brightness are one hover island. Tracking the parent
+        // avoids an exit/enter race while moving between the two indicators.
+        HoverHandler {
+            id: indicatorsHover
+            onHoveredChanged: root.hovered = hovered
+        }
+
         Repeater {
             model: [
                 {
@@ -161,8 +168,6 @@ CortetsuPopupSurface {
                     id: indicatorMouse
                     anchors.fill: parent
                     hoverEnabled: true
-                    onEntered: root.hovered = true
-                    onExited: root.hovered = false
                     onWheel: event => {
                         if (index === 0) {
                             if (event.angleDelta.y > 0)
