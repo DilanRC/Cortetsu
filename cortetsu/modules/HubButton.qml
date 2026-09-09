@@ -15,6 +15,7 @@ Item {
     property bool active: false
     property bool disabled: false
     property string tooltip: ""
+    property bool tooltipOnHover: true
     property int buttonSize: 48
     property int iconSize: CortetsuTypography.iconMediumPx
     property color activeColor: Qt.alpha(CortetsuDesign.colorIndigo, 0.62)
@@ -146,7 +147,8 @@ Item {
         id: tooltipPopup
 
         parent: root
-        visible: root.tooltip.length > 0 && (root.hovered || root.activeFocus)
+        visible: root.tooltip.length > 0
+            && ((root.tooltipOnHover && root.hovered) || root.activeFocus)
         delay: CortetsuDesign.motionDeliberateMs
         text: root.tooltip
 
