@@ -32,6 +32,14 @@ WlSessionLockSurface {
     readonly property string networkLabel: CortetsuNetwork.activeEthernet
         ? qsTr("Ethernet")
         : CortetsuNetwork.active?.ssid ?? qsTr("Offline")
+    property bool authenticationAccepted: false
+    readonly property bool interactionActive: pam.buffer.length > 0
+        || pam.passwd.active || pam.fprint.active || pam.howdy.active
+    readonly property string markPhase: authenticationAccepted
+        ? "Ascended"
+        : interactionActive
+            ? "Awakening"
+            : "Human"
 
     color: CortetsuDesign.colorSumi
 
@@ -99,8 +107,7 @@ WlSessionLockSurface {
         spacing: CortetsuDesign.spacingStandard
 
         CortetsuEvolvingMark {
-            phase: "Ascended"
-            animated: false
+            phase: root.markPhase
             monochrome: true
             monochromeColor: CortetsuDesign.colorWashi
             Layout.preferredWidth: 64
@@ -275,4 +282,21 @@ WlSessionLockSurface {
             color: CortetsuDesign.colorOnSurfaceVariant
         }
     }
+
+    Connections {
+        target: pam
+        function onAuthenticationSucceeded(): void {
+            root.authenticationAccepted = true;
+            unlockTransition.restart();
+        }
+    }
+
+    Timer {
+        id: unlockTransition
+        interval: CortetsuDesign.motionStandardMs
+        repeat: false
+        onTriggered: pam.releaseAfterSuccess()
+    }
+
+    Component.onDestruction: unlockTransition.stop()
 }

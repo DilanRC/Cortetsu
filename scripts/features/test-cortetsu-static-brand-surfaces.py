@@ -7,9 +7,9 @@ SURFACES = {
     "osd": (ROOT / "cortetsu/modules/osd/Content.qml", "width: 24"),
     "dashboard": (ROOT / "cortetsu/modules/dashboard/Dash.qml", "Layout.preferredWidth: 38"),
     "settings": (ROOT / "cortetsu/modules/settings/Content.qml", "Layout.preferredWidth: 72"),
-    "lock": (ROOT / "cortetsu/modules/lock/LockSurface.qml", "Layout.preferredWidth: 64"),
 }
 QSD = ROOT / "cortetsu/modules/qsd/Content.qml"
+LOCK = ROOT / "cortetsu/modules/lock/LockSurface.qml"
 
 for name, (path, size_marker) in SURFACES.items():
     content = path.read_text(encoding="utf-8")
@@ -28,5 +28,13 @@ assert "Layout.preferredWidth: 24" in qsd and "Layout.preferredHeight: 24" in qs
 assert "monochrome: true" in qsd
 assert "monochromeColor: CortetsuDesign.colorWashi" in qsd
 assert 'source: Quickshell.shellPath("assets/branding/cortetsu-mark-ascended.svg")' not in qsd
+
+lock = LOCK.read_text(encoding="utf-8")
+assert "CortetsuEvolvingMark" in lock
+assert 'phase: root.markPhase' in lock
+assert "Layout.preferredWidth: 64" in lock and "Layout.preferredHeight: 64" in lock
+assert "monochrome: true" in lock
+assert "monochromeColor: CortetsuDesign.colorWashi" in lock
+assert 'source: Quickshell.shellPath("assets/branding/cortetsu-mark-ascended.svg")' not in lock
 
 print("PASS: static and contextual product surfaces share the fixed-size mark renderer")

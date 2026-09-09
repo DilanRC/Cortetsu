@@ -110,8 +110,13 @@ The lock surface now lives in the first-party `cortetsu/modules/lock` module.
 session boundary; the new UI only consumes that backend. It uses the current
 screen capture with controlled dimming, Cortetsu mark, clock/date, password
 echo, failure feedback, battery/network status, and a restrained keyboard hint.
-The real lock shortcut and IPC are unchanged. The lock action was not triggered
-during development to avoid interrupting the active session.
+The mark is Human while the surface waits, Awakening while password, fingerprint,
+or face authentication is active, and Ascended only after PAM reports a real
+success. PAM emits that success separately from the generic session unlock; the
+mark gets one standard motion interval before the lock releases. Failed, error,
+maximum-tries, shortcut, and IPC paths never select Ascended. The real lock
+shortcut and IPC are unchanged. The lock action was not triggered during
+development to avoid interrupting the active session.
 
 ## Launcher and system feedback
 
