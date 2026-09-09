@@ -44,6 +44,7 @@ criteria = {
     ),
     "contador expandido": 'root.notificationCount > 9 ? qsTr("9+")' in status,
     "audio Cortetsu": "volumeIcon" in status and "volumeWheel" in status,
+    "volume scroll preference is honored": "if (!CortetsuConfig.bar.scrollActions.volume)" in hub,
     "hover de controles del sistema": all(
         f'root.attachedControlEntered("{mode}"' in status
         for mode in ("audio", "network", "bluetooth", "battery")

@@ -787,6 +787,8 @@ Scope {
                         CortetsuAudio.sink.audio.muted = !CortetsuAudio.sink.audio.muted;
                 }
                 onVolumeWheel: delta => {
+                    if (!CortetsuConfig.bar.scrollActions.volume)
+                        return;
                     if (delta > 0)
                         CortetsuAudio.incrementVolume();
                     else if (delta < 0)

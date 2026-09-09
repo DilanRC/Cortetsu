@@ -364,14 +364,6 @@ Item {
                 checked: CortetsuConfig.bar.scrollActions.volume
                 onChanged: checked => CortetsuConfig.bar.scrollActions.volume = checked
             }
-
-            PreferenceToggle {
-                title: qsTr("Brightness scroll")
-                detail: qsTr("Adjust display brightness from the BottomHub")
-                icon: "brightness_6"
-                checked: CortetsuConfig.bar.scrollActions.brightness
-                onChanged: checked => CortetsuConfig.bar.scrollActions.brightness = checked
-            }
         }
 
         ColumnLayout {
