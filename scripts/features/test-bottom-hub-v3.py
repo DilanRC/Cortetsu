@@ -156,17 +156,26 @@ def main() -> None:
     require(status, "visible: root.networkVisible", "network visibility binding")
     require(status, "visible: root.bluetoothVisible", "Bluetooth visibility binding")
     require(status, "visible: root.batteryVisible", "battery visibility binding")
-    require(status, "function anySystemControlHovered(): bool", "system hover state")
-    require(status, "function syncSystemControlHover(): void", "system hover exit bridge")
-    require(status, "root.syncSystemControlHover();", "button-owned hover exit")
-    for marker in ("volumeButton.hovered", "networkButton.hovered", "bluetoothButton.hovered", "batteryButton.hovered"):
+    require(status, "id: systemControlsHover", "system hover island")
+    require(status, "signal systemControlsEntered()", "system hover entry bridge")
+    require(status, "signal systemControlsExited()", "system hover exit bridge")
+    require(status, "root.systemControlsEntered();", "system hover entry")
+    require(status, "root.systemControlsExited();", "system hover exit")
+    if "root.syncSystemControlHover()" in status:
+        raise SystemExit("FAIL: individual button hover exits must not close the system island")
+    for marker in (
+        'root.attachedControlEntered("audio"',
+        'root.attachedControlEntered("network"',
+        'root.attachedControlEntered("bluetooth"',
+        'root.attachedControlEntered("battery"',
+    ):
         require(status, marker, "all system controls participate in hover ownership")
-    require(status, "root.attachedControlExited();", "single island exit")
+    require(status, "root.systemControlsExited()", "single island exit")
     require(status, 'root.attachedControlEntered("audio", root.centerFor(volumeButton))', "anchored audio hover")
     require(status, 'root.attachedControlEntered("network", root.centerFor(networkButton))', "anchored network hover")
     require(status, 'root.attachedControlEntered("bluetooth", root.centerFor(bluetoothButton))', "anchored bluetooth hover")
     require(status, 'root.attachedControlEntered("battery", root.centerFor(batteryButton))', "anchored battery hover")
-    if status.count("root.attachedControlExited();") != 1:
+    if status.count("root.systemControlsExited()") != 1:
         raise SystemExit("FAIL: attached system controls must close only when the hover island is exited")
     require(status, 'if (root.statusPopoutsEnabled)\n                    root.attachedControlRequested("network", root.centerFor(networkButton))', "guarded network click request")
     require(status, 'if (root.statusPopoutsEnabled)\n                    root.attachedControlRequested("bluetooth", root.centerFor(bluetoothButton))', "guarded bluetooth click request")

@@ -172,6 +172,10 @@ The controller owns the 120 ms open delay and 240 ms close grace, so moving
 between the trigger and its popout does not depend on duplicated timers. The
 popout host remains a single surface and can switch its content when the pointer
 moves from Network to Bluetooth or Battery.
+The four system buttons are one `HoverHandler` island: button entry selects the
+content mode, while only leaving the island releases the trigger. This prevents
+an exit/enter race at the boundaries between Volume, Network, Bluetooth, and
+Battery.
 
 `CortetsuTooltip` owns the shared tooltip surface, typography, padding and
 delayed visibility. Consumers provide only their target item and hover/focus

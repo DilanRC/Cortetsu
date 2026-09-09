@@ -31,7 +31,8 @@ Item {
 
     signal attachedControlRequested(string mode, real centerX)
     signal attachedControlEntered(string mode, real centerX)
-    signal attachedControlExited()
+    signal systemControlsEntered()
+    signal systemControlsExited()
     signal detachedControlRequested(string mode)
     signal volumeMuteRequested()
     signal volumeWheel(real delta)
@@ -44,16 +45,6 @@ Item {
 
     function centerFor(item): real {
         return statusRow.x + systemControls.x + item.x + item.width / 2;
-    }
-
-    function anySystemControlHovered(): bool {
-        return volumeButton.hovered || networkButton.hovered
-            || bluetoothButton.hovered || batteryButton.hovered;
-    }
-
-    function syncSystemControlHover(): void {
-        if (!anySystemControlHovered())
-            root.attachedControlExited();
     }
 
     implicitWidth: statusRow.implicitWidth + CortetsuDesign.spacingUnit
@@ -97,6 +88,20 @@ Item {
             height: implicitHeight
             spacing: 1
 
+            // The four icons are one pointer island. Individual MouseArea exit
+            // events can arrive before the next icon enter event, so closing
+            // from a child would race while moving across the cluster.
+            HoverHandler {
+                id: systemControlsHover
+                enabled: root.statusPopoutsEnabled
+                onHoveredChanged: {
+                    if (hovered)
+                        root.systemControlsEntered();
+                    else
+                        root.systemControlsExited();
+                }
+            }
+
             HubButton {
                 id: volumeButton
                 visible: root.audioVisible
@@ -111,8 +116,6 @@ Item {
                 onHoveredChanged: {
                     if (hovered && root.statusPopoutsEnabled)
                         root.attachedControlEntered("audio", root.centerFor(volumeButton));
-                    else if (!hovered)
-                        root.syncSystemControlHover();
                 }
                 onClicked: root.volumeMuteRequested()
                 onWheel: delta => root.volumeWheel(delta)
@@ -130,8 +133,6 @@ Item {
                 onHoveredChanged: {
                     if (hovered && root.statusPopoutsEnabled)
                         root.attachedControlEntered("network", root.centerFor(networkButton));
-                    else if (!hovered)
-                        root.syncSystemControlHover();
                 }
                 onClicked: if (root.statusPopoutsEnabled)
                     root.attachedControlRequested("network", root.centerFor(networkButton))
@@ -149,8 +150,6 @@ Item {
                 onHoveredChanged: {
                     if (hovered && root.statusPopoutsEnabled)
                         root.attachedControlEntered("bluetooth", root.centerFor(bluetoothButton));
-                    else if (!hovered)
-                        root.syncSystemControlHover();
                 }
                 onClicked: if (root.statusPopoutsEnabled)
                     root.attachedControlRequested("bluetooth", root.centerFor(bluetoothButton))
@@ -170,8 +169,6 @@ Item {
                 onHoveredChanged: {
                     if (hovered && root.statusPopoutsEnabled)
                         root.attachedControlEntered("battery", root.centerFor(batteryButton));
-                    else if (!hovered)
-                        root.syncSystemControlHover();
                 }
                 onClicked: if (root.statusPopoutsEnabled)
                     root.attachedControlRequested("battery", root.centerFor(batteryButton))

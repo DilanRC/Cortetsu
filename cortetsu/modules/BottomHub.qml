@@ -237,10 +237,6 @@ Scope {
         hoverSurfaceController.request(screen, mode, anchorCenter);
     }
 
-    function leaveAttachedControl(): void {
-        hoverSurfaceController.leaveTrigger();
-    }
-
     IpcHandler {
         target: "bottomHub"
 
@@ -790,7 +786,8 @@ Scope {
                     mode,
                     win.hubMargin + centerX
                 )
-                onAttachedControlExited: hubRoot.leaveAttachedControl()
+                onSystemControlsEntered: hoverSurfaceController.enterTrigger()
+                onSystemControlsExited: hoverSurfaceController.leaveTrigger()
                 onDetachedControlRequested: mode => hubRoot.toggleDetachedControlFor(win.modelData, mode)
                 onVolumeMuteRequested: {
                     if (CortetsuAudio.sink?.audio)

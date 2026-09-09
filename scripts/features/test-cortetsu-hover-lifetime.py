@@ -14,9 +14,15 @@ bottom = (modules / "BottomHub.qml").read_text(encoding="utf-8")
 # explicitly leave it when the pointer exits the icon.
 for mode in ("audio", "network", "bluetooth", "battery"):
     assert f'root.attachedControlEntered("{mode}"' in status, mode
-assert status.count("root.attachedControlExited();") == 1
+assert "id: systemControlsHover" in status
+assert "signal systemControlsEntered()" in status
+assert "signal systemControlsExited()" in status
+assert "root.systemControlsEntered();" in status
+assert "root.systemControlsExited();" in status
+assert "root.syncSystemControlHover()" not in status
 assert "onAttachedControlEntered:" in bottom
-assert "onAttachedControlExited: hubRoot.leaveAttachedControl()" in bottom
+assert "onSystemControlsEntered: hoverSurfaceController.enterTrigger()" in bottom
+assert "onSystemControlsExited: hoverSurfaceController.leaveTrigger()" in bottom
 
 # Dwell and grace are distinct phases; leaving before dwell completes cancels the
 # pending open instead of flashing a stale popup later.

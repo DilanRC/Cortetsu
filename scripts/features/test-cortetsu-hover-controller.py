@@ -23,6 +23,6 @@ assert "hubRoot.closeAllPopouts();" in hub
 segment = (ROOT / "cortetsu/modules/CortetsuStatusSegment.qml").read_text(encoding="utf-8")
 view = (ROOT / "cortetsu/modules/CortetsuBottomHubView.qml").read_text(encoding="utf-8")
 assert "signal attachedControlEntered" in segment
-assert "signal attachedControlExited" in segment
+assert "signal systemControlsExited" in segment
 assert "onAttachedControlEntered" in view
 print("PASS: BottomHub uses one reusable delayed hover host with close grace")

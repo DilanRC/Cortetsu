@@ -7,6 +7,12 @@ hover = (ROOT / "cortetsu/modules/CortetsuHoverSurfaceController.qml").read_text
 assert "radiusValue: CortetsuDesign.radiusLarge" in segment
 assert "buttonSize: 40" in segment
 assert "onHoveredChanged" in segment
+assert "id: systemControlsHover" in segment
+assert "signal systemControlsEntered()" in segment
+assert "signal systemControlsExited()" in segment
+assert "root.systemControlsEntered();" in segment
+assert "root.systemControlsExited();" in segment
+assert "root.syncSystemControlHover()" not in segment
 assert "width: implicitWidth" in segment
 assert "height: implicitHeight" in segment
 assert "required property bool statusPopoutsEnabled" in segment

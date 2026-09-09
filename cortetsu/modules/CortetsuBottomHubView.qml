@@ -53,7 +53,8 @@ Item {
     signal traySecondaryRequested(string itemId)
     signal attachedControlRequested(string mode, real centerX)
     signal attachedControlEntered(string mode, real centerX)
-    signal attachedControlExited()
+    signal systemControlsEntered()
+    signal systemControlsExited()
     signal detachedControlRequested(string mode)
     signal volumeMuteRequested()
     signal volumeWheel(real delta)
@@ -188,7 +189,8 @@ Item {
             mode,
             statusSegment.x + centerX
         )
-        onAttachedControlExited: root.attachedControlExited()
+        onSystemControlsEntered: root.systemControlsEntered()
+        onSystemControlsExited: root.systemControlsExited()
         onDetachedControlRequested: mode => root.detachedControlRequested(mode)
         onVolumeMuteRequested: root.volumeMuteRequested()
         onVolumeWheel: delta => root.volumeWheel(delta)
