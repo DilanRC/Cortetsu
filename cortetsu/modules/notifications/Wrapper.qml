@@ -44,6 +44,7 @@ Item {
                 required property int index
                 focus: index === 0
                 width: list.width
+                modelData: Notifs.popups()[index]
                 props: ({})
                 expanded: false
                 screenState: root.screenState

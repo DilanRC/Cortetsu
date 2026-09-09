@@ -14,7 +14,10 @@ for path in sorted(hardware.glob("*.qml")):
 
 assert "CortetsuStateLayer" in (hardware / "Content.qml").read_text()
 assert 'import "../../components"' in (hardware / "Content.qml").read_text()
-assert "delegate: CortetsuTab" in (hardware / "Content.qml").read_text()
+assert "delegate: Item" in (hardware / "Content.qml").read_text()
+assert "id: tabDelegate" in (hardware / "Content.qml").read_text()
+assert "required property int index" in (hardware / "Content.qml").read_text()
+assert "index: tabDelegate.index" in (hardware / "Content.qml").read_text()
 for marker in ("activeFocusOnTab", "Keys.onEnterPressed", "Keys.onLeftPressed", "Keys.onRightPressed", "signal activated"):
     assert marker in tab, marker
 print("PASS: Hardware Center uses Cortetsu visual primitives")

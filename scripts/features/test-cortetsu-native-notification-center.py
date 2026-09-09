@@ -60,6 +60,7 @@ assert "root.revision;" in service
 wrapper = (ROOT / "cortetsu/modules/notifications/Wrapper.qml").read_text(encoding="utf-8")
 assert "model: Notifs.popups()" in wrapper
 assert "required property int index" in wrapper
+assert "modelData: Notifs.popups()[index]" in wrapper
 assert "visibleNotifications" not in wrapper
 assert "modelData: root.active[index]" in content
 assert "required property var modelData" in notification

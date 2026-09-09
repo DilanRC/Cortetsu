@@ -6,9 +6,12 @@ content = (ROOT / "cortetsu/modules/hardware/Content.qml").read_text(encoding="u
 tab = (ROOT / "cortetsu/components/CortetsuTab.qml").read_text(encoding="utf-8")
 
 assert 'import "../../components"' in content
-assert "delegate: CortetsuTab" in content
+assert "delegate: Item" in content
+assert "id: tabDelegate" in content
 assert "onPreviousRequested: root.selectAdjacentTab(-1)" in content
 assert "onNextRequested: root.selectAdjacentTab(1)" in content
+assert "required property int index" in content
+assert "index: tabDelegate.index" in content
 assert "focus: root.selected && !root.disabled" in tab
 assert "activeFocusOnTab: !root.disabled" in tab
 assert "Keys.onSpacePressed" in tab

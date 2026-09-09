@@ -296,17 +296,24 @@ FocusScope {
                         { label: qsTr("Keys"), icon: "keyboard" }
                     ]
 
-                    delegate: CortetsuTab {
+                    delegate: Item {
+                        id: tabDelegate
                         required property var modelData
+                        required property int index
                         width: (tabs.width - tabs.spacing * 8) / 9
                         height: tabs.height
-                        label: modelData.label
-                        icon: modelData.icon
-                        selected: root.currentPage === index
-                        count: 9
-                        onActivated: root.currentPage = index
-                        onPreviousRequested: root.selectAdjacentTab(-1)
-                        onNextRequested: root.selectAdjacentTab(1)
+
+                        CortetsuTab {
+                            anchors.fill: parent
+                            index: tabDelegate.index
+                            count: 9
+                            label: tabDelegate.modelData.label
+                            icon: tabDelegate.modelData.icon
+                            selected: root.currentPage === tabDelegate.index
+                            onActivated: root.currentPage = tabDelegate.index
+                            onPreviousRequested: root.selectAdjacentTab(-1)
+                            onNextRequested: root.selectAdjacentTab(1)
+                        }
                     }
                 }
             }
