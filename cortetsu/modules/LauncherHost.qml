@@ -15,7 +15,7 @@ Scope {
         StyledWindow {
             id: window
             required property ShellScreen modelData
-            readonly property var screenState: CortetsuShellState.forActive()
+            readonly property var screenState: CortetsuShellState.forScreen(modelData)
             screen: modelData
             name: "launcher"
             visible: true
