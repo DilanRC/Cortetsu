@@ -158,7 +158,7 @@ def assert_view_contract(source: dict[str, str]) -> None:
     assert "CortetsuDesign.hoverScale" in rail
     assert "width: implicitWidth" in rail
     assert "modelData.title" in rail
-    assert "ToolTip" in rail
+    assert "CortetsuTooltip" in rail
     assert "onPressed: appItem.forceActiveFocus()" in rail
 
     tray = source["CortetsuTraySegment.qml"]
@@ -167,11 +167,10 @@ def assert_view_contract(source: dict[str, str]) -> None:
     assert "signal secondaryRequested(string itemId)" in tray
     assert "width: visible ? implicitWidth : 0" in tray
     assert "modelData.title" in tray
-    assert "ToolTip" in tray
+    assert "CortetsuTooltip" in tray
     assert "onPressed: trayItem.forceActiveFocus()" in tray
-    assert "CortetsuTypography.labelSmallPx" in tray
     assert "baseColor: CortetsuDesign.colorTetsu" in tray
-    assert "contentItem: CortetsuText" in tray
+    assert "CortetsuTooltip" in tray
 
     status = source["CortetsuStatusSegment.qml"]
     for signal in (

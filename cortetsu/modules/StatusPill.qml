@@ -1,7 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import QtQuick.Controls
+import "../components"
 import "CortetsuDesign.js" as CortetsuDesign
 import "CortetsuTypography.js" as CortetsuTypography
 
@@ -181,25 +181,11 @@ Item {
             }
         }
 
-        ToolTip {
-            id: tooltipPopup
-
-            parent: item
-            visible: mouse.containsMouse || item.activeFocus
-            delay: CortetsuDesign.motionDeliberateMs
+        CortetsuTooltip {
+            target: item
+            hovered: mouse.containsMouse
+            focused: item.activeFocus
             text: item.tooltip
-
-            background: CortetsuSurface {
-                radiusValue: CortetsuDesign.radiusSmall
-                baseColor: CortetsuDesign.colorTetsu
-                outlined: true
-            }
-
-            contentItem: CortetsuText {
-                text: tooltipPopup.text
-                color: CortetsuDesign.colorWashi
-                textSize: CortetsuTypography.labelSmallPx
-            }
         }
 
         MouseArea {

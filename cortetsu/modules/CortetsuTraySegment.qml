@@ -1,7 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import QtQuick.Controls
+import "../components"
 import "CortetsuDesign.js" as CortetsuDesign
 import "CortetsuTypography.js" as CortetsuTypography
 
@@ -96,25 +96,11 @@ Item {
                 Keys.onSpacePressed: root.activateRequested(trayItem.modelData.id)
                 Keys.onMenuPressed: root.secondaryRequested(trayItem.modelData.id)
 
-                ToolTip {
-                    id: trayTooltip
-                    parent: trayItem
-                    visible: trayItem.modelData.title?.length > 0
-                        && (trayMouse.containsMouse || trayItem.activeFocus)
-                    delay: CortetsuDesign.motionDeliberateMs
+                CortetsuTooltip {
+                    target: trayItem
+                    hovered: trayMouse.containsMouse
+                    focused: trayItem.activeFocus
                     text: trayItem.modelData.title
-
-                    background: CortetsuSurface {
-                        radiusValue: CortetsuDesign.radiusSmall
-                        baseColor: CortetsuDesign.colorTetsu
-                        outlined: true
-                    }
-
-                    contentItem: CortetsuText {
-                        text: trayTooltip.text
-                        textSize: CortetsuTypography.labelSmallPx
-                        color: CortetsuDesign.colorWashi
-                    }
                 }
             }
         }

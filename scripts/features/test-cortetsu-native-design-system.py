@@ -10,6 +10,7 @@ required = (
     "CortetsuSlider.qml",
     "CortetsuListRow.qml",
     "CortetsuSectionHeader.qml",
+    "CortetsuTooltip.qml",
     "containers/CortetsuPopupHost.qml",
 )
 for name in required:
@@ -22,10 +23,22 @@ host = (components / "containers/CortetsuPopupHost.qml").read_text(encoding="utf
 for token in ("Keys.onEscapePressed", "dismissOnOutside", "WlrKeyboardFocus.OnDemand", "z: 100", "signal closed()"):
     assert token in host, f"popup host contract missing: {token}"
 
+tooltip = (components / "CortetsuTooltip.qml").read_text(encoding="utf-8")
+for token in ("property Item target", "property bool hovered", "property bool focused", "motionDeliberateMs", "CortetsuSurface", "CortetsuText"):
+    assert token in tooltip, f"tooltip contract missing: {token}"
+
+for name in ("HubButton.qml", "CortetsuAppRail.qml", "CortetsuTraySegment.qml", "StatusPill.qml"):
+    consumer = (ROOT / "cortetsu/modules" / name).read_text(encoding="utf-8")
+    assert "CortetsuTooltip" in consumer, f"{name} does not use the shared tooltip"
+    assert "ToolTip {" not in consumer, f"{name} still owns a divergent tooltip"
+
 for name in required[:-1]:
     text = (components / name).read_text(encoding="utf-8")
     assert "CortetsuDesign" in text, f"{name} does not consume Cortetsu tokens"
-    assert "signal" in text or name == "CortetsuSectionHeader.qml", f"{name} has no interaction contract"
+    assert (
+        "signal" in text
+        or name in ("CortetsuSectionHeader.qml", "CortetsuTooltip.qml")
+    ), f"{name} has no interaction contract"
 
 for path in (
     components / "CortetsuButton.qml",

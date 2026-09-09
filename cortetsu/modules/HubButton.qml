@@ -1,5 +1,5 @@
 import QtQuick
-import QtQuick.Controls
+import "../components"
 import "CortetsuDesign.js" as CortetsuDesign
 import "CortetsuTypography.js" as CortetsuTypography
 
@@ -143,27 +143,11 @@ Item {
         }
     }
 
-    ToolTip {
-        id: tooltipPopup
-
-        parent: root
-        visible: root.tooltip.length > 0
-            && ((root.tooltipOnHover && root.hovered) || root.activeFocus)
-        delay: CortetsuDesign.motionDeliberateMs
+    CortetsuTooltip {
+        target: root
+        hovered: root.tooltipOnHover && root.hovered
+        focused: root.activeFocus
         text: root.tooltip
-
-        background: CortetsuSurface {
-            radiusValue: CortetsuDesign.radiusSmall
-            baseColor: CortetsuDesign.colorTetsu
-            outlineColor: Qt.alpha(CortetsuDesign.colorMuted, 0.28)
-            outlined: true
-        }
-
-        contentItem: CortetsuText {
-            text: tooltipPopup.text
-            textSize: CortetsuTypography.labelSmallPx
-            color: CortetsuDesign.colorWashi
-        }
     }
 
     MouseArea {

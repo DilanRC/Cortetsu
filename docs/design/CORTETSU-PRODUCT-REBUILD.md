@@ -155,6 +155,10 @@ between the trigger and its popout does not depend on duplicated timers. The
 popout host remains a single surface and can switch its content when the pointer
 moves from Network to Bluetooth or Battery.
 
+`CortetsuTooltip` owns the shared tooltip surface, typography, padding and
+delayed visibility. Consumers provide only their target item and hover/focus
+state, so pointer behavior and tooltip styling remain aligned across the dock.
+
 ## Input ownership
 
 Every first-party full-surface host remains allocated for stable layer timing,

@@ -21,8 +21,10 @@ and are not committed. Tray/submenu and OSD remain to inspect.
 
 Observed gaps: popup scale collapses to zero; stale close can dismiss a rapid
 reopen; Audio devotes excessive height to outputs; lock indicator labels are
-missing; overview cards overflow the available height; tooltips diverge;
-notification removal does not retain delegates through exit motion.
+missing; overview cards overflow the available height; notification removal
+does not retain delegates through exit motion. Tooltips now share one
+first-party contract across BottomHub, the application rail, the tray and
+status pills.
 
 ## First checkpoint: popup lifetime and motion
 

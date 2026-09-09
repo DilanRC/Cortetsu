@@ -10,8 +10,10 @@ view = (modules / "CortetsuBottomHubView.qml").read_text(encoding="utf-8")
 rail = (modules / "CortetsuAppRail.qml").read_text(encoding="utf-8")
 tray = (modules / "CortetsuTraySegment.qml").read_text(encoding="utf-8")
 status = (modules / "CortetsuStatusSegment.qml").read_text(encoding="utf-8")
+status_pill = (modules / "StatusPill.qml").read_text(encoding="utf-8")
 mode = (modules / "CortetsuModeSegment.qml").read_text(encoding="utf-8")
 workspace = (modules / "CortetsuWorkspaceDots.qml").read_text(encoding="utf-8")
+tooltip = (ROOT / "cortetsu/components/CortetsuTooltip.qml").read_text(encoding="utf-8")
 
 criteria = {
     "superficie exterior transparente": 'color: "transparent"' in hub,
@@ -32,10 +34,14 @@ criteria = {
     "centro geometrico": "anchors.horizontalCenter: parent.horizontalCenter" in view,
     "hover con escala contenida": "CortetsuDesign.hoverScale" in rail,
     "animacion corta": "CortetsuDesign.motionFastMs" in rail,
-    "tooltip de aplicaciones": "modelData.title" in rail and "ToolTip" in rail,
-    "tooltip de tray": "modelData.title" in tray and "ToolTip" in tray,
-    "tooltip de tray con superficie": all(
-        token in tray
+    "tooltip compartido": all(
+        "CortetsuTooltip" in text
+        for text in (rail, tray, status_pill)
+    ),
+    "tooltip de aplicaciones": "modelData.title" in rail and "CortetsuTooltip" in rail,
+    "tooltip de tray": "modelData.title" in tray and "CortetsuTooltip" in tray,
+    "tooltip con superficie": all(
+        token in tooltip
         for token in (
             "contentItem: CortetsuText",
             "CortetsuTypography.labelSmallPx",
