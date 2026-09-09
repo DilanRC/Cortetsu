@@ -55,6 +55,8 @@ assert "CortetsuSurface" in window_info and "CortetsuButton" in window_info
 assert "CortetsuTokens" not in window_info and "CortetsuColours" not in window_info
 clip_wrapper = (ROOT / "cortetsu/modules/bar/popouts/ClipWrapper.qml").read_text(encoding="utf-8")
 assert "content.bottomAttached || content.closing" in clip_wrapper
+assert "width: implicitWidth" in clip_wrapper
+assert "height: implicitHeight" in clip_wrapper
 assert "anchors.leftMargin: (-implicitWidth - 5)" not in clip_wrapper
 assert "ClipWrapper owns the screen-space placement" in clip_wrapper
 assert "        x: 0\n        transformOrigin: Item.Bottom" in clip_wrapper

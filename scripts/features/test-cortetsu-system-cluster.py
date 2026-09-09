@@ -30,5 +30,8 @@ assert "CortetsuShellState.attachedPopupHoverOwner !== null" in hover
 assert "onPopupHoveredChanged" in hover
 assert "property real bottomOffset: 60 + CortetsuDesign.spacingStandard" in popup
 assert "popupHover.hovered && bottomAttached && hasCurrent && !closing" in popup
+clip_wrapper = (ROOT / "cortetsu/modules/bar/popouts/ClipWrapper.qml").read_text(encoding="utf-8")
+assert "width: implicitWidth" in clip_wrapper
+assert "height: implicitHeight" in clip_wrapper
 
 print("PASS: system cluster exposes live status and stable trigger-to-popup hover ownership")

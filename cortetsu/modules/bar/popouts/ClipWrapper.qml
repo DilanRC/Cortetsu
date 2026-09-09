@@ -17,6 +17,11 @@ Item {
     clip: false
     implicitWidth: content.implicitWidth
     implicitHeight: content.implicitHeight
+    // Panels places this wrapper as a positioned item, not in a layout. Keep
+    // its hit/draw bounds equal to the measured popup so attached popouts are
+    // visible and their HoverHandler can receive the pointer.
+    width: implicitWidth
+    height: implicitHeight
 
     x: content.isDetached
         ? (parent.width - content.nonAnimWidth) / 2

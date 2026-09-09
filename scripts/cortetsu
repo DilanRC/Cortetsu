@@ -137,6 +137,12 @@ reconcile_shell_lifecycle() {
     python3 "$ROOT/core/shell_lifecycle.py" migrate
 }
 
+shell_restart_allowed() {
+    if [[ "${CORTETSU_RESTART_SHELL:-0}" != "1" ]] && pgrep -x ChatGPT >/dev/null 2>&1; then
+        fail "ChatGPT Desktop está abierto; no se reinicia el shell. Usa CORTETSU_RESTART_SHELL=1 sólo si aceptas ese riesgo."
+    fi
+}
+
 shell_cmd() {
     require_repo
     local action="${1:-status}"
@@ -146,6 +152,7 @@ shell_cmd() {
             systemctl --user status "$SHELL_UNIT" --no-pager "$@" || true
             ;;
         adopt)
+            shell_restart_allowed
             require_file "${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user/$SHELL_UNIT"
             reconcile_shell_lifecycle
             systemctl --user daemon-reload
@@ -159,6 +166,7 @@ shell_cmd() {
             reconcile_shell_lifecycle
             ;;
         restart)
+            shell_restart_allowed
             systemctl --user daemon-reload
             systemctl --user restart "$SHELL_UNIT"
             systemctl --user is-active --quiet "$SHELL_UNIT" || fail "$SHELL_UNIT no quedó activo"
@@ -301,6 +309,7 @@ test_cmd() {
         "scripts/features/test-dotfiles-platform.py"
         "scripts/features/test-system-generations.py"
         "scripts/features/test-shell-lifecycle.py"
+        "scripts/features/eval-shell-application-safety.py"
         "scripts/features/test-shell-state-screens.py"
         "cortetsu/tests/test-calendar-credentials.py"
         "cortetsu/tests/test-calendar-polish.py"

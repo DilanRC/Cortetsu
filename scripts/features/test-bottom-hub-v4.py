@@ -63,6 +63,8 @@ def main() -> None:
     require(PANELS, "anchors.right: root.screenState.utilities ? utilities.left : parent.right", "centros adyacentes")
     require(POPOUT, "content.bottomAnchorCenter - content.nonAnimWidth / 2", "popup centrado en su icono")
     require(POPOUT, "ClipWrapper owns the screen-space placement", "una sola autoridad de geometría")
+    require(POPOUT, "width: implicitWidth", "bounds visibles del popup")
+    require(POPOUT, "height: implicitHeight", "bounds interactivos del popup")
     require(POPOUT, "        x: 0\n        transformOrigin: Item.Bottom", "contenido local al ancla")
     require(WINDOW_CARD, "import qs.utils", "Overview resuelve Icons sin ReferenceError")
     forbid(POPOUT, "caelestia", "dependencia Caelestia en el wrapper de popup")

@@ -22,7 +22,13 @@ assert " -d" not in exec_start and "--daemonize" not in exec_start, (
 
 installer_text = INSTALLER.read_text(encoding="utf-8")
 assert "is-enabled --quiet cortetsu-shell.service" in installer_text
-assert "systemctl --user restart cortetsu-shell.service" in installer_text
+assert "no se reinicia automáticamente" in installer_text
+assert "CORTETSU_RESTART_SHELL=1 cortetsu shell restart" in installer_text
+assert "systemctl --user restart cortetsu-shell.service" not in installer_text
+cli_text = (REPO / "scripts/cortetsu").read_text(encoding="utf-8")
+assert "shell_restart_allowed" in cli_text
+assert "pgrep -x ChatGPT" in cli_text
+assert 'CORTETSU_RESTART_SHELL:-0' in cli_text
 
 with tempfile.TemporaryDirectory(prefix="cortetsu-shell-lifecycle-") as tmp:
     root = Path(tmp)

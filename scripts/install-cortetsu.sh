@@ -108,16 +108,13 @@ fi
 printf '==> Generación unificada Cortetsu\n'
 python3 "$REPO/core/system.py" promote --repo "$REPO"
 
-# Never enable shell supervision implicitly. Once the user has explicitly
-# adopted it, is-enabled is our durable opt-in. Restarting also recovers a
-# previously adopted service that became inactive because an older unit used
-# Quickshell's --daemonize flag under Type=simple.
+# Never restart shell supervision implicitly. Restarting Quickshell tears down
+# its StatusNotifier host; the installed ChatGPT Desktop Electron build has
+# crashed with SIGTRAP when that tray peer disappears. The promoted generation
+# is safe to adopt on an explicit, guarded shell restart.
 if systemctl --user is-enabled --quiet cortetsu-shell.service 2>/dev/null; then
-    if systemctl --user restart cortetsu-shell.service; then
-        printf 'Shell supervision: adopted service running on promoted runtime\n'
-    else
-        printf 'WARN: cortetsu-shell.service está habilitado pero no pudo arrancar\n' >&2
-    fi
+    printf 'Shell supervision: no se reinicia automáticamente; se conserva el escritorio abierto\n'
+    printf 'Para adoptar el runtime explícitamente: CORTETSU_RESTART_SHELL=1 cortetsu shell restart\n'
 fi
 
 runtime_root="${CORTETSU_RUNTIME_ROOT:-${XDG_CONFIG_HOME:-$HOME/.config}/quickshell/cortetsu}"
