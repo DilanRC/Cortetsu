@@ -44,6 +44,10 @@ criteria = {
     ),
     "contador expandido": 'root.notificationCount > 9 ? qsTr("9+")' in status,
     "audio Cortetsu": "volumeIcon" in status and "volumeWheel" in status,
+    "hover de controles del sistema": all(
+        f'root.attachedControlEntered("{mode}"' in status
+        for mode in ("audio", "network", "bluetooth", "battery")
+    ),
     "wifi first-party": 'attachedControlRequested("network"' in status,
     "Bluetooth first-party": 'attachedControlRequested("bluetooth"' in status,
     "bateria first-party": "batteryIcon" in status and "batteryCritical" in status,

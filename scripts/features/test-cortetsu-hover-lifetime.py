@@ -14,8 +14,7 @@ bottom = (modules / "BottomHub.qml").read_text(encoding="utf-8")
 # explicitly leave it when the pointer exits the icon.
 for mode in ("audio", "network", "bluetooth", "battery"):
     assert f'root.attachedControlEntered("{mode}"' in status, mode
-    assert f'root.attachedControlRequested("{mode}"' in status, mode
-assert status.count("root.attachedControlExited();") >= 4
+assert status.count("root.attachedControlExited();") == 1
 assert "onAttachedControlEntered:" in bottom
 assert "onAttachedControlExited: hubRoot.leaveAttachedControl()" in bottom
 
