@@ -2,7 +2,6 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import Quickshell
-import Quickshell.Hyprland
 import Quickshell.Wayland
 import ".."
 import "../.."
@@ -148,12 +147,6 @@ Item {
     PopoutState {
         id: popoutState
         onDetachRequested: mode => root.detach(mode)
-    }
-
-    HyprlandFocusGrab {
-        active: root.isDetached
-        windows: [QsWindow.window]
-        onCleared: root.close()
     }
 
     Binding {

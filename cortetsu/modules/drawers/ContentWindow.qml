@@ -95,7 +95,7 @@ StyledWindow {
             root.screenState.utilities = false;
             root.screenState.dashboard = false;
             root.screenState.cortetsuState?.closeRetainedOverlays();
-            panels.popouts.hasCurrent = false;
+            panels.popouts.close();
             bar.closeTray();
         }
     }
@@ -150,7 +150,7 @@ StyledWindow {
             root.screenState.utilities = false;
             root.screenState.dashboard = false;
             root.screenState.cortetsuState?.closeRetainedOverlays();
-            panels.popouts.hasCurrent = false;
+            panels.popouts.close();
             bar.closeTray();
         }
     }

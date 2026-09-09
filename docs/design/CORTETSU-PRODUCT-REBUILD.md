@@ -51,8 +51,9 @@ brand accent is private to the mark; Indigo interaction, Vermillion danger, and
 green success remain the shared semantic UI roles.
 
 Attached and detached bar popups use the same single `CortetsuPopupSurface`.
-The detached wrapper owns only positioning, focus and click containment. It
-does not add a second background, border or radius around the loaded popup, so
+The detached wrapper owns only positioning and click containment, while the
+drawer `ContentWindow` owns detached focus and outside-click closure. It does
+not add a second background, border or radius around the loaded popup, so
 detaching a control changes placement without changing its product surface.
 
 ## Brightness contract

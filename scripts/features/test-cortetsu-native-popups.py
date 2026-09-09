@@ -62,6 +62,8 @@ assert "CortetsuSurface {" not in detached
 assert "radiusValue:" not in detached and "baseColor:" not in detached and "outlined:" not in detached
 assert "Keep clicks inside the detached surface" in detached
 assert "z: -1" in detached
+assert "HyprlandFocusGrab" not in wrapper
+assert content_window.count("panels.popouts.close();") >= 3
 panels = (ROOT / "cortetsu/modules/drawers/Panels.qml").read_text(encoding="utf-8")
 assert "CortetsuWindowInfoPopup" in panels
 popup_surface = (ROOT / "cortetsu/components/CortetsuPopupSurface.qml").read_text(encoding="utf-8")
