@@ -33,7 +33,7 @@ criteria = {
     "workspace state": "occupiedWorkspaceIds" in view and "activeWsId" in view,
     "centro adaptativo": "appRailMaxWidth" in view and "maxWidth: root.appRailMaxWidth" in view,
     "centro geometrico": "anchors.horizontalCenter: parent.horizontalCenter" in view,
-    "hover con escala contenida": "CortetsuDesign.hoverScale" in rail,
+    "hover pintado con hitbox estable": "hovered: appMouse.containsMouse" in rail and "scale: appMouse" not in rail,
     "animacion corta": "CortetsuDesign.motionFastMs" in rail,
     "tooltip compartido": all(
         "CortetsuTooltip" in text

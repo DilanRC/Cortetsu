@@ -16,9 +16,12 @@ Item {
 
     implicitHeight: CortetsuDesign.rowHeight
     opacity: disabled ? 0.46 : 1
-    scale: mouse.pressed ? 0.992 : 1
+    property real visualScale: mouse.pressed ? 0.992 : 1
+    // Keep the row's pointer bounds and layout stable. Only its painted
+    // content contracts for press feedback, matching CortetsuButton.
+    scale: 1
 
-    Behavior on scale {
+    Behavior on visualScale {
         NumberAnimation {
             duration: CortetsuDesign.motionInstantMs
             easing.type: Easing.OutCubic
@@ -44,6 +47,7 @@ Item {
         outlined: root.selected
         hovered: mouse.containsMouse
         pressed: mouse.pressed
+        scale: root.visualScale
     }
 
     Rectangle {
@@ -56,6 +60,7 @@ Item {
         radius: 1
         color: CortetsuDesign.colorWashi
         opacity: 0.88
+        scale: root.visualScale
     }
 
     Row {
@@ -63,6 +68,7 @@ Item {
         anchors.leftMargin: CortetsuDesign.spacingStandard
         anchors.rightMargin: CortetsuDesign.spacingStandard
         spacing: CortetsuDesign.spacingStandard
+        scale: root.visualScale
 
         Item {
             visible: root.icon.length > 0

@@ -327,6 +327,8 @@ test_cmd() {
         "scripts/features/eval-cortetsu-calendar-controls.py"
         "scripts/features/test-cortetsu-button-tooltip.py"
         "scripts/features/eval-cortetsu-button-tooltip.py"
+        "scripts/features/test-stable-interaction-bounds.py"
+        "scripts/features/eval-stable-interaction-bounds.py"
         "scripts/features/test-cortetsu-wallpaper-controls.py"
         "scripts/features/eval-cortetsu-wallpaper-controls.py"
         "scripts/features/test-cortetsu-product-design-foundation.py"

@@ -51,16 +51,6 @@ Item {
                     height: implicitHeight
                     focus: true
                     activeFocusOnTab: true
-                    scale: appMouse.pressed ? 0.97 : appMouse.containsMouse ? CortetsuDesign.hoverScale : 1
-
-                    Behavior on scale {
-                        NumberAnimation {
-                            duration: appMouse.pressed
-                                ? CortetsuDesign.motionInstantMs
-                                : CortetsuDesign.motionFastMs
-                            easing.type: Easing.OutCubic
-                        }
-                    }
 
                     CortetsuSurface {
                         anchors.fill: parent

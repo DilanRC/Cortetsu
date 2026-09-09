@@ -26,6 +26,12 @@ still required. It must not determine the final presentation.
   the layout or pointer bounds. Dense controls keep a stable hitbox while their
   surface gives visual feedback.
 
+This interaction contract is shared by `CortetsuButton`, `CortetsuListRow`, the
+BottomHub App Rail, utility actions and battery profile controls. Their root
+items remain fixed while hover and press feedback is painted by the owned
+surface, so keyboard focus, pointer handoff and dense layouts use the same
+geometry rule.
+
 ## Brand mark
 
 `cortetsu/assets/branding/cortetsu-mark.svg` is the selected forged C with an

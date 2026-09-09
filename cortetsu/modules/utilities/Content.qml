@@ -166,14 +166,9 @@ Item {
         implicitHeight: 88
         focus: true
         activeFocusOnTab: true
-        scale: actionLayer.pressed ? 0.985 : 1
-
-        Behavior on scale {
-            NumberAnimation {
-                duration: CortetsuDesign.motionInstantMs
-                easing.type: Easing.OutCubic
-            }
-        }
+        // The action layer supplies painted feedback while the item itself
+        // remains a stable keyboard and pointer target.
+        scale: 1
 
         CortetsuSurface {
             anchors.fill: parent
@@ -192,6 +187,8 @@ Item {
                         : Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.18)
             outlined: true
             focused: action.activeFocus
+            hovered: actionLayer.containsMouse
+            pressed: actionLayer.pressed
         }
 
         CortetsuStateLayer {

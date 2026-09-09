@@ -155,7 +155,8 @@ def assert_view_contract(source: dict[str, str]) -> None:
         "signal cycleRequested(string key, int direction)",
     ):
         assert signal in rail
-    assert "CortetsuDesign.hoverScale" in rail
+    assert "hovered: appMouse.containsMouse" in rail
+    assert "scale: appMouse" not in rail
     assert "width: implicitWidth" in rail
     assert "modelData.title" in rail
     assert "CortetsuTooltip" in rail

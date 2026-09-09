@@ -194,14 +194,10 @@ CortetsuPopupSurface {
         implicitHeight: 68
         focus: true
         activeFocusOnTab: true
-        scale: stateLayer.pressed ? 0.985 : 1
-
-        Behavior on scale {
-            NumberAnimation {
-                duration: CortetsuDesign.motionInstantMs
-                easing.type: Easing.OutCubic
-            }
-        }
+        // Keep the profile target fixed while the shared surface paints the
+        // pressed state. This prevents profile selection from moving under
+        // the pointer during a press.
+        scale: 1
 
         CortetsuSurface {
             anchors.fill: parent
@@ -216,6 +212,8 @@ CortetsuPopupSurface {
                     : Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.18)
             outlined: true
             focused: profileButton.activeFocus
+            hovered: stateLayer.containsMouse
+            pressed: stateLayer.pressed
         }
 
         CortetsuStateLayer {
