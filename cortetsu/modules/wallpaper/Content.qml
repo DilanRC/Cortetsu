@@ -20,9 +20,12 @@ FocusScope {
     property string selectedCategory: "ALL"
     property int currentIndex: -1
     property int windowIndex: -1
+    property int motionTargetIndex: -1
     property int queuedDirection: 0
     property bool animating: false
     property real orbitPhase: 0
+    property var motionEntries: []
+    property int motionOrbitCount: 0
     property real wheelAccumulator: 0
     property string pendingPreviewPath: ""
     property bool previewActive: false
@@ -31,10 +34,11 @@ FocusScope {
     property real newHeroOpacity: 1
     property real oldHeroOpacity: 0
     readonly property int visibleLimit: Math.max(1, Math.min(12, Math.floor((width - 104) / 102)))
-    readonly property int orbitExcludedIndex: animating ? windowIndex : currentIndex
-    readonly property var orbitEntries: Orbit.satellites(filteredEntries, windowIndex, orbitExcludedIndex, visibleLimit)
-    readonly property var prefetchEntries: Orbit.prefetch(filteredEntries, currentIndex, visibleLimit + 6)
-    readonly property var currentEntry: currentIndex >= 0 ? filteredEntries[currentIndex] : null
+    readonly property int displayIndex: animating && motionTargetIndex >= 0 ? motionTargetIndex : currentIndex
+    readonly property var restingOrbitEntries: Orbit.satellites(filteredEntries, windowIndex, currentIndex, visibleLimit)
+    readonly property var orbitEntries: animating ? motionEntries : restingOrbitEntries
+    readonly property var prefetchEntries: Orbit.prefetch(filteredEntries, displayIndex, visibleLimit + 6)
+    readonly property var currentEntry: displayIndex >= 0 ? filteredEntries[displayIndex] : null
     readonly property string currentPath: currentEntry?.path ?? ""
     readonly property bool currentApplied: !!currentPath && currentPath === CortetsuWallpapers.actualCurrent
     property bool presentationReady: false
@@ -66,6 +70,17 @@ FocusScope {
         previewActive = false;
     }
 
+    function cancelMotion(): void {
+        motionTargetIndex = -1;
+        queuedDirection = 0;
+        animating = false;
+        motionEntries = [];
+        motionOrbitCount = 0;
+        if (orbitMotion.running)
+            orbitMotion.stop();
+        orbitPhase = 0;
+    }
+
     function updateHero(): void {
         if (!currentPath || currentPath === heroPath)
             return;
@@ -79,6 +94,7 @@ FocusScope {
 
     function resync(): void {
         cancelPreview();
+        cancelMotion();
         entries = CortetsuWallpapers.list ? Array.from(CortetsuWallpapers.list) : [];
         categoryNames = Orbit.categories(entries, categoryFor);
         if (!categoryNames.includes(selectedCategory))
@@ -87,8 +103,6 @@ FocusScope {
         const actual = Orbit.resolveCurrentIndex(filteredEntries, CortetsuWallpapers.actualCurrent);
         currentIndex = Orbit.normalize(actual >= 0 ? actual : 0, filteredEntries.length);
         windowIndex = currentIndex;
-        queuedDirection = 0;
-        orbitPhase = 0;
         updateHero();
     }
 
@@ -124,15 +138,29 @@ FocusScope {
         const count = filteredEntries.length;
         if (!count || target === currentIndex || animating)
             return;
+
         const steps = Orbit.shortestSteps(currentIndex, target, count);
         if (!steps)
             return;
-        const stableOrbitCount = Math.max(1, orbitEntries.length);
+
+        const snapshot = restingOrbitEntries.slice();
+        if (!snapshot.length) {
+            currentIndex = target;
+            windowIndex = target;
+            updateHero();
+            queuePreview();
+            return;
+        }
+
+        motionEntries = snapshot;
+        motionOrbitCount = Math.max(1, snapshot.length);
+        motionTargetIndex = target;
+        orbitPhase = 0;
         animating = true;
-        currentIndex = target;
         updateHero();
         queuePreview();
-        orbitMotion.to = -steps * Orbit.angularStep(stableOrbitCount);
+        orbitMotion.from = 0;
+        orbitMotion.to = -steps * Orbit.angularStep(motionOrbitCount);
         orbitMotion.restart();
     }
 
@@ -144,13 +172,12 @@ FocusScope {
 
     function selectCategory(category): void {
         cancelPreview();
+        cancelMotion();
         selectedCategory = category;
         filteredEntries = Orbit.filtered(entries, category, categoryFor);
         const actual = Orbit.resolveCurrentIndex(filteredEntries, CortetsuWallpapers.actualCurrent);
         currentIndex = Orbit.normalize(actual >= 0 ? actual : 0, filteredEntries.length);
         windowIndex = currentIndex;
-        queuedDirection = 0;
-        orbitPhase = 0;
         updateHero();
     }
 
@@ -190,7 +217,10 @@ FocusScope {
         forceActiveFocus();
     }
 
-    function closeManager(): void { cancelPreview(); }
+    function closeManager(): void {
+        cancelPreview();
+        cancelMotion();
+    }
 
     component OrbitButton: CortetsuSurface {
         id: button
@@ -236,7 +266,10 @@ FocusScope {
     }
 
     onCurrentPathChanged: updateHero()
-    Component.onDestruction: cancelPreview()
+    Component.onDestruction: {
+        cancelPreview();
+        cancelMotion();
+    }
 
     Timer {
         id: previewTimer
@@ -262,9 +295,18 @@ FocusScope {
         duration: 340
         easing.type: Easing.OutCubic
         onStopped: {
-            root.windowIndex = root.currentIndex;
-            root.orbitPhase = 0;
+            const target = root.motionTargetIndex;
+            if (target >= 0) {
+                root.currentIndex = target;
+                root.windowIndex = target;
+            }
+
+            root.motionTargetIndex = -1;
             root.animating = false;
+            root.orbitPhase = 0;
+            root.motionEntries = [];
+            root.motionOrbitCount = 0;
+
             if (root.queuedDirection) {
                 const direction = root.queuedDirection;
                 root.queuedDirection = 0;
@@ -497,7 +539,7 @@ FocusScope {
                     readonly property real radiusX: Math.min(orbitRegion.width * 0.42, 265)
                     readonly property real radiusY: Math.min(orbitRegion.height * 0.52, 195)
                     readonly property bool hovered: satelliteMouse.containsMouse
-                    readonly property bool selected: satellite.modelData.index === root.currentIndex
+                    readonly property bool selected: satellite.modelData.index === root.displayIndex
                     readonly property bool applied: satellite.modelData.entry.path === CortetsuWallpapers.actualCurrent
                     width: 82
                     height: 82
@@ -616,7 +658,7 @@ FocusScope {
             }
             CortetsuText {
                 width: Math.min(440, panel.width - 48)
-                text: root.currentEntry ? qsTr("%1  ·  %2  ·  %3/%4").arg(root.currentApplied ? qsTr("Applied") : (root.previewActive ? qsTr("Previewing") : qsTr("Selected"))).arg(root.categoryFor(root.currentEntry)).arg(root.currentIndex + 1).arg(root.filteredEntries.length) : qsTr("Add images to the native wallpaper directory")
+                text: root.currentEntry ? qsTr("%1  ·  %2  ·  %3/%4").arg(root.currentApplied ? qsTr("Applied") : (root.previewActive ? qsTr("Previewing") : qsTr("Selected"))).arg(root.categoryFor(root.currentEntry)).arg(root.displayIndex + 1).arg(root.filteredEntries.length) : qsTr("Add images to the native wallpaper directory")
                 horizontalAlignment: Text.AlignHCenter
                 color: CortetsuDesign.colorOnSurfaceVariant
                 textSize: CortetsuTypography.labelMediumPx
