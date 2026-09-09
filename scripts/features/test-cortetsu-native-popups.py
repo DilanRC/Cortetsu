@@ -6,6 +6,7 @@ popouts = ROOT / "cortetsu/modules/bar/popouts"
 content = (ROOT / "cortetsu/base/modules/bar/popouts/Content.qml").read_text(encoding="utf-8")
 hub = (ROOT / "cortetsu/modules/BottomHub.qml").read_text(encoding="utf-8")
 wrapper = (ROOT / "cortetsu/modules/bar/popouts/Wrapper.qml").read_text(encoding="utf-8")
+detached = (popouts / "CortetsuDetachedPopup.qml").read_text(encoding="utf-8")
 content_window = (ROOT / "cortetsu/modules/drawers/ContentWindow.qml").read_text(encoding="utf-8")
 interactions = (ROOT / "cortetsu/modules/drawers/Interactions.qml").read_text(encoding="utf-8")
 status_segment = (ROOT / "cortetsu/modules/CortetsuStatusSegment.qml").read_text(encoding="utf-8")
@@ -55,6 +56,12 @@ assert 'onClicked: root.detachedControlRequested("bluetooth")' not in status_seg
 assert "sourceComponent: CortetsuDetachedPopup" in wrapper
 assert "sourceComponent: Rectangle" not in wrapper
 assert "Nexus" not in wrapper
+assert detached.lstrip().startswith("import QtQuick")
+assert "\nItem {" in detached
+assert "CortetsuSurface {" not in detached
+assert "radiusValue:" not in detached and "baseColor:" not in detached and "outlined:" not in detached
+assert "Keep clicks inside the detached surface" in detached
+assert "z: -1" in detached
 panels = (ROOT / "cortetsu/modules/drawers/Panels.qml").read_text(encoding="utf-8")
 assert "CortetsuWindowInfoPopup" in panels
 popup_surface = (ROOT / "cortetsu/components/CortetsuPopupSurface.qml").read_text(encoding="utf-8")

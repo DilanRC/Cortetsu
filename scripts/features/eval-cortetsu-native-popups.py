@@ -15,6 +15,11 @@ assert ': "lan"' in network
 popup_surface = (ROOT / "cortetsu/components/CortetsuPopupSurface.qml").read_text(encoding="utf-8")
 assert "CortetsuSurface" in popup_surface
 assert "CortetsuDesign.radiusLarge" in popup_surface
+detached = (popouts / "CortetsuDetachedPopup.qml").read_text(encoding="utf-8")
+assert "\nItem {" in detached
+assert "CortetsuSurface {" not in detached
+assert "radiusValue:" not in detached and "baseColor:" not in detached and "outlined:" not in detached
+assert "MouseArea" in detached and "z: -1" in detached
 assert (ROOT / "cortetsu/base/modules/bar/popouts/Content.qml").is_file()
 password = (popouts / "CortetsuWifiPasswordPopup.qml").read_text(encoding="utf-8")
 assert password.count("CortetsuButton") >= 2
