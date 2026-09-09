@@ -59,6 +59,10 @@ for path in (
     assert "CortetsuDesign.labelSmallPx" not in text
 
 for path in (components / "CortetsuIcon.qml", ROOT / "cortetsu/modules/CortetsuIcon.qml"):
-    assert "color: CortetsuDesign.colorOnSurface" in path.read_text(encoding="utf-8")
+    text = path.read_text(encoding="utf-8")
+    assert "color: CortetsuDesign.colorOnSurface" in text
+    assert "duration: CortetsuDesign.motionFastMs" in text
+    assert "duration: CortetsuDesign.motionStandardMs" in text
+    assert "duration: 70" not in text and "duration: 160" not in text
 
 print("PASS: Cortetsu design primitives expose shared tokens, states and popup focus contract")

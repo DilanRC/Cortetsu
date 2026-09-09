@@ -25,9 +25,9 @@ Text {
     Behavior on text {
         enabled: root.animate
         SequentialAnimation {
-            NumberAnimation { target: root; property: "opacity"; to: 0; duration: 70 }
+            NumberAnimation { target: root; property: "opacity"; to: 0; duration: CortetsuDesign.motionFastMs }
             PropertyAction {}
-            NumberAnimation { target: root; property: "opacity"; to: 1; duration: 160 }
+            NumberAnimation { target: root; property: "opacity"; to: 1; duration: CortetsuDesign.motionStandardMs }
         }
     }
 }
