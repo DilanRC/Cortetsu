@@ -138,7 +138,11 @@ def main() -> None:
     require(status, "visible: root.networkVisible", "network visibility binding")
     require(status, "visible: root.bluetoothVisible", "Bluetooth visibility binding")
     require(status, "visible: root.batteryVisible", "battery visibility binding")
-    require(status, "HoverHandler {", "system hover island handler")
+    require(status, "function anySystemControlHovered(): bool", "system hover state")
+    require(status, "function syncSystemControlHover(): void", "system hover exit bridge")
+    require(status, "root.syncSystemControlHover();", "button-owned hover exit")
+    for marker in ("volumeButton.hovered", "networkButton.hovered", "bluetoothButton.hovered", "batteryButton.hovered"):
+        require(status, marker, "all system controls participate in hover ownership")
     require(status, "root.attachedControlExited();", "single island exit")
     require(status, 'root.attachedControlEntered("audio", root.centerFor(volumeButton))', "anchored audio hover")
     require(status, 'root.attachedControlEntered("network", root.centerFor(networkButton))', "anchored network hover")
