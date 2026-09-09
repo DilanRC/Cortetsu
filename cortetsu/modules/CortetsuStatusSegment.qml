@@ -38,7 +38,7 @@ Item {
     signal sessionRequested()
 
     function centerFor(item): real {
-        return systemControls.x + item.x + item.width / 2;
+        return statusRow.x + systemControls.x + item.x + item.width / 2;
     }
 
     implicitWidth: statusRow.implicitWidth + CortetsuDesign.spacingUnit
@@ -70,7 +70,7 @@ Item {
         spacing: 1
 
         // The four attached system controls form one hover island. Closing on
-        // each individual button's exit caused an enter/exit race while moving
+        // each individual button exit caused an enter/exit race while moving
         // between adjacent icons and while crossing into the popup window.
         Row {
             id: systemControls
