@@ -4,6 +4,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import "."
+import "../services"
 import "CortetsuWallpaperSearch.js" as WallpaperSearch
 
 Singleton {
@@ -80,6 +81,7 @@ Singleton {
         previewPath = "";
         previewSchemeJson = "";
         previewColourLock = false;
+        CortetsuColours.clearPreview();
     }
 
     Component.onCompleted: reload()
@@ -112,8 +114,11 @@ Singleton {
         property int requestGeneration: -1
         stdout: StdioCollector {
             onStreamFinished: {
-                if (previewPalette.requestGeneration === root.previewGeneration && root.showPreview)
+                if (previewPalette.requestGeneration === root.previewGeneration && root.showPreview) {
                     root.previewSchemeJson = text;
+                    if (CortetsuConfig.smartScheme)
+                        CortetsuColours.load(text, true);
+                }
             }
         }
     }

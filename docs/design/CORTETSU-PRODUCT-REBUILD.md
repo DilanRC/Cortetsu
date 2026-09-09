@@ -137,6 +137,16 @@ or `Applied`, with an Indigo focus outline and a distinct healthy secondary
 state for an applied wallpaper. Left/Right and Up/Down remain keyboard-first;
 Enter/Space apply and Escape closes the surface.
 
+## Wallpaper-aware colour bridge
+
+The wallpaper colour daemon writes a validated M3 scheme to the Cortetsu XDG
+state directory. `CortetsuColours` watches that file and exposes the current
+palette reactively to compatibility surfaces, while the Wallpaper Manager can
+temporarily bind a preview palette during selection. Invalid or missing values
+fall back to the generated Sumi/Tetsu/Washi contract. Preview state is cleared
+when the manager closes or applies a wallpaper, and the `Smart scheme` setting
+controls whether preview colours are adopted.
+
 ## Hover surface ownership
 
 BottomHub attached controls now pass through one `CortetsuHoverSurfaceController`.
