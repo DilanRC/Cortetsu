@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 from pathlib import Path
 
 repo = Path(__file__).resolve().parents[2]
@@ -14,6 +13,7 @@ screens_service = (repo / "cortetsu/services/Screens.qml").read_text(encoding="u
 background = (repo / "cortetsu/modules/background/Background.qml").read_text(encoding="utf-8")
 content_window_patch = (repo / "cortetsu/modules/drawers/ContentWindow.qml").read_text(encoding="utf-8")
 interactions = (repo / "cortetsu/modules/drawers/Interactions.qml").read_text(encoding="utf-8")
+retained_host = (repo / "cortetsu/modules/RetainedSurfacesHost.qml").read_text(encoding="utf-8")
 scrim_patch = content_window_patch
 shortcuts = (repo / "cortetsu/modules/Shortcuts.qml").read_text(encoding="utf-8")
 calendar = (repo / "cortetsu/modules/CalendarController.qml").read_text(encoding="utf-8")
@@ -67,6 +67,15 @@ assert "import Caelestia" not in screen_component
 for marker in ("registerState", "unregisterState", "registerComponents", "unregisterComponents", "CortetsuHypr.focusedMonitor"):
     assert marker in shell_state, marker
 assert "function anySidebarOpen" in shell_state
+
+# Every retained overlay window is monitor-owned. Using forActive() in a
+# Variants delegate makes all monitor windows mirror the currently focused
+# monitor and can create duplicate input owners on multi-monitor sessions.
+assert "model: CortetsuScreens.screens" in retained_host
+assert "CortetsuShellState.forScreen(modelData)" in retained_host
+assert "CortetsuShellState.forActive()" not in retained_host
+assert "Qt.alpha(CortetsuDesign.colorSumi, 0.78)" in retained_host
+
 assert "cortetsuState" in calendar
 assert 'state.setRetained("calendar", false)' in calendar
 assert 'state.setRetained("calendar", true)' in calendar
@@ -82,7 +91,7 @@ for flag, controller in controllers.items():
     assert "cortetsuState" in controller, flag
     assert f'setRetained("{flag}"' in controller, flag
     assert f"CortetsuShellState.forScreen(screen)?.{flag}" not in controller, flag
-assert "OverlayPolicy.close" in controller, flag
+    assert "OverlayPolicy.close" in controller, flag
 assert 'state.setRetained("calendar"' in hub
 assert 'state.setRetained("wallpaperManager"' in hub
 assert "OverlayPolicy.closeOtherPanels(state.legacyState)" in hub
@@ -113,4 +122,4 @@ for content_file, flag in (
 ):
     content_text = (repo / "cortetsu/modules" / content_file).read_text(encoding="utf-8")
     assert f'cortetsuState?.setRetained("{flag}", false)' in content_text, content_file
-print("PASS: Cortetsu screen state and overlay policy preserve the legacy boundary")
+print("PASS: Cortetsu screen state and overlay policy preserve monitor-local ownership and the legacy boundary")
