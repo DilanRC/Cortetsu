@@ -40,7 +40,12 @@ Scope {
                 baseColor: Qt.alpha(CortetsuDesign.colorTetsu, 0.985)
                 radiusValue: CortetsuDesign.radiusSurface
                 outlined: true
-                Wrapper { anchors.fill: parent; anchors.margins: CortetsuDesign.spacingSpacious; screenState: window.screenState }
+                Wrapper {
+                    anchors.fill: parent
+                    anchors.margins: CortetsuDesign.spacingSpacious
+                    screenState: window.screenState
+                    screen: window.modelData
+                }
             }
         }
     }
