@@ -7,6 +7,7 @@ import "../CortetsuTypography.js" as CortetsuTypography
 import QtCore
 import Quickshell
 import Quickshell.Io
+import "../../components"
 
 FocusScope {
     id: root
@@ -112,6 +113,10 @@ FocusScope {
             root.currentPage = event.key - Qt.Key_1;
             event.accepted = true;
         }
+    }
+
+    function selectAdjacentTab(delta): void {
+        root.currentPage = Math.max(0, Math.min(8, root.currentPage + delta));
     }
 
     Timer {
@@ -291,51 +296,17 @@ FocusScope {
                         { label: qsTr("Keys"), icon: "keyboard" }
                     ]
 
-                    delegate: Item {
+                    delegate: CortetsuTab {
                         required property var modelData
-                        required property int index
                         width: (tabs.width - tabs.spacing * 8) / 9
                         height: tabs.height
-
-                        CortetsuSurface {
-                            anchors.fill: parent
-                            radiusValue: CortetsuDesign.radiusMedium
-                            baseColor: root.currentPage === index
-                                ? Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.76)
-                                : tabLayer.containsMouse
-                                    ? CortetsuDesign.colorSurfaceGlass
-                                    : "transparent"
-                            outlined: false
-                        }
-
-                        CortetsuStateLayer {
-                            id: tabLayer
-                            anchors.fill: parent
-                            radius: CortetsuDesign.radiusMedium
-                            onClicked: root.currentPage = index
-                        }
-
-                        Row {
-                            anchors.centerIn: parent
-                            spacing: 5
-
-                            CortetsuIcon {
-                                text: modelData.icon
-                                color: root.currentPage === index
-                                    ? CortetsuDesign.colorOnPrimaryContainer
-                                    : CortetsuDesign.colorOnSurfaceVariant
-                                iconSize: CortetsuTypography.iconSmallPx
-                            }
-
-                            CortetsuText {
-                                text: modelData.label
-                                color: root.currentPage === index
-                                    ? CortetsuDesign.colorOnPrimaryContainer
-                                    : CortetsuDesign.colorOnSurfaceVariant
-                                textSize: CortetsuTypography.labelSmallPx
-                                font.weight: root.currentPage === index ? Font.DemiBold : Font.Normal
-                            }
-                        }
+                        label: modelData.label
+                        icon: modelData.icon
+                        selected: root.currentPage === index
+                        count: 9
+                        onActivated: root.currentPage = index
+                        onPreviousRequested: root.selectAdjacentTab(-1)
+                        onNextRequested: root.selectAdjacentTab(1)
                     }
                 }
             }

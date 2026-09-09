@@ -12,6 +12,7 @@ required = (
     "CortetsuChoiceCard.qml",
     "CortetsuActionTile.qml",
     "CortetsuActionRow.qml",
+    "CortetsuTab.qml",
     "CortetsuSectionHeader.qml",
     "CortetsuTooltip.qml",
     "containers/CortetsuPopupHost.qml",

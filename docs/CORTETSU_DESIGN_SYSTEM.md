@@ -16,7 +16,7 @@ is the interaction accent, and vermillion is reserved for attention and danger.
 ## Component rules
 
 `CortetsuButton`, `CortetsuToggle`, `CortetsuSlider`, `CortetsuListRow`,
-`CortetsuChoiceCard`, `CortetsuActionTile`, `CortetsuActionRow` and
+`CortetsuChoiceCard`, `CortetsuActionTile`, `CortetsuActionRow`, `CortetsuTab` and
 `CortetsuSectionHeader` define the shared interaction states. They expose
 signals instead of reaching into services, so a popup can bind them to the
 existing first-party backend without coupling presentation and capability.
@@ -24,7 +24,7 @@ existing first-party backend without coupling presentation and capability.
 Every interactive component has a disabled state, hover state, pressed state,
 and a visible selected/active state where applicable. `CortetsuButton`,
 `CortetsuListRow`, `CortetsuChoiceCard`, `CortetsuActionTile` and
-`CortetsuActionRow` also opt into tab focus and activate with Enter, Return or
+`CortetsuActionRow` and `CortetsuTab` also opt into tab focus and activate with Enter, Return or
 Space. `CortetsuActionTile` additionally supports a status-only mode through
 `clickable: false`, preserving the same visual state contract without claiming
 an unavailable backend action. `CortetsuActionRow` exposes danger and selected
