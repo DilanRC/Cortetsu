@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
 import qs.components
@@ -159,6 +160,12 @@ Item {
                 contentWidth: width
                 contentHeight: Math.max(height, page.implicitHeight)
                 boundsBehavior: Flickable.StopAtBounds
+
+                ScrollBar.vertical: ScrollBar {
+                    policy: scroller.contentHeight > scroller.height
+                        ? ScrollBar.AsNeeded
+                        : ScrollBar.AlwaysOff
+                }
 
                 ColumnLayout {
                     id: page

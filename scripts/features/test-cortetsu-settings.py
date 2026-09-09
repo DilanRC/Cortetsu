@@ -68,6 +68,9 @@ assert "Schemes.catalogCount" in content
 assert "Quickshell.execDetached([\"cortetsu-scheme\", \"set\"" not in content
 assert "Layout.preferredHeight: childrenRect.height" in content
 assert "implicitHeight: childrenRect.height" not in content
+assert "import QtQuick.Controls" in content
+assert "ScrollBar.vertical" in content
+assert "scroller.contentHeight > scroller.height" in content
 
 # User overrides agree with canonical first-party bindings, avoiding a double-open
 # of Utilities plus QSD/Settings for the same keystroke.

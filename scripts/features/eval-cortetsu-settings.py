@@ -22,5 +22,7 @@ assert "Schemes.catalogCount" in content
 assert "Schemes.currentScheme" in content
 assert "Layout.preferredHeight: childrenRect.height" in content
 assert "implicitHeight: childrenRect.height" not in content
+assert "ScrollBar.vertical" in content
+assert "ScrollBar.AsNeeded" in content
 
 print("PASS: Settings Center has navigation, live connected pages, honest backend boundaries and scheme ownership")
