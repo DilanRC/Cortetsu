@@ -1,6 +1,8 @@
 .pragma library
 
-// One policy keeps all large retained overlays mutually exclusive.
+// One policy keeps large Cortetsu surfaces mutually exclusive. Retained and
+// transient first-party surfaces must not be able to stack into competing
+// input owners.
 function closeOtherPanels(state) {
     if (!state)
         return;
@@ -8,6 +10,10 @@ function closeOtherPanels(state) {
     state.session = false;
     state.dashboard = false;
     state.utilities = false;
+    if (state.qsd !== undefined)
+        state.qsd = false;
+    if (state.settings !== undefined)
+        state.settings = false;
     state.sidebar = false;
     state.overview = false;
     if (state.calendar !== undefined)
@@ -28,6 +34,10 @@ function closeForWallpaper(state) {
     state.session = false;
     state.dashboard = false;
     state.utilities = false;
+    if (state.qsd !== undefined)
+        state.qsd = false;
+    if (state.settings !== undefined)
+        state.settings = false;
     state.sidebar = false;
     state.overview = false;
     if (state.calendar !== undefined)
@@ -42,5 +52,6 @@ function closeForWallpaper(state) {
 
 function hasCompetingPanel(state) {
     return !!state && (state.launcher || state.session || state.dashboard || state.utilities
-        || state.sidebar || state.overview || state.calendar || state.clipboard || state.hardware || state.displayManager);
+        || state.qsd || state.settings || state.sidebar || state.overview || state.calendar
+        || state.clipboard || state.hardware || state.displayManager);
 }
