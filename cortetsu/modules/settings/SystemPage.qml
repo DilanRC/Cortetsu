@@ -396,13 +396,6 @@ Item {
                 onChanged: checked => CortetsuConfig.useFuzzyActions = checked
             }
 
-            PreferenceToggle {
-                title: qsTr("Open on hover")
-                detail: qsTr("Allow the launcher surface to respond to configured hover zones")
-                icon: "ads_click"
-                checked: CortetsuConfig.launcher.showOnHover
-                onChanged: checked => CortetsuConfig.launcher.showOnHover = checked
-            }
         }
 
         ColumnLayout {

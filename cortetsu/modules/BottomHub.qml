@@ -336,7 +336,9 @@ Scope {
                 || (screenState?.session ?? false)
                 || (cortetsuState?.calendar ?? false)
             readonly property int hubMargin: 8
-            readonly property int activeWsId: monitor?.activeWorkspace?.id ?? CortetsuHypr.activeWsId
+            readonly property int activeWsId: CortetsuConfig.bar.workspaces.perMonitorWorkspaces
+                ? monitor?.activeWorkspace?.id ?? CortetsuHypr.activeWsId
+                : CortetsuHypr.activeWsId
             readonly property int workspaceCount: CortetsuConfig.workspacesShown
             readonly property int workspaceOffset: Math.floor((activeWsId - 1) / workspaceCount) * workspaceCount
             readonly property var occupiedWorkspaceIds: CortetsuHypr.workspaces.values

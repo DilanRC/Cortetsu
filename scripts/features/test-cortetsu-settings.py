@@ -55,6 +55,7 @@ assert 'root.openRetained("wallpaperManager")' in system
 assert "Native NetworkManager readback; no fake controls" in system
 assert 'title: qsTr("Volume scroll")' in system
 assert 'title: qsTr("Brightness scroll")' not in system
+assert 'title: qsTr("Open on hover")' not in system
 
 # Scheme selection is a single owned transaction and refreshes the active highlight.
 for marker in (
