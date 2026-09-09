@@ -385,6 +385,8 @@ test_cmd() {
         "scripts/features/test-config-migration.py"
         "scripts/features/test-legacy-process-migration.py"
         "scripts/features/test-hyprland-import.py"
+        "scripts/features/test-hyprland-import-ci.py"
+        "scripts/features/eval-hyprland-import-ci.py"
         "scripts/features/test-hyprland-self-contained.py"
         "scripts/features/test-zero-caelestia-gate.py"
         "scripts/features/test-shortcut-namespace.py"
