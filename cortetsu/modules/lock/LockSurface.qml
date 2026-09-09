@@ -177,7 +177,7 @@ WlSessionLockSurface {
             CortetsuSurface {
                 Layout.fillWidth: true
                 implicitHeight: 48
-                radiusValue: CortetsuDesign.radiusControl
+                radiusValue: CortetsuDesign.radiusMedium
                 baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.68)
                 outlined: true
 
@@ -203,7 +203,7 @@ WlSessionLockSurface {
             CortetsuSurface {
                 Layout.fillWidth: true
                 implicitHeight: 48
-                radiusValue: CortetsuDesign.radiusControl
+                radiusValue: CortetsuDesign.radiusMedium
                 baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.68)
                 outlined: true
 
