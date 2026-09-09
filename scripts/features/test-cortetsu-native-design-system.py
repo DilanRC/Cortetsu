@@ -9,6 +9,8 @@ required = (
     "CortetsuToggle.qml",
     "CortetsuSlider.qml",
     "CortetsuListRow.qml",
+    "CortetsuChoiceCard.qml",
+    "CortetsuActionTile.qml",
     "CortetsuSectionHeader.qml",
     "CortetsuTooltip.qml",
     "containers/CortetsuPopupHost.qml",

@@ -39,88 +39,6 @@ Item {
         root.screenState.settings = true;
     }
 
-    component QuickTile: CortetsuSurface {
-        id: tile
-
-        required property string label
-        required property string icon
-        property string detail: ""
-        property bool highlighted: false
-        property bool warning: false
-        property bool clickable: true
-        signal activated()
-
-        implicitHeight: 76
-        radiusValue: CortetsuDesign.radiusMedium
-        baseColor: warning
-            ? Qt.alpha(CortetsuDesign.colorWarning, 0.10)
-            : highlighted
-                ? Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.64)
-                : Qt.alpha(CortetsuDesign.colorSurfaceGlassStrong, 0.78)
-        hoverColor: warning
-            ? Qt.alpha(CortetsuDesign.colorWarning, 0.16)
-            : highlighted
-                ? Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.82)
-                : Qt.alpha(CortetsuDesign.colorSurfaceHigh, 0.92)
-        outlineColor: warning
-            ? Qt.alpha(CortetsuDesign.colorWarning, 0.44)
-            : highlighted
-                ? Qt.alpha(CortetsuDesign.colorPrimary, 0.38)
-                : Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.52)
-        outlined: true
-
-        RowLayout {
-            anchors.fill: parent
-            anchors.margins: CortetsuDesign.spacingStandard
-            spacing: CortetsuDesign.spacingStandard
-
-            CortetsuIcon {
-                text: tile.icon
-                iconSize: CortetsuTypography.iconMediumPx
-                color: tile.warning
-                    ? CortetsuDesign.colorWarning
-                    : tile.highlighted
-                        ? CortetsuDesign.colorPrimary
-                        : CortetsuDesign.colorOnSurface
-            }
-
-            ColumnLayout {
-                Layout.fillWidth: true
-                spacing: 1
-
-                CortetsuText {
-                    Layout.fillWidth: true
-                    text: tile.label
-                    textSize: CortetsuTypography.bodyPx
-                    font.weight: Font.DemiBold
-                    elide: Text.ElideRight
-                }
-
-                CortetsuText {
-                    Layout.fillWidth: true
-                    text: tile.detail
-                    textSize: CortetsuTypography.labelSmallPx
-                    color: CortetsuDesign.colorOnSurfaceVariant
-                    elide: Text.ElideRight
-                }
-            }
-        }
-
-        MouseArea {
-            anchors.fill: parent
-            enabled: tile.clickable
-            hoverEnabled: true
-            cursorShape: tile.clickable ? Qt.PointingHandCursor : Qt.ArrowCursor
-            onEntered: tile.hovered = true
-            onExited: {
-                tile.hovered = false;
-                tile.pressed = false;
-            }
-            onPressedChanged: tile.pressed = pressed
-            onClicked: tile.activated()
-        }
-    }
-
     ColumnLayout {
         anchors.fill: parent
         spacing: CortetsuDesign.spacingStandard
@@ -182,7 +100,7 @@ Item {
             rowSpacing: CortetsuDesign.spacingCompact
             columnSpacing: CortetsuDesign.spacingCompact
 
-            QuickTile {
+            CortetsuActionTile {
                 Layout.fillWidth: true
                 label: CortetsuAudio.muted ? qsTr("Sound muted") : qsTr("Sound")
                 detail: CortetsuAudio.muted ? qsTr("Tap to unmute") : qsTr("Volume %1%").arg(root.volumePercent)
@@ -193,7 +111,7 @@ Item {
                     CortetsuAudio.sink.audio.muted = !CortetsuAudio.sink.audio.muted
             }
 
-            QuickTile {
+            CortetsuActionTile {
                 Layout.fillWidth: true
                 label: CortetsuNotifications.dnd ? qsTr("Do Not Disturb") : qsTr("Notifications")
                 detail: CortetsuNotifications.dnd ? qsTr("Silenced") : qsTr("Allowed")
@@ -203,7 +121,7 @@ Item {
                 onActivated: CortetsuNotifications.dnd = !CortetsuNotifications.dnd
             }
 
-            QuickTile {
+            CortetsuActionTile {
                 Layout.fillWidth: true
                 label: qsTr("Bluetooth")
                 detail: root.bluetoothEnabled
@@ -218,7 +136,7 @@ Item {
                     Bluetooth.defaultAdapter.enabled = !Bluetooth.defaultAdapter.enabled
             }
 
-            QuickTile {
+            CortetsuActionTile {
                 Layout.fillWidth: true
                 label: root.networkName
                 detail: root.networkDetail

@@ -2,6 +2,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 content = (ROOT / "cortetsu/modules/qsd/Content.qml").read_text(encoding="utf-8")
+action_tile = (ROOT / "cortetsu/components/CortetsuActionTile.qml").read_text(encoding="utf-8")
 host = (ROOT / "cortetsu/modules/QsdHost.qml").read_text(encoding="utf-8")
 policy = (ROOT / "cortetsu/modules/CortetsuOverlayPolicy.js").read_text(encoding="utf-8")
 
@@ -18,5 +19,9 @@ assert "onMoved: CortetsuAudio.setVolume(value)" not in content
 assert "root.screenState.settings = true" in content
 assert '"qsd"' in policy
 assert "import qs." not in content
+assert "CortetsuActionTile" in content
+assert "activeFocusOnTab" in action_tile and "Keys.onSpacePressed" in action_tile
+assert "property bool warning" in action_tile
+assert "onEntered: tile.hovered = true" not in content
 
 print("PASS: QSD eval covers lateral motion, semantic tiles, real levels, Bluetooth, power, settings handoff and overlay exclusion")

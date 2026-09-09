@@ -15,15 +15,19 @@ is the interaction accent, and vermillion is reserved for attention and danger.
 
 ## Component rules
 
-`CortetsuButton`, `CortetsuToggle`, `CortetsuSlider`, `CortetsuListRow` and
-`CortetsuSectionHeader` define the shared interaction states. They expose
-signals instead of reaching into services, so a popup can bind them to the
-existing first-party backend without coupling presentation and capability.
+`CortetsuButton`, `CortetsuToggle`, `CortetsuSlider`, `CortetsuListRow`,
+`CortetsuChoiceCard`, `CortetsuActionTile` and `CortetsuSectionHeader` define
+the shared interaction states. They expose signals instead of reaching into
+services, so a popup can bind them to the existing first-party backend without
+coupling presentation and capability.
 
 Every interactive component has a disabled state, hover state, pressed state,
-and a visible selected/active state where applicable. `CortetsuButton` and
-`CortetsuListRow` also opt into tab focus and activate with Enter, Return or
-Space. Popup hosts still own Escape and outside-click dismissal.
+and a visible selected/active state where applicable. `CortetsuButton`,
+`CortetsuListRow`, `CortetsuChoiceCard` and `CortetsuActionTile` also opt into
+tab focus and activate with Enter, Return or Space. `CortetsuActionTile`
+additionally supports a status-only mode through `clickable: false`, preserving
+the same visual state contract without claiming an unavailable backend action.
+Popup hosts still own Escape and outside-click dismissal.
 
 ## Density and motion
 
