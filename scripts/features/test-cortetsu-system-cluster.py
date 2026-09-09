@@ -19,7 +19,10 @@ assert "statusPopoutsEnabled: CortetsuConfig.bar.popouts.statusIcons" in hub
 assert "id: systemControls" in segment
 assert "width: implicitWidth" in segment
 assert "height: implicitHeight" in segment
-assert "HoverHandler" in segment
+assert "function anySystemControlHovered(): bool" in segment
+assert "function syncSystemControlHover(): void" in segment
+assert "root.syncSystemControlHover();" in segment
+assert "HoverHandler" not in segment
 assert segment.count("root.attachedControlExited();") == 1
 for mode in ("audio", "network", "bluetooth", "battery"):
     assert f'root.attachedControlEntered("{mode}"' in segment
