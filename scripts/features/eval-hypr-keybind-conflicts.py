@@ -9,4 +9,5 @@ assert variables.count('kbColorPicker              = "SUPER + SHIFT + P"') == 1
 assert "create_bind(vars.kbClipboard," not in keybinds
 assert "create_bind(vars.kbClipboardDel," not in keybinds
 assert '"SUPER + CTRL + " .. key' not in user
+assert 'ipc call clipboard toggle' in user
 print("PASS: keybind conflict eval has one owner per migrated chord")
