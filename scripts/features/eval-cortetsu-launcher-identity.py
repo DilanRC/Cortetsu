@@ -5,4 +5,14 @@ content = (ROOT / "cortetsu/modules/launcher/Content.qml").read_text(encoding="u
 assert "Search-first" in content
 assert "Prefix mode" in content
 assert "onAccepted" in content
-print("PASS: launcher identity preserves keyboard-first activation while making modes legible")
+checks = {
+    "launcher renders the shared mark": "CortetsuEvolvingMark" in content,
+    "idle stays Human": '"Human"' in content,
+    "focus intent reaches Awakening": 'search.activeFocus' in content and '"Awakening"' in content,
+    "wallpaper apply reaches Monster": "CortetsuWallpapers.applying" in content and '"Monster"' in content,
+    "Cosmic is excluded": '"Cosmic"' not in content,
+    "mode icon remains functional": "root.modeIcon()" in content,
+    "slot stays fixed": "width: 20" in content and "height: 20" in content,
+}
+assert all(checks.values()), [name for name, passed in checks.items() if not passed]
+print(f"Launcher identity eval: {sum(checks.values())}/{len(checks)}")

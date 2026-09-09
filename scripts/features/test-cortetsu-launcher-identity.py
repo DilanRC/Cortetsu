@@ -6,4 +6,9 @@ assert "function modeLabel()" in content
 assert "Theme" in content and "Wallpaper" in content and "Command" in content
 assert "Search-first" in content and "Prefix mode" in content
 assert "CortetsuDesign.colorPrimaryContainer" in content
+assert "CortetsuEvolvingMark" in content
+assert "readonly property string markPhase" in content
+assert '"Human"' in content and '"Awakening"' in content and '"Monster"' in content
+assert '"Cosmic"' not in content
+assert "width: 20" in content and "height: 20" in content
 print("PASS: launcher exposes distinct Apps, Command, Theme, and Wallpaper modes")

@@ -19,6 +19,11 @@ Item {
 
     readonly property int padding: CortetsuDesign.spacingStandard
     readonly property int rounding: CortetsuDesign.radiusLarge
+    readonly property string markPhase: CortetsuWallpapers.applying || pendingWallpaperPath.length > 0
+        ? "Monster"
+        : search.activeFocus || search.text.length > 0
+            ? "Awakening"
+            : "Human"
 
     function focusSearch(): void {
         search.forceActiveFocus();
@@ -83,6 +88,14 @@ Item {
             anchors.leftMargin: CortetsuDesign.spacingCompact
             anchors.rightMargin: CortetsuDesign.spacingCompact
             spacing: CortetsuDesign.spacingCompact
+            CortetsuEvolvingMark {
+                width: 20
+                height: 20
+                anchors.verticalCenter: parent.verticalCenter
+                phase: root.markPhase
+                monochrome: true
+                monochromeColor: CortetsuDesign.colorWashi
+            }
             CortetsuIcon { anchors.verticalCenter: parent.verticalCenter; text: root.modeIcon(); iconSize: CortetsuTypography.iconSmallPx; color: CortetsuDesign.colorPrimary }
             CortetsuText { anchors.verticalCenter: parent.verticalCenter; text: root.modeLabel(); textSize: CortetsuTypography.labelSmallPx; font.weight: Font.DemiBold; color: CortetsuDesign.colorOnPrimaryContainer }
             CortetsuText { anchors.verticalCenter: parent.verticalCenter; text: CortetsuWallpapers.applyFailed && root.pendingWallpaperPath ? qsTr("Apply failed") : root.modeLabel() === qsTr("Apps") ? qsTr("Search-first") : qsTr("Prefix mode"); textSize: CortetsuTypography.labelSmallPx; color: CortetsuDesign.colorOnSurfaceVariant }
