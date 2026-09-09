@@ -23,19 +23,20 @@ for asset in (
 
 # Canonical mark is transparent and deliberately simple enough to survive 24px shell use.
 assert '<rect' not in canonical
-assert canonical.count("<path") == 3
-assert "#E7E0D5" in canonical and "#526D82" in canonical
-assert "Angular open C" in canonical
+assert canonical.count("<path") == 6
+assert all(colour in canonical for colour in ("#F6F3EC", "#77C8FF", "#FF8A3D"))
+assert "forged C" in canonical and "star core" in canonical
 
 # Surface variants follow product tokens instead of the discarded forge palette.
-assert "#E7E0D5" in dark and "#526D82" in dark
-assert "#0B0D10" in light and "#334E68" in light
-assert "#0B0D10" in app and "#E7E0D5" in app and "#526D82" in app
-for legacy in ("#FF8A3D", "#77C8FF", "#1D2128", "ember", "Forge"):
+assert all(colour in dark for colour in ("#1D2128", "#77C8FF", "#FF8A3D", "#F6F3EC"))
+assert all(colour in light for colour in ("#F6F3EC", "#77C8FF", "#FF8A3D"))
+assert all(colour in app for colour in ("#0D1118", "#1D2128", "#F6F3EC", "#FF8A3D"))
+for legacy in ("#E7E0D5", "#526D82", "#0B0D10", "angular open C", "chamfered steel T"):
     assert legacy not in canonical + dark + light + readme, legacy
 
-assert manifest["name"] == "Cortetsu"
-assert manifest["concept"] == "angular open C + chamfered steel T"
+assert manifest["name"] == "Cortetsu Branding Suite"
+assert manifest["concept"] == "forged C + star core"
+assert manifest["palette"]["ember_orange"] == "#FF8A3D"
 assert manifest["rules"]["dangerColourDecorative"] is False
 assert manifest["rules"]["successColourDecorative"] is False
 

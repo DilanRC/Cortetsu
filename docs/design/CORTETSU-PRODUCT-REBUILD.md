@@ -25,16 +25,16 @@ still required. It must not determine the final presentation.
 
 ## Brand mark
 
-`cortetsu/assets/branding/cortetsu-mark.svg` is an original C/T monogram made
-from two interlocking plates. It uses `currentColor`, so the same asset works
-monochrome, on dark or light surfaces, and with Indigo without maintaining
-separate raster variants. The diagonal cuts are structural, not decorative.
+`cortetsu/assets/branding/cortetsu-mark.svg` is the selected forged C with an
+internal star core. The C body, orbit accents, and core are intentionally part of
+the logo geometry. The canonical asset is transparent and tuned for the dark
+shell, while the branding directory also ships dark-surface, light-surface, app
+icon, monochrome, and lockup variants.
 
 The mark is used selectively in product-entry surfaces such as Settings,
-Dashboard, Lock, and About. It is not repeated in every popup. The shipped SVG
-uses a Washi monochrome foreground so external `Image` loading stays legible
-on the dark shell surface; recolouring remains a presentation concern rather
-than a second logo asset.
+Dashboard, Lock, and About. It is not repeated in every popup. Ember Orange is a
+brand accent inside the mark only; semantic warning and danger states continue to
+come from the shared Cortetsu design contract.
 
 ## Brightness contract
 
@@ -102,8 +102,8 @@ explicit: Apps, Command, Theme, or Wallpaper. Prefixes continue to be owned
 by the existing action services, so the label is a reflection of real routing.
 
 OSD keeps live volume and brightness readback while adding a small Cortetsu
-feedback signature: a two-piece indigo/Washi geometry and `SYSTEM FEEDBACK`
-label. The visual stays compact and uses the existing fast motion timing.
+feedback signature: the forged C/star-core geometry and `SYSTEM FEEDBACK` label.
+The visual stays compact and uses the existing fast motion timing.
 When a monitor has no supported backlight, the brightness row says `Unavailable`
 and does not render a false zero value.
 

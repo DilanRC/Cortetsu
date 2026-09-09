@@ -1,20 +1,30 @@
 # Cortetsu identity
 
-Cortetsu uses an angular **open C** paired with a separate chamfered **T**. The geometry is intentionally direct and mechanical: the C reads as a protective frame while the T reads as the steel working element inside it.
+Cortetsu uses a forged **C** with an internal star core. The open body gives the
+mark a strong shell silhouette; the bright core is the product's control signal.
 
-## Product palette
+## Selected concept
 
-- Sumi `#0B0D10` — deepest shell surfaces and light-background mark
-- Tetsu `#171B21` — raised dark surfaces
-- Washi `#E7E0D5` — primary mark/foreground on dark surfaces
-- Indigo `#334E68` — primary product accent
-- Steel blue `#526D82` — branding-only companion accent derived from Indigo
-- Vermillion `#D64B32` — danger/error only; never decorative branding
-- Success `#7A9B83` — semantic success only
-- Warning `#C49A62` — semantic warning only
+The source package is `Cortetsu Branding Suite (Selected Concept)`. Its palette is
+kept inside the logo assets so the shell's semantic UI colours remain separate:
 
-`cortetsu-mark.svg` is the canonical shell mark and is optimized for Cortetsu's dark Sumi/Tetsu surfaces. It has a transparent background so it works from BottomHub-scale icons through Lock and Dashboard treatments without carrying a foreign icon tile.
+- Graphite `#1D2128` — forged body on light surfaces
+- Warm White `#F6F3EC` — forged body on dark surfaces
+- Ice Blue `#77C8FF` — cool orbit accent
+- Ember Orange `#FF8A3D` — brand-core accent only
+- Deep Navy `#0D1118` — app-icon tile
+- Soft Gray `#A7ADB7` — lockup supporting text
 
-Use `cortetsu-mark-dark.svg` on dark surfaces, `cortetsu-mark-light.svg` on light surfaces, and the monochrome variants only where surrounding UI state should own all colour. `cortetsu-app-icon.svg` is the standalone rounded application tile. Horizontal lockups are intended for About/documentation-sized treatments rather than compact shell controls.
+`cortetsu-mark.svg` is the canonical shell mark. It is the dark-surface version
+of the selected mark and remains transparent so it works from BottomHub-scale
+icons through Lock, Dashboard, Settings, and Launcher treatments. The shell uses
+this mark wherever a compact Cortetsu identity is needed.
 
-The brand never uses Vermillion or success green decoratively; those colours remain reserved for product state.
+Use `cortetsu-mark-dark.svg` on light surfaces and `cortetsu-mark-light.svg` on
+dark surfaces. The monochrome variants are reserved for contexts where the
+surrounding surface owns all colour. `cortetsu-app-icon.svg` is the standalone
+rounded application tile. Horizontal lockups are for About and documentation-sized
+treatments, not compact shell controls.
+
+Ember Orange is part of the brand mark only. It must not replace Cortetsu's
+semantic warning, danger, success, or connected-state tokens.

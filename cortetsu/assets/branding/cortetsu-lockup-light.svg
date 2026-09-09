@@ -1,11 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2400 1024" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1800 480" role="img" aria-labelledby="title desc">
   <title id="title">Cortetsu light lockup</title>
-  <desc id="desc">Cortetsu CT symbol and wordmark for light surfaces.</desc>
-  <g transform="translate(32 32) scale(.94)">
-    <path d="M785 168H382L164 386V638L382 856H785V704H445L316 575V449L445 320H785V168Z" fill="#0B0D10"/>
-    <path d="M500 386H874L836 462H538L500 386Z" fill="#334E68"/>
-    <path d="M632 444H742V696L687 752L632 696V444Z" fill="#334E68"/>
-  </g>
-  <text x="1080" y="585" fill="#0B0D10" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="250" font-weight="650" letter-spacing="28">CORTETSU</text>
-  <rect x="1084" y="648" width="1050" height="14" rx="7" fill="#334E68" opacity=".9"/>
+  <desc id="desc">Cortetsu forged C mark and wordmark for dark surfaces.</desc>
+  <image href="./cortetsu-mark-light.svg" x="28" y="72" width="320" height="320"/>
+  <text x="390" y="188" fill="#F6F3EC" font-family="DejaVu Sans, Arial, sans-serif" font-size="138" font-weight="700" letter-spacing="16">CORTETSU</text>
+  <text x="392" y="302" fill="#D0D6DE" font-family="DejaVu Sans, Arial, sans-serif" font-size="44" letter-spacing="9">SYSTEMS FOR REAL CONTROL</text>
 </svg>

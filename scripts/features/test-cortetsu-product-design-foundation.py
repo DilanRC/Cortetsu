@@ -8,7 +8,8 @@ doc = ROOT / "docs/design/CORTETSU-PRODUCT-REBUILD.md"
 
 assert brand.is_file(), "Cortetsu mark is missing"
 svg = brand.read_text(encoding="utf-8")
-assert "currentColor" in svg and "fill-rule=\"evenodd\"" in svg
+assert "#F6F3EC" in svg and "#77C8FF" in svg and "#FF8A3D" in svg
+assert "forged C" in svg and "star core" in svg
 assert "Caelestia" not in svg
 for name, value in (("spacingUnit", 4), ("spacingCompact", 8), ("spacingStandard", 12),
                     ("spacingComfortable", 16), ("spacingSpacious", 24), ("spacingSection", 32),

@@ -1,16 +1,15 @@
 {
-  "name": "Cortetsu",
-  "concept": "angular open C + chamfered steel T",
-  "generation": "Ascension",
+  "name": "Cortetsu Branding Suite",
+  "concept": "forged C + star core",
   "palette": {
-    "sumi": "#0B0D10",
-    "tetsu": "#171B21",
-    "washi": "#E7E0D5",
-    "indigo": "#334E68",
-    "steelBlue": "#526D82",
-    "vermillionDangerOnly": "#D64B32",
-    "successOnly": "#7A9B83",
-    "warningOnly": "#C49A62"
+    "graphite": "#1D2128",
+    "warm_white": "#F6F3EC",
+    "ice_blue": "#77C8FF",
+    "ember_orange": "#FF8A3D",
+    "deep_navy": "#0D1118",
+    "soft_gray": "#A7ADB7",
+    "black": "#111317",
+    "white": "#FFFFFF"
   },
   "canonical": "cortetsu-mark.svg",
   "variants": [

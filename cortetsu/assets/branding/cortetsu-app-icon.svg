@@ -1,8 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="title desc">
   <title id="title">Cortetsu app icon</title>
-  <desc id="desc">Cortetsu CT mark on a Sumi rounded tile.</desc>
-  <rect x="64" y="64" width="896" height="896" rx="208" fill="#0B0D10"/>
-  <path d="M770 202H397L196 403V621L397 822H770V686H455L336 567V457L455 338H770V202Z" fill="#E7E0D5"/>
-  <path d="M506 397H852L818 467H540L506 397Z" fill="#526D82"/>
-  <path d="M628 451H730V680L679 730L628 680V451Z" fill="#526D82"/>
+  <desc id="desc">Cortetsu forged C and star core on a deep navy rounded tile.</desc>
+  <rect x="52" y="52" width="920" height="920" rx="190" fill="#0D1118"/>
+  <path d="M307 272 L494 156 C625 174 707 239 747 314 L676 360 C639 303 581 257 500 241 L361 330 C325 399 320 508 355 590 L505 688 C591 682 648 642 683 580 L754 626 C718 706 633 777 497 784 L307 672 C240 575 242 366 307 272 Z" fill="#1D2128"/>
+  <path d="M311 333 C348 291 405 264 472 261" fill="none" stroke="#77C8FF" stroke-width="16" stroke-linecap="round" opacity="0.9"/>
+  <path d="M358 512 C371 423 427 355 513 331" fill="none" stroke="#FF8A3D" stroke-width="34" stroke-linecap="round"/>
+  <path d="M514 331 C571 316 629 334 675 376" fill="none" stroke="#FF8A3D" stroke-width="20" stroke-linecap="round" opacity="0.5"/>
+  <path d="M542 404 L570 512 L542 620 L514 512 Z" fill="#FF8A3D"/>
+  <path d="M434 512 L542 484 L650 512 L542 540 Z" fill="#F6F3EC"/>
 </svg>
