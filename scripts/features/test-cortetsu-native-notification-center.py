@@ -7,6 +7,7 @@ assert "| Notifications | `modules/sidebar/Content.qml`, `modules/notifications/
 content = (ROOT / "cortetsu/modules/sidebar/Content.qml").read_text(encoding="utf-8")
 notification = (ROOT / "cortetsu/modules/notifications/Notification.qml").read_text(encoding="utf-8")
 notif_data = (ROOT / "cortetsu/services/NotifData.qml").read_text(encoding="utf-8")
+service = (ROOT / "cortetsu/services/Notifs.qml").read_text(encoding="utf-8")
 for token in (
     "CortetsuNotifications.history",
     "CortetsuNotifications.dnd",
@@ -41,6 +42,8 @@ assert 'label: qsTr("Dismiss")' in notification
 assert "dismissalRequested" in notif_data
 assert "function dismissAndRemove" in notif_data
 assert "if (closed)" in notif_data
+assert "property var list: []" in service
+assert "property list<NotifData> list" not in service
 wrapper = (ROOT / "cortetsu/modules/notifications/Wrapper.qml").read_text(encoding="utf-8")
 assert "model: Notifs.popups" in wrapper
 assert "visibleNotifications" not in wrapper

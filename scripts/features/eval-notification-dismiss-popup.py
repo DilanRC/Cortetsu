@@ -10,7 +10,7 @@ checks = {
     "popup closes immediately": "popup = false" in source,
     "closed history state": "closed = true" in source,
     "model removal handshake": "dismissAndRemove()" in source,
-    "popup model is derived": "property list<NotifData> popups: list.filter(item => item.popup)" in (root / "cortetsu/services/Notifs.qml").read_text(encoding="utf-8"),
+    "popup model is derived": "readonly property var popups: list.filter(item => item.popup)" in (root / "cortetsu/services/Notifs.qml").read_text(encoding="utf-8"),
 }
 missing = [name for name, passed in checks.items() if not passed]
 if missing:

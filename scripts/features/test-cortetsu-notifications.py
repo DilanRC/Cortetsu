@@ -16,6 +16,8 @@ assert "import qs.services" not in hub
 assert "CortetsuNotifications.count" in hub and "CortetsuNotifications.dnd" in hub
 assert not re.search(r"(?<!Cortetsu)Notifs\.", hub)
 assert "notification-status.json" in notifs and "property bool dnd" in notifs
+assert "property var list: []" in notifs
+assert "property list<NotifData> list" not in notifs
 assert "NotificationServer" in notifs and "modelData.close()" in view
 assert "function inspect(): string" in notifs
 assert "import Quickshell.Io" in notifs

@@ -9,9 +9,9 @@ import "../modules"
 
 Singleton {
     id: root
-    property list<NotifData> list: []
-    readonly property list<NotifData> notClosed: list.filter(item => !item.closed)
-    readonly property list<NotifData> popups: list.filter(item => item.popup)
+    property var list: []
+    readonly property var notClosed: list.filter(item => !item.closed)
+    readonly property var popups: list.filter(item => item.popup)
     property bool dnd: false
     property bool dndLoaded: false
     property bool loaded: true

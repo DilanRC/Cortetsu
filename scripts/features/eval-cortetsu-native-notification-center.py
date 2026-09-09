@@ -5,6 +5,7 @@ ROOT = Path(__file__).resolve().parents[2]
 source = (ROOT / "cortetsu/modules/sidebar/Content.qml").read_text(encoding="utf-8")
 notification = (ROOT / "cortetsu/modules/notifications/Notification.qml").read_text(encoding="utf-8")
 notif_data = (ROOT / "cortetsu/services/NotifData.qml").read_text(encoding="utf-8")
+service = (ROOT / "cortetsu/services/Notifs.qml").read_text(encoding="utf-8")
 sections = sum(source.count(f'title: qsTr(\"{name}\")') for name in ("Now", "History"))
 states = sum(source.count(token) for token in ("All clear", "No saved notifications", "Do not disturb"))
 assert sections == 2
@@ -25,4 +26,6 @@ assert "root.notificationActions.length > 0 || root.hovered || root.expanded || 
 assert 'label: qsTr("Dismiss")' in notification
 assert "dismissalRequested" in notif_data
 assert "function dismissAndRemove" in notif_data
+assert "property var list: []" in service
+assert "property list<NotifData> list" not in service
 print("PASS: notification center eval covers hierarchy, empty states and visual token use")
