@@ -18,10 +18,14 @@ assert not re.search(r"(?<!Cortetsu)Notifs\.", hub)
 assert "notification-status.json" in notifs and "property bool dnd" in notifs
 assert "property var list: []" in notifs
 assert "property list<NotifData> list" not in notifs
+assert "property int revision: 0" in notifs
+assert "function refreshCollections(): void" in notifs
+assert "function notClosed(): var" in notifs
+assert "function popups(): var" in notifs
 assert "NotificationServer" in notifs and "modelData.close()" in view
 assert "function inspect(): string" in notifs
 assert "import Quickshell.Io" in notifs
-assert "model: Notifs.popups" in wrapper
+assert "model: Notifs.popups()" in wrapper
 assert "visibleNotifications" not in wrapper
 for text in (notifs, notif_data, view):
     assert "Caelestia" not in text and "GlobalConfig" not in text

@@ -10,8 +10,7 @@ import "../modules"
 Singleton {
     id: root
     property var list: []
-    readonly property var notClosed: list.filter(item => !item.closed)
-    readonly property var popups: list.filter(item => item.popup)
+    property int revision: 0
     property bool dnd: false
     property bool dndLoaded: false
     property bool loaded: true
@@ -22,7 +21,20 @@ Singleton {
     function shouldShowPopup(): bool {
         return !dnd && !CortetsuShellState.anySidebarOpen() && !(CortetsuConfig.suppressNotificationsInFullscreen && hasFullscreen());
     }
-    function remove(item: NotifData): void { list = list.filter(entry => entry !== item); item.destroy(); }
+    function refreshCollections(): void { revision += 1; }
+    function notClosed(): var {
+        root.revision;
+        return root.list.filter(item => !item.closed);
+    }
+    function popups(): var {
+        root.revision;
+        return root.list.filter(item => item.popup);
+    }
+    function remove(item: NotifData): void {
+        list = list.filter(entry => entry !== item);
+        refreshCollections();
+        item.destroy();
+    }
     function clear(): void { list.slice().forEach(item => item.close()); }
 
     FileView {
@@ -48,6 +60,7 @@ Singleton {
             notification.tracked = true;
             const item = notifComponent.createObject(root, {notification, popup: root.shouldShowPopup()});
             root.list = [item, ...root.list];
+            root.refreshCollections();
         }
     }
     Component { id: notifComponent; NotifData {} }

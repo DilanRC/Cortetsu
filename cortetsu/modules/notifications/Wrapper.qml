@@ -13,7 +13,7 @@ Item {
 
     implicitWidth: 352
     implicitHeight: list.implicitHeight
-    visible: Notifs.popups.length > 0
+    visible: Notifs.popups().length > 0
 
     Column {
         id: list
@@ -39,7 +39,7 @@ Item {
         }
 
         Repeater {
-            model: Notifs.popups
+            model: Notifs.popups()
             delegate: Notification {
                 width: list.width
                 props: ({})

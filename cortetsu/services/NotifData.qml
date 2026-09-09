@@ -32,6 +32,9 @@ QtObject {
         onTriggered: root.popup = false
     }
 
+    onPopupChanged: Notifs.refreshCollections()
+    onClosedChanged: Notifs.refreshCollections()
+
     function updateTimeStr(): void {
         const minutes = Math.floor((Date.now() - root.time.getTime()) / 60000);
         if (minutes < 1) root.timeStr = "now";
@@ -61,7 +64,7 @@ QtObject {
             return;
 
         // Remove the live popup before the delegate destruction handshake.
-        // Otherwise a dismissed notification stays in Notifs.popups with
+        // Otherwise a dismissed notification stays in Notifs.popups() with
         // opacity 0 while the UI lock keeps the model item alive.
         popup = false;
         closed = true;

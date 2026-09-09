@@ -12,7 +12,7 @@ Item {
     id: root
 
     required property var screenState
-    readonly property var active: Notifs.notClosed
+    readonly property var active: Notifs.notClosed()
     readonly property var history: CortetsuNotifications.history
 
     ColumnLayout {

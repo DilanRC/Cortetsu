@@ -44,8 +44,12 @@ assert "function dismissAndRemove" in notif_data
 assert "if (closed)" in notif_data
 assert "property var list: []" in service
 assert "property list<NotifData> list" not in service
+assert "property int revision: 0" in service
+assert "function notClosed(): var" in service
+assert "function popups(): var" in service
+assert "root.revision;" in service
 wrapper = (ROOT / "cortetsu/modules/notifications/Wrapper.qml").read_text(encoding="utf-8")
-assert "model: Notifs.popups" in wrapper
+assert "model: Notifs.popups()" in wrapper
 assert "visibleNotifications" not in wrapper
 assert "modelData: root.active[index]" in content
 assert "required property var modelData" in notification
