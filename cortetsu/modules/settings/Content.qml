@@ -4,9 +4,9 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
-import qs.components
-import qs.modules 1.0
-import qs.modules.launcher.services
+import "../../components"
+import ".."
+import "../launcher/services"
 import "../CortetsuDesign.js" as CortetsuDesign
 import "../CortetsuTypography.js" as CortetsuTypography
 

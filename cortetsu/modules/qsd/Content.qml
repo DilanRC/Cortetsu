@@ -6,9 +6,9 @@ import Quickshell
 import Quickshell.Wayland
 import Quickshell.Bluetooth
 import Quickshell.Services.UPower
-import qs.components
-import qs.modules 1.0
-import qs.services 1.0
+import "../../components"
+import ".."
+import "../../services"
 import "../CortetsuDesign.js" as CortetsuDesign
 import "../CortetsuTypography.js" as CortetsuTypography
 

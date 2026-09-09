@@ -34,5 +34,6 @@ assert "CortetsuConfig.bottomHub.segments" in system
 overlay_config = (ROOT / "cortetsu/modules/CortetsuOverlayConfig.qml").read_text(encoding="utf-8")
 assert "CortetsuConfig.bar.dragThreshold" in overlay_config
 assert "CortetsuConfig.launcher.dragThreshold" in overlay_config
+assert "import qs." not in content and "import qs." not in system
 
 print("PASS: Settings Center has navigation, live connected pages, honest backend boundaries and scheme ownership")

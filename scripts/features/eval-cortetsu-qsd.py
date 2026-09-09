@@ -14,5 +14,6 @@ assert "UPower.displayDevice" in content
 assert "root.brightnessMonitor?.setBrightness(value)" in content
 assert "root.screenState.settings = true" in content
 assert '"qsd"' in policy
+assert "import qs." not in content
 
 print("PASS: QSD eval covers lateral motion, semantic tiles, real levels, Bluetooth, power, settings handoff and overlay exclusion")

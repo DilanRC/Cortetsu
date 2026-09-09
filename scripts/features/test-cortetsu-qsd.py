@@ -45,5 +45,8 @@ assert 'hl.dsp.global("cortetsu:qsd")' in hypr
 # can toggle Wi-Fi until the native NetworkManager service exposes that write.
 assert 'label: root.networkName' in content
 assert 'clickable: false' in content
+assert "import qs." not in content
+assert 'import "../../components"' in content
+assert 'import "../../services"' in content
 
 print("PASS: QSD is a first-party right-side surface with brightness, audio, DND, Bluetooth, power and network context")

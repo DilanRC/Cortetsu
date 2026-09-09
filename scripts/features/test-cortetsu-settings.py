@@ -94,5 +94,11 @@ for marker in ('name: "settings"', "WlrLayer.Overlay", "Exclusive", "Wrapper"):
     assert marker in host, marker
 assert "property bool settings" in state and "|| settings" in state
 assert 'cortetsu/assets/branding' in runtime_builder and 'STAGING/assets/branding' in runtime_builder
+for source in (content, system):
+    assert "import qs." not in source
+assert 'import "../../components"' in content
+assert 'import "../launcher/services"' in content
+assert 'import "../../services"' in system
+assert 'import "../../utils"' in system
 
 print("PASS: Settings owns per-monitor state, schemes, connected pages, retained handoffs and aligned SUPER+I/SUPER+/ bindings")
