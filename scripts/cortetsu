@@ -309,6 +309,7 @@ test_cmd() {
         "cortetsu/tests/test-runtime-contract.py"
         "scripts/features/test-cortetsu-screen-state.py"
         "scripts/features/test-cortetsu-config.py"
+        "scripts/features/eval-cortetsu-config.py"
         "scripts/features/test-cortetsu-launcher.py"
         "scripts/features/eval-cortetsu-launcher.py"
         "scripts/features/test-launcher-focus-runtime-contract.py"
