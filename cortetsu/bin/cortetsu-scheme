@@ -31,10 +31,25 @@ def write_state(value: dict) -> None:
     os.replace(temporary, path)
 
 
+def resource_root() -> Path:
+    """Locate scheme data from source checkouts and installed helpers."""
+    candidates = [Path(__file__).resolve().parents[1]]
+    repository = os.environ.get(
+        "CORTETSU_REPOSITORY",
+        Path(os.environ.get("CORTETSU_DATA_ROOT", Path.home() / ".local/share/cortetsu")) / "repository",
+    )
+    candidates.append(Path(repository) / "cortetsu")
+    for candidate in candidates:
+        if (candidate / "data/schemes/palettes.json").is_file():
+            return candidate
+    return candidates[0]
+
+
 def catalog() -> dict:
     """Return every shipped scheme, not only the currently selected state."""
-    pack = Path(__file__).resolve().parents[1] / "data/schemes/cortetsu-pack"
-    palette_file = Path(__file__).resolve().parents[1] / "data/schemes/palettes.json"
+    root = resource_root()
+    pack = root / "data/schemes/cortetsu-pack"
+    palette_file = root / "data/schemes/palettes.json"
     import json as _json
     allowed = set(_json.loads(palette_file.read_text(encoding="utf-8"))) if palette_file.exists() else None
     result: dict[str, dict[str, dict[str, str]]] = {}
