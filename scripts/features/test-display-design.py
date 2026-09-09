@@ -12,4 +12,10 @@ for path in sorted(display.glob("*.qml")):
     assert not re.search(r"(?<!Cortetsu)StateLayer\b", text), path.name
 
 assert "CortetsuStateLayer" in (display / "Editor.qml").read_text()
+editor = (display / "Editor.qml").read_text(encoding="utf-8")
+preview = (display / "PreviewControls.qml").read_text(encoding="utf-8")
+assert 'import "../../components"' in editor
+assert 'import "../../components"' in preview
+assert "CortetsuButton" in editor and "CortetsuButton" in preview
+assert "ActionButton" not in preview
 print("PASS: Display Manager uses Cortetsu visual primitives")

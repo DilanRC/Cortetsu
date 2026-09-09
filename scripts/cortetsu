@@ -319,6 +319,8 @@ test_cmd() {
         "scripts/features/eval-cortetsu-native-design-system.py"
         "scripts/features/test-hardware-design.py"
         "scripts/features/eval-cortetsu-hardware-tabs.py"
+        "scripts/features/test-display-design.py"
+        "scripts/features/eval-cortetsu-display-controls.py"
         "scripts/features/test-cortetsu-progress-bar.py"
         "scripts/features/eval-cortetsu-progress-bar.py"
         "scripts/features/test-cortetsu-calendar-controls.py"

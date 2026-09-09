@@ -5,6 +5,7 @@ import QtCore
 import Quickshell
 import Quickshell.Io
 import ".."
+import "../../components"
 import "../CortetsuDesign.js" as CortetsuDesign
 import "../CortetsuTypography.js" as CortetsuTypography
 
@@ -172,73 +173,46 @@ Item {
             height: 38
             spacing: CortetsuDesign.spacingUnit
 
-            ActionButton {
+            CortetsuButton {
                 width: (parent.width - parent.spacing * 3) / 4
+                height: 38
                 label: qsTr("Preview")
                 active: !root.active
-                enabled: !root.active && !action.running
-                onTriggered: root.startPreview()
+                compact: true
+                disabled: root.active || action.running
+                focus: false
+                onClicked: root.startPreview()
             }
-            ActionButton {
+            CortetsuButton {
                 width: (parent.width - parent.spacing * 3) / 4
+                height: 38
                 label: qsTr("Keep")
                 active: root.active
-                enabled: root.active && !action.running
-                onTriggered: root.confirm()
+                compact: true
+                disabled: !root.active || action.running
+                focus: false
+                onClicked: root.confirm()
             }
-            ActionButton {
+            CortetsuButton {
                 width: (parent.width - parent.spacing * 3) / 4
+                height: 38
                 label: qsTr("Save")
                 active: root.canPersist
-                enabled: root.canPersist && !action.running
-                onTriggered: root.persist()
+                compact: true
+                disabled: !root.canPersist || action.running
+                focus: false
+                onClicked: root.persist()
             }
-            ActionButton {
+            CortetsuButton {
                 width: (parent.width - parent.spacing * 3) / 4
+                height: 38
                 label: qsTr("Revert")
                 danger: root.active
-                enabled: root.active && !action.running
-                onTriggered: root.revert()
+                compact: true
+                disabled: !root.active || action.running
+                focus: false
+                onClicked: root.revert()
             }
-        }
-    }
-
-    component ActionButton: Item {
-        required property string label
-        property bool active: false
-        property bool danger: false
-        signal triggered()
-
-        height: 38
-        opacity: enabled ? 1 : 0.38
-
-        CortetsuSurface {
-            anchors.fill: parent
-            radiusValue: CortetsuDesign.radiusMedium
-            baseColor: parent.danger
-                ? Qt.alpha(CortetsuDesign.colorVermillion, 0.42)
-                : parent.active
-                    ? Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.82)
-                    : buttonLayer.containsMouse
-                        ? CortetsuDesign.colorSurfaceGlass
-                        : "transparent"
-            outlined: false
-        }
-        CortetsuStateLayer {
-            id: buttonLayer
-            anchors.fill: parent
-            radius: CortetsuDesign.radiusMedium
-            disabled: !parent.enabled
-            onClicked: parent.triggered()
-        }
-        CortetsuText {
-            anchors.centerIn: parent
-            text: parent.label
-            color: parent.danger || parent.active
-                ? CortetsuDesign.colorOnSurface
-                : CortetsuDesign.colorOnSurfaceVariant
-            textSize: CortetsuTypography.labelSmallPx
-            font.weight: parent.active ? Font.DemiBold : Font.Normal
         }
     }
 }

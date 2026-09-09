@@ -5,6 +5,7 @@ import QtCore
 import Quickshell
 import Quickshell.Io
 import ".."
+import "../../components"
 import "../CortetsuDesign.js" as CortetsuDesign
 import "../CortetsuTypography.js" as CortetsuTypography
 
@@ -370,32 +371,41 @@ FocusScope {
                     }
                 }
 
-                Rectangle {
+                CortetsuButton {
                     id: refreshButton
-                    width: 44; height: 44
+                    width: 44
+                    height: 44
+                    compact: true
+                    label: ""
+                    icon: probe.running ? "progress_activity" : "refresh"
+                    tooltipText: qsTr("Refresh displays")
                     anchors.verticalCenter: parent.verticalCenter
-                    radius: CortetsuDesign.radiusMedium
-                    color: CortetsuDesign.colorSurfaceHigh
-                    CortetsuStateLayer { radius: parent.radius; onClicked: root.refresh() }
-                    CortetsuIcon { anchors.centerIn: parent; text: probe.running ? "progress_activity" : "refresh"; color: CortetsuDesign.colorPrimary }
+                    focus: false
+                    onClicked: root.refresh()
                 }
-                Rectangle {
+                CortetsuButton {
                     id: resetButton
-                    width: 44; height: 44
+                    width: 44
+                    height: 44
+                    compact: true
+                    label: ""
+                    icon: "restart_alt"
+                    tooltipText: qsTr("Reset candidate")
                     anchors.verticalCenter: parent.verticalCenter
-                    radius: CortetsuDesign.radiusMedium
-                    color: CortetsuDesign.colorSurfaceHigh
-                    CortetsuStateLayer { radius: parent.radius; onClicked: root.resetCandidate() }
-                    CortetsuIcon { anchors.centerIn: parent; text: "restart_alt"; color: CortetsuDesign.colorOnSurfaceVariant }
+                    focus: false
+                    onClicked: root.resetCandidate()
                 }
-                Rectangle {
+                CortetsuButton {
                     id: closeButton
-                    width: 44; height: 44
+                    width: 44
+                    height: 44
+                    compact: true
+                    label: ""
+                    icon: "close"
+                    tooltipText: qsTr("Close Display Manager")
                     anchors.verticalCenter: parent.verticalCenter
-                    radius: CortetsuDesign.radiusMedium
-                    color: CortetsuDesign.colorSurfaceHigh
-                    CortetsuStateLayer { radius: parent.radius; onClicked: root.closeDisplayManager() }
-                    CortetsuIcon { anchors.centerIn: parent; text: "close"; color: CortetsuDesign.colorOnSurfaceVariant }
+                    focus: false
+                    onClicked: root.closeDisplayManager()
                 }
             }
 
