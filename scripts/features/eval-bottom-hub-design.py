@@ -61,6 +61,23 @@ criteria = {
             "CortetsuConfig.bottomHub.statusCluster.battery",
         )
     ),
+    "dock segments are configurable": all(
+        token in hub
+        for token in (
+            "CortetsuConfig.bottomHub.segments.mode",
+            "CortetsuConfig.bottomHub.segments.apps",
+            "CortetsuConfig.bottomHub.segments.tray",
+            "CortetsuConfig.bottomHub.segments.status",
+        )
+    ) and all(
+        token in view
+        for token in (
+            "required property bool modeVisible",
+            "required property bool appsVisible",
+            "required property bool trayVisible",
+            "required property bool statusVisible",
+        )
+    ),
     "hover de controles del sistema": all(
         f'root.attachedControlEntered("{mode}"' in status
         for mode in ("audio", "network", "bluetooth", "battery")

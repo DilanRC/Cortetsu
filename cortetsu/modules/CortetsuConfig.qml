@@ -35,6 +35,16 @@ QtObject {
     ]
     onStatusIconsChanged: if (loaded) save()
     readonly property QtObject bottomHub: QtObject {
+        readonly property QtObject segments: QtObject {
+            property bool mode: true
+            onModeChanged: if (root.loaded) root.save()
+            property bool apps: true
+            onAppsChanged: if (root.loaded) root.save()
+            property bool tray: true
+            onTrayChanged: if (root.loaded) root.save()
+            property bool status: true
+            onStatusChanged: if (root.loaded) root.save()
+        }
         readonly property QtObject statusCluster: QtObject {
             property bool audio: true
             onAudioChanged: if (root.loaded) root.save()
@@ -339,11 +349,16 @@ QtObject {
                 lyricsBackend = Math.max(0, Math.min(3, data.lyricsBackend));
             if (Array.isArray(data.statusIcons))
                 statusIcons = data.statusIcons.filter(value => value && typeof value === "object" && typeof value.id === "string").map(value => ({ id: value.id, enabled: value.enabled !== false }));
-            if (data.bottomHub && typeof data.bottomHub === "object"
-                    && data.bottomHub.statusCluster && typeof data.bottomHub.statusCluster === "object")
-                for (const key of ["audio", "network", "bluetooth", "battery"])
-                    if (typeof data.bottomHub.statusCluster[key] === "boolean")
-                        bottomHub.statusCluster[key] = data.bottomHub.statusCluster[key];
+            if (data.bottomHub && typeof data.bottomHub === "object") {
+                if (data.bottomHub.segments && typeof data.bottomHub.segments === "object")
+                    for (const key of ["mode", "apps", "tray", "status"])
+                        if (typeof data.bottomHub.segments[key] === "boolean")
+                            bottomHub.segments[key] = data.bottomHub.segments[key];
+                if (data.bottomHub.statusCluster && typeof data.bottomHub.statusCluster === "object")
+                    for (const key of ["audio", "network", "bluetooth", "battery"])
+                        if (typeof data.bottomHub.statusCluster[key] === "boolean")
+                            bottomHub.statusCluster[key] = data.bottomHub.statusCluster[key];
+            }
             if (Array.isArray(data.quickToggles))
                 quickToggles = data.quickToggles.filter(value => value && typeof value === "object" && typeof value.id === "string").map(value => ({ id: value.id, enabled: value.enabled !== false }));
             if (data.vpn && typeof data.vpn === "object") {
@@ -540,12 +555,20 @@ QtObject {
         saveLegacy();
         try {
             const payload = JSON.parse(storage.text());
-            payload.bottomHub = { statusCluster: {
-                audio: bottomHub.statusCluster.audio,
-                network: bottomHub.statusCluster.network,
-                bluetooth: bottomHub.statusCluster.bluetooth,
-                battery: bottomHub.statusCluster.battery
-            }};
+            payload.bottomHub = {
+                segments: {
+                    mode: bottomHub.segments.mode,
+                    apps: bottomHub.segments.apps,
+                    tray: bottomHub.segments.tray,
+                    status: bottomHub.segments.status
+                },
+                statusCluster: {
+                    audio: bottomHub.statusCluster.audio,
+                    network: bottomHub.statusCluster.network,
+                    bluetooth: bottomHub.statusCluster.bluetooth,
+                    battery: bottomHub.statusCluster.battery
+                }
+            };
             storage.setText(JSON.stringify(payload, null, 2) + "\n");
         } catch (_) {}
     }

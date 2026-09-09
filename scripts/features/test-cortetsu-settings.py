@@ -75,6 +75,10 @@ assert "implicitHeight: childrenRect.height" not in content
 assert "import QtQuick.Controls" in content
 assert "ScrollBar.vertical" in content
 assert "scroller.contentHeight > scroller.height" in content
+assert 'title: qsTr("Visible segments")' in system
+for label in ("Mode and workspaces", "App rail", "Tray", "Status cluster"):
+    assert f'title: qsTr("{label}")' in system
+assert "CortetsuConfig.bottomHub.segments" in system
 
 # User overrides agree with canonical first-party bindings, avoiding a double-open
 # of Utilities plus QSD/Settings for the same keystroke.

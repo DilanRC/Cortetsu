@@ -367,6 +367,44 @@ Item {
 
             CortetsuSectionHeader {
                 Layout.fillWidth: true
+                title: qsTr("Visible segments")
+                detail: qsTr("Choose which BottomHub islands stay in the dock")
+            }
+
+            PreferenceToggle {
+                title: qsTr("Mode and workspaces")
+                detail: qsTr("Show launcher, wallpaper and workspace controls")
+                icon: "apps"
+                checked: CortetsuConfig.bottomHub.segments.mode
+                onChanged: checked => CortetsuConfig.bottomHub.segments.mode = checked
+            }
+
+            PreferenceToggle {
+                title: qsTr("App rail")
+                detail: qsTr("Show running and pinned applications")
+                icon: "apps"
+                checked: CortetsuConfig.bottomHub.segments.apps
+                onChanged: checked => CortetsuConfig.bottomHub.segments.apps = checked
+            }
+
+            PreferenceToggle {
+                title: qsTr("Tray")
+                detail: qsTr("Show StatusNotifier applications and menus")
+                icon: "notifications"
+                checked: CortetsuConfig.bottomHub.segments.tray
+                onChanged: checked => CortetsuConfig.bottomHub.segments.tray = checked
+            }
+
+            PreferenceToggle {
+                title: qsTr("Status cluster")
+                detail: qsTr("Show notifications, hardware and session controls")
+                icon: "tune"
+                checked: CortetsuConfig.bottomHub.segments.status
+                onChanged: checked => CortetsuConfig.bottomHub.segments.status = checked
+            }
+
+            CortetsuSectionHeader {
+                Layout.fillWidth: true
                 title: qsTr("Visible status controls")
                 detail: qsTr("Choose which hardware controls stay in the BottomHub")
             }

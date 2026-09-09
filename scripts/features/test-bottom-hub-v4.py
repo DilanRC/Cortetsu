@@ -34,7 +34,11 @@ def main() -> None:
     require(VIEW, "id: statusSegment", "isla sistema")
     if not (VIEW.index("id: appSegment") < VIEW.index("id: traySegment") < VIEW.index("id: statusSegment")):
         raise SystemExit("FAIL: orden visual esperado center -> tray -> system")
-    require(VIEW, "anchors.right: statusSegment.left", "tray separado de sistema")
+    require(
+        VIEW,
+        "anchors.right: statusSegment.visible ? statusSegment.left : parent.right",
+        "tray separado de sistema y adaptable al segmento oculto",
+    )
     require(HUB, "const sourceIndex = SystemTray.items.values.indexOf(item);", "indice SNI estable")
     require(HUB, "item.icon || Icons.getTrayIcon(item.id, item.icon)", "icono SNI prioritario")
     require(HUB, "toggleUtilitiesFor", "control legacy de sidebar/utilities")

@@ -43,6 +43,7 @@ for marker in ("favouriteApps", "hiddenApps", "hiddenTrayIcons", "terminalComman
 assert "entries: bar.entries" in config
 assert "CortetsuConfig.bar.workspaces.perMonitorWorkspaces" in hub
 assert "bottomHub.statusCluster" in config
+assert "bottomHub.segments" in config
 assert "saveLegacy();" in config
 assert "payload.bottomHub" in config
 assert "loaded = false;" in config

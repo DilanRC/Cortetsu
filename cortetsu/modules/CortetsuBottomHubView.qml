@@ -13,6 +13,10 @@ Item {
     required property var occupiedWorkspaceIds
     required property var dockItems
     required property var trayItems
+    required property bool modeVisible
+    required property bool appsVisible
+    required property bool trayVisible
+    required property bool statusVisible
 
     required property string volumeIcon
     required property bool volumeMuted
@@ -61,10 +65,12 @@ Item {
     signal sessionRequested()
 
     readonly property real rightOccupiedWidth:
-        statusSegment.width + (traySegment.visible ? traySegment.width + 6 : 0)
+        (statusSegment.visible ? statusSegment.width : 0)
+        + (traySegment.visible ? traySegment.width : 0)
+        + (statusSegment.visible && traySegment.visible ? 6 : 0)
     readonly property real appRailMaxWidth: Math.max(
         180,
-        width - Math.max(leftSegment.width, rightOccupiedWidth) * 2 - 64
+        width - Math.max(leftSegment.visible ? leftSegment.width : 0, rightOccupiedWidth) * 2 - 64
     )
 
     implicitHeight: 60
@@ -99,6 +105,7 @@ Item {
     CortetsuModeSegment {
         id: leftSegment
 
+        visible: root.modeVisible
         anchors.left: parent.left
         anchors.leftMargin: 6
         anchors.verticalCenter: parent.verticalCenter
@@ -117,6 +124,7 @@ Item {
     CortetsuAppRail {
         id: appSegment
 
+        visible: root.appsVisible
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.verticalCenter: parent.verticalCenter
         items: root.dockItems
@@ -130,7 +138,8 @@ Item {
     CortetsuTraySegment {
         id: traySegment
 
-        anchors.right: statusSegment.left
+        visible: root.trayVisible
+        anchors.right: statusSegment.visible ? statusSegment.left : parent.right
         anchors.rightMargin: 6
         anchors.verticalCenter: parent.verticalCenter
         items: root.trayItems
@@ -145,6 +154,7 @@ Item {
     CortetsuStatusSegment {
         id: statusSegment
 
+        visible: root.statusVisible
         anchors.right: parent.right
         anchors.rightMargin: 6
         anchors.verticalCenter: parent.verticalCenter

@@ -738,6 +738,10 @@ Scope {
                 occupiedWorkspaceIds: win.occupiedWorkspaceIds
                 dockItems: win.dockViewItems
                 trayItems: win.trayViewItems
+                modeVisible: CortetsuConfig.bottomHub.segments.mode
+                appsVisible: CortetsuConfig.bottomHub.segments.apps
+                trayVisible: CortetsuConfig.bottomHub.segments.tray
+                statusVisible: CortetsuConfig.bottomHub.segments.status
 
                 volumeIcon: win.volumeIcon
                 volumeMuted: CortetsuAudio.muted

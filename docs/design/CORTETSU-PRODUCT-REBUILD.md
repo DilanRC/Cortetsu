@@ -115,6 +115,11 @@ and Wi-Fi signal strength; its tooltip reports the SSID and signal when the
 backend provides them. Existing audio, Bluetooth, battery, notification, and
 session controls keep their live providers and hover popout ownership.
 
+BottomHub composition is configurable through four first-party segment switches:
+Mode and workspaces, App rail, Tray, and Status cluster. Hidden segments release
+their layout space instead of leaving an invisible reservation, while the
+hardware controls inside Status cluster remain independently configurable.
+
 ## Retained surface ownership
 
 Overview, Hardware, Display, Wallpaper, Calendar, and Clipboard now render through `RetainedSurfacesHost.qml`, a dedicated overlay window with per-screen state and explicit keyboard ownership. The legacy `Panels` entries remain as compatibility handles while consumers migrate. This keeps full surfaces from competing with BottomHub and transient popouts in the shared drawer window.

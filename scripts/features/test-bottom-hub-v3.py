@@ -94,6 +94,24 @@ def main() -> None:
     require(view, "anchors.horizontalCenter: parent.horizontalCenter", "centered app segment")
     require(view, "id: traySegment", "tray segment")
     require(view, "id: statusSegment", "right status segment")
+    for token in (
+        "required property bool modeVisible",
+        "required property bool appsVisible",
+        "required property bool trayVisible",
+        "required property bool statusVisible",
+        "visible: root.modeVisible",
+        "visible: root.appsVisible",
+        "visible: root.trayVisible",
+        "visible: root.statusVisible",
+    ):
+        require(view, token, "configurable dock segment")
+    for token in (
+        "modeVisible: CortetsuConfig.bottomHub.segments.mode",
+        "appsVisible: CortetsuConfig.bottomHub.segments.apps",
+        "trayVisible: CortetsuConfig.bottomHub.segments.tray",
+        "statusVisible: CortetsuConfig.bottomHub.segments.status",
+    ):
+        require(bottom, token, "persisted dock segment")
     require_order(
         view,
         [
