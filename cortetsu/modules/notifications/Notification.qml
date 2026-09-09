@@ -103,7 +103,7 @@ CortetsuSurface {
                     radiusValue: CortetsuDesign.radiusSmall
                     baseColor: root.urgent
                         ? Qt.alpha(CortetsuDesign.colorVermillion, 0.13)
-                        : Qt.alpha(CortetsuDesign.colorTertiary, 0.12)
+                        : Qt.alpha(CortetsuDesign.colorPrimary, 0.12)
                 }
 
                 CortetsuIcon {
@@ -112,7 +112,7 @@ CortetsuSurface {
                     iconSize: CortetsuTypography.iconMediumPx
                     color: root.urgent
                         ? CortetsuDesign.colorVermillion
-                        : CortetsuDesign.colorTertiary
+                        : CortetsuDesign.colorPrimary
                 }
             }
 
