@@ -11,14 +11,17 @@ assert sections == 2
 assert states >= 2
 assert source.count("CortetsuDesign.") >= 6
 assert "contentLayout.implicitHeight" in notification
+assert "readonly property bool hasModelData" in notification
+assert "readonly property bool closed: !hasModelData || modelData.closed" in notification
+assert "Component.onDestruction: if (root.hasModelData)" in notification
 assert 'import "../CortetsuDesign.js" as CortetsuDesign' in notification
 assert 'import "../CortetsuTypography.js" as CortetsuTypography' in notification
 assert "modelData.appName" in notification and "modelData.image" in notification
-assert "modelData.urgency >= 2" in notification
+assert "readonly property bool urgent: urgency >= 2" in notification
 assert "Qt.alpha(CortetsuDesign.colorPrimary, 0.12)" in notification
 assert ": CortetsuDesign.colorPrimary" in notification
 assert "Qt.alpha(CortetsuDesign.colorTertiary, 0.12)" not in notification
-assert "root.modelData.actions.length > 0 || root.hovered || root.expanded || root.activeFocus" in notification
+assert "root.notificationActions.length > 0 || root.hovered || root.expanded || root.activeFocus" in notification
 assert 'label: qsTr("Dismiss")' in notification
 assert "dismissalRequested" in notif_data
 assert "function dismissAndRemove" in notif_data

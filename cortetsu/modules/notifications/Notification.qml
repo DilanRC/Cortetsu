@@ -15,7 +15,16 @@ CortetsuSurface {
     required property bool expanded
     required property var screenState
     property bool hovered: false
-    readonly property bool urgent: modelData.urgency >= 2
+    readonly property bool hasModelData: modelData !== null && modelData !== undefined
+    readonly property bool closed: !hasModelData || modelData.closed
+    readonly property int urgency: hasModelData ? modelData.urgency : 0
+    readonly property string summary: hasModelData ? modelData.summary : ""
+    readonly property string appName: hasModelData ? modelData.appName : ""
+    readonly property string timeLabel: hasModelData ? modelData.timeStr : ""
+    readonly property string imagePath: hasModelData ? modelData.image : ""
+    readonly property string bodyText: hasModelData ? modelData.body : ""
+    readonly property var notificationActions: hasModelData && modelData.actions ? modelData.actions : []
+    readonly property bool urgent: urgency >= 2
     readonly property real nonAnimHeight: contentLayout.implicitHeight + CortetsuDesign.spacingComfortable * 2
 
     implicitHeight: nonAnimHeight
@@ -34,8 +43,8 @@ CortetsuSurface {
         : root.urgent
             ? Qt.alpha(CortetsuDesign.colorVermillion, 0.48)
             : Qt.alpha(CortetsuDesign.colorOutlineVariant, root.hovered ? 0.40 : 0.22)
-    opacity: modelData.closed ? 0 : 1
-    scale: modelData.closed ? 0.985 : 1
+    opacity: root.closed ? 0 : 1
+    scale: root.closed ? 0.985 : 1
 
     Behavior on opacity {
         NumberAnimation {
@@ -51,8 +60,8 @@ CortetsuSurface {
         }
     }
 
-    Component.onCompleted: modelData.lock(root)
-    Component.onDestruction: modelData.unlock(root)
+    Component.onCompleted: if (root.hasModelData) root.modelData.lock(root)
+    Component.onDestruction: if (root.hasModelData) root.modelData.unlock(root)
 
     Rectangle {
         anchors.left: parent.left
@@ -80,7 +89,7 @@ CortetsuSurface {
     Keys.onEnterPressed: root.expanded = !root.expanded
     Keys.onReturnPressed: root.expanded = !root.expanded
     Keys.onSpacePressed: root.expanded = !root.expanded
-    Keys.onEscapePressed: root.modelData.close()
+    Keys.onEscapePressed: if (root.hasModelData) root.modelData.close()
 
     ColumnLayout {
         id: contentLayout
@@ -108,7 +117,7 @@ CortetsuSurface {
 
                 CortetsuIcon {
                     anchors.centerIn: parent
-                    text: Icons.getNotifIcon(root.modelData.summary, root.modelData.urgency)
+                    text: Icons.getNotifIcon(root.summary, root.urgency)
                     iconSize: CortetsuTypography.iconMediumPx
                     color: root.urgent
                         ? CortetsuDesign.colorVermillion
@@ -122,7 +131,7 @@ CortetsuSurface {
 
                 CortetsuText {
                     Layout.fillWidth: true
-                    text: root.modelData.summary
+                    text: root.summary
                     textSize: CortetsuTypography.bodyLargePx
                     elide: Text.ElideRight
                     font.weight: Font.DemiBold
@@ -132,7 +141,7 @@ CortetsuSurface {
                 CortetsuText {
                     Layout.fillWidth: true
                     visible: text.length > 0
-                    text: root.modelData.appName || qsTr("System notification")
+                    text: root.appName || qsTr("System notification")
                     textSize: CortetsuTypography.labelSmallPx
                     color: CortetsuDesign.colorOnSurfaceVariant
                     elide: Text.ElideRight
@@ -140,7 +149,7 @@ CortetsuSurface {
             }
 
             CortetsuText {
-                text: root.modelData.timeStr
+                text: root.timeLabel
                 textSize: CortetsuTypography.labelSmallPx
                 color: CortetsuDesign.colorOnSurfaceVariant
             }
@@ -161,7 +170,7 @@ CortetsuSurface {
                 Image {
                     id: image
                     anchors.fill: parent
-                    source: root.modelData.image
+                    source: root.imagePath
                     sourceSize.width: 116
                     sourceSize.height: 116
                     fillMode: Image.PreserveAspectCrop
@@ -173,7 +182,7 @@ CortetsuSurface {
             CortetsuText {
                 id: body
                 Layout.fillWidth: true
-                text: root.modelData.body
+                text: root.bodyText
                 textSize: CortetsuTypography.bodyPx
                 maximumLineCount: root.expanded ? 8 : 2
                 elide: Text.ElideRight
@@ -185,17 +194,17 @@ CortetsuSurface {
 
         RowLayout {
             Layout.fillWidth: true
-            visible: root.modelData.actions.length > 0 || root.hovered || root.expanded || root.activeFocus
+            visible: root.notificationActions.length > 0 || root.hovered || root.expanded || root.activeFocus
             spacing: CortetsuDesign.spacingCompact
 
             Repeater {
-                model: root.modelData.actions
+                model: root.notificationActions
                 delegate: CortetsuButton {
                     required property int index
                     Layout.fillWidth: false
                     compact: true
-                    label: root.modelData.actions[index].text
-                    onClicked: root.modelData.actions[index].invoke()
+                    label: root.notificationActions[index] ? root.notificationActions[index].text : ""
+                    onClicked: if (root.notificationActions[index]) root.notificationActions[index].invoke()
                 }
             }
 
@@ -206,7 +215,7 @@ CortetsuSurface {
                 label: qsTr("Dismiss")
                 icon: "close"
                 danger: root.urgent
-                onClicked: root.modelData.close()
+                onClicked: if (root.hasModelData) root.modelData.close()
             }
         }
     }
