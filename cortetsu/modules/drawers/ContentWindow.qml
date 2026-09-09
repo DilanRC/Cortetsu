@@ -70,7 +70,10 @@ StyledWindow {
     focusable: panels.popouts.hasCurrent || (screenState.cortetsuState?.requiresWindowKeyboardFocus && !screenState.launcher && !screenState.session)
     WlrLayershell.exclusionMode: ExclusionMode.Ignore
     WlrLayershell.layer: screenState.cortetsuState?.overview ? WlrLayer.Overlay : ((fsTransitionProg > 0 && CortetsuOverlayConfig.general.showOverFullscreen) || (hasSpecialWorkspace && hasFullscreenOnNormalWs) ? WlrLayer.Overlay : WlrLayer.Top)
-    WlrLayershell.keyboardFocus: panels.popouts.hasCurrent
+    // Attached BottomHub popouts are mouse-owned. Giving the full-screen
+    // drawer exclusive keyboard focus steals pointer hover from the trigger
+    // window, which makes the shared hover controller close and reopen them.
+    WlrLayershell.keyboardFocus: (panels.popouts.isDetached || panels.popouts.currentName === "wirelesspassword")
         ? WlrKeyboardFocus.Exclusive
         : (screenState.cortetsuState?.requiresWindowKeyboardFocus && !screenState.launcher && !screenState.session)
             ? WlrKeyboardFocus.OnDemand
@@ -127,7 +130,7 @@ StyledWindow {
         active: {
             const s = root.screenState;
             const conf = root.CortetsuOverlayConfig;
-            if (panels.popouts.hasCurrent)
+            if (panels.popouts.isDetached || panels.popouts.currentName === "wirelesspassword")
                 return true;
             if (s.cortetsuState?.retainedOverlayOpen)
                 return true;
