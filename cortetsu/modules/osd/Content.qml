@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell
 import ".."
 import "../CortetsuDesign.js" as CortetsuDesign
 import "../CortetsuTypography.js" as CortetsuTypography
@@ -18,23 +19,16 @@ CortetsuPopupSurface {
     implicitWidth: 248
     implicitHeight: indicators.implicitHeight + CortetsuDesign.spacingStandard * 2 + 24
 
-    Rectangle {
+    Image {
+        id: signatureMark
         x: CortetsuDesign.spacingStandard
-        y: CortetsuDesign.spacingCompact
-        width: 34
-        height: 3
-        radius: 1
-        color: CortetsuDesign.colorPrimary
-    }
-    Rectangle {
-        x: CortetsuDesign.spacingStandard + 28
-        y: CortetsuDesign.spacingCompact
-        width: 12
-        height: 3
-        radius: 1
-        rotation: 45
-        color: CortetsuDesign.colorWashi
-        opacity: 0.82
+        y: CortetsuDesign.spacingUnit
+        width: 24
+        height: 24
+        source: Quickshell.shellPath("assets/branding/cortetsu-mark.svg")
+        sourceSize.width: 48
+        sourceSize.height: 48
+        fillMode: Image.PreserveAspectFit
     }
     CortetsuText {
         anchors.top: parent.top
@@ -52,7 +46,7 @@ CortetsuPopupSurface {
         anchors.right: parent.right
         anchors.top: parent.top
         anchors.bottom: parent.bottom
-        anchors.topMargin: 24
+        anchors.topMargin: CortetsuDesign.spacingSection
         anchors.margins: CortetsuDesign.spacingStandard
         spacing: CortetsuDesign.spacingCompact
 
