@@ -288,6 +288,7 @@ test_cmd() {
         "scripts/features/eval-cortetsu-native-design-system.py"
         "scripts/features/test-cortetsu-product-design-foundation.py"
         "scripts/features/eval-cortetsu-product-design-foundation.py"
+        "scripts/features/test-cortetsu-branding.py"
         "scripts/features/test-cortetsu-native-popups.py"
         "scripts/features/eval-cortetsu-native-popups.py"
         "scripts/features/test-cortetsu-native-notification-center.py"
