@@ -19,16 +19,16 @@ CortetsuPopupSurface {
     implicitWidth: 248
     implicitHeight: indicators.implicitHeight + CortetsuDesign.spacingStandard * 2 + 24
 
-    Image {
+    CortetsuEvolvingMark {
         id: signatureMark
         x: CortetsuDesign.spacingStandard
         y: CortetsuDesign.spacingUnit
         width: 24
         height: 24
-        source: Quickshell.shellPath("assets/branding/cortetsu-mark-ascended.svg")
-        sourceSize.width: 48
-        sourceSize.height: 48
-        fillMode: Image.PreserveAspectFit
+        phase: "Ascended"
+        animated: false
+        monochrome: true
+        monochromeColor: CortetsuDesign.colorWashi
     }
     CortetsuText {
         anchors.top: parent.top

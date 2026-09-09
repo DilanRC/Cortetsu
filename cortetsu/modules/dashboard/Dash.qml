@@ -61,13 +61,13 @@ Item {
             Layout.fillWidth: true
             spacing: CortetsuDesign.spacingStandard
 
-            Image {
-                source: Quickshell.shellPath("assets/branding/cortetsu-mark-ascended.svg")
-                sourceSize.width: 38
-                sourceSize.height: 38
+            CortetsuEvolvingMark {
+                phase: "Ascended"
+                animated: false
+                monochrome: true
+                monochromeColor: CortetsuDesign.colorWashi
                 Layout.preferredWidth: 38
                 Layout.preferredHeight: 38
-                fillMode: Image.PreserveAspectFit
             }
 
             ColumnLayout {

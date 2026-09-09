@@ -98,14 +98,14 @@ WlSessionLockSurface {
         width: Math.min(parent.width - 64, 560)
         spacing: CortetsuDesign.spacingStandard
 
-        Image {
-            source: Quickshell.shellPath("assets/branding/cortetsu-mark-ascended.svg")
-            sourceSize.width: 64
-            sourceSize.height: 64
+        CortetsuEvolvingMark {
+            phase: "Ascended"
+            animated: false
+            monochrome: true
+            monochromeColor: CortetsuDesign.colorWashi
             Layout.preferredWidth: 64
             Layout.preferredHeight: 64
             Layout.alignment: Qt.AlignHCenter
-            fillMode: Image.PreserveAspectFit
         }
 
         CortetsuText {

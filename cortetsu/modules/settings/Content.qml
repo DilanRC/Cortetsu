@@ -141,13 +141,13 @@ Item {
                         Layout.fillWidth: true
                         spacing: CortetsuDesign.spacingStandard
 
-                        Image {
-                            source: Quickshell.shellPath("assets/branding/cortetsu-mark-ascended.svg")
-                            sourceSize.width: 32
-                            sourceSize.height: 32
+                        CortetsuEvolvingMark {
+                            phase: "Ascended"
+                            animated: false
+                            monochrome: true
+                            monochromeColor: CortetsuDesign.colorWashi
                             Layout.preferredWidth: 32
                             Layout.preferredHeight: 32
-                            fillMode: Image.PreserveAspectFit
                         }
 
                         ColumnLayout {
@@ -352,13 +352,13 @@ Item {
                                 anchors.margins: CortetsuDesign.spacingSpacious
                                 spacing: CortetsuDesign.spacingSpacious
 
-                                Image {
-                                    source: Quickshell.shellPath("assets/branding/cortetsu-mark-ascended.svg")
-                                    sourceSize.width: 72
-                                    sourceSize.height: 72
+                                CortetsuEvolvingMark {
+                                    phase: "Ascended"
+                                    animated: false
+                                    monochrome: true
+                                    monochromeColor: CortetsuDesign.colorWashi
                                     Layout.preferredWidth: 72
                                     Layout.preferredHeight: 72
-                                    fillMode: Image.PreserveAspectFit
                                 }
 
                                 ColumnLayout {
