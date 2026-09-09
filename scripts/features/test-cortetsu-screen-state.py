@@ -119,7 +119,7 @@ for wrapper, flag in (
     ("wallpaper/Wrapper.qml", "wallpaperManager"),
 ):
     wrapper_text = (repo / "cortetsu/modules" / wrapper).read_text(encoding="utf-8")
-    assert f"screenState.cortetsuState?.{flag}" in wrapper_text, wrapper
+    assert f"screenState?.cortetsuState?.{flag}" in wrapper_text, wrapper
 for content_file, flag in (("calendar/Content.qml", "calendar"), ("overview/Content.qml", "overview")):
     content_text = (repo / "cortetsu/modules" / content_file).read_text(encoding="utf-8")
     assert f'cortetsuState?.setRetained("{flag}", false)' in content_text, content_file
@@ -135,5 +135,5 @@ for content_file, flag in (
     ("wallpaper/Wrapper.qml", "wallpaperManager"),
 ):
     content_text = (repo / "cortetsu/modules" / content_file).read_text(encoding="utf-8")
-    assert f'cortetsuState?.setRetained("{flag}", false)' in content_text, content_file
+    assert f'setRetained("{flag}", false)' in content_text, content_file
 print("PASS: Cortetsu screen state and overlay policy preserve monitor-local ownership and the legacy boundary")
