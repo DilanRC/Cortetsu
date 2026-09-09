@@ -11,6 +11,8 @@ Item {
 
     property string icon: "circle"
     property string imageSource: ""
+    property string evolvingMarkPhase: ""
+    property color evolvingMarkAccent: "transparent"
     property bool cropImage: false
     property bool active: false
     property bool disabled: false
@@ -76,7 +78,7 @@ Item {
     CortetsuIcon {
         anchors.centerIn: parent
         anchors.verticalCenterOffset: root.active ? -1 : 0
-        visible: root.imageSource.length === 0
+        visible: root.imageSource.length === 0 && root.evolvingMarkPhase.length === 0
         text: root.icon
         color: root.iconColor
         iconSize: root.iconSize
@@ -100,7 +102,7 @@ Item {
     Image {
         anchors.centerIn: parent
         anchors.verticalCenterOffset: root.active ? -1 : 0
-        visible: root.imageSource.length > 0
+        visible: root.imageSource.length > 0 && root.evolvingMarkPhase.length === 0
         width: Math.round(root.buttonSize * 0.56)
         height: width
         source: root.imageSource
@@ -127,6 +129,17 @@ Item {
                 easing.type: Easing.OutCubic
             }
         }
+    }
+
+    CortetsuEvolvingMark {
+        anchors.centerIn: parent
+        visible: root.evolvingMarkPhase.length > 0
+        width: Math.round(root.buttonSize * 0.56)
+        height: width
+        phase: root.evolvingMarkPhase
+        accent: root.evolvingMarkAccent
+        monochrome: true
+        monochromeColor: root.iconColor
     }
 
     Rectangle {

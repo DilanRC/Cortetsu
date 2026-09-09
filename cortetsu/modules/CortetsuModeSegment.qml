@@ -28,8 +28,13 @@ Item {
         spacing: 2
 
         HubButton {
+            id: launcherButton
             buttonSize: 44
-            imageSource: Quickshell.shellPath("assets/branding/cortetsu-mark.svg")
+            evolvingMarkPhase: root.launcherActive || launcherButton.pressed
+                ? "Monster"
+                : launcherButton.hovered || launcherButton.activeFocus
+                    ? "Awakening"
+                    : "Human"
             active: root.launcherActive
             tooltip: qsTr("Applications")
             onClicked: root.launcherRequested()

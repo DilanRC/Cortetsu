@@ -99,7 +99,7 @@ WlSessionLockSurface {
         spacing: CortetsuDesign.spacingStandard
 
         Image {
-            source: Quickshell.shellPath("assets/branding/cortetsu-mark.svg")
+            source: Quickshell.shellPath("assets/branding/cortetsu-mark-ascended.svg")
             sourceSize.width: 64
             sourceSize.height: 64
             Layout.preferredWidth: 64

@@ -131,7 +131,10 @@ def main() -> None:
     require(rail, "root.cycleRequested(appItem.modelData.key, -1);", "wheel previous request")
     require(rail, "root.cycleRequested(appItem.modelData.key, 1);", "wheel next request")
 
-    require(mode, 'imageSource: Quickshell.shellPath("assets/branding/cortetsu-mark.svg")', "Cortetsu launcher logo")
+    require(mode, "evolvingMarkPhase:", "Cortetsu evolving launcher logo")
+    require(mode, '"Human"', "Cortetsu Human idle phase")
+    require(mode, '"Awakening"', "Cortetsu Awakening intent phase")
+    require(mode, '"Monster"', "Cortetsu Monster active phase")
     if "/usr/share/icons/cachyos.svg" in mode:
         raise SystemExit("FAIL: BottomHub product identity must not fall back to the distro badge")
     require(mode, "CortetsuWorkspaceDots {", "workspace indicator component")

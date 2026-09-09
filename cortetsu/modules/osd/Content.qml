@@ -25,7 +25,7 @@ CortetsuPopupSurface {
         y: CortetsuDesign.spacingUnit
         width: 24
         height: 24
-        source: Quickshell.shellPath("assets/branding/cortetsu-mark.svg")
+        source: Quickshell.shellPath("assets/branding/cortetsu-mark-ascended.svg")
         sourceSize.width: 48
         sourceSize.height: 48
         fillMode: Image.PreserveAspectFit

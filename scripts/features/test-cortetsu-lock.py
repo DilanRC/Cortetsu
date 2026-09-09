@@ -14,7 +14,7 @@ for marker in (
     "Password",
     "Authentication failed",
     "ScreencopyView",
-    "cortetsu-mark.svg",
+    "cortetsu-mark-ascended.svg",
     'command: ["hyprctl", "-j", "devices"]',
     "active_keymap",
     "capsLock",

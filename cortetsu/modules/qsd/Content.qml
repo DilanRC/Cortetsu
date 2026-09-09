@@ -48,7 +48,7 @@ Item {
             spacing: CortetsuDesign.spacingStandard
 
             Image {
-                source: Quickshell.shellPath("assets/branding/cortetsu-mark.svg")
+                source: Quickshell.shellPath("assets/branding/cortetsu-mark-ascended.svg")
                 sourceSize.width: 24
                 sourceSize.height: 24
                 Layout.preferredWidth: 24
