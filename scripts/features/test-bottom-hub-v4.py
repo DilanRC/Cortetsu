@@ -37,7 +37,7 @@ def main() -> None:
     require(VIEW, "anchors.right: statusSegment.left", "tray separado de sistema")
     require(HUB, "const sourceIndex = SystemTray.items.values.indexOf(item);", "indice SNI estable")
     require(HUB, "item.icon || Icons.getTrayIcon(item.id, item.icon)", "icono SNI prioritario")
-    require(HUB, "toggleUtilitiesFor", "control único de ajustes")
+    require(HUB, "toggleUtilitiesFor", "control legacy de sidebar/utilities")
     forbid(TRAY, "SystemTray", "backend SNI dentro de la vista")
     forbid(HUB, "`traymenu${trayItem.index}`", "índice filtrado incorrecto")
 
@@ -47,10 +47,17 @@ def main() -> None:
     require(CHECKER, 'qml_block(text, "Launcher.Wrapper", "launcher")', "validación scoped del launcher")
     require(BAR, "readonly property bool disabled: true", "retiro de barra nativa")
     require(BAR, "implicitWidth: 0", "ancho de barra retirada")
-    require(HYPR, '"SUPER + I",\n    hl.dsp.global("cortetsu:utilities")', "SUPER+I a Quick settings")
+
+    # First-party entry points are no longer aliases for the legacy Utilities panel.
+    require(HYPR, '"SUPER + I",\n    hl.dsp.global("cortetsu:settings")', "SUPER+I a Settings")
+    require(HYPR, '"SUPER + Slash",\n    hl.dsp.global("cortetsu:qsd")', "SUPER+/ a Quick Settings")
+    forbid(HYPR, '"SUPER + I",\n    hl.dsp.global("cortetsu:utilities")', "SUPER+I legacy Utilities")
     require(HYPR, '"SUPER + H",\n    hl.dsp.global("cortetsu:hardware")', "SUPER+H a Hardware Center")
+
     require(HUB, "hubRoot.toggleLauncherFor(state.modelData);", "SUPER alterna el launcher")
-    require(SHORTCUTS, "const state = CortetsuShellState.forActive(), open = !(state.sidebar || state.utilities);", "SUPER+N abre ambos centros")
+    require(SHORTCUTS, 'name: "sidebar"', "atajo del centro lateral")
+    require(SHORTCUTS, "OverlayPolicy.closeAll(state);", "exclusividad de superficies")
+    require(SHORTCUTS, "const open = !(state.sidebar || state.utilities);", "sidebar abre su par de utilidades")
     require(SHORTCUTS, 'Quickshell.env("XDG_CONFIG_HOME") ||', "ruta XDG del launcher")
     forbid(SHORTCUTS, "/quickshell/caelestia/current", "ruta legacy del launcher")
     require(PANELS, "anchors.right: root.screenState.utilities ? utilities.left : parent.right", "centros adyacentes")
