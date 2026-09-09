@@ -192,7 +192,8 @@ Item {
             CortetsuIcon {
                 text: CortetsuAudio.muted ? "volume_off" : "volume_up"
                 iconSize: CortetsuTypography.iconSmallPx
-                color: CortetsuAudio.muted ? CortetsuDesign.colorWarning : CortetsuDesign.colorPrimary
+                // Mute is a selected audio state, not a warning condition.
+                color: CortetsuAudio.muted ? CortetsuDesign.colorOnSurfaceVariant : CortetsuDesign.colorPrimary
             }
             CortetsuText {
                 Layout.fillWidth: true

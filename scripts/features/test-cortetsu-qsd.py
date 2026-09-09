@@ -48,6 +48,7 @@ assert 'label: root.networkName' in content
 assert 'clickable: false' in content
 assert 'icon: CortetsuAudio.muted ? "volume_off" : "volume_up"' in content
 assert 'warning: false' in content
+assert 'color: CortetsuAudio.muted ? CortetsuDesign.colorOnSurfaceVariant : CortetsuDesign.colorPrimary' in content
 assert 'onMoved: nextValue => root.brightnessMonitor?.setBrightness(nextValue)' in content
 assert 'onMoved: nextValue => CortetsuAudio.setVolume(nextValue)' in content
 assert 'onMoved: root.brightnessMonitor?.setBrightness(value)' not in content

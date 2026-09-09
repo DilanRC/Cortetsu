@@ -8,9 +8,10 @@ policy = (ROOT / "cortetsu/modules/CortetsuOverlayPolicy.js").read_text(encoding
 
 assert "anchors.right: parent.right" in host and "width: 400" in host
 assert "baseColor: Qt.alpha(CortetsuDesign.colorSumi" in host
-assert "CortetsuDesign.colorWarning" in content
+assert "warning: CortetsuNotifications.dnd" in content
 assert 'icon: CortetsuAudio.muted ? "volume_off" : "volume_up"' in content
 assert 'warning: false' in content
+assert 'color: CortetsuAudio.muted ? CortetsuDesign.colorOnSurfaceVariant : CortetsuDesign.colorPrimary' in content
 assert "disabled: value < 0" in content
 assert "Bluetooth.defaultAdapter.enabled" in content
 assert "UPower.displayDevice" in content
