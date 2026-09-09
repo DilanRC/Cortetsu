@@ -46,7 +46,9 @@ assert "cancelPreview();" in body("requestTarget")
 # Close, category/model reset, apply and random erase delayed work; active preview stops.
 cancel_body = body("cancelPreview")
 assert "previewTimer.stop();" in cancel_body and "CortetsuWallpapers.stopPreview();" in cancel_body
-assert "cancelPreview();" in body("selectCategory") and "CortetsuWallpapers.preview" not in body("selectCategory")
+assert "cancelMotion();" in resync_body
+assert "cancelPreview();" in body("selectCategory") and "cancelMotion();" in body("selectCategory")
+assert "CortetsuWallpapers.preview" not in body("selectCategory")
 assert "cancelPreview();" in resync_body
 assert "previewTimer.stop();" in body("apply") and "CortetsuWallpapers.previewColourLock = true;" in body("apply")
 assert "cancelPreview();" in body("random") and "CortetsuWallpapers.setRandom();" in body("random")
@@ -68,15 +70,38 @@ assert "const state = CortetsuShellState.forActive()?.cortetsuState;" in wallpap
 assert "CortetsuShellState.forActive()?.modelData" not in wallpaper_controller
 assert "closeOtherPanels();\n        state.setRetained(\"wallpaperManager\", true);" in wallpaper_controller
 
-# The selected target must remain a visible satellite for the duration of the rotation.
-# This is the regression that previously made selection look like an instant wallpaper swap.
-assert "readonly property int orbitExcludedIndex: animating ? windowIndex : currentIndex" in content
-assert "Orbit.satellites(filteredEntries, windowIndex, orbitExcludedIndex, visibleLimit)" in content
+# Orbital motion owns a stable snapshot. The committed selection stays untouched
+# during the normal animation path, so the Repeater cannot churn underneath the
+# NumberAnimation and turn movement into an apparent teleport.
+for marker in (
+    "property int motionTargetIndex: -1",
+    "property var motionEntries: []",
+    "property int motionOrbitCount: 0",
+    "readonly property int displayIndex: animating && motionTargetIndex >= 0 ? motionTargetIndex : currentIndex",
+    "readonly property var restingOrbitEntries: Orbit.satellites(filteredEntries, windowIndex, currentIndex, visibleLimit)",
+    "readonly property var orbitEntries: animating ? motionEntries : restingOrbitEntries",
+):
+    assert marker in content, marker
 animate_body = body("animateTo")
-assert "const stableOrbitCount = Math.max(1, orbitEntries.length);" in animate_body
-assert "orbitMotion.to = -steps * Orbit.angularStep(stableOrbitCount);" in animate_body
+for marker in (
+    "const snapshot = restingOrbitEntries.slice();",
+    "motionEntries = snapshot;",
+    "motionOrbitCount = Math.max(1, snapshot.length);",
+    "motionTargetIndex = target;",
+    "orbitPhase = 0;",
+    "animating = true;",
+    "orbitMotion.from = 0;",
+    "orbitMotion.to = -steps * Orbit.angularStep(motionOrbitCount);",
+):
+    assert marker in animate_body, marker
+assert animate_body.index("motionTargetIndex = target;") < animate_body.index("animating = true;")
 assert "duration: 340" in content
 assert "easing.type: Easing.OutCubic" in content
+motion_stop = content[content.index("id: orbitMotion"):content.index("ParallelAnimation {", content.index("id: orbitMotion"))]
+assert "const target = root.motionTargetIndex;" in motion_stop
+assert "root.currentIndex = target;" in motion_stop and "root.windowIndex = target;" in motion_stop
+assert "root.motionEntries = [];" in motion_stop and "root.motionOrbitCount = 0;" in motion_stop
+assert "readonly property bool selected: satellite.modelData.index === root.displayIndex" in content
 
 # Spatial hierarchy is a first-class part of the orbit rather than a flat ring.
 for needle in (
@@ -98,6 +123,7 @@ for label in ('qsTr("Loading")', 'qsTr("Applied")', 'qsTr("Selected")'):
 assert "root.animating ? 0.985 : 1" in content
 assert "duration: 240" in content  # hero crossfade
 assert 'root.previewActive ? qsTr("Previewing") : qsTr("Selected")' in content
+assert "root.displayIndex + 1" in content
 
 # Keyboard ownership includes both axes plus explicit apply/cancel.
 assert "event.key === Qt.Key_Left || event.key === Qt.Key_Up" in content
@@ -115,7 +141,7 @@ assert 'if (CortetsuConfig.smartScheme)\n                CortetsuWallpapers.prev
 assert "Colours." not in content
 
 # Bounded shared-cache prefetch, ready-gated entry, and floating surfaces.
-assert "Orbit.prefetch(filteredEntries, currentIndex, visibleLimit + 6)" in content
+assert "Orbit.prefetch(filteredEntries, displayIndex, visibleLimit + 6)" in content
 assert "Math.min(18, count)" in orbit
 assert "property bool presentationReady: false" in content
 assert "function updatePresentationReady" in content
@@ -154,4 +180,4 @@ for legacy in ("Caelestia.Config", "qs.services", "qs.components", "Colours.", "
     assert legacy not in renderer, legacy
 assert "CortetsuWallpapers.current" in renderer and "CortetsuWallpapers.fallback" in renderer
 
-print("test-wallpaper-manager: OK (perceptible orbital motion, selected/applied hierarchy, keyboard navigation, preview debounce, and overlay exclusion)")
+print("test-wallpaper-manager: OK (stable-snapshot orbital motion, selected/applied hierarchy, keyboard navigation, preview debounce, and overlay exclusion)")
