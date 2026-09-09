@@ -12,6 +12,7 @@ import qs.modules.hardware as Hardware
 import qs.modules.display as Display
 import qs.modules.wallpaper as Wallpaper
 import qs.modules.calendar as Calendar
+import "CortetsuDesign.js" as CortetsuDesign
 
 // Retained surfaces have their own overlay window. Keeping them out of the
 // shared drawer window gives every full surface a stable layer, focus policy,
@@ -23,7 +24,7 @@ Scope {
         StyledWindow {
             id: window
             required property ShellScreen modelData
-            readonly property var screenState: CortetsuShellState.forActive()
+            readonly property var screenState: CortetsuShellState.forScreen(modelData)
             readonly property bool surfaceOpen: screenState?.cortetsuState?.retainedOverlayOpen ?? false
 
             screen: modelData
@@ -43,7 +44,7 @@ Scope {
             Rectangle {
                 anchors.fill: parent
                 visible: window.surfaceOpen
-                color: Qt.alpha("#0d1017", 0.78)
+                color: Qt.alpha(CortetsuDesign.colorSumi, 0.78)
                 z: -1
             }
 
