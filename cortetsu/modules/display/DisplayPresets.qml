@@ -5,6 +5,7 @@ import QtCore
 import Quickshell
 import Quickshell.Io
 import ".."
+import "../../components"
 import "../CortetsuDesign.js" as CortetsuDesign
 import "../CortetsuTypography.js" as CortetsuTypography
 
@@ -136,31 +137,15 @@ Item {
                 }
             }
 
-            Item {
+            CortetsuButton {
                 width: 68
                 height: 36
-                enabled: !worker.running
-                opacity: enabled ? 1 : 0.5
-
-                CortetsuSurface {
-                    anchors.fill: parent
-                    radiusValue: CortetsuDesign.radiusMedium
-                    baseColor: Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.78)
-                    outlined: false
-                }
-                CortetsuStateLayer {
-                    anchors.fill: parent
-                    radius: CortetsuDesign.radiusMedium
-                    disabled: !parent.enabled
-                    onClicked: root.save()
-                }
-                CortetsuText {
-                    anchors.centerIn: parent
-                    text: qsTr("Save")
-                    color: CortetsuDesign.colorOnPrimaryContainer
-                    textSize: CortetsuTypography.labelSmallPx
-                    font.weight: Font.DemiBold
-                }
+                compact: true
+                label: qsTr("Save")
+                active: true
+                disabled: worker.running
+                focus: false
+                onClicked: root.save()
             }
         }
 
@@ -172,52 +157,32 @@ Item {
             Repeater {
                 model: Array.from(root.presets ?? []).slice(0, 3)
 
-                delegate: Item {
+                delegate: Row {
                     required property var modelData
                     width: (parent.width - parent.spacing * 2) / 3
                     height: 36
+                    spacing: CortetsuDesign.spacingUnit
 
-                    CortetsuSurface {
-                        anchors.fill: parent
-                        radiusValue: CortetsuDesign.radiusMedium
-                        baseColor: presetLayer.containsMouse
-                            ? CortetsuDesign.colorSurfaceGlassStrong
-                            : Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.62)
-                        outlined: false
-                    }
-                    CortetsuStateLayer {
-                        id: presetLayer
-                        anchors.fill: parent
-                        radius: CortetsuDesign.radiusMedium
+                    CortetsuButton {
+                        width: parent.width - 32
+                        height: 36
+                        compact: true
+                        label: modelData?.name ?? ""
+                        tooltipText: qsTr("Load layout")
+                        focus: false
                         onClicked: root.loadPreset(modelData?.name ?? "")
                     }
-                    Row {
-                        anchors.fill: parent
-                        anchors.leftMargin: CortetsuDesign.spacingCompact
-                        anchors.rightMargin: CortetsuDesign.spacingCompact
-                        spacing: CortetsuDesign.spacingUnit
 
-                        CortetsuText {
-                            anchors.verticalCenter: parent.verticalCenter
-                            width: parent.width - 24
-                            text: modelData?.name ?? ""
-                            color: CortetsuDesign.colorOnSurfaceVariant
-                            textSize: CortetsuTypography.labelSmallPx
-                            elide: Text.ElideRight
-                        }
-                        CortetsuIcon {
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: "close"
-                            color: CortetsuDesign.colorOutline
-                            iconSize: CortetsuTypography.iconSmallPx
-                            MouseArea {
-                                anchors.fill: parent
-                                onClicked: mouse => {
-                                    mouse.accepted = true;
-                                    root.deletePreset(modelData?.name ?? "");
-                                }
-                            }
-                        }
+                    CortetsuButton {
+                        width: 28
+                        height: 36
+                        compact: true
+                        label: ""
+                        icon: "close"
+                        danger: true
+                        tooltipText: qsTr("Delete layout")
+                        focus: false
+                        onClicked: root.deletePreset(modelData?.name ?? "")
                     }
                 }
             }

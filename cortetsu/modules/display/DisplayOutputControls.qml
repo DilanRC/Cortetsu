@@ -95,37 +95,37 @@ Item {
                 radiusValue: CortetsuDesign.radiusMedium
                 baseColor: root.vrr > 0 && root.vrrProven
                     ? Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.8)
-                    : vrrLayer.containsMouse
-                        ? CortetsuDesign.colorSurfaceGlass
-                        : "transparent"
+                    : CortetsuDesign.colorSurfaceGlass
                 outlined: false
-            }
-            CortetsuStateLayer {
-                id: vrrLayer
-                anchors.fill: parent
-                radius: CortetsuDesign.radiusMedium
-                disabled: !parent.enabled
-                onClicked: root.toggleVrr()
             }
             Row {
                 anchors.fill: parent
                 anchors.leftMargin: CortetsuDesign.spacingStandard
                 anchors.rightMargin: CortetsuDesign.spacingStandard
+                spacing: CortetsuDesign.spacingCompact
 
                 CortetsuText {
                     anchors.verticalCenter: parent.verticalCenter
-                    width: parent.width * 0.5
+                    width: Math.max(0, parent.width - vrrStatus.width - vrrToggle.width - parent.spacing * 2)
                     text: qsTr("Variable refresh")
                     color: CortetsuDesign.colorOnSurfaceVariant
                     textSize: CortetsuTypography.labelSmallPx
                 }
                 CortetsuText {
+                    id: vrrStatus
                     anchors.verticalCenter: parent.verticalCenter
-                    width: parent.width * 0.5
+                    width: 64
                     text: !root.vrrProven ? qsTr("Unavailable") : root.vrr > 0 ? qsTr("On") : qsTr("Off")
                     color: root.vrr > 0 ? CortetsuDesign.colorOnSurface : CortetsuDesign.colorOutline
                     textSize: CortetsuTypography.labelSmallPx
                     horizontalAlignment: Text.AlignRight
+                }
+                CortetsuToggle {
+                    id: vrrToggle
+                    anchors.verticalCenter: parent.verticalCenter
+                    checked: root.vrr > 0 && root.vrrProven
+                    disabled: !root.vrrProven
+                    onToggled: root.toggleVrr()
                 }
             }
         }
