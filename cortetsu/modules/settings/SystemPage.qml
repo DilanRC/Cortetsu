@@ -636,7 +636,7 @@ Item {
                     CortetsuSlider {
                         Layout.fillWidth: true
                         value: CortetsuAudio.volume
-                        onMoved: CortetsuAudio.setVolume(value)
+                        onMoved: nextValue => CortetsuAudio.setVolume(nextValue)
                     }
                 }
             }
@@ -735,7 +735,7 @@ Item {
                         Layout.fillWidth: true
                         value: root.brightnessValue
                         disabled: value < 0
-                        onMoved: root.brightnessMonitor?.setBrightness(value)
+                        onMoved: nextValue => root.brightnessMonitor?.setBrightness(nextValue)
                     }
                 }
             }

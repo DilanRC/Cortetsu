@@ -40,7 +40,7 @@ for section in (
 # Connected pages use real first-party/native backends rather than simulated state.
 for marker in (
     "Brightness.getMonitorForScreen(root.screen)",
-    "CortetsuAudio.setVolume(value)",
+    "onMoved: nextValue => CortetsuAudio.setVolume(nextValue)",
     "CortetsuNotifications.dnd",
     "CortetsuNetwork.active",
     "Bluetooth.defaultAdapter.enabled",
@@ -56,6 +56,10 @@ assert "Native NetworkManager readback; no fake controls" in system
 assert 'title: qsTr("Volume scroll")' in system
 assert 'title: qsTr("Brightness scroll")' not in system
 assert 'title: qsTr("Open on hover")' not in system
+assert 'onMoved: nextValue => CortetsuAudio.setVolume(nextValue)' in system
+assert 'onMoved: nextValue => root.brightnessMonitor?.setBrightness(nextValue)' in system
+assert 'onMoved: CortetsuAudio.setVolume(value)' not in system
+assert 'onMoved: root.brightnessMonitor?.setBrightness(value)' not in system
 
 # Scheme selection is a single owned transaction and refreshes the active highlight.
 for marker in (

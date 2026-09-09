@@ -45,6 +45,10 @@ assert 'hl.dsp.global("cortetsu:qsd")' in hypr
 # can toggle Wi-Fi until the native NetworkManager service exposes that write.
 assert 'label: root.networkName' in content
 assert 'clickable: false' in content
+assert 'onMoved: nextValue => root.brightnessMonitor?.setBrightness(nextValue)' in content
+assert 'onMoved: nextValue => CortetsuAudio.setVolume(nextValue)' in content
+assert 'onMoved: root.brightnessMonitor?.setBrightness(value)' not in content
+assert 'onMoved: CortetsuAudio.setVolume(value)' not in content
 assert "import qs." not in content
 assert 'import "../../components"' in content
 assert 'import "../../services"' in content

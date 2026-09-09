@@ -13,7 +13,8 @@ assert "This section is connected in stages" not in content
 assert "SystemPage" in content
 assert "Native NetworkManager readback; no fake controls" in system
 assert "Brightness.getMonitorForScreen(root.screen)" in system
-assert "CortetsuAudio.setVolume(value)" in system
+assert "onMoved: nextValue => CortetsuAudio.setVolume(nextValue)" in system
+assert "onMoved: nextValue => root.brightnessMonitor?.setBrightness(nextValue)" in system
 assert "Bluetooth.defaultAdapter.enabled" in system
 assert "UPower.displayDevice" in system
 assert "Icons.getBatteryIcon" in system

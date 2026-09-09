@@ -11,7 +11,10 @@ assert "CortetsuDesign.colorWarning" in content
 assert "disabled: value < 0" in content
 assert "Bluetooth.defaultAdapter.enabled" in content
 assert "UPower.displayDevice" in content
-assert "root.brightnessMonitor?.setBrightness(value)" in content
+assert "onMoved: nextValue => root.brightnessMonitor?.setBrightness(nextValue)" in content
+assert "onMoved: nextValue => CortetsuAudio.setVolume(nextValue)" in content
+assert "onMoved: root.brightnessMonitor?.setBrightness(value)" not in content
+assert "onMoved: CortetsuAudio.setVolume(value)" not in content
 assert "root.screenState.settings = true" in content
 assert '"qsd"' in policy
 assert "import qs." not in content
