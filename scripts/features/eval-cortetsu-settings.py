@@ -29,5 +29,8 @@ assert 'title: qsTr("Visible status controls")' in system
 for label in ("Volume", "Network", "Bluetooth", "Battery"):
     assert f'title: qsTr("{label}")' in system
 assert "CortetsuConfig.bottomHub.statusCluster" in system
+overlay_config = (ROOT / "cortetsu/modules/CortetsuOverlayConfig.qml").read_text(encoding="utf-8")
+assert "CortetsuConfig.bar.dragThreshold" in overlay_config
+assert "CortetsuConfig.launcher.dragThreshold" in overlay_config
 
 print("PASS: Settings Center has navigation, live connected pages, honest backend boundaries and scheme ownership")

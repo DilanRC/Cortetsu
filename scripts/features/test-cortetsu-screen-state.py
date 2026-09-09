@@ -61,6 +61,16 @@ assert "import Caelestia" not in shell_service
 assert "import qs.services" not in shell_service
 assert "CortetsuOverlayCortetsuOverlayConfig" not in interactions
 assert "CortetsuOverlayConfig.border" in interactions
+overlay_config = (repo / "cortetsu/modules/CortetsuOverlayConfig.qml").read_text(encoding="utf-8")
+for marker in (
+    "CortetsuConfig.borderSmoothing",
+    "CortetsuConfig.bar.showOnHover",
+    "CortetsuConfig.launcher.enabled",
+    "CortetsuConfig.dashboard.showOnHover",
+    "CortetsuConfig.sidebar.minHoverThreshold",
+    "CortetsuConfig.utilities.enabled",
+):
+    assert marker in overlay_config, marker
 assert "CortetsuShellState.registerState(modelData, root)" in screen_component
 assert "CortetsuScreenState" in screen_component
 assert "import Caelestia" not in screen_component
