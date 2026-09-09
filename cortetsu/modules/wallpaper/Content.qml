@@ -55,10 +55,10 @@ FocusScope {
                 : (previewActive ? qsTr("Previewing") : qsTr("Selected"))
     readonly property string markPhase: cosmicPulse
         ? "Cosmic"
-        : currentIsApplied
-            ? "Ascended"
+        : applying || animating || applyFailed
+            ? "Awakening"
             : currentPath
-                ? "Awakening"
+                ? "Ascended"
                 : "Human"
     property bool presentationReady: false
 

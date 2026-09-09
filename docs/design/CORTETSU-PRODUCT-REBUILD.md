@@ -42,8 +42,9 @@ is selected by a real product condition, not by a timer or random choice.
 `CortetsuEvolvingMark.qml` renders the phase inside fixed geometry. BottomHub
 uses Human at rest, Awakening on intent/focus, and Monster while the launcher is
 active or pressed. Wallpaper Manager uses Awakening for a selected candidate,
-Ascended for an applied wallpaper, and a short Cosmic pulse only after the state
-file confirms a successful apply. Static product surfaces use Ascended.
+while the candidate is moving, applying, or has failed; it uses Ascended once a
+selection is settled or already applied, and a short Cosmic pulse only after the
+state file confirms a successful apply. Static product surfaces use Ascended.
 
 The mark is used selectively and is not repeated in every popup. Its optional
 brand accent is private to the mark; Indigo interaction, Vermillion danger, and

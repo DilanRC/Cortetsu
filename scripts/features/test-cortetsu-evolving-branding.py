@@ -33,6 +33,8 @@ assert 'evolvingMarkPhase:' in mode
 assert '"Human"' in mode and '"Awakening"' in mode and '"Monster"' in mode
 assert 'phase: root.markPhase' in wallpaper
 assert 'pendingApplyPath' in wallpaper and 'cosmicPulse' in wallpaper
+assert 'applying || animating || applyFailed' in wallpaper
+assert 'currentPath' in wallpaper and '? "Ascended"' in wallpaper
 assert 'function closeManager(): void { cancel(); }' in wallpaper
 assert 'actualCurrent = path' not in wallpaper_service
 assert 'onFileChanged:' in wallpaper_service and 'root.readActual(text())' in wallpaper_service
