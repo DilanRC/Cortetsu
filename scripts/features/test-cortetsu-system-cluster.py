@@ -6,6 +6,7 @@ hub = (ROOT / "cortetsu/modules/BottomHub.qml").read_text(encoding="utf-8")
 hover = (ROOT / "cortetsu/modules/CortetsuHoverSurfaceController.qml").read_text(encoding="utf-8")
 popup = (ROOT / "cortetsu/modules/bar/popouts/Wrapper.qml").read_text(encoding="utf-8")
 button = (ROOT / "cortetsu/modules/HubButton.qml").read_text(encoding="utf-8")
+interactions = (ROOT / "cortetsu/modules/drawers/Interactions.qml").read_text(encoding="utf-8")
 
 assert "CortetsuSurface" in segment
 assert "networkTooltip" in segment and "networkTooltip" in hub
@@ -30,6 +31,9 @@ for mode in ("network", "bluetooth", "battery"):
     assert f'if (root.statusPopoutsEnabled)\n                    root.attachedControlRequested("{mode}"' in segment
 assert segment.count("tooltipOnHover: false") == 4
 assert "property bool tooltipOnHover: true" in button
+assert "readonly property real visualScale" in button
+assert "scale: 1" in button
+assert "if (!popouts.bottomAttached" in interactions
 
 # Trigger and popup ownership share one close-grace controller, and attached
 # popups remain physically clear of the 60 px BottomHub trigger strip.

@@ -14,6 +14,7 @@ status_pill = (modules / "StatusPill.qml").read_text(encoding="utf-8")
 mode = (modules / "CortetsuModeSegment.qml").read_text(encoding="utf-8")
 workspace = (modules / "CortetsuWorkspaceDots.qml").read_text(encoding="utf-8")
 tooltip = (ROOT / "cortetsu/components/CortetsuTooltip.qml").read_text(encoding="utf-8")
+interactions = (modules / "drawers/Interactions.qml").read_text(encoding="utf-8")
 
 criteria = {
     "superficie exterior transparente": 'color: "transparent"' in hub,
@@ -90,6 +91,9 @@ criteria = {
     "quick settings first-party": "toggleUtilitiesFor" in hub,
     "notificaciones first-party": "toggleSidebarFor" in hub,
     "anclaje de popups": "attachedControlRequested" in view and "bottomAnchorCenter" in hub,
+    "handoff de popup desde BottomHub": "if (!popouts.bottomAttached" in interactions,
+    "hitbox de hover estable": "readonly property real visualScale" in (modules / "HubButton.qml").read_text(encoding="utf-8")
+        and "scale: 1" in (modules / "HubButton.qml").read_text(encoding="utf-8"),
     "foco bajo demanda": "focusable: true" in hub and "WlrKeyboardFocus.OnDemand" in hub,
     "foco conserva navegacion de workspaces": all(
         token in workspace

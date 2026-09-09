@@ -15,4 +15,8 @@ assert "function cancelPending(): void" in hover
 assert "onStatusIconsChanged(): void" in hub
 panel_window = (ROOT / "cortetsu/modules/drawers/ContentWindow.qml").read_text(encoding="utf-8")
 assert "visible: panel.visible && panel.width > 0" in panel_window
+button = (ROOT / "cortetsu/modules/HubButton.qml").read_text(encoding="utf-8")
+interactions = (ROOT / "cortetsu/modules/drawers/Interactions.qml").read_text(encoding="utf-8")
+assert "readonly property real visualScale" in button and "scale: 1" in button
+assert "if (!popouts.bottomAttached" in interactions
 print("PASS: system cluster uses consistent hit targets, grouped surface, and hover ownership")

@@ -33,13 +33,17 @@ Item {
     implicitHeight: buttonSize
     width: implicitWidth
     height: implicitHeight
-    scale: root.pressed
+    readonly property real visualScale: root.pressed
         ? 0.965
         : root.hovered
             ? CortetsuDesign.hoverScale
             : 1
+    // Keep the MouseArea hitbox fixed. Scaling the root changes the
+    // transformed hover bounds and can make the pointer oscillate at an icon
+    // edge, especially while moving between adjacent status controls.
+    scale: 1
 
-    Behavior on scale {
+    Behavior on visualScale {
         NumberAnimation {
             duration: root.pressed
                 ? CortetsuDesign.motionInstantMs
@@ -66,6 +70,7 @@ Item {
         focused: root.activeFocus
         disabled: root.disabled
         outlined: root.active
+        scale: root.visualScale
     }
 
     CortetsuIcon {
@@ -75,6 +80,7 @@ Item {
         text: root.icon
         color: root.iconColor
         iconSize: root.iconSize
+        scale: root.visualScale
 
         Behavior on color {
             ColorAnimation {
@@ -106,6 +112,7 @@ Item {
         smooth: true
         mipmap: true
         opacity: root.hovered || root.active || root.activeFocus ? 1 : 0.86
+        scale: root.visualScale
 
         Behavior on opacity {
             NumberAnimation {

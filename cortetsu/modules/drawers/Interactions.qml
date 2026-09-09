@@ -98,7 +98,11 @@ CustomMouseArea {
             if (!utilitiesShortcutActive)
                 screenState.utilities = false;
 
-            if (!popouts.currentName.startsWith("traymenu") || ((popouts.current as StackView)?.depth ?? 0) <= 1) {
+            // An attached BottomHub popout is owned by the trigger window
+            // until the shared hover controller closes it. Losing the full
+            // drawer window's pointer must not cancel that handoff.
+            if (!popouts.bottomAttached
+                    && (!popouts.currentName.startsWith("traymenu") || ((popouts.current as StackView)?.depth ?? 0) <= 1)) {
                 popouts.hasCurrent = false;
                 popouts.bottomAttached = false;
                 bar.closeTray();

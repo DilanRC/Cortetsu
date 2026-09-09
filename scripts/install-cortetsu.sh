@@ -112,11 +112,12 @@ python3 "$REPO/core/system.py" promote --repo "$REPO"
 # its StatusNotifier host; the installed ChatGPT Desktop Electron build has
 # crashed with SIGTRAP when that tray peer disappears. The promoted generation
 # is safe to adopt on an explicit soft reload that keeps the process alive;
-# hard restart remains an explicitly guarded maintenance operation.
+# hard lifecycle changes remain explicitly blocked while ChatGPT Desktop is
+# present; the guard does not have an environment-variable bypass.
 if systemctl --user is-enabled --quiet cortetsu-shell.service 2>/dev/null; then
     printf 'Shell supervision: no se reinicia automáticamente; se conserva el escritorio abierto\n'
     printf 'Para adoptar el runtime sin cerrar el proceso: cortetsu shell reload\n'
-    printf 'Mantenimiento duro, sólo con el escritorio cerrado: CORTETSU_RESTART_SHELL=1 cortetsu shell restart\n'
+    printf 'Mantenimiento duro: sólo se permite con ChatGPT Desktop cerrado\n'
 fi
 
 runtime_root="${CORTETSU_RUNTIME_ROOT:-${XDG_CONFIG_HOME:-$HOME/.config}/quickshell/cortetsu}"

@@ -138,8 +138,8 @@ reconcile_shell_lifecycle() {
 }
 
 shell_restart_allowed() {
-    if [[ "${CORTETSU_RESTART_SHELL:-0}" != "1" ]] && pgrep -x ChatGPT >/dev/null 2>&1; then
-        fail "ChatGPT Desktop está abierto; no se reinicia el shell. Usa CORTETSU_RESTART_SHELL=1 sólo si aceptas ese riesgo."
+    if pgrep -x ChatGPT >/dev/null 2>&1; then
+        fail "ChatGPT Desktop está abierto; esta operación de ciclo de vida queda bloqueada para conservar la aplicación abierta."
     fi
 }
 
@@ -188,6 +188,7 @@ shell_cmd() {
             systemctl --user is-active --quiet "$SHELL_UNIT" || fail "$SHELL_UNIT no quedó activo"
             ;;
         disable)
+            shell_restart_allowed
             systemctl --user disable --now "$SHELL_UNIT" || true
             ;;
         logs)
