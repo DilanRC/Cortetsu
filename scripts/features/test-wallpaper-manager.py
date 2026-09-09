@@ -105,7 +105,9 @@ assert "Orbit.satellites(filteredEntries, windowIndex, windowIndex, visibleLimit
 assert "orbitMotion.to = orbitPhase - steps * Orbit.angularStep" in content
 assert "root.windowIndex = root.currentIndex;" in content
 assert "root.orbitPhase = 0;" not in content[content.index("NumberAnimation {"):content.index("ParallelAnimation {")]
-assert "scale: 1" not in content
+assert "scale: 1" in content
+assert "scale: satellite.visualScale" in content
+assert "opacity: satellite.hovered ? 1 : 0.28 + satellite.depth * 0.72" in content
 assert "currentStateLabel" in content and "currentIsApplied" in content
 assert "scale: (0.72 + depth * 0.38)" not in content
 assert "anchors.bottomMargin: 70" in content

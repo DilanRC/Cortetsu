@@ -77,11 +77,14 @@ Item {
     implicitHeight: previewHeight + 60
 
     opacity: pointer.drag.active ? 0.55 : 1
-    scale: selected ? 1.018 : pointer.containsMouse ? 1.008 : 1
+    property real visualScale: selected ? 1.018 : pointer.containsMouse ? 1.008 : 1
+    // Keep the card's grid cell, drag source and pointer target stable. The
+    // depth cue is applied to painted layers below instead of the root item.
+    scale: 1
 
-    Behavior on scale {
+    Behavior on visualScale {
         NumberAnimation {
-            duration: 115
+            duration: CortetsuDesign.motionFastMs
             easing.type: Easing.OutCubic
         }
     }
@@ -90,6 +93,7 @@ Item {
         id: cardBg
 
         anchors.fill: parent
+        scale: root.visualScale
 
         radius: CortetsuDesign.radiusLarge
 
@@ -129,6 +133,7 @@ Item {
     Rectangle {
         id: preview
         clip: true
+        scale: root.visualScale
 
         anchors.top: parent.top
         anchors.left: parent.left
@@ -429,6 +434,7 @@ Item {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: parent.bottom
+        scale: root.visualScale
 
         anchors.leftMargin: 13
         anchors.rightMargin: 13

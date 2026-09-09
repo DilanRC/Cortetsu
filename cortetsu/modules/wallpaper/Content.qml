@@ -512,67 +512,77 @@ FocusScope {
                     readonly property bool hovered: satelliteMouse.containsMouse
                     width: 78
                     height: 78
-                    scale: hovered ? 0.94 + depth * 0.24 : 0.78 + depth * 0.28
-                    opacity: hovered ? 1 : 0.28 + depth * 0.72
+                    readonly property real visualScale: hovered ? 0.94 + depth * 0.24 : 0.78 + depth * 0.28
+                    // The satellite keeps a fixed hitbox while its visual
+                    // layer communicates orbital depth through scale.
+                    scale: 1
+                    opacity: 1
                     z: 2 + Math.round(depth * 8)
                     x: orbitRegion.width / 2 + Math.cos(angle) * radiusX - width / 2
                     y: orbitRegion.height / 2 + Math.sin(angle) * radiusY - height / 2
 
-                    Shape {
-                        id: satelliteMask
-                        z: 1
+                    Item {
+                        id: satelliteVisual
                         anchors.fill: parent
-                        layer.enabled: true
-                        visible: true
-                        ShapePath {
-                            fillColor: CortetsuDesign.colorSurface
-                            startX: satelliteMask.width * 0.28; startY: 0
-                            PathLine { x: satelliteMask.width * 0.72; y: 0 }
-                            PathLine { x: satelliteMask.width; y: satelliteMask.height * 0.28 }
-                            PathLine { x: satelliteMask.width; y: satelliteMask.height * 0.72 }
-                            PathLine { x: satelliteMask.width * 0.72; y: satelliteMask.height }
-                            PathLine { x: satelliteMask.width * 0.28; y: satelliteMask.height }
-                            PathLine { x: 0; y: satelliteMask.height * 0.72 }
-                            PathLine { x: 0; y: satelliteMask.height * 0.28 }
-                            PathLine { x: satelliteMask.width * 0.28; y: 0 }
+                        scale: satellite.visualScale
+                        opacity: satellite.hovered ? 1 : 0.28 + satellite.depth * 0.72
+
+                        Shape {
+                            id: satelliteMask
+                            z: 1
+                            anchors.fill: parent
+                            layer.enabled: true
+                            visible: true
+                            ShapePath {
+                                fillColor: CortetsuDesign.colorSurface
+                                startX: satelliteMask.width * 0.28; startY: 0
+                                PathLine { x: satelliteMask.width * 0.72; y: 0 }
+                                PathLine { x: satelliteMask.width; y: satelliteMask.height * 0.28 }
+                                PathLine { x: satelliteMask.width; y: satelliteMask.height * 0.72 }
+                                PathLine { x: satelliteMask.width * 0.72; y: satelliteMask.height }
+                                PathLine { x: satelliteMask.width * 0.28; y: satelliteMask.height }
+                                PathLine { x: 0; y: satelliteMask.height * 0.72 }
+                                PathLine { x: 0; y: satelliteMask.height * 0.28 }
+                                PathLine { x: satelliteMask.width * 0.28; y: 0 }
+                            }
                         }
-                    }
-                    Image {
-                        z: 2
-                        anchors.fill: parent
-                        source: satellite.modelData.entry.path
-                        asynchronous: true
-                        sourceSize.width: 128
-                        sourceSize.height: 128
-                        fillMode: Image.PreserveAspectCrop
-                        cache: true
-                        mipmap: true
-                        retainWhileLoading: true
-                        layer.enabled: true
-                        layer.effect: CortetsuMask { maskSource: satelliteMask }
-                    }
-                    Shape {
-                        id: satelliteOutline
-                        anchors.fill: parent
-                        z: 3
-                        ShapePath {
-                            fillColor: "transparent"
-                            strokeColor: satellite.hovered ? CortetsuDesign.colorPrimary : Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.72)
-                            strokeWidth: satellite.hovered ? 1.5 : 1
-                            startX: satelliteOutline.width * 0.28; startY: 0
-                            PathLine { x: satelliteOutline.width * 0.72; y: 0 }
-                            PathLine { x: satelliteOutline.width; y: satelliteOutline.height * 0.28 }
-                            PathLine { x: satelliteOutline.width; y: satelliteOutline.height * 0.72 }
-                            PathLine { x: satelliteOutline.width * 0.72; y: satelliteOutline.height }
-                            PathLine { x: satelliteOutline.width * 0.28; y: satelliteOutline.height }
-                            PathLine { x: 0; y: satelliteOutline.height * 0.72 }
-                            PathLine { x: 0; y: satelliteOutline.height * 0.28 }
-                            PathLine { x: satelliteOutline.width * 0.28; y: 0 }
+                        Image {
+                            z: 2
+                            anchors.fill: parent
+                            source: satellite.modelData.entry.path
+                            asynchronous: true
+                            sourceSize.width: 128
+                            sourceSize.height: 128
+                            fillMode: Image.PreserveAspectCrop
+                            cache: true
+                            mipmap: true
+                            retainWhileLoading: true
+                            layer.enabled: true
+                            layer.effect: CortetsuMask { maskSource: satelliteMask }
+                        }
+                        Shape {
+                            id: satelliteOutline
+                            anchors.fill: parent
+                            z: 3
+                            ShapePath {
+                                fillColor: "transparent"
+                                strokeColor: satellite.hovered ? CortetsuDesign.colorPrimary : Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.72)
+                                strokeWidth: satellite.hovered ? 1.5 : 1
+                                startX: satelliteOutline.width * 0.28; startY: 0
+                                PathLine { x: satelliteOutline.width * 0.72; y: 0 }
+                                PathLine { x: satelliteOutline.width; y: satelliteOutline.height * 0.28 }
+                                PathLine { x: satelliteOutline.width; y: satelliteOutline.height * 0.72 }
+                                PathLine { x: satelliteOutline.width * 0.72; y: satelliteOutline.height }
+                                PathLine { x: satelliteOutline.width * 0.28; y: satelliteOutline.height }
+                                PathLine { x: 0; y: satelliteOutline.height * 0.72 }
+                                PathLine { x: 0; y: satelliteOutline.height * 0.28 }
+                                PathLine { x: satelliteOutline.width * 0.28; y: 0 }
+                            }
                         }
                     }
                     MouseArea {
                         id: satelliteMouse
-                        z: 3
+                        z: 5
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
