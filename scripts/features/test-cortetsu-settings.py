@@ -94,6 +94,10 @@ for marker in ('name: "settings"', "WlrLayer.Overlay", "Exclusive", "Wrapper"):
     assert marker in host, marker
 assert "property bool settings" in state and "|| settings" in state
 assert 'cortetsu/assets/branding' in runtime_builder and 'STAGING/assets/branding' in runtime_builder
+assert 'import "../CortetsuSearchBar.qml"' in content
+assert "CortetsuSearchBar {" in content
+assert "compact: true" in content
+assert "TextInput" not in content
 for source in (content, system):
     assert "import qs." not in source
 assert 'import "../../components"' in content

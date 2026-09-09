@@ -7,6 +7,7 @@ import Quickshell
 import "../../components"
 import ".."
 import "../launcher/services"
+import "../CortetsuSearchBar.qml"
 import "../CortetsuDesign.js" as CortetsuDesign
 import "../CortetsuTypography.js" as CortetsuTypography
 
@@ -84,48 +85,12 @@ Item {
                     font.weight: Font.DemiBold
                 }
 
-                Rectangle {
+                CortetsuSearchBar {
+                    id: searchField
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 38
-                    radius: CortetsuDesign.radiusSmall
-                    color: Qt.alpha(CortetsuDesign.colorSumi, 0.42)
-                    border.width: 1
-                    border.color: Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.64)
-
-                    RowLayout {
-                        anchors.fill: parent
-                        anchors.leftMargin: CortetsuDesign.spacingCompact
-                        anchors.rightMargin: CortetsuDesign.spacingCompact
-
-                        CortetsuIcon {
-                            text: "search"
-                            iconSize: CortetsuTypography.iconSmallPx
-                            color: CortetsuDesign.colorOnSurfaceVariant
-                        }
-
-                        Item {
-                            Layout.fillWidth: true
-                            Layout.preferredHeight: 20
-
-                            TextInput {
-                                id: searchField
-                                anchors.fill: parent
-                                color: CortetsuDesign.colorOnSurface
-                                font.pixelSize: CortetsuTypography.bodyPx
-                                clip: true
-                                onTextChanged: root.controller.search = text
-                            }
-
-                            Text {
-                                anchors.left: parent.left
-                                anchors.verticalCenter: parent.verticalCenter
-                                visible: searchField.text.length === 0
-                                text: qsTr("Search settings")
-                                color: CortetsuDesign.colorOnSurfaceVariant
-                                font.pixelSize: CortetsuTypography.bodyPx
-                            }
-                        }
-                    }
+                    compact: true
+                    placeholderText: qsTr("Search settings")
+                    onTextChanged: root.controller.search = text
                 }
 
                 ListView {

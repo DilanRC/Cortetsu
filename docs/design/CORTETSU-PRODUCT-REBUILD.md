@@ -71,7 +71,9 @@ family/flavour and direct selection. Exposed toggles call `CortetsuConfig` and
 persist through its XDG preferences contract. Categories without a connected
 read/write backend show an explicit staged boundary instead of a fake switch.
 The Settings host closes on Escape and uses exclusive keyboard focus only while
-open.
+open. Its navigation search uses the same Cortetsu search primitive as Launcher,
+with a compact density variant so focus, selection, clear, hover, and surface
+feedback remain one product interaction.
 
 ## Dashboard
 

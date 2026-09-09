@@ -35,5 +35,8 @@ overlay_config = (ROOT / "cortetsu/modules/CortetsuOverlayConfig.qml").read_text
 assert "CortetsuConfig.bar.dragThreshold" in overlay_config
 assert "CortetsuConfig.launcher.dragThreshold" in overlay_config
 assert "import qs." not in content and "import qs." not in system
+assert 'import "../CortetsuSearchBar.qml"' in content
+assert "compact: true" in content
+assert "TextInput" not in content
 
 print("PASS: Settings Center has navigation, live connected pages, honest backend boundaries and scheme ownership")
