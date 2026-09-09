@@ -113,7 +113,9 @@ def main() -> None:
     require(rail, "root.cycleRequested(appItem.modelData.key, -1);", "wheel previous request")
     require(rail, "root.cycleRequested(appItem.modelData.key, 1);", "wheel next request")
 
-    require(mode, 'imageSource: "file:///usr/share/icons/cachyos.svg"', "CachyOS launcher logo")
+    require(mode, 'imageSource: Quickshell.shellPath("assets/branding/cortetsu-mark.svg")', "Cortetsu launcher logo")
+    if "/usr/share/icons/cachyos.svg" in mode:
+        raise SystemExit("FAIL: BottomHub product identity must not fall back to the distro badge")
     require(mode, "CortetsuWorkspaceDots {", "workspace indicator component")
 
     require(bottom, "Icons.getVolumeIcon(CortetsuAudio.volume, CortetsuAudio.muted)", "volume icon controller")
