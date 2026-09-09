@@ -23,6 +23,8 @@ assert "MouseArea" in detached and "z: -1" in detached
 wrapper = (ROOT / "cortetsu/modules/bar/popouts/Wrapper.qml").read_text(encoding="utf-8")
 content_window = (ROOT / "cortetsu/modules/drawers/ContentWindow.qml").read_text(encoding="utf-8")
 assert "HyprlandFocusGrab" not in wrapper
+assert "WlrKeyboardFocus" not in wrapper
+assert "Binding" not in wrapper
 assert content_window.count("panels.popouts.close();") >= 3
 assert (ROOT / "cortetsu/base/modules/bar/popouts/Content.qml").is_file()
 password = (popouts / "CortetsuWifiPasswordPopup.qml").read_text(encoding="utf-8")

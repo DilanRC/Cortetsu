@@ -2,7 +2,6 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import Quickshell
-import Quickshell.Wayland
 import ".."
 import "../.."
 import "../../CortetsuDesign.js" as CortetsuDesign
@@ -147,13 +146,6 @@ Item {
     PopoutState {
         id: popoutState
         onDetachRequested: mode => root.detach(mode)
-    }
-
-    Binding {
-        when: root.isDetached || (root.hasCurrent && root.currentName === "wirelesspassword")
-        target: QsWindow.window
-        property: "WlrLayershell.keyboardFocus"
-        value: WlrKeyboardFocus.Exclusive
     }
 
     Comp {

@@ -48,7 +48,7 @@ assert "closeAllPopouts();" in hub
 assert "id: hideTimer" in hub and "interval: 500" in hub
 assert "hideTimer.restart();" in hub
 assert "root.forceActiveFocus();" in wrapper
-assert "value: WlrKeyboardFocus.Exclusive" in wrapper
+assert "panels.popouts.isDetached" in content_window and "WlrKeyboardFocus.Exclusive" in content_window
 assert 'if (root.statusPopoutsEnabled)\n                    root.attachedControlRequested("network", root.centerFor(networkButton))' in status_segment
 assert 'if (root.statusPopoutsEnabled)\n                    root.attachedControlRequested("bluetooth", root.centerFor(bluetoothButton))' in status_segment
 assert 'onClicked: root.detachedControlRequested("network")' not in status_segment
@@ -63,6 +63,8 @@ assert "radiusValue:" not in detached and "baseColor:" not in detached and "outl
 assert "Keep clicks inside the detached surface" in detached
 assert "z: -1" in detached
 assert "HyprlandFocusGrab" not in wrapper
+assert "WlrKeyboardFocus" not in wrapper
+assert "Binding" not in wrapper
 assert content_window.count("panels.popouts.close();") >= 3
 panels = (ROOT / "cortetsu/modules/drawers/Panels.qml").read_text(encoding="utf-8")
 assert "CortetsuWindowInfoPopup" in panels
