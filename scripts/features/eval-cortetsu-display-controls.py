@@ -4,10 +4,15 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 editor = (ROOT / "cortetsu/modules/display/Editor.qml").read_text(encoding="utf-8")
 preview = (ROOT / "cortetsu/modules/display/PreviewControls.qml").read_text(encoding="utf-8")
+output_controls = (ROOT / "cortetsu/modules/display/DisplayOutputControls.qml").read_text(encoding="utf-8")
 button = (ROOT / "cortetsu/components/CortetsuButton.qml").read_text(encoding="utf-8")
 
 assert editor.count("CortetsuButton") == 3
 assert preview.count("CortetsuButton") == 4
+assert output_controls.count("delegate: CortetsuButton") == 1
+assert output_controls.count("active: modelData.active") == 1
+assert "disabled: !modelData.enabled" in output_controls
+assert "modeLayer" not in output_controls
 assert "ActionButton" not in preview
 assert 'tooltipText: qsTr("Refresh displays")' in editor
 assert 'tooltipText: qsTr("Reset candidate")' in editor

@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import ".."
+import "../../components"
 import "../CortetsuDesign.js" as CortetsuDesign
 import "../CortetsuTypography.js" as CortetsuTypography
 
@@ -69,37 +70,16 @@ Item {
                     { label: qsTr("HDR"), enabled: root.hdrProven, active: root.bitdepth === 10 && (root.cm === "hdr" || root.cm === "hdredid"), action: () => root.setColor(10, "hdredid") }
                 ]
 
-                delegate: Item {
+                delegate: CortetsuButton {
                     required property var modelData
                     width: (parent.width - parent.spacing * 3) / 4
                     height: 36
-                    enabled: modelData.enabled
-                    opacity: enabled ? 1 : 0.35
-
-                    CortetsuSurface {
-                        anchors.fill: parent
-                        radiusValue: CortetsuDesign.radiusMedium
-                        baseColor: modelData.active
-                            ? Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.8)
-                            : modeLayer.containsMouse
-                                ? CortetsuDesign.colorSurfaceGlass
-                                : "transparent"
-                        outlined: false
-                    }
-                    CortetsuStateLayer {
-                        id: modeLayer
-                        anchors.fill: parent
-                        radius: CortetsuDesign.radiusMedium
-                        disabled: !parent.enabled
-                        onClicked: modelData.action()
-                    }
-                    CortetsuText {
-                        anchors.centerIn: parent
-                        text: modelData.label
-                        color: modelData.active ? CortetsuDesign.colorOnPrimaryContainer : CortetsuDesign.colorOnSurfaceVariant
-                        textSize: CortetsuTypography.labelSmallPx
-                        font.weight: modelData.active ? Font.DemiBold : Font.Normal
-                    }
+                    label: modelData.label
+                    compact: true
+                    active: modelData.active
+                    disabled: !modelData.enabled
+                    focus: false
+                    onClicked: modelData.action()
                 }
             }
         }
