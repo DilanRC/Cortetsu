@@ -17,6 +17,32 @@ Item {
     implicitWidth: 1080
     implicitHeight: 520
 
+    readonly property bool batteryCharging: [
+        UPowerDeviceState.Charging,
+        UPowerDeviceState.FullyCharged,
+        UPowerDeviceState.PendingCharge
+    ].includes(UPower.displayDevice.state)
+    readonly property int batteryPercent: Math.round(UPower.displayDevice.percentage * 100)
+    readonly property string batterySubtitle: !UPower.displayDevice?.isLaptopBattery
+        ? qsTr("External power")
+        : batteryCharging
+            ? qsTr("Charging")
+            : UPower.onBattery
+                ? qsTr("On battery")
+                : qsTr("External power")
+    readonly property string networkTitle: CortetsuNetwork.connecting
+        ? qsTr("Connecting")
+        : CortetsuNetwork.activeEthernet
+            ? qsTr("Ethernet")
+            : CortetsuNetwork.active?.ssid ?? qsTr("Offline")
+    readonly property string networkSubtitle: CortetsuNetwork.connecting
+        ? qsTr("Negotiating link")
+        : CortetsuNetwork.activeEthernet
+            ? qsTr("Wired connection")
+            : CortetsuNetwork.active
+                ? qsTr("Signal %1%").arg(Math.round(CortetsuNetwork.active.strength ?? 0))
+                : qsTr("No network connection")
+
     CortetsuSurface {
         anchors.fill: parent
         baseColor: Qt.alpha(CortetsuDesign.colorSumi, 0.985)
@@ -115,10 +141,23 @@ Item {
         RowLayout {
             Layout.fillWidth: true
             spacing: CortetsuDesign.spacingCompact
-            CortetsuSectionHeader { title: qsTr("SYSTEM"); detail: qsTr("Live context"); Layout.preferredWidth: 140 }
+            CortetsuSectionHeader { title: qsTr("SYSTEM"); detail: qsTr("Live context"); Layout.preferredWidth: 118 }
             CortetsuListRow { Layout.fillWidth: true; icon: "memory"; title: qsTr("CPU %1%").arg(Math.round(Cpu.percentage * 100)); subtitle: qsTr("%1°C").arg(Math.round(Cpu.temperature)); selected: false }
             CortetsuListRow { Layout.fillWidth: true; icon: "data_usage"; title: qsTr("Memory %1%").arg(Math.round(Memory.percentage * 100)); subtitle: qsTr("%1 GB used").arg((Memory.used / 1048576).toFixed(1)); selected: false }
-            CortetsuListRow { Layout.fillWidth: true; icon: "battery_5_bar"; title: UPower.displayDevice?.isLaptopBattery ? qsTr("Battery %1%").arg(Math.round(UPower.displayDevice.percentage * 100)) : qsTr("AC power"); subtitle: CortetsuNetwork.active?.ssid ?? qsTr("Network unavailable"); selected: false }
+            CortetsuListRow {
+                Layout.fillWidth: true
+                icon: root.batteryCharging ? "battery_charging_full" : (root.batteryPercent <= 20 ? "battery_alert" : "battery_5_bar")
+                title: UPower.displayDevice?.isLaptopBattery ? qsTr("Battery %1%").arg(root.batteryPercent) : qsTr("Power")
+                subtitle: root.batterySubtitle
+                selected: false
+            }
+            CortetsuListRow {
+                Layout.fillWidth: true
+                icon: CortetsuNetwork.activeEthernet ? "cable" : (CortetsuNetwork.connecting ? "sync" : (CortetsuNetwork.active ? "wifi" : "wifi_off"))
+                title: root.networkTitle
+                subtitle: root.networkSubtitle
+                selected: false
+            }
         }
     }
 
