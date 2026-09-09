@@ -17,7 +17,7 @@ No existe un camino soportado que escriba directamente en `/etc/xdg/quickshell/c
 
 - `BottomHub.qml`: controlador, IPC y adapters de backend.
 - `CortetsuBottomHubView.qml`: composición y geometría general.
-- `CortetsuModeSegment.qml`: launcher, wallpaper y workspaces.
+- `CortetsuModeSegment.qml`: launcher, wallpaper, Clipboard y workspaces.
 - `CortetsuWorkspaceDots.qml`: indicador/selector de workspaces.
 - `CortetsuAppRail.qml`: favoritas y aplicaciones abiertas.
 - `CortetsuTraySegment.qml`: bandeja SNI proyectada como datos simples.
@@ -49,6 +49,7 @@ El controlador conserva las capacidades del Hub anterior:
 
 - logo CachyOS → launcher;
 - thumbnail → Wallpaper Manager;
+- icono Clipboard → historial de portapapeles;
 - click en workspace → cambio de workspace;
 - app sin ventanas → lanzar;
 - app abierta → enfocar; clicks sucesivos o rueda → recorrer ventanas;
@@ -137,9 +138,11 @@ cortetsu verify
 cortetsu shell reload
 ```
 
-La recarga suave reutiliza el proceso y las ventanas de Quickshell. No uses el
-reinicio duro mientras ChatGPT Desktop u otra aplicación de bandeja esté
-abierta: el host `StatusNotifier` puede desaparecer durante ese ciclo.
+La recarga suave reutiliza el proceso y las ventanas de Quickshell. El reinicio
+duro sólo es explícito y ahora es seguro para las aplicaciones persistentes de
+Cortetsu: cada lanzamiento vive en un scope de usuario independiente y no
+pertenece al cgroup del shell. ChatGPT Desktop puede permanecer abierto durante
+esa operación.
 
 Para diagnosticar una carga QML fallida:
 

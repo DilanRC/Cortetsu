@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import "CortetsuDesign.js" as CortetsuDesign
+import "CortetsuTypography.js" as CortetsuTypography
 
 Item {
     id: root
@@ -8,6 +9,7 @@ Item {
     required property bool launcherActive
     required property bool wallpaperActive
     required property string wallpaperSource
+    required property bool clipboardActive
     required property int workspaceCount
     required property int workspaceOffset
     required property int activeWsId
@@ -15,6 +17,7 @@ Item {
 
     signal launcherRequested()
     signal wallpaperRequested()
+    signal clipboardRequested()
     signal workspaceRequested(int workspaceId)
 
     implicitWidth: content.implicitWidth + CortetsuDesign.spacingCompact
@@ -47,6 +50,15 @@ Item {
             active: root.wallpaperActive
             tooltip: qsTr("Wallpaper manager")
             onClicked: root.wallpaperRequested()
+        }
+
+        HubButton {
+            buttonSize: 40
+            iconSize: CortetsuTypography.iconMediumPx
+            icon: "content_paste_search"
+            active: root.clipboardActive
+            tooltip: qsTr("Clipboard")
+            onClicked: root.clipboardRequested()
         }
 
         Rectangle {

@@ -7,7 +7,7 @@ return {
 
     -- Apps
     terminal                   = "/home/dilan/.local/bin/kitty-tab",
-    browser                    = "firefox",
+    browser                    = "brave-origin",
     editor                     = "codium",
     fileExplorer               = "dolphin",
     audioSettings              = "pavucontrol",

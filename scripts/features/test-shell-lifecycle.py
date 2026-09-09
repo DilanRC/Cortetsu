@@ -24,12 +24,12 @@ installer_text = INSTALLER.read_text(encoding="utf-8")
 assert "is-enabled --quiet cortetsu-shell.service" in installer_text
 assert "no se reinicia automáticamente" in installer_text
 assert "cortetsu shell reload" in installer_text
-assert "sólo se permite con ChatGPT Desktop cerrado" in installer_text
+assert "las aplicaciones persistentes usan scopes independientes" in installer_text
 assert "systemctl --user restart cortetsu-shell.service" not in installer_text
 cli_text = (REPO / "scripts/cortetsu").read_text(encoding="utf-8")
-assert "shell_restart_allowed" in cli_text
-assert "pgrep -x ChatGPT" in cli_text
-assert "esta operación de ciclo de vida queda bloqueada" in cli_text
+assert "shell_restart_allowed" not in cli_text
+assert "pgrep -x ChatGPT" not in cli_text
+assert "esta operación de ciclo de vida queda bloqueada" not in cli_text
 assert "shell_reload()" in cli_text
 assert 'qs ipc --pid "$pid" call cortetsu-shell reload' in cli_text
 assert '[[ "$after" == "$pid" ]]' in cli_text

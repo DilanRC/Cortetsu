@@ -67,6 +67,20 @@ Scope {
         }
     }
 
+    function toggleClipboardFor(screen): void {
+        const state = CortetsuShellState.forScreen(screen)?.cortetsuState;
+        if (!state)
+            return;
+
+        const wasOpen = state.clipboard;
+        closeAllLaunchers();
+        closeAllPanels();
+        closeAllPopouts();
+        if (!wasOpen)
+            state.setRetained("clipboard", true);
+        shown = true;
+    }
+
     function setShown(value): void {
         if (value) {
             hideTimer.stop();
@@ -728,6 +742,7 @@ Scope {
                 launcherActive: win.screenState?.launcher ?? false
                 wallpaperActive: win.cortetsuState?.wallpaperManager ?? false
                 wallpaperSource: CortetsuWallpapers.actualCurrent
+                clipboardActive: win.cortetsuState?.clipboard ?? false
                 workspaceCount: win.workspaceCount
                 workspaceOffset: win.workspaceOffset
                 activeWsId: win.activeWsId
@@ -764,6 +779,7 @@ Scope {
 
                 onLauncherRequested: hubRoot.toggleLauncherFor(win.modelData)
                 onWallpaperRequested: hubRoot.openWallpaperFor(win.modelData)
+                onClipboardRequested: hubRoot.toggleClipboardFor(win.modelData)
                 onWorkspaceRequested: workspaceId => CortetsuHypr.dispatch(
                     CortetsuHypr.usingLua
                         ? `hl.dsp.focus({ workspace = \"${workspaceId}\" })`

@@ -137,12 +137,6 @@ reconcile_shell_lifecycle() {
     python3 "$ROOT/core/shell_lifecycle.py" migrate
 }
 
-shell_restart_allowed() {
-    if pgrep -x ChatGPT >/dev/null 2>&1; then
-        fail "ChatGPT Desktop está abierto; esta operación de ciclo de vida queda bloqueada para conservar la aplicación abierta."
-    fi
-}
-
 shell_reload() {
     local pid after
     pid="$(systemctl --user show "$SHELL_UNIT" -p MainPID --value 2>/dev/null || true)"
@@ -175,7 +169,6 @@ shell_cmd() {
             systemctl --user status "$SHELL_UNIT" --no-pager "$@" || true
             ;;
         adopt)
-            shell_restart_allowed
             require_file "${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user/$SHELL_UNIT"
             reconcile_shell_lifecycle
             systemctl --user daemon-reload
@@ -195,13 +188,11 @@ shell_cmd() {
             shell_ipc "$@"
             ;;
         restart)
-            shell_restart_allowed
             systemctl --user daemon-reload
             systemctl --user restart "$SHELL_UNIT"
             systemctl --user is-active --quiet "$SHELL_UNIT" || fail "$SHELL_UNIT no quedó activo"
             ;;
         disable)
-            shell_restart_allowed
             systemctl --user disable --now "$SHELL_UNIT" || true
             ;;
         logs)

@@ -108,16 +108,14 @@ fi
 printf '==> Generación unificada Cortetsu\n'
 python3 "$REPO/core/system.py" promote --repo "$REPO"
 
-# Never restart shell supervision implicitly. Restarting Quickshell tears down
-# its StatusNotifier host; the installed ChatGPT Desktop Electron build has
-# crashed with SIGTRAP when that tray peer disappears. The promoted generation
-# is safe to adopt on an explicit soft reload that keeps the process alive;
-# hard lifecycle changes remain explicitly blocked while ChatGPT Desktop is
-# present; the guard does not have an environment-variable bypass.
+# Never restart shell supervision implicitly. The promoted generation is safe
+# to adopt on an explicit soft reload that keeps the process alive. Persistent
+# application launches use independent user scopes, so an explicit hard shell
+# lifecycle operation does not own or terminate those applications.
 if systemctl --user is-enabled --quiet cortetsu-shell.service 2>/dev/null; then
     printf 'Shell supervision: no se reinicia automáticamente; se conserva el escritorio abierto\n'
     printf 'Para adoptar el runtime sin cerrar el proceso: cortetsu shell reload\n'
-    printf 'Mantenimiento duro: sólo se permite con ChatGPT Desktop cerrado\n'
+    printf 'Mantenimiento duro: disponible de forma explícita; las aplicaciones persistentes usan scopes independientes\n'
 fi
 
 runtime_root="${CORTETSU_RUNTIME_ROOT:-${XDG_CONFIG_HOME:-$HOME/.config}/quickshell/cortetsu}"

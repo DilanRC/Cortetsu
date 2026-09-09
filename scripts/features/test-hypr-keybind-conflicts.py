@@ -6,6 +6,7 @@ keybinds = (ROOT / "dotfiles/home/.config/hypr/hyprland/keybinds.lua").read_text
 user = (ROOT / "config/hypr-user.lua").read_text(encoding="utf-8")
 
 assert 'kbBrowser                  = "SUPER + B"' in variables
+assert 'browser                    = "brave-origin"' in variables
 assert 'kbColorPicker              = "SUPER + SHIFT + P"' in variables
 assert 'create_bind(vars.kbClipboard,' not in keybinds
 assert 'create_bind(vars.kbClipboardDel,' not in keybinds

@@ -103,6 +103,7 @@ def assert_controller(text: str) -> None:
         "CortetsuIdleInhibitor.enabled = !CortetsuIdleInhibitor.enabled",
         "hubRoot.toggleLauncherFor(win.modelData)",
         "hubRoot.openWallpaperFor(win.modelData)",
+        "hubRoot.toggleClipboardFor(win.modelData)",
         "hubRoot.toggleSidebarFor(win.modelData)",
     ):
         assert fingerprint in text, f"BottomHub controller lost behavior: {fingerprint}"
@@ -134,6 +135,10 @@ def assert_view_contract(source: dict[str, str]) -> None:
     assert mode.count("CortetsuWorkspaceDots {") == 1
     assert "signal launcherRequested()" in mode
     assert "signal wallpaperRequested()" in mode
+    assert "signal clipboardRequested()" in mode
+    assert "required property bool clipboardActive" in mode
+    assert 'import "CortetsuTypography.js" as CortetsuTypography' in mode
+    assert 'icon: "content_paste_search"' in mode
     assert "signal workspaceRequested(int workspaceId)" in mode
     assert "width: implicitWidth" in mode
     assert "height: implicitHeight" in mode
