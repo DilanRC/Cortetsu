@@ -29,7 +29,9 @@ Item {
     property string queuedMode
     property bool bottomAttached
     property bool closing
-    property real bottomOffset: 54
+    // BottomHub is 60 px tall. Keep an intentional 12 px handoff gap above
+    // it so the popup window never overlaps the trigger and steals hover.
+    property real bottomOffset: 60 + CortetsuDesign.spacingStandard
     property real bottomRightMargin: 4
     property real bottomAnchorCenter: -1
 
