@@ -3,11 +3,12 @@ pragma Singleton
 import Quickshell
 import QtQml
 import "../.."
+import "../../../services"
 import "../../../utils"
 
 // First-party desktop-entry search and launch. DesktopEntry.command is already
-// parsed by Quickshell, so keep the launch path direct and detached: wrapping
-// every GUI application in systemd-run adds another failure/latency boundary.
+// parsed by Quickshell; the helper moves the persistent child into its own
+// user scope before the shell can supervise it.
 QtObject {
     id: root
 
@@ -36,10 +37,11 @@ QtObject {
             ];
         }
 
-        Quickshell.execDetached({
+        CortetsuProcessLauncher.launchPersistent(
             command,
-            workingDirectory: entry.workingDirectory
-        });
+            entry.workingDirectory ?? "",
+            entry.id ?? entry.name ?? "app"
+        );
     }
 
     function search(text: string): var {

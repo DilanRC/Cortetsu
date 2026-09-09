@@ -4,6 +4,7 @@ import ".."
 import "../.."
 import QtQuick
 import Quickshell
+import "../../../services"
 import "../../../utils"
 
 Searcher {
@@ -44,7 +45,7 @@ Searcher {
                 Quickshell.execDetached(["cortetsu", "theme", "set", command[1]]);
             } else {
                 list.screenState.launcher = false;
-                Quickshell.execDetached(command);
+                CortetsuProcessLauncher.launchPersistent(command, "", name);
             }
         }
     }

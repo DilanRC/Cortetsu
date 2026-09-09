@@ -91,9 +91,9 @@ hl.bind(
 -- Clipboard QML nativo
 hl.bind(
     "SUPER + V",
-    -- Direct IPC keeps this key independent from the global-shortcut bridge.
-    -- The shell still owns the clipboard state and its per-monitor routing.
-    hl.dsp.exec_cmd("qs -p ~/.config/quickshell/cortetsu/current ipc call clipboard toggle")
+    -- Resolve the live systemd-owned Quickshell PID; `qs -p` cannot discover
+    -- this foreground instance reliably on the installed Quickshell version.
+    hl.dsp.exec_cmd("cortetsu shell ipc clipboard toggle")
 )
 
 hl.bind(

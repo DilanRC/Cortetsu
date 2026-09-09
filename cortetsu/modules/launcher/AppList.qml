@@ -12,6 +12,7 @@ import "../CortetsuSurface.qml"
 import "../CortetsuText.qml"
 import "../CortetsuIcon.qml"
 import "../CortetsuStateLayer.qml"
+import "../../services"
 import "services"
 
 GridView {
@@ -487,12 +488,12 @@ GridView {
                     radius: parent.radius
 
                     onClicked: {
-                        Quickshell.execDetached([
-                            ...CortetsuConfig.terminalCommand,
-                            "fish",
-                            "-C",
-                            `exec qalc -i '${calc.math}'`
-                        ]);
+                    CortetsuProcessLauncher.launchPersistent([
+                        ...CortetsuConfig.terminalCommand,
+                        "qalc",
+                        "-i",
+                        calc.math
+                    ], "", "qalc");
 
                         root.screenState.launcher = false;
                     }

@@ -45,7 +45,7 @@ Usage:
   cortetsu system <action>         promote|verify|status|rollback|gc
   cortetsu dotfiles <action>       plan|apply|verify|status|rollback|gc
   cortetsu theme <action>          check|compile|adopt native desktop theme
-  cortetsu shell <action>          status|adopt|reconcile|reload|restart|disable|logs
+  cortetsu shell <action>          status|adopt|reconcile|reload|restart|disable|logs|ipc
   cortetsu legacy-processes <action> scan|migrate
   cortetsu config migrate         Import functional preferences to ~/.config/cortetsu
   cortetsu screenshot [-r] [-f]   Open the Cortetsu regional screenshot picker
@@ -156,6 +156,16 @@ shell_reload() {
     printf 'Cortetsu shell: recarga suave completada en el mismo proceso (%s)\n' "$pid"
 }
 
+shell_ipc() {
+    local target="${1:-}" method="${2:-}" pid
+    [[ -n "$target" && -n "$method" ]] || fail "uso: cortetsu shell ipc <target> <method> [args...]"
+    shift 2
+    pid="$(systemctl --user show "$SHELL_UNIT" -p MainPID --value 2>/dev/null || true)"
+    [[ "$pid" =~ ^[1-9][0-9]*$ ]] || fail "$SHELL_UNIT no tiene un MainPID válido"
+    systemctl --user is-active --quiet "$SHELL_UNIT" || fail "$SHELL_UNIT no está activo"
+    qs ipc --pid "$pid" call "$target" "$method" "$@"
+}
+
 shell_cmd() {
     require_repo
     local action="${1:-status}"
@@ -180,6 +190,9 @@ shell_cmd() {
             ;;
         reload)
             shell_reload
+            ;;
+        ipc)
+            shell_ipc "$@"
             ;;
         restart)
             shell_restart_allowed
@@ -355,6 +368,7 @@ test_cmd() {
         "scripts/features/test-system-generations.py"
         "scripts/features/test-shell-lifecycle.py"
         "scripts/features/eval-shell-application-safety.py"
+        "scripts/features/eval-cortetsu-shell-ipc.py"
         "scripts/features/test-shell-state-screens.py"
         "cortetsu/tests/test-calendar-credentials.py"
         "cortetsu/tests/test-calendar-polish.py"
@@ -371,6 +385,7 @@ test_cmd() {
         "scripts/features/test-launcher-focus-runtime-contract.py"
         "scripts/features/eval-launcher-focus-runtime-contract.py"
         "scripts/features/test-launcher-process-scope.py"
+        "scripts/features/eval-cortetsu-process-launcher.py"
         "scripts/features/test-cortetsu-scheme.py"
         "scripts/features/test-scheme-catalog.py"
         "scripts/features/eval-scheme-catalog.py"

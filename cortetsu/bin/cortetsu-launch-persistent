@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+label="app"
+working_directory=""
+command=()
+
+while (($#)); do
+    case "$1" in
+        --label)
+            (($# >= 2)) || { printf 'cortetsu-launch-persistent: --label necesita un valor\n' >&2; exit 2; }
+            label="$2"
+            shift 2
+            ;;
+        --working-directory)
+            (($# >= 2)) || { printf 'cortetsu-launch-persistent: --working-directory necesita un valor\n' >&2; exit 2; }
+            working_directory="$2"
+            shift 2
+            ;;
+        --)
+            shift
+            command=("$@")
+            break
+            ;;
+        *)
+            printf 'cortetsu-launch-persistent: opción desconocida: %s\n' "$1" >&2
+            exit 2
+            ;;
+    esac
+done
+
+if ((${#command[@]} == 0)); then
+    printf 'cortetsu-launch-persistent: falta el comando\n' >&2
+    exit 2
+fi
+
+safe_label="$(printf '%s' "$label" | tr -c 'A-Za-z0-9_.@-' '-' | cut -c1-80)"
+safe_label="${safe_label:-app}"
+unit="cortetsu-app-${safe_label}-$(date +%s%N)-$$"
+
+args=(/usr/bin/systemd-run --user --scope --collect --quiet "--unit=$unit")
+if [[ -n "$working_directory" ]]; then
+    args+=("--working-directory=$working_directory")
+fi
+args+=(-- "${command[@]}")
+exec "${args[@]}"

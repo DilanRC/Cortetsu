@@ -11,6 +11,6 @@ assert 'create_bind(vars.kbClipboard,' not in keybinds
 assert 'create_bind(vars.kbClipboardDel,' not in keybinds
 assert '"SUPER + CTRL + " .. key' not in user
 assert '"SUPER + W"' in user and "linux-wallpaper-engine-once" in user
-assert '"SUPER + V"' in user and 'ipc call clipboard toggle' in user
+assert '"SUPER + V"' in user and 'cortetsu shell ipc clipboard toggle' in user
 assert '"SUPER + SHIFT + C"' in user and 'cortetsu:calendar' in user
 print("PASS: browser, calendar, color picker and clipboard keybind ownership is single-layer")
