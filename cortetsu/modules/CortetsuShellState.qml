@@ -5,6 +5,7 @@ import QtQml
 QtObject {
     property var states: []
     property var components: []
+    property var attachedPopupHoverOwner: null
 
     function registerState(screen, state): void {
         states = states.filter(entry => entry.screen !== screen).concat([{ screen, state }]);
@@ -20,6 +21,15 @@ QtObject {
 
     function unregisterComponents(screen, component): void {
         components = components.filter(entry => entry.screen !== screen || entry.component !== component);
+    }
+
+    function enterAttachedPopup(owner): void {
+        attachedPopupHoverOwner = owner;
+    }
+
+    function leaveAttachedPopup(owner): void {
+        if (attachedPopupHoverOwner === owner)
+            attachedPopupHoverOwner = null;
     }
 
     function forScreen(screen): var {
