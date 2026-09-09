@@ -1,13 +1,16 @@
 {
-  "name": "Cortetsu Forge",
-  "concept": "forged C + ember star core",
-  "tagline": "SYSTEMS FOR REAL CONTROL",
+  "name": "Cortetsu",
+  "concept": "angular open C + chamfered steel T",
+  "generation": "Ascension",
   "palette": {
-    "graphite": "#1D2128",
-    "warmWhite": "#F6F3EC",
-    "iceBlue": "#77C8FF",
-    "emberOrange": "#FF8A3D",
-    "deepNavy": "#0D1118"
+    "sumi": "#0B0D10",
+    "tetsu": "#171B21",
+    "washi": "#E7E0D5",
+    "indigo": "#334E68",
+    "steelBlue": "#526D82",
+    "vermillionDangerOnly": "#D64B32",
+    "successOnly": "#7A9B83",
+    "warningOnly": "#C49A62"
   },
   "canonical": "cortetsu-mark.svg",
   "variants": [
@@ -20,5 +23,11 @@
   "lockups": [
     "cortetsu-lockup-dark.svg",
     "cortetsu-lockup-light.svg"
-  ]
+  ],
+  "rules": {
+    "canonicalSurface": "dark",
+    "canonicalBackground": "transparent",
+    "dangerColourDecorative": false,
+    "successColourDecorative": false
+  }
 }
