@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import ".."
+import "../../components"
 import "../CortetsuDesign.js" as CortetsuDesign
 import "../CortetsuTypography.js" as CortetsuTypography
 
@@ -100,26 +101,9 @@ Rectangle {
             }
         }
 
-        Rectangle {
-            visible: root.progress >= 0
+        CortetsuProgressBar {
             width: parent.width
-            height: 5
-            radius: CortetsuDesign.radiusPill
-            color: Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.32)
-
-            Rectangle {
-                width: parent.width * Math.max(0, Math.min(1, root.progress))
-                height: parent.height
-                radius: parent.radius
-                color: CortetsuDesign.colorPrimary
-
-                Behavior on width {
-                    NumberAnimation {
-                        duration: CortetsuDesign.motionStandardMs
-                        easing.type: Easing.OutCubic
-                    }
-                }
-            }
+            value: root.progress
         }
 
         Item {

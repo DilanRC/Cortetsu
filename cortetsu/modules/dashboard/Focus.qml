@@ -238,25 +238,12 @@ Item {
             }
         }
 
-        Rectangle {
+        CortetsuProgressBar {
             Layout.fillWidth: true
-            implicitHeight: 4
-            radius: 2
-            color: Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.28)
-
-            Rectangle {
-                width: parent.width * root.progress()
-                height: parent.height
-                radius: parent.radius
-                color: CortetsuDesign.colorPrimary
-
-                Behavior on width {
-                    NumberAnimation {
-                        duration: CortetsuDesign.motionStandardMs
-                        easing.type: Easing.OutCubic
-                    }
-                }
-            }
+            value: root.progress()
+            barHeight: 4
+            barRadius: 2
+            trackColor: Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.28)
         }
 
         RowLayout {

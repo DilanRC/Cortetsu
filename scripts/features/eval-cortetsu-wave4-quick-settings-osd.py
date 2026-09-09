@@ -7,6 +7,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 utilities = (ROOT / "cortetsu/modules/utilities/Content.qml").read_text(encoding="utf-8")
 osd = (ROOT / "cortetsu/modules/osd/Content.qml").read_text(encoding="utf-8")
+progress = (ROOT / "cortetsu/components/CortetsuProgressBar.qml").read_text(encoding="utf-8")
 
 checks = {
     "quick settings has a shared popup surface": "CortetsuPopupSurface" in utilities,
@@ -19,7 +20,9 @@ checks = {
     "osd keeps volume wheel control": "CortetsuAudio.incrementVolume" in osd and "CortetsuAudio.decrementVolume" in osd,
     "osd uses one shared surface": "CortetsuPopupSurface" in osd and "id: indicators" in osd,
     "osd keeps brightness wheel control": "root.monitor.setBrightness" in osd,
-    "osd renders a bounded level": "Math.max(0, Math.min(1, indicator.modelData.value))" in osd,
+    "osd uses the shared bounded level primitive": "CortetsuProgressBar" in osd
+    and "value: indicator.modelData.value" in osd
+    and "Math.max(0, Math.min(1, root.value))" in progress,
     "osd distinguishes mute": "indicator.modelData.muted" in osd,
     "osd summary avoids invalid Row anchors": "id: indicatorSummary" in osd and "Row {\n                            CortetsuText" not in osd,
     "surfaces avoid legacy ownership": all(

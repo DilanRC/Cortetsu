@@ -142,27 +142,17 @@ CortetsuPopupSurface {
                             }
                         }
 
-                        Rectangle {
+                        CortetsuProgressBar {
                             width: parent.width
-                            height: 4
-                            radius: 2
-                            color: Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.72)
-
-                            Rectangle {
-                                width: parent.width * Math.max(0, Math.min(1, indicator.modelData.value))
-                                height: parent.height
-                                radius: parent.radius
-                                color: indicator.modelData.muted || indicator.modelData.value < 0
-                                    ? CortetsuDesign.colorOnSurfaceVariant
-                                    : CortetsuDesign.colorPrimary
-
-                                Behavior on width {
-                                    NumberAnimation {
-                                        duration: CortetsuDesign.motionFastMs
-                                        easing.type: Easing.OutCubic
-                                    }
-                                }
-                            }
+                            value: indicator.modelData.value
+                            visibleWhenUnavailable: true
+                            barHeight: 4
+                            barRadius: 2
+                            trackColor: Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.72)
+                            fillColor: indicator.modelData.muted || indicator.modelData.value < 0
+                                ? CortetsuDesign.colorOnSurfaceVariant
+                                : CortetsuDesign.colorPrimary
+                            motionDuration: CortetsuDesign.motionFastMs
                         }
                     }
                 }
