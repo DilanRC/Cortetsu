@@ -10,7 +10,7 @@ Item {
     required property ShellScreen screen
     required property var screenState
 
-    readonly property bool shouldBeActive: screenState.cortetsuState?.hardware ?? false
+    readonly property bool shouldBeActive: screenState?.cortetsuState?.hardware ?? false
 
     visible: shouldBeActive
     opacity: shouldBeActive ? 1 : 0

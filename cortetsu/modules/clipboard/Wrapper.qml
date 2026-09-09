@@ -11,7 +11,7 @@ Item {
     required property var screenState
 
     readonly property bool shouldBeActive:
-        screenState.cortetsuState?.clipboard ?? false
+        screenState?.cortetsuState?.clipboard ?? false
 
     visible: shouldBeActive
     opacity: shouldBeActive ? 1 : 0

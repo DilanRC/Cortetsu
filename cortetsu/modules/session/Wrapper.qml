@@ -6,7 +6,7 @@ Item {
     required property var screenState
     required property bool sidebarVisible
     readonly property real nonAnimWidth: content.implicitWidth
-    readonly property bool shouldBeActive: screenState.session === true
+    readonly property bool shouldBeActive: screenState?.session === true
     property real offsetScale: shouldBeActive ? 0 : 1
     property real sidebarOffset: sidebarVisible ? CortetsuDesign.spacingStandard : 0
 

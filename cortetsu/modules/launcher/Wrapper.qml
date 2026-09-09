@@ -13,11 +13,11 @@ Item {
     required property var screenState
     required property var panels
 
-    readonly property bool shouldBeActive: screenState.launcher
+    readonly property bool shouldBeActive: screenState?.launcher ?? false
     readonly property real dockOffset: 72
     readonly property real maxHeight: {
         let max = (screen?.height ?? 0) + CortetsuDesign.spacingSpacious - dockOffset;
-        if (screenState.dashboard)
+        if (screenState?.dashboard)
             max -= panels.dashboard.nonAnimHeight;
         return max;
     }

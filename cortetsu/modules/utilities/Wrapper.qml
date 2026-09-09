@@ -15,8 +15,8 @@ Item {
         property string recordingMode: ""
         reloadableId: "utilities"
     }
-    readonly property bool shouldBeActive: screenState.utilities
-        && !(screenState.session && CortetsuConfig.notificationExpire === false)
+    readonly property bool shouldBeActive: (screenState?.utilities ?? false)
+        && !((screenState?.session ?? false) && CortetsuConfig.notificationExpire === false)
     readonly property real totalPadding: CortetsuDesign.spacingComfortable * 2
     readonly property real nonAnimHeight: ((content.item as Content)?.nonAnimHeight ?? 0) + totalPadding
     property real offsetScale: shouldBeActive ? 0 : 1

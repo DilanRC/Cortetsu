@@ -10,7 +10,7 @@ Item {
     id: root
     required property var screen
     required property var screenState
-    readonly property bool shouldBeActive: screenState.cortetsuState?.wallpaperManager ?? false
+    readonly property bool shouldBeActive: screenState?.cortetsuState?.wallpaperManager ?? false
     readonly property bool presentationReady: contentLoader.item?.presentationReady ?? false
     readonly property bool globalOtherOverlayOpen: {
         for (const candidate of CortetsuScreens.screens) {
@@ -62,7 +62,8 @@ Item {
 
     onGlobalOtherOverlayOpenChanged: {
         if (shouldBeActive && globalOtherOverlayOpen) {
-            screenState.cortetsuState?.setRetained("wallpaperManager", false);
+            if (screenState?.cortetsuState)
+                screenState.cortetsuState.setRetained("wallpaperManager", false);
             CortetsuWallpapers.stopPreview();
         }
     }

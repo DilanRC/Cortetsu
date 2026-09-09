@@ -10,7 +10,7 @@ Item {
     required property var screenState
     required property bool sidebarOrSessionVisible
     readonly property var monitor: Brightness.getMonitorForScreen(screen)
-    property real offsetScale: screenState.osd ? 0 : 1
+    property real offsetScale: screenState?.osd ? 0 : 1
     property real sidebarOffset: sidebarOrSessionVisible ? CortetsuDesign.spacingStandard : 0
     property real volume: CortetsuAudio.volume
     property bool muted: CortetsuAudio.muted
@@ -20,6 +20,8 @@ Item {
     property alias hovered: content.hovered
 
     function show(): void {
+        if (!screenState)
+            return;
         screenState.osd = true;
         hideTimer.restart();
     }
@@ -55,10 +57,10 @@ Item {
 
     Behavior on offsetScale {
         NumberAnimation {
-            duration: screenState.osd
+            duration: screenState?.osd
                 ? CortetsuDesign.motionStandardMs
                 : CortetsuDesign.motionFastMs
-            easing.type: screenState.osd ? Easing.OutCubic : Easing.InCubic
+            easing.type: screenState?.osd ? Easing.OutCubic : Easing.InCubic
         }
     }
 
@@ -66,7 +68,7 @@ Item {
         id: hideTimer
         interval: 1500
         onTriggered: {
-            if (!content.hovered)
+            if (root.screenState && !content.hovered)
                 root.screenState.osd = false;
             else
                 restart();

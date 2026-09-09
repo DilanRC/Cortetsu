@@ -155,13 +155,13 @@ Item {
     }
 
     Behavior on implicitWidth {
-        enabled: root.screenState.launcher
+        enabled: root.screenState?.launcher ?? false
 
         CortetsuAnim {}
     }
 
     Behavior on implicitHeight {
-        enabled: root.screenState.launcher
+        enabled: root.screenState?.launcher ?? false
 
         CortetsuAnim {}
     }
