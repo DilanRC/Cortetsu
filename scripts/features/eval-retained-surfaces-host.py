@@ -9,7 +9,12 @@ checks = {
         "Overview.Wrapper", "Clipboard.Wrapper", "Hardware.Wrapper",
         "Display.Wrapper", "Wallpaper.Wrapper", "Calendar.Wrapper",
     )),
-    "host follows active-screen state": "CortetsuShellState.forActive()" in source,
+    "host follows monitor-local state": all(marker in source for marker in (
+        "model: CortetsuScreens.screens",
+        "required property ShellScreen modelData",
+        "CortetsuShellState.forScreen(modelData)",
+        "screen: modelData",
+    )) and "CortetsuShellState.forActive()" not in source,
     "escape closes the retained group": "closeRetainedOverlays()" in source,
     "full surfaces own overlay layer": "WlrLayer.Overlay" in source,
 }
