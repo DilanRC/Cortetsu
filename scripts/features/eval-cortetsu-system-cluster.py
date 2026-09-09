@@ -19,6 +19,8 @@ assert "required property bool statusPopoutsEnabled" in segment
 assert "statusPopoutsEnabled: CortetsuConfig.bar.popouts.statusIcons" in hub
 assert "function cancelPending(): void" in hover
 assert "onStatusIconsChanged(): void" in hub
+leave_trigger = hover.split("function leaveTrigger(): void", 1)[1].split("function enterPopup(): void", 1)[0]
+assert "openTimer.stop();" in leave_trigger
 panel_window = (ROOT / "cortetsu/modules/drawers/ContentWindow.qml").read_text(encoding="utf-8")
 assert "visible: panel.visible && panel.width > 0" in panel_window
 assert "panels.popouts.isDetached || panels.popouts.currentName === \"wirelesspassword\"" in panel_window

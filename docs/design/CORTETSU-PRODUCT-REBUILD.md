@@ -181,7 +181,9 @@ moves from Network to Bluetooth or Battery.
 The four system buttons are one `HoverHandler` island: button entry selects the
 content mode, while only leaving the island releases the trigger. This prevents
 an exit/enter race at the boundaries between Volume, Network, Bluetooth, and
-Battery.
+Battery. Leaving the island also cancels any incomplete dwell, even if the
+pointer is crossing an already-open popup, so a stale mode cannot reopen after
+the trigger has been left.
 
 `CortetsuTooltip` owns the shared tooltip surface, typography, padding and
 delayed visibility. Consumers provide only their target item and hover/focus

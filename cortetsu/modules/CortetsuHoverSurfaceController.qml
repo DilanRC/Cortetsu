@@ -45,8 +45,9 @@ Item {
         triggerHovered = false;
         // A dwell that never completed must not flash a popup after the pointer
         // has already left the status icon.
-        if (!popupHovered && !pinned)
-            openTimer.stop();
+        // Popup ownership only protects an already-open surface. It must never
+        // allow a stale trigger dwell to fire after the pointer left the icon.
+        openTimer.stop();
         scheduleClose();
     }
 
