@@ -10,7 +10,7 @@ Item {
     property int openDelay: 120
     property int closeDelay: 240
     property bool triggerHovered: false
-    property bool popupHovered: false
+    readonly property bool popupHovered: CortetsuShellState.attachedPopupHoverOwner !== null
     property bool pinned: false
     property var pendingScreen: null
     property string pendingMode: ""
@@ -34,17 +34,19 @@ Item {
 
     function leaveTrigger(): void {
         triggerHovered = false;
+        // A dwell that never completed must not flash a popup after the pointer
+        // has already left the status icon.
+        if (!popupHovered && !pinned)
+            openTimer.stop();
         scheduleClose();
     }
 
     function enterPopup(): void {
-        popupHovered = true;
-        closeTimer.stop();
+        CortetsuShellState.enterAttachedPopup(root);
     }
 
     function leavePopup(): void {
-        popupHovered = false;
-        scheduleClose();
+        CortetsuShellState.leaveAttachedPopup(root);
     }
 
     function scheduleClose(): void {
@@ -60,6 +62,13 @@ Item {
     function unpin(): void {
         pinned = false;
         scheduleClose();
+    }
+
+    onPopupHoveredChanged: {
+        if (popupHovered)
+            closeTimer.stop();
+        else
+            scheduleClose();
     }
 
     Timer {
