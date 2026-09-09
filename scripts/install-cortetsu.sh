@@ -111,7 +111,8 @@ python3 "$REPO/core/system.py" promote --repo "$REPO"
 # Never restart shell supervision implicitly. Restarting Quickshell tears down
 # its StatusNotifier host; the installed ChatGPT Desktop Electron build has
 # crashed with SIGTRAP when that tray peer disappears. The promoted generation
-# is safe to adopt on an explicit, guarded shell restart.
+# is safe to adopt on an explicit soft reload that keeps the process alive;
+# hard restart remains an explicitly guarded maintenance operation.
 if systemctl --user is-enabled --quiet cortetsu-shell.service 2>/dev/null; then
     printf 'Shell supervision: no se reinicia automáticamente; se conserva el escritorio abierto\n'
     printf 'Para adoptar el runtime sin cerrar el proceso: cortetsu shell reload\n'
