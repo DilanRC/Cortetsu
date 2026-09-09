@@ -126,6 +126,11 @@ Overview, Hardware, Display, Wallpaper, Calendar, and Clipboard now render throu
 
 First-party Dashboard, QSD, Launcher, Settings, and retained surfaces now read the same `CortetsuShellState` registry. This makes the exclusivity policy observable: opening a full surface cannot leave a first-party surface hidden behind it because each controller closes the same state owner.
 
+Settings and QSD now import Cortetsu components, modules, services and utilities
+through explicit relative boundaries. Their visible composition no longer relies
+on the `qs.*` compatibility aliases; native Quickshell providers remain imported
+directly where they own the hardware or Wayland contract.
+
 ## Wallpaper orbital selector
 
 The Wallpaper Manager uses a stable orbital model during selection. `windowIndex`
