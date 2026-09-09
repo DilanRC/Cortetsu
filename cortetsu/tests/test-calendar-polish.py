@@ -13,8 +13,9 @@ for expected in (
     'root.eventTime(modelData)',
     'modelData.location',
     'implicitWidth: chipRow.implicitWidth',
-    'component FocusButton: CortetsuSurface',
-    'onClicked: parent.clicked()',
+    'icon: "skip_next"',
+    'icon: "restart_alt"',
+    'onClicked: root.runPomodoro("reset")',
     'root.pomodoro = JSON.parse(text.trim())',
     'function runPomodoro(command: string)',
     'function onCalendarChanged()',
@@ -27,6 +28,9 @@ for expected in (
 ):
     assert expected in content, expected
 assert 'CortetsuTypography.titleLargePx' in content
+assert 'CortetsuButton {' in content
+assert 'component FocusButton' not in content
+assert 'import QtQuick.Controls' not in content
 assert 'Tokens.font.display.small' not in content
 for legacy in ('Caelestia.Config', 'qs.components', 'Colours.', 'Tokens.', 'StyledRect', 'StyledText', 'MaterialIcon'):
     assert legacy not in content, legacy
