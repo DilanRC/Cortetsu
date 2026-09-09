@@ -3,15 +3,15 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
-import qs.components
-import qs.components.containers
-import qs.modules
-import qs.modules.overview as Overview
-import qs.modules.clipboard as Clipboard
-import qs.modules.hardware as Hardware
-import qs.modules.display as Display
-import qs.modules.wallpaper as Wallpaper
-import qs.modules.calendar as Calendar
+import "../components"
+import "../components/containers"
+import "."
+import "overview" as Overview
+import "clipboard" as Clipboard
+import "hardware" as Hardware
+import "display" as Display
+import "wallpaper" as Wallpaper
+import "calendar" as Calendar
 import "CortetsuDesign.js" as CortetsuDesign
 
 // Retained surfaces have their own overlay window. Keeping them out of the

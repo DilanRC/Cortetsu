@@ -292,6 +292,8 @@ test_cmd() {
         "scripts/features/eval-keybind-editor.py"
         "scripts/features/test-shell-normalizer.py"
         "scripts/features/test-cortetsu-quality.py"
+        "scripts/features/test-first-party-host-boundaries.py"
+        "scripts/features/eval-first-party-host-boundaries.py"
         "scripts/features/test-overview-popout-exclusivity.py"
         "scripts/features/eval-overview-popout-exclusivity.py"
         "scripts/features/test-panel-popout-exclusivity.py"
@@ -417,6 +419,8 @@ verify_cmd() {
     fi
     theme_cmd check
     run_python_test "scripts/features/test-cortetsu-quality.py"
+    run_python_test "scripts/features/test-first-party-host-boundaries.py"
+    run_python_test "scripts/features/eval-first-party-host-boundaries.py"
     run_python_test "scripts/features/test-cortetsu-settings.py"
     run_python_test "scripts/features/eval-cortetsu-settings.py"
     run_python_test "scripts/features/test-cortetsu-dashboard.py"

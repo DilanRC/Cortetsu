@@ -3,9 +3,9 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
-import qs.components.containers
-import qs.services
-import qs.modules
+import "../components/containers"
+import "../services"
+import "."
 import "launcher"
 import "CortetsuDesign.js" as CortetsuDesign
 

@@ -3,10 +3,10 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
-import qs.components
-import qs.components.containers
-import qs.services
-import qs.modules
+import "../components"
+import "../components/containers"
+import "../services"
+import "."
 import "settings"
 import "CortetsuDesign.js" as CortetsuDesign
 

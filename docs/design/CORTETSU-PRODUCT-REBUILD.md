@@ -131,6 +131,12 @@ through explicit relative boundaries. Their visible composition no longer relies
 on the `qs.*` compatibility aliases; native Quickshell providers remain imported
 directly where they own the hardware or Wayland contract.
 
+The same boundary now covers the six primary overlay hosts: QSD, Settings,
+Launcher, Dashboard, Session and Retained Surfaces. Each host resolves its
+monitor-local state, surface primitives and child views from the Cortetsu tree,
+so overlay ownership is explicit at the composition root as well as inside the
+content pages.
+
 ## Wallpaper orbital selector
 
 The Wallpaper Manager uses a stable orbital model during selection. `windowIndex`
