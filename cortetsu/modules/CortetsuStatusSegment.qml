@@ -68,6 +68,10 @@ Item {
     Row {
         id: statusRow
         anchors.centerIn: parent
+        // Positioners expose implicit size, but their runtime bounds must be
+        // explicit for hover ownership and popup anchor calculations.
+        width: implicitWidth
+        height: implicitHeight
         spacing: 1
 
         // The four attached system controls form one hover island. Closing on
@@ -75,6 +79,8 @@ Item {
         // between adjacent icons and while crossing into the popup window.
         Row {
             id: systemControls
+            width: implicitWidth
+            height: implicitHeight
             spacing: 1
 
             HoverHandler {

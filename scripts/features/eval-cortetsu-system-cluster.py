@@ -7,6 +7,8 @@ hover = (ROOT / "cortetsu/modules/CortetsuHoverSurfaceController.qml").read_text
 assert "radiusValue: CortetsuDesign.radiusLarge" in segment
 assert "buttonSize: 40" in segment
 assert "onHoveredChanged" in segment
+assert "width: implicitWidth" in segment
+assert "height: implicitHeight" in segment
 assert "required property bool statusPopoutsEnabled" in segment
 assert "statusPopoutsEnabled: CortetsuConfig.bar.popouts.statusIcons" in hub
 assert "function cancelPending(): void" in hover

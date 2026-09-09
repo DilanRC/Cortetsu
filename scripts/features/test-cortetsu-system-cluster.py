@@ -17,6 +17,8 @@ assert "statusPopoutsEnabled: CortetsuConfig.bar.popouts.statusIcons" in hub
 # Rich system controls are one hover island. Individual icons may select a
 # different mode, but only leaving the island starts the close grace period.
 assert "id: systemControls" in segment
+assert "width: implicitWidth" in segment
+assert "height: implicitHeight" in segment
 assert "HoverHandler" in segment
 assert segment.count("root.attachedControlExited();") == 1
 for mode in ("audio", "network", "bluetooth", "battery"):
