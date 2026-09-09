@@ -20,9 +20,17 @@ Item {
     implicitWidth: row.implicitWidth + CortetsuDesign.spacingStandard * 2
     implicitHeight: compact ? 32 : CortetsuDesign.controlHeight
     opacity: disabled ? 0.48 : 1
-    scale: mouse.pressed ? 0.98 : mouse.containsMouse ? 1.008 : 1
+    property real visualScale: mouse.pressed
+        ? 0.98
+        : mouse.containsMouse
+            ? 1.008
+            : 1
+    // Keep the hitbox and layout bounds stable. Only the painted surface and
+    // content receive the hover/press transform, so dense rows cannot lose
+    // hover when the pointer rests on an edge.
+    scale: 1
 
-    Behavior on scale {
+    Behavior on visualScale {
         NumberAnimation {
             duration: mouse.pressed
                 ? CortetsuDesign.motionInstantMs
@@ -52,12 +60,14 @@ Item {
         outlined: !root.active || root.danger
         hovered: mouse.containsMouse
         pressed: mouse.pressed
+        scale: root.visualScale
     }
 
     Row {
         id: row
         anchors.centerIn: parent
         spacing: CortetsuDesign.spacingCompact
+        scale: root.visualScale
 
         CortetsuIcon {
             visible: root.icon.length > 0

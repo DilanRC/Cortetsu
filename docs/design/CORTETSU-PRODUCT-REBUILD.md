@@ -22,6 +22,9 @@ still required. It must not determine the final presentation.
   actions must not fall below the standard target.
 - Motion: fast `120 ms`, standard `180 ms`, emphasis `240 ms`, with OutCubic as
   the default easing. No ornamental bounce or indefinite animation.
+- Interaction: hover and press transforms apply to the painted content, not to
+  the layout or pointer bounds. Dense controls keep a stable hitbox while their
+  surface gives visual feedback.
 
 ## Brand mark
 

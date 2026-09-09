@@ -5,6 +5,9 @@ ROOT = Path(__file__).resolve().parents[2]
 button = (ROOT / "cortetsu/components/CortetsuButton.qml").read_text(encoding="utf-8")
 assert button.count("CortetsuTooltip {") == 1
 assert button.count("root.tooltipText") == 1
+assert "property real visualScale:" in button
+assert "scale: 1" in button
+assert button.count("scale: root.visualScale") == 2
 
 paths = [
     ROOT / "cortetsu/modules/qsd/Content.qml",

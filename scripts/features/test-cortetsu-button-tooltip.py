@@ -11,6 +11,9 @@ for marker in (
     "hovered: mouse.containsMouse",
     "focused: root.activeFocus",
     "text: root.tooltipText",
+    "property real visualScale:",
+    "scale: 1",
+    "scale: root.visualScale",
 ):
     assert marker in button, marker
 
