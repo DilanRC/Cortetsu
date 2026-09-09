@@ -3,22 +3,29 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import Quickshell.Bluetooth
 import qs.components
 import qs.modules 1.0
-import qs.services
 import qs.modules.launcher.services
 import "../CortetsuDesign.js" as CortetsuDesign
 import "../CortetsuTypography.js" as CortetsuTypography
 
 Item {
     id: root
+
     required property var screenState
+    required property var screen
     required property var controller
 
+    readonly property var selectedCategory: controller.categories.find(item => item.id === controller.selectedId) ?? null
+
     function schemeColour(value, fallback) {
-        return value ? `#${value}` : fallback;
+        const text = String(value ?? "").trim();
+        if (!text)
+            return fallback;
+        return text.startsWith("#") ? text : `#${text}`;
     }
+
+    Component.onCompleted: Schemes.reload()
 
     CortetsuText {
         id: title
@@ -83,14 +90,22 @@ Item {
                     color: Qt.alpha(CortetsuDesign.colorSumi, 0.42)
                     border.width: 1
                     border.color: Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.64)
+
                     RowLayout {
                         anchors.fill: parent
                         anchors.leftMargin: CortetsuDesign.spacingCompact
                         anchors.rightMargin: CortetsuDesign.spacingCompact
-                        CortetsuIcon { text: "search"; iconSize: CortetsuTypography.iconSmallPx; color: CortetsuDesign.colorOnSurfaceVariant }
+
+                        CortetsuIcon {
+                            text: "search"
+                            iconSize: CortetsuTypography.iconSmallPx
+                            color: CortetsuDesign.colorOnSurfaceVariant
+                        }
+
                         Item {
                             Layout.fillWidth: true
                             Layout.preferredHeight: 20
+
                             TextInput {
                                 id: searchField
                                 anchors.fill: parent
@@ -99,6 +114,7 @@ Item {
                                 clip: true
                                 onTextChanged: root.controller.search = text
                             }
+
                             Text {
                                 anchors.left: parent.left
                                 anchors.verticalCenter: parent.verticalCenter
@@ -118,6 +134,7 @@ Item {
                     clip: true
                     spacing: 2
                     model: root.controller.filteredCategories
+
                     delegate: CortetsuListRow {
                         required property var modelData
                         width: nav.width
@@ -136,149 +153,337 @@ Item {
             Layout.fillHeight: true
 
             Flickable {
+                id: scroller
                 anchors.fill: parent
                 clip: true
                 contentWidth: width
-                contentHeight: page.implicitHeight
+                contentHeight: Math.max(height, page.implicitHeight)
                 boundsBehavior: Flickable.StopAtBounds
 
                 ColumnLayout {
                     id: page
-                    width: parent.width
+                    width: scroller.width
                     spacing: CortetsuDesign.spacingSection
 
                     RowLayout {
                         Layout.fillWidth: true
                         spacing: CortetsuDesign.spacingStandard
-                        Image { source: Quickshell.shellPath("assets/branding/cortetsu-mark.svg"); sourceSize.width: 32; sourceSize.height: 32; Layout.preferredWidth: 32; Layout.preferredHeight: 32; fillMode: Image.PreserveAspectFit }
+
+                        Image {
+                            source: Quickshell.shellPath("assets/branding/cortetsu-mark.svg")
+                            sourceSize.width: 32
+                            sourceSize.height: 32
+                            Layout.preferredWidth: 32
+                            Layout.preferredHeight: 32
+                            fillMode: Image.PreserveAspectFit
+                        }
+
                         ColumnLayout {
                             Layout.fillWidth: true
                             spacing: 2
-                            CortetsuText { text: root.controller.categories.find(item => item.id === root.controller.selectedId)?.title ?? qsTr("Settings"); textSize: CortetsuTypography.titleLargePx; font.weight: Font.DemiBold }
-                            CortetsuText { text: root.controller.categories.find(item => item.id === root.controller.selectedId)?.detail ?? ""; textSize: CortetsuTypography.bodySmallPx; color: CortetsuDesign.colorOnSurfaceVariant }
+
+                            CortetsuText {
+                                text: root.selectedCategory?.title ?? qsTr("Settings")
+                                textSize: CortetsuTypography.titleLargePx
+                                font.weight: Font.DemiBold
+                            }
+
+                            CortetsuText {
+                                text: root.selectedCategory?.detail ?? ""
+                                textSize: CortetsuTypography.bodySmallPx
+                                color: CortetsuDesign.colorOnSurfaceVariant
+                            }
+                        }
+                    }
+
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        visible: root.controller.selectedId === "appearance"
+                        spacing: CortetsuDesign.spacingSection
+
+                        CortetsuSectionHeader {
+                            Layout.fillWidth: true
+                            title: qsTr("Scheme gallery")
+                            detail: Schemes.error.length > 0
+                                ? Schemes.error
+                                : Schemes.loading
+                                    ? qsTr("Reading installed scheme families…")
+                                    : qsTr("%1 installed · %2 active").arg(Schemes.catalogCount).arg(Schemes.currentScheme || qsTr("none"))
+                        }
+
+                        CortetsuSurface {
+                            Layout.fillWidth: true
+                            implicitHeight: 54
+                            visible: Schemes.list.length === 0
+                            radiusValue: CortetsuDesign.radiusMedium
+                            baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.70)
+                            outlined: true
+
+                            RowLayout {
+                                anchors.fill: parent
+                                anchors.margins: CortetsuDesign.spacingStandard
+                                spacing: CortetsuDesign.spacingStandard
+
+                                CortetsuIcon {
+                                    text: Schemes.loading ? "sync" : "palette"
+                                    iconSize: CortetsuTypography.iconSmallPx
+                                    color: Schemes.error.length > 0
+                                        ? CortetsuDesign.colorWarning
+                                        : CortetsuDesign.colorOnSurfaceVariant
+                                }
+
+                                CortetsuText {
+                                    Layout.fillWidth: true
+                                    text: Schemes.loading
+                                        ? qsTr("Loading scheme catalog")
+                                        : Schemes.error.length > 0
+                                            ? Schemes.error
+                                            : qsTr("No schemes are currently available")
+                                    textSize: CortetsuTypography.bodySmallPx
+                                    color: CortetsuDesign.colorOnSurfaceVariant
+                                    wrapMode: Text.WordWrap
+                                }
+
+                                CortetsuButton {
+                                    compact: true
+                                    icon: "refresh"
+                                    label: ""
+                                    disabled: Schemes.loading
+                                    onClicked: Schemes.reload()
+                                }
+                            }
+                        }
+
+                        Flow {
+                            id: schemeGrid
+                            Layout.fillWidth: true
+                            implicitHeight: childrenRect.height
+                            spacing: CortetsuDesign.spacingCompact
+
+                            Repeater {
+                                model: Schemes.list
+
+                                delegate: CortetsuSurface {
+                                    id: schemeCard
+                                    required property var modelData
+
+                                    readonly property var schemeData: modelData
+                                    readonly property bool selectedScheme: `${modelData.name} ${modelData.flavour}` === Schemes.currentScheme
+
+                                    width: 192
+                                    height: 116
+                                    radiusValue: CortetsuDesign.radiusMedium
+                                    active: selectedScheme
+                                    activeColor: Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.74)
+                                    baseColor: selectedScheme
+                                        ? Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.74)
+                                        : CortetsuDesign.colorSurfaceGlass
+                                    hoverColor: selectedScheme
+                                        ? Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.84)
+                                        : CortetsuDesign.colorSurfaceHigh
+                                    outlined: true
+                                    outlineColor: selectedScheme
+                                        ? Qt.alpha(CortetsuDesign.colorPrimary, 0.58)
+                                        : Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.52)
+
+                                    CortetsuText {
+                                        anchors.left: parent.left
+                                        anchors.top: parent.top
+                                        anchors.margins: CortetsuDesign.spacingStandard
+                                        width: parent.width - CortetsuDesign.spacingStandard * 2
+                                        text: schemeCard.schemeData.name
+                                        textSize: CortetsuTypography.bodyPx
+                                        font.weight: Font.DemiBold
+                                        elide: Text.ElideRight
+                                    }
+
+                                    CortetsuText {
+                                        anchors.left: parent.left
+                                        anchors.top: parent.top
+                                        anchors.topMargin: 34
+                                        anchors.leftMargin: CortetsuDesign.spacingStandard
+                                        width: parent.width - CortetsuDesign.spacingStandard * 2
+                                        text: schemeCard.selectedScheme
+                                            ? qsTr("%1 · active").arg(schemeCard.schemeData.flavour)
+                                            : schemeCard.schemeData.flavour
+                                        textSize: CortetsuTypography.labelSmallPx
+                                        color: schemeCard.selectedScheme
+                                            ? CortetsuDesign.colorPrimary
+                                            : CortetsuDesign.colorOnSurfaceVariant
+                                        elide: Text.ElideRight
+                                    }
+
+                                    Row {
+                                        anchors.left: parent.left
+                                        anchors.bottom: parent.bottom
+                                        anchors.margins: CortetsuDesign.spacingStandard
+                                        spacing: 4
+
+                                        Repeater {
+                                            model: ["primary", "secondary", "tertiary", "surface", "error"]
+                                            delegate: Rectangle {
+                                                required property string modelData
+                                                width: 22
+                                                height: 22
+                                                radius: 5
+                                                color: root.schemeColour(schemeCard.schemeData.colours[modelData], CortetsuDesign.colorOutlineVariant)
+                                                border.width: 1
+                                                border.color: Qt.alpha(CortetsuDesign.colorWashi, 0.16)
+                                            }
+                                        }
+                                    }
+
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        enabled: !Schemes.applying
+                                        hoverEnabled: true
+                                        cursorShape: Qt.PointingHandCursor
+                                        onEntered: schemeCard.hovered = true
+                                        onExited: {
+                                            schemeCard.hovered = false;
+                                            schemeCard.pressed = false;
+                                        }
+                                        onPressedChanged: schemeCard.pressed = pressed
+                                        onClicked: Schemes.apply(schemeCard.schemeData.name, schemeCard.schemeData.flavour)
+                                    }
+                                }
+                            }
+                        }
+
+                        CortetsuSectionHeader {
+                            Layout.fillWidth: true
+                            title: qsTr("Shell appearance")
+                            detail: qsTr("Persistent Cortetsu presentation preferences")
+                        }
+
+                        SystemPage {
+                            Layout.fillWidth: true
+                            section: "appearance-internal"
+                            screen: root.screen
+                            screenState: root.screenState
+                            visible: false
+                        }
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            CortetsuText {
+                                Layout.fillWidth: true
+                                text: qsTr("Smart scheme")
+                                textSize: CortetsuTypography.bodyPx
+                            }
+                            CortetsuToggle {
+                                checked: CortetsuConfig.smartScheme
+                                onToggled: {
+                                    CortetsuConfig.smartScheme = checked;
+                                    CortetsuConfig.save();
+                                }
+                            }
+                        }
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            CortetsuText {
+                                Layout.fillWidth: true
+                                text: qsTr("Wallpaper integration")
+                                textSize: CortetsuTypography.bodyPx
+                            }
+                            CortetsuToggle {
+                                checked: CortetsuConfig.wallpaperEnabled
+                                onToggled: {
+                                    CortetsuConfig.wallpaperEnabled = checked;
+                                    CortetsuConfig.save();
+                                }
+                            }
+                        }
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            CortetsuText {
+                                Layout.fillWidth: true
+                                text: qsTr("Transparent surfaces")
+                                textSize: CortetsuTypography.bodyPx
+                            }
+                            CortetsuToggle {
+                                checked: CortetsuConfig.transparencyEnabled
+                                onToggled: CortetsuConfig.transparencyEnabled = checked
+                            }
+                        }
+                    }
+
+                    SystemPage {
+                        Layout.fillWidth: true
+                        visible: root.controller.selectedId !== "appearance" && root.controller.selectedId !== "about"
+                        section: root.controller.selectedId
+                        screen: root.screen
+                        screenState: root.screenState
+                    }
+
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        visible: root.controller.selectedId === "about"
+                        spacing: CortetsuDesign.spacingStandard
+
+                        CortetsuSectionHeader {
+                            Layout.fillWidth: true
+                            title: qsTr("About Cortetsu")
+                            detail: qsTr("First-party desktop shell")
+                        }
+
+                        CortetsuSurface {
+                            Layout.fillWidth: true
+                            implicitHeight: 128
+                            radiusValue: CortetsuDesign.radiusLarge
+                            baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.72)
+                            outlined: true
+
+                            RowLayout {
+                                anchors.fill: parent
+                                anchors.margins: CortetsuDesign.spacingSpacious
+                                spacing: CortetsuDesign.spacingSpacious
+
+                                Image {
+                                    source: Quickshell.shellPath("assets/branding/cortetsu-mark.svg")
+                                    sourceSize.width: 72
+                                    sourceSize.height: 72
+                                    Layout.preferredWidth: 72
+                                    Layout.preferredHeight: 72
+                                    fillMode: Image.PreserveAspectFit
+                                }
+
+                                ColumnLayout {
+                                    Layout.fillWidth: true
+                                    spacing: CortetsuDesign.spacingUnit
+                                    CortetsuText {
+                                        text: qsTr("Cortetsu")
+                                        textSize: 28
+                                        font.weight: Font.DemiBold
+                                    }
+                                    CortetsuText {
+                                        text: qsTr("Precision shell for focused work")
+                                        textSize: CortetsuTypography.bodyPx
+                                        color: CortetsuDesign.colorOnSurfaceVariant
+                                    }
+                                    CortetsuText {
+                                        text: qsTr("Generation: Ascension · first-party surfaces")
+                                        textSize: CortetsuTypography.labelMediumPx
+                                        color: CortetsuDesign.colorOnSurfaceVariant
+                                    }
+                                }
+                            }
                         }
                     }
 
                     Item {
                         Layout.fillWidth: true
-                        implicitHeight: appearance.implicitHeight
-                        visible: root.controller.selectedId === "appearance"
-                        ColumnLayout {
-                            id: appearance
-                            width: parent.width
-                            spacing: CortetsuDesign.spacingSection
-                            CortetsuSectionHeader { Layout.fillWidth: true; title: qsTr("Scheme gallery"); detail: qsTr("Preview and apply every installed family") }
-                            Flow {
-                                Layout.fillWidth: true
-                                spacing: CortetsuDesign.spacingCompact
-                                Repeater {
-                                    model: Schemes.list
-                                    delegate: CortetsuSurface {
-                                        required property var modelData
-                                        readonly property var schemeData: modelData
-                                        width: 192
-                                        height: 116
-                                        radiusValue: CortetsuDesign.radiusMedium
-                                        active: `${modelData.name} ${modelData.flavour}` === Schemes.currentScheme
-                                        baseColor: active ? Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.76) : CortetsuDesign.colorSurfaceGlass
-                                        outlined: true
-                                        CortetsuText { anchors.left: parent.left; anchors.top: parent.top; anchors.margins: CortetsuDesign.spacingStandard; text: schemeData.name; textSize: CortetsuTypography.bodyPx; font.weight: Font.DemiBold }
-                                        CortetsuText { anchors.left: parent.left; anchors.top: parent.top; anchors.topMargin: 34; anchors.leftMargin: CortetsuDesign.spacingStandard; text: schemeData.flavour; textSize: CortetsuTypography.labelSmallPx; color: CortetsuDesign.colorOnSurfaceVariant }
-                                        Row { anchors.left: parent.left; anchors.bottom: parent.bottom; anchors.margins: CortetsuDesign.spacingStandard; spacing: 4; Repeater { model: ["primary", "secondary", "tertiary", "surface", "error"]; delegate: Rectangle { required property string modelData; width: 22; height: 22; radius: 5; color: root.schemeColour(schemeData.colours[modelData], CortetsuDesign.colorOutlineVariant) } } }
-                                        MouseArea { anchors.fill: parent; hoverEnabled: true; onClicked: Quickshell.execDetached(["cortetsu-scheme", "set", "-n", schemeData.name, schemeData.flavour]) }
-                                    }
-                                }
-                            }
-                            CortetsuSectionHeader { Layout.fillWidth: true; title: qsTr("Shell appearance"); detail: qsTr("These controls persist through CortetsuConfig") }
-                            RowLayout {
-                                Layout.fillWidth: true
-                                CortetsuText { Layout.fillWidth: true; text: qsTr("Smart scheme"); textSize: CortetsuTypography.bodyPx }
-                                CortetsuToggle { checked: CortetsuConfig.smartScheme; onToggled: { CortetsuConfig.smartScheme = checked; CortetsuConfig.save(); } }
-                            }
-                            RowLayout {
-                                Layout.fillWidth: true
-                                CortetsuText { Layout.fillWidth: true; text: qsTr("Wallpaper integration"); textSize: CortetsuTypography.bodyPx }
-                                CortetsuToggle { checked: CortetsuConfig.wallpaperEnabled; onToggled: { CortetsuConfig.wallpaperEnabled = checked; CortetsuConfig.save(); } }
-                            }
-                            RowLayout {
-                                Layout.fillWidth: true
-                                CortetsuText { Layout.fillWidth: true; text: qsTr("Transparent surfaces"); textSize: CortetsuTypography.bodyPx }
-                                CortetsuToggle { checked: CortetsuConfig.transparencyEnabled; onToggled: CortetsuConfig.transparencyEnabled = checked }
-                            }
-                        }
-                    }
-
-                    Item { Layout.fillWidth: true; implicitHeight: generic.implicitHeight; visible: root.controller.selectedId !== "appearance" && root.controller.selectedId !== "about" }
-                    ColumnLayout {
-                        id: generic
-                        width: page.width
-                        visible: root.controller.selectedId !== "appearance" && root.controller.selectedId !== "about"
-                        spacing: CortetsuDesign.spacingSection
-                        CortetsuSectionHeader { Layout.fillWidth: true; title: qsTr("Live shell preferences"); detail: qsTr("Only connected Cortetsu backends are exposed here") }
-                        CortetsuSurface {
-                            Layout.fillWidth: true
-                            implicitHeight: 92
-                            radiusValue: CortetsuDesign.radiusMedium
-                            baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.7)
-                            outlined: true
-                            RowLayout {
-                                anchors.fill: parent
-                                anchors.margins: CortetsuDesign.spacingStandard
-                                CortetsuIcon { text: "info"; iconSize: 22; color: CortetsuDesign.colorWarning }
-                                ColumnLayout {
-                                    Layout.fillWidth: true
-                                    CortetsuText { text: qsTr("This section is connected in stages"); textSize: CortetsuTypography.bodyPx; font.weight: Font.DemiBold }
-                                    CortetsuText { Layout.fillWidth: true; text: qsTr("The page is ready for the real backend. Controls are not shown until they can read and write state safely."); textSize: CortetsuTypography.bodySmallPx; color: CortetsuDesign.colorOnSurfaceVariant; wrapMode: Text.WordWrap }
-                                }
-                            }
-                        }
-                        RowLayout {
-                            Layout.fillWidth: true
-                            visible: root.controller.selectedId === "bottomhub"
-                            CortetsuText { Layout.fillWidth: true; text: qsTr("Status popouts"); textSize: CortetsuTypography.bodyPx }
-                            CortetsuToggle { checked: CortetsuConfig.bar.popouts.statusIcons; onToggled: CortetsuConfig.bar.popouts.statusIcons = checked }
-                        }
-                        RowLayout {
-                            Layout.fillWidth: true
-                            visible: root.controller.selectedId === "launcher"
-                            CortetsuText { Layout.fillWidth: true; text: qsTr("Fuzzy application search"); textSize: CortetsuTypography.bodyPx }
-                            CortetsuToggle { checked: CortetsuConfig.useFuzzyApps; onToggled: { CortetsuConfig.useFuzzyApps = checked; CortetsuConfig.save(); } }
-                        }
-                        RowLayout {
-                            Layout.fillWidth: true
-                            visible: root.controller.selectedId === "notifications"
-                            CortetsuText { Layout.fillWidth: true; text: qsTr("Open notifications expanded"); textSize: CortetsuTypography.bodyPx }
-                            CortetsuToggle { checked: CortetsuConfig.notificationOpenExpanded; onToggled: CortetsuConfig.notificationOpenExpanded = checked }
-                        }
-                        RowLayout {
-                            Layout.fillWidth: true
-                            visible: root.controller.selectedId === "power"
-                            CortetsuText { Layout.fillWidth: true; text: qsTr("Prevent idle while audio plays"); textSize: CortetsuTypography.bodyPx }
-                            CortetsuToggle { checked: CortetsuConfig.idleInhibitWhenAudio; onToggled: { CortetsuConfig.idleInhibitWhenAudio = checked; CortetsuConfig.save(); } }
-                        }
-                    }
-
-                    ColumnLayout {
-                        width: page.width
-                        visible: root.controller.selectedId === "about"
-                        spacing: CortetsuDesign.spacingStandard
-                        CortetsuSectionHeader { Layout.fillWidth: true; title: qsTr("About Cortetsu"); detail: qsTr("First-party desktop shell") }
-                        RowLayout {
-                            Layout.fillWidth: true
-                            spacing: CortetsuDesign.spacingSpacious
-                            Image { source: Quickshell.shellPath("assets/branding/cortetsu-mark.svg"); sourceSize.width: 72; sourceSize.height: 72; Layout.preferredWidth: 72; Layout.preferredHeight: 72; fillMode: Image.PreserveAspectFit }
-                            ColumnLayout {
-                                Layout.fillWidth: true
-                                CortetsuText { text: qsTr("Cortetsu"); textSize: 28; font.weight: Font.DemiBold }
-                                CortetsuText { text: qsTr("Precision shell for focused work"); textSize: CortetsuTypography.bodyPx; color: CortetsuDesign.colorOnSurfaceVariant }
-                                CortetsuText { text: qsTr("Generation: Ascension · first-party surfaces"); textSize: CortetsuTypography.labelMediumPx; color: CortetsuDesign.colorOnSurfaceVariant }
-                            }
-                        }
+                        Layout.preferredHeight: CortetsuDesign.spacingSpacious
                     }
                 }
             }
         }
     }
 
-    Shortcut { sequence: "Escape"; onActivated: root.screenState.settings = false }
+    Shortcut {
+        sequence: "Escape"
+        onActivated: root.screenState.settings = false
+    }
 }
