@@ -14,8 +14,8 @@ Item {
     id: root
     required property var screenState
     required property var facePicker
-    implicitWidth: 1080
-    implicitHeight: 520
+    implicitWidth: 1180
+    implicitHeight: 620
 
     readonly property bool batteryCharging: [
         UPowerDeviceState.Charging,
@@ -59,6 +59,7 @@ Item {
         RowLayout {
             Layout.fillWidth: true
             spacing: CortetsuDesign.spacingStandard
+
             Image {
                 source: Quickshell.shellPath("assets/branding/cortetsu-mark.svg")
                 sourceSize.width: 38
@@ -67,17 +68,44 @@ Item {
                 Layout.preferredHeight: 38
                 fillMode: Image.PreserveAspectFit
             }
+
             ColumnLayout {
                 Layout.fillWidth: true
                 spacing: 1
-                CortetsuText { text: qsTr("Cortetsu"); textSize: CortetsuTypography.titleMediumPx; font.weight: Font.DemiBold }
-                CortetsuText { text: qsTr("Desktop context"); textSize: CortetsuTypography.labelSmallPx; color: CortetsuDesign.colorOnSurfaceVariant }
+                CortetsuText {
+                    text: qsTr("Cortetsu")
+                    textSize: CortetsuTypography.titleMediumPx
+                    font.weight: Font.DemiBold
+                }
+                CortetsuText {
+                    text: qsTr("Desktop context")
+                    textSize: CortetsuTypography.labelSmallPx
+                    color: CortetsuDesign.colorOnSurfaceVariant
+                }
             }
+
             ColumnLayout {
                 spacing: 0
                 Layout.alignment: Qt.AlignRight
-                CortetsuText { text: `${Time.hourStr}:${Time.minuteStr}`; textSize: 30; font.weight: Font.DemiBold; Layout.alignment: Qt.AlignRight }
-                CortetsuText { text: Qt.formatDate(Time.date, "dddd, d MMMM"); textSize: CortetsuTypography.bodySmallPx; color: CortetsuDesign.colorOnSurfaceVariant; Layout.alignment: Qt.AlignRight }
+                CortetsuText {
+                    text: `${Time.hourStr}:${Time.minuteStr}`
+                    textSize: 30
+                    font.weight: Font.DemiBold
+                    Layout.alignment: Qt.AlignRight
+                }
+                CortetsuText {
+                    text: Qt.formatDate(Time.date, "dddd, d MMMM")
+                    textSize: CortetsuTypography.bodySmallPx
+                    color: CortetsuDesign.colorOnSurfaceVariant
+                    Layout.alignment: Qt.AlignRight
+                }
+            }
+
+            CortetsuButton {
+                compact: true
+                icon: "close"
+                label: ""
+                onClicked: root.screenState.dashboard = false
             }
         }
 
@@ -85,54 +113,166 @@ Item {
             Layout.fillWidth: true
             Layout.fillHeight: true
             spacing: CortetsuDesign.spacingStandard
+
             CortetsuSurface {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                Layout.preferredWidth: 1.65
+                Layout.preferredWidth: 1.35
                 radiusValue: CortetsuDesign.radiusLarge
                 baseColor: Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.38)
                 outlined: true
+
                 ColumnLayout {
                     anchors.fill: parent
                     anchors.margins: CortetsuDesign.spacingSpacious
                     spacing: CortetsuDesign.spacingCompact
-                    CortetsuText { text: qsTr("NOW"); textSize: CortetsuTypography.labelSmallPx; color: CortetsuDesign.colorPrimary; font.weight: Font.DemiBold }
-                    CortetsuText { Layout.fillWidth: true; text: Weather.city || qsTr("Your desktop"); textSize: 30; font.weight: Font.DemiBold; elide: Text.ElideRight }
-                    CortetsuText { Layout.fillWidth: true; text: Weather.description || qsTr("A focused space for the next thing"); textSize: CortetsuTypography.bodyPx; color: CortetsuDesign.colorOnSurfaceVariant; elide: Text.ElideRight }
+
+                    CortetsuText {
+                        text: qsTr("NOW")
+                        textSize: CortetsuTypography.labelSmallPx
+                        color: CortetsuDesign.colorPrimary
+                        font.weight: Font.DemiBold
+                    }
+
+                    CortetsuText {
+                        Layout.fillWidth: true
+                        text: Weather.city || qsTr("Your desktop")
+                        textSize: 30
+                        font.weight: Font.DemiBold
+                        elide: Text.ElideRight
+                    }
+
+                    CortetsuText {
+                        Layout.fillWidth: true
+                        text: Weather.description || qsTr("A focused space for the next thing")
+                        textSize: CortetsuTypography.bodyPx
+                        color: CortetsuDesign.colorOnSurfaceVariant
+                        elide: Text.ElideRight
+                    }
+
                     Item { Layout.fillHeight: true }
+
                     RowLayout {
                         Layout.fillWidth: true
-                        CortetsuText { text: Weather.icon; textSize: 52; color: CortetsuDesign.colorWashi }
+
+                        CortetsuText {
+                            text: Weather.icon
+                            textSize: 52
+                            color: CortetsuDesign.colorWashi
+                        }
+
                         ColumnLayout {
                             Layout.fillWidth: true
-                            CortetsuText { text: Weather.temp || "--"; textSize: 34; font.weight: Font.DemiBold }
-                            CortetsuText { text: qsTr("Ambient conditions"); textSize: CortetsuTypography.labelSmallPx; color: CortetsuDesign.colorOnSurfaceVariant }
+                            CortetsuText {
+                                text: Weather.temp || "--"
+                                textSize: 34
+                                font.weight: Font.DemiBold
+                            }
+                            CortetsuText {
+                                text: qsTr("Ambient conditions")
+                                textSize: CortetsuTypography.labelSmallPx
+                                color: CortetsuDesign.colorOnSurfaceVariant
+                            }
                         }
                     }
                 }
             }
+
+            ColumnLayout {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                Layout.preferredWidth: 1.1
+                spacing: CortetsuDesign.spacingStandard
+
+                Today {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    Layout.preferredHeight: 1.15
+                    screenState: root.screenState
+                }
+
+                Focus {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    Layout.preferredHeight: 0.85
+                    screenState: root.screenState
+                }
+            }
+
             CortetsuSurface {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                Layout.preferredWidth: 1
+                Layout.preferredWidth: 0.95
                 radiusValue: CortetsuDesign.radiusLarge
                 baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.82)
                 outlined: true
+
                 ColumnLayout {
                     anchors.fill: parent
                     anchors.margins: CortetsuDesign.spacingSpacious
                     spacing: CortetsuDesign.spacingStandard
-                    CortetsuText { text: qsTr("NOW PLAYING"); textSize: CortetsuTypography.labelSmallPx; color: CortetsuDesign.colorPrimary; font.weight: Font.DemiBold }
-                    Item { Layout.preferredHeight: 32; Layout.fillWidth: true; CortetsuIcon { anchors.centerIn: parent; text: Players.active ? "music_note" : "radio"; iconSize: 32; color: CortetsuDesign.colorPrimary } }
-                    CortetsuText { Layout.fillWidth: true; text: Players.active?.trackTitle || qsTr("No active media"); textSize: CortetsuTypography.titleMediumPx; font.weight: Font.DemiBold; elide: Text.ElideRight }
-                    CortetsuText { Layout.fillWidth: true; text: Players.active?.trackArtist || qsTr("The shell is ready"); textSize: CortetsuTypography.bodySmallPx; color: CortetsuDesign.colorOnSurfaceVariant; elide: Text.ElideRight }
+
+                    CortetsuText {
+                        text: qsTr("NOW PLAYING")
+                        textSize: CortetsuTypography.labelSmallPx
+                        color: CortetsuDesign.colorPrimary
+                        font.weight: Font.DemiBold
+                    }
+
+                    Item {
+                        Layout.preferredHeight: 32
+                        Layout.fillWidth: true
+                        CortetsuIcon {
+                            anchors.centerIn: parent
+                            text: Players.active ? "music_note" : "radio"
+                            iconSize: 32
+                            color: CortetsuDesign.colorPrimary
+                        }
+                    }
+
+                    CortetsuText {
+                        Layout.fillWidth: true
+                        text: Players.active?.trackTitle || qsTr("No active media")
+                        textSize: CortetsuTypography.titleMediumPx
+                        font.weight: Font.DemiBold
+                        elide: Text.ElideRight
+                    }
+
+                    CortetsuText {
+                        Layout.fillWidth: true
+                        text: Players.active?.trackArtist || qsTr("The shell is ready")
+                        textSize: CortetsuTypography.bodySmallPx
+                        color: CortetsuDesign.colorOnSurfaceVariant
+                        elide: Text.ElideRight
+                    }
+
                     Item { Layout.fillHeight: true }
+
                     RowLayout {
                         Layout.alignment: Qt.AlignHCenter
                         spacing: CortetsuDesign.spacingSpacious
-                        CortetsuButton { compact: true; icon: "skip_previous"; label: ""; disabled: !Players.active; onClicked: Players.active?.previous() }
-                        CortetsuButton { compact: true; icon: Players.active?.isPlaying ? "pause" : "play_arrow"; label: ""; active: true; disabled: !Players.active; onClicked: Players.active?.togglePlaying() }
-                        CortetsuButton { compact: true; icon: "skip_next"; label: ""; disabled: !Players.active; onClicked: Players.active?.next() }
+                        CortetsuButton {
+                            compact: true
+                            icon: "skip_previous"
+                            label: ""
+                            disabled: !Players.active
+                            onClicked: Players.active?.previous()
+                        }
+                        CortetsuButton {
+                            compact: true
+                            icon: Players.active?.isPlaying ? "pause" : "play_arrow"
+                            label: ""
+                            active: true
+                            disabled: !Players.active
+                            onClicked: Players.active?.togglePlaying()
+                        }
+                        CortetsuButton {
+                            compact: true
+                            icon: "skip_next"
+                            label: ""
+                            disabled: !Players.active
+                            onClicked: Players.active?.next()
+                        }
                     }
                 }
             }
@@ -141,9 +281,29 @@ Item {
         RowLayout {
             Layout.fillWidth: true
             spacing: CortetsuDesign.spacingCompact
-            CortetsuSectionHeader { title: qsTr("SYSTEM"); detail: qsTr("Live context"); Layout.preferredWidth: 118 }
-            CortetsuListRow { Layout.fillWidth: true; icon: "memory"; title: qsTr("CPU %1%").arg(Math.round(Cpu.percentage * 100)); subtitle: qsTr("%1°C").arg(Math.round(Cpu.temperature)); selected: false }
-            CortetsuListRow { Layout.fillWidth: true; icon: "data_usage"; title: qsTr("Memory %1%").arg(Math.round(Memory.percentage * 100)); subtitle: qsTr("%1 GB used").arg((Memory.used / 1048576).toFixed(1)); selected: false }
+
+            CortetsuSectionHeader {
+                title: qsTr("SYSTEM")
+                detail: qsTr("Live context")
+                Layout.preferredWidth: 118
+            }
+
+            CortetsuListRow {
+                Layout.fillWidth: true
+                icon: "memory"
+                title: qsTr("CPU %1%").arg(Math.round(Cpu.percentage * 100))
+                subtitle: qsTr("%1°C").arg(Math.round(Cpu.temperature))
+                selected: false
+            }
+
+            CortetsuListRow {
+                Layout.fillWidth: true
+                icon: "data_usage"
+                title: qsTr("Memory %1%").arg(Math.round(Memory.percentage * 100))
+                subtitle: qsTr("%1 GB used").arg((Memory.used / 1048576).toFixed(1))
+                selected: false
+            }
+
             CortetsuListRow {
                 Layout.fillWidth: true
                 icon: root.batteryCharging ? "battery_charging_full" : (root.batteryPercent <= 20 ? "battery_alert" : "battery_5_bar")
@@ -151,6 +311,7 @@ Item {
                 subtitle: root.batterySubtitle
                 selected: false
             }
+
             CortetsuListRow {
                 Layout.fillWidth: true
                 icon: CortetsuNetwork.activeEthernet ? "cable" : (CortetsuNetwork.connecting ? "sync" : (CortetsuNetwork.active ? "wifi" : "wifi_off"))
@@ -161,5 +322,8 @@ Item {
         }
     }
 
-    Shortcut { sequence: "Escape"; onActivated: root.screenState.dashboard = false }
+    Shortcut {
+        sequence: "Escape"
+        onActivated: root.screenState.dashboard = false
+    }
 }
