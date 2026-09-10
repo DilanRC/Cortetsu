@@ -42,8 +42,9 @@
   },
   "applyLifecycle": {
     "acknowledgement": "XDG state file cortetsu/wallpaper/path.txt",
+    "smartSchemeAcknowledgement": "Process exit 0 from cortetsu-apply-wallpaper-colors after the wallpaper acknowledgement",
     "successState": "applied",
     "failureState": "failed",
-    "cosmicPolicy": "success-pulse-only"
+    "cosmicPolicy": "combined-success-pulse-only"
   }
 }

@@ -19,6 +19,7 @@ def function_body(source: str, name: str) -> str:
 
 apply_body = function_body(service, "apply")
 read_body = function_body(service, "readActual")
+complete_body = function_body(service, "completeApply")
 fail_body = function_body(service, "failApply")
 request_start = launcher.index("function requestWallpaper")
 request_body = launcher[request_start:launcher.index("\n    implicitWidth", request_start)]
@@ -30,16 +31,25 @@ assert 'readonly property string applyStatus: applying' in service
 assert 'readonly property string applyStatusPath: applying ? pendingApplyPath : lastApplyPath' in service
 assert "signal wallpaperApplySucceeded(string path, int generation)" in service
 assert "signal wallpaperApplyFailed(string path, int generation)" in service
+assert 'property string applyError: ""' in service
 assert "applyTimeout" in service and "cortetsu-wallpaper-select" in apply_body
 assert "applySucceeded = false;" in apply_body
 assert "lastApplyPath = target;" in apply_body
-assert "wallpaperApplySucceeded(next, generation)" in read_body
-assert "applySucceeded = true;" in read_body
+assert "if (CortetsuConfig.smartScheme)" in read_body
+assert 'paletteApply.command = ["cortetsu-apply-wallpaper-colors", next];' in read_body
+assert "root.completeApply(next, generation)" in read_body
+assert "wallpaperApplySucceeded(path, generation)" in complete_body
+assert "applySucceeded = true;" in complete_body
+assert "lastApplyPath = path;" in complete_body
 assert "lastApplyPath = next;" in read_body
 assert "wallpaperApplyFailed(path, generation)" in fail_body
+assert "applyError = detail;" in fail_body
 assert "applySucceeded = false;" in fail_body
 assert "lastApplyPath = path;" in fail_body
 assert "actualCurrent = next" in read_body
+assert "function completeApply(path: string, generation: int): void" in service
+assert "paletteApply.requestGeneration !== root.applyGeneration" in service
+assert 'root.failApply(detail || qsTr("Dynamic scheme apply failed"))' in service
 
 assert "function requestWallpaper(path: string): void" in launcher
 assert "CortetsuWallpapers.applying" in request_body

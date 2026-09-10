@@ -89,6 +89,7 @@ wallpaper_service = (repo / "cortetsu/modules/CortetsuWallpapers.qml").read_text
 assert '"cortetsu-wallpaper-colours", path' in wallpaper_service
 assert '"cortetsu-wallpaper-select", target' in wallpaper_service
 assert '"cortetsu-wallpaper-select", "--random", wallsdir' in wallpaper_service
+assert '"cortetsu-apply-wallpaper-colors", next' in wallpaper_service
 assert 'cortetsu/wallpaper/path.txt' in wallpaper_service
 assert "caelestia" not in wallpaper_service.lower()
 nmcli = (repo / "cortetsu/base/services/Nmcli.qml").read_text(encoding="utf-8")

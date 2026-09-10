@@ -66,7 +66,8 @@ assert contract["screenPolicy"] == {
     "selectionTarget": "clicked-monitor",
 }
 assert contract["applyLifecycle"]["acknowledgement"].endswith("cortetsu/wallpaper/path.txt")
-assert contract["applyLifecycle"]["cosmicPolicy"] == "success-pulse-only"
+assert contract["applyLifecycle"]["cosmicPolicy"] == "combined-success-pulse-only"
+assert "cortetsu-apply-wallpaper-colors" in contract["applyLifecycle"]["smartSchemeAcknowledgement"]
 
 for relative in (contract["entrypoint"], contract["host"], contract["wrapper"], contract["configSource"]):
     assert (ROOT / ("cortetsu" if relative.startswith("modules/") else "") / relative).is_file(), relative

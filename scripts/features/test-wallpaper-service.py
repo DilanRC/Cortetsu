@@ -20,7 +20,7 @@ assert not re.search(r"(?<!Cortetsu)Wallpapers\.", launcher_content_list)
 service_for_audit = service.replace("CortetsuColours.", "")
 for legacy in ("Caelestia", "qs.services", "Searcher", "FileSystemModel", "Colours.", "Paths."):
     assert legacy not in service_for_audit, legacy
-for contract in ("cortetsu/wallpaper/path.txt", 'target: "cortetsu-wallpaper"', "function query", "function preview", "previewGeneration", "cortetsu-wallpaper-select", "cortetsu-wallpaper-colours"):
+for contract in ("cortetsu/wallpaper/path.txt", 'target: "cortetsu-wallpaper"', "function query", "function preview", "previewGeneration", "cortetsu-wallpaper-select", "cortetsu-wallpaper-colours", "cortetsu-apply-wallpaper-colors"):
     assert contract in service, contract
 
 print("PASS: Wallpaper service is first-party, XDG-owned and cancellation-aware")
