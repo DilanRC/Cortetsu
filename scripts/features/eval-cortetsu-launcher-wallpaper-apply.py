@@ -6,6 +6,8 @@ ROOT = Path(__file__).resolve().parents[2]
 service = (ROOT / "cortetsu/modules/CortetsuWallpapers.qml").read_text(encoding="utf-8")
 manager = (ROOT / "cortetsu/modules/wallpaper/Content.qml").read_text(encoding="utf-8")
 launcher = (ROOT / "cortetsu/modules/launcher/Content.qml").read_text(encoding="utf-8")
+launcher_host = (ROOT / "cortetsu/modules/LauncherHost.qml").read_text(encoding="utf-8")
+wallpaper_list = (ROOT / "cortetsu/modules/launcher/WallpaperList.qml").read_text(encoding="utf-8")
 item = (ROOT / "cortetsu/modules/launcher/WallpaperItem.qml").read_text(encoding="utf-8")
 
 checks = {
@@ -22,7 +24,14 @@ checks = {
     "launcher uses shared apply": "CortetsuWallpapers.apply(target)" in launcher,
     "launcher closes after success": "onWallpaperApplySucceeded" in launcher and "root.screenState.launcher = false" in launcher,
     "duplicate apply is disabled": "disabled: CortetsuWallpapers.applying" in item,
-    "delegate keeps apply ownership in Content": "applyOwner: root.content" in (ROOT / "cortetsu/modules/launcher/WallpaperList.qml").read_text(encoding="utf-8"),
+    "delegate keeps apply ownership in Content": "applyOwner: root.content" in wallpaper_list,
+    "dedicated host has no legacy panel bundle": "panels: null" in launcher_host,
+    "wallpaper list accepts dedicated host": "property var panels: null" in wallpaper_list,
+    "bar geometry is null-safe": "panels?.bar?.implicitWidth ?? 0" in wallpaper_list,
+    "popout geometry is null-safe": "const popouts = panels?.popouts" in wallpaper_list,
+    "utility geometry is null-safe": "panels?.utilities?.implicitWidth ?? 0" in wallpaper_list,
+    "wallpaper delegate imports Quickshell": "import Quickshell" in item,
+    "delegate movement state is null-safe": "PathView.view?.moving ?? false" in item,
 }
 
 settings = (ROOT / "cortetsu/modules/settings/SystemPage.qml").read_text(encoding="utf-8")

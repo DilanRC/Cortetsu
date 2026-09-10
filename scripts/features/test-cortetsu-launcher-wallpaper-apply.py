@@ -6,6 +6,7 @@ ROOT = Path(__file__).resolve().parents[2]
 service = (ROOT / "cortetsu/modules/CortetsuWallpapers.qml").read_text(encoding="utf-8")
 manager = (ROOT / "cortetsu/modules/wallpaper/Content.qml").read_text(encoding="utf-8")
 launcher = (ROOT / "cortetsu/modules/launcher/Content.qml").read_text(encoding="utf-8")
+launcher_host = (ROOT / "cortetsu/modules/LauncherHost.qml").read_text(encoding="utf-8")
 wallpaper_list = (ROOT / "cortetsu/modules/launcher/WallpaperList.qml").read_text(encoding="utf-8")
 wallpaper_item = (ROOT / "cortetsu/modules/launcher/WallpaperItem.qml").read_text(encoding="utf-8")
 
@@ -54,6 +55,13 @@ assert "required property var applyOwner" in wallpaper_item
 assert "disabled: CortetsuWallpapers.applying" in wallpaper_item
 assert "root.applyOwner.requestWallpaper(root.modelData.path)" in wallpaper_item
 assert "applyOwner: root.content" in wallpaper_list
+assert "panels: null" in launcher_host
+assert "property var panels: null" in wallpaper_list
+assert "panels?.bar?.implicitWidth ?? 0" in wallpaper_list
+assert "const popouts = panels?.popouts" in wallpaper_list
+assert "panels?.utilities?.implicitWidth ?? 0" in wallpaper_list
+assert "import Quickshell" in wallpaper_item
+assert "PathView.view?.moving ?? false" in wallpaper_item
 
 assert "readonly property bool applying: CortetsuWallpapers.applying" in manager
 assert "readonly property string applyStatus: CortetsuWallpapers.applyStatus" in manager

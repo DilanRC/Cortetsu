@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import Quickshell
 import ".."
 import "../CortetsuDesign.js" as CortetsuDesign
 import "../CortetsuTypography.js" as CortetsuTypography
@@ -62,7 +63,7 @@ Item {
             anchors.fill: parent
             source: root.modelData.path
             fillMode: Image.PreserveAspectCrop
-            smooth: !PathView.view.moving
+            smooth: !(PathView.view?.moving ?? false)
             sourceSize: {
                 const dpr = (QsWindow.window as QsWindow)?.devicePixelRatio ?? 1;
                 return Qt.size(image.implicitWidth * dpr, image.implicitHeight * dpr);
