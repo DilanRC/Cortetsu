@@ -133,7 +133,7 @@ StyledWindow {
             if (panels.popouts.isDetached || panels.popouts.currentName === "wirelesspassword")
                 return true;
             if (s.cortetsuState?.retainedOverlayOpen)
-                return true;
+                return false;
             if ((s.sidebar && conf.sidebar.enabled) || (s.utilities && conf.utilities.enabled))
                 return true;
             if (!conf.dashboard.showOnHover && s.dashboard && conf.dashboard.enabled)

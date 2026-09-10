@@ -16,7 +16,7 @@ assert "CortetsuShellState.forScreen(modelData)" in host
 assert "screen: modelData" in host
 assert "CortetsuShellState.forActive()" not in host
 assert "WlrLayershell.layer: WlrLayer.Overlay" in host
-assert "WlrLayershell.keyboardFocus: surfaceOpen ? WlrKeyboardFocus.OnDemand" in host
+assert "WlrLayershell.keyboardFocus: surfaceOpen ? WlrKeyboardFocus.Exclusive" in host
 for wrapper in ("Overview.Wrapper", "Clipboard.Wrapper", "Hardware.Wrapper", "Display.Wrapper", "Wallpaper.Wrapper", "Calendar.Wrapper"):
     assert wrapper in host, wrapper
 assert all(f"{wrapper} {{ id:" in panels for wrapper in (

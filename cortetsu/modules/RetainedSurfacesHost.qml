@@ -32,7 +32,7 @@ Scope {
             visible: true
             WlrLayershell.exclusionMode: ExclusionMode.Ignore
             WlrLayershell.layer: WlrLayer.Overlay
-            WlrLayershell.keyboardFocus: surfaceOpen ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+            WlrLayershell.keyboardFocus: surfaceOpen ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
             mask: surfaceOpen ? null : emptyRegion
             anchors.top: true
             anchors.bottom: true
