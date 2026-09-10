@@ -17,7 +17,7 @@ assert "Brightness.getMonitorForScreen(root.screen)" in system
 assert "onMoved: nextValue => CortetsuAudio.setVolume(nextValue)" in system
 assert "onMoved: nextValue => root.brightnessMonitor?.setBrightness(nextValue)" in system
 assert "Bluetooth.defaultAdapter.enabled" in system
-assert "UPower.displayDevice" in system
+assert "CortetsuPower" in system
 assert "Icons.getBatteryIcon" in system
 assert "CortetsuWallpapers.applyStatus" in system
 assert "CortetsuWallpapers.applyStatusPath" in system

@@ -19,7 +19,7 @@ for marker in (
     "Network unavailable",
     "Bluetooth.defaultAdapter.enabled",
     "connectedBluetoothCount",
-    "Quickshell.Services.UPower",
+    "CortetsuPower",
     "batteryPercent",
     "openSettings",
     "CortetsuActionTile",
@@ -34,7 +34,7 @@ for marker in (
     'state.qsdEdgeHovered = false',
     'state.qsdDrawerHovered = false',
     'readonly property real batteryValue:',
-    'Number.isFinite(value)',
+    'CortetsuPower.value',
     'readonly property bool batteryAvailable:',
 ):
     assert marker in content, marker
@@ -64,7 +64,7 @@ assert 'icon: CortetsuAudio.muted ? "volume_off" : "volume_up"' in content
 assert 'highlighted: CortetsuNotifications.dnd' in content
 assert content.count('warning: false') >= 2
 assert 'warning: CortetsuNotifications.dnd' not in content
-assert 'Math.round(UPower.displayDevice.percentage * 100)' not in content
+assert 'UPower.displayDevice.percentage' not in content
 assert 'color: CortetsuAudio.muted ? CortetsuDesign.colorOnSurfaceVariant : CortetsuDesign.colorPrimary' in content
 assert 'onMoved: nextValue => root.brightnessMonitor?.setBrightness(nextValue)' in content
 assert 'onMoved: nextValue => CortetsuAudio.setVolume(nextValue)' in content

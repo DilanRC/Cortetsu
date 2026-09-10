@@ -4,7 +4,6 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Bluetooth
-import Quickshell.Services.UPower
 import "../../components"
 import ".."
 import "../../services"
@@ -25,12 +24,8 @@ Item {
     readonly property real brightnessValue: brightnessMonitor?.brightness ?? -1
     readonly property bool bluetoothEnabled: Bluetooth.defaultAdapter?.enabled ?? false
     readonly property int bluetoothConnected: (Bluetooth.devices?.values ?? []).filter(device => device.connected).length
-    readonly property int batteryPercent: Math.round((UPower.displayDevice?.percentage ?? 0) * 100)
-    readonly property bool batteryCharging: [
-        UPowerDeviceState.Charging,
-        UPowerDeviceState.FullyCharged,
-        UPowerDeviceState.PendingCharge
-    ].includes(UPower.displayDevice?.state)
+    readonly property int batteryPercent: CortetsuPower.percent
+    readonly property bool batteryCharging: CortetsuPower.charging
     readonly property int volumePercent: Math.round(CortetsuAudio.volume * 100)
     readonly property string networkName: CortetsuNetwork.active?.ssid
         ?? (CortetsuNetwork.activeEthernet ? qsTr("Ethernet") : qsTr("Offline"))
@@ -697,14 +692,14 @@ Item {
             }
 
             StatusCard {
-                title: UPower.displayDevice?.isLaptopBattery ? qsTr("Battery") : qsTr("Power source")
-                value: UPower.displayDevice?.isLaptopBattery ? qsTr("%1%").arg(root.batteryPercent) : qsTr("External power")
-                detail: UPower.onBattery ? qsTr("Running on battery") : qsTr("Connected to external power")
-                icon: UPower.displayDevice?.isLaptopBattery
-                    ? Icons.getBatteryIcon(UPower.displayDevice?.percentage ?? 0, root.batteryCharging)
+                title: CortetsuPower.laptopBattery ? qsTr("Battery") : qsTr("Power source")
+                value: CortetsuPower.hasBattery ? qsTr("%1%").arg(root.batteryPercent) : qsTr("External power")
+                detail: CortetsuPower.onBattery ? qsTr("Running on battery") : qsTr("Connected to external power")
+                icon: CortetsuPower.hasBattery
+                    ? Icons.getBatteryIcon(CortetsuPower.value, root.batteryCharging)
                     : "power"
-                activeState: !UPower.onBattery
-                warningState: UPower.onBattery && root.batteryPercent <= 20
+                activeState: !CortetsuPower.onBattery
+                warningState: CortetsuPower.critical
             }
 
             PreferenceToggle {

@@ -36,7 +36,7 @@ for marker in (
     "numLock",
     'Quickshell.env("USER")',
     "CortetsuNetwork.activeEthernet",
-    "UPower.displayDevice",
+    "CortetsuPower",
     "Icons.getBatteryIcon",
     "batteryCharging",
 ):

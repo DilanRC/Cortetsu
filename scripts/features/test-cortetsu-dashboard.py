@@ -40,7 +40,7 @@ assert 'subtitle: root.networkSubtitle' in dash
 assert 'title: root.networkTitle' in dash
 assert 'CortetsuNetwork.active?.ssid ?? qsTr("Offline")' in dash
 assert 'subtitle: CortetsuNetwork.active?.ssid ?? qsTr("Network unavailable")' not in dash
-assert 'UPower.onBattery' in dash and 'UPowerDeviceState.Charging' in dash
+assert 'CortetsuPower.onBattery' in dash and 'CortetsuPower.charging' in dash
 assert "Icons.getBatteryIcon" in dash
 
 # Dashboard settings must change the composition, not only persist in the

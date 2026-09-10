@@ -24,12 +24,12 @@ for name, service in (
 battery = (popouts / "CortetsuBatteryPopup.qml").read_text(encoding="utf-8")
 assert "CortetsuPopupSurface" in battery
 assert "Icons.getBatteryIcon" in battery
-assert "UPowerDeviceState.FullyCharged" in battery
+assert "CortetsuPower.charging" in battery
 assert 'qsTr("Fully charged")' in battery
 assert 'text: root.hasBattery' in battery
 assert "CortetsuProgressBar" in battery
 assert "fillColor: root.critical" in battery
-assert 'text: UPower.onBattery ? "battery_full" : "bolt"' not in battery
+assert "UPower.onBattery" not in battery
 
 password = (popouts / "CortetsuWifiPasswordPopup.qml").read_text(encoding="utf-8")
 for token in ("TextField", "Keys.onEscapePressed", "NetworkConnection.connectWithPassword", "8000", "errorText"):
@@ -54,6 +54,7 @@ assert 'if (root.statusPopoutsEnabled)\n                    root.attachedControl
 assert 'onClicked: root.detachedControlRequested("network")' not in status_segment
 assert 'onClicked: root.detachedControlRequested("bluetooth")' not in status_segment
 assert "sourceComponent: CortetsuDetachedPopup" in wrapper
+assert 'root.currentName = "";' in wrapper
 assert "sourceComponent: Rectangle" not in wrapper
 assert "Nexus" not in wrapper
 assert detached.lstrip().startswith("import QtQuick")

@@ -3,7 +3,6 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import Quickshell.Services.UPower
 import "../../components"
 import "../../services"
 import "../../utils"
@@ -18,17 +17,13 @@ Item {
     implicitWidth: 1180
     implicitHeight: 620
 
-    readonly property bool batteryCharging: [
-        UPowerDeviceState.Charging,
-        UPowerDeviceState.FullyCharged,
-        UPowerDeviceState.PendingCharge
-    ].includes(UPower.displayDevice.state)
-    readonly property int batteryPercent: Math.round(UPower.displayDevice.percentage * 100)
-    readonly property string batterySubtitle: !UPower.displayDevice?.isLaptopBattery
+    readonly property bool batteryCharging: CortetsuPower.charging
+    readonly property int batteryPercent: CortetsuPower.percent
+    readonly property string batterySubtitle: !CortetsuPower.laptopBattery
         ? qsTr("External power")
         : batteryCharging
             ? qsTr("Charging")
-            : UPower.onBattery
+            : CortetsuPower.onBattery
                 ? qsTr("On battery")
                 : qsTr("External power")
     readonly property string networkTitle: CortetsuNetwork.connecting
@@ -418,8 +413,8 @@ Item {
     Component {
         id: batterySummary
         CortetsuListRow {
-            icon: Icons.getBatteryIcon(UPower.displayDevice?.percentage ?? 0, root.batteryCharging)
-            title: UPower.displayDevice?.isLaptopBattery ? qsTr("Battery %1%").arg(root.batteryPercent) : qsTr("Power")
+            icon: CortetsuPower.hasBattery ? Icons.getBatteryIcon(CortetsuPower.value, root.batteryCharging) : "power"
+            title: CortetsuPower.hasBattery ? qsTr("Battery %1%").arg(root.batteryPercent) : qsTr("Power")
             subtitle: root.batterySubtitle
             selected: false
         }

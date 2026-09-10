@@ -5,7 +5,6 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Bluetooth
-import Quickshell.Services.UPower
 import "../../components"
 import ".."
 import "../../services"
@@ -23,15 +22,10 @@ Item {
     readonly property bool bluetoothEnabled: Bluetooth.defaultAdapter?.enabled ?? false
     readonly property int connectedBluetoothCount: (Bluetooth.devices?.values ?? []).filter(device => device.connected).length
     readonly property int volumePercent: Math.round(CortetsuAudio.volume * 100)
-    readonly property real batteryValue: {
-        const device = UPower.displayDevice;
-        const value = Number(device?.percentage);
-        return device && Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : -1;
-    }
-    readonly property bool batteryAvailable: root.batteryValue >= 0
-    readonly property bool laptopBatteryAvailable: UPower.displayDevice?.isLaptopBattery === true
-        && root.batteryAvailable
-    readonly property int batteryPercent: root.batteryAvailable ? Math.round(root.batteryValue * 100) : -1
+    readonly property real batteryValue: CortetsuPower.value
+    readonly property bool batteryAvailable: CortetsuPower.available
+    readonly property bool laptopBatteryAvailable: CortetsuPower.hasBattery
+    readonly property int batteryPercent: CortetsuPower.percent
     readonly property string networkName: CortetsuNetwork.active?.ssid
         ?? (CortetsuNetwork.activeEthernet ? qsTr("Ethernet") : qsTr("Offline"))
     readonly property string networkDetail: CortetsuNetwork.connecting
@@ -270,9 +264,9 @@ Item {
                     CortetsuText {
                         text: root.laptopBatteryAvailable
                             ? qsTr("Battery %1%").arg(root.batteryPercent)
-                            : UPower.displayDevice?.isLaptopBattery
+                            : CortetsuPower.laptopBattery
                                 ? qsTr("Battery unavailable")
-                                : UPower.displayDevice
+                                : CortetsuPower.devicePresent
                                     ? qsTr("External power")
                                     : qsTr("Power unavailable")
                         textSize: CortetsuTypography.bodyPx

@@ -25,7 +25,7 @@ consumers = {
     "cortetsu/modules/hardware/MetricCard.qml": "value: root.progress",
     "cortetsu/modules/osd/Content.qml": "value: indicator.modelData.value",
     "cortetsu/modules/calendar/Content.qml": "value: root.progress()",
-    "cortetsu/modules/bar/popouts/CortetsuBatteryPopup.qml": "value: UPower.displayDevice?.percentage ?? 0",
+    "cortetsu/modules/bar/popouts/CortetsuBatteryPopup.qml": "value: CortetsuPower.value",
 }
 for name, token in consumers.items():
     consumer = (ROOT / name).read_text(encoding="utf-8")

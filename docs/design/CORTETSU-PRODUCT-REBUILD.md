@@ -111,6 +111,13 @@ XDG runtime preferences file `cortetsu/preferences.json`. Settings writes only
 the latter; changing design tokens uses the theme compiler and does not silently
 rewrite user preferences.
 
+Power is also one first-party capability boundary. `CortetsuPower` owns the
+UPower readback, rejects unready or non-finite percentages, clamps valid values
+to `0..1`, and exposes `-1` when no honest percentage exists. BottomHub, QSD,
+Dashboard, Settings, Lock, the battery popup, status icons, and low-battery
+notifications consume that same contract, so unavailable hardware cannot turn
+into a fake `0%` or inconsistent charging state on one surface.
+
 ## Dashboard
 
 Dashboard now has its own `cortetsu-dashboard` layer and no longer relies on the

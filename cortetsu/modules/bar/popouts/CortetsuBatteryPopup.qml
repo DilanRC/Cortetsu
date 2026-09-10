@@ -1,8 +1,8 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import Quickshell.Services.UPower
 import "../../../components"
+import "../../../services"
 import "../../CortetsuDesign.js" as CortetsuDesign
 import "../../../utils"
 
@@ -12,21 +12,17 @@ CortetsuPopupSurface {
     implicitWidth: 332
     implicitHeight: body.implicitHeight + CortetsuDesign.spacingComfortable * 2
 
-    readonly property bool hasBattery: UPower.displayDevice?.isLaptopBattery ?? false
-    readonly property int percentage: Math.round((UPower.displayDevice?.percentage ?? 0) * 100)
-    readonly property bool batteryCharging: [
-        UPowerDeviceState.Charging,
-        UPowerDeviceState.FullyCharged,
-        UPowerDeviceState.PendingCharge
-    ].includes(UPower.displayDevice?.state)
-    readonly property bool critical: root.hasBattery && root.percentage <= 15 && UPower.onBattery
+    readonly property bool hasBattery: CortetsuPower.hasBattery
+    readonly property int percentage: CortetsuPower.percent
+    readonly property bool batteryCharging: CortetsuPower.charging
+    readonly property bool critical: CortetsuPower.hasBattery && root.percentage <= 15 && CortetsuPower.onBattery
     readonly property string batteryStatus: !root.hasBattery
         ? qsTr("External power")
         : root.batteryCharging && root.percentage >= 100
             ? qsTr("Fully charged")
             : root.batteryCharging
                 ? qsTr("Charging")
-                : UPower.onBattery
+                : CortetsuPower.onBattery
                     ? qsTr("On battery")
                     : qsTr("External power")
 
@@ -89,7 +85,7 @@ CortetsuPopupSurface {
                         CortetsuIcon {
                             anchors.centerIn: parent
                             text: root.hasBattery
-                                ? Icons.getBatteryIcon(UPower.displayDevice.percentage, root.batteryCharging)
+                                ? Icons.getBatteryIcon(CortetsuPower.value, root.batteryCharging)
                                 : "balance"
                             iconSize: CortetsuDesign.iconMediumPx + 4
                             color: root.critical
@@ -113,9 +109,9 @@ CortetsuPopupSurface {
 
                         CortetsuText {
                             text: root.batteryCharging && root.percentage < 100
-                                ? qsTr("%1 until full").arg(body.formatSeconds(UPower.displayDevice.timeToFull))
-                                : UPower.onBattery
-                                    ? qsTr("%1 remaining").arg(body.formatSeconds(UPower.displayDevice.timeToEmpty))
+                                ? qsTr("%1 until full").arg(body.formatSeconds(CortetsuPower.timeToFull))
+                                : CortetsuPower.onBattery
+                                    ? qsTr("%1 remaining").arg(body.formatSeconds(CortetsuPower.timeToEmpty))
                                     : root.batteryStatus
                             textSize: CortetsuDesign.labelSmallPx
                             color: CortetsuDesign.colorOnSurfaceVariant
@@ -125,7 +121,7 @@ CortetsuPopupSurface {
 
                 CortetsuProgressBar {
                     width: parent.width
-                    value: UPower.displayDevice?.percentage ?? 0
+                    value: CortetsuPower.value
                     barHeight: 5
                     barRadius: 3
                     trackColor: Qt.alpha(CortetsuDesign.colorSurfaceGlassStrong, 0.9)

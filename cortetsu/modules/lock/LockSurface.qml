@@ -20,14 +20,10 @@ WlSessionLockSurface {
     property bool capsLock: false
     property bool numLock: false
     readonly property string userLabel: Quickshell.env("USER") || qsTr("User")
-    readonly property int batteryPercent: Math.round(UPower.displayDevice.percentage * 100)
-    readonly property bool batteryCharging: [
-        UPowerDeviceState.Charging,
-        UPowerDeviceState.FullyCharged,
-        UPowerDeviceState.PendingCharge
-    ].includes(UPower.displayDevice.state)
-    readonly property string batteryLabel: UPower.displayDevice?.isLaptopBattery
-        ? qsTr("Battery %1%").arg(batteryPercent)
+    readonly property int batteryPercent: CortetsuPower.percent
+    readonly property bool batteryCharging: CortetsuPower.charging
+    readonly property string batteryLabel: CortetsuPower.hasBattery
+        ? qsTr("Battery %1%").arg(CortetsuPower.percent)
         : qsTr("AC power")
     readonly property string networkLabel: CortetsuNetwork.activeEthernet
         ? qsTr("Ethernet")
@@ -215,8 +211,8 @@ WlSessionLockSurface {
                     anchors.margins: CortetsuDesign.spacingCompact
                     spacing: CortetsuDesign.spacingCompact
                     CortetsuIcon {
-                        text: UPower.displayDevice?.isLaptopBattery
-                            ? Icons.getBatteryIcon(UPower.displayDevice?.percentage ?? 0, root.batteryCharging)
+                        text: CortetsuPower.hasBattery
+                            ? Icons.getBatteryIcon(CortetsuPower.value, root.batteryCharging)
                             : "power"
                         iconSize: CortetsuTypography.iconSmallPx
                         color: CortetsuDesign.colorOnSurfaceVariant

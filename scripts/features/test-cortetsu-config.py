@@ -223,10 +223,10 @@ for legacy in ("Caelestia.Config", "qs.services", "qs.components", "Colours.", "
 assert "Time.hourStr" in bar_clock and "CortetsuDesign.colorTertiary" in bar_clock
 for legacy in ("Caelestia.Config", "qs.services", "qs.components", "Colours.", "Tokens.", "StyledRect", "StyledText", "MaterialIcon", "GlobalConfig"):
     assert legacy not in status_icons, legacy
-assert "CortetsuAudio" in status_icons and "CortetsuNetwork" in status_icons and "UPower" in status_icons
+assert "CortetsuAudio" in status_icons and "CortetsuNetwork" in status_icons and "CortetsuPower" in status_icons
 for legacy in ("Caelestia", "GlobalConfig", "Toaster", "SessionManager"):
     assert legacy not in battery_monitor, legacy
-assert "Quickshell.Services.UPower" in battery_monitor
+assert "CortetsuPower" in battery_monitor
 assert "notify-send" in battery_monitor and '"systemctl", "hibernate"' in battery_monitor
 for legacy in ("Caelestia", "GlobalConfig", "GameMode", "Notifs", "Weather", "VPN"):
     assert legacy not in service_loader, legacy

@@ -47,7 +47,7 @@ for marker in (
     "CortetsuNotifications.dnd",
     "CortetsuNetwork.active",
     "Bluetooth.defaultAdapter.enabled",
-    "UPower.displayDevice",
+    "CortetsuPower",
     'setRetained(flag, true)',
     "CortetsuWallpapers.actualCurrent",
     "CortetsuWallpapers.applyStatus",

@@ -142,7 +142,7 @@ def main() -> None:
     require(bottom, "Icons.getVolumeIcon(CortetsuAudio.volume, CortetsuAudio.muted)", "volume icon controller")
     require(bottom, "Icons.getNetworkIcon(CortetsuNetwork.active.strength ?? 0)", "network icon controller")
     require(bottom, '"bluetooth_connected"', "bluetooth state icon")
-    require(bottom, "Icons.getBatteryIcon(UPower.displayDevice.percentage, batteryCharging)", "battery icon controller")
+    require(bottom, "Icons.getBatteryIcon(CortetsuPower.value, batteryCharging)", "battery icon controller")
     require(bottom, "SystemTray.items.values", "system tray controller")
     require(bottom, "item.icon || Icons.getTrayIcon(item.id, item.icon)", "tray icon priority")
     require(bottom, "`traymenu${sourceIndex}`", "native tray hover menu")

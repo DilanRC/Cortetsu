@@ -5,7 +5,6 @@ import Quickshell
 import Quickshell.Wayland
 import Quickshell.Io
 import Quickshell.Bluetooth
-import Quickshell.Services.UPower
 import Quickshell.Services.SystemTray
 import "../services"
 import "../utils"
@@ -371,18 +370,13 @@ Scope {
                 : bluetoothActive
                     ? "bluetooth_connected"
                     : "bluetooth"
-            readonly property bool batteryCharging: [
-                UPowerDeviceState.Charging,
-                UPowerDeviceState.FullyCharged,
-                UPowerDeviceState.PendingCharge
-            ].includes(UPower.displayDevice.state)
-            readonly property string batteryIcon: UPower.displayDevice.isLaptopBattery
-                ? Icons.getBatteryIcon(UPower.displayDevice.percentage, batteryCharging)
+            readonly property bool batteryCharging: CortetsuPower.charging
+            readonly property string batteryIcon: CortetsuPower.hasBattery
+                ? Icons.getBatteryIcon(CortetsuPower.value, batteryCharging)
                 : "balance"
-            readonly property bool batteryCritical:
-                UPower.onBattery && UPower.displayDevice.percentage <= 0.2
-            readonly property string batteryTooltip: UPower.displayDevice.isLaptopBattery
-                ? qsTr("Battery %1%").arg(Math.round(UPower.displayDevice.percentage * 100))
+            readonly property bool batteryCritical: CortetsuPower.critical
+            readonly property string batteryTooltip: CortetsuPower.hasBattery
+                ? qsTr("Battery %1%").arg(CortetsuPower.percent)
                 : qsTr("Power profile")
 
             property date now: new Date()

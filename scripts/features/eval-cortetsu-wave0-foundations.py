@@ -54,7 +54,7 @@ checks = {
         for x in (
             "CortetsuPopupSurface",
             "Icons.getBatteryIcon",
-            "UPowerDeviceState.FullyCharged",
+            "CortetsuPower.charging",
             'qsTr(\"Fully charged\")',
         )
     ),

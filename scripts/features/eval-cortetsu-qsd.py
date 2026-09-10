@@ -5,6 +5,7 @@ content = (ROOT / "cortetsu/modules/qsd/Content.qml").read_text(encoding="utf-8"
 action_tile = (ROOT / "cortetsu/components/CortetsuActionTile.qml").read_text(encoding="utf-8")
 host = (ROOT / "cortetsu/modules/QsdHost.qml").read_text(encoding="utf-8")
 policy = (ROOT / "cortetsu/modules/CortetsuOverlayPolicy.js").read_text(encoding="utf-8")
+power = (ROOT / "cortetsu/services/CortetsuPower.qml").read_text(encoding="utf-8")
 
 assert "anchors.right: parent.right" in host and "width: 400" in host
 assert "baseColor: Qt.alpha(CortetsuDesign.colorSumi" in host
@@ -14,7 +15,7 @@ assert 'warning: false' in content
 assert 'color: CortetsuAudio.muted ? CortetsuDesign.colorOnSurfaceVariant : CortetsuDesign.colorPrimary' in content
 assert "disabled: value < 0" in content
 assert "Bluetooth.defaultAdapter.enabled" in content
-assert "UPower.displayDevice" in content
+assert "CortetsuPower" in content
 assert "onMoved: nextValue => root.brightnessMonitor?.setBrightness(nextValue)" in content
 assert "onMoved: nextValue => CortetsuAudio.setVolume(nextValue)" in content
 assert "onMoved: root.brightnessMonitor?.setBrightness(value)" not in content
@@ -42,10 +43,13 @@ checks = {
     )),
     "battery capability is finite and clamped": all(marker in content for marker in (
         "readonly property real batteryValue:",
-        "Number.isFinite(value)",
-        "Math.max(0, Math.min(1, value))",
+        "CortetsuPower.value",
         "batteryAvailable",
-    )) and "UPower.displayDevice.percentage * 100" not in content,
+    )) and all(marker in power for marker in (
+        "Number.isFinite(raw)",
+        "Math.max(0, Math.min(1, raw))",
+        "property bool available",
+    )) and "UPower.displayDevice.percentage" not in content,
     "DND is a selected preference": "highlighted: CortetsuNotifications.dnd" in content
         and "warning: CortetsuNotifications.dnd" not in content,
 }
