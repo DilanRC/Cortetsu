@@ -9,6 +9,7 @@ ROOT = Path(__file__).resolve().parents[2]
 contract = json.loads((ROOT / "cortetsu/contracts/wall-utility.json").read_text(encoding="utf-8"))
 build = (ROOT / "cortetsu/bin/build-runtime.sh").read_text(encoding="utf-8")
 controller = (ROOT / "cortetsu/modules/WallpaperController.qml").read_text(encoding="utf-8")
+shell = (ROOT / "cortetsu/shell.qml").read_text(encoding="utf-8")
 display_controller = (ROOT / "cortetsu/modules/DisplayController.qml").read_text(encoding="utf-8")
 hub = (ROOT / "cortetsu/modules/BottomHub.qml").read_text(encoding="utf-8")
 service = (ROOT / "cortetsu/modules/CortetsuWallpapers.qml").read_text(encoding="utf-8")
@@ -22,6 +23,8 @@ checks = {
     "explicit ownership": all(contract[key] for key in ("stateOwner", "screenOwner", "applyOwner")),
     "monitor-local policy": contract["screenPolicy"]["surfaceOwnership"] == "monitor-local",
     "screen-aware controller": "function open(screen): void" in controller and "function openActive(): void" in controller,
+    "wallpaper IPC is available at startup": "readonly property var wallpaperController: WallpaperController" in shell
+        and 'target: "wallpapermanager"' in controller,
     "display handoff preserves screen": "function open(screen): void" in display_controller
         and "CortetsuShellState.forScreen(target)?.cortetsuState" in display_controller,
     "BottomHub delegates open": "WallpaperController.open(screen);" in hub,

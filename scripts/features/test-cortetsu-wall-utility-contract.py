@@ -87,6 +87,7 @@ for key, expected in {
 
 build = (ROOT / "cortetsu/bin/build-runtime.sh").read_text(encoding="utf-8")
 controller = (ROOT / "cortetsu/modules/WallpaperController.qml").read_text(encoding="utf-8")
+shell = (ROOT / "cortetsu/shell.qml").read_text(encoding="utf-8")
 display_controller = (ROOT / "cortetsu/modules/DisplayController.qml").read_text(encoding="utf-8")
 hub = (ROOT / "cortetsu/modules/BottomHub.qml").read_text(encoding="utf-8")
 host = (ROOT / "cortetsu/modules/RetainedSurfacesHost.qml").read_text(encoding="utf-8")
@@ -102,6 +103,8 @@ assert "wall-utility.json" in build
 assert "pragma Singleton" in controller
 assert "function open(screen): void" in controller
 assert "function openActive(): void" in controller
+assert "readonly property var wallpaperController: WallpaperController" in shell
+assert 'target: "wallpapermanager"' in controller
 assert "function open(screen): void" in display_controller
 assert "function openActive(): void" in display_controller
 assert "CortetsuShellState.forScreen(target)?.cortetsuState" in display_controller
