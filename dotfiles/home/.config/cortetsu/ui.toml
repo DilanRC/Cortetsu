@@ -56,6 +56,16 @@ deliberate_ms = 240
 panel_ms = 240
 hover_scale = 1.025
 
+[wall_utility]
+surface_radius = "shape.radius_surface"
+panel_motion = "motion.panel_ms"
+orbit_motion = "motion.standard_ms"
+crossfade_motion = "motion.standard_ms"
+orbit_top_gap = "spacing.section"
+orbit_bottom_gap = "spacing.section"
+footer_gap = "spacing.compact"
+category_gap = "spacing.compact"
+
 [principles]
 space = "ma"
 material = "sumi-tetsu-washi"

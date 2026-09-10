@@ -36,7 +36,7 @@ assert "function resolveCurrentIndex" in orbit and "function basename" in orbit
 # A→B→C→D has one preview timer and a short post-apply Cosmic timer. The
 # acknowledgement timeout is owned by the shared wallpaper service.
 assert content.count("Timer {") == 2
-assert "interval: 220" in content
+assert "interval: CortetsuDesign.wallUtilityOrbitMotionMs" in content
 timer_body = content[content.index("id: previewTimer"):content.index("NumberAnimation {", content.index("id: previewTimer"))]
 assert "Orbit.previewEligible" in timer_body
 assert "CortetsuWallpapers.preview(root.pendingPreviewPath)" in timer_body
@@ -72,9 +72,15 @@ assert "OverlayPolicy.closeOtherPanels" in controller and "for (const screen of 
 assert "OverlayPolicy.closeForWallpaper" in wallpaper_controller and "for (const screen of CortetsuScreens.screens)" in wallpaper_controller
 assert "OverlayPolicy.closeOtherPanels(state);" in hub
 assert "toggleSidebarFor" in hub and "state.sidebar = !wasOpen;" in hub
-assert "const state = CortetsuShellState.forActive()?.cortetsuState;" in wallpaper_controller
+assert "function open(screen): void" in wallpaper_controller
+assert "function openActive(): void" in wallpaper_controller
+assert "CortetsuShellState.forScreen(target)?.cortetsuState" in wallpaper_controller
+assert "open(undefined);" in wallpaper_controller
 assert "CortetsuShellState.forActive()?.modelData" not in wallpaper_controller
 assert "closeOtherPanels();\n        state.setRetained(\"wallpaperManager\", true);" in wallpaper_controller
+assert "function open(): void { root.openActive(); }" in wallpaper_controller
+assert "WallpaperController.open(screen);" in hub
+assert "candidate === screen" not in hub
 
 # V2 visual and native-service contracts.
 for needle in ("Orbit.satellites", "Math.min(12", "Math.cos(angle)", "Math.sin(angle)", "depth", "scale:", "opacity:", "z:", "CortetsuMask { maskSource", "outgoingHeroPath", "heroCrossfade", "CortetsuButton {", "active: true"):
@@ -119,7 +125,7 @@ assert "scale: satellite.visualScale" in content
 assert "opacity: satellite.hovered ? 1 : 0.28 + satellite.depth * 0.72" in content
 assert "currentStateLabel" in content and "currentIsApplied" in content
 assert "scale: (0.72 + depth * 0.38)" not in content
-assert "anchors.bottomMargin: 70" in content
+assert "anchors.bottomMargin: CortetsuDesign.wallUtilityOrbitBottomGap" in content
 assert "readonly property real radiusX" in content
 assert "readonly property real radiusY" in content
 assert "Math.cos(angle) * radiusX" in content

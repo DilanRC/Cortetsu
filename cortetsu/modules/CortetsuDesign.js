@@ -66,3 +66,13 @@ var motionFastMs = 120
 var motionStandardMs = 180
 var motionDeliberateMs = 240
 var motionPanelMs = 240
+
+// Wall Utility values resolve symbolic ui.toml references at compile time.
+var wallUtilitySurfaceRadius = 28
+var wallUtilityPanelMotionMs = 240
+var wallUtilityOrbitMotionMs = 180
+var wallUtilityCrossfadeMotionMs = 180
+var wallUtilityOrbitTopGap = 32
+var wallUtilityOrbitBottomGap = 32
+var wallUtilityFooterGap = 8
+var wallUtilityCategoryGap = 8

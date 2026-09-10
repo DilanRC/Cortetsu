@@ -54,6 +54,9 @@ assert 'var colorVermillion = "#D64B32"' in design
 assert "var motionFastMs = 120" in design
 assert "var motionStandardMs = 180" in design
 assert "var motionPanelMs = 240" in design
+assert "var wallUtilitySurfaceRadius = 28" in design
+assert "var wallUtilityOrbitMotionMs = 180" in design
+assert "var wallUtilityOrbitTopGap = 32" in design
 assert "var hoverScale = 1.025" in design
 
 install = (repo / "scripts/install-cortetsu.sh").read_text(encoding="utf-8")

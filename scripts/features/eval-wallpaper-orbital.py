@@ -9,7 +9,7 @@ orbit = (ROOT / "cortetsu/modules/wallpaper/OrbitModel.js").read_text(encoding="
 contracts = {
     "stable orbit model during transition": "Orbit.satellites(filteredEntries, windowIndex, windowIndex, visibleLimit)" in content,
     "animated accumulated phase": "orbitMotion.to = orbitPhase - steps * Orbit.angularStep" in content,
-    "motion duration": "duration: 220" in content,
+    "motion duration": "duration: CortetsuDesign.wallUtilityOrbitMotionMs" in content,
     "continuous trigonometric geometry": all(token in content for token in ("Math.cos(angle)", "Math.sin(angle)", "property real orbitPhase")),
     "depth hierarchy": all(token in content for token in ("scale: satellite.visualScale", "opacity: satellite.hovered ?", "z: 2 + Math.round(depth * 8)")),
     "satellite hitbox stays stable": "scale: 1" in content and "MouseArea" in content,

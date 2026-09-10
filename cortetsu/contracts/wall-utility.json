@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "id": "wall-utility-bcde",
+  "product": "Cortetsu",
+  "direction": {
+    "wallpaperAware": true,
+    "utilityFirst": true,
+    "workbenchSettings": true,
+    "configurableModularity": true
+  },
+  "entrypoint": "modules/wallpaper/Content.qml",
+  "host": "modules/RetainedSurfacesHost.qml",
+  "wrapper": "modules/wallpaper/Wrapper.qml",
+  "stateOwner": "CortetsuWallpapers",
+  "screenOwner": "CortetsuShellState.forScreen",
+  "applyOwner": "CortetsuWallpapers",
+  "configSource": "dotfiles/home/.config/cortetsu/ui.toml",
+  "states": ["idle", "selected", "applying", "applied", "failed"],
+  "screenPolicy": {
+    "surfaceOwnership": "monitor-local",
+    "shortcutTarget": "active-monitor",
+    "selectionTarget": "clicked-monitor"
+  },
+  "applyLifecycle": {
+    "acknowledgement": "XDG state file cortetsu/wallpaper/path.txt",
+    "successState": "applied",
+    "failureState": "failed",
+    "cosmicPolicy": "success-pulse-only"
+  }
+}

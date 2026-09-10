@@ -246,7 +246,7 @@ FocusScope {
 
     Timer {
         id: previewTimer
-        interval: 220
+        interval: CortetsuDesign.wallUtilityOrbitMotionMs
         repeat: false
         onTriggered: {
             if (root.animating || root.queuedDirection) {
@@ -265,7 +265,7 @@ FocusScope {
         id: orbitMotion
         target: root
         property: "orbitPhase"
-        duration: 220
+        duration: CortetsuDesign.wallUtilityOrbitMotionMs
         easing.type: Easing.OutCubic
         onStopped: {
             root.windowIndex = root.currentIndex;
@@ -280,8 +280,8 @@ FocusScope {
 
     ParallelAnimation {
         id: heroCrossfade
-        NumberAnimation { target: root; property: "newHeroOpacity"; to: 1; duration: 180; easing.type: Easing.OutCubic }
-        NumberAnimation { target: root; property: "oldHeroOpacity"; to: 0; duration: 180; easing.type: Easing.OutCubic }
+        NumberAnimation { target: root; property: "newHeroOpacity"; to: 1; duration: CortetsuDesign.wallUtilityCrossfadeMotionMs; easing.type: Easing.OutCubic }
+        NumberAnimation { target: root; property: "oldHeroOpacity"; to: 0; duration: CortetsuDesign.wallUtilityCrossfadeMotionMs; easing.type: Easing.OutCubic }
         onStopped: root.outgoingHeroPath = ""
     }
 
@@ -404,7 +404,7 @@ FocusScope {
 
             Row {
                 id: categoryRow
-                spacing: 6
+                spacing: CortetsuDesign.wallUtilityCategoryGap
                 Repeater {
                     model: root.categoryNames
                     delegate: CortetsuButton {
@@ -421,9 +421,9 @@ FocusScope {
         Item {
             id: orbitRegion
             anchors.top: categoryStrip.bottom
-            anchors.topMargin: 56
+            anchors.topMargin: CortetsuDesign.wallUtilityOrbitTopGap
             anchors.bottom: footerSurface.top
-            anchors.bottomMargin: 70
+            anchors.bottomMargin: CortetsuDesign.wallUtilityOrbitBottomGap
             anchors.left: parent.left
             anchors.right: parent.right
 
@@ -648,7 +648,7 @@ FocusScope {
             anchors.bottomMargin: 12
             width: Math.min(500, parent.width - 40)
             height: footer.height + 24
-            radius: CortetsuDesign.radiusLarge
+            radius: CortetsuDesign.wallUtilitySurfaceRadius
             color: Qt.alpha(CortetsuDesign.colorSurfaceHigh, 0.68)
             border.width: 1
             border.color: Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.55)
@@ -659,7 +659,7 @@ FocusScope {
             anchors.bottom: parent.bottom
             anchors.bottomMargin: 24
             anchors.horizontalCenter: parent.horizontalCenter
-            spacing: 7
+            spacing: CortetsuDesign.wallUtilityFooterGap
 
             CortetsuText {
                 width: Math.min(440, panel.width - 48)

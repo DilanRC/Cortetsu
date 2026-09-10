@@ -32,8 +32,8 @@ Item {
     scale: shouldBeActive ? 1 : 0.96
     transformOrigin: Item.Center
 
-    Behavior on opacity { NumberAnimation { duration: 240; easing.type: Easing.OutCubic } }
-    Behavior on scale { NumberAnimation { duration: 240; easing.type: Easing.OutCubic } }
+    Behavior on opacity { NumberAnimation { duration: CortetsuDesign.wallUtilityPanelMotionMs; easing.type: Easing.OutCubic } }
+    Behavior on scale { NumberAnimation { duration: CortetsuDesign.wallUtilityPanelMotionMs; easing.type: Easing.OutCubic } }
 
     Rectangle {
         anchors.fill: parent

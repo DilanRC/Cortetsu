@@ -15,7 +15,7 @@ def require(path: Path, *needles: str) -> None:
 
 def main() -> None:
     content = ROOT / "cortetsu/modules/wallpaper/Content.qml"
-    require(content, "Orbit.satellites", "Orbit.prefetch", "Orbit.resolveCurrentIndex", "Orbit.satelliteAngle", "orbitPhase", "Math.min(12", "asynchronous: true", "sourceSize.width", "retainWhileLoading", "cache: true", "presentationReady", "CortetsuWallpapers.applyRandom()", "CortetsuMask { maskSource", "layer.enabled: true", "visible: true", "required property int index", "pendingPreviewPath", "interval: 220", "Orbit.wheelIntent", "heroCrossfade")
+    require(content, "Orbit.satellites", "Orbit.prefetch", "Orbit.resolveCurrentIndex", "Orbit.satelliteAngle", "orbitPhase", "Math.min(12", "asynchronous: true", "sourceSize.width", "retainWhileLoading", "cache: true", "presentationReady", "CortetsuWallpapers.applyRandom()", "CortetsuMask { maskSource", "layer.enabled: true", "visible: true", "required property int index", "pendingPreviewPath", "interval: CortetsuDesign.wallUtilityOrbitMotionMs", "Orbit.wheelIntent", "heroCrossfade")
     content_text = content.read_text(encoding="utf-8")
     assert "GridView" not in content_text and "Quickshell.exec" not in content_text
     assert "Orbit.visible(filteredEntries, currentIndex" not in content_text, "fixed slots would only swap sources"

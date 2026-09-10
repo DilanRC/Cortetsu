@@ -185,7 +185,7 @@ The Wallpaper Manager uses a stable orbital model during selection. `windowIndex
 is the last settled center, while `currentIndex` may update immediately so the
 central preview and its applied/selected state respond without waiting for the
 wallpaper backend. The satellite model remains anchored to `windowIndex` until
-the `220 ms` OutCubic phase animation completes, so the clicked wallpaper stays
+the configured Wall Utility OutCubic phase animation completes, so the clicked wallpaper stays
 visible while the orbit rotates. `orbitPhase` accumulates between selections;
 it is reset only by a catalog/category resync, not after every move.
 
