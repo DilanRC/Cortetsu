@@ -6,6 +6,7 @@ DATA_ROOT="${CORTETSU_DATA_ROOT:-${XDG_DATA_HOME:-$HOME/.local/share}/cortetsu}"
 RUNTIME_ROOT="${CORTETSU_RUNTIME_ROOT:-${XDG_CONFIG_HOME:-$HOME/.config}/quickshell/cortetsu}"
 SOURCE_BASE="$REPO/cortetsu/base"
 PROVENANCE="$REPO/cortetsu/contracts/runtime-provenance.json"
+WALL_UTILITY_CONTRACT="$REPO/cortetsu/contracts/wall-utility.json"
 BUILD_ROOT="$DATA_ROOT/builds"
 STAMP="$(date +%Y%m%d-%H%M%S)-$$"
 STAGING="$BUILD_ROOT/.staging-$STAMP"
@@ -36,6 +37,7 @@ cleanup() {
 trap cleanup EXIT
 
 require_file "$PROVENANCE"
+require_file "$WALL_UTILITY_CONTRACT"
 require_file "$SOURCE_BASE/PROVENANCE.md"
 require_file "$REPO/cortetsu/modules/BottomHub.qml"
 require_file "$REPO/cortetsu/modules/CortetsuBottomHubView.qml"
@@ -63,6 +65,7 @@ cp -a "$REPO/cortetsu/assets/branding/." "$STAGING/assets/branding/"
 python3 "$REPO/cortetsu/bin/compose-panels.py" "$STAGING"
 install -m 0644 "$PROVENANCE" "$STAGING/provenance.json"
 install -m 0644 "$REPO/cortetsu/contracts/composition.json" "$STAGING/composition.json"
+install -m 0644 "$WALL_UTILITY_CONTRACT" "$STAGING/wall-utility.json"
 
 printf '==> Regresiones\n'
 python3 "$REPO/scripts/features/test-native-bottom-hub.py" --runtime "$STAGING/modules/BottomHub.qml"
@@ -76,6 +79,8 @@ python3 "$REPO/scripts/features/eval-cortetsu-input-ownership.py"
 python3 "$REPO/scripts/features/test-contentwindow-overview-base.py"
 python3 "$REPO/scripts/features/test-contentwindow-focusgrab-parity.py"
 python3 "$REPO/scripts/features/test-wallpaper-manager.py"
+python3 "$REPO/scripts/features/test-cortetsu-wall-utility-contract.py"
+python3 "$REPO/scripts/features/eval-cortetsu-wall-utility-contract.py"
 python3 "$REPO/scripts/features/test-cortetsu-branding.py"
 python3 "$REPO/scripts/features/test-cortetsu-evolving-branding.py"
 python3 "$REPO/scripts/features/eval-cortetsu-evolving-branding.py"
@@ -192,7 +197,8 @@ for required in \
     modules/areapicker/AreaPicker.qml \
     modules/areapicker/Picker.qml \
     provenance.json \
-    composition.json
+    composition.json \
+    wall-utility.json
 do
     require_file "$STAGING/$required"
 done

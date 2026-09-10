@@ -36,6 +36,5 @@ ShellRoot {
     ClipboardController {}
     HardwareController {}
     DisplayController {}
-    WallpaperController {}
     IdleMonitors { lock: lock }
 }

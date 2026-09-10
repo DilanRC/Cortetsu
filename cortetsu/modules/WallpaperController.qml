@@ -1,3 +1,4 @@
+pragma Singleton
 pragma ComponentBehavior: Bound
 
 import QtQuick
@@ -29,8 +30,10 @@ Scope {
             OverlayPolicy.closeForWallpaper(CortetsuShellState.forScreen(screen)?.cortetsuState?.legacyState);
     }
 
-    function open(): void {
-        const state = CortetsuShellState.forActive()?.cortetsuState;
+    function open(screen): void {
+        const target = screen ?? CortetsuScreens.screens.find(candidate =>
+            CortetsuHypr.monitorFor(candidate) === CortetsuHypr.focusedMonitor);
+        const state = CortetsuShellState.forScreen(target)?.cortetsuState;
         if (!state)
             return;
         closeAll();
@@ -38,8 +41,12 @@ Scope {
         state.setRetained("wallpaperManager", true);
     }
 
+    function openActive(): void {
+        open(undefined);
+    }
+
     function close(): void { closeAll(); }
-    function toggle(): void { anyOpen() ? closeAll() : open(); }
+    function toggle(): void { anyOpen() ? closeAll() : openActive(); }
 
     CortetsuShortcut {
         name: "wallpapermanager"
@@ -50,7 +57,7 @@ Scope {
     IpcHandler {
         target: "wallpapermanager"
         function toggle(): void { root.toggle(); }
-        function open(): void { root.open(); }
+        function open(): void { root.openActive(); }
         function close(): void { root.close(); }
         function isOpen(): bool { return root.anyOpen(); }
     }

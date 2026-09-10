@@ -85,6 +85,9 @@ jobs:
           test -f scripts/features/test-theme-retirement.py
           test -f scripts/features/test-fish-import.py
           test -f scripts/features/test-native-bottom-hub.py
+          test -f scripts/features/test-cortetsu-wall-utility-contract.py
+          test -f scripts/features/eval-cortetsu-wall-utility-contract.py
+          test -f cortetsu/contracts/wall-utility.json
           test ! -e cortetsu/bin/native-bottom-hub.py
           test -f cortetsu/modules/CortetsuBottomHubView.qml
           test -f cortetsu/modules/CortetsuModeSegment.qml
@@ -129,3 +132,19 @@ jobs:
           ! git grep -n -I 'sh -c' -- '*.qml'
           ! git grep -n -I 'CORTETSU_DATA_ROOT:-${CORTETSU_DATA_ROOT' -- ':!docs/history/**' ':!.github/workflows/**'
           ! git grep -n -I 'CORTETSU_RUNTIME_ROOT:-${CORTETSU_RUNTIME_ROOT' -- ':!docs/history/**' ':!.github/workflows/**'
+
+  wall-utility-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Compile Wall Utility checks
+        run: |
+          python3 -m py_compile \
+            scripts/features/test-cortetsu-wall-utility-contract.py \
+            scripts/features/eval-cortetsu-wall-utility-contract.py
+      - name: Validate Wall Utility BCDE contract
+        run: |
+          python3 scripts/features/test-cortetsu-wall-utility-contract.py
+          python3 scripts/features/eval-cortetsu-wall-utility-contract.py
+          python3 scripts/features/test-cortetsu-launcher-wallpaper-apply.py
+          python3 scripts/features/eval-cortetsu-launcher-wallpaper-apply.py

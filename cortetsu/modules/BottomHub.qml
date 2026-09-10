@@ -199,13 +199,7 @@ Scope {
 
     function openWallpaperFor(screen): void {
         closeAllPopouts();
-        for (const candidate of CortetsuScreens.screens) {
-            const state = CortetsuShellState.forScreen(candidate)?.cortetsuState;
-            if (!state)
-                continue;
-            OverlayPolicy.closeOtherPanels(state.legacyState);
-            state.setRetained("wallpaperManager", candidate === screen);
-        }
+        WallpaperController.open(screen);
         shown = true;
     }
 

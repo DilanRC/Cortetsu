@@ -72,7 +72,7 @@ resolved_generation() { readlink -f "$1" 2>/dev/null || true; }
 is_managed_generation() {
     local root="$1" required
     [[ -n "$root" ]] || return 1
-    for required in shell.qml BUILD_ID BUILD.json provenance.json composition.json modules/BottomHub.qml modules/calendar/Content.qml modules/calendar/Wrapper.qml; do
+    for required in shell.qml BUILD_ID BUILD.json provenance.json composition.json wall-utility.json modules/BottomHub.qml modules/calendar/Content.qml modules/calendar/Wrapper.qml; do
         [[ -f "$root/$required" ]] || return 1
     done
 }
@@ -227,7 +227,7 @@ status_cmd() {
     printf '\nCanonical namespace:\n  commands=cortetsu-*\n  config=~/.config/cortetsu\n  state=~/.local/state/cortetsu\n  data=~/.local/share/cortetsu\n'
 }
 
-run_python_test() { local relative="$1"; require_repo; require_file "$ROOT/$relative"; printf '==> %s\n' "$relative"; python3 "$ROOT/$relative"; }
+run_python_test() { local relative="$1"; shift; require_repo; require_file "$ROOT/$relative"; printf '==> %s\n' "$relative"; python3 "$ROOT/$relative" "$@"; }
 run_node_test() { local relative="$1"; require_repo; require_file "$ROOT/$relative"; printf '==> %s\n' "$relative"; node "$ROOT/$relative"; }
 run_bash_test() { local relative="$1"; require_repo; require_file "$ROOT/$relative"; printf '==> %s\n' "$relative"; bash "$ROOT/$relative"; }
 
@@ -290,6 +290,8 @@ test_cmd() {
         "scripts/features/test-contentwindow-overview-base.py"
         "scripts/features/test-contentwindow-focusgrab-parity.py"
         "scripts/features/test-wallpaper-manager.py"
+        "scripts/features/test-cortetsu-wall-utility-contract.py"
+        "scripts/features/eval-cortetsu-wall-utility-contract.py"
         "scripts/features/test-cortetsu-launcher-wallpaper-apply.py"
         "scripts/features/eval-cortetsu-launcher-wallpaper-apply.py"
         "scripts/features/eval-wallpaper-orbital.py"
@@ -430,6 +432,7 @@ assert build.get("schema") == 1
 assert build.get("sourceProject") == "Cortetsu"
 assert isinstance(build.get("repositoryRevision"), str) and build["repositoryRevision"]
 PY
+    run_python_test "scripts/features/test-cortetsu-wall-utility-contract.py" --runtime "$resolved"
     printf 'PASS: %s generation %s\n' "$label" "$resolved"
 }
 
@@ -483,6 +486,8 @@ verify_cmd() {
     run_python_test "scripts/features/test-cortetsu-wallpaper-controls.py"
     run_python_test "scripts/features/eval-cortetsu-wallpaper-controls.py"
     run_python_test "scripts/features/test-cortetsu-session-host.py"
+    run_python_test "scripts/features/test-cortetsu-wall-utility-contract.py"
+    run_python_test "scripts/features/eval-cortetsu-wall-utility-contract.py"
     run_python_test "scripts/features/test-retained-surfaces-host.py"
     run_python_test "scripts/features/test-cortetsu-hover-controller.py"
     run_python_test "scripts/features/test-cortetsu-input-ownership.py"

@@ -107,8 +107,9 @@ for flag, controller in controllers.items():
     assert f"CortetsuShellState.forScreen(screen)?.{flag}" not in controller, flag
     assert "OverlayPolicy.close" in controller, flag
 assert 'state.setRetained("calendar"' in hub
-assert 'state.setRetained("wallpaperManager"' in hub
-assert "OverlayPolicy.closeOtherPanels(state.legacyState)" in hub
+assert "WallpaperController.open(screen);" in hub
+assert 'state.setRetained("wallpaperManager"' not in hub
+assert "OverlayPolicy.closeOtherPanels(state);" in hub
 assert "readonly property var cortetsuState" in hub
 for wrapper, flag in (
     ("calendar/Wrapper.qml", "calendar"),
