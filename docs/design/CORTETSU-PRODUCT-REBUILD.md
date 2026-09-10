@@ -84,6 +84,13 @@ slot: Human at rest, Awakening while a real action tile has hover or keyboard
 focus, and Monster while a tile is pressed. QSD never uses Cosmic; its system
 health states remain separate from the identity phase.
 
+Global Hyprland shortcuts are single-owned: `hyprland/keybinds.lua` owns the
+canonical QSD, Settings, and Print bindings, while `hypr-user.lua` only owns
+user-specific additions. QSD uses the symbol form `SUPER + SLASH` plus the
+physical `SUPER + SHIFT + 7` equivalent required by the active `latam` layout.
+The workspace-7 move action uses `SUPER + SHIFT + F7` to keep those two product
+actions deterministic without a duplicate effective bind.
+
 ## Settings Center
 
 `SUPER + I` now opens a dedicated `cortetsu-settings` full surface. The left

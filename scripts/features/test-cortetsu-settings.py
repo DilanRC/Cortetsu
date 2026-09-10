@@ -123,12 +123,12 @@ for label in ("Mode and workspaces", "App rail", "Tray", "Status cluster"):
     assert f'title: qsTr("{label}")' in system
 assert "CortetsuConfig.bottomHub.segments" in system
 
-# User overrides agree with canonical first-party bindings, avoiding a double-open
-# of Utilities plus QSD/Settings for the same keystroke.
+# Global first-party bindings have one canonical owner. User overrides must not
+# register a second spelling of the same shortcut after that module is loaded.
 assert 'create_bind("SUPER + I", hl.dsp.global("cortetsu:settings"))' in base_hypr
-assert 'create_bind("SUPER + SLASH", hl.dsp.global("cortetsu:qsd"))' in base_hypr
-assert '"SUPER + I",\n    hl.dsp.global("cortetsu:settings")' in user_hypr
-assert '"SUPER + Slash",\n    hl.dsp.global("cortetsu:qsd")' in user_hypr
+assert 'create_bind(\n    { "SUPER + SLASH", "SUPER + SHIFT + 7" },\n    hl.dsp.global("cortetsu:qsd")\n)' in base_hypr
+assert '"SUPER + I",\n    hl.dsp.global("cortetsu:settings")' not in user_hypr
+assert '"SUPER + Slash",\n    hl.dsp.global("cortetsu:qsd")' not in user_hypr
 assert '"SUPER + I",\n    hl.dsp.global("cortetsu:utilities")' not in user_hypr
 assert 'name: "settings"' in shortcuts and 'name: "qsd"' in shortcuts
 

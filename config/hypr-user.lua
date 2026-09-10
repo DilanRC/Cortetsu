@@ -76,18 +76,6 @@ hl.bind(
     hl.dsp.global("cortetsu:dashboard")
 )
 
--- Quick Settings Drawer
-hl.bind(
-    "SUPER + Slash",
-    hl.dsp.global("cortetsu:qsd")
-)
-
--- Settings Center
-hl.bind(
-    "SUPER + I",
-    hl.dsp.global("cortetsu:settings")
-)
-
 -- Clipboard QML nativo
 hl.bind(
     "SUPER + V",
@@ -134,12 +122,6 @@ hl.bind(
 -- ============================================================
 -- SCREENSHOTS
 -- ============================================================
-
-hl.bind(
-    "Print",
-    hl.dsp.exec_cmd("cortetsu screenshot -r -f")
-)
-
 
 hl.bind(
     "CTRL + Print",
@@ -266,7 +248,13 @@ for i = 1, 10 do
     -- SUPER+SHIFT+# is the direct window-to-workspace shortcut. Keep it
     -- explicit here so the user overlay cannot be shadowed by the grouped
     -- workspace callback from hyprland/keybinds.lua.
-    hl.bind("SUPER + SHIFT + " .. key, fn.wsaction("move", "", i))
+    local move_key = "SUPER + SHIFT + " .. key
+    -- On the active latam layout, slash is Shift+7. Keep QSD on that
+    -- product shortcut and give workspace 7 an explicit equivalent.
+    if key == "7" then
+        move_key = "SUPER + SHIFT + F7"
+    end
+    hl.bind(move_key, fn.wsaction("move", "", i))
 
     hl.bind(
         "SUPER + CTRL + SHIFT + " .. key,

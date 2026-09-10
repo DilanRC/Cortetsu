@@ -57,7 +57,10 @@ create_bind(vars.kbShowSidebar, hl.dsp.global("cortetsu:sidebar"))
 create_bind(vars.kbClearNotifs, hl.dsp.global("cortetsu:clearNotifs"), locked)
 create_bind(vars.kbShowPanels, hl.dsp.global("cortetsu:showall"))
 create_bind(vars.kbLock, hl.dsp.global("cortetsu:lock"))
-create_bind("SUPER + SLASH", hl.dsp.global("cortetsu:qsd"))
+create_bind(
+    { "SUPER + SLASH", "SUPER + SHIFT + 7" },
+    hl.dsp.global("cortetsu:qsd")
+)
 create_bind("SUPER + I", hl.dsp.global("cortetsu:settings"))
 
 -- Restore lock
@@ -158,7 +161,9 @@ create_bind(vars.kbFileExplorer, hl.dsp.exec_cmd(vars.fileExplorer))
 create_bind(vars.kbAudioSettings, hl.dsp.exec_cmd(vars.audioSettings))
 
 -- Utilities
-create_bind(vars.kbScreenshot, hl.dsp.exec_cmd("cortetsu screenshot"), locked)
+-- Print keeps the existing frozen-region behavior; all screenshot ownership
+-- remains in this canonical keybind module.
+create_bind(vars.kbScreenshot, hl.dsp.exec_cmd("cortetsu screenshot -r -f"), locked)
 -- Freeze and region shortcuts target the first-party AreaPicker receiver.
 -- The Cortetsu runtime exposes both names through its picker IPC handler.
 create_bind(vars.kbScreenshotFreeze, hl.dsp.global("cortetsu:screenshotFreeze"))
