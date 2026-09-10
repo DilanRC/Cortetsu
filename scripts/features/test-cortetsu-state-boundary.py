@@ -6,6 +6,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 state = (ROOT / "cortetsu/modules/CortetsuScreenState.qml").read_text(encoding="utf-8")
 policy = (ROOT / "cortetsu/modules/OverlayPolicy.js").read_text(encoding="utf-8")
+content_window = (ROOT / "cortetsu/modules/drawers/ContentWindow.qml").read_text(encoding="utf-8")
 controller_paths = sorted((ROOT / "cortetsu/modules").glob("*Controller.qml"))
 
 assert "function setFlag(flag: string, value: bool): bool" in state
@@ -13,6 +14,8 @@ assert 'return setRetained(flag, value);' in state
 assert 'legacyState[flag] = value;' in state
 assert 'typeof state.setFlag === "function"' in policy
 assert "setFlag(state, flag, false)" in policy
+assert "CortetsuShellState.forScreen(screen)" in content_window
+assert "property ScreenState screenState: ShellState.forScreen(screen)" not in content_window
 
 for path in controller_paths:
     text = path.read_text(encoding="utf-8")

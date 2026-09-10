@@ -6,6 +6,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 state = (ROOT / "cortetsu/modules/CortetsuScreenState.qml").read_text(encoding="utf-8")
 policy = (ROOT / "cortetsu/modules/OverlayPolicy.js").read_text(encoding="utf-8")
+content_window = (ROOT / "cortetsu/modules/drawers/ContentWindow.qml").read_text(encoding="utf-8")
 controllers = [path.read_text(encoding="utf-8") for path in (ROOT / "cortetsu/modules").glob("*Controller.qml")]
 
 checks = {
@@ -20,6 +21,7 @@ checks = {
         "state[flag] = value;",
     )),
     "controller layer has no backing-object reach-through": all(".legacyState" not in text for text in controllers),
+    "shared drawer uses the first-party monitor registry": "CortetsuShellState.forScreen(screen)" in content_window and "property ScreenState screenState: ShellState.forScreen(screen)" not in content_window,
     "wallpaper close preserves its retained owner": all(marker in policy for marker in (
         "function closeForWallpaper(state)",
         '"displayManager"',

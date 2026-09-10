@@ -192,7 +192,9 @@ Controllers use the typed `CortetsuScreenState` boundary for overlay policy and
 retained writes. The compatibility `ScreenState` object remains the persistence
 bridge for older panel handles, but controllers no longer reach through
 `.legacyState`; this keeps the migration explicit without creating a second
-monitor registry or changing input ownership.
+monitor registry or changing input ownership. The shared drawer now resolves
+that same state through `CortetsuShellState`; `ShellState` remains only for its
+legacy component-slot adapter.
 
 Settings and QSD now import Cortetsu components, modules, services and utilities
 through explicit relative boundaries. Their visible composition no longer relies

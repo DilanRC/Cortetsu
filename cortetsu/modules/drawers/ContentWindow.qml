@@ -19,7 +19,10 @@ StyledWindow {
     readonly property alias bar: bar
     readonly property alias interactionWrapper: interactions
 
-    readonly property ScreenState screenState: ShellState.forScreen(screen)
+    // The shared drawer reads the same monitor-local registry as every
+    // first-party host. ShellState remains available below only for legacy
+    // component slots, not as a second effective state lookup.
+    readonly property ScreenState screenState: CortetsuShellState.forScreen(screen)
 
     readonly property HyprlandMonitor monitor: Hypr.monitorFor(screen)
     readonly property bool hasSpecialWorkspace: (monitor?.lastIpcObject.specialWorkspace?.name.length ?? 0) > 0
