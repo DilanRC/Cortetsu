@@ -48,5 +48,15 @@ assert "import qs." not in content and "import qs." not in system
 assert 'import "../CortetsuSearchBar.qml"' in content
 assert "compact: true" in content
 assert "TextInput" not in content
+checks = {
+    "appearance preference persists": all(marker in content for marker in (
+        "checked: CortetsuConfig.transparencyEnabled",
+        "CortetsuConfig.transparencyEnabled = checked;",
+        "CortetsuConfig.save();",
+    )),
+    "system preferences persist": system.count("root.savePreference();") >= 18,
+}
+assert all(checks.values()), [name for name, passed in checks.items() if not passed]
+print(f"Settings persistence eval: {sum(checks.values())}/{len(checks)}")
 
 print("PASS: Settings Center has navigation, live connected pages, honest backend boundaries and scheme ownership")

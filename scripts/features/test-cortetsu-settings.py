@@ -65,6 +65,28 @@ assert 'onMoved: nextValue => CortetsuAudio.setVolume(nextValue)' in system
 assert 'onMoved: nextValue => root.brightnessMonitor?.setBrightness(nextValue)' in system
 assert 'onMoved: CortetsuAudio.setVolume(value)' not in system
 assert 'onMoved: root.brightnessMonitor?.setBrightness(value)' not in system
+assert 'checked: CortetsuConfig.transparencyEnabled' in content
+assert 'CortetsuConfig.transparencyEnabled = checked;' in content
+assert 'CortetsuConfig.save();' in content
+for preference in (
+    'CortetsuConfig.bar.workspaces.perMonitorWorkspaces',
+    'CortetsuConfig.bar.popouts.statusIcons',
+    'CortetsuConfig.bar.scrollActions.volume',
+    'CortetsuConfig.bottomHub.segments.mode',
+    'CortetsuConfig.bottomHub.segments.apps',
+    'CortetsuConfig.bottomHub.segments.tray',
+    'CortetsuConfig.bottomHub.segments.status',
+    'CortetsuConfig.bottomHub.statusCluster.audio',
+    'CortetsuConfig.bottomHub.statusCluster.network',
+    'CortetsuConfig.bottomHub.statusCluster.bluetooth',
+    'CortetsuConfig.bottomHub.statusCluster.battery',
+    'CortetsuConfig.useFuzzyActions',
+    'CortetsuConfig.notificationOpenExpanded',
+    'CortetsuConfig.toastCapsLockChanged',
+    'CortetsuConfig.toastNumLockChanged',
+):
+    assert preference in system, preference
+assert system.count('root.savePreference();') >= 18
 
 # Scheme selection is a single owned transaction and refreshes the active highlight.
 for marker in (

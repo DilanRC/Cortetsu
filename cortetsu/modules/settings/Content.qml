@@ -316,7 +316,10 @@ Item {
                             }
                             CortetsuToggle {
                                 checked: CortetsuConfig.transparencyEnabled
-                                onToggled: CortetsuConfig.transparencyEnabled = checked
+                                onToggled: {
+                                    CortetsuConfig.transparencyEnabled = checked;
+                                    CortetsuConfig.save();
+                                }
                             }
                         }
                     }

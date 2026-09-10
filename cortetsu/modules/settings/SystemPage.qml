@@ -334,7 +334,10 @@ Item {
                 detail: qsTr("Keep BottomHub workspace state scoped to each display")
                 icon: "view_carousel"
                 checked: CortetsuConfig.bar.workspaces.perMonitorWorkspaces
-                onChanged: checked => CortetsuConfig.bar.workspaces.perMonitorWorkspaces = checked
+                onChanged: checked => {
+                    CortetsuConfig.bar.workspaces.perMonitorWorkspaces = checked;
+                    root.savePreference();
+                }
             }
         }
 
@@ -354,7 +357,10 @@ Item {
                 detail: qsTr("Allow contextual system popouts from status icons")
                 icon: "dock_to_bottom"
                 checked: CortetsuConfig.bar.popouts.statusIcons
-                onChanged: checked => CortetsuConfig.bar.popouts.statusIcons = checked
+                onChanged: checked => {
+                    CortetsuConfig.bar.popouts.statusIcons = checked;
+                    root.savePreference();
+                }
             }
 
             PreferenceToggle {
@@ -362,7 +368,10 @@ Item {
                 detail: qsTr("Adjust volume by scrolling the BottomHub control")
                 icon: "volume_up"
                 checked: CortetsuConfig.bar.scrollActions.volume
-                onChanged: checked => CortetsuConfig.bar.scrollActions.volume = checked
+                onChanged: checked => {
+                    CortetsuConfig.bar.scrollActions.volume = checked;
+                    root.savePreference();
+                }
             }
 
             CortetsuSectionHeader {
@@ -376,7 +385,10 @@ Item {
                 detail: qsTr("Show launcher, wallpaper and workspace controls")
                 icon: "apps"
                 checked: CortetsuConfig.bottomHub.segments.mode
-                onChanged: checked => CortetsuConfig.bottomHub.segments.mode = checked
+                onChanged: checked => {
+                    CortetsuConfig.bottomHub.segments.mode = checked;
+                    root.savePreference();
+                }
             }
 
             PreferenceToggle {
@@ -384,7 +396,10 @@ Item {
                 detail: qsTr("Show running and pinned applications")
                 icon: "apps"
                 checked: CortetsuConfig.bottomHub.segments.apps
-                onChanged: checked => CortetsuConfig.bottomHub.segments.apps = checked
+                onChanged: checked => {
+                    CortetsuConfig.bottomHub.segments.apps = checked;
+                    root.savePreference();
+                }
             }
 
             PreferenceToggle {
@@ -392,7 +407,10 @@ Item {
                 detail: qsTr("Show StatusNotifier applications and menus")
                 icon: "notifications"
                 checked: CortetsuConfig.bottomHub.segments.tray
-                onChanged: checked => CortetsuConfig.bottomHub.segments.tray = checked
+                onChanged: checked => {
+                    CortetsuConfig.bottomHub.segments.tray = checked;
+                    root.savePreference();
+                }
             }
 
             PreferenceToggle {
@@ -400,7 +418,10 @@ Item {
                 detail: qsTr("Show notifications, hardware and session controls")
                 icon: "tune"
                 checked: CortetsuConfig.bottomHub.segments.status
-                onChanged: checked => CortetsuConfig.bottomHub.segments.status = checked
+                onChanged: checked => {
+                    CortetsuConfig.bottomHub.segments.status = checked;
+                    root.savePreference();
+                }
             }
 
             CortetsuSectionHeader {
@@ -414,7 +435,10 @@ Item {
                 detail: qsTr("Show the audio control and its contextual popup")
                 icon: "volume_up"
                 checked: CortetsuConfig.bottomHub.statusCluster.audio
-                onChanged: checked => CortetsuConfig.bottomHub.statusCluster.audio = checked
+                onChanged: checked => {
+                    CortetsuConfig.bottomHub.statusCluster.audio = checked;
+                    root.savePreference();
+                }
             }
 
             PreferenceToggle {
@@ -422,7 +446,10 @@ Item {
                 detail: qsTr("Show Wi-Fi and Ethernet state")
                 icon: "wifi"
                 checked: CortetsuConfig.bottomHub.statusCluster.network
-                onChanged: checked => CortetsuConfig.bottomHub.statusCluster.network = checked
+                onChanged: checked => {
+                    CortetsuConfig.bottomHub.statusCluster.network = checked;
+                    root.savePreference();
+                }
             }
 
             PreferenceToggle {
@@ -430,7 +457,10 @@ Item {
                 detail: qsTr("Show the Bluetooth adapter and device state")
                 icon: "bluetooth"
                 checked: CortetsuConfig.bottomHub.statusCluster.bluetooth
-                onChanged: checked => CortetsuConfig.bottomHub.statusCluster.bluetooth = checked
+                onChanged: checked => {
+                    CortetsuConfig.bottomHub.statusCluster.bluetooth = checked;
+                    root.savePreference();
+                }
             }
 
             PreferenceToggle {
@@ -438,7 +468,10 @@ Item {
                 detail: qsTr("Show battery and power state")
                 icon: "battery_full"
                 checked: CortetsuConfig.bottomHub.statusCluster.battery
-                onChanged: checked => CortetsuConfig.bottomHub.statusCluster.battery = checked
+                onChanged: checked => {
+                    CortetsuConfig.bottomHub.statusCluster.battery = checked;
+                    root.savePreference();
+                }
             }
         }
 
@@ -469,7 +502,10 @@ Item {
                 detail: qsTr("Use approximate matching for launcher actions")
                 icon: "bolt"
                 checked: CortetsuConfig.useFuzzyActions
-                onChanged: checked => CortetsuConfig.useFuzzyActions = checked
+                onChanged: checked => {
+                    CortetsuConfig.useFuzzyActions = checked;
+                    root.savePreference();
+                }
             }
 
         }
@@ -498,7 +534,10 @@ Item {
                 detail: qsTr("Expand notification groups when the center opens")
                 icon: "unfold_more"
                 checked: CortetsuConfig.notificationOpenExpanded
-                onChanged: checked => CortetsuConfig.notificationOpenExpanded = checked
+                onChanged: checked => {
+                    CortetsuConfig.notificationOpenExpanded = checked;
+                    root.savePreference();
+                }
             }
 
             PreferenceToggle {
@@ -775,7 +814,10 @@ Item {
                 detail: qsTr("Show semantic feedback when Caps Lock changes")
                 icon: "keyboard_capslock"
                 checked: CortetsuConfig.toastCapsLockChanged
-                onChanged: checked => CortetsuConfig.toastCapsLockChanged = checked
+                onChanged: checked => {
+                    CortetsuConfig.toastCapsLockChanged = checked;
+                    root.savePreference();
+                }
             }
 
             PreferenceToggle {
@@ -783,7 +825,10 @@ Item {
                 detail: qsTr("Show semantic feedback when Num Lock changes")
                 icon: "dialpad"
                 checked: CortetsuConfig.toastNumLockChanged
-                onChanged: checked => CortetsuConfig.toastNumLockChanged = checked
+                onChanged: checked => {
+                    CortetsuConfig.toastNumLockChanged = checked;
+                    root.savePreference();
+                }
             }
         }
 
