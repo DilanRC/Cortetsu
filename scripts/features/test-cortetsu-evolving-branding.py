@@ -26,6 +26,7 @@ assert "phaseAssetPath" in renderer
 assert "implicitWidth: 64" in renderer and "implicitHeight: 64" in renderer
 assert "property bool animated" in renderer and "phaseTransition" in renderer
 assert "property color accent" in renderer and "effectiveColor" in renderer
+assert renderer.count("brightness: 1") == 2
 for forbidden in ("MouseArea", "Window", "Overlay"):
     assert forbidden not in renderer, forbidden
 

@@ -17,6 +17,7 @@ checks = {
     "failed apply is not completion": 'applyStatus === "failed"' in wallpaper and '(currentIsApplied ? "Ascended" : "Human")' in wallpaper,
     "renderer has no input ownership": all(token not in renderer for token in ("MouseArea", "Keys.", "Window")),
     "fixed geometry": all(token in renderer for token in ("implicitWidth: 64", "implicitHeight: 64", "width: implicitWidth", "height: implicitHeight")),
+    "monochrome remains visible": renderer.count("brightness: 1") == 2,
 }
 
 assert all(checks.values()), [name for name, passed in checks.items() if not passed]

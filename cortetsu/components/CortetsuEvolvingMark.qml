@@ -73,6 +73,7 @@ Item {
         layer.effect: MultiEffect {
             colorization: root.effectiveColor.a > 0 ? 1 : 0
             colorizationColor: root.effectiveColor
+            brightness: 1
         }
     }
 
@@ -92,6 +93,7 @@ Item {
         layer.effect: MultiEffect {
             colorization: root.effectiveColor.a > 0 ? 1 : 0
             colorizationColor: root.effectiveColor
+            brightness: 1
         }
     }
 
