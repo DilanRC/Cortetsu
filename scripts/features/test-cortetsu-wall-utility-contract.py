@@ -40,6 +40,24 @@ assert contract["configSource"] == "dotfiles/home/.config/cortetsu/ui.toml"
 assert manifest["product"]["wall_utility"]["contract"] == "cortetsu/contracts/wall-utility.json"
 assert manifest["product"]["wall_utility"]["config"] == contract["configSource"]
 assert set(contract["states"]) == {"idle", "selected", "applying", "applied", "failed"}
+assert contract["modularity"] == {
+    "dashboard": {
+        "host": "modules/DashboardHost.qml",
+        "content": "modules/dashboard/Dash.qml",
+        "configPath": "dashboard",
+        "moduleFlags": {
+            "weather": "showWeather",
+            "media": "showMedia",
+            "performance": "showPerformance",
+            "cpu": "performance.showCpu",
+            "gpu": "performance.showGpu",
+            "memory": "performance.showMemory",
+            "storage": "performance.showStorage",
+            "network": "performance.showNetwork",
+            "battery": "performance.showBattery",
+        },
+    },
+}
 assert contract["screenPolicy"] == {
     "surfaceOwnership": "monitor-local",
     "shortcutTarget": "active-monitor",
@@ -71,6 +89,8 @@ host = (ROOT / "cortetsu/modules/RetainedSurfacesHost.qml").read_text(encoding="
 service = (ROOT / "cortetsu/modules/CortetsuWallpapers.qml").read_text(encoding="utf-8")
 content = (ROOT / "cortetsu/modules/wallpaper/Content.qml").read_text(encoding="utf-8")
 wrapper = (ROOT / "cortetsu/modules/wallpaper/Wrapper.qml").read_text(encoding="utf-8")
+dashboard_host = (ROOT / "cortetsu/modules/DashboardHost.qml").read_text(encoding="utf-8")
+dashboard = (ROOT / "cortetsu/modules/dashboard/Dash.qml").read_text(encoding="utf-8")
 
 assert 'WALL_UTILITY_CONTRACT="$REPO/cortetsu/contracts/wall-utility.json"' in build
 assert 'install -m 0644 "$WALL_UTILITY_CONTRACT" "$STAGING/wall-utility.json"' in build
@@ -94,13 +114,32 @@ assert "wallUtility" in content + wrapper
 assert "CortetsuDesign.wallUtilityPanelMotionMs" in wrapper
 assert "CortetsuDesign.wallUtilityOrbitTopGap" in content
 assert "CortetsuDesign.wallUtilityOrbitBottomGap" in content
+assert contract["modularity"]["dashboard"]["host"] == "modules/DashboardHost.qml"
+assert contract["modularity"]["dashboard"]["content"] == "modules/dashboard/Dash.qml"
+assert "readonly property bool dashboardEnabled" in dashboard_host
+assert "sourceComponent: weatherCard" in dashboard
+assert "sourceComponent: mediaCard" in dashboard
+assert "sourceComponent: systemSummary" in dashboard
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--runtime", type=Path)
+parser.add_argument(
+    "--historical",
+    action="store_true",
+    help="validate a previous generation without requiring the latest contract fields",
+)
 args = parser.parse_args()
 if args.runtime:
     installed = read_json(args.runtime / "wall-utility.json")
-    assert installed == contract
-    print(f"PASS: installed Wall Utility contract matches {args.runtime}")
+    if args.historical:
+        assert installed["schema"] == contract["schema"]
+        assert installed["id"] == contract["id"]
+        assert installed["product"] == contract["product"]
+        assert installed["direction"] == contract["direction"]
+        assert set(installed["states"]) == set(contract["states"])
+        print(f"PASS: historical Wall Utility contract remains compatible with {args.runtime}")
+    else:
+        assert installed == contract
+        print(f"PASS: installed Wall Utility contract matches {args.runtime}")
 else:
     print("PASS: Wall Utility BCDE source contract and ownership are valid")

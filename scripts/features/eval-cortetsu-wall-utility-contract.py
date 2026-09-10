@@ -12,6 +12,8 @@ controller = (ROOT / "cortetsu/modules/WallpaperController.qml").read_text(encod
 hub = (ROOT / "cortetsu/modules/BottomHub.qml").read_text(encoding="utf-8")
 service = (ROOT / "cortetsu/modules/CortetsuWallpapers.qml").read_text(encoding="utf-8")
 content = (ROOT / "cortetsu/modules/wallpaper/Content.qml").read_text(encoding="utf-8")
+dashboard_host = (ROOT / "cortetsu/modules/DashboardHost.qml").read_text(encoding="utf-8")
+dashboard = (ROOT / "cortetsu/modules/dashboard/Dash.qml").read_text(encoding="utf-8")
 
 checks = {
     "contract schema and identity": contract["schema"] == 1 and contract["id"] == "wall-utility-bcde",
@@ -23,6 +25,12 @@ checks = {
     "apply lifecycle ACK": 'cortetsu/wallpaper/path.txt' in service and '"cortetsu-wallpaper-select", target' in service,
     "Cosmic success pulse": "onWallpaperApplySucceeded" in content and "cosmicPulse" in content,
     "generation transport": 'install -m 0644 "$WALL_UTILITY_CONTRACT" "$STAGING/wall-utility.json"' in build,
+    "dashboard modularity contract": contract["modularity"]["dashboard"]["host"] == "modules/DashboardHost.qml"
+        and contract["modularity"]["dashboard"]["content"] == "modules/dashboard/Dash.qml"
+        and "sourceComponent: weatherCard" in dashboard
+        and "sourceComponent: mediaCard" in dashboard
+        and "sourceComponent: systemSummary" in dashboard
+        and "readonly property bool dashboardEnabled" in dashboard_host,
 }
 
 passed = sum(checks.values())

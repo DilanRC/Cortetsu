@@ -7,6 +7,7 @@ today = (ROOT / "cortetsu/modules/dashboard/Today.qml").read_text(encoding="utf-
 focus = (ROOT / "cortetsu/modules/dashboard/Focus.qml").read_text(encoding="utf-8")
 panels = (ROOT / "cortetsu/modules/drawers/Panels.qml").read_text(encoding="utf-8")
 shell = (ROOT / "cortetsu/shell.qml").read_text(encoding="utf-8")
+shortcuts = (ROOT / "cortetsu/modules/Shortcuts.qml").read_text(encoding="utf-8")
 
 for marker in ('name: "dashboard"', "WlrLayer.Overlay", "CortetsuShellState.forScreen(modelData)", "Dash", "screenState.dashboard"):
     assert marker in host, marker
@@ -41,6 +42,28 @@ assert 'CortetsuNetwork.active?.ssid ?? qsTr("Offline")' in dash
 assert 'subtitle: CortetsuNetwork.active?.ssid ?? qsTr("Network unavailable")' not in dash
 assert 'UPower.onBattery' in dash and 'UPowerDeviceState.Charging' in dash
 assert "Icons.getBatteryIcon" in dash
+
+# Dashboard settings must change the composition, not only persist in the
+# settings file. Loaders keep disabled modules out of the live provider tree.
+for marker in (
+    "readonly property bool showWeather: CortetsuConfig.dashboard.showWeather",
+    "readonly property bool showMedia: CortetsuConfig.dashboard.showMedia",
+    "readonly property bool showPerformance: CortetsuConfig.dashboard.showPerformance",
+    "readonly property bool showCpu: showPerformance && CortetsuConfig.dashboard.performance.showCpu",
+    "readonly property bool showGpu: showPerformance && CortetsuConfig.dashboard.performance.showGpu",
+    "readonly property bool showMemory: showPerformance && CortetsuConfig.dashboard.performance.showMemory",
+    "readonly property bool showStorage: showPerformance && CortetsuConfig.dashboard.performance.showStorage",
+    "readonly property bool showNetwork: showPerformance && CortetsuConfig.dashboard.performance.showNetwork",
+    "readonly property bool showBattery: showPerformance && CortetsuConfig.dashboard.performance.showBattery",
+    "sourceComponent: weatherCard",
+    "sourceComponent: mediaCard",
+    "sourceComponent: systemSummary",
+):
+    assert marker in dash, marker
+assert "readonly property bool dashboardEnabled: CortetsuConfig.dashboard.enabled" in host
+assert "CortetsuConfig.dashboard.showDashboard" in host
+assert "state.dashboard = open && CortetsuConfig.dashboard.enabled && CortetsuConfig.dashboard.showDashboard" in shortcuts
+assert "CortetsuConfig.dashboard.enabled && CortetsuConfig.dashboard.showDashboard" in shortcuts
 
 assert "visible: false" in panels
 assert "DashboardHost {}" in shell

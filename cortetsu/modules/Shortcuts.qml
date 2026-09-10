@@ -27,12 +27,19 @@ Scope {
             if (root.hasFullscreen) return;
             const state = CortetsuShellState.forActive();
             if (!state) return;
-            state.launcher = state.dashboard = state.osd = state.utilities = state.qsd = state.settings = !(state.launcher || state.dashboard || state.osd || state.utilities || state.qsd || state.settings);
+            const open = !(state.launcher || state.dashboard || state.osd || state.utilities || state.qsd || state.settings);
+            state.launcher = open && CortetsuConfig.launcher.enabled;
+            state.dashboard = open && CortetsuConfig.dashboard.enabled && CortetsuConfig.dashboard.showDashboard;
+            state.osd = open;
+            state.utilities = open && CortetsuConfig.utilities.enabled;
+            state.qsd = open;
+            state.settings = open;
         }
     }
     CustomShortcut {
         name: "dashboard"; description: "Toggle dashboard"
-        onPressed: if (!root.hasFullscreen) root.toggleExclusive(CortetsuShellState.forActive(), "dashboard")
+        onPressed: if (!root.hasFullscreen && CortetsuConfig.dashboard.enabled && CortetsuConfig.dashboard.showDashboard)
+            root.toggleExclusive(CortetsuShellState.forActive(), "dashboard")
     }
     CustomShortcut {
         name: "session"; description: "Toggle session menu"

@@ -43,6 +43,18 @@ Item {
             : CortetsuNetwork.active
                 ? qsTr("Signal %1%").arg(Math.round(CortetsuNetwork.active.strength ?? 0))
                 : qsTr("No network connection")
+    // Dashboard composition is controlled by the persisted product settings.
+    // Each flag gates the corresponding Loader below, so disabled modules do
+    // not keep rendering or subscribing to their live provider.
+    readonly property bool showWeather: CortetsuConfig.dashboard.showWeather
+    readonly property bool showMedia: CortetsuConfig.dashboard.showMedia
+    readonly property bool showPerformance: CortetsuConfig.dashboard.showPerformance
+    readonly property bool showCpu: showPerformance && CortetsuConfig.dashboard.performance.showCpu
+    readonly property bool showGpu: showPerformance && CortetsuConfig.dashboard.performance.showGpu
+    readonly property bool showMemory: showPerformance && CortetsuConfig.dashboard.performance.showMemory
+    readonly property bool showStorage: showPerformance && CortetsuConfig.dashboard.performance.showStorage
+    readonly property bool showNetwork: showPerformance && CortetsuConfig.dashboard.performance.showNetwork
+    readonly property bool showBattery: showPerformance && CortetsuConfig.dashboard.performance.showBattery
 
     CortetsuSurface {
         anchors.fill: parent
@@ -116,68 +128,13 @@ Item {
             Layout.fillHeight: true
             spacing: CortetsuDesign.spacingStandard
 
-            CortetsuSurface {
+            Loader {
+                active: root.showWeather
+                visible: active
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                Layout.preferredWidth: 1.35
-                radiusValue: CortetsuDesign.radiusLarge
-                baseColor: Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.38)
-                outlined: true
-
-                ColumnLayout {
-                    anchors.fill: parent
-                    anchors.margins: CortetsuDesign.spacingSpacious
-                    spacing: CortetsuDesign.spacingCompact
-
-                    CortetsuText {
-                        text: qsTr("NOW")
-                        textSize: CortetsuTypography.labelSmallPx
-                        color: CortetsuDesign.colorPrimary
-                        font.weight: Font.DemiBold
-                    }
-
-                    CortetsuText {
-                        Layout.fillWidth: true
-                        text: Weather.city || qsTr("Your desktop")
-                        textSize: CortetsuTypography.displayClockPx
-                        font.weight: Font.DemiBold
-                        elide: Text.ElideRight
-                    }
-
-                    CortetsuText {
-                        Layout.fillWidth: true
-                        text: Weather.description || qsTr("A focused space for the next thing")
-                        textSize: CortetsuTypography.bodyPx
-                        color: CortetsuDesign.colorOnSurfaceVariant
-                        elide: Text.ElideRight
-                    }
-
-                    Item { Layout.fillHeight: true }
-
-                    RowLayout {
-                        Layout.fillWidth: true
-
-                        CortetsuText {
-                            text: Weather.icon
-                            textSize: CortetsuTypography.displayHeroPx
-                            color: CortetsuDesign.colorWashi
-                        }
-
-                        ColumnLayout {
-                            Layout.fillWidth: true
-                            CortetsuText {
-                                text: Weather.temp || "--"
-                                textSize: CortetsuTypography.displayLargePx
-                                font.weight: Font.DemiBold
-                            }
-                            CortetsuText {
-                                text: qsTr("Ambient conditions")
-                                textSize: CortetsuTypography.labelSmallPx
-                                color: CortetsuDesign.colorOnSurfaceVariant
-                            }
-                        }
-                    }
-                }
+                Layout.preferredWidth: root.showWeather ? 1.35 : 0
+                sourceComponent: weatherCard
             }
 
             ColumnLayout {
@@ -201,90 +158,176 @@ Item {
                 }
             }
 
-            CortetsuSurface {
+            Loader {
+                active: root.showMedia
+                visible: active
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                Layout.preferredWidth: 0.95
-                radiusValue: CortetsuDesign.radiusLarge
-                baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.82)
-                outlined: true
+                Layout.preferredWidth: root.showMedia ? 0.95 : 0
+                sourceComponent: mediaCard
+            }
+        }
 
-                ColumnLayout {
-                    anchors.fill: parent
-                    anchors.margins: CortetsuDesign.spacingSpacious
-                    spacing: CortetsuDesign.spacingStandard
+        Loader {
+            active: root.showPerformance
+            visible: active
+            Layout.fillWidth: true
+            Layout.preferredHeight: active ? 52 : 0
+            sourceComponent: systemSummary
+        }
+    }
+
+    Component {
+        id: weatherCard
+
+        CortetsuSurface {
+            radiusValue: CortetsuDesign.radiusLarge
+            baseColor: Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.38)
+            outlined: true
+
+            ColumnLayout {
+                anchors.fill: parent
+                anchors.margins: CortetsuDesign.spacingSpacious
+                spacing: CortetsuDesign.spacingCompact
+
+                CortetsuText {
+                    text: qsTr("NOW")
+                    textSize: CortetsuTypography.labelSmallPx
+                    color: CortetsuDesign.colorPrimary
+                    font.weight: Font.DemiBold
+                }
+
+                CortetsuText {
+                    Layout.fillWidth: true
+                    text: Weather.city || qsTr("Your desktop")
+                    textSize: CortetsuTypography.displayClockPx
+                    font.weight: Font.DemiBold
+                    elide: Text.ElideRight
+                }
+
+                CortetsuText {
+                    Layout.fillWidth: true
+                    text: Weather.description || qsTr("A focused space for the next thing")
+                    textSize: CortetsuTypography.bodyPx
+                    color: CortetsuDesign.colorOnSurfaceVariant
+                    elide: Text.ElideRight
+                }
+
+                Item { Layout.fillHeight: true }
+
+                RowLayout {
+                    Layout.fillWidth: true
 
                     CortetsuText {
-                        text: qsTr("NOW PLAYING")
-                        textSize: CortetsuTypography.labelSmallPx
-                        color: CortetsuDesign.colorPrimary
-                        font.weight: Font.DemiBold
+                        text: Weather.icon
+                        textSize: CortetsuTypography.displayHeroPx
+                        color: CortetsuDesign.colorWashi
                     }
 
-                    Item {
-                        Layout.preferredHeight: 32
+                    ColumnLayout {
                         Layout.fillWidth: true
-                        CortetsuIcon {
-                            anchors.centerIn: parent
-                            text: Players.active ? "music_note" : "radio"
-                            iconSize: CortetsuTypography.iconFeaturePx
-                            color: CortetsuDesign.colorPrimary
+                        CortetsuText {
+                            text: Weather.temp || "--"
+                            textSize: CortetsuTypography.displayLargePx
+                            font.weight: Font.DemiBold
                         }
-                    }
-
-                    CortetsuText {
-                        Layout.fillWidth: true
-                        text: Players.active?.trackTitle || qsTr("No active media")
-                        textSize: CortetsuTypography.titleMediumPx
-                        font.weight: Font.DemiBold
-                        elide: Text.ElideRight
-                    }
-
-                    CortetsuText {
-                        Layout.fillWidth: true
-                        text: Players.active?.trackArtist || qsTr("The shell is ready")
-                        textSize: CortetsuTypography.bodySmallPx
-                        color: CortetsuDesign.colorOnSurfaceVariant
-                        elide: Text.ElideRight
-                    }
-
-                    Item { Layout.fillHeight: true }
-
-                    RowLayout {
-                        Layout.alignment: Qt.AlignHCenter
-                        spacing: CortetsuDesign.spacingSpacious
-                        CortetsuButton {
-                            compact: true
-                            icon: "skip_previous"
-                            label: ""
-                            tooltipText: qsTr("Previous track")
-                            disabled: !Players.active
-                            onClicked: Players.active?.previous()
-                        }
-                        CortetsuButton {
-                            compact: true
-                            icon: Players.active?.isPlaying ? "pause" : "play_arrow"
-                            label: ""
-                            tooltipText: Players.active?.isPlaying ? qsTr("Pause") : qsTr("Play")
-                            active: true
-                            disabled: !Players.active
-                            onClicked: Players.active?.togglePlaying()
-                        }
-                        CortetsuButton {
-                            compact: true
-                            icon: "skip_next"
-                            label: ""
-                            tooltipText: qsTr("Next track")
-                            disabled: !Players.active
-                            onClicked: Players.active?.next()
+                        CortetsuText {
+                            text: qsTr("Ambient conditions")
+                            textSize: CortetsuTypography.labelSmallPx
+                            color: CortetsuDesign.colorOnSurfaceVariant
                         }
                     }
                 }
             }
         }
+    }
+
+    Component {
+        id: mediaCard
+
+        CortetsuSurface {
+            radiusValue: CortetsuDesign.radiusLarge
+            baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.82)
+            outlined: true
+
+            ColumnLayout {
+                anchors.fill: parent
+                anchors.margins: CortetsuDesign.spacingSpacious
+                spacing: CortetsuDesign.spacingStandard
+
+                CortetsuText {
+                    text: qsTr("NOW PLAYING")
+                    textSize: CortetsuTypography.labelSmallPx
+                    color: CortetsuDesign.colorPrimary
+                    font.weight: Font.DemiBold
+                }
+
+                Item {
+                    Layout.preferredHeight: 32
+                    Layout.fillWidth: true
+                    CortetsuIcon {
+                        anchors.centerIn: parent
+                        text: Players.active ? "music_note" : "radio"
+                        iconSize: CortetsuTypography.iconFeaturePx
+                        color: CortetsuDesign.colorPrimary
+                    }
+                }
+
+                CortetsuText {
+                    Layout.fillWidth: true
+                    text: Players.active?.trackTitle || qsTr("No active media")
+                    textSize: CortetsuTypography.titleMediumPx
+                    font.weight: Font.DemiBold
+                    elide: Text.ElideRight
+                }
+
+                CortetsuText {
+                    Layout.fillWidth: true
+                    text: Players.active?.trackArtist || qsTr("The shell is ready")
+                    textSize: CortetsuTypography.bodySmallPx
+                    color: CortetsuDesign.colorOnSurfaceVariant
+                    elide: Text.ElideRight
+                }
+
+                Item { Layout.fillHeight: true }
+
+                RowLayout {
+                    Layout.alignment: Qt.AlignHCenter
+                    spacing: CortetsuDesign.spacingSpacious
+                    CortetsuButton {
+                        compact: true
+                        icon: "skip_previous"
+                        label: ""
+                        tooltipText: qsTr("Previous track")
+                        disabled: !Players.active
+                        onClicked: Players.active?.previous()
+                    }
+                    CortetsuButton {
+                        compact: true
+                        icon: Players.active?.isPlaying ? "pause" : "play_arrow"
+                        label: ""
+                        tooltipText: Players.active?.isPlaying ? qsTr("Pause") : qsTr("Play")
+                        active: true
+                        disabled: !Players.active
+                        onClicked: Players.active?.togglePlaying()
+                    }
+                    CortetsuButton {
+                        compact: true
+                        icon: "skip_next"
+                        label: ""
+                        tooltipText: qsTr("Next track")
+                        disabled: !Players.active
+                        onClicked: Players.active?.next()
+                    }
+                }
+            }
+        }
+    }
+
+    Component {
+        id: systemSummary
 
         RowLayout {
-            Layout.fillWidth: true
             spacing: CortetsuDesign.spacingCompact
 
             CortetsuSectionHeader {
@@ -293,37 +336,102 @@ Item {
                 Layout.preferredWidth: 118
             }
 
-            CortetsuListRow {
+            Loader {
+                active: root.showCpu
+                visible: active
                 Layout.fillWidth: true
-                icon: "memory"
-                title: qsTr("CPU %1%").arg(Math.round(Cpu.percentage * 100))
-                subtitle: qsTr("%1°C").arg(Math.round(Cpu.temperature))
-                selected: false
+                sourceComponent: cpuSummary
             }
+            Loader {
+                active: root.showGpu
+                visible: active
+                Layout.fillWidth: true
+                sourceComponent: gpuSummary
+            }
+            Loader {
+                active: root.showMemory
+                visible: active
+                Layout.fillWidth: true
+                sourceComponent: memorySummary
+            }
+            Loader {
+                active: root.showStorage
+                visible: active
+                Layout.fillWidth: true
+                sourceComponent: storageSummary
+            }
+            Loader {
+                active: root.showBattery
+                visible: active
+                Layout.fillWidth: true
+                sourceComponent: batterySummary
+            }
+            Loader {
+                active: root.showNetwork
+                visible: active
+                Layout.fillWidth: true
+                sourceComponent: networkSummary
+            }
+        }
+    }
 
-            CortetsuListRow {
-                Layout.fillWidth: true
-                icon: "data_usage"
-                title: qsTr("Memory %1%").arg(Math.round(Memory.percentage * 100))
-                subtitle: qsTr("%1 GB used").arg((Memory.used / 1048576).toFixed(1))
-                selected: false
-            }
+    Component {
+        id: cpuSummary
+        CortetsuListRow {
+            icon: "memory"
+            title: qsTr("CPU %1%").arg(Math.round(Cpu.percentage * 100))
+            subtitle: qsTr("%1°C").arg(Math.round(Cpu.temperature))
+            selected: false
+        }
+    }
 
-            CortetsuListRow {
-                Layout.fillWidth: true
-                icon: Icons.getBatteryIcon(UPower.displayDevice?.percentage ?? 0, root.batteryCharging)
-                title: UPower.displayDevice?.isLaptopBattery ? qsTr("Battery %1%").arg(root.batteryPercent) : qsTr("Power")
-                subtitle: root.batterySubtitle
-                selected: false
-            }
+    Component {
+        id: gpuSummary
+        CortetsuListRow {
+            icon: "developer_board"
+            title: Gpu.name || qsTr("GPU %1%").arg(Math.round(Gpu.percentage * 100))
+            subtitle: Gpu.name ? qsTr("%1% · %2°C").arg(Math.round(Gpu.percentage * 100)).arg(Math.round(Gpu.temperature)) : qsTr("Unavailable")
+            selected: false
+        }
+    }
 
-            CortetsuListRow {
-                Layout.fillWidth: true
-                icon: CortetsuNetwork.activeEthernet ? "cable" : (CortetsuNetwork.connecting ? "sync" : (CortetsuNetwork.active ? "wifi" : "wifi_off"))
-                title: root.networkTitle
-                subtitle: root.networkSubtitle
-                selected: false
-            }
+    Component {
+        id: memorySummary
+        CortetsuListRow {
+            icon: "data_usage"
+            title: qsTr("Memory %1%").arg(Math.round(Memory.percentage * 100))
+            subtitle: qsTr("%1 GB used").arg((Memory.used / 1048576).toFixed(1))
+            selected: false
+        }
+    }
+
+    Component {
+        id: storageSummary
+        CortetsuListRow {
+            icon: "storage"
+            title: qsTr("Storage %1%").arg(Math.round(Storage.percentage * 100))
+            subtitle: Storage.primaryDisk?.mount ?? qsTr("Primary volume")
+            selected: false
+        }
+    }
+
+    Component {
+        id: batterySummary
+        CortetsuListRow {
+            icon: Icons.getBatteryIcon(UPower.displayDevice?.percentage ?? 0, root.batteryCharging)
+            title: UPower.displayDevice?.isLaptopBattery ? qsTr("Battery %1%").arg(root.batteryPercent) : qsTr("Power")
+            subtitle: root.batterySubtitle
+            selected: false
+        }
+    }
+
+    Component {
+        id: networkSummary
+        CortetsuListRow {
+            icon: CortetsuNetwork.activeEthernet ? "cable" : (CortetsuNetwork.connecting ? "sync" : (CortetsuNetwork.active ? "wifi" : "wifi_off"))
+            title: root.networkTitle
+            subtitle: root.networkSubtitle
+            selected: false
         }
     }
 

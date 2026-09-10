@@ -14,7 +14,13 @@ hosts = {
 
 for name, (path, flag) in hosts.items():
     source = path.read_text(encoding="utf-8")
-    assert f"mask: window.screenState?.{flag} ? null : emptyRegion" in source or f"mask: {flag} ? null : emptyRegion" in source, name
+    mask_contract = (
+        "mask: window.dashboardEnabled && window.screenState?.dashboard ? null : emptyRegion" in source
+        if name == "dashboard"
+        else f"mask: window.screenState?.{flag} ? null : emptyRegion" in source
+        or f"mask: {flag} ? null : emptyRegion" in source
+    )
+    assert mask_contract, name
     assert "Region { id: emptyRegion }" in source, name
 
 print("PASS: inactive first-party overlay hosts expose an empty input region")

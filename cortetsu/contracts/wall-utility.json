@@ -16,6 +16,24 @@
   "applyOwner": "CortetsuWallpapers",
   "configSource": "dotfiles/home/.config/cortetsu/ui.toml",
   "states": ["idle", "selected", "applying", "applied", "failed"],
+  "modularity": {
+    "dashboard": {
+      "host": "modules/DashboardHost.qml",
+      "content": "modules/dashboard/Dash.qml",
+      "configPath": "dashboard",
+      "moduleFlags": {
+        "weather": "showWeather",
+        "media": "showMedia",
+        "performance": "showPerformance",
+        "cpu": "performance.showCpu",
+        "gpu": "performance.showGpu",
+        "memory": "performance.showMemory",
+        "storage": "performance.showStorage",
+        "network": "performance.showNetwork",
+        "battery": "performance.showBattery"
+      }
+    }
+  },
   "screenPolicy": {
     "surfaceOwnership": "monitor-local",
     "shortcutTarget": "active-monitor",

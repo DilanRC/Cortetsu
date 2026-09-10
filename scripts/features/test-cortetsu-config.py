@@ -148,6 +148,9 @@ for filename, markers in metrics.items():
     service_text = (repo / "cortetsu/services" / filename).read_text(encoding="utf-8")
     for marker in markers:
         assert marker in service_text, (filename, marker)
+storage = (repo / "cortetsu/services/Storage.qml").read_text(encoding="utf-8")
+assert "match[4].startsWith(\"/\")" in storage
+assert "match[5].startsWith(\"/\")" not in storage
 for metric_consumer in (
     repo / "cortetsu/base/modules/dashboard/Performance.qml",
     repo / "cortetsu/base/modules/dashboard/dash/Resources.qml",

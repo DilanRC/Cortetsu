@@ -436,7 +436,11 @@ assert build.get("schema") == 1
 assert build.get("sourceProject") == "Cortetsu"
 assert isinstance(build.get("repositoryRevision"), str) and build["repositoryRevision"]
 PY
-    run_python_test "scripts/features/test-cortetsu-wall-utility-contract.py" --runtime "$resolved"
+    if [[ "$label" == "current" ]]; then
+        run_python_test "scripts/features/test-cortetsu-wall-utility-contract.py" --runtime "$resolved"
+    else
+        run_python_test "scripts/features/test-cortetsu-wall-utility-contract.py" --runtime "$resolved" --historical
+    fi
     printf 'PASS: %s generation %s\n' "$label" "$resolved"
 }
 
