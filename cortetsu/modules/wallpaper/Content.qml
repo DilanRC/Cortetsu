@@ -5,6 +5,7 @@ import QtQuick.Shapes
 import QtQuick.Effects
 import Quickshell
 import ".."
+import "../settings"
 import "../../components"
 import "../CortetsuDesign.js" as CortetsuDesign
 import "../CortetsuTypography.js" as CortetsuTypography
@@ -230,6 +231,15 @@ FocusScope {
 
     function closeManager(): void { cancel(); }
 
+    function returnToSettings(): void {
+        cancelPreview();
+        cosmicPulseTimer.stop();
+        cosmicPulse = false;
+        screenState.cortetsuState?.setRetained("wallpaperManager", false);
+        SettingsController.select("wallpaper");
+        Qt.callLater(() => root.screenState.settings = true);
+    }
+
     onCurrentPathChanged: updateHero()
     Component.onDestruction: {
         cosmicPulseTimer.stop();
@@ -370,6 +380,19 @@ FocusScope {
             }
 
             CortetsuButton {
+                id: settingsButton
+                anchors.right: closeButton.left
+                anchors.rightMargin: CortetsuDesign.spacingCompact
+                anchors.verticalCenter: parent.verticalCenter
+                compact: true
+                icon: "tune"
+                label: ""
+                tooltipText: qsTr("Return to Wallpaper settings")
+                onClicked: root.returnToSettings()
+            }
+
+            CortetsuButton {
+                id: closeButton
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
                 compact: true

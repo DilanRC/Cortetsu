@@ -57,6 +57,8 @@ for marker in (
     assert marker in system, marker
 assert 'root.openRetained("displayManager")' in system
 assert 'root.openRetained("wallpaperManager")' in system
+assert "WallpaperController.open(root.screen)" in system
+assert "root.screenState.cortetsuState?.closeRetainedOverlaysExcept(flag)" in system
 assert "Native NetworkManager readback; no fake controls" in system
 assert 'title: qsTr("Volume scroll")' in system
 assert 'title: qsTr("Brightness scroll")' not in system
@@ -92,10 +94,12 @@ assert system.count('root.savePreference();') >= 18
 for marker in (
     "function apply(name: string, flavour: string)",
     '["cortetsu-scheme", "set", "-n", name, flavour]',
-    "readonly property bool applying: applyScheme.running",
+    "readonly property bool applying: applyStatus === \"applying\"",
     "root.reload();",
     "Unable to read the scheme catalog",
 ):
+    assert marker in schemes, marker
+for marker in ("pendingScheme", 'applyStatus = "applying"', "applyError", "stderr: StdioCollector", "onExited"):
     assert marker in schemes, marker
 assert "Schemes.apply(schemeCard.schemeData.name, schemeCard.schemeData.flavour)" in content
 assert "Schemes.currentScheme" in content

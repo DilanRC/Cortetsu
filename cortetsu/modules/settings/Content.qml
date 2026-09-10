@@ -185,6 +185,66 @@ Item {
 
                         CortetsuSurface {
                             Layout.fillWidth: true
+                            visible: Schemes.applying || Schemes.applyStatus === "applied" || Schemes.applyStatus === "failed"
+                            implicitHeight: 64
+                            radiusValue: CortetsuDesign.radiusMedium
+                            baseColor: Schemes.applyStatus === "failed"
+                                ? Qt.alpha(CortetsuDesign.colorWarning, 0.10)
+                                : Schemes.applyStatus === "applied"
+                                    ? Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.54)
+                                    : Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.72)
+                            outlined: true
+                            outlineColor: Schemes.applyStatus === "failed"
+                                ? Qt.alpha(CortetsuDesign.colorWarning, 0.46)
+                                : Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.46)
+
+                            RowLayout {
+                                anchors.fill: parent
+                                anchors.margins: CortetsuDesign.spacingStandard
+                                spacing: CortetsuDesign.spacingStandard
+
+                                CortetsuIcon {
+                                    text: Schemes.applying
+                                        ? "sync"
+                                        : Schemes.applyStatus === "failed"
+                                            ? "error_outline"
+                                            : "check_circle"
+                                    iconSize: CortetsuTypography.iconMediumPx
+                                    color: Schemes.applyStatus === "failed"
+                                        ? CortetsuDesign.colorWarning
+                                        : CortetsuDesign.colorPrimary
+                                }
+
+                                ColumnLayout {
+                                    Layout.fillWidth: true
+                                    spacing: 1
+
+                                    CortetsuText {
+                                        Layout.fillWidth: true
+                                        text: Schemes.applying
+                                            ? qsTr("Applying scheme")
+                                            : Schemes.applyStatus === "failed"
+                                                ? qsTr("Scheme apply failed")
+                                                : qsTr("Scheme applied")
+                                        textSize: CortetsuTypography.bodySmallPx
+                                        font.weight: Font.DemiBold
+                                    }
+
+                                    CortetsuText {
+                                        Layout.fillWidth: true
+                                        text: Schemes.applyStatus === "failed"
+                                            ? Schemes.applyError
+                                            : Schemes.pendingScheme
+                                        textSize: CortetsuTypography.labelSmallPx
+                                        color: CortetsuDesign.colorOnSurfaceVariant
+                                        elide: Text.ElideRight
+                                    }
+                                }
+                            }
+                        }
+
+                        CortetsuSurface {
+                            Layout.fillWidth: true
                             implicitHeight: 54
                             visible: Schemes.list.length === 0
                             radiusValue: CortetsuDesign.radiusMedium

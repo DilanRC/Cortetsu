@@ -39,6 +39,8 @@ assert 'title: qsTr("Visible status controls")' in system
 for label in ("Volume", "Network", "Bluetooth", "Battery"):
     assert f'title: qsTr("{label}")' in system
 assert "CortetsuConfig.bottomHub.statusCluster" in system
+assert "WallpaperController.open(root.screen)" in system
+assert "root.screenState.cortetsuState?.closeRetainedOverlaysExcept(flag)" in system
 assert 'title: qsTr("Visible segments")' in system
 assert "CortetsuConfig.bottomHub.segments" in system
 overlay_config = (ROOT / "cortetsu/modules/CortetsuOverlayConfig.qml").read_text(encoding="utf-8")
@@ -55,6 +57,9 @@ checks = {
         "CortetsuConfig.save();",
     )),
     "system preferences persist": system.count("root.savePreference();") >= 18,
+    "scheme application state is observable": all(marker in schemes for marker in (
+        "pendingScheme", 'applyStatus = "applying"', "applyError", "stderr: StdioCollector", "onExited",
+    )),
 }
 assert all(checks.values()), [name for name, passed in checks.items() if not passed]
 print(f"Settings persistence eval: {sum(checks.values())}/{len(checks)}")

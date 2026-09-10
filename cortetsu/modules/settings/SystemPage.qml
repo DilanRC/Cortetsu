@@ -49,6 +49,10 @@ Item {
     function openRetained(flag: string): void {
         root.screenState.settings = false;
         Qt.callLater(() => {
+            if (flag === "wallpaperManager") {
+                WallpaperController.open(root.screen);
+                return;
+            }
             root.screenState.cortetsuState?.closeRetainedOverlaysExcept(flag);
             root.screenState.cortetsuState?.setRetained(flag, true);
         });

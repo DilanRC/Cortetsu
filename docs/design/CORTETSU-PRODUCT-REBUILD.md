@@ -98,6 +98,12 @@ open. Its navigation search uses the same Cortetsu search primitive as Launcher,
 with a compact density variant so focus, selection, clear, hover, and surface
 feedback remain one product interaction.
 
+Wall Utility keeps two explicit configuration authorities: `ui.toml` is the
+versioned design and motion source, while `CortetsuConfig.path` points to the
+XDG runtime preferences file `cortetsu/preferences.json`. Settings writes only
+the latter; changing design tokens uses the theme compiler and does not silently
+rewrite user preferences.
+
 ## Dashboard
 
 Dashboard now has its own `cortetsu-dashboard` layer and no longer relies on the

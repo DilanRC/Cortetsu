@@ -26,6 +26,7 @@ assert composition["description"].startswith("Single staged Cortetsu")
 assert wall_utility["schema"] == 1
 assert wall_utility["id"] == "wall-utility-bcde"
 assert wall_utility["configSource"] == "dotfiles/home/.config/cortetsu/ui.toml"
+assert wall_utility["runtimePreferences"] == "XDG config file cortetsu/preferences.json"
 
 for marker in (
     "CORTETSU_DATA_ROOT", "CORTETSU_RUNTIME_ROOT", "SOURCE_BASE",

@@ -75,6 +75,7 @@ owned_layers = ["packages", "dotfiles", "profiles", "themes", "generations", "se
 [product.wall_utility]
 contract = "cortetsu/contracts/wall-utility.json"
 config = "dotfiles/home/.config/cortetsu/ui.toml"
+preferences = "XDG config file cortetsu/preferences.json"
 
 [safety]
 write_strategy = "build-validate-promote-verify"

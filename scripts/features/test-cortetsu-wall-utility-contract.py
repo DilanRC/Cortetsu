@@ -37,8 +37,10 @@ assert contract["entrypoint"] == "modules/wallpaper/Content.qml"
 assert contract["host"] == "modules/RetainedSurfacesHost.qml"
 assert contract["wrapper"] == "modules/wallpaper/Wrapper.qml"
 assert contract["configSource"] == "dotfiles/home/.config/cortetsu/ui.toml"
+assert contract["runtimePreferences"] == "XDG config file cortetsu/preferences.json"
 assert manifest["product"]["wall_utility"]["contract"] == "cortetsu/contracts/wall-utility.json"
 assert manifest["product"]["wall_utility"]["config"] == contract["configSource"]
+assert manifest["product"]["wall_utility"]["preferences"] == contract["runtimePreferences"]
 assert set(contract["states"]) == {"idle", "selected", "applying", "applied", "failed"}
 assert contract["modularity"] == {
     "dashboard": {
@@ -84,6 +86,7 @@ for key, expected in {
 
 build = (ROOT / "cortetsu/bin/build-runtime.sh").read_text(encoding="utf-8")
 controller = (ROOT / "cortetsu/modules/WallpaperController.qml").read_text(encoding="utf-8")
+display_controller = (ROOT / "cortetsu/modules/DisplayController.qml").read_text(encoding="utf-8")
 hub = (ROOT / "cortetsu/modules/BottomHub.qml").read_text(encoding="utf-8")
 host = (ROOT / "cortetsu/modules/RetainedSurfacesHost.qml").read_text(encoding="utf-8")
 service = (ROOT / "cortetsu/modules/CortetsuWallpapers.qml").read_text(encoding="utf-8")
@@ -98,6 +101,9 @@ assert "wall-utility.json" in build
 assert "pragma Singleton" in controller
 assert "function open(screen): void" in controller
 assert "function openActive(): void" in controller
+assert "function open(screen): void" in display_controller
+assert "function openActive(): void" in display_controller
+assert "CortetsuShellState.forScreen(target)?.cortetsuState" in display_controller
 assert "CortetsuShellState.forScreen(target)?.cortetsuState" in controller
 assert "function toggle(): void { anyOpen() ? closeAll() : openActive(); }" in controller
 assert "function open(): void { root.openActive(); }" in controller
@@ -110,6 +116,11 @@ assert '"cortetsu-wallpaper-select", target' in service
 assert 'cortetsu/wallpaper/path.txt' in service
 assert "onWallpaperApplySucceeded" in content
 assert "cosmicPulse" in content
+assert 'import "../settings"' in content
+assert "function returnToSettings(): void" in content
+assert 'SettingsController.select("wallpaper")' in content
+assert 'tooltipText: qsTr("Return to Wallpaper settings")' in content
+assert "pendingScheme" in (ROOT / "cortetsu/modules/launcher/services/Schemes.qml").read_text(encoding="utf-8")
 assert "wallUtility" in content + wrapper
 assert "CortetsuDesign.wallUtilityPanelMotionMs" in wrapper
 assert "CortetsuDesign.wallUtilityOrbitTopGap" in content

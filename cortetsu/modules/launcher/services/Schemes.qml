@@ -13,8 +13,11 @@ Searcher {
     property string currentScheme: ""
     property string currentVariant: ""
     property string error: ""
+    property string pendingScheme: ""
+    property string applyStatus: "idle"
+    property string applyError: ""
     readonly property bool loading: getSchemes.running || getCurrent.running
-    readonly property bool applying: applyScheme.running
+    readonly property bool applying: applyStatus === "applying"
     readonly property int catalogCount: schemes.instances?.length ?? 0
 
     function transformSearch(search: string): string {
@@ -38,6 +41,9 @@ Searcher {
             return;
 
         root.error = "";
+        root.applyError = "";
+        root.pendingScheme = `${name} ${flavour}`;
+        root.applyStatus = "applying";
         applyScheme.command = ["cortetsu-scheme", "set", "-n", name, flavour];
         applyScheme.running = true;
     }
@@ -116,9 +122,24 @@ Searcher {
         id: applyScheme
         command: []
 
+        stderr: StdioCollector { id: applyStderr }
+
         onRunningChanged: {
-            if (!running && command.length > 0)
+            if (!running && command.length > 0 && applyStatus === "applying")
                 root.reload();
+        }
+
+        onExited: code => { // qmllint disable signal-handler-parameters
+            const detail = applyStderr.text.trim();
+            if (code === 0) {
+                root.applyStatus = "applied";
+                root.applyError = "";
+            } else {
+                root.applyStatus = "failed";
+                root.applyError = detail || qsTr("Scheme apply failed");
+            }
+            if (!detail && code !== 0)
+                console.warn(`Cortetsu Schemes: apply exited with code ${code}`);
         }
     }
 

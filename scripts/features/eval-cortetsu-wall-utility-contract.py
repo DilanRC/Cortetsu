@@ -9,6 +9,7 @@ ROOT = Path(__file__).resolve().parents[2]
 contract = json.loads((ROOT / "cortetsu/contracts/wall-utility.json").read_text(encoding="utf-8"))
 build = (ROOT / "cortetsu/bin/build-runtime.sh").read_text(encoding="utf-8")
 controller = (ROOT / "cortetsu/modules/WallpaperController.qml").read_text(encoding="utf-8")
+display_controller = (ROOT / "cortetsu/modules/DisplayController.qml").read_text(encoding="utf-8")
 hub = (ROOT / "cortetsu/modules/BottomHub.qml").read_text(encoding="utf-8")
 service = (ROOT / "cortetsu/modules/CortetsuWallpapers.qml").read_text(encoding="utf-8")
 content = (ROOT / "cortetsu/modules/wallpaper/Content.qml").read_text(encoding="utf-8")
@@ -21,6 +22,8 @@ checks = {
     "explicit ownership": all(contract[key] for key in ("stateOwner", "screenOwner", "applyOwner")),
     "monitor-local policy": contract["screenPolicy"]["surfaceOwnership"] == "monitor-local",
     "screen-aware controller": "function open(screen): void" in controller and "function openActive(): void" in controller,
+    "display handoff preserves screen": "function open(screen): void" in display_controller
+        and "CortetsuShellState.forScreen(target)?.cortetsuState" in display_controller,
     "BottomHub delegates open": "WallpaperController.open(screen);" in hub,
     "apply lifecycle ACK": 'cortetsu/wallpaper/path.txt' in service and '"cortetsu-wallpaper-select", target' in service,
     "Cosmic success pulse": "onWallpaperApplySucceeded" in content and "cosmicPulse" in content,
@@ -31,6 +34,10 @@ checks = {
         and "sourceComponent: mediaCard" in dashboard
         and "sourceComponent: systemSummary" in dashboard
         and "readonly property bool dashboardEnabled" in dashboard_host,
+    "configuration authorities are explicit": contract["configSource"] == "dotfiles/home/.config/cortetsu/ui.toml"
+        and contract["runtimePreferences"] == "XDG config file cortetsu/preferences.json",
+    "workbench return handoff": 'SettingsController.select("wallpaper")' in content
+        and "function returnToSettings(): void" in content,
 }
 
 passed = sum(checks.values())

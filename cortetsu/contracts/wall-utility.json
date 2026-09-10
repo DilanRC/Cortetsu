@@ -15,6 +15,7 @@
   "screenOwner": "CortetsuShellState.forScreen",
   "applyOwner": "CortetsuWallpapers",
   "configSource": "dotfiles/home/.config/cortetsu/ui.toml",
+  "runtimePreferences": "XDG config file cortetsu/preferences.json",
   "states": ["idle", "selected", "applying", "applied", "failed"],
   "modularity": {
     "dashboard": {
