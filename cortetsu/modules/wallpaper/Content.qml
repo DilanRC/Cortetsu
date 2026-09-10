@@ -6,6 +6,7 @@ import QtQuick.Effects
 import Quickshell
 import ".."
 import "../settings"
+import "../../services"
 import "../../components"
 import "../CortetsuDesign.js" as CortetsuDesign
 import "../CortetsuTypography.js" as CortetsuTypography
@@ -358,7 +359,8 @@ FocusScope {
                 width: 30
                 height: 30
                 phase: root.markPhase
-                monochromeColor: CortetsuDesign.colorWashi
+                monochrome: false
+                accent: CortetsuColours.palette.m3primary
             }
 
             Column {

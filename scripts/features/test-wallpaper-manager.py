@@ -93,7 +93,8 @@ assert "import qs.components.effects" not in content
 assert "import qs.components.controls" not in content
 assert "Image {\n            anchors.fill: parent; anchors.margins" not in content
 assert 'if (accepted && CortetsuConfig.smartScheme)\n                CortetsuWallpapers.previewColourLock = true;' in content
-assert "Colours." not in content
+content_without_first_party_colours = content.replace("CortetsuColours.", "")
+assert "Colours." not in content_without_first_party_colours
 
 # V2.1 presentation: bounded shared-cache prefetch, ready-gated entry, and floating surfaces.
 assert "Orbit.prefetch(filteredEntries, currentIndex, visibleLimit + 6)" in content
@@ -112,7 +113,7 @@ assert "CortetsuDesign.colorScrim, 0.18" in wrapper
 assert "CortetsuDesign.colorScrim, 0.44" not in wrapper
 assert 'color: "black"' not in content
 for legacy in ("Caelestia.Config", "import Caelestia\n", "import qs.components\n", "Colours.palette", "Tokens.", "StyledText", "MaterialIcon"):
-    assert legacy not in content + wrapper, legacy
+    assert legacy not in content_without_first_party_colours + wrapper, legacy
 
 # V2.2 orbital motion: the settled model stays stable during rotation and
 # satellites communicate depth through scale, opacity and z-order.

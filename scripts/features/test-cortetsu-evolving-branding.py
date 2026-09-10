@@ -33,6 +33,8 @@ for forbidden in ("MouseArea", "Window", "Overlay"):
 assert 'evolvingMarkPhase:' in mode
 assert '"Human"' in mode and '"Awakening"' in mode and '"Monster"' in mode
 assert 'phase: root.markPhase' in wallpaper
+assert 'monochrome: false' in wallpaper
+assert 'accent: CortetsuColours.palette.m3primary' in wallpaper
 assert 'pendingApplyPath' in wallpaper and 'cosmicPulse' in wallpaper
 assert 'applyStatus === "applying" || animating' in wallpaper
 assert 'applyStatus === "failed"' in wallpaper

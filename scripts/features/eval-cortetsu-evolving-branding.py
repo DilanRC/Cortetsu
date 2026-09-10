@@ -14,6 +14,7 @@ checks = {
     "wallpaper waits for acknowledgement": all(token in wallpaper for token in ("pendingApplyPath", "onActualCurrentChanged", "cosmicPulseTimer.restart()")),
     "Cosmic is short and rare": all(token in wallpaper for token in ("cosmicPulse", "? \"Cosmic\"", "interval: CortetsuDesign.motionDeliberateMs")),
     "wallpaper settled selection ascends": all(token in wallpaper for token in ('applyStatus === "applying" || animating', "? \"Ascended\"")),
+    "wallpaper uses private brand accent": all(token in wallpaper for token in ("monochrome: false", "accent: CortetsuColours.palette.m3primary")),
     "failed apply is not completion": 'applyStatus === "failed"' in wallpaper and '(currentIsApplied ? "Ascended" : "Human")' in wallpaper,
     "renderer has no input ownership": all(token not in renderer for token in ("MouseArea", "Keys.", "Window")),
     "fixed geometry": all(token in renderer for token in ("implicitWidth: 64", "implicitHeight: 64", "width: implicitWidth", "height: implicitHeight")),
