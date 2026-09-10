@@ -374,6 +374,8 @@ test_cmd() {
         "cortetsu/tests/test-notifications.py"
         "cortetsu/tests/test-runtime-contract.py"
         "scripts/features/test-cortetsu-screen-state.py"
+        "scripts/features/test-cortetsu-state-boundary.py"
+        "scripts/features/eval-cortetsu-state-boundary.py"
         "scripts/features/eval-cortetsu-screen-ownership.py"
         "scripts/features/test-cortetsu-config.py"
         "scripts/features/eval-cortetsu-config.py"

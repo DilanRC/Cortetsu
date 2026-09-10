@@ -18,7 +18,7 @@ Scope {
 
     function closeOtherPanels(): void {
         for (const screen of CortetsuScreens.screens)
-            OverlayPolicy.closeOtherPanels(CortetsuShellState.forScreen(screen)?.cortetsuState?.legacyState);
+            OverlayPolicy.closeOtherPanels(CortetsuShellState.forScreen(screen)?.cortetsuState);
     }
 
     function closeAllPopouts(): void {

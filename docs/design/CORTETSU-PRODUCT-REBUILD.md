@@ -188,6 +188,12 @@ Overview, Hardware, Display, Wallpaper, Calendar, and Clipboard now render throu
 
 First-party Dashboard, QSD, Launcher, Settings, and retained surfaces now read the same `CortetsuShellState` registry. This makes the exclusivity policy observable: opening a full surface cannot leave a first-party surface hidden behind it because each controller closes the same state owner.
 
+Controllers use the typed `CortetsuScreenState` boundary for overlay policy and
+retained writes. The compatibility `ScreenState` object remains the persistence
+bridge for older panel handles, but controllers no longer reach through
+`.legacyState`; this keeps the migration explicit without creating a second
+monitor registry or changing input ownership.
+
 Settings and QSD now import Cortetsu components, modules, services and utilities
 through explicit relative boundaries. Their visible composition no longer relies
 on the `qs.*` compatibility aliases; native Quickshell providers remain imported

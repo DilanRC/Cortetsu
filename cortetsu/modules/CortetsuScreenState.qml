@@ -2,8 +2,9 @@ pragma ComponentBehavior: Bound
 
 import QtQml
 
-// Transitional state adapter. The legacy ScreenState remains the source of
-// truth until each controller moves to this contract.
+// Typed state boundary for controllers and surfaces. ScreenState remains the
+// persistence bridge for now, but consumers must use this API instead of
+// reaching through to its legacy backing object.
 QtObject {
     required property QtObject legacyState
 
@@ -18,6 +19,17 @@ QtObject {
     readonly property bool requiresOverlayLayer: retainedOverlayOpen || !!legacyState.launcher || !!legacyState.session
     readonly property bool requiresFullInputMask: overview || calendar || clipboard || hardware || displayManager || wallpaperManager
     readonly property bool requiresWindowKeyboardFocus: requiresFullInputMask || !!legacyState.launcher || !!legacyState.session
+
+    function setFlag(flag: string, value: bool): bool {
+        if (flag === "overview" || flag === "calendar" || flag === "clipboard"
+                || flag === "hardware" || flag === "displayManager" || flag === "wallpaperManager")
+            return setRetained(flag, value);
+        if (["launcher", "session", "dashboard", "utilities", "qsd", "settings", "sidebar", "osd"].indexOf(flag) < 0
+                || legacyState[flag] === undefined)
+            return false;
+        legacyState[flag] = value;
+        return true;
+    }
 
     function closeRetainedOverlays(): void {
         legacyState.overview = false;

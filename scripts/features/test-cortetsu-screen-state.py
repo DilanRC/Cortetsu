@@ -93,13 +93,13 @@ assert "Qt.alpha(CortetsuDesign.colorSumi, 0.78)" in retained_host
 assert "cortetsuState" in calendar
 assert 'state.setRetained("calendar", false)' in calendar
 assert 'state.setRetained("calendar", true)' in calendar
-assert "OverlayPolicy.closeOtherPanels(state.legacyState)" in calendar
+assert "OverlayPolicy.closeOtherPanels(state)" in calendar
 assert "CortetsuShellState.forScreen(screen)?.calendar" not in calendar
 assert "cortetsuState" in clipboard
 assert 'state.setRetained("clipboard", false)' in clipboard
 assert 'state.setRetained("clipboard", true)' in clipboard
 assert "CortetsuShellState.forActive()?.cortetsuState" in clipboard
-assert "OverlayPolicy.closeOtherPanels(CortetsuShellState.forScreen(screen)?.cortetsuState?.legacyState)" in clipboard
+assert "OverlayPolicy.closeOtherPanels(CortetsuShellState.forScreen(screen)?.cortetsuState)" in clipboard
 assert "CortetsuShellState.forScreen(screen)?.clipboard" not in clipboard
 for flag, controller in controllers.items():
     assert "cortetsuState" in controller, flag
