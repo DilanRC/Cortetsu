@@ -350,6 +350,8 @@ test_cmd() {
         "scripts/features/eval-cortetsu-static-brand-surfaces.py"
         "scripts/features/test-cortetsu-native-popups.py"
         "scripts/features/eval-cortetsu-native-popups.py"
+        "scripts/features/test-cortetsu-tray-menu.py"
+        "scripts/features/eval-cortetsu-tray-menu.py"
         "scripts/features/test-cortetsu-native-notification-center.py"
         "scripts/features/eval-cortetsu-native-notification-center.py"
         "scripts/features/test-notification-dismiss-popup.py"

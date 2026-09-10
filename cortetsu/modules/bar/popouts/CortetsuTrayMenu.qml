@@ -96,6 +96,8 @@ CortetsuPopupSurface {
     }
 
     function activateEntry(entry): void {
+        if (!entry)
+            return;
         if (!entry.enabled)
             return;
         if (entry.hasChildren)
@@ -122,7 +124,12 @@ CortetsuPopupSurface {
             }
 
             Repeater {
-                model: opener.children
+                // QsMenuOpener can briefly expose null entries while a tray
+                // menu is rebuilding. Keep invalid entries out of the
+                // delegate model so the popup never dereferences a stale
+                // QsMenuEntry during that update window.
+                model: Array.from(opener.children ?? [])
+                    .filter(entry => entry !== null && entry !== undefined)
 
                 CortetsuSurface {
                     required property QsMenuEntry modelData

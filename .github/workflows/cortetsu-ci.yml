@@ -58,6 +58,10 @@ jobs:
         run: |
           python3 scripts/features/test-cortetsu-dashboard-typography.py
           python3 scripts/features/eval-cortetsu-dashboard-typography.py
+      - name: Validate tray menu data boundary
+        run: |
+          python3 scripts/features/test-cortetsu-tray-menu.py
+          python3 scripts/features/eval-cortetsu-tray-menu.py
       - name: Validate native theme
         run: python3 scripts/features/test-native-theme.py
       - name: Validate legacy theme retirement
