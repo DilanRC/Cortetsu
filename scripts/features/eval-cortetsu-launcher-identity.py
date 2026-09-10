@@ -9,7 +9,7 @@ checks = {
     "launcher renders the shared mark": "CortetsuEvolvingMark" in content,
     "idle stays Human": '"Human"' in content,
     "focus intent reaches Awakening": 'search.activeFocus' in content and '"Awakening"' in content,
-    "launcher open reaches Monster": '"Monster"' in content and "root.screenState.launcher" in content,
+    "launcher open reaches Monster": '"Monster"' in content and "root.screenState?.launcher" in content,
     "wallpaper lifecycle stays out of Launcher mark": "markPhase: CortetsuWallpapers.applying" not in content,
     "Cosmic is excluded": '"Cosmic"' not in content,
     "mode icon remains functional": "root.modeIcon()" in content,
