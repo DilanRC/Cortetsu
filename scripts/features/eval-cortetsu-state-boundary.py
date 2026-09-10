@@ -22,6 +22,12 @@ checks = {
     )),
     "controller layer has no backing-object reach-through": all(".legacyState" not in text for text in controllers),
     "shared drawer uses the first-party monitor registry": "CortetsuShellState.forScreen(screen)" in content_window and "property ScreenState screenState: ShellState.forScreen(screen)" not in content_window,
+    "fullscreen cleanup fails closed during state registration": "const state = screenState;" in content_window and "if (!state)" in content_window,
+    "shared drawer bindings fail closed before registration": all(marker in content_window for marker in (
+        "screenState?.cortetsuState?.requiresWindowKeyboardFocus",
+        "screenState?.cortetsuState?.requiresFullInputMask",
+        "root.screenState?.cortetsuState?.overview",
+    )),
     "wallpaper close preserves its retained owner": all(marker in policy for marker in (
         "function closeForWallpaper(state)",
         '"displayManager"',

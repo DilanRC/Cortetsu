@@ -127,7 +127,7 @@ for content_file, flag in (("calendar/Content.qml", "calendar"), ("overview/Cont
 for marker in ("closeRetainedOverlays", "requiresWindowKeyboardFocus", "requiresFullInputMask", "retainedOverlayOpen"):
     assert marker in content_window_patch, marker
 assert 'state.cortetsuState?.setRetained("wallpaperManager", false)' in shortcuts
-assert "root.screenState.cortetsuState?.overview ? 0.58" in scrim_patch
+assert "root.screenState?.cortetsuState?.overview ? 0.58" in scrim_patch
 for content_file, flag in (
     ("clipboard/Content.qml", "clipboard"),
     ("hardware/Content.qml", "hardware"),

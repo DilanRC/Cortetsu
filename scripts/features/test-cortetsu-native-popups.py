@@ -99,7 +99,7 @@ for path in (
 assert "closeTimer" in wrapper
 assert "BarPopouts.CortetsuWindowInfoPopup" in panels
 assert 'visible: popoutsWrapper.content.detachedMode === "winfo"' in panels
-assert "focusable: panels.popouts.hasCurrent || (screenState.cortetsuState?.requiresWindowKeyboardFocus && !screenState.launcher && !screenState.session)" in content_window
+assert "focusable: panels.popouts.hasCurrent || ((screenState?.cortetsuState?.requiresWindowKeyboardFocus ?? false) && !(screenState?.launcher ?? false) && !(screenState?.session ?? false))" in content_window
 assert "!popouts.bottomAttached &&" in interactions
 assert "visible: panel.visible && panel.width > 0 && panel.height > 0 && (panel.offsetScale ?? 0) < 1" in content_window
 for token in ('function control(mode: string): bool', 'function detachedControl(mode: string): bool', 'componentsFor(screen)?.popouts', '"activewindow"', '"kblayout"', '"lockstatus"', '"winfo"'):

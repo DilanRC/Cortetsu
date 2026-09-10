@@ -134,15 +134,15 @@ def main() -> None:
         )
     print("PASS onCleared-closes-all-retained-overlays")
 
-    assert "screenState.cortetsuState?.requiresFullInputMask" in text
-    assert "screenState.cortetsuState?.requiresWindowKeyboardFocus" in text
+    assert "screenState?.cortetsuState?.requiresFullInputMask" in text
+    assert "screenState?.cortetsuState?.requiresWindowKeyboardFocus" in text
     assert "WlrKeyboardFocus.Exclusive" in text
     assert "if (s.cortetsuState?.retainedOverlayOpen)\n                return false;" in focus_grab, (
         "retained surfaces own their separate overlay input and must not be cleared "
         "by the drawers focus grab"
     )
     assert "if (panels.popouts.isDetached || panels.popouts.currentName === \"wirelesspassword\")" in focus_grab
-    assert "root.screenState.cortetsuState?.overview ? 0.58" in text
+    assert "root.screenState?.cortetsuState?.overview ? 0.58" in text
     print("PASS input-mask-focus-scrim-still-wired")
 
     print("ContentWindow focus-grab parity tests: OK")

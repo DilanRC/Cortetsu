@@ -22,7 +22,7 @@ Item {
     readonly property bool markIntent: search.activeFocus || search.text.length > 0
     // Monster identifies the active Launcher surface. Awakening is reserved
     // for intent inside it; wallpaper apply belongs to Wallpaper Manager.
-    readonly property string markPhase: !root.screenState.launcher
+    readonly property string markPhase: !(root.screenState?.launcher ?? false)
         ? "Human"
         : markIntent
             ? "Awakening"

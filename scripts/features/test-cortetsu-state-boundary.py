@@ -16,6 +16,10 @@ assert 'typeof state.setFlag === "function"' in policy
 assert "setFlag(state, flag, false)" in policy
 assert "CortetsuShellState.forScreen(screen)" in content_window
 assert "property ScreenState screenState: ShellState.forScreen(screen)" not in content_window
+assert "const state = screenState;" in content_window
+assert "if (!state)" in content_window
+assert "screenState?.cortetsuState?.requiresWindowKeyboardFocus" in content_window
+assert "screenState?.launcher" in content_window
 
 for path in controller_paths:
     text = path.read_text(encoding="utf-8")

@@ -150,7 +150,7 @@ Item {
         id: sidebar
         screenState: root.screenState
         anchors.bottom: parent.bottom
-        anchors.right: root.screenState.utilities ? utilities.left : parent.right
-        anchors.rightMargin: root.screenState.utilities ? CortetsuDesign.spacingStandard : 0
+        anchors.right: root.screenState?.utilities ? utilities.left : parent.right
+        anchors.rightMargin: root.screenState?.utilities ? CortetsuDesign.spacingStandard : 0
     }
 }

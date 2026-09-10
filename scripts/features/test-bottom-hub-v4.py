@@ -68,7 +68,7 @@ def main() -> None:
     require(SHORTCUTS, "const open = !(state.sidebar || state.utilities);", "sidebar abre su par de utilidades")
     require(SHORTCUTS, 'Quickshell.env("XDG_CONFIG_HOME") ||', "ruta XDG del launcher")
     forbid(SHORTCUTS, "/quickshell/caelestia/current", "ruta legacy del launcher")
-    require(PANELS, "anchors.right: root.screenState.utilities ? utilities.left : parent.right", "centros adyacentes")
+    require(PANELS, "anchors.right: root.screenState?.utilities ? utilities.left : parent.right", "centros adyacentes")
     require(POPOUT, "content.bottomAnchorCenter - content.nonAnimWidth / 2", "popup centrado en su icono")
     require(POPOUT, "ClipWrapper owns the screen-space placement", "una sola autoridad de geometría")
     require(POPOUT, "width: implicitWidth", "bounds visibles del popup")

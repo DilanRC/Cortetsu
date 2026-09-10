@@ -62,27 +62,30 @@ StyledWindow {
     }
 
     onHasFullscreenChanged: {
-        screenState.launcher = false;
-        screenState.session = false;
-        screenState.dashboard = false;
-        screenState.cortetsuState?.closeRetainedOverlays();
+        const state = screenState;
+        if (!state)
+            return;
+        state.launcher = false;
+        state.session = false;
+        state.dashboard = false;
+        state.cortetsuState?.closeRetainedOverlays();
         panels.popouts.close();
     }
 
     name: "drawers"
-    focusable: panels.popouts.hasCurrent || (screenState.cortetsuState?.requiresWindowKeyboardFocus && !screenState.launcher && !screenState.session)
+    focusable: panels.popouts.hasCurrent || ((screenState?.cortetsuState?.requiresWindowKeyboardFocus ?? false) && !(screenState?.launcher ?? false) && !(screenState?.session ?? false))
     WlrLayershell.exclusionMode: ExclusionMode.Ignore
-    WlrLayershell.layer: screenState.cortetsuState?.overview ? WlrLayer.Overlay : ((fsTransitionProg > 0 && CortetsuOverlayConfig.general.showOverFullscreen) || (hasSpecialWorkspace && hasFullscreenOnNormalWs) ? WlrLayer.Overlay : WlrLayer.Top)
+    WlrLayershell.layer: screenState?.cortetsuState?.overview ? WlrLayer.Overlay : ((fsTransitionProg > 0 && CortetsuOverlayConfig.general.showOverFullscreen) || (hasSpecialWorkspace && hasFullscreenOnNormalWs) ? WlrLayer.Overlay : WlrLayer.Top)
     // Attached BottomHub popouts are mouse-owned. Giving the full-screen
     // drawer exclusive keyboard focus steals pointer hover from the trigger
     // window, which makes the shared hover controller close and reopen them.
     WlrLayershell.keyboardFocus: (panels.popouts.isDetached || panels.popouts.currentName === "wirelesspassword")
         ? WlrKeyboardFocus.Exclusive
-        : (screenState.cortetsuState?.requiresWindowKeyboardFocus && !screenState.launcher && !screenState.session)
+        : (screenState?.cortetsuState?.requiresWindowKeyboardFocus && !(screenState?.launcher ?? false) && !(screenState?.session ?? false))
             ? WlrKeyboardFocus.OnDemand
             : WlrKeyboardFocus.None
 
-    mask: screenState.cortetsuState?.requiresFullInputMask ? null : (hasFullscreen ? emptyRegion : regions)
+    mask: screenState?.cortetsuState?.requiresFullInputMask ? null : (hasFullscreen ? emptyRegion : regions)
 
     anchors.top: true
     anchors.bottom: true
@@ -132,6 +135,8 @@ StyledWindow {
 
         active: {
             const s = root.screenState;
+            if (!s)
+                return false;
             const conf = root.CortetsuOverlayConfig;
             if (panels.popouts.isDetached || panels.popouts.currentName === "wirelesspassword")
                 return true;
@@ -160,7 +165,7 @@ StyledWindow {
 
     Rectangle {
         anchors.fill: parent
-        opacity: root.screenState.cortetsuState?.overview ? 0.58 : ((root.screenState.session && CortetsuOverlayConfig.session.enabled) || panels.popouts.detachedMode !== "" ? 0.5 : 0)
+        opacity: root.screenState?.cortetsuState?.overview ? 0.58 : (((root.screenState?.session ?? false) && CortetsuOverlayConfig.session.enabled) || panels.popouts.detachedMode !== "" ? 0.5 : 0)
         // Overview opacity is already applied by the item. Keeping the color
         // opaque here avoids multiplying the scrim alpha and leaking desktop
         // content through the window-card composition.
