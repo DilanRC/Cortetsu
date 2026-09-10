@@ -17,6 +17,13 @@ La estética samurái de Cortetsu es contenida: precisión, contraste, espacio y
 
 La migración del shell es incremental: la lógica funcional puede seguir usando temporalmente servicios, tipografía e icon metrics del adapter Caelestia, pero las superficies propias deben dejar de depender de `Colours`/Material 3 a medida que pasan a Cortetsu.
 
+Las superficies de contexto comparten además roles tipográficos explícitos en
+`modules/CortetsuTypography.js`: los tamaños `display*` cubren lecturas
+destacadas de Dashboard y Focus, mientras `iconFeaturePx` e `iconHeroPx`
+mantienen iconos de contexto en la misma escala. Los tamaños de celdas y los
+hit targets siguen siendo responsabilidad del componente que los contiene;
+estos aliases no deben cambiar la geometría de interacción.
+
 ## Primitives QML
 
 `CortetsuSurface.qml` es la primera primitive visual nativa. Usa únicamente QtQuick y `CortetsuDesign.js` para definir:

@@ -54,6 +54,10 @@ jobs:
         run: python3 scripts/features/test-cortetsu-quality.py
       - name: Validate first-party Bottom Hub
         run: python3 scripts/features/test-native-bottom-hub.py
+      - name: Validate shared Launcher and Dashboard typography
+        run: |
+          python3 scripts/features/test-cortetsu-dashboard-typography.py
+          python3 scripts/features/eval-cortetsu-dashboard-typography.py
       - name: Validate native theme
         run: python3 scripts/features/test-native-theme.py
       - name: Validate legacy theme retirement

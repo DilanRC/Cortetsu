@@ -375,6 +375,8 @@ test_cmd() {
         "scripts/features/eval-cortetsu-config.py"
         "scripts/features/test-cortetsu-launcher.py"
         "scripts/features/eval-cortetsu-launcher.py"
+        "scripts/features/test-cortetsu-dashboard-typography.py"
+        "scripts/features/eval-cortetsu-dashboard-typography.py"
         "scripts/features/test-launcher-focus-runtime-contract.py"
         "scripts/features/eval-launcher-focus-runtime-contract.py"
         "scripts/features/test-launcher-process-scope.py"

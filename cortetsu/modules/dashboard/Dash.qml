@@ -90,7 +90,7 @@ Item {
                 Layout.alignment: Qt.AlignRight
                 CortetsuText {
                     text: `${Time.hourStr}:${Time.minuteStr}`
-                    textSize: 30
+                    textSize: CortetsuTypography.displayClockPx
                     font.weight: Font.DemiBold
                     Layout.alignment: Qt.AlignRight
                 }
@@ -139,7 +139,7 @@ Item {
                     CortetsuText {
                         Layout.fillWidth: true
                         text: Weather.city || qsTr("Your desktop")
-                        textSize: 30
+                        textSize: CortetsuTypography.displayClockPx
                         font.weight: Font.DemiBold
                         elide: Text.ElideRight
                     }
@@ -159,7 +159,7 @@ Item {
 
                         CortetsuText {
                             text: Weather.icon
-                            textSize: 52
+                            textSize: CortetsuTypography.displayHeroPx
                             color: CortetsuDesign.colorWashi
                         }
 
@@ -167,7 +167,7 @@ Item {
                             Layout.fillWidth: true
                             CortetsuText {
                                 text: Weather.temp || "--"
-                                textSize: 34
+                                textSize: CortetsuTypography.displayLargePx
                                 font.weight: Font.DemiBold
                             }
                             CortetsuText {
@@ -227,7 +227,7 @@ Item {
                         CortetsuIcon {
                             anchors.centerIn: parent
                             text: Players.active ? "music_note" : "radio"
-                            iconSize: 32
+                            iconSize: CortetsuTypography.iconFeaturePx
                             color: CortetsuDesign.colorPrimary
                         }
                     }

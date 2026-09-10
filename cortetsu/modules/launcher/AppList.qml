@@ -227,7 +227,7 @@ GridView {
 
             CortetsuSurface {
                 anchors.fill: parent
-                anchors.margins: 4
+                anchors.margins: CortetsuDesign.spacingUnit
                 radius: CortetsuDesign.radiusLarge
                 color: app.selected
                     ? CortetsuDesign.colorSecondaryContainer
@@ -238,7 +238,7 @@ GridView {
                 id: appState
 
                 anchors.fill: parent
-                anchors.margins: 4
+                anchors.margins: CortetsuDesign.spacingUnit
                 radius: CortetsuDesign.radiusLarge
 
                 onEntered: root.currentIndex = index
@@ -328,7 +328,7 @@ GridView {
 
             CortetsuSurface {
                 anchors.fill: parent
-                anchors.margins: 4
+                anchors.margins: CortetsuDesign.spacingUnit
                 radius: CortetsuDesign.radiusLarge
                 color: action.selected
                     ? CortetsuDesign.colorSecondaryContainer
@@ -337,7 +337,7 @@ GridView {
 
             CortetsuStateLayer {
                 anchors.fill: parent
-                anchors.margins: 4
+                anchors.margins: CortetsuDesign.spacingUnit
                 radius: CortetsuDesign.radiusLarge
 
                 onEntered: root.currentIndex = index
@@ -419,7 +419,7 @@ GridView {
 
             CortetsuStateLayer {
                 anchors.fill: parent
-                anchors.margins: 4
+                anchors.margins: CortetsuDesign.spacingUnit
                 radius: CortetsuDesign.radiusLarge
 
                 onEntered: root.currentIndex = index
@@ -545,7 +545,7 @@ GridView {
 
             CortetsuSurface {
                 anchors.fill: parent
-                anchors.margins: 4
+                anchors.margins: CortetsuDesign.spacingUnit
                 radius: CortetsuDesign.radiusLarge
                 color: scheme.selected
                     ? CortetsuDesign.colorSecondaryContainer
@@ -556,7 +556,7 @@ GridView {
 
             CortetsuStateLayer {
                 anchors.fill: parent
-                anchors.margins: 4
+                anchors.margins: CortetsuDesign.spacingUnit
                 radius: CortetsuDesign.radiusLarge
                 onEntered: root.currentIndex = index
                 onClicked: scheme.modelData?.onClicked(root)
@@ -579,7 +579,7 @@ GridView {
                         required property var modelData
                         width: Math.max(15, (swatches.width - 30) / 6)
                         height: 24
-                        radius: 8
+                        radius: CortetsuDesign.radiusSmall
                         color: modelData
                             ? `#${modelData}`
                             : CortetsuDesign.colorSurfaceHigh
@@ -648,7 +648,7 @@ GridView {
 
             CortetsuSurface {
                 anchors.fill: parent
-                anchors.margins: 4
+                anchors.margins: CortetsuDesign.spacingUnit
                 radius: CortetsuDesign.radiusLarge
                 color: variant.selected
                     ? CortetsuDesign.colorSecondaryContainer
@@ -657,7 +657,7 @@ GridView {
 
             CortetsuStateLayer {
                 anchors.fill: parent
-                anchors.margins: 4
+                anchors.margins: CortetsuDesign.spacingUnit
                 radius: CortetsuDesign.radiusLarge
 
                 onEntered: root.currentIndex = index

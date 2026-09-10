@@ -215,7 +215,7 @@ Item {
 
                 CortetsuText {
                     text: root.timeLeft()
-                    textSize: 30
+                    textSize: CortetsuTypography.displayClockPx
                     font.weight: Font.DemiBold
                 }
 
