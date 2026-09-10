@@ -12,7 +12,9 @@ Item {
     id: root
 
     required property var screenState
-    readonly property var active: Notifs.notClosed()
+    // Do not call this property `active`: the content is loaded by a Loader
+    // whose own active binding otherwise forms a QML binding cycle.
+    readonly property var activeNotifications: Notifs.notClosed()
     readonly property var history: CortetsuNotifications.history
 
     ColumnLayout {
@@ -26,15 +28,15 @@ Item {
 
             CortetsuSectionHeader {
                 title: qsTr("Notifications")
-                detail: root.active.length > 0
-                    ? qsTr("%1 active").arg(root.active.length)
+                detail: root.activeNotifications.length > 0
+                    ? qsTr("%1 active").arg(root.activeNotifications.length)
                     : qsTr("Quiet")
             }
 
             Item { Layout.fillWidth: true }
 
             CortetsuButton {
-                visible: root.active.length > 0 || root.history.length > 0
+                visible: root.activeNotifications.length > 0 || root.history.length > 0
                 compact: true
                 label: qsTr("Clear")
                 icon: "delete_sweep"
@@ -119,7 +121,7 @@ Item {
         CortetsuSectionHeader {
             Layout.fillWidth: true
             title: qsTr("Now")
-            detail: root.active.length === 0 ? qsTr("Nothing new") : ""
+            detail: root.activeNotifications.length === 0 ? qsTr("Nothing new") : ""
         }
 
         CortetsuSurface {
@@ -133,12 +135,12 @@ Item {
                 anchors.fill: parent
                 clip: true
                 spacing: CortetsuDesign.spacingCompact
-                model: root.active
+                model: root.activeNotifications
                 delegate: NotificationComponents.Notification {
                     required property int index
                     focus: index === 0
                     width: activeList.width
-                    modelData: root.active[index]
+                    modelData: root.activeNotifications[index]
                     props: ({})
                     expanded: false
                     screenState: root.screenState

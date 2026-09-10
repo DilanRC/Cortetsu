@@ -42,4 +42,5 @@ for path in consumers:
 
 service_loader = (ROOT / "cortetsu/modules/ServiceLoader.qml").read_text(encoding="utf-8")
 assert "CortetsuPower;" in service_loader
+assert "import Quickshell.Services.UPower" in (ROOT / "cortetsu/modules/bar/popouts/CortetsuBatteryPopup.qml").read_text(encoding="utf-8")
 print("PASS: first-party surfaces share the CortetsuPower capability contract")

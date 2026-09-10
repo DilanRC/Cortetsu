@@ -40,6 +40,7 @@ checks = {
         "Component.onCompleted: root.inspect()",
     )),
     "progress bar preserves unavailable sentinel": "value: CortetsuPower.value" in popup,
+    "power profile provider is imported": "import Quickshell.Services.UPower" in popup,
 }
 
 assert all(checks.values()), [name for name, passed in checks.items() if not passed]
