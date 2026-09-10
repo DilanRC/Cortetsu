@@ -15,6 +15,9 @@ assert 'Quickshell.env("USER")' in surface
 assert "CortetsuDesign.colorWarning" in surface
 assert "Keyboard layout · Enter to authenticate" not in surface
 assert 'phase: root.markPhase' in surface
+assert 'Qt.callLater(() => keyboardFocus.forceActiveFocus())' in surface
+assert 'function onSecureChanged(): void' in surface
+assert 'root.lock.secure && !activeFocus' in surface
 assert 'property bool authenticationAccepted' in surface
 assert ' ? "Ascended"' in surface and ' ? "Awakening"' in surface and ': "Human"' in surface
 assert 'function onAuthenticationSucceeded(): void' in surface
@@ -26,5 +29,10 @@ assert 'root.authenticationSucceeded()' in pam
 assert 'function releaseAfterSuccess(): void' in pam
 assert 'if (passwd.active || successPending)' in pam
 assert 'return root.lock.unlock()' not in pam
+lock = (ROOT / "cortetsu/modules/lock/Lock.qml").read_text(encoding="utf-8")
+shell = (ROOT / "cortetsu/shell.qml").read_text(encoding="utf-8")
+assert "readonly property bool lockReady" in lock
+assert "function requestLock(): void" in lock
+assert "SessionHost { lockController: lock }" in shell
 
 print("PASS: Lock visual preserves secure focus while exposing live identity, keyboard, power and network context")

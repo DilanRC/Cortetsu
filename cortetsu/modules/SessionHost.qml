@@ -11,6 +11,8 @@ import "CortetsuDesign.js" as CortetsuDesign
 import "CortetsuTypography.js" as CortetsuTypography
 
 Scope {
+    required property var lockController
+
     Variants {
         model: CortetsuScreens.screens
 
@@ -55,11 +57,12 @@ Scope {
 
                     Row {
                         spacing: CortetsuDesign.spacingStandard
-                        CortetsuSurface {
+                        CortetsuEvolvingMark {
                             width: 44; height: 44
-                            radiusValue: CortetsuDesign.radiusMedium
-                            baseColor: Qt.alpha(CortetsuDesign.colorPrimary, 0.14)
-                            CortetsuIcon { anchors.centerIn: parent; text: "power_settings_new"; color: CortetsuDesign.colorPrimary; iconSize: CortetsuTypography.iconLargePx }
+                            phase: window.open ? "Awakening" : "Human"
+                            monochrome: true
+                            monochromeColor: CortetsuDesign.colorPrimary
+                            animated: true
                         }
                         Column {
                             anchors.verticalCenter: parent.verticalCenter
@@ -71,7 +74,11 @@ Scope {
 
                     Rectangle { width: parent.width; height: 1; color: CortetsuDesign.colorOutlineVariant; opacity: 0.45 }
 
-                    Session.Content { width: parent.width; screenState: window.screenState }
+                    Session.Content {
+                        width: parent.width
+                        screenState: window.screenState
+                        lockController: root.lockController
+                    }
                 }
             }
 

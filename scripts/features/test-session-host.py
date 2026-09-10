@@ -7,6 +7,7 @@ for name in ("Wrapper.qml", "Content.qml"):
         assert legacy not in source, f"{name}: {legacy}"
 
 content = (repo / "cortetsu/modules/session/Content.qml").read_text(encoding="utf-8")
+host = (repo / "cortetsu/modules/SessionHost.qml").read_text(encoding="utf-8")
 action_row = (repo / "cortetsu/components/CortetsuActionRow.qml").read_text(encoding="utf-8")
 
 # First-party power commands remain explicit and inspectable.
@@ -28,6 +29,19 @@ assert "action.confirm && pendingAction !== action.id" in content
 assert "Quickshell.execDetached(action.command)" in content
 assert "onClicked: root.run(actionRow.modelData)" in content
 assert "CortetsuActionRow" in content
+assert "CortetsuEvolvingMark" in host
+assert 'phase: window.open ? "Awakening" : "Human"' in host
+assert "width: 44; height: 44" in host
+assert "MouseArea" not in host
+assert "required property var lockController" in host
+assert "lockController: root.lockController" in host
+assert "property var lockController: null" in content
+assert 'deferredState = "requestingLock"' in content
+assert "lockController.requestLock()" in content
+assert "lockController.lockReady" in content
+assert "function dispatchDeferred(): void" in content
+assert 'deferredState = "idle"' in content
+assert "Quickshell.execDetached(root.deferredCommand)" not in content
 assert "activeFocusOnTab" in action_row
 assert "required property int index" in action_row
 assert "focus: root.index === 0" in action_row
@@ -40,6 +54,6 @@ assert "Confirm %1" in content and "Press again within 4 seconds" in content
 # Suspend locks the shell first and only then hands off to systemd.
 assert "action.lockBefore" in content
 assert "deferredTimer" in content
-assert "interval: 220" in content
+assert "interval: 1000" in content
 
 print("PASS: session actions dispatch full first-party action records with safe lock/suspend flow and confirmation")

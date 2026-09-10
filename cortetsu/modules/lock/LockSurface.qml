@@ -62,7 +62,19 @@ WlSessionLockSurface {
         }
     }
 
-    Component.onCompleted: keyboardProbe.running = true
+    Component.onCompleted: {
+        keyboardProbe.running = true;
+        Qt.callLater(() => keyboardFocus.forceActiveFocus());
+    }
+
+    Connections {
+        target: root.lock
+
+        function onSecureChanged(): void {
+            if (root.lock.secure)
+                Qt.callLater(() => keyboardFocus.forceActiveFocus());
+        }
+    }
 
     ScreencopyView {
         anchors.fill: parent
@@ -79,6 +91,10 @@ WlSessionLockSurface {
         id: keyboardFocus
         anchors.fill: parent
         focus: true
+        onActiveFocusChanged: {
+            if (root.lock.secure && !activeFocus)
+                forceActiveFocus();
+        }
         Keys.onPressed: event => {
             pam.handleKey(event);
             event.accepted = true;

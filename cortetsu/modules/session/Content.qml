@@ -9,8 +9,10 @@ Column {
     id: root
 
     required property var screenState
+    property var lockController: null
     property string pendingAction: ""
     property var deferredCommand: null
+    property string deferredState: "idle"
 
     padding: CortetsuDesign.spacingStandard
     spacing: CortetsuDesign.spacingCompact
@@ -92,14 +94,32 @@ Column {
         confirmTimer.stop();
 
         if (action.lockBefore) {
-            Quickshell.execDetached(["hyprctl", "dispatch", "global", "cortetsu:lock"]);
+            if (!lockController)
+                return;
+
             deferredCommand = action.command;
+            deferredState = "requestingLock";
             deferredTimer.restart();
+            lockController.requestLock();
+            if (lockController.lockReady)
+                Qt.callLater(root.dispatchDeferred);
         } else {
             Quickshell.execDetached(action.command);
         }
 
         root.screenState.session = false;
+    }
+
+    function dispatchDeferred(): void {
+        if (deferredState !== "requestingLock" || !deferredCommand || !lockController.lockReady)
+            return;
+
+        const command = deferredCommand;
+        deferredCommand = null;
+        deferredState = "dispatched";
+        deferredTimer.stop();
+        Quickshell.execDetached(command);
+        Qt.callLater(() => deferredState = "idle");
     }
 
     function run(action): void {
@@ -123,11 +143,21 @@ Column {
 
     Timer {
         id: deferredTimer
-        interval: 220
+        interval: 1000
         onTriggered: {
-            if (root.deferredCommand)
-                Quickshell.execDetached(root.deferredCommand);
-            root.deferredCommand = null;
+            if (root.deferredState === "requestingLock") {
+                root.deferredCommand = null;
+                root.deferredState = "idle";
+            }
+        }
+    }
+
+    Connections {
+        target: root.lockController ? root.lockController.lock : null
+
+        function onLockedChanged(): void {
+            if (root.lockController.lockReady)
+                root.dispatchDeferred();
         }
     }
 

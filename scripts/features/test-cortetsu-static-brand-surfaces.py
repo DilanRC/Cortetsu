@@ -10,6 +10,7 @@ SURFACES = {
 }
 QSD = ROOT / "cortetsu/modules/qsd/Content.qml"
 LOCK = ROOT / "cortetsu/modules/lock/LockSurface.qml"
+SESSION = ROOT / "cortetsu/modules/SessionHost.qml"
 
 for name, (path, size_marker) in SURFACES.items():
     content = path.read_text(encoding="utf-8")
@@ -36,5 +37,11 @@ assert "Layout.preferredWidth: 64" in lock and "Layout.preferredHeight: 64" in l
 assert "monochrome: true" in lock
 assert "monochromeColor: CortetsuDesign.colorWashi" in lock
 assert 'source: Quickshell.shellPath("assets/branding/cortetsu-mark-ascended.svg")' not in lock
+
+session = SESSION.read_text(encoding="utf-8")
+assert "CortetsuEvolvingMark" in session
+assert 'phase: window.open ? "Awakening" : "Human"' in session
+assert "width: 44; height: 44" in session
+assert "MouseArea" not in session
 
 print("PASS: static and contextual product surfaces share the fixed-size mark renderer")

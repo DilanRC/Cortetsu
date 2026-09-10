@@ -26,7 +26,7 @@ ShellRoot {
     DashboardHost {}
     LauncherHost {}
     SettingsHost {}
-    SessionHost {}
+    SessionHost { lockController: lock }
     RetainedSurfacesHost {}
     Lock { id: lock }
     Shortcuts {}

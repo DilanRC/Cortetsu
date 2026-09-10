@@ -6,7 +6,7 @@ surface = (ROOT / "cortetsu/modules/lock/LockSurface.qml").read_text(encoding="u
 pam = (ROOT / "cortetsu/base/modules/lock/Pam.qml").read_text(encoding="utf-8")
 shell = (ROOT / "cortetsu/shell.qml").read_text(encoding="utf-8")
 
-for marker in ("WlSessionLock", "Pam", 'target: "lock"', "sessionLock.unlock"):
+for marker in ("WlSessionLock", "Pam", 'target: "lock"', "sessionLock.unlock", "lockReady", "requestLock"):
     assert marker in lock, marker
 
 for marker in (
@@ -19,6 +19,10 @@ for marker in (
     'phase: root.markPhase',
     "property bool authenticationAccepted",
     "interactionActive",
+    "Qt.callLater(() => keyboardFocus.forceActiveFocus())",
+    "onSecureChanged",
+    "onActiveFocusChanged",
+    "root.lock.secure && !activeFocus",
     ' ? "Ascended"',
     ' ? "Awakening"',
     ': "Human"',
@@ -46,6 +50,7 @@ assert "pam.state" not in surface[mark_start:mark_start + 320]
 assert 'text: qsTr("CAPS")' in surface
 assert 'text: qsTr("Enter to authenticate")' in surface
 assert "Lock { id: lock }" in shell
+assert "SessionHost { lockController: lock }" in shell
 for marker in ("signal authenticationSucceeded", "property bool successPending", "root.authenticationSucceeded()", "function releaseAfterSuccess", "root.lock.unlock()"):
     assert marker in pam, marker
 assert "if (passwd.active || successPending)" in pam
