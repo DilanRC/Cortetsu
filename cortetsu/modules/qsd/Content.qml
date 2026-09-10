@@ -23,7 +23,15 @@ Item {
     readonly property bool bluetoothEnabled: Bluetooth.defaultAdapter?.enabled ?? false
     readonly property int connectedBluetoothCount: (Bluetooth.devices?.values ?? []).filter(device => device.connected).length
     readonly property int volumePercent: Math.round(CortetsuAudio.volume * 100)
-    readonly property int batteryPercent: Math.round(UPower.displayDevice.percentage * 100)
+    readonly property real batteryValue: {
+        const device = UPower.displayDevice;
+        const value = Number(device?.percentage);
+        return device && Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : -1;
+    }
+    readonly property bool batteryAvailable: root.batteryValue >= 0
+    readonly property bool laptopBatteryAvailable: UPower.displayDevice?.isLaptopBattery === true
+        && root.batteryAvailable
+    readonly property int batteryPercent: root.batteryAvailable ? Math.round(root.batteryValue * 100) : -1
     readonly property string networkName: CortetsuNetwork.active?.ssid
         ?? (CortetsuNetwork.activeEthernet ? qsTr("Ethernet") : qsTr("Offline"))
     readonly property string networkDetail: CortetsuNetwork.connecting
@@ -44,8 +52,18 @@ Item {
             ? "Awakening"
             : "Human"
 
+    function closeQsd(): void {
+        const state = root.screenState;
+        if (!state)
+            return;
+        state.qsdOpenedByShortcut = false;
+        state.qsdEdgeHovered = false;
+        state.qsdDrawerHovered = false;
+        state.qsd = false;
+    }
+
     function openSettings(): void {
-        root.screenState.qsd = false;
+        root.closeQsd();
         root.screenState.settings = true;
     }
 
@@ -94,7 +112,7 @@ Item {
                 icon: "close"
                 label: ""
                 tooltipText: qsTr("Close Quick Settings")
-                onClicked: root.screenState.qsd = false
+                onClicked: root.closeQsd()
             }
         }
 
@@ -130,8 +148,9 @@ Item {
                 label: CortetsuNotifications.dnd ? qsTr("Do Not Disturb") : qsTr("Notifications")
                 detail: CortetsuNotifications.dnd ? qsTr("Silenced") : qsTr("Allowed")
                 icon: CortetsuNotifications.dnd ? "notifications_off" : "notifications_active"
-                highlighted: !CortetsuNotifications.dnd
-                warning: CortetsuNotifications.dnd
+                highlighted: CortetsuNotifications.dnd
+                // DND is an explicit user preference, not a danger state.
+                warning: false
                 onActivated: CortetsuNotifications.dnd = !CortetsuNotifications.dnd
             }
 
@@ -249,9 +268,13 @@ Item {
                         color: CortetsuDesign.colorOnSurfaceVariant
                     }
                     CortetsuText {
-                        text: UPower.displayDevice?.isLaptopBattery
+                        text: root.laptopBatteryAvailable
                             ? qsTr("Battery %1%").arg(root.batteryPercent)
-                            : qsTr("External power")
+                            : UPower.displayDevice?.isLaptopBattery
+                                ? qsTr("Battery unavailable")
+                                : UPower.displayDevice
+                                    ? qsTr("External power")
+                                    : qsTr("Power unavailable")
                         textSize: CortetsuTypography.bodyPx
                         font.weight: Font.DemiBold
                     }

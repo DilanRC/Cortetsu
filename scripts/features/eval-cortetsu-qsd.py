@@ -8,7 +8,7 @@ policy = (ROOT / "cortetsu/modules/CortetsuOverlayPolicy.js").read_text(encoding
 
 assert "anchors.right: parent.right" in host and "width: 400" in host
 assert "baseColor: Qt.alpha(CortetsuDesign.colorSumi" in host
-assert "warning: CortetsuNotifications.dnd" in content
+assert "highlighted: CortetsuNotifications.dnd" in content
 assert 'icon: CortetsuAudio.muted ? "volume_off" : "volume_up"' in content
 assert 'warning: false' in content
 assert 'color: CortetsuAudio.muted ? CortetsuDesign.colorOnSurfaceVariant : CortetsuDesign.colorPrimary' in content
@@ -32,5 +32,24 @@ assert 'phase: "Ascended"' not in content
 assert "activeFocusOnTab" in action_tile and "Keys.onSpacePressed" in action_tile
 assert "property bool warning" in action_tile
 assert "onEntered: tile.hovered = true" not in content
+checks = {
+    "explicit close clears shortcut pin": all(marker in content for marker in (
+        "function closeQsd(): void",
+        "state.qsdOpenedByShortcut = false",
+        "state.qsdEdgeHovered = false",
+        "state.qsdDrawerHovered = false",
+        "onClicked: root.closeQsd()",
+    )),
+    "battery capability is finite and clamped": all(marker in content for marker in (
+        "readonly property real batteryValue:",
+        "Number.isFinite(value)",
+        "Math.max(0, Math.min(1, value))",
+        "batteryAvailable",
+    )) and "UPower.displayDevice.percentage * 100" not in content,
+    "DND is a selected preference": "highlighted: CortetsuNotifications.dnd" in content
+        and "warning: CortetsuNotifications.dnd" not in content,
+}
+assert all(checks.values()), [name for name, passed in checks.items() if not passed]
+print(f"QSD lifecycle/state eval: {sum(checks.values())}/{len(checks)}")
 
 print("PASS: QSD eval covers lateral motion, semantic tiles, real levels, Bluetooth, power, settings handoff and overlay exclusion")

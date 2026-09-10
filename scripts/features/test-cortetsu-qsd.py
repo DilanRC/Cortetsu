@@ -29,6 +29,13 @@ for marker in (
     'id: soundTile',
     'id: dndTile',
     'id: bluetoothTile',
+    'function closeQsd(): void',
+    'state.qsdOpenedByShortcut = false',
+    'state.qsdEdgeHovered = false',
+    'state.qsdDrawerHovered = false',
+    'readonly property real batteryValue:',
+    'Number.isFinite(value)',
+    'readonly property bool batteryAvailable:',
 ):
     assert marker in content, marker
 assert "required property ShellScreen screen" in content
@@ -46,6 +53,7 @@ assert "property bool qsdDrawerHovered" in state
 assert "property bool qsdOpenedByShortcut" in state
 assert 'name: "qsd"' in shortcuts
 assert 'state.qsdOpenedByShortcut = state.qsd' in shortcuts
+assert 'onClicked: root.closeQsd()' in content
 assert 'hl.dsp.global("cortetsu:qsd")' in hypr
 
 # The connectivity tile is intentionally status-only: QSD must not pretend it
@@ -53,7 +61,10 @@ assert 'hl.dsp.global("cortetsu:qsd")' in hypr
 assert 'label: root.networkName' in content
 assert 'clickable: false' in content
 assert 'icon: CortetsuAudio.muted ? "volume_off" : "volume_up"' in content
-assert 'warning: false' in content
+assert 'highlighted: CortetsuNotifications.dnd' in content
+assert content.count('warning: false') >= 2
+assert 'warning: CortetsuNotifications.dnd' not in content
+assert 'Math.round(UPower.displayDevice.percentage * 100)' not in content
 assert 'color: CortetsuAudio.muted ? CortetsuDesign.colorOnSurfaceVariant : CortetsuDesign.colorPrimary' in content
 assert 'onMoved: nextValue => root.brightnessMonitor?.setBrightness(nextValue)' in content
 assert 'onMoved: nextValue => CortetsuAudio.setVolume(nextValue)' in content
