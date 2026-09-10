@@ -19,11 +19,14 @@ Item {
 
     readonly property int padding: CortetsuDesign.spacingStandard
     readonly property int rounding: CortetsuDesign.radiusLarge
-    readonly property string markPhase: CortetsuWallpapers.applying || pendingWallpaperPath.length > 0
-        ? "Monster"
-        : search.activeFocus || search.text.length > 0
+    readonly property bool markIntent: search.activeFocus || search.text.length > 0
+    // Monster identifies the active Launcher surface. Awakening is reserved
+    // for intent inside it; wallpaper apply belongs to Wallpaper Manager.
+    readonly property string markPhase: !root.screenState.launcher
+        ? "Human"
+        : markIntent
             ? "Awakening"
-            : "Human"
+            : "Monster"
 
     function focusSearch(): void {
         search.forceActiveFocus();

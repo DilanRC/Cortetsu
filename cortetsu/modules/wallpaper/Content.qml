@@ -56,11 +56,13 @@ FocusScope {
                 : (previewActive ? qsTr("Previewing") : qsTr("Selected"))
     readonly property string markPhase: cosmicPulse
         ? "Cosmic"
-        : applyStatus === "applying" || animating || applyStatus === "failed"
+        : applyStatus === "applying" || animating
             ? "Awakening"
-            : currentPath
-                ? "Ascended"
-                : "Human"
+            : applyStatus === "failed"
+                ? (currentIsApplied ? "Ascended" : "Human")
+                : currentPath
+                    ? "Ascended"
+                    : "Human"
     property bool presentationReady: false
 
     function essentialReady(): bool {
