@@ -70,6 +70,7 @@ Item {
             return;
         }
         hasCurrent = false;
+        currentName = "";
         detachedMode = "";
         bottomAttached = false;
         bottomAnchorCenter = -1;
@@ -81,6 +82,7 @@ Item {
         repeat: false
         onTriggered: {
             root.hasCurrent = false;
+            root.currentName = "";
             root.detachedMode = "";
             root.bottomAttached = false;
             root.bottomAnchorCenter = -1;
