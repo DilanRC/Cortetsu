@@ -38,10 +38,11 @@ assert "dismissalRequested" in notif_data
 assert "function dismissAndRemove" in notif_data
 assert "property var list: []" in service
 assert "property list<NotifData> list" not in service
-assert "model: ScriptModel" in source
-assert "values: Notifs.notClosed()" in source
-assert "required property var modelData" in source
-assert "activeNotifications" not in source
+assert "property var activeNotifications: []" in source
+assert "function refreshActiveNotifications()" in source
+assert "onRevisionChanged" in source
+assert "model: root.activeNotifications.length" in source
+assert "modelData: root.activeNotifications[index]" in source
 wrapper = (ROOT / "cortetsu/modules/notifications/Wrapper.qml").read_text(encoding="utf-8")
 assert "required property int index" in wrapper
 print("PASS: notification center eval covers hierarchy, empty states and visual token use")

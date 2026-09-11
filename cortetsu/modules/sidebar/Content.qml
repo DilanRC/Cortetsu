@@ -2,7 +2,6 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
-import Quickshell
 import "../../components"
 import ".."
 import "../../services"
@@ -13,7 +12,19 @@ Item {
     id: root
 
     required property var screenState
+    property var activeNotifications: []
     readonly property var history: CortetsuNotifications.history
+
+    function refreshActiveNotifications(): void {
+        activeNotifications = Notifs.notClosed();
+    }
+
+    Component.onCompleted: refreshActiveNotifications()
+
+    Connections {
+        target: Notifs
+        function onRevisionChanged(): void { root.refreshActiveNotifications(); }
+    }
 
     ColumnLayout {
         anchors.fill: parent
@@ -26,15 +37,15 @@ Item {
 
             CortetsuSectionHeader {
                 title: qsTr("Notifications")
-                detail: Notifs.notClosed().length > 0
-                    ? qsTr("%1 active").arg(Notifs.notClosed().length)
+                detail: root.activeNotifications.length > 0
+                    ? qsTr("%1 active").arg(root.activeNotifications.length)
                     : qsTr("Quiet")
             }
 
             Item { Layout.fillWidth: true }
 
             CortetsuButton {
-                visible: Notifs.notClosed().length > 0 || root.history.length > 0
+                visible: root.activeNotifications.length > 0 || root.history.length > 0
                 compact: true
                 label: qsTr("Clear")
                 icon: "delete_sweep"
@@ -119,7 +130,7 @@ Item {
         CortetsuSectionHeader {
             Layout.fillWidth: true
             title: qsTr("Now")
-            detail: Notifs.notClosed().length === 0 ? qsTr("Nothing new") : ""
+            detail: root.activeNotifications.length === 0 ? qsTr("Nothing new") : ""
         }
 
         CortetsuSurface {
@@ -133,14 +144,15 @@ Item {
                 anchors.fill: parent
                 clip: true
                 spacing: CortetsuDesign.spacingCompact
-                model: ScriptModel {
-                    values: Notifs.notClosed()
-                }
+                // Use a numeric model for QObject-backed notifications. A raw
+                // JS array makes ListView's model binding depend on delegate
+                // creation and produces a binding cycle during live updates.
+                model: root.activeNotifications.length
                 delegate: NotificationComponents.Notification {
                     required property int index
-                    required property var modelData
                     focus: index === 0
                     width: activeList.width
+                    modelData: root.activeNotifications[index]
                     props: ({})
                     expanded: false
                     screenState: root.screenState
