@@ -21,12 +21,12 @@ if "create_bind(vars.kbScreenshot" in keybinds:
     literal_counts["Print"] += 1
 single_owner = all(literal_counts[key] == 1 for key in ("SUPER + SLASH", "SUPER + SHIFT + 7", "SUPER + I", "Print"))
 assert variables.count('kbBrowser                  = "SUPER + B"') == 1
-assert variables.count('browser                    = "brave-origin"') == 1
+assert variables.count('browser                    = "/usr/bin/brave-origin"') == 1
 assert variables.count('kbColorPicker              = "SUPER + SHIFT + P"') == 1
 assert "create_bind(vars.kbClipboard," not in keybinds
 assert "create_bind(vars.kbClipboardDel," not in keybinds
 assert '"SUPER + CTRL + " .. key' not in user
-assert 'cortetsu shell ipc clipboard toggle' in user
+assert 'hl.dsp.exec_cmd("/home/dilan/.local/bin/cortetsu shell ipc clipboard toggle")' in user
 assert 'move_key = "SUPER + SHIFT + F7"' in user
 assert single_owner, literal_counts
 print("PASS: keybind conflict eval has one owner per migrated chord")

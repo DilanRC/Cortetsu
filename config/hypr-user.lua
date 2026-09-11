@@ -81,7 +81,7 @@ hl.bind(
     "SUPER + V",
     -- Resolve the live systemd-owned Quickshell PID; `qs -p` cannot discover
     -- this foreground instance reliably on the installed Quickshell version.
-    hl.dsp.exec_cmd("cortetsu shell ipc clipboard toggle")
+    hl.dsp.exec_cmd("/home/dilan/.local/bin/cortetsu shell ipc clipboard toggle")
 )
 
 hl.bind(

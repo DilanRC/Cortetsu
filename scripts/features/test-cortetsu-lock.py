@@ -11,6 +11,7 @@ for marker in ("WlSessionLock", "Pam", 'target: "lock"', "sessionLock.unlock", "
 
 for marker in (
     "WlSessionLockSurface",
+    'import ".."',
     "pam.handleKey",
     "Password",
     "Authentication failed",
