@@ -13,7 +13,16 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Install Lua
-        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends lua5.4
+        run: |
+          ubuntu_sources="$(find /etc/apt/sources.list.d -maxdepth 1 -type f -name 'ubuntu.sources' -print -quit)"
+          if [[ -z "$ubuntu_sources" ]]; then
+            ubuntu_sources=/etc/apt/sources.list
+          fi
+          sudo apt-get update \
+            -o Dir::Etc::sourcelist="$ubuntu_sources" \
+            -o Dir::Etc::sourceparts=- \
+            -o APT::Get::List-Cleanup=0
+          sudo apt-get install -y --no-install-recommends lua5.4
       - name: Compile importer
         run: |
           python3 -m py_compile core/import_hyprland.py \

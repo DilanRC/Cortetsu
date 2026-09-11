@@ -17,11 +17,16 @@ content = (repo / "cortetsu/modules/calendar/Content.qml").read_text(encoding="u
 cli = (repo / "scripts/cortetsu").read_text(encoding="utf-8")
 provenance = json.loads((repo / "cortetsu/contracts/runtime-provenance.json").read_text(encoding="utf-8"))
 composition = json.loads((repo / "cortetsu/contracts/composition.json").read_text(encoding="utf-8"))
+wall_utility = json.loads((repo / "cortetsu/contracts/wall-utility.json").read_text(encoding="utf-8"))
 
 assert provenance["project"] == "Cortetsu"
 assert provenance["sourceOfTruth"] == "https://github.com/DilanRC/Cortetsu.git"
 assert provenance["baseProvenance"] == "cortetsu/base/PROVENANCE.md"
 assert composition["description"].startswith("Single staged Cortetsu")
+assert wall_utility["schema"] == 1
+assert wall_utility["id"] == "wall-utility-bcde"
+assert wall_utility["configSource"] == "dotfiles/home/.config/cortetsu/ui.toml"
+assert wall_utility["runtimePreferences"] == "XDG config file cortetsu/preferences.json"
 
 for marker in (
     "CORTETSU_DATA_ROOT", "CORTETSU_RUNTIME_ROOT", "SOURCE_BASE",
@@ -39,7 +44,7 @@ assert "CAERICE_" not in build and "caerice-" not in build
 assert 'cp -a "$REPO/cortetsu/services/." "$STAGING/services/"' in build
 for service in ("Time.qml", "Brightness.qml", "Audio.qml", "Players.qml"):
     assert f"services/{service}" in build
-assert "provenance.json" in build
+assert "provenance.json" in build and "wall-utility.json" in build
 
 for marker in (
     "scripts/migrate-cortetsu-v2.sh",
@@ -82,8 +87,9 @@ apply_wallpaper = (repo / "cortetsu/bin/cortetsu-apply-wallpaper-colors").read_t
 assert "cortetsu-scheme-posthook" not in apply_wallpaper
 wallpaper_service = (repo / "cortetsu/modules/CortetsuWallpapers.qml").read_text(encoding="utf-8")
 assert '"cortetsu-wallpaper-colours", path' in wallpaper_service
-assert '"cortetsu-wallpaper-select", path' in wallpaper_service
+assert '"cortetsu-wallpaper-select", target' in wallpaper_service
 assert '"cortetsu-wallpaper-select", "--random", wallsdir' in wallpaper_service
+assert '"cortetsu-apply-wallpaper-colors", next' in wallpaper_service
 assert 'cortetsu/wallpaper/path.txt' in wallpaper_service
 assert "caelestia" not in wallpaper_service.lower()
 nmcli = (repo / "cortetsu/base/services/Nmcli.qml").read_text(encoding="utf-8")
@@ -110,7 +116,7 @@ for marker in (
 
 for marker in (
     "is_managed_generation", "verify_generation current", "CORTETSU_RUNTIME_ROOT",
-    "theme_cmd check",
+    "theme_cmd check", "test-cortetsu-wall-utility-contract.py",
 ):
     assert marker in cli, marker
 assert "CAERICE_" not in cli and "caerice-" not in cli

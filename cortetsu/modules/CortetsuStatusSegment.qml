@@ -1,4 +1,5 @@
 import QtQuick
+import "../components"
 import "CortetsuDesign.js" as CortetsuDesign
 import "CortetsuTypography.js" as CortetsuTypography
 
@@ -8,12 +9,18 @@ Item {
     required property string volumeIcon
     required property bool volumeMuted
     required property string networkIcon
+    required property string networkTooltip
     required property bool networkActive
     required property string bluetoothIcon
     required property bool bluetoothActive
     required property string batteryIcon
     required property bool batteryCritical
     required property string batteryTooltip
+    required property bool audioVisible
+    required property bool networkVisible
+    required property bool bluetoothVisible
+    required property bool batteryVisible
+    required property bool statusPopoutsEnabled
     required property int notificationCount
     required property bool sidebarActive
     required property bool recordingActive
@@ -23,6 +30,9 @@ Item {
     required property bool sessionActive
 
     signal attachedControlRequested(string mode, real centerX)
+    signal attachedControlEntered(string mode, real centerX)
+    signal systemControlsEntered()
+    signal systemControlsExited()
     signal detachedControlRequested(string mode)
     signal volumeMuteRequested()
     signal volumeWheel(real delta)
@@ -34,83 +44,138 @@ Item {
     signal sessionRequested()
 
     function centerFor(item): real {
-        return item.x + item.width / 2;
+        return statusRow.x + systemControls.x + item.x + item.width / 2;
     }
 
-    implicitWidth: statusRow.implicitWidth + CortetsuDesign.spacingCompact
-    implicitHeight: 52
+    implicitWidth: statusRow.implicitWidth + CortetsuDesign.spacingUnit
+    implicitHeight: 50
     width: implicitWidth
     height: implicitHeight
 
+    component Hairline: Rectangle {
+        anchors.verticalCenter: parent.verticalCenter
+        width: 1
+        height: 22
+        radius: 1
+        color: Qt.alpha(CortetsuDesign.colorMuted, 0.14)
+    }
+
     CortetsuSurface {
         anchors.fill: parent
+        anchors.margins: 1
+        z: -1
         radiusValue: CortetsuDesign.radiusLarge
-        baseColor: CortetsuDesign.colorTetsu
+        baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.72)
+        outlineColor: Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.38)
         outlined: true
     }
 
     Row {
         id: statusRow
         anchors.centerIn: parent
-        spacing: 2
+        // Positioners expose implicit size, but their runtime bounds must be
+        // explicit for hover ownership and popup anchor calculations.
+        width: implicitWidth
+        height: implicitHeight
+        spacing: 1
 
-        HubButton {
-            id: volumeButton
-            buttonSize: 40
-            iconSize: CortetsuTypography.iconMediumPx
-            icon: root.volumeIcon
-            tooltip: root.volumeMuted ? qsTr("Unmute") : qsTr("Mute")
-            onHoveredChanged: {
-                if (hovered)
-                    root.attachedControlRequested("audio", root.centerFor(volumeButton));
+        // The four attached system controls form one hover island. Closing on
+        // each individual button exit caused an enter/exit race while moving
+        // between adjacent icons and while crossing into the popup window.
+        Row {
+            id: systemControls
+            width: implicitWidth
+            height: implicitHeight
+            spacing: 1
+
+            // The four icons are one pointer island. Individual MouseArea exit
+            // events can arrive before the next icon enter event, so closing
+            // from a child would race while moving across the cluster.
+            HoverHandler {
+                id: systemControlsHover
+                enabled: root.statusPopoutsEnabled
+                onHoveredChanged: {
+                    if (hovered)
+                        root.systemControlsEntered();
+                    else
+                        root.systemControlsExited();
+                }
             }
-            onClicked: root.volumeMuteRequested()
-            onWheel: delta => root.volumeWheel(delta)
+
+            HubButton {
+                id: volumeButton
+                visible: root.audioVisible
+                buttonSize: 40
+                iconSize: CortetsuTypography.iconMediumPx
+                icon: root.volumeIcon
+                iconColor: root.volumeMuted
+                    ? Qt.alpha(CortetsuDesign.colorMuted, 0.68)
+                    : CortetsuDesign.colorMuted
+                tooltip: root.volumeMuted ? qsTr("Unmute") : qsTr("Mute")
+                tooltipOnHover: false
+                onHoveredChanged: {
+                    if (hovered && root.statusPopoutsEnabled)
+                        root.attachedControlEntered("audio", root.centerFor(volumeButton));
+                }
+                onClicked: root.volumeMuteRequested()
+                onWheel: delta => root.volumeWheel(delta)
+            }
+
+            HubButton {
+                id: networkButton
+                visible: root.networkVisible
+                buttonSize: 40
+                iconSize: CortetsuTypography.iconMediumPx
+                icon: root.networkIcon
+                active: root.networkActive
+                tooltip: root.networkTooltip
+                tooltipOnHover: false
+                onHoveredChanged: {
+                    if (hovered && root.statusPopoutsEnabled)
+                        root.attachedControlEntered("network", root.centerFor(networkButton));
+                }
+                onClicked: if (root.statusPopoutsEnabled)
+                    root.attachedControlRequested("network", root.centerFor(networkButton))
+            }
+
+            HubButton {
+                id: bluetoothButton
+                visible: root.bluetoothVisible
+                buttonSize: 40
+                iconSize: CortetsuTypography.iconMediumPx
+                icon: root.bluetoothIcon
+                active: root.bluetoothActive
+                tooltip: qsTr("Bluetooth")
+                tooltipOnHover: false
+                onHoveredChanged: {
+                    if (hovered && root.statusPopoutsEnabled)
+                        root.attachedControlEntered("bluetooth", root.centerFor(bluetoothButton));
+                }
+                onClicked: if (root.statusPopoutsEnabled)
+                    root.attachedControlRequested("bluetooth", root.centerFor(bluetoothButton))
+            }
+
+            HubButton {
+                id: batteryButton
+                visible: root.batteryVisible
+                buttonSize: 40
+                iconSize: CortetsuTypography.iconMediumPx
+                icon: root.batteryIcon
+                iconColor: root.batteryCritical
+                    ? CortetsuDesign.colorVermillion
+                    : CortetsuDesign.colorMuted
+                tooltip: root.batteryTooltip
+                tooltipOnHover: false
+                onHoveredChanged: {
+                    if (hovered && root.statusPopoutsEnabled)
+                        root.attachedControlEntered("battery", root.centerFor(batteryButton));
+                }
+                onClicked: if (root.statusPopoutsEnabled)
+                    root.attachedControlRequested("battery", root.centerFor(batteryButton))
+            }
         }
 
-        HubButton {
-            id: networkButton
-            buttonSize: 40
-            iconSize: CortetsuTypography.iconMediumPx
-            icon: root.networkIcon
-            active: root.networkActive
-            tooltip: qsTr("Network")
-            onHoveredChanged: {
-                if (hovered)
-                    root.attachedControlRequested("network", root.centerFor(networkButton));
-            }
-            onClicked: root.attachedControlRequested("network", root.centerFor(networkButton))
-        }
-
-        HubButton {
-            id: bluetoothButton
-            buttonSize: 40
-            iconSize: CortetsuTypography.iconMediumPx
-            icon: root.bluetoothIcon
-            active: root.bluetoothActive
-            tooltip: qsTr("Bluetooth")
-            onHoveredChanged: {
-                if (hovered)
-                    root.attachedControlRequested("bluetooth", root.centerFor(bluetoothButton));
-            }
-            onClicked: root.attachedControlRequested("bluetooth", root.centerFor(bluetoothButton))
-        }
-
-        HubButton {
-            id: batteryButton
-            buttonSize: 40
-            iconSize: CortetsuTypography.iconMediumPx
-            icon: root.batteryIcon
-            iconColor: root.batteryCritical
-                ? CortetsuDesign.colorVermillion
-                : CortetsuDesign.colorMuted
-            tooltip: root.batteryTooltip
-            onHoveredChanged: {
-                if (hovered)
-                    root.attachedControlRequested("battery", root.centerFor(batteryButton));
-            }
-            onClicked: root.attachedControlRequested("battery", root.centerFor(batteryButton))
-        }
+        Hairline {}
 
         Item {
             implicitWidth: 44
@@ -132,10 +197,13 @@ Item {
                 visible: root.notificationCount > 0
                 anchors.top: parent.top
                 anchors.right: parent.right
-                width: 18
-                height: 18
+                anchors.topMargin: 1
+                anchors.rightMargin: 1
+                width: 17
+                height: 17
                 radius: 9
                 color: CortetsuDesign.colorIndigo
+                border.width: 0
 
                 CortetsuText {
                     anchors.centerIn: parent
@@ -155,8 +223,10 @@ Item {
             onToggleIdleInhibitorRequested: root.toggleIdleInhibitorRequested()
         }
 
+        Hairline {}
+
         Item {
-            implicitWidth: 74
+            implicitWidth: 72
             implicitHeight: 44
             width: implicitWidth
             height: implicitHeight
@@ -165,12 +235,16 @@ Item {
 
             CortetsuSurface {
                 anchors.fill: parent
+                anchors.margins: 2
                 radiusValue: CortetsuDesign.radiusSmall
                 baseColor: "transparent"
-                hoverColor: Qt.lighter(CortetsuDesign.colorTetsu, 1.18)
+                hoverColor: Qt.alpha(CortetsuDesign.colorSurfaceGlassStrong, 0.72)
+                outlineColor: parent.activeFocus
+                    ? Qt.alpha(CortetsuDesign.colorWashi, 0.72)
+                    : "transparent"
                 hovered: clockMouse.containsMouse
                 focused: parent.activeFocus
-                outlined: false
+                outlined: parent.activeFocus
             }
 
             Column {
@@ -212,8 +286,10 @@ Item {
             icon: "power_settings_new"
             active: root.sessionActive
             tooltip: qsTr("Session")
-            activeColor: CortetsuDesign.colorVermillion
-            iconColor: active ? CortetsuDesign.colorWashi : CortetsuDesign.colorMuted
+            activeColor: Qt.alpha(CortetsuDesign.colorVermillion, 0.74)
+            iconColor: active || hovered || activeFocus
+                ? CortetsuDesign.colorWashi
+                : CortetsuDesign.colorMuted
             onClicked: root.sessionRequested()
         }
     }

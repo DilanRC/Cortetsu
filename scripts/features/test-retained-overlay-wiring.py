@@ -151,6 +151,32 @@ def main() -> None:
     assert "CortetsuShortcut" in controller and "OverlayPolicy.closeForWallpaper" in controller
     print("PASS direct-shortcut-and-two-monitor-exclusivity")
 
+    for relative, flag in (
+        ("overview/Wrapper.qml", "overview"),
+        ("clipboard/Wrapper.qml", "clipboard"),
+        ("hardware/Wrapper.qml", "hardware"),
+        ("display/Wrapper.qml", "displayManager"),
+        ("wallpaper/Wrapper.qml", "wallpaperManager"),
+        ("calendar/Wrapper.qml", "calendar"),
+    ):
+        wrapper_text = (MODULES / relative).read_text(encoding="utf-8")
+        assert f"screenState?.cortetsuState?.{flag}" in wrapper_text, relative
+    launcher_list = (MODULES / "launcher/ContentList.qml").read_text(encoding="utf-8")
+    assert launcher_list.count("root.screenState?.launcher ?? false") == 2
+    null_safe = {
+        "launcher/Wrapper.qml": ("screenState?.launcher ?? false", "screenState?.dashboard"),
+        "osd/Wrapper.qml": ("screenState?.osd", "root.screenState && !content.hovered"),
+        "session/Wrapper.qml": ("screenState?.session === true",),
+        "dashboard/Wrapper.qml": ("screenState?.dashboard === true",),
+        "sidebar/Wrapper.qml": ("screenState?.sidebar ?? false",),
+        "utilities/Wrapper.qml": ("screenState?.utilities ?? false", "screenState?.session ?? false"),
+        "wallpaper/Wrapper.qml": ("screenState?.cortetsuState",),
+    }
+    for relative, markers in null_safe.items():
+        wrapper_text = (MODULES / relative).read_text(encoding="utf-8")
+        assert all(marker in wrapper_text for marker in markers), relative
+    print("PASS null-safe retained, launcher and drawer initialization")
+
     print("Retained overlay wiring tests: OK")
 
 

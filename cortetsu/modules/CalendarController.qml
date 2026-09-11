@@ -29,7 +29,7 @@ Scope {
         if (!state)
             return;
         close();
-        OverlayPolicy.closeOtherPanels(state.legacyState);
+        OverlayPolicy.closeOtherPanels(state);
         state.setRetained("calendar", true);
     }
 

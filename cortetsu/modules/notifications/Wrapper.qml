@@ -11,22 +11,40 @@ Item {
     property Item sessionPanel
     property Item utilitiesPanel
 
-    readonly property var visibleNotifications: Notifs.popups.filter(item => !item.closed)
-    implicitWidth: 340
+    implicitWidth: 352
     implicitHeight: list.implicitHeight
-    visible: visibleNotifications.length > 0
+    visible: Notifs.popups().length > 0
 
     Column {
         id: list
         anchors.fill: parent
-        spacing: CortetsuDesign.spacingStandard
+        spacing: CortetsuDesign.spacingCompact
+
+        move: Transition {
+            NumberAnimation {
+                properties: "y"
+                duration: CortetsuDesign.motionStandardMs
+                easing.type: Easing.OutCubic
+            }
+        }
+
+        add: Transition {
+            NumberAnimation {
+                property: "opacity"
+                from: 0
+                to: 1
+                duration: CortetsuDesign.motionStandardMs
+                easing.type: Easing.OutCubic
+            }
+        }
 
         Repeater {
-            model: root.visibleNotifications
+            model: Notifs.popups()
             delegate: Notification {
                 required property int index
-                modelData: root.visibleNotifications[index]
+                focus: index === 0
                 width: list.width
+                modelData: Notifs.popups()[index]
                 props: ({})
                 expanded: false
                 screenState: root.screenState

@@ -71,10 +71,10 @@ MouseArea {
         }
         const path = `/tmp/cortetsu-picker-${Quickshell.processId}-${Date.now()}.png`;
         const geometry = `${x},${y} ${width}x${height}`;
-        const action = root.state.clipboardOnly
-            ? `grim -g '${geometry}' '${path}' && wl-copy --type image/png < '${path}' && notify-send -a cortetsu -i '${path}' 'Screenshot taken' 'Screenshot copied to clipboard'`
-            : `grim -g '${geometry}' '${path}' && swappy -f '${path}'`;
-        Quickshell.execDetached(["sh", "-c", action]);
+        const command = ["cortetsu-area-capture", geometry, path];
+        if (root.state.clipboardOnly)
+            command.push("--clipboard");
+        Quickshell.execDetached(command);
         close();
     }
 

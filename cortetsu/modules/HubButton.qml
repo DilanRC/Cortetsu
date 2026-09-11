@@ -1,5 +1,5 @@
 import QtQuick
-import QtQuick.Controls
+import "../components"
 import "CortetsuDesign.js" as CortetsuDesign
 import "CortetsuTypography.js" as CortetsuTypography
 
@@ -11,15 +11,18 @@ Item {
 
     property string icon: "circle"
     property string imageSource: ""
+    property string evolvingMarkPhase: ""
+    property color evolvingMarkAccent: "transparent"
     property bool cropImage: false
     property bool active: false
     property bool disabled: false
     property string tooltip: ""
+    property bool tooltipOnHover: true
     property int buttonSize: 48
     property int iconSize: CortetsuTypography.iconMediumPx
-    property color activeColor: CortetsuDesign.colorIndigo
-    property color hoverColor: Qt.lighter(CortetsuDesign.colorTetsu, 1.18)
-    property color iconColor: active || hovered
+    property color activeColor: Qt.alpha(CortetsuDesign.colorIndigo, 0.62)
+    property color hoverColor: Qt.alpha(CortetsuDesign.colorSurfaceHigh, 0.92)
+    property color iconColor: active || hovered || activeFocus
         ? CortetsuDesign.colorWashi
         : CortetsuDesign.colorMuted
     readonly property bool hovered: mouse.containsMouse
@@ -32,43 +35,64 @@ Item {
     implicitHeight: buttonSize
     width: implicitWidth
     height: implicitHeight
-    scale: root.pressed
-        ? 0.97
+    property real visualScale: root.pressed
+        ? 0.965
         : root.hovered
             ? CortetsuDesign.hoverScale
             : 1
+    // Keep the MouseArea hitbox fixed. Scaling the root changes the
+    // transformed hover bounds and can make the pointer oscillate at an icon
+    // edge, especially while moving between adjacent status controls.
+    scale: 1
 
-    Behavior on scale {
+    Behavior on visualScale {
         NumberAnimation {
-            duration: CortetsuDesign.motionInstantMs
+            duration: root.pressed
+                ? CortetsuDesign.motionInstantMs
+                : CortetsuDesign.motionFastMs
             easing.type: Easing.OutCubic
         }
     }
 
     CortetsuSurface {
         anchors.fill: parent
-        anchors.margins: 2
+        anchors.margins: 3
         radiusValue: CortetsuDesign.radiusMedium
         baseColor: "transparent"
         hoverColor: root.hoverColor
         activeColor: root.activeColor
+        outlineColor: root.activeFocus
+            ? Qt.alpha(CortetsuDesign.colorWashi, 0.82)
+            : root.active
+                ? Qt.alpha(CortetsuDesign.colorWashi, 0.22)
+                : Qt.alpha(CortetsuDesign.colorMuted, 0.14)
         hovered: root.hovered
         pressed: root.pressed
         active: root.active
         focused: root.activeFocus
         disabled: root.disabled
         outlined: root.active
+        scale: root.visualScale
     }
 
     CortetsuIcon {
         anchors.centerIn: parent
-        visible: root.imageSource.length === 0
+        anchors.verticalCenterOffset: root.active ? -1 : 0
+        visible: root.imageSource.length === 0 && root.evolvingMarkPhase.length === 0
         text: root.icon
         color: root.iconColor
         iconSize: root.iconSize
+        scale: root.visualScale
 
         Behavior on color {
             ColorAnimation {
+                duration: CortetsuDesign.motionFastMs
+                easing.type: Easing.OutCubic
+            }
+        }
+
+        Behavior on anchors.verticalCenterOffset {
+            NumberAnimation {
                 duration: CortetsuDesign.motionFastMs
                 easing.type: Easing.OutCubic
             }
@@ -77,8 +101,9 @@ Item {
 
     Image {
         anchors.centerIn: parent
-        visible: root.imageSource.length > 0
-        width: Math.round(root.buttonSize * 0.58)
+        anchors.verticalCenterOffset: root.active ? -1 : 0
+        visible: root.imageSource.length > 0 && root.evolvingMarkPhase.length === 0
+        width: Math.round(root.buttonSize * 0.56)
         height: width
         source: root.imageSource
         sourceSize.width: 64
@@ -88,7 +113,8 @@ Item {
         fillMode: root.cropImage ? Image.PreserveAspectCrop : Image.PreserveAspectFit
         smooth: true
         mipmap: true
-        opacity: root.hovered || root.active ? 1 : 0.88
+        opacity: root.hovered || root.active || root.activeFocus ? 1 : 0.86
+        scale: root.visualScale
 
         Behavior on opacity {
             NumberAnimation {
@@ -96,27 +122,52 @@ Item {
                 easing.type: Easing.OutCubic
             }
         }
+
+        Behavior on anchors.verticalCenterOffset {
+            NumberAnimation {
+                duration: CortetsuDesign.motionFastMs
+                easing.type: Easing.OutCubic
+            }
+        }
     }
 
-    ToolTip {
-        id: tooltipPopup
+    CortetsuEvolvingMark {
+        anchors.centerIn: parent
+        visible: root.evolvingMarkPhase.length > 0
+        width: Math.round(root.buttonSize * 0.56)
+        height: width
+        phase: root.evolvingMarkPhase
+        accent: root.evolvingMarkAccent
+        monochrome: true
+        monochromeColor: root.iconColor
+    }
 
-        parent: root
-        visible: root.tooltip.length > 0 && (root.hovered || root.activeFocus)
-        delay: CortetsuDesign.motionDeliberateMs
+    Rectangle {
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 4
+        visible: root.active
+        width: root.activeFocus ? 20 : 16
+        height: 2
+        radius: 1
+        color: root.activeColor === CortetsuDesign.colorVermillion
+            ? CortetsuDesign.colorVermillion
+            : CortetsuDesign.colorWashi
+        opacity: root.disabled ? 0 : 0.9
+
+        Behavior on width {
+            NumberAnimation {
+                duration: CortetsuDesign.motionFastMs
+                easing.type: Easing.OutCubic
+            }
+        }
+    }
+
+    CortetsuTooltip {
+        target: root
+        hovered: root.tooltipOnHover && root.hovered
+        focused: root.activeFocus
         text: root.tooltip
-
-        background: CortetsuSurface {
-            radiusValue: CortetsuDesign.radiusSmall
-            baseColor: CortetsuDesign.colorTetsu
-            outlined: true
-        }
-
-        contentItem: CortetsuText {
-            text: tooltipPopup.text
-            textSize: CortetsuTypography.labelSmallPx
-            color: CortetsuDesign.colorWashi
-        }
     }
 
     MouseArea {

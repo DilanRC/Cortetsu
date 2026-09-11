@@ -54,16 +54,17 @@ La paleta real continúa siendo dinámica y accesible; estos nombres describen r
 - jerarquía visual sobria;
 - iconografía Material consistente, sin mezclar glifos arbitrarios.
 
-## Símbolo futuro
+## Símbolo aprobado
 
-El emblema debe ser un mon geométrico original, legible a 16 px y reproducible en una tinta. No se usarán escudos históricos de clanes japoneses ni kanji como decoración sin contexto.
+El emblema vigente es **Cortetsu Evolving Mark**. Sus cinco formas aprobadas son
+Human, Awakening, Monster, Ascended y Cosmic. La continuidad está en el eje
+ascendente, la tensión, la proporción y el núcleo visual, no en repetir una misma
+silueta. Ascended es la forma estática canónica; Cosmic se reserva para una
+transformación completada.
 
-Una dirección válida es combinar:
-
-- una `C` abstracta;
-- dos trazos cruzados que sugieran acero forjado;
-- simetría circular de mon;
-- espacio negativo suficiente para un icono de aplicación.
+No se deben generar nuevos logos, redibujar las formas ni recuperar conceptos
+anteriores. La identidad vive en los assets separados y en el renderer QML
+contextual.
 
 ## Voz del proyecto
 

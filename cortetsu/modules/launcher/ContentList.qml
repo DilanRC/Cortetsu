@@ -10,7 +10,7 @@ import "../CortetsuText.qml"
 import "../CortetsuIcon.qml"
 import ".."
 import "../../components"
-import qs.utils
+import "../../utils"
 
 Item {
     id: root
@@ -155,13 +155,13 @@ Item {
     }
 
     Behavior on implicitWidth {
-        enabled: root.screenState.launcher
+        enabled: root.screenState?.launcher ?? false
 
         CortetsuAnim {}
     }
 
     Behavior on implicitHeight {
-        enabled: root.screenState.launcher
+        enabled: root.screenState?.launcher ?? false
 
         CortetsuAnim {}
     }

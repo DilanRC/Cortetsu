@@ -5,6 +5,7 @@ import QtQml
 QtObject {
     property var states: []
     property var components: []
+    property var attachedPopupHoverOwner: null
 
     function registerState(screen, state): void {
         states = states.filter(entry => entry.screen !== screen).concat([{ screen, state }]);
@@ -22,9 +23,19 @@ QtObject {
         components = components.filter(entry => entry.screen !== screen || entry.component !== component);
     }
 
+    function enterAttachedPopup(owner): void {
+        attachedPopupHoverOwner = owner;
+    }
+
+    function leaveAttachedPopup(owner): void {
+        if (attachedPopupHoverOwner === owner)
+            attachedPopupHoverOwner = null;
+    }
+
     function forScreen(screen): var {
-        return states.find(entry => entry.screen === screen)?.state
-            ?? states[0]?.state ?? null;
+        if (!screen)
+            return null;
+        return states.find(entry => entry.screen === screen)?.state ?? null;
     }
 
     function anySidebarOpen(): bool {
@@ -33,8 +44,9 @@ QtObject {
 
     function forActive(): var {
         const monitor = CortetsuHypr.focusedMonitor;
-        return states.find(entry => CortetsuHypr.monitorFor(entry.screen) === monitor)?.state
-            ?? states[0]?.state ?? null;
+        if (!monitor)
+            return null;
+        return states.find(entry => CortetsuHypr.monitorFor(entry.screen) === monitor)?.state ?? null;
     }
 
     function componentsFor(screen): var {

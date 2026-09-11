@@ -31,21 +31,24 @@ var colorSuccess = "#7A9B83"
 var colorWarning = "#C49A62"
 
 var radiusSmall = 8
-var radiusMedium = 14
-var radiusLarge = 22
+var radiusMedium = 12
+var radiusLarge = 20
+var radiusSurface = 28
 var radiusPill = 999
 
 var spacingUnit = 4
 var spacingCompact = 8
 var spacingStandard = 12
-var spacingComfortable = 20
-var spacingSpacious = 28
+var spacingComfortable = 16
+var spacingSpacious = 24
+var spacingSection = 32
 
 var overlayOpacity = 0.94
 var scrimOpacity = 0.22
 var outlineWidth = 1
 var controlHeight = 36
 var rowHeight = 52
+var controlHeightPrimary = 40
 
 // Typography aliases keep QML surfaces on the single generated design contract.
 var labelSmallPx = 11
@@ -57,9 +60,19 @@ var bodyLargePx = 14
 var iconSmallPx = 18
 var iconMediumPx = 22
 
-var hoverScale = 1.04
-var motionInstantMs = 70
-var motionFastMs = 100
-var motionStandardMs = 160
-var motionDeliberateMs = 220
-var motionPanelMs = 260
+var hoverScale = 1.025
+var motionInstantMs = 80
+var motionFastMs = 120
+var motionStandardMs = 180
+var motionDeliberateMs = 240
+var motionPanelMs = 240
+
+// Wall Utility values resolve symbolic ui.toml references at compile time.
+var wallUtilitySurfaceRadius = 28
+var wallUtilityPanelMotionMs = 240
+var wallUtilityOrbitMotionMs = 180
+var wallUtilityCrossfadeMotionMs = 180
+var wallUtilityOrbitTopGap = 32
+var wallUtilityOrbitBottomGap = 32
+var wallUtilityFooterGap = 8
+var wallUtilityCategoryGap = 8

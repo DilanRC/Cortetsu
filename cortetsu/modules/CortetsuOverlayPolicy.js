@@ -31,7 +31,7 @@ function closeAll(state) {
     if (!state)
         return;
     closeRetained(state);
-    for (const flag of ["launcher", "session", "dashboard", "utilities", "sidebar"]) {
+    for (const flag of ["launcher", "session", "dashboard", "utilities", "qsd", "settings", "sidebar"]) {
         if (state[flag] !== undefined)
             state[flag] = false;
     }

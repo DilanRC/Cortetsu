@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell.Wayland
 import Quickshell.Widgets
-import qs.utils
+import "../../../utils"
 import ".."
 import "../.."
 import "../../../components"

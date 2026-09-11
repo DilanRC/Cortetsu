@@ -10,23 +10,48 @@ view = (modules / "CortetsuBottomHubView.qml").read_text(encoding="utf-8")
 rail = (modules / "CortetsuAppRail.qml").read_text(encoding="utf-8")
 tray = (modules / "CortetsuTraySegment.qml").read_text(encoding="utf-8")
 status = (modules / "CortetsuStatusSegment.qml").read_text(encoding="utf-8")
+status_pill = (modules / "StatusPill.qml").read_text(encoding="utf-8")
 mode = (modules / "CortetsuModeSegment.qml").read_text(encoding="utf-8")
 workspace = (modules / "CortetsuWorkspaceDots.qml").read_text(encoding="utf-8")
+tooltip = (ROOT / "cortetsu/components/CortetsuTooltip.qml").read_text(encoding="utf-8")
+interactions = (modules / "drawers/Interactions.qml").read_text(encoding="utf-8")
 
 criteria = {
     "superficie exterior transparente": 'color: "transparent"' in hub,
-    "dock continuo": "id: dockBackdrop" in view and "colorSumi, 0.82" in view,
+    "dock continuo": all(
+        token in view
+        for token in (
+            "CortetsuSurface {",
+            "id: dockBackdrop",
+            "anchors.fill: parent",
+            "baseColor: Qt.alpha(CortetsuDesign.colorSumi",
+            "outlined: false",
+        )
+    ),
     "segmentos con CortetsuDesign": all("CortetsuDesign" in text for text in (rail, tray, status, mode)),
     "launcher first-party": "CortetsuModeSegment" in view and "launcherRequested" in view,
+    "clipboard first-party": all(
+        token in mode
+        for token in (
+            "signal clipboardRequested()",
+            "required property bool clipboardActive",
+            'import "CortetsuTypography.js" as CortetsuTypography',
+            'icon: "content_paste_search"',
+        )
+    ) and "onClipboardRequested" in view and "toggleClipboardFor" in hub,
     "workspace state": "occupiedWorkspaceIds" in view and "activeWsId" in view,
     "centro adaptativo": "appRailMaxWidth" in view and "maxWidth: root.appRailMaxWidth" in view,
     "centro geometrico": "anchors.horizontalCenter: parent.horizontalCenter" in view,
-    "hover con escala contenida": "CortetsuDesign.hoverScale" in rail,
+    "hover pintado con hitbox estable": "hovered: appMouse.containsMouse" in rail and "scale: appMouse" not in rail,
     "animacion corta": "CortetsuDesign.motionFastMs" in rail,
-    "tooltip de aplicaciones": "modelData.title" in rail and "ToolTip" in rail,
-    "tooltip de tray": "modelData.title" in tray and "ToolTip" in tray,
-    "tooltip de tray con superficie": all(
-        token in tray
+    "tooltip compartido": all(
+        "CortetsuTooltip" in text
+        for text in (rail, tray, status_pill)
+    ),
+    "tooltip de aplicaciones": "modelData.title" in rail and "CortetsuTooltip" in rail,
+    "tooltip de tray": "modelData.title" in tray and "CortetsuTooltip" in tray,
+    "tooltip con superficie": all(
+        token in tooltip
         for token in (
             "contentItem: CortetsuText",
             "CortetsuTypography.labelSmallPx",
@@ -35,6 +60,38 @@ criteria = {
     ),
     "contador expandido": 'root.notificationCount > 9 ? qsTr("9+")' in status,
     "audio Cortetsu": "volumeIcon" in status and "volumeWheel" in status,
+    "volume scroll preference is honored": "if (!CortetsuConfig.bar.scrollActions.volume)" in hub,
+    "workspace scope preference is honored": "CortetsuConfig.bar.workspaces.perMonitorWorkspaces" in hub,
+    "status cluster is configurable": all(
+        token in hub
+        for token in (
+            "CortetsuConfig.bottomHub.statusCluster.audio",
+            "CortetsuConfig.bottomHub.statusCluster.network",
+            "CortetsuConfig.bottomHub.statusCluster.bluetooth",
+            "CortetsuConfig.bottomHub.statusCluster.battery",
+        )
+    ),
+    "dock segments are configurable": all(
+        token in hub
+        for token in (
+            "CortetsuConfig.bottomHub.segments.mode",
+            "CortetsuConfig.bottomHub.segments.apps",
+            "CortetsuConfig.bottomHub.segments.tray",
+            "CortetsuConfig.bottomHub.segments.status",
+        )
+    ) and all(
+        token in view
+        for token in (
+            "required property bool modeVisible",
+            "required property bool appsVisible",
+            "required property bool trayVisible",
+            "required property bool statusVisible",
+        )
+    ),
+    "hover de controles del sistema": all(
+        f'root.attachedControlEntered("{mode}"' in status
+        for mode in ("audio", "network", "bluetooth", "battery")
+    ),
     "wifi first-party": 'attachedControlRequested("network"' in status,
     "Bluetooth first-party": 'attachedControlRequested("bluetooth"' in status,
     "bateria first-party": "batteryIcon" in status and "batteryCritical" in status,
@@ -43,6 +100,9 @@ criteria = {
     "quick settings first-party": "toggleUtilitiesFor" in hub,
     "notificaciones first-party": "toggleSidebarFor" in hub,
     "anclaje de popups": "attachedControlRequested" in view and "bottomAnchorCenter" in hub,
+    "handoff de popup desde BottomHub": "if (!popouts.bottomAttached" in interactions,
+    "hitbox de hover estable": "property real visualScale" in (modules / "HubButton.qml").read_text(encoding="utf-8")
+        and "scale: 1" in (modules / "HubButton.qml").read_text(encoding="utf-8"),
     "foco bajo demanda": "focusable: true" in hub and "WlrKeyboardFocus.OnDemand" in hub,
     "foco conserva navegacion de workspaces": all(
         token in workspace

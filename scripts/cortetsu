@@ -45,7 +45,7 @@ Usage:
   cortetsu system <action>         promote|verify|status|rollback|gc
   cortetsu dotfiles <action>       plan|apply|verify|status|rollback|gc
   cortetsu theme <action>          check|compile|adopt native desktop theme
-  cortetsu shell <action>          status|adopt|reconcile|restart|disable|logs
+  cortetsu shell <action>          status|adopt|reconcile|reload|restart|disable|logs|ipc
   cortetsu legacy-processes <action> scan|migrate
   cortetsu config migrate         Import functional preferences to ~/.config/cortetsu
   cortetsu screenshot [-r] [-f]   Open the Cortetsu regional screenshot picker
@@ -72,7 +72,7 @@ resolved_generation() { readlink -f "$1" 2>/dev/null || true; }
 is_managed_generation() {
     local root="$1" required
     [[ -n "$root" ]] || return 1
-    for required in shell.qml BUILD_ID BUILD.json provenance.json composition.json modules/BottomHub.qml modules/calendar/Content.qml modules/calendar/Wrapper.qml; do
+    for required in shell.qml BUILD_ID BUILD.json provenance.json composition.json wall-utility.json modules/BottomHub.qml modules/calendar/Content.qml modules/calendar/Wrapper.qml; do
         [[ -f "$root/$required" ]] || return 1
     done
 }
@@ -137,6 +137,29 @@ reconcile_shell_lifecycle() {
     python3 "$ROOT/core/shell_lifecycle.py" migrate
 }
 
+shell_reload() {
+    local pid after
+    pid="$(systemctl --user show "$SHELL_UNIT" -p MainPID --value 2>/dev/null || true)"
+    [[ "$pid" =~ ^[1-9][0-9]*$ ]] || fail "$SHELL_UNIT no tiene un MainPID válido"
+    systemctl --user is-active --quiet "$SHELL_UNIT" || fail "$SHELL_UNIT no está activo"
+    qs ipc --pid "$pid" call cortetsu-shell reload || fail "no se pudo solicitar la recarga suave de Quickshell"
+    sleep 1
+    systemctl --user is-active --quiet "$SHELL_UNIT" || fail "$SHELL_UNIT dejó de estar activo después de la recarga suave"
+    after="$(systemctl --user show "$SHELL_UNIT" -p MainPID --value 2>/dev/null || true)"
+    [[ "$after" == "$pid" ]] || fail "la recarga suave cambió el proceso de Quickshell: antes=$pid después=$after"
+    printf 'Cortetsu shell: recarga suave completada en el mismo proceso (%s)\n' "$pid"
+}
+
+shell_ipc() {
+    local target="${1:-}" method="${2:-}" pid
+    [[ -n "$target" && -n "$method" ]] || fail "uso: cortetsu shell ipc <target> <method> [args...]"
+    shift 2
+    pid="$(systemctl --user show "$SHELL_UNIT" -p MainPID --value 2>/dev/null || true)"
+    [[ "$pid" =~ ^[1-9][0-9]*$ ]] || fail "$SHELL_UNIT no tiene un MainPID válido"
+    systemctl --user is-active --quiet "$SHELL_UNIT" || fail "$SHELL_UNIT no está activo"
+    qs ipc --pid "$pid" call "$target" "$method" "$@"
+}
+
 shell_cmd() {
     require_repo
     local action="${1:-status}"
@@ -157,6 +180,12 @@ shell_cmd() {
             ;;
         reconcile)
             reconcile_shell_lifecycle
+            ;;
+        reload)
+            shell_reload
+            ;;
+        ipc)
+            shell_ipc "$@"
             ;;
         restart)
             systemctl --user daemon-reload
@@ -198,7 +227,7 @@ status_cmd() {
     printf '\nCanonical namespace:\n  commands=cortetsu-*\n  config=~/.config/cortetsu\n  state=~/.local/state/cortetsu\n  data=~/.local/share/cortetsu\n'
 }
 
-run_python_test() { local relative="$1"; require_repo; require_file "$ROOT/$relative"; printf '==> %s\n' "$relative"; python3 "$ROOT/$relative"; }
+run_python_test() { local relative="$1"; shift; require_repo; require_file "$ROOT/$relative"; printf '==> %s\n' "$relative"; python3 "$ROOT/$relative" "$@"; }
 run_node_test() { local relative="$1"; require_repo; require_file "$ROOT/$relative"; printf '==> %s\n' "$relative"; node "$ROOT/$relative"; }
 run_bash_test() { local relative="$1"; require_repo; require_file "$ROOT/$relative"; printf '==> %s\n' "$relative"; bash "$ROOT/$relative"; }
 
@@ -261,10 +290,23 @@ test_cmd() {
         "scripts/features/test-contentwindow-overview-base.py"
         "scripts/features/test-contentwindow-focusgrab-parity.py"
         "scripts/features/test-wallpaper-manager.py"
+        "scripts/features/test-cortetsu-wall-utility-contract.py"
+        "scripts/features/eval-cortetsu-wall-utility-contract.py"
+        "scripts/features/test-cortetsu-launcher-wallpaper-apply.py"
+        "scripts/features/eval-cortetsu-launcher-wallpaper-apply.py"
+        "scripts/features/eval-wallpaper-orbital.py"
+        "scripts/features/test-overview-design.py"
+        "scripts/features/eval-overview-spatial-bounds.py"
+        "scripts/features/test-cortetsu-wallpaper-palette.py"
+        "scripts/features/eval-cortetsu-wallpaper-palette.py"
         "scripts/features/test-keybinds.py"
         "scripts/features/eval-keybind-editor.py"
         "scripts/features/test-shell-normalizer.py"
         "scripts/features/test-cortetsu-quality.py"
+        "scripts/features/test-first-party-host-boundaries.py"
+        "scripts/features/eval-first-party-host-boundaries.py"
+        "scripts/features/test-first-party-surface-imports.py"
+        "scripts/features/eval-first-party-surface-imports.py"
         "scripts/features/test-overview-popout-exclusivity.py"
         "scripts/features/eval-overview-popout-exclusivity.py"
         "scripts/features/test-panel-popout-exclusivity.py"
@@ -273,18 +315,57 @@ test_cmd() {
         "scripts/features/eval-cortetsu-wave0-foundations.py"
         "scripts/features/test-cortetsu-wave4-quick-settings-osd.py"
         "scripts/features/eval-cortetsu-wave4-quick-settings-osd.py"
+        "scripts/features/test-display-footer-layout.py"
+        "scripts/features/eval-display-footer-layout.py"
+        "scripts/features/test-display-transaction-lua.py"
+        "scripts/features/eval-display-transaction-lua.py"
+        "scripts/features/test-cortetsu-recorder.py"
+        "scripts/features/eval-cortetsu-recorder.py"
+        "scripts/features/test-hypr-keybind-conflicts.py"
+        "scripts/features/eval-hypr-keybind-conflicts.py"
+        "scripts/features/test-osd-hover-contract.py"
+        "scripts/features/eval-osd-hover-contract.py"
         "scripts/features/test-cortetsu-native-design-system.py"
         "scripts/features/eval-cortetsu-native-design-system.py"
+        "scripts/features/test-hardware-design.py"
+        "scripts/features/eval-cortetsu-hardware-tabs.py"
+        "scripts/features/test-display-design.py"
+        "scripts/features/eval-cortetsu-display-controls.py"
+        "scripts/features/test-cortetsu-progress-bar.py"
+        "scripts/features/eval-cortetsu-progress-bar.py"
+        "scripts/features/test-cortetsu-power.py"
+        "scripts/features/eval-cortetsu-power.py"
+        "scripts/features/test-cortetsu-calendar-controls.py"
+        "scripts/features/eval-cortetsu-calendar-controls.py"
+        "scripts/features/test-cortetsu-button-tooltip.py"
+        "scripts/features/eval-cortetsu-button-tooltip.py"
+        "scripts/features/test-stable-interaction-bounds.py"
+        "scripts/features/eval-stable-interaction-bounds.py"
+        "scripts/features/test-cortetsu-wallpaper-controls.py"
+        "scripts/features/eval-cortetsu-wallpaper-controls.py"
+        "scripts/features/test-cortetsu-product-design-foundation.py"
+        "scripts/features/eval-cortetsu-product-design-foundation.py"
+        "scripts/features/test-cortetsu-branding.py"
+        "scripts/features/test-cortetsu-evolving-branding.py"
+        "scripts/features/eval-cortetsu-evolving-branding.py"
+        "scripts/features/test-cortetsu-static-brand-surfaces.py"
+        "scripts/features/eval-cortetsu-static-brand-surfaces.py"
         "scripts/features/test-cortetsu-native-popups.py"
         "scripts/features/eval-cortetsu-native-popups.py"
+        "scripts/features/test-cortetsu-tray-menu.py"
+        "scripts/features/eval-cortetsu-tray-menu.py"
         "scripts/features/test-cortetsu-native-notification-center.py"
         "scripts/features/eval-cortetsu-native-notification-center.py"
+        "scripts/features/test-notification-dismiss-popup.py"
+        "scripts/features/eval-notification-dismiss-popup.py"
         "scripts/features/test-cortetsu-toasts.py"
         "scripts/features/eval-cortetsu-toasts.py"
         "scripts/features/test-native-theme.py"
         "scripts/features/test-dotfiles-platform.py"
         "scripts/features/test-system-generations.py"
         "scripts/features/test-shell-lifecycle.py"
+        "scripts/features/eval-shell-application-safety.py"
+        "scripts/features/eval-cortetsu-shell-ipc.py"
         "scripts/features/test-shell-state-screens.py"
         "cortetsu/tests/test-calendar-credentials.py"
         "cortetsu/tests/test-calendar-polish.py"
@@ -293,20 +374,42 @@ test_cmd() {
         "cortetsu/tests/test-notifications.py"
         "cortetsu/tests/test-runtime-contract.py"
         "scripts/features/test-cortetsu-screen-state.py"
+        "scripts/features/test-cortetsu-state-boundary.py"
+        "scripts/features/eval-cortetsu-state-boundary.py"
+        "scripts/features/eval-cortetsu-screen-ownership.py"
         "scripts/features/test-cortetsu-config.py"
+        "scripts/features/eval-cortetsu-config.py"
+        "scripts/features/test-cortetsu-idle.py"
+        "scripts/features/eval-cortetsu-idle.py"
         "scripts/features/test-cortetsu-launcher.py"
+        "scripts/features/eval-cortetsu-launcher.py"
+        "scripts/features/test-cortetsu-dashboard-typography.py"
+        "scripts/features/eval-cortetsu-dashboard-typography.py"
+        "scripts/features/test-launcher-focus-runtime-contract.py"
+        "scripts/features/eval-launcher-focus-runtime-contract.py"
         "scripts/features/test-launcher-process-scope.py"
+        "scripts/features/eval-cortetsu-process-launcher.py"
         "scripts/features/test-cortetsu-scheme.py"
+        "scripts/features/test-scheme-catalog.py"
+        "scripts/features/eval-scheme-catalog.py"
+        "scripts/features/test-super-e-dolphin.py"
+        "scripts/features/eval-super-e-dolphin.py"
         "scripts/features/test-cortetsu-time.py"
         "scripts/features/test-cortetsu-brightness.py"
+        "scripts/features/eval-cortetsu-brightness.py"
+        "scripts/features/test-cortetsu-qsd.py"
+        "scripts/features/eval-cortetsu-qsd.py"
         "scripts/features/test-cortetsu-players.py"
         "scripts/features/test-config-migration.py"
         "scripts/features/test-legacy-process-migration.py"
         "scripts/features/test-hyprland-import.py"
+        "scripts/features/test-hyprland-import-ci.py"
+        "scripts/features/eval-hyprland-import-ci.py"
         "scripts/features/test-hyprland-self-contained.py"
         "scripts/features/test-zero-caelestia-gate.py"
         "scripts/features/test-shortcut-namespace.py"
         "scripts/features/test-cortetsu-screenshot.py"
+        "scripts/features/eval-cortetsu-screenshot.py"
         "scripts/features/test-cortetsu-emoji.py"
         "scripts/features/test-cortetsu-network-idle.py"
         "scripts/features/test-cortetsu-network-dbus.py"
@@ -319,6 +422,7 @@ test_cmd() {
     local test_path
     for test_path in "${tests[@]}"; do run_python_test "$test_path"; done
     run_node_test "cortetsu/tests/test-wallpaper-search.node.js"
+    run_node_test "scripts/features/test-ascension-motion.js"
     run_bash_test "scripts/features/test-v2-migration-unreadable.sh"
     run_bash_test "cortetsu/tests/test-calendar-readonly.sh"
     run_bash_test "cortetsu/tests/test-legacy-process-migration-eval.sh"
@@ -338,6 +442,11 @@ assert build.get("schema") == 1
 assert build.get("sourceProject") == "Cortetsu"
 assert isinstance(build.get("repositoryRevision"), str) and build["repositoryRevision"]
 PY
+    if [[ "$label" == "current" ]]; then
+        run_python_test "scripts/features/test-cortetsu-wall-utility-contract.py" --runtime "$resolved"
+    else
+        run_python_test "scripts/features/test-cortetsu-wall-utility-contract.py" --runtime "$resolved" --historical
+    fi
     printf 'PASS: %s generation %s\n' "$label" "$resolved"
 }
 
@@ -361,6 +470,46 @@ verify_cmd() {
     fi
     theme_cmd check
     run_python_test "scripts/features/test-cortetsu-quality.py"
+    run_python_test "scripts/features/test-first-party-host-boundaries.py"
+    run_python_test "scripts/features/eval-first-party-host-boundaries.py"
+    run_python_test "scripts/features/test-first-party-surface-imports.py"
+    run_python_test "scripts/features/eval-first-party-surface-imports.py"
+    run_python_test "scripts/features/test-cortetsu-settings.py"
+    run_python_test "scripts/features/eval-cortetsu-settings.py"
+    run_python_test "scripts/features/test-cortetsu-dashboard.py"
+    run_python_test "scripts/features/eval-cortetsu-dashboard.py"
+    run_python_test "scripts/features/test-cortetsu-lock.py"
+    run_python_test "scripts/features/eval-cortetsu-lock.py"
+    run_python_test "scripts/features/test-cortetsu-launcher-identity.py"
+    run_python_test "scripts/features/eval-cortetsu-launcher-identity.py"
+    run_python_test "scripts/features/test-cortetsu-launcher-host.py"
+    run_python_test "scripts/features/eval-cortetsu-launcher-host.py"
+    run_python_test "scripts/features/test-cortetsu-osd-identity.py"
+    run_python_test "scripts/features/eval-cortetsu-osd-identity.py"
+    run_python_test "scripts/features/test-cortetsu-static-brand-surfaces.py"
+    run_python_test "scripts/features/eval-cortetsu-static-brand-surfaces.py"
+    run_python_test "scripts/features/test-cortetsu-system-cluster.py"
+    run_python_test "scripts/features/eval-cortetsu-system-cluster.py"
+    run_python_test "scripts/features/test-cortetsu-osd-state.py"
+    run_python_test "scripts/features/test-cortetsu-progress-bar.py"
+    run_python_test "scripts/features/eval-cortetsu-progress-bar.py"
+    run_python_test "scripts/features/test-cortetsu-power.py"
+    run_python_test "scripts/features/eval-cortetsu-power.py"
+    run_python_test "scripts/features/test-cortetsu-calendar-controls.py"
+    run_python_test "scripts/features/eval-cortetsu-calendar-controls.py"
+    run_python_test "scripts/features/test-cortetsu-button-tooltip.py"
+    run_python_test "scripts/features/eval-cortetsu-button-tooltip.py"
+    run_python_test "scripts/features/test-cortetsu-wallpaper-controls.py"
+    run_python_test "scripts/features/eval-cortetsu-wallpaper-controls.py"
+    run_python_test "scripts/features/test-cortetsu-session-host.py"
+    run_python_test "scripts/features/test-cortetsu-wall-utility-contract.py"
+    run_python_test "scripts/features/eval-cortetsu-wall-utility-contract.py"
+    run_python_test "scripts/features/test-retained-surfaces-host.py"
+    run_python_test "scripts/features/test-cortetsu-hover-controller.py"
+    run_python_test "scripts/features/test-cortetsu-input-ownership.py"
+    run_python_test "scripts/features/eval-cortetsu-input-ownership.py"
+    run_python_test "scripts/features/validate-clipboard-qml.py"
+    run_python_test "scripts/features/eval-retained-surfaces-host.py"
     run_python_test "cortetsu/tests/test-runtime-contract.py"
     run_bash_test "cortetsu/tests/test-calendar-readonly.sh"
     dotfiles_cmd verify

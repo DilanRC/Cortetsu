@@ -14,6 +14,8 @@ FocusScope {
     readonly property real panelHeight: Math.min(900, parent.height - 64)
     readonly property real panelLeft: Math.round((parent.width - panelWidth) / 2)
     readonly property real panelTop: Math.round((parent.height - panelHeight) / 2)
+    readonly property real footerHeight: 120
+    readonly property real footerMargin: 30
 
     function openDisplayManager(): void { editor.openDisplayManager(); }
 
@@ -28,10 +30,10 @@ FocusScope {
     DisplayPresets {
         id: presets
         z: 20
-        width: Math.min(390, Math.max(340, parent.width * 0.28))
-        height: 144
-        x: root.panelLeft + 36
-        y: root.panelTop + root.panelHeight - height - 36
+        width: Math.min(350, Math.max(310, root.panelWidth * 0.28))
+        height: root.footerHeight
+        x: root.panelLeft + root.footerMargin
+        y: root.panelTop + root.panelHeight - height - root.footerMargin
         candidateOutputs: editor.candidateOutputs
         onCandidateLoaded: candidate => {
             const outputs = candidate?.outputs ?? [];
@@ -45,10 +47,10 @@ FocusScope {
 
     DisplayOutputControls {
         z: 20
-        width: Math.min(340, Math.max(300, parent.width * 0.245))
-        height: 144
+        width: Math.min(330, Math.max(300, root.panelWidth * 0.265))
+        height: root.footerHeight
         x: Math.round(root.panelLeft + (root.panelWidth - width) / 2)
-        y: root.panelTop + root.panelHeight - height - 36
+        y: root.panelTop + root.panelHeight - height - root.footerMargin
         editorItem: editor
         monitor: editor.selectedLive
     }
@@ -56,10 +58,10 @@ FocusScope {
     PreviewControls {
         id: previewControls
         z: 20
-        width: Math.min(390, Math.max(330, parent.width * 0.28))
-        height: 144
-        x: root.panelLeft + root.panelWidth - width - 36
-        y: root.panelTop + root.panelHeight - height - 36
+        width: Math.min(390, Math.max(350, root.panelWidth * 0.31))
+        height: root.footerHeight
+        x: root.panelLeft + root.panelWidth - width - root.footerMargin
+        y: root.panelTop + root.panelHeight - height - root.footerMargin
         candidateOutputs: editor.candidateOutputs
     }
 }

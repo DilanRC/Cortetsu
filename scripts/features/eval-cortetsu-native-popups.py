@@ -11,10 +11,21 @@ for name in required:
 network = (popouts / "CortetsuNetworkPopup.qml").read_text(encoding="utf-8")
 assert "activeEthernet" in network
 assert "wiredActive" in network
-assert 'icon: "lan"' in network
+assert ': "lan"' in network
 popup_surface = (ROOT / "cortetsu/components/CortetsuPopupSurface.qml").read_text(encoding="utf-8")
 assert "CortetsuSurface" in popup_surface
 assert "CortetsuDesign.radiusLarge" in popup_surface
+detached = (popouts / "CortetsuDetachedPopup.qml").read_text(encoding="utf-8")
+assert "\nItem {" in detached
+assert "CortetsuSurface {" not in detached
+assert "radiusValue:" not in detached and "baseColor:" not in detached and "outlined:" not in detached
+assert "MouseArea" in detached and "z: -1" in detached
+wrapper = (ROOT / "cortetsu/modules/bar/popouts/Wrapper.qml").read_text(encoding="utf-8")
+content_window = (ROOT / "cortetsu/modules/drawers/ContentWindow.qml").read_text(encoding="utf-8")
+assert "HyprlandFocusGrab" not in wrapper
+assert "WlrKeyboardFocus" not in wrapper
+assert "Binding" not in wrapper
+assert content_window.count("panels.popouts.close();") >= 3
 assert (ROOT / "cortetsu/base/modules/bar/popouts/Content.qml").is_file()
 password = (popouts / "CortetsuWifiPasswordPopup.qml").read_text(encoding="utf-8")
 assert password.count("CortetsuButton") >= 2
@@ -23,5 +34,5 @@ tray = (popouts / "CortetsuTrayMenu.qml").read_text(encoding="utf-8")
 assert all(token in tray for token in ("activeFocusOnTab", "Qt.Key_Right", "Qt.Key_Left", "Qt.Key_Escape", "focused: activeFocus"))
 assert "CortetsuPopupSurface" in tray
 content_window = (ROOT / "cortetsu/modules/drawers/ContentWindow.qml").read_text(encoding="utf-8")
-assert "focusable: panels.popouts.hasCurrent || screenState.cortetsuState?.requiresWindowKeyboardFocus" in content_window
+assert "focusable: panels.popouts.hasCurrent || ((screenState?.cortetsuState?.requiresWindowKeyboardFocus ?? false) && !(screenState?.launcher ?? false) && !(screenState?.session ?? false))" in content_window
 print("PASS: native popup eval covers network, audio and Bluetooth hierarchy and states")

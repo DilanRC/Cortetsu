@@ -333,8 +333,17 @@ FocusScope {
      */
     MouseArea {
         anchors.fill: parent
-        onClicked:
-            root.screenState.cortetsuState?.setRetained("clipboard", false)
+        acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
+        onClicked: mouse => {
+            const outsidePanel =
+                mouse.x < panel.x ||
+                mouse.x >= panel.x + panel.width ||
+                mouse.y < panel.y ||
+                mouse.y >= panel.y + panel.height;
+
+            if (outsidePanel)
+                root.screenState.cortetsuState?.setRetained("clipboard", false);
+        }
     }
 
     /*

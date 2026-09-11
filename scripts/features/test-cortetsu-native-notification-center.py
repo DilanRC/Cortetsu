@@ -7,6 +7,7 @@ assert "| Notifications | `modules/sidebar/Content.qml`, `modules/notifications/
 content = (ROOT / "cortetsu/modules/sidebar/Content.qml").read_text(encoding="utf-8")
 notification = (ROOT / "cortetsu/modules/notifications/Notification.qml").read_text(encoding="utf-8")
 notif_data = (ROOT / "cortetsu/services/NotifData.qml").read_text(encoding="utf-8")
+service = (ROOT / "cortetsu/services/Notifs.qml").read_text(encoding="utf-8")
 for token in (
     "CortetsuNotifications.history",
     "CortetsuNotifications.dnd",
@@ -25,18 +26,50 @@ for token in (
 assert "GlobalConfig" not in content and "Caelestia" not in content
 assert "id: contentLayout" in notification
 assert "contentLayout.implicitHeight" in notification
+assert "readonly property bool hasModelData" in notification
+assert "readonly property bool closed: !hasModelData || modelData.closed" in notification
+assert "Component.onDestruction: {" in notification
+assert "root.modelData.unlock(root);" in notification
 assert 'import "../CortetsuDesign.js" as CortetsuDesign' in notification
 assert 'import "../CortetsuTypography.js" as CortetsuTypography' in notification
 assert "modelData.appName" in notification
 assert "modelData.image" in notification
-assert "modelData.urgency >= 2" in notification
-assert "visible: true" in notification and 'label: qsTr("Dismiss")' in notification
+assert "readonly property bool urgent: urgency >= 2" in notification
+assert "Qt.alpha(CortetsuDesign.colorPrimary, 0.12)" in notification
+assert ": CortetsuDesign.colorPrimary" in notification
+assert "id: notificationHover" in notification
+assert "onHoveredChanged: root.hovered = hovered" in notification
+assert "onEntered: root.hovered = true" not in notification
+assert "onExited: root.hovered = false" not in notification
+assert "function syncInteraction(): void" in notification
+assert "interactionActive = root.hovered || root.activeFocus" in notification
+assert "property bool interactionActive: false" in notif_data
+assert "!root.interactionActive" in notif_data
+assert "Qt.alpha(CortetsuDesign.colorTertiary, 0.12)" not in notification
+assert "root.notificationActions.length > 0 || root.hovered || root.expanded || root.activeFocus" in notification
+assert 'label: qsTr("Dismiss")' in notification
 assert "dismissalRequested" in notif_data
 assert "function dismissAndRemove" in notif_data
 assert "if (closed)" in notif_data
+assert "property var list: []" in service
+assert "property list<NotifData> list" not in service
+assert "property int revision: 0" in service
+assert "function notClosed(): var" in service
+assert "function popups(): var" in service
+assert "root.revision;" in service
 wrapper = (ROOT / "cortetsu/modules/notifications/Wrapper.qml").read_text(encoding="utf-8")
-assert "modelData: root.visibleNotifications[index]" in wrapper
-assert "modelData: root.active[index]" in content
+assert "model: Notifs.popups()" in wrapper
+assert "required property int index" in wrapper
+assert "modelData: Notifs.popups()[index]" in wrapper
+assert "visibleNotifications" not in wrapper
+assert "property var activeNotifications: []" in content
+assert "function refreshActiveNotifications()" in content
+assert "onRevisionChanged" in content
+assert "model: root.activeNotifications.length" in content
+assert "modelData: root.activeNotifications[index]" in content
+assert "readonly property var active: Notifs.notClosed()" not in content
 assert "required property var modelData" in notification
+assert "focus: false" in notification
+assert "focus: index === 0" in content
 assert "modelData.timeStr" in content
 print("PASS: notification center owns live, history, DND, clear and empty states")

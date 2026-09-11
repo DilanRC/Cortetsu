@@ -6,6 +6,7 @@ DATA_ROOT="${CORTETSU_DATA_ROOT:-${XDG_DATA_HOME:-$HOME/.local/share}/cortetsu}"
 RUNTIME_ROOT="${CORTETSU_RUNTIME_ROOT:-${XDG_CONFIG_HOME:-$HOME/.config}/quickshell/cortetsu}"
 SOURCE_BASE="$REPO/cortetsu/base"
 PROVENANCE="$REPO/cortetsu/contracts/runtime-provenance.json"
+WALL_UTILITY_CONTRACT="$REPO/cortetsu/contracts/wall-utility.json"
 BUILD_ROOT="$DATA_ROOT/builds"
 STAMP="$(date +%Y%m%d-%H%M%S)-$$"
 STAGING="$BUILD_ROOT/.staging-$STAMP"
@@ -36,6 +37,7 @@ cleanup() {
 trap cleanup EXIT
 
 require_file "$PROVENANCE"
+require_file "$WALL_UTILITY_CONTRACT"
 require_file "$SOURCE_BASE/PROVENANCE.md"
 require_file "$REPO/cortetsu/modules/BottomHub.qml"
 require_file "$REPO/cortetsu/modules/CortetsuBottomHubView.qml"
@@ -58,9 +60,12 @@ mkdir -p "$STAGING/utils"
 cp -a "$REPO/cortetsu/utils/." "$STAGING/utils/"
 mkdir -p "$STAGING/services"
 cp -a "$REPO/cortetsu/services/." "$STAGING/services/"
+mkdir -p "$STAGING/assets/branding"
+cp -a "$REPO/cortetsu/assets/branding/." "$STAGING/assets/branding/"
 python3 "$REPO/cortetsu/bin/compose-panels.py" "$STAGING"
 install -m 0644 "$PROVENANCE" "$STAGING/provenance.json"
 install -m 0644 "$REPO/cortetsu/contracts/composition.json" "$STAGING/composition.json"
+install -m 0644 "$WALL_UTILITY_CONTRACT" "$STAGING/wall-utility.json"
 
 printf '==> Regresiones\n'
 python3 "$REPO/scripts/features/test-native-bottom-hub.py" --runtime "$STAGING/modules/BottomHub.qml"
@@ -68,17 +73,37 @@ python3 "$REPO/scripts/features/test-bottom-hub-target.py"
 python3 "$REPO/scripts/features/test-bottom-hub-v3.py"
 python3 "$REPO/scripts/features/test-bottom-hub-v4.py"
 python3 "$REPO/scripts/features/test-retained-overlay-wiring.py"
+python3 "$REPO/scripts/features/validate-clipboard-qml.py"
+python3 "$REPO/scripts/features/test-cortetsu-input-ownership.py"
+python3 "$REPO/scripts/features/eval-cortetsu-input-ownership.py"
 python3 "$REPO/scripts/features/test-contentwindow-overview-base.py"
 python3 "$REPO/scripts/features/test-contentwindow-focusgrab-parity.py"
 python3 "$REPO/scripts/features/test-wallpaper-manager.py"
+python3 "$REPO/scripts/features/test-cortetsu-wall-utility-contract.py"
+python3 "$REPO/scripts/features/eval-cortetsu-wall-utility-contract.py"
+python3 "$REPO/scripts/features/test-cortetsu-branding.py"
+python3 "$REPO/scripts/features/test-cortetsu-evolving-branding.py"
+python3 "$REPO/scripts/features/eval-cortetsu-evolving-branding.py"
 python3 "$REPO/scripts/features/test-keybinds.py"
 python3 "$REPO/scripts/features/test-shell-normalizer.py"
+python3 "$REPO/scripts/features/test-shell-lifecycle.py"
+python3 "$REPO/scripts/features/eval-shell-application-safety.py"
+python3 "$REPO/scripts/features/test-first-party-surface-imports.py"
+python3 "$REPO/scripts/features/eval-first-party-surface-imports.py"
 bash "$REPO/cortetsu/tests/test-calendar-readonly.sh"
 python3 "$REPO/cortetsu/tests/test-calendar-credentials.py"
 python3 "$REPO/cortetsu/tests/test-calendar-polish.py"
+python3 "$REPO/scripts/features/test-cortetsu-calendar-controls.py"
+python3 "$REPO/scripts/features/eval-cortetsu-calendar-controls.py"
+python3 "$REPO/scripts/features/test-cortetsu-progress-bar.py"
+python3 "$REPO/scripts/features/eval-cortetsu-progress-bar.py"
+python3 "$REPO/scripts/features/test-cortetsu-power.py"
+python3 "$REPO/scripts/features/eval-cortetsu-power.py"
 python3 "$REPO/cortetsu/tests/test-pomodoro.py"
 python3 "$REPO/cortetsu/tests/test-runtime-contract.py"
 python3 "$REPO/scripts/features/test-cortetsu-screen-state.py"
+python3 "$REPO/scripts/features/test-cortetsu-state-boundary.py"
+python3 "$REPO/scripts/features/eval-cortetsu-state-boundary.py"
 python3 "$REPO/scripts/features/test-cortetsu-hypr-adapters.py"
 python3 "$REPO/scripts/features/test-cortetsu-audio.py"
 python3 "$REPO/scripts/features/test-cortetsu-network-idle.py"
@@ -87,6 +112,8 @@ python3 "$REPO/scripts/features/test-package-independence.py"
 python3 "$REPO/scripts/features/test-notification-backend-boundary.py"
 python3 "$REPO/scripts/features/test-cortetsu-xdg-paths.py"
 python3 "$REPO/scripts/features/test-cortetsu-notifications.py"
+python3 "$REPO/scripts/features/test-notification-dismiss-popup.py"
+python3 "$REPO/scripts/features/eval-notification-dismiss-popup.py"
 python3 "$REPO/scripts/features/test-cortetsu-notification-actions.py"
 python3 "$REPO/cortetsu/tests/test-notifications.py"
 python3 -m py_compile "$REPO/cortetsu/bin/cortetsu-notifications"
@@ -94,8 +121,13 @@ python3 -m py_compile "$REPO/cortetsu/bin/cortetsu-record"
 python3 "$REPO/scripts/features/test-cortetsu-recorder.py"
 python3 "$REPO/scripts/features/test-cortetsu-config.py"
 python3 "$REPO/scripts/features/test-cortetsu-idle.py"
+python3 "$REPO/scripts/features/eval-cortetsu-idle.py"
 python3 "$REPO/scripts/features/test-cortetsu-toasts.py"
 python3 "$REPO/scripts/features/test-launcher-fonts.py"
+python3 "$REPO/scripts/features/test-cortetsu-dashboard-typography.py"
+python3 "$REPO/scripts/features/eval-cortetsu-dashboard-typography.py"
+python3 "$REPO/scripts/features/test-cortetsu-tray-menu.py"
+python3 "$REPO/scripts/features/eval-cortetsu-tray-menu.py"
 python3 "$REPO/scripts/features/test-dashboard-media.py"
 python3 "$REPO/scripts/features/test-dashboard-datetime.py"
 python3 "$REPO/scripts/features/test-dashboard-host.py"
@@ -110,9 +142,21 @@ python3 "$REPO/scripts/features/test-shortcut-namespace.py"
 python3 "$REPO/scripts/features/test-controller-boundaries.py"
 python3 "$REPO/scripts/features/test-overview-design.py"
 python3 "$REPO/scripts/features/test-display-design.py"
+python3 "$REPO/scripts/features/eval-cortetsu-display-controls.py"
+python3 "$REPO/scripts/features/test-display-footer-layout.py"
+python3 "$REPO/scripts/features/eval-display-footer-layout.py"
+python3 "$REPO/scripts/features/test-display-transaction-lua.py"
+python3 "$REPO/scripts/features/eval-display-transaction-lua.py"
 python3 "$REPO/scripts/features/test-hardware-design.py"
+python3 "$REPO/scripts/features/eval-cortetsu-hardware-tabs.py"
 python3 "$REPO/scripts/features/test-wallpaper-service.py"
+python3 "$REPO/scripts/features/test-cortetsu-wallpaper-palette.py"
+python3 "$REPO/scripts/features/eval-cortetsu-wallpaper-palette.py"
 python3 "$REPO/scripts/features/test-calendar-controller-state.py"
+python3 "$REPO/scripts/features/test-cortetsu-button-tooltip.py"
+python3 "$REPO/scripts/features/eval-cortetsu-button-tooltip.py"
+python3 "$REPO/scripts/features/test-cortetsu-wallpaper-controls.py"
+python3 "$REPO/scripts/features/eval-cortetsu-wallpaper-controls.py"
 python3 "$REPO/scripts/features/test-legacy-process-migration.py"
 bash -n "$REPO/cortetsu/bin/cortetsu-wallpaper-color-daemon"
 bash -n "$REPO/cortetsu/bin/cortetsu-apply-wallpaper-colors"
@@ -132,6 +176,7 @@ for required in \
     utils/CortetsuUtils.qml \
     utils/SysInfo.qml \
     modules/CortetsuModeSegment.qml \
+    components/CortetsuEvolvingMark.qml \
     modules/CortetsuWorkspaceDots.qml \
     modules/CortetsuAppRail.qml \
     modules/CortetsuTraySegment.qml \
@@ -155,14 +200,14 @@ for required in \
     services/Audio.qml \
     services/Players.qml \
     services/Lyrics.qml \
-    services/Recorder.qml \
     services/ShellState.qml \
     modules/CortetsuStateLayer.qml \
     modules/CortetsuMask.qml \
     modules/areapicker/AreaPicker.qml \
     modules/areapicker/Picker.qml \
     provenance.json \
-    composition.json
+    composition.json \
+    wall-utility.json
 do
     require_file "$STAGING/$required"
 done

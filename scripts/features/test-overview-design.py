@@ -17,6 +17,11 @@ assert 'text: qsTr("Selected")' in card and "visible: root.selected" in card
 assert "activeFocusOnTab: true" in card
 assert 'ToolTip.text: qsTr("Close window")' in card
 assert "onPressed: parent.forceActiveFocus()" in card
+assert "property real visualScale" in card
+assert "scale: 1" in card
+assert card.count("scale: root.visualScale") >= 3
+assert "Behavior on visualScale" in card
+assert "duration: CortetsuDesign.motionFastMs" in card
 content_window = (repo / "cortetsu/modules/drawers/ContentWindow.qml").read_text()
 assert "color: CortetsuDesign.colorScrim" in content_window
 assert "id: viewportBackground" in overview_content

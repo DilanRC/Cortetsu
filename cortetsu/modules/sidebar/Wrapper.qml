@@ -7,7 +7,7 @@ Item {
 
     objectName: "cortetsuBottomNotificationCenter"
     required property var screenState
-    readonly property bool shouldBeActive: screenState.sidebar
+    readonly property bool shouldBeActive: screenState?.sidebar ?? false
     property real offsetScale: shouldBeActive ? 0 : 1
 
     visible: offsetScale < 1

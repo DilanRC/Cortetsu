@@ -3,14 +3,11 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls
 import ".."
+import "../../components"
 import "../CortetsuDesign.js" as CortetsuDesign
 import "../CortetsuTypography.js" as CortetsuTypography
-import "../CortetsuSurface.qml"
-import "../CortetsuText.qml"
-import "../CortetsuIcon.qml"
 import "../CortetsuSearchBar.qml"
-import "../../components"
-import qs.modules.launcher.services
+import "services"
 
 Item {
     id: root
@@ -18,53 +15,112 @@ Item {
     required property var screenState
     required property var panels
     required property real maxHeight
+    property string pendingWallpaperPath: ""
 
-    readonly property int padding: CortetsuDesign.spacingComfortable
+    readonly property int padding: CortetsuDesign.spacingStandard
     readonly property int rounding: CortetsuDesign.radiusLarge
+    readonly property bool markIntent: search.activeFocus || search.text.length > 0
+    // Monster identifies the active Launcher surface. Awakening is reserved
+    // for intent inside it; wallpaper apply belongs to Wallpaper Manager.
+    readonly property string markPhase: !(root.screenState?.launcher ?? false)
+        ? "Human"
+        : markIntent
+            ? "Awakening"
+            : "Monster"
 
-    /*
-     * Search on top, results underneath.
-     *
-     * The upstream launcher places SearchBar at the bottom. For the dock
-     * layout it is clearer at the top and keeps the dock visually separate.
-     */
+    function focusSearch(): void {
+        search.forceActiveFocus();
+        search.cursorPosition = search.text.length;
+    }
+
+    function modeLabel(): string {
+        if (search.text.startsWith(`${CortetsuConfig.actionPrefix}scheme `)) return qsTr("Theme");
+        if (search.text.startsWith(`${CortetsuConfig.actionPrefix}wallpaper `)) return qsTr("Wallpaper");
+        if (search.text.startsWith(CortetsuConfig.actionPrefix)) return qsTr("Command");
+        return qsTr("Apps");
+    }
+
+    function modeIcon(): string {
+        if (modeLabel() === qsTr("Theme")) return "palette";
+        if (modeLabel() === qsTr("Wallpaper")) return "wallpaper";
+        if (modeLabel() === qsTr("Command")) return "terminal";
+        return "apps";
+    }
+
+    function requestWallpaper(path: string): void {
+        const target = String(path ?? "").trim();
+        if (!target || CortetsuWallpapers.applying)
+            return;
+        if (target === CortetsuWallpapers.actualCurrent) {
+            pendingWallpaperPath = "";
+            root.screenState.launcher = false;
+            return;
+        }
+        if (CortetsuWallpapers.apply(target))
+            pendingWallpaperPath = target;
+    }
+
     implicitWidth: listWrapper.width + padding * 2
     implicitHeight:
         padding +
-        heading.implicitHeight +
-        CortetsuDesign.spacingCompact +
         search.implicitHeight +
-        padding +
+        CortetsuDesign.spacingStandard +
+        mode.implicitHeight +
+        CortetsuDesign.spacingCompact +
         listWrapper.implicitHeight +
         padding
 
+    CortetsuPopupSurface {
+        anchors.fill: parent
+        baseColor: Qt.alpha(CortetsuDesign.colorTetsu, 0.94)
+        outlineColor: Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.16)
+    }
+
+    CortetsuSurface {
+        id: mode
+        anchors.top: search.bottom
+        anchors.left: search.left
+        anchors.right: search.right
+        anchors.topMargin: CortetsuDesign.spacingCompact
+        implicitHeight: 32
+        radiusValue: CortetsuDesign.radiusSmall
+        baseColor: Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.42)
+        outlined: true
+        Row {
+            anchors.fill: parent
+            anchors.leftMargin: CortetsuDesign.spacingCompact
+            anchors.rightMargin: CortetsuDesign.spacingCompact
+            spacing: CortetsuDesign.spacingCompact
+            CortetsuEvolvingMark {
+                width: 20
+                height: 20
+                anchors.verticalCenter: parent.verticalCenter
+                phase: root.markPhase
+                monochrome: true
+                monochromeColor: CortetsuDesign.colorWashi
+            }
+            CortetsuIcon { anchors.verticalCenter: parent.verticalCenter; text: root.modeIcon(); iconSize: CortetsuTypography.iconSmallPx; color: CortetsuDesign.colorPrimary }
+            CortetsuText { anchors.verticalCenter: parent.verticalCenter; text: root.modeLabel(); textSize: CortetsuTypography.labelSmallPx; font.weight: Font.DemiBold; color: CortetsuDesign.colorOnPrimaryContainer }
+            CortetsuText { anchors.verticalCenter: parent.verticalCenter; text: CortetsuWallpapers.applyStatus === "failed" && root.pendingWallpaperPath ? qsTr("Apply failed") : root.modeLabel() === qsTr("Apps") ? qsTr("Search-first") : qsTr("Prefix mode"); textSize: CortetsuTypography.labelSmallPx; color: CortetsuDesign.colorOnSurfaceVariant }
+        }
+    }
+
     CortetsuSearchBar {
         id: search
-
         objectName: "launcherSearch"
-
-        anchors.top: heading.bottom
+        anchors.top: parent.top
         anchors.left: parent.left
         anchors.right: parent.right
-
-        anchors.topMargin: CortetsuDesign.spacingCompact
+        anchors.topMargin: root.padding
         anchors.leftMargin: root.padding
         anchors.rightMargin: root.padding
-
-        topPadding: Math.round((CortetsuDesign.spacingStandard + CortetsuDesign.spacingComfortable) / 2)
-        bottomPadding: Math.round((CortetsuDesign.spacingStandard + CortetsuDesign.spacingComfortable) / 2)
-
-        placeholderText: qsTr("Type \"%1\" for commands").arg(CortetsuConfig.actionPrefix)
+        placeholderText: qsTr("Search apps or commands…")
 
         onAccepted: {
             const currentItem = list.currentList?.currentItem;
             if (currentItem) {
                 if (list.showWallpapers) {
-                    if (false && currentItem.modelData.path !== CortetsuWallpapers.actualCurrent)
-                        CortetsuWallpapers.previewColourLock = true;
-
-                    CortetsuWallpapers.setWallpaper(currentItem.modelData.path);
-                    root.screenState.launcher = false;
+                    root.requestWallpaper(currentItem.modelData.path);
                 } else if (text.startsWith(CortetsuConfig.actionPrefix)) {
                     if (text.startsWith(`${CortetsuConfig.actionPrefix}calc `))
                         currentItem.onClicked();
@@ -96,7 +152,6 @@ Item {
                 list.currentList?.decrementCurrentIndex();
             else
                 list.currentList?.moveGridLeft();
-
             event.accepted = true;
         }
 
@@ -105,15 +160,13 @@ Item {
                 list.currentList?.incrementCurrentIndex();
             else
                 list.currentList?.moveGridRight();
-
             event.accepted = true;
         }
 
         Keys.onEscapePressed: root.screenState.launcher = false
 
         Keys.onPressed: event => {
-            if (CortetsuConfig.vimKeybinds &&
-                    (event.modifiers & Qt.ControlModifier)) {
+            if (CortetsuConfig.vimKeybinds && (event.modifiers & Qt.ControlModifier)) {
                 if (event.key === Qt.Key_J || event.key === Qt.Key_N) {
                     list.currentList?.incrementCurrentIndex();
                     event.accepted = true;
@@ -125,23 +178,23 @@ Item {
                 }
             }
 
-            if (event.key === Qt.Key_Tab &&
-                    !(event.modifiers & Qt.ShiftModifier)) {
+            if (event.key === Qt.Key_Tab && !(event.modifiers & Qt.ShiftModifier)) {
                 list.currentList?.incrementCurrentIndex();
                 event.accepted = true;
             } else if (event.key === Qt.Key_Backtab ||
-                    (event.key === Qt.Key_Tab &&
-                     (event.modifiers & Qt.ShiftModifier))) {
+                    (event.key === Qt.Key_Tab && (event.modifiers & Qt.ShiftModifier))) {
                 list.currentList?.decrementCurrentIndex();
                 event.accepted = true;
             }
         }
 
-        Component.onCompleted: forceActiveFocus()
+        Component.onCompleted: root.focusSearch()
 
         Connections {
             function onLauncherChanged(): void {
-                if (!root.screenState.launcher)
+                if (root.screenState.launcher)
+                    Qt.callLater(root.focusSearch);
+                else
                     search.text = "";
             }
 
@@ -154,41 +207,37 @@ Item {
         }
     }
 
-    CortetsuSectionHeader {
-        id: heading
-
-        anchors.top: parent.top
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.topMargin: root.padding
-        anchors.leftMargin: root.padding
-        anchors.rightMargin: root.padding
-        title: qsTr("Launcher")
-        detail: qsTr("Applications and commands")
+    Connections {
+        target: CortetsuWallpapers
+        function onWallpaperApplySucceeded(path: string, generation: int): void {
+            if (path === root.pendingWallpaperPath) {
+                root.pendingWallpaperPath = "";
+                root.screenState.launcher = false;
+            }
+        }
+        function onWallpaperApplyFailed(path: string, generation: int): void {
+            if (path === root.pendingWallpaperPath)
+                root.pendingWallpaperPath = path;
+        }
     }
 
     Item {
         id: listWrapper
-
         implicitWidth: list.width
         implicitHeight: list.height
-
-        anchors.top: search.bottom
-        anchors.topMargin: root.padding
+        anchors.top: mode.bottom
+        anchors.topMargin: CortetsuDesign.spacingCompact
         anchors.horizontalCenter: parent.horizontalCenter
 
         ContentList {
             id: list
-
             content: root
             screenState: root.screenState
             panels: root.panels
-
             maxHeight:
                 root.maxHeight -
                 search.implicitHeight -
                 root.padding * 3
-
             search: search
             padding: root.padding
             rounding: root.rounding

@@ -10,7 +10,7 @@ import ".."
 import "../../components"
 import "../../components/containers"
 import "../../services"
-import qs.modules.bar
+import "../bar" as Bar
 import "../CortetsuDesign.js" as CortetsuDesign
 
 StyledWindow {
@@ -19,7 +19,10 @@ StyledWindow {
     readonly property alias bar: bar
     readonly property alias interactionWrapper: interactions
 
-    readonly property ScreenState screenState: ShellState.forScreen(screen)
+    // The shared drawer reads the same monitor-local registry as every
+    // first-party host. ShellState remains available below only for legacy
+    // component slots, not as a second effective state lookup.
+    readonly property ScreenState screenState: CortetsuShellState.forScreen(screen)
 
     readonly property HyprlandMonitor monitor: Hypr.monitorFor(screen)
     readonly property bool hasSpecialWorkspace: (monitor?.lastIpcObject.specialWorkspace?.name.length ?? 0) > 0
@@ -59,24 +62,30 @@ StyledWindow {
     }
 
     onHasFullscreenChanged: {
-        screenState.launcher = false;
-        screenState.session = false;
-        screenState.dashboard = false;
-        screenState.cortetsuState?.closeRetainedOverlays();
+        const state = screenState;
+        if (!state)
+            return;
+        state.launcher = false;
+        state.session = false;
+        state.dashboard = false;
+        state.cortetsuState?.closeRetainedOverlays();
         panels.popouts.close();
     }
 
     name: "drawers"
-    focusable: panels.popouts.hasCurrent || screenState.cortetsuState?.requiresWindowKeyboardFocus
+    focusable: panels.popouts.hasCurrent || ((screenState?.cortetsuState?.requiresWindowKeyboardFocus ?? false) && !(screenState?.launcher ?? false) && !(screenState?.session ?? false))
     WlrLayershell.exclusionMode: ExclusionMode.Ignore
-    WlrLayershell.layer: screenState.cortetsuState?.overview ? WlrLayer.Overlay : ((fsTransitionProg > 0 && CortetsuOverlayConfig.general.showOverFullscreen) || (hasSpecialWorkspace && hasFullscreenOnNormalWs) ? WlrLayer.Overlay : WlrLayer.Top)
-    WlrLayershell.keyboardFocus: panels.popouts.hasCurrent
+    WlrLayershell.layer: screenState?.cortetsuState?.overview ? WlrLayer.Overlay : ((fsTransitionProg > 0 && CortetsuOverlayConfig.general.showOverFullscreen) || (hasSpecialWorkspace && hasFullscreenOnNormalWs) ? WlrLayer.Overlay : WlrLayer.Top)
+    // Attached BottomHub popouts are mouse-owned. Giving the full-screen
+    // drawer exclusive keyboard focus steals pointer hover from the trigger
+    // window, which makes the shared hover controller close and reopen them.
+    WlrLayershell.keyboardFocus: (panels.popouts.isDetached || panels.popouts.currentName === "wirelesspassword")
         ? WlrKeyboardFocus.Exclusive
-        : screenState.cortetsuState?.requiresWindowKeyboardFocus
+        : (screenState?.cortetsuState?.requiresWindowKeyboardFocus && !(screenState?.launcher ?? false) && !(screenState?.session ?? false))
             ? WlrKeyboardFocus.OnDemand
             : WlrKeyboardFocus.None
 
-    mask: screenState.cortetsuState?.requiresFullInputMask ? null : (hasFullscreen ? emptyRegion : regions)
+    mask: screenState?.cortetsuState?.requiresFullInputMask ? null : (hasFullscreen ? emptyRegion : regions)
 
     anchors.top: true
     anchors.bottom: true
@@ -92,7 +101,7 @@ StyledWindow {
             root.screenState.utilities = false;
             root.screenState.dashboard = false;
             root.screenState.cortetsuState?.closeRetainedOverlays();
-            panels.popouts.hasCurrent = false;
+            panels.popouts.close();
             bar.closeTray();
         }
     }
@@ -126,12 +135,14 @@ StyledWindow {
 
         active: {
             const s = root.screenState;
+            if (!s)
+                return false;
             const conf = root.CortetsuOverlayConfig;
-            if (panels.popouts.hasCurrent)
+            if (panels.popouts.isDetached || panels.popouts.currentName === "wirelesspassword")
                 return true;
             if (s.cortetsuState?.retainedOverlayOpen)
-                return true;
-            if ((s.launcher && conf.launcher.enabled) || (s.session && conf.session.enabled) || (s.sidebar && conf.sidebar.enabled) || (s.utilities && conf.utilities.enabled))
+                return false;
+            if ((s.sidebar && conf.sidebar.enabled) || (s.utilities && conf.utilities.enabled))
                 return true;
             if (!conf.dashboard.showOnHover && s.dashboard && conf.dashboard.enabled)
                 return true;
@@ -147,14 +158,14 @@ StyledWindow {
             root.screenState.utilities = false;
             root.screenState.dashboard = false;
             root.screenState.cortetsuState?.closeRetainedOverlays();
-            panels.popouts.hasCurrent = false;
+            panels.popouts.close();
             bar.closeTray();
         }
     }
 
     Rectangle {
         anchors.fill: parent
-        opacity: root.screenState.cortetsuState?.overview ? 0.58 : ((root.screenState.session && CortetsuOverlayConfig.session.enabled) || panels.popouts.detachedMode !== "" ? 0.5 : 0)
+        opacity: root.screenState?.cortetsuState?.overview ? 0.58 : (((root.screenState?.session ?? false) && CortetsuOverlayConfig.session.enabled) || panels.popouts.detachedMode !== "" ? 0.5 : 0)
         // Overview opacity is already applied by the item. Keeping the color
         // opaque here avoids multiplying the scrim alpha and leaking desktop
         // content through the window-card composition.
@@ -199,6 +210,7 @@ StyledWindow {
         popouts: panels.popouts
         screenState: root.screenState
         panels: panels
+        qsd: null
         bar: bar
         borderThickness: root.borderLayoutThickness
         fullscreen: root.hasFullscreen
@@ -214,7 +226,7 @@ StyledWindow {
 
         }
 
-        BarWrapper {
+        Bar.BarWrapper {
             id: bar
 
             anchors.top: parent.top
@@ -227,6 +239,7 @@ StyledWindow {
             fullscreen: root.hasFullscreen
         }
     }
+
 
     ShellState.ComponentRef {
         screen: root.screen
@@ -255,7 +268,7 @@ StyledWindow {
     component PanelBg: Rectangle {
         required property Item panel
         property real deformAmount: 0.15
-        visible: panel.width > 0 && panel.height > 0 && (panel.offsetScale ?? 0) < 1
+        visible: panel.visible && panel.width > 0 && panel.height > 0 && (panel.offsetScale ?? 0) < 1
         x: panel.x + bar.implicitWidth
         y: panel.y + root.borderThickness
         width: panel.width

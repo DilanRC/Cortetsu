@@ -4,6 +4,8 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import "."
+import "../services"
+import "CortetsuDesign.js" as CortetsuDesign
 import "CortetsuWallpaperSearch.js" as WallpaperSearch
 
 Singleton {
@@ -23,6 +25,25 @@ Singleton {
     property bool previewColourLock: false
     property string previewSchemeJson: ""
     property int previewGeneration: 0
+    readonly property string pendingApplyPath: applyState.pendingPath
+    readonly property bool applying: pendingApplyPath.length > 0
+    property bool applyFailed: false
+    property bool applySucceeded: false
+    property string applyError: ""
+    property string lastApplyPath: ""
+    readonly property string applyStatus: applying
+        ? "applying"
+        : applyFailed
+            ? "failed"
+            : applySucceeded
+                ? "applied"
+                : "idle"
+    readonly property string applyStatusPath: applying ? pendingApplyPath : lastApplyPath
+    property bool randomApply: false
+    property int applyGeneration: 0
+
+    signal wallpaperApplySucceeded(string path, int generation)
+    signal wallpaperApplyFailed(string path, int generation)
 
     function entry(path: string): var {
         const slash = path.lastIndexOf("/");
@@ -53,15 +74,110 @@ Singleton {
         scan.running = true;
     }
 
-    function setRandom(): void {
+    function apply(path: string): bool {
+        const target = String(path ?? "").trim();
+        if (!target || applying || target === actualCurrent)
+            return false;
         stopPreview();
-        Quickshell.execDetached(["cortetsu-wallpaper-select", "--random", wallsdir]);
+        applyGeneration += 1;
+        applyState.pendingPath = target;
+        randomApply = false;
+        applyFailed = false;
+        applySucceeded = false;
+        applyError = "";
+        lastApplyPath = target;
+        applyTimeout.restart();
+        Quickshell.execDetached(["cortetsu-wallpaper-select", target]);
+        return true;
     }
 
-    function setWallpaper(path: string): void {
+    function applyRandom(): bool {
+        if (applying)
+            return false;
         stopPreview();
-        actualCurrent = path;
-        Quickshell.execDetached(["cortetsu-wallpaper-select", path]);
+        applyGeneration += 1;
+        applyState.pendingPath = actualCurrent;
+        randomApply = true;
+        applyFailed = false;
+        applySucceeded = false;
+        applyError = "";
+        lastApplyPath = "";
+        applyTimeout.restart();
+        Quickshell.execDetached(["cortetsu-wallpaper-select", "--random", wallsdir]);
+        return true;
+    }
+
+    function setRandom(): void { applyRandom(); }
+
+    function setWallpaper(path: string): void { apply(path); }
+
+    function cancelApply(): void {
+        applyTimeout.stop();
+        paletteApply.requestGeneration = -1;
+        paletteApply.requestPath = "";
+        paletteApply.running = false;
+        applyState.pendingPath = "";
+        randomApply = false;
+        applyFailed = false;
+        applySucceeded = false;
+        applyError = "";
+        lastApplyPath = "";
+    }
+
+    function completeApply(path: string, generation: int): void {
+        if (!applying || generation !== applyGeneration)
+            return;
+        applyTimeout.stop();
+        paletteApply.requestGeneration = -1;
+        paletteApply.requestPath = "";
+        applyState.pendingPath = "";
+        randomApply = false;
+        applyFailed = false;
+        applySucceeded = true;
+        applyError = "";
+        lastApplyPath = path;
+        previewColourLock = false;
+        wallpaperApplySucceeded(path, generation);
+    }
+
+    function readActual(raw: string): void {
+        const next = String(raw ?? "").trim() || fallback;
+        actualCurrent = next;
+        if (!applying)
+            return;
+        const confirmed = randomApply ? next !== pendingApplyPath : next === pendingApplyPath;
+        if (!confirmed)
+            return;
+        const generation = applyGeneration;
+        lastApplyPath = next;
+        if (CortetsuConfig.smartScheme) {
+            paletteApply.requestGeneration = generation;
+            paletteApply.requestPath = next;
+            paletteApply.command = ["cortetsu-apply-wallpaper-colors", next];
+            paletteApply.running = true;
+            return;
+        }
+        root.completeApply(next, generation);
+    }
+
+    function failApply(detail): void {
+        if (!applying)
+            return;
+        detail = String(detail ?? "");
+        const path = pendingApplyPath;
+        const generation = applyGeneration;
+        paletteApply.requestGeneration = -1;
+        paletteApply.requestPath = "";
+        paletteApply.running = false;
+        applyTimeout.stop();
+        applyState.pendingPath = "";
+        randomApply = false;
+        applyFailed = true;
+        applySucceeded = false;
+        applyError = detail;
+        lastApplyPath = path;
+        previewColourLock = false;
+        wallpaperApplyFailed(path, generation);
     }
 
     function preview(path: string): void {
@@ -80,6 +196,7 @@ Singleton {
         previewPath = "";
         previewSchemeJson = "";
         previewColourLock = false;
+        CortetsuColours.clearPreview();
     }
 
     Component.onCompleted: reload()
@@ -91,13 +208,25 @@ Singleton {
         function list(): string { return root.list.map(w => w.path).join("\n"); }
     }
 
+    QtObject {
+        id: applyState
+        property string pendingPath: ""
+    }
+
+    Timer {
+        id: applyTimeout
+        interval: CortetsuDesign.motionDeliberateMs * 8
+        repeat: false
+        onTriggered: root.failApply()
+    }
+
     FileView {
         path: root.currentNamePath
         watchChanges: true
         printErrors: false
-        onFileChanged: reload()
-        onLoaded: root.actualCurrent = text().trim() || root.fallback
-        onLoadFailed: root.actualCurrent = root.fallback
+        onFileChanged: { root.readActual(text()); reload(); }
+        onLoaded: root.readActual(text())
+        onLoadFailed: root.readActual(root.fallback)
     }
 
     Process {
@@ -112,9 +241,33 @@ Singleton {
         property int requestGeneration: -1
         stdout: StdioCollector {
             onStreamFinished: {
-                if (previewPalette.requestGeneration === root.previewGeneration && root.showPreview)
+                if (previewPalette.requestGeneration === root.previewGeneration && root.showPreview) {
                     root.previewSchemeJson = text;
+                    if (CortetsuConfig.smartScheme)
+                        CortetsuColours.load(text, true);
+                }
             }
+        }
+    }
+
+    Process {
+        id: paletteApply
+        property int requestGeneration: -1
+        property string requestPath: ""
+        command: []
+
+        stderr: StdioCollector { id: paletteApplyStderr }
+
+        onExited: code => { // qmllint disable signal-handler-parameters
+            if (!root.applying
+                || paletteApply.requestGeneration !== root.applyGeneration
+                || paletteApply.requestPath !== root.actualCurrent)
+                return;
+            const detail = paletteApplyStderr.text.trim();
+            if (code === 0)
+                root.completeApply(root.actualCurrent, root.applyGeneration);
+            else
+                root.failApply(detail || qsTr("Dynamic scheme apply failed"));
         }
     }
 

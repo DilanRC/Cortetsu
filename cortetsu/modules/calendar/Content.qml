@@ -1,11 +1,11 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
 import ".."
+import "../../components"
 import "../CortetsuDesign.js" as CortetsuDesign
 import "../CortetsuTypography.js" as CortetsuTypography
 
@@ -130,25 +130,16 @@ Item {
         calendarSync.running = true;
     }
 
-    component FocusButton: CortetsuSurface { outlined: false;
-        required property string label
-        signal clicked()
-        implicitWidth: buttonLabel.implicitWidth + CortetsuDesign.spacingStandard * 2
-        implicitHeight: 30
-        radius: CortetsuDesign.radiusSmall
-        color: buttonMouse.containsMouse ? CortetsuDesign.colorSecondary : CortetsuDesign.colorSurfaceHigh
-        CortetsuText { id: buttonLabel; anchors.centerIn: parent; text: parent.label; color: CortetsuDesign.colorOnSurface; textSize: CortetsuTypography.labelMediumPx }
-        MouseArea { id: buttonMouse; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: parent.clicked() }
-    }
-
     Component.onCompleted: {
         load();
-        if (screenState.cortetsuState?.calendar) requestCalendarSync();
+        if (screenState && screenState.cortetsuState && screenState.cortetsuState.calendar)
+            requestCalendarSync();
     }
     Connections {
-        target: root.screenState.cortetsuState
+        target: root.screenState ? root.screenState.cortetsuState : null
         function onCalendarChanged(): void {
-            if (root.screenState.cortetsuState?.calendar) root.requestCalendarSync();
+            if (root.screenState && root.screenState.cortetsuState && root.screenState.cortetsuState.calendar)
+                root.requestCalendarSync();
         }
     }
     FileView { id: cache; path: root.cachePath; watchChanges: true; printErrors: false; onLoaded: root.loadCalendar(); onFileChanged: root.loadCalendar() }
@@ -200,8 +191,8 @@ Item {
                 Layout.fillWidth: true
                 CortetsuText { Layout.fillWidth: true; text: qsTr("Calendar"); textSize: CortetsuTypography.titleLargePx; color: CortetsuDesign.colorOnSurface }
                 CortetsuText { visible: root.syncStatus.length > 0; text: root.syncStatus; textSize: CortetsuTypography.labelSmallPx; color: CortetsuDesign.colorOnSurfaceVariant }
-                Item { implicitWidth: 32; implicitHeight: 32; CortetsuIcon { anchors.centerIn: parent; text: calendarSync.running ? "sync" : "refresh"; color: CortetsuDesign.colorOnSurfaceVariant } MouseArea { anchors.fill: parent; enabled: !calendarSync.running; cursorShape: Qt.PointingHandCursor; onClicked: root.requestCalendarSync(true) } }
-                Item { implicitWidth: 32; implicitHeight: 32; CortetsuIcon { anchors.centerIn: parent; text: "close"; color: CortetsuDesign.colorOnSurfaceVariant } MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: root.screenState.cortetsuState?.setRetained("calendar", false) } }
+                CortetsuButton { compact: true; icon: calendarSync.running ? "sync" : "refresh"; label: ""; tooltipText: qsTr("Sync calendar"); disabled: calendarSync.running; onClicked: root.requestCalendarSync(true) }
+                CortetsuButton { compact: true; icon: "close"; label: ""; tooltipText: qsTr("Close Calendar"); onClicked: root.screenState.cortetsuState?.setRetained("calendar", false) }
             }
 
             RowLayout {
@@ -217,10 +208,10 @@ Item {
 
                     RowLayout {
                         Layout.fillWidth: true
-                        Item { implicitWidth: 32; implicitHeight: 32; CortetsuIcon { anchors.centerIn: parent; text: "chevron_left"; color: CortetsuDesign.colorOnSurface } MouseArea { anchors.fill: parent; onClicked: root.changeMonth(-1) } }
+                        CortetsuButton { compact: true; icon: "chevron_left"; label: ""; tooltipText: qsTr("Previous month"); onClicked: root.changeMonth(-1) }
                         CortetsuText { Layout.fillWidth: true; horizontalAlignment: Text.AlignHCenter; text: Qt.formatDate(root.selectedDate, "MMMM yyyy"); textSize: CortetsuTypography.titleMediumPx; color: CortetsuDesign.colorOnSurface }
-                        Button { text: qsTr("Today"); flat: true; onClicked: root.selectedDate = new Date() }
-                        Item { implicitWidth: 32; implicitHeight: 32; CortetsuIcon { anchors.centerIn: parent; text: "chevron_right"; color: CortetsuDesign.colorOnSurface } MouseArea { anchors.fill: parent; onClicked: root.changeMonth(1) } }
+                        CortetsuButton { compact: true; icon: "today"; label: qsTr("Today"); onClicked: root.selectedDate = new Date() }
+                        CortetsuButton { compact: true; icon: "chevron_right"; label: ""; tooltipText: qsTr("Next month"); onClicked: root.changeMonth(1) }
                     }
 
                     GridLayout {
@@ -321,8 +312,41 @@ Item {
                             anchors.fill: parent; anchors.margins: CortetsuDesign.spacingStandard; spacing: CortetsuDesign.spacingCompact
                             RowLayout { Layout.fillWidth: true; CortetsuText { Layout.fillWidth: true; text: root.phaseLabel(); color: CortetsuDesign.colorOnSecondaryContainer; textSize: CortetsuTypography.labelLargePx } CortetsuText { text: qsTr("%1 sessions").arg(Number(pomodoro.completedSessions || 0)); color: CortetsuDesign.colorOnSecondaryContainer; textSize: CortetsuTypography.labelSmallPx } }
                             CortetsuText { Layout.fillWidth: true; horizontalAlignment: Text.AlignHCenter; text: root.timeLeft(); color: CortetsuDesign.colorOnSecondaryContainer; textSize: CortetsuTypography.titleLargePx }
-                            Rectangle { Layout.fillWidth: true; implicitHeight: 5; radius: 3; color: CortetsuDesign.colorSecondary; Rectangle { height: parent.height; width: parent.width * root.progress(); radius: 3; color: CortetsuDesign.colorOnSecondaryContainer; Behavior on width { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } } } }
-                            RowLayout { Layout.fillWidth: true; Item { Layout.fillWidth: true } FocusButton { visible: root.isBreakPhase(pomodoro.phase); label: qsTr("Skip break"); onClicked: root.runPomodoro("skip") } FocusButton { label: root.isActivePhase(pomodoro.phase) ? qsTr("Pause") : pomodoro.phase === "PAUSED" ? qsTr("Resume") : qsTr("Start"); onClicked: root.runPomodoro(root.isActivePhase(pomodoro.phase) ? "pause" : pomodoro.phase === "PAUSED" ? "resume" : "start") } FocusButton { label: qsTr("Reset"); onClicked: root.runPomodoro("reset") } }
+                            CortetsuProgressBar {
+                                Layout.fillWidth: true
+                                value: root.progress()
+                                barHeight: 5
+                                barRadius: 3
+                                trackColor: CortetsuDesign.colorSecondary
+                                fillColor: CortetsuDesign.colorOnSecondaryContainer
+                                motionDuration: CortetsuDesign.motionFastMs
+                            }
+                            RowLayout {
+                                Layout.fillWidth: true
+                                Item { Layout.fillWidth: true }
+                                CortetsuButton {
+                                    visible: root.isBreakPhase(pomodoro.phase)
+                                    compact: true
+                                    icon: "skip_next"
+                                    label: qsTr("Skip break")
+                                    onClicked: root.runPomodoro("skip")
+                                }
+                                CortetsuButton {
+                                    compact: true
+                                    icon: root.isActivePhase(pomodoro.phase) ? "pause" : "play_arrow"
+                                    label: root.isActivePhase(pomodoro.phase)
+                                        ? qsTr("Pause")
+                                        : pomodoro.phase === "PAUSED" ? qsTr("Resume") : qsTr("Start")
+                                    onClicked: root.runPomodoro(root.isActivePhase(pomodoro.phase)
+                                        ? "pause" : pomodoro.phase === "PAUSED" ? "resume" : "start")
+                                }
+                                CortetsuButton {
+                                    compact: true
+                                    icon: "restart_alt"
+                                    label: qsTr("Reset")
+                                    onClicked: root.runPomodoro("reset")
+                                }
+                            }
                         }
                     }
                 }

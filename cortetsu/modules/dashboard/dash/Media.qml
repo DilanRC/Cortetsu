@@ -1,6 +1,8 @@
 import QtQuick
 import "../../CortetsuDesign.js" as CortetsuDesign
 import "../../CortetsuTypography.js" as CortetsuTypography
+import "../../CortetsuIcon.qml"
+import "../../CortetsuText.qml"
 import "../../../services"
 
 Item {
@@ -20,31 +22,28 @@ Item {
             radius: CortetsuDesign.radiusMedium
             color: CortetsuDesign.colorSurfaceHigh
 
-            Text {
+            CortetsuIcon {
                 anchors.centerIn: parent
                 text: "music_note"
                 color: CortetsuDesign.colorSecondary
-                font.family: CortetsuTypography.iconFamily
-                font.pixelSize: 44
+                iconSize: CortetsuTypography.iconHeroPx
             }
         }
 
-        Text {
+        CortetsuText {
             width: parent.width
             text: Players.active?.trackTitle || qsTr("No media")
             color: CortetsuDesign.colorWashi
-            font.family: CortetsuTypography.uiFamily
-            font.pixelSize: CortetsuTypography.bodyPx + 3
-            font.bold: true
+            textSize: CortetsuTypography.titleSmallPx
+            font.weight: Font.Bold
             elide: Text.ElideRight
         }
 
-        Text {
+        CortetsuText {
             width: parent.width
             text: Players.active?.trackArtist || qsTr("No active player")
             color: CortetsuDesign.colorMuted
-            font.family: CortetsuTypography.uiFamily
-            font.pixelSize: CortetsuTypography.bodyPx
+            textSize: CortetsuTypography.bodyPx
             elide: Text.ElideRight
         }
 
@@ -52,25 +51,22 @@ Item {
             anchors.horizontalCenter: parent.horizontalCenter
             spacing: CortetsuDesign.spacingComfortable
 
-            Text {
+            CortetsuIcon {
                 text: "skip_previous"
                 color: CortetsuDesign.colorWashi
-                font.family: CortetsuTypography.iconFamily
-                font.pixelSize: CortetsuTypography.iconMediumPx
+                iconSize: CortetsuTypography.iconMediumPx
                 MouseArea { anchors.fill: parent; onClicked: Players.active?.previous() }
             }
-            Text {
+            CortetsuIcon {
                 text: Players.active?.isPlaying ? "pause" : "play_arrow"
                 color: CortetsuDesign.colorPrimary
-                font.family: CortetsuTypography.iconFamily
-                font.pixelSize: CortetsuTypography.iconMediumPx
+                iconSize: CortetsuTypography.iconMediumPx
                 MouseArea { anchors.fill: parent; onClicked: Players.active?.togglePlaying() }
             }
-            Text {
+            CortetsuIcon {
                 text: "skip_next"
                 color: CortetsuDesign.colorWashi
-                font.family: CortetsuTypography.iconFamily
-                font.pixelSize: CortetsuTypography.iconMediumPx
+                iconSize: CortetsuTypography.iconMediumPx
                 MouseArea { anchors.fill: parent; onClicked: Players.active?.next() }
             }
         }

@@ -34,10 +34,14 @@ def main() -> None:
     require(VIEW, "id: statusSegment", "isla sistema")
     if not (VIEW.index("id: appSegment") < VIEW.index("id: traySegment") < VIEW.index("id: statusSegment")):
         raise SystemExit("FAIL: orden visual esperado center -> tray -> system")
-    require(VIEW, "anchors.right: statusSegment.left", "tray separado de sistema")
+    require(
+        VIEW,
+        "anchors.right: statusSegment.visible ? statusSegment.left : parent.right",
+        "tray separado de sistema y adaptable al segmento oculto",
+    )
     require(HUB, "const sourceIndex = SystemTray.items.values.indexOf(item);", "indice SNI estable")
     require(HUB, "item.icon || Icons.getTrayIcon(item.id, item.icon)", "icono SNI prioritario")
-    require(HUB, "toggleUtilitiesFor", "control único de ajustes")
+    require(HUB, "toggleUtilitiesFor", "control legacy de sidebar/utilities")
     forbid(TRAY, "SystemTray", "backend SNI dentro de la vista")
     forbid(HUB, "`traymenu${trayItem.index}`", "índice filtrado incorrecto")
 
@@ -47,17 +51,30 @@ def main() -> None:
     require(CHECKER, 'qml_block(text, "Launcher.Wrapper", "launcher")', "validación scoped del launcher")
     require(BAR, "readonly property bool disabled: true", "retiro de barra nativa")
     require(BAR, "implicitWidth: 0", "ancho de barra retirada")
-    require(HYPR, '"SUPER + I",\n    hl.dsp.global("cortetsu:utilities")', "SUPER+I a Quick settings")
+
+    # First-party entry points are owned once by the canonical Hyprland module.
+    CANONICAL_HYPR = (ROOT / "dotfiles/home/.config/hypr/hyprland/keybinds.lua").read_text()
+    require(CANONICAL_HYPR, 'create_bind("SUPER + I", hl.dsp.global("cortetsu:settings"))', "SUPER+I a Settings")
+    require(CANONICAL_HYPR, 'create_bind(\n    { "SUPER + SLASH", "SUPER + SHIFT + 7" },\n    hl.dsp.global("cortetsu:qsd")\n)', "SUPER+/ a Quick Settings")
+    require(HYPR, 'move_key = "SUPER + SHIFT + F7"', "workspace 7 sin colisión")
+    forbid(HYPR, '"SUPER + I",\n    hl.dsp.global("cortetsu:settings")', "SUPER+I duplicado")
+    forbid(HYPR, '"SUPER + Slash",\n    hl.dsp.global("cortetsu:qsd")', "SUPER+/ duplicado")
+    forbid(HYPR, '"SUPER + I",\n    hl.dsp.global("cortetsu:utilities")', "SUPER+I legacy Utilities")
     require(HYPR, '"SUPER + H",\n    hl.dsp.global("cortetsu:hardware")', "SUPER+H a Hardware Center")
+
     require(HUB, "hubRoot.toggleLauncherFor(state.modelData);", "SUPER alterna el launcher")
-    require(SHORTCUTS, "const state = ShellState.forActive(), open = !(state.sidebar || state.utilities);", "SUPER+N abre ambos centros")
+    require(SHORTCUTS, 'name: "sidebar"', "atajo del centro lateral")
+    require(SHORTCUTS, "OverlayPolicy.closeAll(state);", "exclusividad de superficies")
+    require(SHORTCUTS, "const open = !(state.sidebar || state.utilities);", "sidebar abre su par de utilidades")
     require(SHORTCUTS, 'Quickshell.env("XDG_CONFIG_HOME") ||', "ruta XDG del launcher")
     forbid(SHORTCUTS, "/quickshell/caelestia/current", "ruta legacy del launcher")
-    require(PANELS, "anchors.right: root.screenState.utilities ? utilities.left : parent.right", "centros adyacentes")
+    require(PANELS, "anchors.right: root.screenState?.utilities ? utilities.left : parent.right", "centros adyacentes")
     require(POPOUT, "content.bottomAnchorCenter - content.nonAnimWidth / 2", "popup centrado en su icono")
     require(POPOUT, "ClipWrapper owns the screen-space placement", "una sola autoridad de geometría")
+    require(POPOUT, "width: implicitWidth", "bounds visibles del popup")
+    require(POPOUT, "height: implicitHeight", "bounds interactivos del popup")
     require(POPOUT, "        x: 0\n        transformOrigin: Item.Bottom", "contenido local al ancla")
-    require(WINDOW_CARD, "import qs.utils", "Overview resuelve Icons sin ReferenceError")
+    require(WINDOW_CARD, 'import "../../utils"', "Overview resuelve Icons sin ReferenceError")
     forbid(POPOUT, "caelestia", "dependencia Caelestia en el wrapper de popup")
 
     print("BottomHub v4 architecture tests: OK")

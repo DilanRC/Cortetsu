@@ -33,9 +33,10 @@ assert "CortetsuWallpapers.actualCurrent" in resync_body and "Orbit.resolveCurre
 assert "Orbit.resolveCurrentIndex" in body("selectCategory")
 assert "function resolveCurrentIndex" in orbit and "function basename" in orbit
 
-# A→B→C→D has one timer and the final stable candidate is the sole preview call.
-assert content.count("Timer {") == 1
-assert "interval: 220" in content
+# A→B→C→D has one preview timer and a short post-apply Cosmic timer. The
+# acknowledgement timeout is owned by the shared wallpaper service.
+assert content.count("Timer {") == 2
+assert "interval: CortetsuDesign.wallUtilityOrbitMotionMs" in content
 timer_body = content[content.index("id: previewTimer"):content.index("NumberAnimation {", content.index("id: previewTimer"))]
 assert "Orbit.previewEligible" in timer_body
 assert "CortetsuWallpapers.preview(root.pendingPreviewPath)" in timer_body
@@ -47,9 +48,17 @@ cancel_body = body("cancelPreview")
 assert "previewTimer.stop();" in cancel_body and "CortetsuWallpapers.stopPreview();" in cancel_body
 assert "cancelPreview();" in body("selectCategory") and "CortetsuWallpapers.preview" not in body("selectCategory")
 assert "cancelPreview();" in resync_body
-assert "previewTimer.stop();" in body("apply") and "CortetsuWallpapers.previewColourLock = true;" in body("apply")
-assert "cancelPreview();" in body("random") and "CortetsuWallpapers.setRandom();" in body("random")
+apply_body = body("apply")
+assert "previewTimer.stop();" in apply_body and "CortetsuWallpapers.previewColourLock = true;" in apply_body
+assert apply_body.index("CortetsuWallpapers.stopPreview();") < apply_body.index("CortetsuWallpapers.previewColourLock = true;")
+assert "cancelPreview();" in body("random") and "CortetsuWallpapers.applyRandom();" in body("random")
+cancel_body = content[content.index("function cancel(): void"):content.find("\n    function ", content.index("function cancel(): void") + 1)]
+assert "cosmicPulseTimer.stop();" in cancel_body and "previewColourLock = false;" in cancel_body
+assert "function closeManager(): void { cancel(); }" in content
 assert "closeManager();" in wrapper and "CortetsuWallpapers.stopPreview();" in wrapper
+assert "readonly property bool applying: CortetsuWallpapers.applying" in content
+assert "onWallpaperApplySucceeded" in content and "onWallpaperApplyFailed" in content
+assert "id: applyTimeout" not in content
 assert "globalOtherOverlayOpen" in wrapper and "onGlobalOtherOverlayOpenChanged" in wrapper
 assert "for (const candidate of CortetsuScreens.screens)" in wrapper
 assert "OverlayPolicy.hasCompetingPanel" in wrapper and "closeCompetingPanels();" in wrapper
@@ -63,20 +72,29 @@ assert "OverlayPolicy.closeOtherPanels" in controller and "for (const screen of 
 assert "OverlayPolicy.closeForWallpaper" in wallpaper_controller and "for (const screen of CortetsuScreens.screens)" in wallpaper_controller
 assert "OverlayPolicy.closeOtherPanels(state);" in hub
 assert "toggleSidebarFor" in hub and "state.sidebar = !wasOpen;" in hub
-assert "const state = CortetsuShellState.forActive()?.cortetsuState;" in wallpaper_controller
+assert "function open(screen): void" in wallpaper_controller
+assert "function openActive(): void" in wallpaper_controller
+assert "CortetsuShellState.forScreen(target)?.cortetsuState" in wallpaper_controller
+assert "open(undefined);" in wallpaper_controller
 assert "CortetsuShellState.forActive()?.modelData" not in wallpaper_controller
 assert "closeOtherPanels();\n        state.setRetained(\"wallpaperManager\", true);" in wallpaper_controller
+assert "function open(): void { root.openActive(); }" in wallpaper_controller
+assert "WallpaperController.open(screen);" in hub
+assert "candidate === screen" not in hub
 
 # V2 visual and native-service contracts.
-for needle in ("Orbit.satellites", "Math.min(12", "Math.cos(angle)", "Math.sin(angle)", "depth", "scale:", "opacity:", "z:", "CortetsuMask { maskSource", "outgoingHeroPath", "heroCrossfade", "component OrbitButton: CortetsuSurface"):
+for needle in ("Orbit.satellites", "Math.min(12", "Math.cos(angle)", "Math.sin(angle)", "depth", "scale:", "opacity:", "z:", "CortetsuMask { maskSource", "outgoingHeroPath", "heroCrossfade", "CortetsuButton {", "active: true"):
+    assert needle in content, needle
+for needle in ("id: header", "Wallpaper Forge", "Wallpaper-aware desktop surface", "CortetsuEvolvingMark", "markPhase", 'icon: "close"', "onClicked: root.cancel()"):
     assert needle in content, needle
 assert "source: satellite.modelData.entry.path" in content
 assert "root.selectSatellite(satellite.modelData.index)" in content
 assert "import qs.components.effects" not in content
 assert "import qs.components.controls" not in content
 assert "Image {\n            anchors.fill: parent; anchors.margins" not in content
-assert 'if (CortetsuConfig.smartScheme)\n                CortetsuWallpapers.previewColourLock = true;' in content
-assert "Colours." not in content
+assert 'if (accepted && CortetsuConfig.smartScheme)\n                CortetsuWallpapers.previewColourLock = true;' in content
+content_without_first_party_colours = content.replace("CortetsuColours.", "")
+assert "Colours." not in content_without_first_party_colours
 
 # V2.1 presentation: bounded shared-cache prefetch, ready-gated entry, and floating surfaces.
 assert "Orbit.prefetch(filteredEntries, currentIndex, visibleLimit + 6)" in content
@@ -89,23 +107,33 @@ assert content.count("cache: true") >= 4
 assert "id: panel\n        z: 1" in content and "Item {\n        id: panel" in content
 assert "CortetsuDesign.colorSurfaceHigh, 0.68" in content
 assert 'root.currentPath === CortetsuWallpapers.actualCurrent ? qsTr("Current") : qsTr("Preview")' in content
-assert "shouldBeActive && presentationReady" in wrapper
+assert "opacity: shouldBeActive ? 1 : 0" in wrapper
+assert "Content.qml owns the honest empty state" in wrapper
 assert "CortetsuDesign.colorScrim, 0.18" in wrapper
 assert "CortetsuDesign.colorScrim, 0.44" not in wrapper
 assert 'color: "black"' not in content
 for legacy in ("Caelestia.Config", "import Caelestia\n", "import qs.components\n", "Colours.palette", "Tokens.", "StyledText", "MaterialIcon"):
-    assert legacy not in content + wrapper, legacy
+    assert legacy not in content_without_first_party_colours + wrapper, legacy
 
-# V2.1.1 polish: orbital geometry stays uniform and clears the footer.
+# V2.2 orbital motion: the settled model stays stable during rotation and
+# satellites communicate depth through scale, opacity and z-order.
+assert "Orbit.satellites(filteredEntries, windowIndex, windowIndex, visibleLimit)" in content
+assert "orbitMotion.to = orbitPhase - steps * Orbit.angularStep" in content
+assert "root.windowIndex = root.currentIndex;" in content
+assert "root.orbitPhase = 0;" not in content[content.index("NumberAnimation {"):content.index("ParallelAnimation {")]
 assert "scale: 1" in content
+assert "scale: satellite.visualScale" in content
+assert "opacity: satellite.hovered ? 1 : 0.28 + satellite.depth * 0.72" in content
+assert "currentStateLabel" in content and "currentIsApplied" in content
 assert "scale: (0.72 + depth * 0.38)" not in content
-assert "anchors.bottomMargin: 70" in content
+assert "anchors.bottomMargin: CortetsuDesign.wallUtilityOrbitBottomGap" in content
 assert "readonly property real radiusX" in content
 assert "readonly property real radiusY" in content
 assert "Math.cos(angle) * radiusX" in content
 assert "Math.sin(angle) * radiusY" in content
-assert "anchors.topMargin: 0" in content
-assert "anchors.topMargin: 56" in content
+assert "height: 40" in content
+assert "anchors.top: header.bottom" in content
+assert "anchors.topMargin: CortetsuDesign.spacingCompact" in content
 assert "anchors.bottomMargin: -4" in content
 wire_line = next(line for line in canonical.splitlines() if line.startswith("WIRE_JSON="))
 assert "wire_sad_shell.py" in wire_line

@@ -2,10 +2,9 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import Quickshell
-import Quickshell.Hyprland
-import Quickshell.Wayland
 import ".."
 import "../.."
+import "../../CortetsuDesign.js" as CortetsuDesign
 
 Item {
     id: root
@@ -19,6 +18,7 @@ Item {
     readonly property real nonAnimHeight: children.find(c => c.shouldBeActive)?.implicitHeight ?? content.implicitHeight
     readonly property Item current: (content.item as Content)?.current ?? null
     readonly property bool isDetached: detachedMode.length > 0
+    readonly property bool pointerInside: popupHover.hovered && bottomAttached && hasCurrent && !closing
 
     property alias currentName: popoutState.currentName
     property alias hasCurrent: popoutState.hasCurrent
@@ -27,7 +27,9 @@ Item {
     property string queuedMode
     property bool bottomAttached
     property bool closing
-    property real bottomOffset: 54
+    // BottomHub is 60 px tall. Keep an intentional 12 px handoff gap above
+    // it so the popup window never overlaps the trigger and steals hover.
+    property real bottomOffset: 60 + CortetsuDesign.spacingStandard
     property real bottomRightMargin: 4
     property real bottomAnchorCenter: -1
 
@@ -39,8 +41,13 @@ Item {
         animCurve = Easing.OutCubic;
     }
 
-    function detach(mode: string): void {
+    function cancelClose(): void {
+        closeTimer.stop();
         closing = false;
+    }
+
+    function detach(mode: string): void {
+        cancelClose();
         hasCurrent = true;
         bottomAttached = false;
         bottomAnchorCenter = -1;
@@ -63,6 +70,7 @@ Item {
             return;
         }
         hasCurrent = false;
+        currentName = "";
         detachedMode = "";
         bottomAttached = false;
         bottomAnchorCenter = -1;
@@ -70,10 +78,11 @@ Item {
 
     Timer {
         id: closeTimer
-        interval: 180
+        interval: CortetsuDesign.motionFastMs
         repeat: false
         onTriggered: {
             root.hasCurrent = false;
+            root.currentName = "";
             root.detachedMode = "";
             root.bottomAttached = false;
             root.bottomAnchorCenter = -1;
@@ -83,8 +92,7 @@ Item {
 
     onHasCurrentChanged: {
         if (hasCurrent) {
-            closing = false;
-            closeTimer.stop();
+            cancelClose();
             root.forceActiveFocus();
             Qt.callLater(() => root.forceActiveFocus());
             return;
@@ -103,9 +111,23 @@ Item {
         }
     }
 
+    onPointerInsideChanged: {
+        if (pointerInside)
+            CortetsuShellState.enterAttachedPopup(root);
+        else
+            CortetsuShellState.leaveAttachedPopup(root);
+    }
+
+    Component.onDestruction: CortetsuShellState.leaveAttachedPopup(root)
+
     implicitWidth: nonAnimWidth
     implicitHeight: nonAnimHeight
     focus: hasCurrent
+
+    HoverHandler {
+        id: popupHover
+        enabled: root.hasCurrent && root.bottomAttached && !root.closing
+    }
 
     Keys.onEscapePressed: {
         if (currentName === "wirelesspassword" && content.item) {
@@ -126,19 +148,6 @@ Item {
     PopoutState {
         id: popoutState
         onDetachRequested: mode => root.detach(mode)
-    }
-
-    HyprlandFocusGrab {
-        active: root.isDetached
-        windows: [QsWindow.window]
-        onCleared: root.close()
-    }
-
-    Binding {
-        when: root.isDetached || (root.hasCurrent && root.currentName === "wirelesspassword")
-        target: QsWindow.window
-        property: "WlrLayershell.keyboardFocus"
-        value: WlrKeyboardFocus.Exclusive
     }
 
     Comp {

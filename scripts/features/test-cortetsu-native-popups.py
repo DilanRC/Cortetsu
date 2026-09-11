@@ -6,6 +6,7 @@ popouts = ROOT / "cortetsu/modules/bar/popouts"
 content = (ROOT / "cortetsu/base/modules/bar/popouts/Content.qml").read_text(encoding="utf-8")
 hub = (ROOT / "cortetsu/modules/BottomHub.qml").read_text(encoding="utf-8")
 wrapper = (ROOT / "cortetsu/modules/bar/popouts/Wrapper.qml").read_text(encoding="utf-8")
+detached = (popouts / "CortetsuDetachedPopup.qml").read_text(encoding="utf-8")
 content_window = (ROOT / "cortetsu/modules/drawers/ContentWindow.qml").read_text(encoding="utf-8")
 interactions = (ROOT / "cortetsu/modules/drawers/Interactions.qml").read_text(encoding="utf-8")
 status_segment = (ROOT / "cortetsu/modules/CortetsuStatusSegment.qml").read_text(encoding="utf-8")
@@ -20,6 +21,16 @@ for name, service in (
     assert "CortetsuDesign" in text and service in text
     assert "No devices nearby" in text or "No networks available" in text or "No device" in text
 
+battery = (popouts / "CortetsuBatteryPopup.qml").read_text(encoding="utf-8")
+assert "CortetsuPopupSurface" in battery
+assert "Icons.getBatteryIcon" in battery
+assert "CortetsuPower.charging" in battery
+assert 'qsTr("Fully charged")' in battery
+assert 'text: root.hasBattery' in battery
+assert "CortetsuProgressBar" in battery
+assert "fillColor: root.critical" in battery
+assert "UPower.onBattery" not in battery
+
 password = (popouts / "CortetsuWifiPasswordPopup.qml").read_text(encoding="utf-8")
 for token in ("TextField", "Keys.onEscapePressed", "NetworkConnection.connectWithPassword", "8000", "errorText"):
     assert token in password, token
@@ -29,21 +40,33 @@ assert "sourceComponent: CortetsuAudioPopup" in content
 assert "sourceComponent: CortetsuBluetoothPopup" in content
 assert "sourceComponent: CortetsuWifiPasswordPopup" in content
 network = (popouts / "CortetsuNetworkPopup.qml").read_text(encoding="utf-8")
-assert "activeEthernet" in network and 'icon: "lan"' in network
-assert "Ethernet connected" in network and "Network unavailable" in network
+assert "activeEthernet" in network and ': "lan"' in network
+assert 'qsTr("Ethernet")' in network and 'qsTr("Connected")' in network
+assert "Network unavailable" in network
 assert "function closeAllPopouts(): void" in hub
 assert "closeAllPopouts();" in hub
 assert "id: hideTimer" in hub and "interval: 500" in hub
 assert "hideTimer.restart();" in hub
 assert "root.forceActiveFocus();" in wrapper
-assert "value: WlrKeyboardFocus.Exclusive" in wrapper
-assert 'onClicked: root.attachedControlRequested("network", root.centerFor(networkButton))' in status_segment
-assert 'onClicked: root.attachedControlRequested("bluetooth", root.centerFor(bluetoothButton))' in status_segment
+assert "panels.popouts.isDetached" in content_window and "WlrKeyboardFocus.Exclusive" in content_window
+assert 'if (root.statusPopoutsEnabled)\n                    root.attachedControlRequested("network", root.centerFor(networkButton))' in status_segment
+assert 'if (root.statusPopoutsEnabled)\n                    root.attachedControlRequested("bluetooth", root.centerFor(bluetoothButton))' in status_segment
 assert 'onClicked: root.detachedControlRequested("network")' not in status_segment
 assert 'onClicked: root.detachedControlRequested("bluetooth")' not in status_segment
 assert "sourceComponent: CortetsuDetachedPopup" in wrapper
+assert 'root.currentName = "";' in wrapper
 assert "sourceComponent: Rectangle" not in wrapper
 assert "Nexus" not in wrapper
+assert detached.lstrip().startswith("import QtQuick")
+assert "\nItem {" in detached
+assert "CortetsuSurface {" not in detached
+assert "radiusValue:" not in detached and "baseColor:" not in detached and "outlined:" not in detached
+assert "Keep clicks inside the detached surface" in detached
+assert "z: -1" in detached
+assert "HyprlandFocusGrab" not in wrapper
+assert "WlrKeyboardFocus" not in wrapper
+assert "Binding" not in wrapper
+assert content_window.count("panels.popouts.close();") >= 3
 panels = (ROOT / "cortetsu/modules/drawers/Panels.qml").read_text(encoding="utf-8")
 assert "CortetsuWindowInfoPopup" in panels
 popup_surface = (ROOT / "cortetsu/components/CortetsuPopupSurface.qml").read_text(encoding="utf-8")
@@ -54,6 +77,8 @@ assert "CortetsuSurface" in window_info and "CortetsuButton" in window_info
 assert "CortetsuTokens" not in window_info and "CortetsuColours" not in window_info
 clip_wrapper = (ROOT / "cortetsu/modules/bar/popouts/ClipWrapper.qml").read_text(encoding="utf-8")
 assert "content.bottomAttached || content.closing" in clip_wrapper
+assert "width: implicitWidth" in clip_wrapper
+assert "height: implicitHeight" in clip_wrapper
 assert "anchors.leftMargin: (-implicitWidth - 5)" not in clip_wrapper
 assert "ClipWrapper owns the screen-space placement" in clip_wrapper
 assert "        x: 0\n        transformOrigin: Item.Bottom" in clip_wrapper
@@ -74,9 +99,9 @@ for path in (
 assert "closeTimer" in wrapper
 assert "BarPopouts.CortetsuWindowInfoPopup" in panels
 assert 'visible: popoutsWrapper.content.detachedMode === "winfo"' in panels
-assert "focusable: panels.popouts.hasCurrent || screenState.cortetsuState?.requiresWindowKeyboardFocus" in content_window
+assert "focusable: panels.popouts.hasCurrent || ((screenState?.cortetsuState?.requiresWindowKeyboardFocus ?? false) && !(screenState?.launcher ?? false) && !(screenState?.session ?? false))" in content_window
 assert "!popouts.bottomAttached &&" in interactions
-assert "visible: panel.width > 0 && panel.height > 0 && (panel.offsetScale ?? 0) < 1" in content_window
+assert "visible: panel.visible && panel.width > 0 && panel.height > 0 && (panel.offsetScale ?? 0) < 1" in content_window
 for token in ('function control(mode: string): bool', 'function detachedControl(mode: string): bool', 'componentsFor(screen)?.popouts', '"activewindow"', '"kblayout"', '"lockstatus"', '"winfo"'):
     assert token in hub, token
 assert 'if (mode === "winfo")' in hub

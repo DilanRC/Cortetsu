@@ -76,20 +76,12 @@ hl.bind(
     hl.dsp.global("cortetsu:dashboard")
 )
 
-hl.bind(
-    "SUPER + Slash",
-    hl.dsp.global("cortetsu:utilities")
-)
-
-hl.bind(
-    "SUPER + I",
-    hl.dsp.global("cortetsu:utilities")
-)
-
 -- Clipboard QML nativo
 hl.bind(
     "SUPER + V",
-    hl.dsp.global("cortetsu:clipboard")
+    -- Resolve the live systemd-owned Quickshell PID; `qs -p` cannot discover
+    -- this foreground instance reliably on the installed Quickshell version.
+    hl.dsp.exec_cmd("/home/dilan/.local/bin/cortetsu shell ipc clipboard toggle")
 )
 
 hl.bind(
@@ -130,12 +122,6 @@ hl.bind(
 -- ============================================================
 -- SCREENSHOTS
 -- ============================================================
-
-hl.bind(
-    "Print",
-    hl.dsp.exec_cmd("cortetsu screenshot -r -f")
-)
-
 
 hl.bind(
     "CTRL + Print",
@@ -262,14 +248,13 @@ for i = 1, 10 do
     -- SUPER+SHIFT+# is the direct window-to-workspace shortcut. Keep it
     -- explicit here so the user overlay cannot be shadowed by the grouped
     -- workspace callback from hyprland/keybinds.lua.
-    hl.bind("SUPER + SHIFT + " .. key, fn.wsaction("move", "", i))
-
-    hl.bind(
-        "SUPER + CTRL + " .. key,
-        hl.dsp.focus({
-            workspace = workspace
-        })
-    )
+    local move_key = "SUPER + SHIFT + " .. key
+    -- On the active latam layout, slash is Shift+7. Keep QSD on that
+    -- product shortcut and give workspace 7 an explicit equivalent.
+    if key == "7" then
+        move_key = "SUPER + SHIFT + F7"
+    end
+    hl.bind(move_key, fn.wsaction("move", "", i))
 
     hl.bind(
         "SUPER + CTRL + SHIFT + " .. key,

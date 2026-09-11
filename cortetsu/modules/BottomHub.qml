@@ -5,11 +5,10 @@ import Quickshell
 import Quickshell.Wayland
 import Quickshell.Io
 import Quickshell.Bluetooth
-import Quickshell.Services.UPower
 import Quickshell.Services.SystemTray
 import "../services"
-import qs.utils
-import qs.modules.launcher.services
+import "../utils"
+import "launcher/services"
 import "OverlayPolicy.js" as OverlayPolicy
 import "utilities/toasts" as Toasts
 
@@ -17,6 +16,25 @@ Scope {
     id: hubRoot
 
     property bool shown: true
+
+    CortetsuHoverSurfaceController {
+        id: hoverSurfaceController
+
+        onOpenRequested: (screen, mode, anchorCenter) =>
+            hubRoot.openAttachedControlNow(screen, mode, anchorCenter)
+        onCloseRequested: hubRoot.closeAllPopouts()
+    }
+
+    Connections {
+        target: CortetsuConfig.bar.popouts
+
+        function onStatusIconsChanged(): void {
+            if (!CortetsuConfig.bar.popouts.statusIcons) {
+                hoverSurfaceController.cancelPending();
+                hubRoot.closeAllPopouts();
+            }
+        }
+    }
 
     Timer {
         id: hideTimer
@@ -46,6 +64,20 @@ Scope {
             if (popouts)
                 popouts.close();
         }
+    }
+
+    function toggleClipboardFor(screen): void {
+        const state = CortetsuShellState.forScreen(screen)?.cortetsuState;
+        if (!state)
+            return;
+
+        const wasOpen = state.clipboard;
+        closeAllLaunchers();
+        closeAllPanels();
+        closeAllPopouts();
+        if (!wasOpen)
+            state.setRetained("clipboard", true);
+        shown = true;
     }
 
     function setShown(value): void {
@@ -166,13 +198,7 @@ Scope {
 
     function openWallpaperFor(screen): void {
         closeAllPopouts();
-        for (const candidate of CortetsuScreens.screens) {
-            const state = CortetsuShellState.forScreen(candidate)?.cortetsuState;
-            if (!state)
-                continue;
-            OverlayPolicy.closeOtherPanels(state.legacyState);
-            state.setRetained("wallpaperManager", candidate === screen);
-        }
+        WallpaperController.open(screen);
         shown = true;
     }
 
@@ -193,18 +219,29 @@ Scope {
         shown = true;
     }
 
-    function showAttachedControlFor(screen, mode, anchorCenter = -1): void {
+    function openAttachedControlNow(screen, mode, anchorCenter = -1): void {
         const popouts = CortetsuShellState.componentsFor(screen)?.popouts;
         if (!popouts)
             return;
 
         closeAllLaunchers();
         closeAllPanels();
+        popouts.cancelClose();
+        popouts.detachedMode = "";
         popouts.bottomAnchorCenter = anchorCenter;
         popouts.bottomAttached = true;
         popouts.currentName = mode;
         popouts.hasCurrent = true;
         shown = true;
+    }
+
+    function showAttachedControlFor(screen, mode, anchorCenter = -1): void {
+        hoverSurfaceController.request(screen, mode, anchorCenter);
+    }
+
+    function enterAttachedControl(screen, mode, anchorCenter = -1): void {
+        hoverSurfaceController.enterTrigger();
+        hoverSurfaceController.request(screen, mode, anchorCenter);
     }
 
     IpcHandler {
@@ -214,6 +251,18 @@ Scope {
         function show(): void { hubRoot.setShown(true); }
         function hide(): void { hubRoot.setShown(false); }
         function isShown(): bool { return hubRoot.shown; }
+        // Read-only runtime evidence for focus, lifetime and monitor ownership.
+        function inspect(): string {
+            return JSON.stringify(CortetsuScreens.screens.map(screen => {
+                const state = CortetsuShellState.forScreen(screen);
+                const popup = CortetsuShellState.componentsFor(screen)?.popouts;
+                return { screen: screen.name, launcher: state?.launcher ?? false,
+                    utilities: state?.utilities ?? false, sidebar: state?.sidebar ?? false,
+                    popup: popup?.currentName ?? "", open: popup?.hasCurrent ?? false,
+                    closing: popup?.closing ?? false, detached: popup?.detachedMode ?? "",
+                    anchor: popup?.bottomAnchorCenter ?? -1, focus: popup?.activeFocus ?? false };
+            }));
+        }
         function launcher(): void {
             const state = CortetsuShellState.forActive();
             if (!state)
@@ -290,7 +339,9 @@ Scope {
                 || (screenState?.session ?? false)
                 || (cortetsuState?.calendar ?? false)
             readonly property int hubMargin: 8
-            readonly property int activeWsId: monitor?.activeWorkspace?.id ?? CortetsuHypr.activeWsId
+            readonly property int activeWsId: CortetsuConfig.bar.workspaces.perMonitorWorkspaces
+                ? monitor?.activeWorkspace?.id ?? CortetsuHypr.activeWsId
+                : CortetsuHypr.activeWsId
             readonly property int workspaceCount: CortetsuConfig.workspacesShown
             readonly property int workspaceOffset: Math.floor((activeWsId - 1) / workspaceCount) * workspaceCount
             readonly property var occupiedWorkspaceIds: CortetsuHypr.workspaces.values
@@ -300,28 +351,32 @@ Scope {
             readonly property string volumeIcon: Icons.getVolumeIcon(CortetsuAudio.volume, CortetsuAudio.muted)
             readonly property string networkIcon: CortetsuNetwork.activeEthernet
                 ? "cable"
+                : CortetsuNetwork.connecting
+                    ? "sync"
                 : CortetsuNetwork.active
                     ? Icons.getNetworkIcon(CortetsuNetwork.active.strength ?? 0)
                     : "wifi_off"
-            readonly property bool networkActive: CortetsuNetwork.activeEthernet || !!CortetsuNetwork.active
+            readonly property bool networkActive: CortetsuNetwork.connecting || CortetsuNetwork.activeEthernet || !!CortetsuNetwork.active
+            readonly property string networkTooltip: CortetsuNetwork.connecting
+                ? qsTr("Connecting to network")
+                : CortetsuNetwork.activeEthernet
+                    ? qsTr("Ethernet connected")
+                    : CortetsuNetwork.active
+                        ? qsTr("%1 · signal %2%").arg(CortetsuNetwork.active.ssid).arg(Math.round(CortetsuNetwork.active.strength ?? 0))
+                        : qsTr("Network unavailable")
             readonly property bool bluetoothActive: Bluetooth.devices.values.some(device => device.connected)
             readonly property string bluetoothIcon: !Bluetooth.defaultAdapter?.enabled
                 ? "bluetooth_disabled"
                 : bluetoothActive
                     ? "bluetooth_connected"
                     : "bluetooth"
-            readonly property bool batteryCharging: [
-                UPowerDeviceState.Charging,
-                UPowerDeviceState.FullyCharged,
-                UPowerDeviceState.PendingCharge
-            ].includes(UPower.displayDevice.state)
-            readonly property string batteryIcon: UPower.displayDevice.isLaptopBattery
-                ? Icons.getBatteryIcon(UPower.displayDevice.percentage, batteryCharging)
+            readonly property bool batteryCharging: CortetsuPower.charging
+            readonly property string batteryIcon: CortetsuPower.hasBattery
+                ? Icons.getBatteryIcon(CortetsuPower.value, batteryCharging)
                 : "balance"
-            readonly property bool batteryCritical:
-                UPower.onBattery && UPower.displayDevice.percentage <= 0.2
-            readonly property string batteryTooltip: UPower.displayDevice.isLaptopBattery
-                ? qsTr("Battery %1%").arg(Math.round(UPower.displayDevice.percentage * 100))
+            readonly property bool batteryCritical: CortetsuPower.critical
+            readonly property string batteryTooltip: CortetsuPower.hasBattery
+                ? qsTr("Battery %1%").arg(CortetsuPower.percent)
                 : qsTr("Power profile")
 
             property date now: new Date()
@@ -675,22 +730,33 @@ Scope {
                 launcherActive: win.screenState?.launcher ?? false
                 wallpaperActive: win.cortetsuState?.wallpaperManager ?? false
                 wallpaperSource: CortetsuWallpapers.actualCurrent
+                clipboardActive: win.cortetsuState?.clipboard ?? false
                 workspaceCount: win.workspaceCount
                 workspaceOffset: win.workspaceOffset
                 activeWsId: win.activeWsId
                 occupiedWorkspaceIds: win.occupiedWorkspaceIds
                 dockItems: win.dockViewItems
                 trayItems: win.trayViewItems
+                modeVisible: CortetsuConfig.bottomHub.segments.mode
+                appsVisible: CortetsuConfig.bottomHub.segments.apps
+                trayVisible: CortetsuConfig.bottomHub.segments.tray
+                statusVisible: CortetsuConfig.bottomHub.segments.status
 
                 volumeIcon: win.volumeIcon
                 volumeMuted: CortetsuAudio.muted
                 networkIcon: win.networkIcon
+                networkTooltip: win.networkTooltip
                 networkActive: win.networkActive
                 bluetoothIcon: win.bluetoothIcon
                 bluetoothActive: win.bluetoothActive
                 batteryIcon: win.batteryIcon
                 batteryCritical: win.batteryCritical
                 batteryTooltip: win.batteryTooltip
+                audioVisible: CortetsuConfig.bottomHub.statusCluster.audio
+                networkVisible: CortetsuConfig.bottomHub.statusCluster.network
+                bluetoothVisible: CortetsuConfig.bottomHub.statusCluster.bluetooth
+                batteryVisible: CortetsuConfig.bottomHub.statusCluster.battery
+                statusPopoutsEnabled: CortetsuConfig.bar.popouts.statusIcons
                 notificationCount: CortetsuNotifications.count
                 sidebarActive: win.screenState?.sidebar ?? false
                 recordingActive: CortetsuRecorder.running
@@ -701,6 +767,7 @@ Scope {
 
                 onLauncherRequested: hubRoot.toggleLauncherFor(win.modelData)
                 onWallpaperRequested: hubRoot.openWallpaperFor(win.modelData)
+                onClipboardRequested: hubRoot.toggleClipboardFor(win.modelData)
                 onWorkspaceRequested: workspaceId => CortetsuHypr.dispatch(
                     CortetsuHypr.usingLua
                         ? `hl.dsp.focus({ workspace = \"${workspaceId}\" })`
@@ -718,12 +785,21 @@ Scope {
                     mode,
                     win.hubMargin + centerX
                 )
+                onAttachedControlEntered: (mode, centerX) => hubRoot.enterAttachedControl(
+                    win.modelData,
+                    mode,
+                    win.hubMargin + centerX
+                )
+                onSystemControlsEntered: hoverSurfaceController.enterTrigger()
+                onSystemControlsExited: hoverSurfaceController.leaveTrigger()
                 onDetachedControlRequested: mode => hubRoot.toggleDetachedControlFor(win.modelData, mode)
                 onVolumeMuteRequested: {
                     if (CortetsuAudio.sink?.audio)
                         CortetsuAudio.sink.audio.muted = !CortetsuAudio.sink.audio.muted;
                 }
                 onVolumeWheel: delta => {
+                    if (!CortetsuConfig.bar.scrollActions.volume)
+                        return;
                     if (delta > 0)
                         CortetsuAudio.incrementVolume();
                     else if (delta < 0)

@@ -72,6 +72,11 @@ current_modules = ["bottom-hub", "overview", "clipboard", "hardware", "display",
 retired_modules = ["gaming-center", "updater"]
 owned_layers = ["packages", "dotfiles", "profiles", "themes", "generations", "services", "actions", "scenes"]
 
+[product.wall_utility]
+contract = "cortetsu/contracts/wall-utility.json"
+config = "dotfiles/home/.config/cortetsu/ui.toml"
+preferences = "XDG config file cortetsu/preferences.json"
+
 [safety]
 write_strategy = "build-validate-promote-verify"
 allow_secrets_in_git = false
