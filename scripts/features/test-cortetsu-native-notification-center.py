@@ -62,8 +62,10 @@ assert "model: Notifs.popups()" in wrapper
 assert "required property int index" in wrapper
 assert "modelData: Notifs.popups()[index]" in wrapper
 assert "visibleNotifications" not in wrapper
-assert "modelData: root.activeNotifications[index]" in content
-assert "readonly property var activeNotifications: Notifs.notClosed()" in content
+assert "model: ScriptModel" in content
+assert "values: Notifs.notClosed()" in content
+assert "required property var modelData" in content
+assert "activeNotifications" not in content
 assert "readonly property var active: Notifs.notClosed()" not in content
 assert "required property var modelData" in notification
 assert "focus: false" in notification
