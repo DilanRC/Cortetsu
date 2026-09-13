@@ -8,7 +8,8 @@ ROOT = Path(__file__).resolve().parents[2]
 source = (ROOT / "cortetsu/modules/bar/popouts/CortetsuTrayMenu.qml").read_text(encoding="utf-8")
 
 criteria = {
-    "null entries excluded": "filter(entry => entry !== null && entry !== undefined)" in source,
+    "live ObjectModel preserved": "model: opener.children" in source,
+    "content-sized menu height": "childrenRect.height" in source,
     "stale activation guarded": "if (!entry)" in source,
     "typed menu delegates": "required property QsMenuEntry modelData" in source,
     "shared popup surface": "CortetsuPopupSurface" in source,

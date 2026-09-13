@@ -119,34 +119,16 @@ CortetsuPopupSurface {
             id: menu
             required property QsMenuHandle handle
             property bool subMenu: false
-            property var entries: []
-            readonly property int entryCount: entries.length
             padding: CortetsuDesign.spacingCompact
             spacing: CortetsuDesign.spacingUnit
             width: 320 + padding * 2
             height: Math.max(
                 48,
-                entryCount * (CortetsuDesign.spacingStandard + 32)
-                    + Math.max(0, entryCount - 1) * spacing
-                    + padding * 2
+                childrenRect.height + padding * 2
                     + (subMenu ? CortetsuDesign.spacingStandard + 48 : 0)
             )
 
             onHeightChanged: root.menuContentHeight = height
-
-            function syncEntries(): void {
-                entries = Array.from(opener.children ?? [])
-                    .filter(entry => entry !== null && entry !== undefined);
-            }
-
-            Component.onCompleted: Qt.callLater(syncEntries)
-
-            Timer {
-                interval: 50
-                repeat: true
-                running: menu.entries.length === 0
-                onTriggered: menu.syncEntries()
-            }
 
             QsMenuOpener {
                 id: opener
@@ -154,11 +136,9 @@ CortetsuPopupSurface {
             }
 
             Repeater {
-                // QsMenuOpener can briefly expose null entries while a tray
-                // menu is rebuilding. Keep invalid entries out of the
-                // delegate model so the popup never dereferences a stale
-                // QsMenuEntry during that update window.
-                model: menu.entries
+                // QsMenuOpener.children is a live ObjectModel. Keeping it as
+                // the Repeater model preserves asynchronous DBus menu updates.
+                model: opener.children
 
                 CortetsuSurface {
                     required property QsMenuEntry modelData

@@ -47,7 +47,7 @@ def base_content() -> str:
     }
 
     StyledRect {
-        opacity: root.screenState.overview ? 0.58 : (root.screenState.clipboard ? 0.48 : 0)
+        opacity: root.screenState.overview ? CortetsuDesign.scrimOpacity : (root.screenState.clipboard ? 0.48 : 0)
     }
 }
 '''

@@ -165,7 +165,7 @@ StyledWindow {
 
     Rectangle {
         anchors.fill: parent
-        opacity: root.screenState?.cortetsuState?.overview ? 0.58 : (((root.screenState?.session ?? false) && CortetsuOverlayConfig.session.enabled) || panels.popouts.detachedMode !== "" ? 0.5 : 0)
+        opacity: root.screenState?.cortetsuState?.overview ? CortetsuDesign.scrimOpacity : (((root.screenState?.session ?? false) && CortetsuOverlayConfig.session.enabled) || panels.popouts.detachedMode !== "" ? 0.5 : 0)
         // Overview opacity is already applied by the item. Keeping the color
         // opaque here avoids multiplying the scrim alpha and leaking desktop
         // content through the window-card composition.

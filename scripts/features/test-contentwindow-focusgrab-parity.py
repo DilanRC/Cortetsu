@@ -88,7 +88,7 @@ AFTER_BASE_PATCH = '''StyledWindow {
 
     StyledRect {
         anchors.fill: parent
-        opacity: root.screenState.overview ? 0.58 : ((root.screenState.session && Config.session.enabled) || panels.popouts.detachedMode !== "" ? 0.5 : 0)
+        opacity: root.screenState.overview ? CortetsuDesign.scrimOpacity : ((root.screenState.session && Config.session.enabled) || panels.popouts.detachedMode !== "" ? 0.5 : 0)
         color: Colours.palette.m3scrim
 
         Behavior on opacity {
@@ -142,7 +142,7 @@ def main() -> None:
         "by the drawers focus grab"
     )
     assert "if (panels.popouts.isDetached || panels.popouts.currentName === \"wirelesspassword\")" in focus_grab
-    assert "root.screenState?.cortetsuState?.overview ? 0.58" in text
+    assert "root.screenState?.cortetsuState?.overview ? CortetsuDesign.scrimOpacity" in text
     print("PASS input-mask-focus-scrim-still-wired")
 
     print("ContentWindow focus-grab parity tests: OK")

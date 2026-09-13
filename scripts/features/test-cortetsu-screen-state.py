@@ -89,6 +89,7 @@ assert "model: CortetsuScreens.screens" in retained_host
 assert "CortetsuShellState.forScreen(modelData)" in retained_host
 assert "CortetsuShellState.forActive()" not in retained_host
 assert "Qt.alpha(CortetsuDesign.colorSumi, 0.34)" in retained_host
+assert "visible: window.surfaceOpen && !window.screenState?.cortetsuState?.overview" in retained_host
 
 assert "cortetsuState" in calendar
 assert 'state.setRetained("calendar", false)' in calendar
@@ -127,7 +128,7 @@ for content_file, flag in (("calendar/Content.qml", "calendar"), ("overview/Cont
 for marker in ("closeRetainedOverlays", "requiresWindowKeyboardFocus", "requiresFullInputMask", "retainedOverlayOpen"):
     assert marker in content_window_patch, marker
 assert 'state.cortetsuState?.setRetained("wallpaperManager", false)' in shortcuts
-assert "root.screenState?.cortetsuState?.overview ? 0.58" in scrim_patch
+assert "root.screenState?.cortetsuState?.overview ? CortetsuDesign.scrimOpacity" in scrim_patch
 for content_file, flag in (
     ("clipboard/Content.qml", "clipboard"),
     ("hardware/Content.qml", "hardware"),

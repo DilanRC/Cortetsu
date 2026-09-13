@@ -43,7 +43,7 @@ Scope {
 
             Rectangle {
                 anchors.fill: parent
-                visible: window.surfaceOpen
+                visible: window.surfaceOpen && !window.screenState?.cortetsuState?.overview
                 color: Qt.alpha(CortetsuDesign.colorSumi, 0.34)
                 z: -1
             }
