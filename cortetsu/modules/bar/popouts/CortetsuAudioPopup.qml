@@ -23,7 +23,7 @@ CortetsuPopupSurface {
 
         CortetsuSectionHeader {
             title: qsTr("Audio")
-            detail: CortetsuAudio.muted ? qsTr("Muted") : qsTr("%1%").arg(root.volumePercent)
+            detail: CortetsuAudio.muted ? qsTr("Silenciado") : qsTr("%1%").arg(root.volumePercent)
         }
 
         CortetsuSurface {
@@ -73,14 +73,14 @@ CortetsuPopupSurface {
 
                         CortetsuText {
                             Layout.fillWidth: true
-                            text: CortetsuAudio.sink?.description ?? qsTr("System output")
+                            text: CortetsuAudio.sink?.description ?? qsTr("Salida del sistema")
                             textSize: CortetsuDesign.bodySmallPx
                             color: CortetsuDesign.colorOnSurface
                             elide: Text.ElideRight
                         }
 
                         CortetsuText {
-                            text: CortetsuAudio.muted ? qsTr("Muted") : qsTr("%1%").arg(root.volumePercent)
+                            text: CortetsuAudio.muted ? qsTr("Silenciado") : qsTr("%1%").arg(root.volumePercent)
                             textSize: CortetsuDesign.labelSmallPx
                             color: CortetsuAudio.muted
                                 ? CortetsuDesign.colorVermillion
@@ -99,7 +99,7 @@ CortetsuPopupSurface {
                 CortetsuButton {
                     compact: true
                     icon: CortetsuAudio.muted ? "volume_off" : "volume_up"
-                    tooltipText: CortetsuAudio.muted ? qsTr("Unmute") : qsTr("Mute")
+                    tooltipText: CortetsuAudio.muted ? qsTr("Activar sonido") : qsTr("Silenciar")
                     disabled: !CortetsuAudio.sink?.audio
                     onClicked: {
                         if (CortetsuAudio.sink?.audio)
@@ -110,10 +110,10 @@ CortetsuPopupSurface {
         }
 
         CortetsuSectionHeader {
-            title: qsTr("Output")
+            title: qsTr("Salida")
             detail: CortetsuAudio.sinks.length > 0
-                ? qsTr("%1 devices").arg(CortetsuAudio.sinks.length)
-                : qsTr("No device")
+                ? qsTr("%1 dispositivos").arg(CortetsuAudio.sinks.length)
+                : qsTr("Sin dispositivo")
         }
 
         Repeater {
@@ -121,10 +121,10 @@ CortetsuPopupSurface {
             delegate: CortetsuListRow {
                 required property var modelData
                 Layout.fillWidth: true
-                title: modelData.description ?? modelData.name ?? qsTr("Unknown device")
+                title: modelData.description ?? modelData.name ?? qsTr("Dispositivo desconocido")
                 subtitle: CortetsuAudio.sink?.id === modelData.id
-                    ? qsTr("Current output")
-                    : qsTr("Switch output")
+                    ? qsTr("Salida actual")
+                    : qsTr("Cambiar salida")
                 icon: "speaker"
                 selected: CortetsuAudio.sink?.id === modelData.id
                 onClicked: CortetsuAudio.setAudioSink(modelData)
@@ -135,8 +135,8 @@ CortetsuPopupSurface {
             Layout.fillWidth: true
             visible: CortetsuAudio.sinks.length === 0
             kind: CortetsuAudio.sink ? "empty" : "error"
-            title: CortetsuAudio.sink ? qsTr("No other output devices") : qsTr("Audio unavailable")
-            detail: CortetsuAudio.sink ? "" : qsTr("No output device is ready")
+            title: CortetsuAudio.sink ? qsTr("No hay otras salidas") : qsTr("Audio no disponible")
+            detail: CortetsuAudio.sink ? "" : qsTr("No hay una salida lista")
         }
     }
 }

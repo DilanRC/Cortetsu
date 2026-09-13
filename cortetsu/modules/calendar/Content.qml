@@ -61,7 +61,7 @@ Item {
     function isSelected(day: int): bool { return day > 0 && day === selectedDate.getDate(); }
     function friendlyName(calendar): string { return calendar.primary ? qsTr("Personal") : calendar.calendarName; }
     function eventTime(event): string {
-        if (event.allDay) return qsTr("All day");
+        if (event.allDay) return qsTr("Todo el día");
         return `${Qt.formatTime(eventDate(event), "HH:mm")}–${Qt.formatTime(new Date(event.end), "HH:mm")}`;
     }
     function isBreakPhase(phase): bool { return phase === "BREAK" || phase === "LONG_BREAK"; }
@@ -86,11 +86,11 @@ Item {
         return Math.max(0, Math.min(1, 1 - remainingMs() / Math.max(1, phaseDurationMs(phase))));
     }
     function phaseLabel(): string {
-        if (pomodoro.phase === "FOCUS") return qsTr("Focus");
-        if (pomodoro.phase === "BREAK") return qsTr("Short break");
-        if (pomodoro.phase === "LONG_BREAK") return qsTr("Long break");
-        if (pomodoro.phase === "PAUSED") return qsTr("Paused");
-        return qsTr("Ready to focus");
+        if (pomodoro.phase === "FOCUS") return qsTr("Concentración");
+        if (pomodoro.phase === "BREAK") return qsTr("Descanso corto");
+        if (pomodoro.phase === "LONG_BREAK") return qsTr("Descanso largo");
+        if (pomodoro.phase === "PAUSED") return qsTr("En pausa");
+        return qsTr("Listo para concentrarse");
     }
     function runPomodoro(command: string): void {
         if (pomoProcess.running) return;
@@ -151,7 +151,7 @@ Item {
             onStreamFinished: {
                 try {
                     const result = JSON.parse(text.trim());
-                    syncStatus = result.status === "ok" ? qsTr("Up to date")
+                    syncStatus = result.status === "ok" ? qsTr("Actualizado")
                         : result.status === "cached" ? qsTr("Recently synced")
                         : result.status === "partial" ? qsTr("Partial sync")
                         : result.status === "auth_required" ? qsTr("Sign-in required")
@@ -208,10 +208,10 @@ Item {
 
                     RowLayout {
                         Layout.fillWidth: true
-                        CortetsuButton { compact: true; icon: "chevron_left"; label: ""; tooltipText: qsTr("Previous month"); onClicked: root.changeMonth(-1) }
+                        CortetsuButton { compact: true; icon: "chevron_left"; label: ""; tooltipText: qsTr("Mes anterior"); onClicked: root.changeMonth(-1) }
                         CortetsuText { Layout.fillWidth: true; horizontalAlignment: Text.AlignHCenter; text: Qt.formatDate(root.selectedDate, "MMMM yyyy"); textSize: CortetsuTypography.titleMediumPx; color: CortetsuDesign.colorOnSurface }
                         CortetsuButton { compact: true; icon: "today"; label: qsTr("Today"); onClicked: root.selectedDate = new Date() }
-                        CortetsuButton { compact: true; icon: "chevron_right"; label: ""; tooltipText: qsTr("Next month"); onClicked: root.changeMonth(1) }
+                        CortetsuButton { compact: true; icon: "chevron_right"; label: ""; tooltipText: qsTr("Mes siguiente"); onClicked: root.changeMonth(1) }
                     }
 
                     GridLayout {
@@ -283,7 +283,7 @@ Item {
                                 visible: !root.selectedEvents.length; Layout.fillWidth: true; Layout.fillHeight: true; spacing: CortetsuDesign.spacingCompact
                                 Item { Layout.fillHeight: true }
                                 CortetsuIcon { Layout.alignment: Qt.AlignHCenter; text: "event_available"; color: CortetsuDesign.colorOnSurfaceVariant; iconSize: CortetsuTypography.iconLargePx }
-                                CortetsuText { Layout.alignment: Qt.AlignHCenter; text: qsTr("No events"); color: CortetsuDesign.colorOnSurface; textSize: CortetsuTypography.titleSmallPx }
+                                CortetsuText { Layout.alignment: Qt.AlignHCenter; text: qsTr("No hay eventos"); color: CortetsuDesign.colorOnSurface; textSize: CortetsuTypography.titleSmallPx }
                                 CortetsuText { Layout.alignment: Qt.AlignHCenter; text: qsTr("Take the time for yourself."); color: CortetsuDesign.colorOnSurfaceVariant; textSize: CortetsuTypography.bodySmallPx }
                                 Item { Layout.fillHeight: true }
                             }
@@ -328,22 +328,22 @@ Item {
                                     visible: root.isBreakPhase(pomodoro.phase)
                                     compact: true
                                     icon: "skip_next"
-                                    label: qsTr("Skip break")
+                                    label: qsTr("Saltar descanso")
                                     onClicked: root.runPomodoro("skip")
                                 }
                                 CortetsuButton {
                                     compact: true
                                     icon: root.isActivePhase(pomodoro.phase) ? "pause" : "play_arrow"
                                     label: root.isActivePhase(pomodoro.phase)
-                                        ? qsTr("Pause")
-                                        : pomodoro.phase === "PAUSED" ? qsTr("Resume") : qsTr("Start")
+                                        ? qsTr("Pausar")
+                                        : pomodoro.phase === "PAUSED" ? qsTr("Reanudar") : qsTr("Iniciar")
                                     onClicked: root.runPomodoro(root.isActivePhase(pomodoro.phase)
                                         ? "pause" : pomodoro.phase === "PAUSED" ? "resume" : "start")
                                 }
                                 CortetsuButton {
                                     compact: true
                                     icon: "restart_alt"
-                                    label: qsTr("Reset")
+                                    label: qsTr("Reiniciar")
                                     onClicked: root.runPomodoro("reset")
                                 }
                             }

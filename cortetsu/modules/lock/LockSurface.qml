@@ -17,18 +17,18 @@ WlSessionLockSurface {
     required property WlSessionLock lock
     required property Pam pam
 
-    property string keyboardLayout: qsTr("Unknown layout")
+    property string keyboardLayout: qsTr("Distribución desconocida")
     property bool capsLock: false
     property bool numLock: false
-    readonly property string userLabel: Quickshell.env("USER") || qsTr("User")
+    readonly property string userLabel: Quickshell.env("USER") || qsTr("Usuario")
     readonly property int batteryPercent: CortetsuPower.percent
     readonly property bool batteryCharging: CortetsuPower.charging
     readonly property string batteryLabel: CortetsuPower.hasBattery
-        ? qsTr("Battery %1%").arg(CortetsuPower.percent)
-        : qsTr("AC power")
+        ? qsTr("Batería %1%").arg(CortetsuPower.percent)
+        : qsTr("Corriente eléctrica")
     readonly property string networkLabel: CortetsuNetwork.activeEthernet
         ? qsTr("Ethernet")
-        : CortetsuNetwork.active?.ssid ?? qsTr("Offline")
+        : CortetsuNetwork.active?.ssid ?? qsTr("Sin conexión")
     property bool authenticationAccepted: false
     readonly property bool interactionActive: pam.buffer.length > 0
         || pam.passwd.active || pam.fprint.active || pam.howdy.active
@@ -49,11 +49,11 @@ WlSessionLockSurface {
                 return;
 
             const active = String(keyboard.active_keymap ?? keyboard.activeKeymap ?? "").trim();
-            keyboardLayout = active.length > 0 ? active : qsTr("Unknown layout");
+            keyboardLayout = active.length > 0 ? active : qsTr("Distribución desconocida");
             capsLock = Boolean(keyboard.capsLock ?? keyboard.caps_lock ?? false);
             numLock = Boolean(keyboard.numLock ?? keyboard.num_lock ?? false);
         } catch (_) {
-            keyboardLayout = qsTr("Unknown layout");
+            keyboardLayout = qsTr("Distribución desconocida");
             capsLock = false;
             numLock = false;
         }
@@ -170,13 +170,13 @@ WlSessionLockSurface {
                 spacing: 2
 
                 CortetsuText {
-                    text: qsTr("Password")
+                    text: qsTr("Contraseña")
                     textSize: CortetsuTypography.labelSmallPx
                     color: CortetsuDesign.colorOnSurfaceVariant
                 }
 
                 CortetsuText {
-                    text: pam.buffer.length ? "• ".repeat(pam.buffer.length) : qsTr("Type your password and press Enter")
+                    text: pam.buffer.length ? "• ".repeat(pam.buffer.length) : qsTr("Escribe tu contraseña y pulsa Enter")
                     textSize: CortetsuTypography.bodyPx
                     color: pam.buffer.length ? CortetsuDesign.colorOnSurface : CortetsuDesign.colorOnSurfaceVariant
                 }
@@ -191,7 +191,7 @@ WlSessionLockSurface {
         CortetsuText {
             Layout.alignment: Qt.AlignHCenter
             visible: pam.state > 0
-            text: pam.state === 3 ? qsTr("Authentication failed. Try again.") : qsTr("Authentication unavailable")
+            text: pam.state === 3 ? qsTr("La autenticación falló. Inténtalo de nuevo.") : qsTr("Autenticación no disponible")
             textSize: CortetsuTypography.bodySmallPx
             color: CortetsuDesign.colorVermillion
         }
@@ -290,7 +290,7 @@ WlSessionLockSurface {
 
         CortetsuText {
             Layout.alignment: Qt.AlignHCenter
-            text: qsTr("Enter to authenticate")
+            text: qsTr("Pulsa Enter para autenticarte")
             textSize: CortetsuTypography.labelSmallPx
             color: CortetsuDesign.colorOnSurfaceVariant
         }

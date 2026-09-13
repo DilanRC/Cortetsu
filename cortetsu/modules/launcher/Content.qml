@@ -34,16 +34,16 @@ Item {
     }
 
     function modeLabel(): string {
-        if (search.text.startsWith(`${CortetsuConfig.actionPrefix}scheme `)) return qsTr("Theme");
-        if (search.text.startsWith(`${CortetsuConfig.actionPrefix}wallpaper `)) return qsTr("Wallpaper");
-        if (search.text.startsWith(CortetsuConfig.actionPrefix)) return qsTr("Command");
-        return qsTr("Apps");
+        if (search.text.startsWith(`${CortetsuConfig.actionPrefix}scheme `)) return qsTr("Tema");
+        if (search.text.startsWith(`${CortetsuConfig.actionPrefix}wallpaper `)) return qsTr("Fondo");
+        if (search.text.startsWith(CortetsuConfig.actionPrefix)) return qsTr("Comando");
+        return qsTr("Aplicaciones");
     }
 
     function modeIcon(): string {
-        if (modeLabel() === qsTr("Theme")) return "palette";
-        if (modeLabel() === qsTr("Wallpaper")) return "wallpaper";
-        if (modeLabel() === qsTr("Command")) return "terminal";
+        if (modeLabel() === qsTr("Tema")) return "palette";
+        if (modeLabel() === qsTr("Fondo")) return "wallpaper";
+        if (modeLabel() === qsTr("Comando")) return "terminal";
         return "apps";
     }
 
@@ -101,7 +101,7 @@ Item {
             }
             CortetsuIcon { anchors.verticalCenter: parent.verticalCenter; text: root.modeIcon(); iconSize: CortetsuTypography.iconSmallPx; color: CortetsuDesign.colorPrimary }
             CortetsuText { anchors.verticalCenter: parent.verticalCenter; text: root.modeLabel(); textSize: CortetsuTypography.labelSmallPx; font.weight: Font.DemiBold; color: CortetsuDesign.colorOnPrimaryContainer }
-            CortetsuText { anchors.verticalCenter: parent.verticalCenter; text: CortetsuWallpapers.applyStatus === "failed" && root.pendingWallpaperPath ? qsTr("Apply failed") : root.modeLabel() === qsTr("Apps") ? qsTr("Search-first") : qsTr("Prefix mode"); textSize: CortetsuTypography.labelSmallPx; color: CortetsuDesign.colorOnSurfaceVariant }
+            CortetsuText { anchors.verticalCenter: parent.verticalCenter; text: CortetsuWallpapers.applyStatus === "failed" && root.pendingWallpaperPath ? qsTr("Error al aplicar") : root.modeLabel() === qsTr("Aplicaciones") ? qsTr("Buscar primero") : qsTr("Modo por prefijo"); textSize: CortetsuTypography.labelSmallPx; color: CortetsuDesign.colorOnSurfaceVariant }
         }
     }
 
@@ -114,7 +114,7 @@ Item {
         anchors.topMargin: root.padding
         anchors.leftMargin: root.padding
         anchors.rightMargin: root.padding
-        placeholderText: qsTr("Search apps or commands…")
+        placeholderText: qsTr("Buscar aplicaciones o comandos…")
 
         onAccepted: {
             const currentItem = list.currentList?.currentItem;

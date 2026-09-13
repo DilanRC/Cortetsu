@@ -185,22 +185,8 @@ StyledWindow {
             deformAmount: 0.2
         }
         PanelBg { id: sidebarBg; panel: panels.sidebar; deformAmount: 0.03 }
-        PanelBg {
-            id: osdBg
-            panel: panels.osdWrapper
-            x: panels.osdWrapper.x + panels.osd.x + bar.implicitWidth
-            width: panels.osd.width
-            deformAmount: 0.25
-        }
         PanelBg { id: notifsBg; panel: panels.notifications }
         PanelBg { id: utilsBg; panel: panels.utilities; deformAmount: 0.12 }
-        PanelBg {
-            id: popoutBg
-            panel: panels.popoutsWrapper
-            x: panels.popoutsWrapper.x + panels.popouts.x + bar.implicitWidth
-            width: panels.popouts.width
-            deformAmount: panels.popouts.isDetached ? 0.05 : 0.15
-        }
     }
 
     Interactions {

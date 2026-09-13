@@ -19,20 +19,20 @@ for name, service in (
     text = (popouts / name).read_text(encoding="utf-8")
     assert "CortetsuPopupSurface" in text and "CortetsuListRow" in text
     assert "CortetsuDesign" in text and service in text
-    assert "No devices nearby" in text or "No networks available" in text or "No device" in text
+    assert "No hay dispositivos cerca" in text or "No hay redes disponibles" in text or "Sin dispositivo" in text
 
 battery = (popouts / "CortetsuBatteryPopup.qml").read_text(encoding="utf-8")
 assert "CortetsuPopupSurface" in battery
 assert "Icons.getBatteryIcon" in battery
 assert "CortetsuPower.charging" in battery
-assert 'qsTr("Fully charged")' in battery
+assert 'qsTr("Carga completa")' in battery
 assert 'text: root.hasBattery' in battery
 assert "CortetsuProgressBar" in battery
 assert "fillColor: root.critical" in battery
 assert "UPower.onBattery" not in battery
 
 password = (popouts / "CortetsuWifiPasswordPopup.qml").read_text(encoding="utf-8")
-for token in ("TextField", "Keys.onEscapePressed", "NetworkConnection.connectWithPassword", "8000", "errorText"):
+for token in ("TextField", "Keys.onEscapePressed", "NetworkConnection.connectWithPassword", "8000", "errorText", "forceActiveFocus"):
     assert token in password, token
 
 assert "sourceComponent: CortetsuNetworkPopup" in content
@@ -41,8 +41,15 @@ assert "sourceComponent: CortetsuBluetoothPopup" in content
 assert "sourceComponent: CortetsuWifiPasswordPopup" in content
 network = (popouts / "CortetsuNetworkPopup.qml").read_text(encoding="utf-8")
 assert "activeEthernet" in network and ': "lan"' in network
-assert 'qsTr("Ethernet")' in network and 'qsTr("Connected")' in network
-assert "Network unavailable" in network
+assert 'qsTr("Ethernet")' in network and 'qsTr("Conectado")' in network
+assert "Red no disponible" in network
+assert "CortetsuNetwork.refresh()" in network
+assert 'tooltipText: qsTr("Actualizar redes")' in network
+assert "readonly property bool refreshing: CortetsuNetwork.refreshing" in network
+network_service = (ROOT / "cortetsu/modules/CortetsuNetwork.qml").read_text(encoding="utf-8")
+assert "function refresh(): void" in network_service
+assert "scannerEnabled = false" in network_service and "scannerEnabled = true" in network_service
+assert "Timer {" not in network_service
 assert "function closeAllPopouts(): void" in hub
 assert "closeAllPopouts();" in hub
 assert "id: hideTimer" in hub and "interval: 500" in hub
@@ -83,6 +90,13 @@ assert "anchors.leftMargin: (-implicitWidth - 5)" not in clip_wrapper
 assert "ClipWrapper owns the screen-space placement" in clip_wrapper
 assert "        x: 0\n        transformOrigin: Item.Bottom" in clip_wrapper
 assert "transformOrigin: Item.Bottom" in clip_wrapper
+assert "panel: panels.popoutsWrapper" not in content_window
+assert "panel: panels.osdWrapper" not in content_window
+qsd = (ROOT / "cortetsu/modules/qsd/Content.qml").read_text(encoding="utf-8")
+qsd_host = (ROOT / "cortetsu/modules/QsdHost.qml").read_text(encoding="utf-8")
+assert "implicitHeight: body.implicitHeight" in qsd
+assert "Layout.preferredHeight: 78" in qsd and "Layout.fillHeight: true" not in qsd
+assert "content.implicitHeight + CortetsuDesign.spacingSection * 2" in qsd_host
 
 # Native shell icons must stay on the GUI thread. Async image decoding in
 # these always-created surfaces triggers Qt's cross-thread pixmap warning.

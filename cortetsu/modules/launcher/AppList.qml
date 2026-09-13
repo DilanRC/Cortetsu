@@ -448,8 +448,8 @@ GridView {
                     width: parent.width
 
                     text: calc.math.length > 0
-                        ? (Qalculator.result || qsTr("Calculating..."))
-                        : qsTr("Type an expression to calculate")
+                        ? (Qalculator.result || qsTr("Calculando…"))
+                        : qsTr("Escribe una expresión para calcular")
 
                     color: text.includes("error: ") ||
                         text.includes("warning: ")
@@ -464,7 +464,7 @@ GridView {
 
                 CortetsuText {
                     width: parent.width
-                    text: qsTr("Enter: copy result")
+                    text: qsTr("Enter: copiar resultado")
                     color: CortetsuDesign.colorOutline
                     font.pixelSize: CortetsuTypography.labelSmallPx
                 }
@@ -612,7 +612,7 @@ GridView {
                 anchors.leftMargin: 12
                 anchors.rightMargin: 12
 
-                text: `${scheme.modelData?.flavour ?? "default"} · ${scheme.previewLight ? qsTr("Light") : qsTr("Dark")}`
+                        text: `${scheme.modelData?.flavour ?? "predeterminado"} · ${scheme.previewLight ? qsTr("Claro") : qsTr("Oscuro")}`
                 color: CortetsuDesign.colorOnSurfaceVariant
                     font.pixelSize: CortetsuTypography.labelSmallPx
                 horizontalAlignment: Text.AlignHCenter

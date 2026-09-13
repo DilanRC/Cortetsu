@@ -30,9 +30,9 @@ CortetsuPopupSurface {
             title: qsTr("Bluetooth")
             detail: root.adapterEnabled
                 ? root.connectedCount > 0
-                    ? qsTr("%1 connected").arg(root.connectedCount)
-                    : qsTr("Ready")
-                : qsTr("Off")
+                    ? qsTr("%1 conectados").arg(root.connectedCount)
+                    : qsTr("Listo")
+                : qsTr("Apagado")
         }
 
         CortetsuSurface {
@@ -80,7 +80,7 @@ CortetsuPopupSurface {
 
                     CortetsuText {
                         Layout.fillWidth: true
-                        text: root.adapterEnabled ? qsTr("Bluetooth enabled") : qsTr("Bluetooth disabled")
+                        text: root.adapterEnabled ? qsTr("Bluetooth activado") : qsTr("Bluetooth desactivado")
                         textSize: CortetsuDesign.bodySmallPx
                         color: CortetsuDesign.colorOnSurface
                     }
@@ -88,8 +88,8 @@ CortetsuPopupSurface {
                     CortetsuText {
                         Layout.fillWidth: true
                         text: root.adapterEnabled
-                            ? qsTr("Choose a device below")
-                            : qsTr("Turn it on to connect devices")
+                            ? qsTr("Elige un dispositivo abajo")
+                            : qsTr("Actívalo para conectar dispositivos")
                         textSize: CortetsuDesign.labelSmallPx
                         color: CortetsuDesign.colorOnSurfaceVariant
                     }
@@ -110,16 +110,16 @@ CortetsuPopupSurface {
             Layout.fillWidth: true
             visible: !root.adapterEnabled || root.devices.length === 0
             kind: root.adapterEnabled ? "empty" : "error"
-            title: root.adapterEnabled ? qsTr("No devices nearby") : qsTr("Bluetooth is off")
+            title: root.adapterEnabled ? qsTr("No hay dispositivos cerca") : qsTr("Bluetooth está apagado")
             detail: root.adapterEnabled
-                ? qsTr("Paired and discovered devices will appear here")
-                : qsTr("Enable Bluetooth to connect devices")
+                ? qsTr("Los dispositivos vinculados y detectados aparecerán aquí")
+                : qsTr("Activa Bluetooth para conectar dispositivos")
         }
 
         CortetsuSectionHeader {
             visible: root.adapterEnabled && root.devices.length > 0
-            title: qsTr("Devices")
-            detail: qsTr("%1 available").arg(root.devices.length)
+            title: qsTr("Dispositivos")
+            detail: qsTr("%1 disponibles").arg(root.devices.length)
         }
 
         ListView {
@@ -133,12 +133,12 @@ CortetsuPopupSurface {
                 required property BluetoothDevice modelData
                 width: ListView.view.width
                 icon: modelData.connected ? "bluetooth_connected" : "bluetooth"
-                title: modelData.name ?? qsTr("Unknown device")
+                title: modelData.name ?? qsTr("Dispositivo desconocido")
                 subtitle: modelData.connected
-                    ? qsTr("Connected · activate to disconnect")
+                    ? qsTr("Conectado · activa para desconectar")
                     : modelData.paired
-                        ? qsTr("Paired · activate to connect")
-                        : qsTr("Available")
+                        ? qsTr("Vinculado · activa para conectar")
+                        : qsTr("Disponible")
                 selected: modelData.connected
                 onClicked: {
                     if (modelData.connected)

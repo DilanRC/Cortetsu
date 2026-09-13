@@ -41,7 +41,7 @@ FocusScope {
             editor.candidateOutputs = outputs.map(item => Object.assign({}, item));
             editor.selectedIndex = 0;
             editor.planResult = ({});
-            editor.planStatus = qsTr("Saved layout loaded · run Dry run before Preview");
+            editor.planStatus = qsTr("Distribución guardada cargada · ejecuta una simulación antes de previsualizar");
         }
     }
 

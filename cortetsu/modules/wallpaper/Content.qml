@@ -50,12 +50,12 @@ FocusScope {
     readonly property string currentPath: currentEntry?.path ?? ""
     readonly property bool currentIsApplied: !!currentPath && currentPath === CortetsuWallpapers.actualCurrent
     readonly property string currentStateLabel: applyStatus === "applying"
-        ? qsTr("Applying")
+        ? qsTr("Aplicando")
         : applyStatus === "failed"
-            ? qsTr("Apply failed")
+            ? qsTr("No se pudo aplicar")
             : currentIsApplied
                 ? qsTr("Applied")
-                : (previewActive ? qsTr("Previewing") : qsTr("Selected"))
+                : (previewActive ? qsTr("Previsualizando") : qsTr("Seleccionado"))
     readonly property string markPhase: cosmicPulse
         ? "Cosmic"
         : applyStatus === "applying" || animating
@@ -400,7 +400,7 @@ FocusScope {
                 compact: true
                 icon: "close"
                 label: ""
-                tooltipText: qsTr("Close Wallpaper Manager")
+                tooltipText: qsTr("Cerrar gestor de fondos")
                 onClicked: root.cancel()
             }
         }
@@ -690,7 +690,7 @@ FocusScope {
 
             CortetsuText {
                 width: Math.min(440, panel.width - 48)
-                text: root.currentPath ? root.currentPath.split("/").pop() : qsTr("No readable wallpapers found")
+                text: root.currentPath ? root.currentPath.split("/").pop() : qsTr("No se encontraron fondos legibles")
                 horizontalAlignment: Text.AlignHCenter
                 elide: Text.ElideMiddle
                 color: CortetsuDesign.colorOnSurface
@@ -698,7 +698,7 @@ FocusScope {
             }
             CortetsuText {
                 width: Math.min(440, panel.width - 48)
-                text: root.currentEntry ? qsTr("%1  ·  %2  ·  %3/%4").arg(root.currentPath === CortetsuWallpapers.actualCurrent ? qsTr("Current") : qsTr("Preview")).arg(root.categoryFor(root.currentEntry)).arg(root.currentIndex + 1).arg(root.filteredEntries.length) : qsTr("Add images to the native wallpaper directory")
+                text: root.currentEntry ? qsTr("%1  ·  %2  ·  %3/%4").arg(root.currentPath === CortetsuWallpapers.actualCurrent ? qsTr("Actual") : qsTr("Vista previa")).arg(root.categoryFor(root.currentEntry)).arg(root.currentIndex + 1).arg(root.filteredEntries.length) : qsTr("Añade imágenes al directorio nativo de fondos")
                 horizontalAlignment: Text.AlignHCenter
                 color: CortetsuDesign.colorOnSurfaceVariant
                 textSize: CortetsuTypography.labelMediumPx
@@ -706,9 +706,9 @@ FocusScope {
             Row {
                 anchors.horizontalCenter: parent.horizontalCenter
                 spacing: 8
-                CortetsuButton { compact: true; label: qsTr("Cancel"); onClicked: root.cancel() }
-                CortetsuButton { compact: true; icon: "shuffle"; label: qsTr("Random"); disabled: root.applying; onClicked: root.random() }
-                CortetsuButton { compact: true; label: root.applying ? qsTr("Applying") : qsTr("Apply"); active: true; disabled: root.applying; onClicked: root.apply() }
+                CortetsuButton { compact: true; label: qsTr("Cancelar"); onClicked: root.cancel() }
+                CortetsuButton { compact: true; icon: "shuffle"; label: qsTr("Aleatorio"); disabled: root.applying; onClicked: root.random() }
+                CortetsuButton { compact: true; label: root.applying ? qsTr("Aplicando") : qsTr("Aplicar"); active: true; disabled: root.applying; onClicked: root.apply() }
             }
         }
     }

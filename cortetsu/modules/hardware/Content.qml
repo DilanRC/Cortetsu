@@ -17,7 +17,7 @@ FocusScope {
     required property bool hardwareVisible
 
     property var snapshot: ({})
-    property string statusText: qsTr("Waiting for first sample…")
+    property string statusText: qsTr("Esperando la primera lectura…")
     property int sampleCount: 0
     property int currentPage: 0
 
@@ -88,7 +88,7 @@ FocusScope {
     function refresh(): void {
         if (!root.hardwareVisible || probe.running)
             return;
-        root.statusText = qsTr("Refreshing…");
+        root.statusText = qsTr("Actualizando…");
         probe.running = true;
     }
 
@@ -287,11 +287,11 @@ FocusScope {
                     model: [
                         { label: qsTr("Overview"), icon: "dashboard" },
                         { label: qsTr("Performance"), icon: "monitoring" },
-                        { label: qsTr("Processes"), icon: "account_tree" },
+                        { label: qsTr("Procesos"), icon: "account_tree" },
                         { label: qsTr("Sensors"), icon: "device_thermostat" },
                         { label: qsTr("I/O"), icon: "lan" },
-                        { label: qsTr("Power"), icon: "bolt" },
-                        { label: qsTr("Auto"), icon: "auto_mode" },
+                        { label: qsTr("Energía"), icon: "bolt" },
+                        { label: qsTr("Automático"), icon: "auto_mode" },
                         { label: qsTr("Energy"), icon: "electric_bolt" },
                         { label: qsTr("Keys"), icon: "keyboard" }
                     ]

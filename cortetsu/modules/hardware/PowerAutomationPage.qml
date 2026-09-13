@@ -11,7 +11,7 @@ Item {
     id: root
 
     property var automation: ({})
-    property string statusText: qsTr("Reading automation state…")
+    property string statusText: qsTr("Leyendo estado de automatización…")
     property var controlArgs: []
     property bool actionBusy: false
 
@@ -27,8 +27,8 @@ Item {
     function profileLabel(name): string {
         if (name === "power-saver") return qsTr("Power saver");
         if (name === "performance") return qsTr("Performance");
-        if (name === "balanced") return qsTr("Balanced");
-        return qsTr("Unknown");
+        if (name === "balanced") return qsTr("Equilibrado");
+        return qsTr("Desconocido");
     }
 
     function profileIcon(name): string {
@@ -38,8 +38,8 @@ Item {
     }
 
     function sourceLabel(event): string {
-        if (event?.source === "ac") return qsTr("AC");
-        if (event?.source === "battery") return qsTr("Battery");
+        if (event?.source === "ac") return qsTr("Corriente alterna");
+        if (event?.source === "battery") return qsTr("Batería");
         return "—";
     }
 
@@ -60,19 +60,19 @@ Item {
             return;
         root.controlArgs = Array.from(args);
         root.actionBusy = true;
-        root.statusText = message || qsTr("Applying change…");
+        root.statusText = message || qsTr("Aplicando cambio…");
         controlProcess.running = true;
     }
 
     function setProfile(slot, profile): void {
-        runControl(["set-profile", slot, profile], qsTr("Updating automatic profile…"));
+        runControl(["set-profile", slot, profile], qsTr("Actualizando perfil automático…"));
     }
 
     function threshold(delta): void {
         const current = Number(config?.low_battery_threshold ?? 25);
         runControl(
             ["set-threshold", String(Math.max(5, Math.min(80, current + delta)))],
-            qsTr("Updating low-battery threshold…")
+            qsTr("Actualizando umbral de batería baja…")
         );
     }
 
@@ -83,13 +83,13 @@ Item {
             root.refresh();
 
         if (parsed?.ok === false)
-            root.statusText = parsed?.error ? String(parsed.error) : qsTr("Action failed");
+            root.statusText = parsed?.error ? String(parsed.error) : qsTr("La acción falló");
         else if (parsed?.service?.active)
-            root.statusText = qsTr("Automation service active");
+            root.statusText = qsTr("Servicio de automatización activo");
         else if (parsed?.config?.enabled)
-            root.statusText = qsTr("Automation enabled but service is not active");
+            root.statusText = qsTr("La automatización está activa, pero el servicio no lo está");
         else
-            root.statusText = qsTr("Automation disabled · no background watcher");
+            root.statusText = qsTr("Automatización desactivada · sin monitor en segundo plano");
     }
 
     Component.onCompleted: { if (root.visible) refresh(); }
@@ -112,12 +112,12 @@ Item {
                     const parsed = JSON.parse(text.trim());
                     root.automation = parsed;
                     root.statusText = parsed?.service?.active
-                        ? qsTr("Automation service active")
+                        ? qsTr("Servicio de automatización activo")
                         : (parsed?.config?.enabled
-                            ? qsTr("Automation enabled but service is not active")
-                            : qsTr("Automation disabled · no background watcher"));
+                            ? qsTr("La automatización está activa, pero el servicio no lo está")
+                            : qsTr("Automatización desactivada · sin monitor en segundo plano"));
                 } catch (error) {
-                    root.statusText = qsTr("Automation status unavailable");
+                    root.statusText = qsTr("Estado de automatización no disponible");
                 }
             }
         }
@@ -132,7 +132,7 @@ Item {
                 try {
                     root.updateFromResult(JSON.parse(text.trim()));
                 } catch (error) {
-                    root.statusText = qsTr("Automation action returned invalid output");
+                    root.statusText = qsTr("La acción de automatización devolvió una respuesta no válida");
                 }
                 root.actionBusy = false;
                 refreshAfterAction.restart();
@@ -189,14 +189,14 @@ Item {
                     spacing: 3
 
                     CortetsuText {
-                        text: qsTr("Automatic power profiles")
+                        text: qsTr("Perfiles de energía automáticos")
                         color: CortetsuDesign.colorOnSurface
                         textSize: CortetsuTypography.titleMediumPx
                     }
 
                     CortetsuText {
                         width: parent.width
-                        text: qsTr("AC, battery and low-battery rules. Disabled means no background watcher is running.")
+                        text: qsTr("Reglas de corriente alterna, batería y batería baja. Desactivado significa que no hay monitor en segundo plano.")
                         color: CortetsuDesign.colorOnSurfaceVariant
                         textSize: CortetsuTypography.bodySmallPx
                         wrapMode: Text.WordWrap
@@ -437,7 +437,7 @@ Item {
                                 enabled: !root.actionBusy
                                 onClicked: root.runControl(
                                     ["set-low-enabled", config?.low_battery_enabled ? "false" : "true"],
-                                    qsTr("Updating low-battery rule…")
+                                    qsTr("Actualizando regla de batería baja…")
                                 )
                             }
                             CortetsuText {
@@ -530,7 +530,7 @@ Item {
                         CortetsuStateLayer {
                             radius: parent.radius
                             enabled: !root.actionBusy
-                            onClicked: root.runControl(["apply-now"], qsTr("Applying current rule once…"))
+                            onClicked: root.runControl(["apply-now"], qsTr("Aplicando la regla actual una vez…"))
                         }
                         Row {
                             anchors.centerIn: parent
@@ -550,7 +550,7 @@ Item {
 
                     CortetsuText {
                         width: parent.width
-                        text: qsTr("Apply once works even while automation is disabled; it does not enable the watcher.")
+                        text: qsTr("Aplicar una vez funciona aunque la automatización esté desactivada; no activa el monitor.")
                         color: CortetsuDesign.colorOutline
                         textSize: CortetsuTypography.labelSmallPx
                         wrapMode: Text.WordWrap
@@ -576,7 +576,7 @@ Item {
 
                         CortetsuText {
                             width: parent.width - eventActions.width - 10
-                            text: qsTr("Automation status & events")
+                        text: qsTr("Estado y eventos de automatización")
                             color: CortetsuDesign.colorOnSurface
                             textSize: CortetsuTypography.titleSmallPx
                         }
@@ -593,11 +593,11 @@ Item {
                                 CortetsuStateLayer {
                                     radius: parent.radius
                                     enabled: !root.actionBusy
-                                    onClicked: root.runControl(["reset-defaults"], qsTr("Restoring rule defaults…"))
+                                    onClicked: root.runControl(["reset-defaults"], qsTr("Restaurando reglas predeterminadas…"))
                                 }
                                 CortetsuText {
                                     anchors.centerIn: parent
-                                    text: qsTr("Defaults")
+                                    text: qsTr("Predeterminadas")
                                     color: CortetsuDesign.colorOnSurfaceVariant
                                     textSize: CortetsuTypography.labelSmallPx
                                 }
@@ -611,11 +611,11 @@ Item {
                                 CortetsuStateLayer {
                                     radius: parent.radius
                                     enabled: !root.actionBusy
-                                    onClicked: root.runControl(["clear-events"], qsTr("Clearing event history…"))
+                                    onClicked: root.runControl(["clear-events"], qsTr("Borrando historial de eventos…"))
                                 }
                                 CortetsuText {
                                     anchors.centerIn: parent
-                                    text: qsTr("Clear")
+                                    text: qsTr("Limpiar")
                                     color: CortetsuDesign.colorOnSurfaceVariant
                                     textSize: CortetsuTypography.labelSmallPx
                                 }
@@ -625,10 +625,10 @@ Item {
 
                     Repeater {
                         model: [
-                            { label: qsTr("Service"), value: service?.active ? qsTr("Active") : qsTr("Stopped") },
-                            { label: qsTr("Current / desired"), value: `${root.profileLabel(last?.profile ?? "")} → ${root.profileLabel(last?.desired_profile ?? "")}` },
-                            { label: qsTr("Reason"), value: last?.reason ?? qsTr("No automatic switch yet") },
-                            { label: qsTr("Battery"), value: last?.battery_percent !== undefined && last?.battery_percent !== null ? `${last.battery_percent}%` : "—" }
+                            { label: qsTr("Servicio"), value: service?.active ? qsTr("Activo") : qsTr("Detenido") },
+                            { label: qsTr("Actual / deseado"), value: `${root.profileLabel(last?.profile ?? "")} → ${root.profileLabel(last?.desired_profile ?? "")}` },
+                            { label: qsTr("Motivo"), value: last?.reason ?? qsTr("Aún no hay cambios automáticos") },
+                            { label: qsTr("Batería"), value: last?.battery_percent !== undefined && last?.battery_percent !== null ? `${last.battery_percent}%` : "—" }
                         ]
 
                         delegate: Row {
@@ -710,7 +710,7 @@ Item {
 
                     CortetsuText {
                         visible: root.events.length === 0
-                        text: qsTr("No automatic profile events recorded yet.")
+                        text: qsTr("Aún no se han registrado eventos automáticos de perfiles.")
                         color: CortetsuDesign.colorOutline
                         textSize: CortetsuTypography.bodySmallPx
                     }

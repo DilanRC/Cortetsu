@@ -20,8 +20,8 @@ Column {
     readonly property var actions: [
         {
             id: "lock",
-            label: qsTr("Lock"),
-            detail: qsTr("Secure this session"),
+            label: qsTr("Bloquear"),
+            detail: qsTr("Proteger esta sesión"),
             icon: "lock",
             command: ["hyprctl", "dispatch", "global", "cortetsu:lock"],
             confirm: false,
@@ -30,8 +30,8 @@ Column {
         },
         {
             id: "suspend",
-            label: qsTr("Suspend"),
-            detail: qsTr("Lock, then sleep"),
+            label: qsTr("Suspender"),
+            detail: qsTr("Bloquear y suspender"),
             icon: "mode_standby",
             command: ["systemctl", "suspend"],
             confirm: false,
@@ -40,8 +40,8 @@ Column {
         },
         {
             id: "logout",
-            label: qsTr("Log out"),
-            detail: qsTr("End the Hyprland session"),
+            label: qsTr("Cerrar sesión"),
+            detail: qsTr("Finalizar la sesión de Hyprland"),
             icon: "logout",
             command: ["hyprctl", "dispatch", "exit"],
             confirm: true,
@@ -50,8 +50,8 @@ Column {
         },
         {
             id: "hibernate",
-            label: qsTr("Hibernate"),
-            detail: qsTr("Save memory to disk"),
+            label: qsTr("Hibernar"),
+            detail: qsTr("Guardar la memoria en el disco"),
             icon: "bedtime",
             command: ["systemctl", "hibernate"],
             confirm: true,
@@ -60,8 +60,8 @@ Column {
         },
         {
             id: "reboot",
-            label: qsTr("Reboot"),
-            detail: qsTr("Restart the computer"),
+            label: qsTr("Reiniciar"),
+            detail: qsTr("Reiniciar el equipo"),
             icon: "restart_alt",
             command: ["systemctl", "reboot"],
             confirm: true,
@@ -70,8 +70,8 @@ Column {
         },
         {
             id: "shutdown",
-            label: qsTr("Shutdown"),
-            detail: qsTr("Power off the computer"),
+            label: qsTr("Apagar"),
+            detail: qsTr("Apagar el equipo"),
             icon: "power_settings_new",
             command: ["systemctl", "poweroff"],
             confirm: true,
@@ -171,10 +171,10 @@ Column {
             width: 328
             icon: actionRow.modelData.icon
             title: root.pendingAction === actionRow.modelData.id
-                ? qsTr("Confirm %1").arg(actionRow.modelData.label)
+                ? qsTr("Confirmar %1").arg(actionRow.modelData.label)
                 : actionRow.modelData.label
             subtitle: root.pendingAction === actionRow.modelData.id
-                ? qsTr("Press again within 4 seconds")
+                ? qsTr("Pulsa otra vez en 4 segundos")
                 : actionRow.modelData.detail
             danger: actionRow.modelData.danger
             selected: root.pendingAction === actionRow.modelData.id

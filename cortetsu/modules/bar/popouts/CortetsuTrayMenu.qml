@@ -13,10 +13,16 @@ CortetsuPopupSurface {
     required property PopoutState popouts
     required property QsMenuHandle trayItem
     property real menuContentHeight: 72
+    property real menuContentWidth: 184
+    readonly property real menuMinWidth: 152
+    // Keep long DBus labels readable without letting one Steam title stretch
+    // the popup. The width cap leaves the useful name prefix visible and
+    // lets Text.ElideRight handle the rest.
+    readonly property real menuMaxWidth: 152
     // StackView does not propagate the implicit size of a dynamically-created
     // Column. Keep the popup measurable so the menu is not rendered as an
     // empty square while its DBus entries are loading.
-    implicitWidth: 320 + CortetsuDesign.spacingStandard * 2
+    implicitWidth: menuContentWidth + CortetsuDesign.spacingStandard * 2
     implicitHeight: menuContentHeight + CortetsuDesign.spacingStandard * 2
 
     StackView {
@@ -121,7 +127,16 @@ CortetsuPopupSurface {
             property bool subMenu: false
             padding: CortetsuDesign.spacingCompact
             spacing: CortetsuDesign.spacingUnit
-            width: 320 + padding * 2
+            readonly property real fittedWidth: {
+                let widest = 0;
+                for (let i = 0; i < entries.count; i++) {
+                    const item = entries.itemAt(i);
+                    if (item)
+                        widest = Math.max(widest, item.naturalWidth);
+                }
+                return Math.max(root.menuMinWidth, Math.min(root.menuMaxWidth, widest + padding * 2));
+            }
+            width: fittedWidth
             height: Math.max(
                 48,
                 childrenRect.height + padding * 2
@@ -129,6 +144,7 @@ CortetsuPopupSurface {
             )
 
             onHeightChanged: root.menuContentHeight = height
+            onWidthChanged: root.menuContentWidth = width
 
             QsMenuOpener {
                 id: opener
@@ -136,15 +152,22 @@ CortetsuPopupSurface {
             }
 
             Repeater {
+                id: entries
                 // QsMenuOpener.children is a live ObjectModel. Keeping it as
                 // the Repeater model preserves asynchronous DBus menu updates.
                 model: opener.children
 
                 CortetsuSurface {
                     required property QsMenuEntry modelData
+                    readonly property real naturalWidth: modelData.isSeparator
+                        ? 0
+                        : labelMetrics.width
+                            + (menuIcon.visible ? menuIcon.width + row.spacing : 0)
+                            + (submenuIcon.visible ? submenuIcon.width + row.spacing : 0)
+                            + CortetsuDesign.spacingCompact * 2
                     focus: modelData.enabled && index === 0
                     activeFocusOnTab: modelData.enabled
-                    implicitWidth: 320
+                    width: Math.max(0, menu.width - menu.padding * 2)
                     implicitHeight: modelData.isSeparator
                         ? 1
                         : row.implicitHeight + CortetsuDesign.spacingStandard
@@ -166,6 +189,7 @@ CortetsuPopupSurface {
                         spacing: CortetsuDesign.spacingStandard
 
                         IconImage {
+                            id: menuIcon
                             visible: modelData.icon !== ""
                             implicitSize: label.implicitHeight
                             source: modelData.icon
@@ -174,7 +198,9 @@ CortetsuPopupSurface {
 
                         CortetsuText {
                             id: label
-                            width: parent.width - (modelData.hasChildren ? 28 : 0)
+                            width: Math.max(0, row.width
+                                - (menuIcon.visible ? menuIcon.width + row.spacing : 0)
+                                - (submenuIcon.visible ? submenuIcon.width + row.spacing : 0))
                             text: modelData.text
                             color: modelData.enabled
                                 ? CortetsuDesign.colorOnSurface
@@ -184,6 +210,7 @@ CortetsuPopupSurface {
                         }
 
                         CortetsuIcon {
+                            id: submenuIcon
                             visible: modelData.hasChildren
                             text: "chevron_right"
                             color: activeFocus
@@ -191,6 +218,12 @@ CortetsuPopupSurface {
                                 : CortetsuDesign.colorOnSurfaceVariant
                             anchors.verticalCenter: parent.verticalCenter
                         }
+                    }
+
+                    TextMetrics {
+                        id: labelMetrics
+                        text: modelData.text
+                        font: label.font
                     }
 
                     CortetsuStateLayer {
@@ -224,7 +257,7 @@ CortetsuPopupSurface {
                 visible: menu.subMenu
                 compact: true
                 icon: "chevron_left"
-                label: qsTr("Back")
+                label: qsTr("Atrás")
                 onClicked: stack.pop()
                 Keys.onEscapePressed: root.popouts.hasCurrent = false
             }

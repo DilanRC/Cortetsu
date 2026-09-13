@@ -151,7 +151,7 @@ MouseArea {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: parent.top
         anchors.topMargin: CortetsuDesign.spacingComfortable
-        text: root.state.freeze ? qsTr("Select an area to capture") : qsTr("Select an area")
+        text: root.state.freeze ? qsTr("Selecciona un área para capturar") : qsTr("Selecciona un área")
         textSize: CortetsuTypography.bodyLargePx
         color: CortetsuDesign.colorOnSurface
     }

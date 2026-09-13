@@ -53,7 +53,9 @@ Item {
 
     Item {
         id: osdWrapper
-        anchors.verticalCenter: parent.verticalCenter
+        // Keep transient OSD cards above BottomHub when the bar is visible.
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: CortetsuDesign.bottomHubHeight + CortetsuDesign.spacingStandard
         anchors.right: parent.right
         anchors.rightMargin: sessionWrapper.anchors.rightMargin + session.width * (1 - session.offsetScale)
         clip: session.visible

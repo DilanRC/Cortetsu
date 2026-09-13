@@ -60,7 +60,7 @@ assert 'root.openRetained("wallpaperManager")' in system
 assert "WallpaperController.open(root.screen)" in system
 assert "root.screenState.cortetsuState?.closeRetainedOverlaysExcept(flag)" in system
 assert "Native NetworkManager readback; no fake controls" in system
-assert 'title: qsTr("Volume scroll")' in system
+assert 'title: qsTr("Desplazamiento del volumen")' in system
 assert 'title: qsTr("Brightness scroll")' not in system
 assert 'title: qsTr("Open on hover")' not in system
 assert 'onMoved: nextValue => CortetsuAudio.setVolume(nextValue)' in system

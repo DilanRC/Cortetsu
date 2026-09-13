@@ -21,7 +21,7 @@ assert "onClicked: root.screenState.dashboard = false" in dash
 for marker in ("calendar-events.json", "todayEvents", "eventOccursOnDay", "watchChanges: true", 'setRetained("calendar", true)'):
     assert marker in today, marker
 assert "root.todayEvents.slice(0, 2)" in today
-assert "No events today" in today
+assert "No hay eventos hoy" in today
 
 # Focus reuses the persistent first-party Pomodoro state/helper instead of
 # inventing a dashboard-only timer.

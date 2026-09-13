@@ -39,7 +39,7 @@ Item {
                     ? "Awakening"
                     : "Human"
             active: root.launcherActive
-            tooltip: qsTr("Applications")
+            tooltip: qsTr("Aplicaciones")
             onClicked: root.launcherRequested()
         }
 
@@ -48,7 +48,7 @@ Item {
             cropImage: true
             imageSource: root.wallpaperSource
             active: root.wallpaperActive
-            tooltip: qsTr("Wallpaper manager")
+            tooltip: qsTr("Gestor de fondos")
             onClicked: root.wallpaperRequested()
         }
 
@@ -57,7 +57,7 @@ Item {
             iconSize: CortetsuTypography.iconMediumPx
             icon: "content_paste_search"
             active: root.clipboardActive
-            tooltip: qsTr("Clipboard")
+            tooltip: qsTr("Portapapeles")
             onClicked: root.clipboardRequested()
         }
 

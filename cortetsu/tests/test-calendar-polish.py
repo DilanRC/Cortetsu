@@ -6,9 +6,9 @@ for expected in (
     'calendar.primary ? qsTr("Personal")',
     'eventsForDay(dayCell.day).slice(0, 3)',
     'modelData.calendarColor || CortetsuDesign.colorTertiary',
-    'label: qsTr("Skip break")',
+    'label: qsTr("Saltar descanso")',
     'root.runPomodoro("skip")',
-    'text: qsTr("No events")',
+    'text: qsTr("No hay eventos")',
     'text: qsTr("Take the time for yourself.")',
     'root.eventTime(modelData)',
     'modelData.location',
@@ -23,7 +23,7 @@ for expected in (
     'root.requestCalendarSync(true)',
     'onFileChanged: pomodoroReload.restart()',
     'phase === "LONG_BREAK"',
-    'qsTr("Long break")',
+    'qsTr("Descanso largo")',
     'eventOccursOnDate',
 ):
     assert expected in content, expected

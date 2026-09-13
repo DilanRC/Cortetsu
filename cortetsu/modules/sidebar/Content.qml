@@ -36,10 +36,10 @@ Item {
             spacing: CortetsuDesign.spacingStandard
 
             CortetsuSectionHeader {
-                title: qsTr("Notifications")
+                title: qsTr("Notificaciones")
                 detail: root.activeNotifications.length > 0
-                    ? qsTr("%1 active").arg(root.activeNotifications.length)
-                    : qsTr("Quiet")
+                    ? qsTr("%1 activas").arg(root.activeNotifications.length)
+                    : qsTr("En silencio")
             }
 
             Item { Layout.fillWidth: true }
@@ -47,7 +47,7 @@ Item {
             CortetsuButton {
                 visible: root.activeNotifications.length > 0 || root.history.length > 0
                 compact: true
-                label: qsTr("Clear")
+                label: qsTr("Limpiar")
                 icon: "delete_sweep"
                 onClicked: {
                     CortetsuNotifications.clear();
@@ -102,8 +102,8 @@ Item {
                     CortetsuText {
                         Layout.fillWidth: true
                         text: CortetsuNotifications.dnd
-                            ? qsTr("Do not disturb")
-                            : qsTr("Notifications enabled")
+                            ? qsTr("No molestar")
+                            : qsTr("Notificaciones activadas")
                         textSize: CortetsuDesign.bodySmallPx
                         font.weight: Font.DemiBold
                         color: CortetsuDesign.colorOnSurface
@@ -112,8 +112,8 @@ Item {
                     CortetsuText {
                         Layout.fillWidth: true
                         text: CortetsuNotifications.dnd
-                            ? qsTr("Alerts remain in history without interrupting you")
-                            : qsTr("New alerts may appear as popups")
+                            ? qsTr("Las alertas quedan en el historial sin interrumpirte")
+                            : qsTr("Las nuevas alertas pueden aparecer como avisos")
                         textSize: CortetsuDesign.labelSmallPx
                         color: CortetsuDesign.colorOnSurfaceVariant
                         elide: Text.ElideRight
@@ -129,8 +129,8 @@ Item {
 
         CortetsuSectionHeader {
             Layout.fillWidth: true
-            title: qsTr("Now")
-            detail: root.activeNotifications.length === 0 ? qsTr("Nothing new") : ""
+            title: qsTr("Ahora")
+            detail: root.activeNotifications.length === 0 ? qsTr("Nada nuevo") : ""
         }
 
         CortetsuSurface {
@@ -162,18 +162,18 @@ Item {
                     anchors.centerIn: parent
                     visible: activeList.count === 0
                     kind: "empty"
-                    title: qsTr("All clear")
-                    detail: qsTr("New notifications will appear here")
+                    title: qsTr("Todo limpio")
+                    detail: qsTr("Las nuevas notificaciones aparecerán aquí")
                 }
             }
         }
 
         CortetsuSectionHeader {
             Layout.fillWidth: true
-            title: qsTr("History")
+            title: qsTr("Historial")
             detail: root.history.length > 0
-                ? qsTr("%1 saved").arg(root.history.length)
-                : qsTr("Empty")
+                ? qsTr("%1 guardadas").arg(root.history.length)
+                : qsTr("Vacío")
         }
 
         CortetsuSurface {
@@ -192,10 +192,10 @@ Item {
                     required property var modelData
                     width: historyList.width
                     icon: modelData.urgency >= 2 ? "priority_high" : "history"
-                    title: modelData.summary ?? qsTr("Notification")
+                    title: modelData.summary ?? qsTr("Notificación")
                     subtitle: [modelData.appName, modelData.timeStr]
                         .filter(value => value && value.length > 0)
-                        .join(" · ") || modelData.body || qsTr("Saved notification")
+                        .join(" · ") || modelData.body || qsTr("Notificación guardada")
                     onClicked: {}
                 }
 
@@ -203,8 +203,8 @@ Item {
                     anchors.centerIn: parent
                     visible: historyList.count === 0
                     kind: "empty"
-                    title: qsTr("No saved notifications")
-                    detail: qsTr("Dismissed notifications will be kept here")
+                    title: qsTr("No hay notificaciones guardadas")
+                    detail: qsTr("Las notificaciones descartadas se conservarán aquí")
                 }
             }
         }

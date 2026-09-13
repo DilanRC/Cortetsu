@@ -1087,8 +1087,8 @@ FocusScope {
                 visible:
                     root.clients.length === 0
                 icon: "web_asset_off"
-                title: qsTr("No windows to show")
-                detail: qsTr("Open an application to see it here")
+                title: qsTr("No hay ventanas para mostrar")
+                detail: qsTr("Abre una aplicación para verla aquí")
             }
         }
     }

@@ -165,7 +165,7 @@ CortetsuSurface {
                 CortetsuText {
                     Layout.fillWidth: true
                     visible: text.length > 0
-                    text: root.appName || qsTr("System notification")
+                    text: root.appName || qsTr("Notificación del sistema")
                     textSize: CortetsuTypography.labelSmallPx
                     color: CortetsuDesign.colorOnSurfaceVariant
                     elide: Text.ElideRight
@@ -236,7 +236,7 @@ CortetsuSurface {
 
             CortetsuButton {
                 compact: true
-                label: qsTr("Dismiss")
+                label: qsTr("Descartar")
                 icon: "close"
                 danger: root.urgent
                 onClicked: if (root.hasModelData) root.modelData.close()

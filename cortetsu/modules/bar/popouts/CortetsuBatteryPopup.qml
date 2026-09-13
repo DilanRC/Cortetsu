@@ -18,14 +18,14 @@ CortetsuPopupSurface {
     readonly property bool batteryCharging: CortetsuPower.charging
     readonly property bool critical: CortetsuPower.hasBattery && root.percentage <= 15 && CortetsuPower.onBattery
     readonly property string batteryStatus: !root.hasBattery
-        ? qsTr("External power")
+            ? qsTr("Alimentación externa")
         : root.batteryCharging && root.percentage >= 100
-            ? qsTr("Fully charged")
+            ? qsTr("Carga completa")
             : root.batteryCharging
-                ? qsTr("Charging")
+            ? qsTr("Cargando")
                 : CortetsuPower.onBattery
-                    ? qsTr("On battery")
-                    : qsTr("External power")
+            ? qsTr("Con batería")
+            : qsTr("Alimentación externa")
 
     Column {
         id: body
@@ -36,7 +36,7 @@ CortetsuPopupSurface {
 
         function formatSeconds(seconds: int): string {
             if (seconds <= 0)
-                return qsTr("Calculating…");
+                return qsTr("Calculando…");
             const hours = Math.floor(seconds / 3600);
             const minutes = Math.floor(seconds / 60) % 60;
             return hours > 0
@@ -45,8 +45,8 @@ CortetsuPopupSurface {
         }
 
         CortetsuSectionHeader {
-            title: qsTr("Power")
-            detail: root.hasBattery ? root.batteryStatus : qsTr("Desktop power")
+            title: qsTr("Energía")
+            detail: root.hasBattery ? root.batteryStatus : qsTr("Energía de escritorio")
         }
 
         CortetsuSurface {
@@ -110,9 +110,9 @@ CortetsuPopupSurface {
 
                         CortetsuText {
                             text: root.batteryCharging && root.percentage < 100
-                                ? qsTr("%1 until full").arg(body.formatSeconds(CortetsuPower.timeToFull))
+                                ? qsTr("%1 para carga completa").arg(body.formatSeconds(CortetsuPower.timeToFull))
                                 : CortetsuPower.onBattery
-                                    ? qsTr("%1 remaining").arg(body.formatSeconds(CortetsuPower.timeToEmpty))
+                                    ? qsTr("%1 restantes").arg(body.formatSeconds(CortetsuPower.timeToEmpty))
                                     : root.batteryStatus
                             textSize: CortetsuDesign.labelSmallPx
                             color: CortetsuDesign.colorOnSurfaceVariant
@@ -137,7 +137,7 @@ CortetsuPopupSurface {
         CortetsuText {
             visible: PowerProfiles.degradationReason !== PerformanceDegradationReason.None
             width: parent.width
-            text: qsTr("Performance limited: %1").arg(
+            text: qsTr("Rendimiento limitado: %1").arg(
                 PerformanceDegradationReason.toString(PowerProfiles.degradationReason))
             textSize: CortetsuDesign.labelSmallPx
             color: CortetsuDesign.colorVermillion
@@ -148,12 +148,12 @@ CortetsuPopupSurface {
             width: parent.width
             visible: !root.hasBattery
             kind: "empty"
-            title: qsTr("No battery detected")
-            detail: qsTr("Power profile controls remain available")
+            title: qsTr("No se detectó batería")
+            detail: qsTr("Los perfiles de energía siguen disponibles")
         }
 
         CortetsuSectionHeader {
-            title: qsTr("Power profile")
+            title: qsTr("Perfil de energía")
             detail: PowerProfile.toString(PowerProfiles.profile)
         }
 
@@ -164,17 +164,17 @@ CortetsuPopupSurface {
             ProfileButton {
                 profile: PowerProfile.PowerSaver
                 icon: "energy_savings_leaf"
-                label: qsTr("Saver")
+                label: qsTr("Ahorro")
             }
             ProfileButton {
                 profile: PowerProfile.Balanced
                 icon: "balance"
-                label: qsTr("Balanced")
+                label: qsTr("Equilibrado")
             }
             ProfileButton {
                 profile: PowerProfile.Performance
                 icon: "rocket_launch"
-                label: qsTr("Performance")
+                label: qsTr("Rendimiento")
             }
         }
     }

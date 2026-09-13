@@ -13,6 +13,8 @@ criteria = {
     "stale activation guarded": "if (!entry)" in source,
     "typed menu delegates": "required property QsMenuEntry modelData" in source,
     "shared popup surface": "CortetsuPopupSurface" in source,
+    "content-fit width cap": all(token in source for token in ("menuMaxWidth: 152", "fittedWidth", "naturalWidth", "TextMetrics")),
+    "single visible panel": "PanelBg" not in source,
     "keyboard navigation preserved": all(token in source for token in ("Keys.onPressed", "Qt.Key_Right", "Qt.Key_Left", "Qt.Key_Escape")),
 }
 missing = [name for name, passed in criteria.items() if not passed]

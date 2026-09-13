@@ -51,13 +51,13 @@ CortetsuSurface {
 
                 CortetsuText {
                     width: parent.width
-                    text: root.client?.title ?? qsTr("No active window")
+                    text: root.client?.title ?? qsTr("No hay ventana activa")
                     textSize: CortetsuTypography.titleMediumPx
                     wrapMode: Text.WordWrap
                 }
                 CortetsuText {
                     width: parent.width
-                    text: root.client?.lastIpcObject.class ?? qsTr("Desktop")
+                    text: root.client?.lastIpcObject.class ?? qsTr("Escritorio")
                     color: CortetsuDesign.colorOnSurfaceVariant
                     elide: Text.ElideRight
                 }
@@ -68,10 +68,10 @@ CortetsuSurface {
                     color: CortetsuDesign.colorOutlineVariant
                 }
 
-                Detail { icon: "location_on"; text: qsTr("Address: 0x%1").arg(root.client?.address ?? "unknown") }
-                Detail { icon: "workspaces"; text: qsTr("Workspace: %1").arg(root.client?.workspace?.name ?? "unknown") }
-                Detail { icon: "desktop_windows"; text: qsTr("Monitor: %1").arg(root.client?.monitor?.name ?? "unknown") }
-                Detail { icon: "resize"; text: qsTr("Size: %1 × %2").arg(root.client?.lastIpcObject?.size?.[0] ?? -1).arg(root.client?.lastIpcObject?.size?.[1] ?? -1) }
+                Detail { icon: "location_on"; text: qsTr("Dirección: 0x%1").arg(root.client?.address ?? "desconocida") }
+                Detail { icon: "workspaces"; text: qsTr("Espacio: %1").arg(root.client?.workspace?.name ?? "desconocido") }
+                Detail { icon: "desktop_windows"; text: qsTr("Monitor: %1").arg(root.client?.monitor?.name ?? "desconocido") }
+                Detail { icon: "resize"; text: qsTr("Tamaño: %1 × %2").arg(root.client?.lastIpcObject?.size?.[0] ?? -1).arg(root.client?.lastIpcObject?.size?.[1] ?? -1) }
             }
         }
 
@@ -82,7 +82,7 @@ CortetsuSurface {
             spacing: CortetsuDesign.spacingStandard
 
             CortetsuText {
-                text: qsTr("Window controls")
+                text: qsTr("Controles de ventana")
                 textSize: CortetsuTypography.titleSmallPx
             }
 
@@ -93,21 +93,21 @@ CortetsuSurface {
                 CortetsuButton {
                     compact: true
                     disabled: !root.client
-                    label: root.client?.lastIpcObject.floating ? qsTr("Tile") : qsTr("Float")
+                    label: root.client?.lastIpcObject.floating ? qsTr("Mosaico") : qsTr("Flotante")
                     icon: root.client?.lastIpcObject.floating ? "grid_view" : "picture_in_picture"
                     onClicked: root.dispatchWindow("float")
                 }
                 CortetsuButton {
                     compact: true
                     disabled: !root.client
-                    label: root.client?.lastIpcObject.pinned ? qsTr("Unpin") : qsTr("Pin")
+                    label: root.client?.lastIpcObject.pinned ? qsTr("Desfijar") : qsTr("Fijar")
                     icon: "keep"
                     onClicked: root.dispatchWindow("pin")
                 }
                 CortetsuButton {
                     compact: true
                     disabled: !root.client
-                    label: qsTr("Close")
+                    label: qsTr("Cerrar")
                     icon: "close"
                     danger: true
                     onClicked: root.dispatchWindow("kill")
@@ -115,7 +115,7 @@ CortetsuSurface {
             }
 
             CortetsuText {
-                text: qsTr("Move to workspace")
+                text: qsTr("Mover al espacio de trabajo")
                 textSize: CortetsuTypography.titleSmallPx
             }
 
@@ -144,7 +144,7 @@ CortetsuSurface {
                 Layout.alignment: Qt.AlignRight
                 compact: true
                 icon: "close"
-                label: qsTr("Done")
+                label: qsTr("Listo")
                 onClicked: root.popouts.close()
             }
         }

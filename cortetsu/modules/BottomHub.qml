@@ -162,7 +162,8 @@ Scope {
             closeAllPopouts();
         OverlayPolicy.closeOtherPanels(state);
         state.launcher = !wasOpen;
-        shown = true;
+        // Launcher visibility is independent from BottomHub visibility. Do
+        // not resurrect the bar when the launcher is opened by its shortcut.
     }
 
     function toggleSidebarFor(screen): void {
@@ -170,14 +171,16 @@ Scope {
         if (!state)
             return;
 
-        const wasOpen = state.sidebar || state.utilities;
+        const wasOpen = state.sidebar;
         closeAllLaunchers();
         closeAllPanels();
         if (!wasOpen)
             closeAllPopouts();
         OverlayPolicy.closeOtherPanels(state);
         state.sidebar = !wasOpen;
-        state.utilities = !wasOpen;
+        // Notifications are a standalone surface. Quick settings are opened
+        // through their own OSD entry point.
+        state.utilities = false;
         shown = true;
     }
 
@@ -358,12 +361,12 @@ Scope {
                     : "wifi_off"
             readonly property bool networkActive: CortetsuNetwork.connecting || CortetsuNetwork.activeEthernet || !!CortetsuNetwork.active
             readonly property string networkTooltip: CortetsuNetwork.connecting
-                ? qsTr("Connecting to network")
+                ? qsTr("Conectando a la red")
                 : CortetsuNetwork.activeEthernet
-                    ? qsTr("Ethernet connected")
+                    ? qsTr("Ethernet conectado")
                     : CortetsuNetwork.active
-                        ? qsTr("%1 · signal %2%").arg(CortetsuNetwork.active.ssid).arg(Math.round(CortetsuNetwork.active.strength ?? 0))
-                        : qsTr("Network unavailable")
+                        ? qsTr("%1 · señal %2%").arg(CortetsuNetwork.active.ssid).arg(Math.round(CortetsuNetwork.active.strength ?? 0))
+                        : qsTr("Red no disponible")
             readonly property bool bluetoothActive: Bluetooth.devices.values.some(device => device.connected)
             readonly property string bluetoothIcon: !Bluetooth.defaultAdapter?.enabled
                 ? "bluetooth_disabled"
@@ -376,8 +379,8 @@ Scope {
                 : "balance"
             readonly property bool batteryCritical: CortetsuPower.critical
             readonly property string batteryTooltip: CortetsuPower.hasBattery
-                ? qsTr("Battery %1%").arg(CortetsuPower.percent)
-                : qsTr("Power profile")
+                ? qsTr("Batería %1%").arg(CortetsuPower.percent)
+                : qsTr("Perfil de energía")
 
             property date now: new Date()
             property var pendingFocusClient: null

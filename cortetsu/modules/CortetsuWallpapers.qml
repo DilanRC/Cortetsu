@@ -267,7 +267,7 @@ Singleton {
             if (code === 0)
                 root.completeApply(root.actualCurrent, root.applyGeneration);
             else
-                root.failApply(detail || qsTr("Dynamic scheme apply failed"));
+                root.failApply(detail || qsTr("No se pudo aplicar el esquema dinámico"));
         }
     }
 

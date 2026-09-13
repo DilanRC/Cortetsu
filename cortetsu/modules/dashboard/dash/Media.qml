@@ -32,7 +32,7 @@ Item {
 
         CortetsuText {
             width: parent.width
-            text: Players.active?.trackTitle || qsTr("No media")
+            text: Players.active?.trackTitle || qsTr("Sin contenido multimedia")
             color: CortetsuDesign.colorWashi
             textSize: CortetsuTypography.titleSmallPx
             font.weight: Font.Bold
@@ -41,7 +41,7 @@ Item {
 
         CortetsuText {
             width: parent.width
-            text: Players.active?.trackArtist || qsTr("No active player")
+            text: Players.active?.trackArtist || qsTr("No hay reproductor activo")
             color: CortetsuDesign.colorMuted
             textSize: CortetsuTypography.bodyPx
             elide: Text.ElideRight

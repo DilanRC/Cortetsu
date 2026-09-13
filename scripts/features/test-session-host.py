@@ -49,7 +49,7 @@ assert "Keys.onEnterPressed" in action_row and "Keys.onSpacePressed" in action_r
 assert "onEntered: actionRow.hovered = true" not in content
 assert "onExited: actionRow.hovered = false" not in content
 assert "root.run(modelData.command)" not in content
-assert "Confirm %1" in content and "Press again within 4 seconds" in content
+assert "Confirmar %1" in content and "Pulsa otra vez en 4 segundos" in content
 
 # Suspend locks the shell first and only then hands off to systemd.
 assert "action.lockBefore" in content

@@ -42,7 +42,7 @@ Item {
 
             CortetsuText {
                 width: parent.width * 0.6
-                text: qsTr("Color & VRR")
+                text: qsTr("Color y VRR")
                 color: CortetsuDesign.colorOnSurface
                 textSize: CortetsuTypography.titleSmallPx
                 font.weight: Font.DemiBold
@@ -66,7 +66,7 @@ Item {
                 model: [
                     { label: qsTr("SDR"), enabled: true, active: root.bitdepth === 8 && root.cm === "srgb", action: () => root.setColor(8, "srgb") },
                     { label: qsTr("10-bit"), enabled: root.tenBitProven, active: root.bitdepth === 10 && root.cm === "auto", action: () => root.setColor(10, "auto") },
-                    { label: qsTr("Wide"), enabled: root.wideProven, active: root.bitdepth === 10 && root.cm === "wide", action: () => root.setColor(10, "wide") },
+                    { label: qsTr("Amplio"), enabled: root.wideProven, active: root.bitdepth === 10 && root.cm === "wide", action: () => root.setColor(10, "wide") },
                     { label: qsTr("HDR"), enabled: root.hdrProven, active: root.bitdepth === 10 && (root.cm === "hdr" || root.cm === "hdredid"), action: () => root.setColor(10, "hdredid") }
                 ]
 
@@ -107,7 +107,7 @@ Item {
                 CortetsuText {
                     anchors.verticalCenter: parent.verticalCenter
                     width: Math.max(0, parent.width - vrrStatus.width - vrrToggle.width - parent.spacing * 2)
-                    text: qsTr("Variable refresh")
+                    text: qsTr("Frecuencia variable")
                     color: CortetsuDesign.colorOnSurfaceVariant
                     textSize: CortetsuTypography.labelSmallPx
                 }
@@ -115,7 +115,7 @@ Item {
                     id: vrrStatus
                     anchors.verticalCenter: parent.verticalCenter
                     width: 64
-                    text: !root.vrrProven ? qsTr("Unavailable") : root.vrr > 0 ? qsTr("On") : qsTr("Off")
+                    text: !root.vrrProven ? qsTr("No disponible") : root.vrr > 0 ? qsTr("Activada") : qsTr("Desactivada")
                     color: root.vrr > 0 ? CortetsuDesign.colorOnSurface : CortetsuDesign.colorOutline
                     textSize: CortetsuTypography.labelSmallPx
                     horizontalAlignment: Text.AlignRight

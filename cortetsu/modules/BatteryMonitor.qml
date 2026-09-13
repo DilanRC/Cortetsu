@@ -22,10 +22,10 @@ Scope {
             return;
         }
         if (percentage <= 10 && lastPercentage > 10)
-            notify(qsTr("Battery low"), qsTr("Battery level is %1%").arg(Math.round(percentage)));
+            notify(qsTr("Batería baja"), qsTr("El nivel de batería es %1%").arg(Math.round(percentage)));
         if (percentage <= 3 && !criticalNoticeSent) {
             criticalNoticeSent = true;
-            notify(qsTr("Critical battery"), qsTr("Hibernating to prevent data loss"));
+            notify(qsTr("Batería crítica"), qsTr("Hibernando para evitar la pérdida de datos"));
             hibernateTimer.start();
         }
         lastPercentage = percentage;

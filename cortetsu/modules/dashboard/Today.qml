@@ -50,11 +50,11 @@ Item {
 
     function eventTime(event): string {
         if (event.allDay)
-            return qsTr("All day");
+            return qsTr("Todo el día");
         const start = eventDate(event);
         const end = new Date(event.end);
         if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()))
-            return qsTr("Scheduled");
+            return qsTr("Programado");
         return `${Qt.formatTime(start, "HH:mm")}–${Qt.formatTime(end, "HH:mm")}`;
     }
 
@@ -108,7 +108,7 @@ Item {
             Layout.fillWidth: true
 
             CortetsuText {
-                text: qsTr("TODAY")
+                text: qsTr("HOY")
                 textSize: CortetsuTypography.labelSmallPx
                 color: CortetsuDesign.colorPrimary
                 font.weight: Font.DemiBold
@@ -120,7 +120,7 @@ Item {
                 compact: true
                 icon: "calendar_month"
                 label: ""
-                tooltipText: qsTr("Open Calendar")
+                tooltipText: qsTr("Abrir calendario")
                 onClicked: root.openCalendar()
             }
         }
@@ -145,7 +145,7 @@ Item {
                     required property var modelData
                     Layout.fillWidth: true
                     icon: modelData.allDay ? "event" : "schedule"
-                    title: modelData.summary || qsTr("Untitled event")
+                    title: modelData.summary || qsTr("Evento sin título")
                     subtitle: root.eventTime(modelData)
                     selected: false
                     onClicked: root.openCalendar()
@@ -168,7 +168,7 @@ Item {
                     }
 
                     CortetsuText {
-                        text: qsTr("No events today")
+                        text: qsTr("No hay eventos hoy")
                         textSize: CortetsuTypography.bodySmallPx
                         color: CortetsuDesign.colorOnSurfaceVariant
                     }
@@ -179,7 +179,7 @@ Item {
         CortetsuText {
             Layout.fillWidth: true
             visible: root.todayEvents.length > 2
-            text: qsTr("+%1 more in Calendar").arg(root.todayEvents.length - 2)
+            text: qsTr("+%1 más en el calendario").arg(root.todayEvents.length - 2)
             textSize: CortetsuTypography.labelSmallPx
             color: CortetsuDesign.colorOnSurfaceVariant
             horizontalAlignment: Text.AlignRight

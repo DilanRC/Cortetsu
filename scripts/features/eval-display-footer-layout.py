@@ -10,8 +10,8 @@ preview = (root / "cortetsu/modules/display/PreviewControls.qml").read_text(enco
 
 checks = {
     "footer reservation": "- 150" in editor,
-    "dry-run card exists": 'text: qsTr("Dry-run plan")' in editor,
-    "apply-safe controls exist": 'text: qsTr("Apply safely")' in preview,
+    "dry-run card exists": 'text: qsTr("Plan de prueba")' in editor,
+    "apply-safe controls exist": 'text: qsTr("Aplicar de forma segura")' in preview,
     "preview controls remain bounded": 'height: root.footerHeight' in (root / "cortetsu/modules/display/Content.qml").read_text(encoding="utf-8"),
 }
 failed = [name for name, passed in checks.items() if not passed]

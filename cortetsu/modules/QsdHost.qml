@@ -38,10 +38,13 @@ Scope {
 
             Item {
                 id: drawer
-                anchors.top: parent.top
                 anchors.bottom: parent.bottom
                 anchors.right: parent.right
                 width: 400
+                height: Math.min(
+                    parent.height - CortetsuDesign.spacingSection * 2,
+                    content.implicitHeight + CortetsuDesign.spacingSection * 2
+                )
                 visible: window.screenState?.qsd ?? false
 
                 CortetsuSurface {
@@ -53,6 +56,7 @@ Scope {
                 }
 
                 Content {
+                    id: content
                     anchors.fill: parent
                     anchors.margins: CortetsuDesign.spacingSection
                     screenState: window.screenState

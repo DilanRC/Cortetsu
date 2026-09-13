@@ -14,7 +14,7 @@ ColumnLayout {
     KbLayoutModel { id: layouts }
     Component.onCompleted: layouts.start()
 
-    CortetsuSectionHeader { title: qsTr("Keyboard layout"); detail: layouts.activeLabel }
+    CortetsuSectionHeader { title: qsTr("Distribución del teclado"); detail: layouts.activeLabel }
 
     ListView {
         Layout.fillWidth: true
@@ -28,7 +28,7 @@ ColumnLayout {
             width: ListView.view.width
             icon: layoutIndex === layouts.activeIndex ? "check" : "keyboard"
             title: label
-            subtitle: layoutIndex > 3 ? qsTr("Unavailable: XKB supports 4 layouts") : ""
+            subtitle: layoutIndex > 3 ? qsTr("No disponible: XKB admite 4 distribuciones") : ""
             disabled: layoutIndex > 3
             onClicked: layouts.switchTo(layoutIndex)
         }
@@ -37,6 +37,6 @@ ColumnLayout {
     CortetsuStateMessage {
         visible: layouts.visibleModel.count === 0
         kind: "empty"
-        title: qsTr("No additional layouts")
+        title: qsTr("No hay más distribuciones")
     }
 }

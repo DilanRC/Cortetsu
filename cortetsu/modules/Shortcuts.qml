@@ -22,7 +22,7 @@ Scope {
     }
 
     CustomShortcut {
-        name: "showall"; description: "Toggle launcher, dashboard and osd"
+        name: "showall"; description: "Alternar lanzador, panel y OSD"
         onPressed: {
             if (root.hasFullscreen) return;
             const state = CortetsuShellState.forActive();
@@ -37,16 +37,16 @@ Scope {
         }
     }
     CustomShortcut {
-        name: "dashboard"; description: "Toggle dashboard"
+        name: "dashboard"; description: "Alternar panel"
         onPressed: if (!root.hasFullscreen && CortetsuConfig.dashboard.enabled && CortetsuConfig.dashboard.showDashboard)
             root.toggleExclusive(CortetsuShellState.forActive(), "dashboard")
     }
     CustomShortcut {
-        name: "session"; description: "Toggle session menu"
+        name: "session"; description: "Alternar menú de sesión"
         onPressed: if (!root.hasFullscreen) root.toggleExclusive(CortetsuShellState.forActive(), "session")
     }
     CustomShortcut {
-        name: "launcher"; description: "Toggle launcher"
+        name: "launcher"; description: "Alternar lanzador"
         onPressed: root.launcherInterrupted = false
         onReleased: {
             if (!root.launcherInterrupted && !root.hasFullscreen)
@@ -54,27 +54,29 @@ Scope {
             root.launcherInterrupted = false;
         }
     }
-    CustomShortcut { name: "launcherInterrupt"; description: "Interrupt launcher keybind"; onPressed: root.launcherInterrupted = true }
+    CustomShortcut { name: "launcherInterrupt"; description: "Interrumpir atajo del lanzador"; onPressed: root.launcherInterrupted = true }
     CustomShortcut {
-        name: "sidebar"; description: "Toggle sidebar"
+        name: "sidebar"; description: "Alternar notificaciones"
         onPressed: {
             if (root.hasFullscreen) return;
             const state = CortetsuShellState.forActive();
             if (!state) return;
-            const open = !(state.sidebar || state.utilities);
+            const open = !state.sidebar;
             if (open)
                 OverlayPolicy.closeAll(state);
             state.sidebar = open;
-            state.utilities = open;
+            // Super+N is the notification center. Quick settings have their
+            // own surface and must not be forced open with notifications.
+            state.utilities = false;
             state.cortetsuState?.setRetained("wallpaperManager", false);
         }
     }
     CustomShortcut {
-        name: "utilities"; description: "Toggle utilities"
+        name: "utilities"; description: "Alternar utilidades"
         onPressed: if (!root.hasFullscreen) root.toggleExclusive(CortetsuShellState.forActive(), "utilities")
     }
     CustomShortcut {
-        name: "qsd"; description: "Toggle Quick Settings Drawer"
+        name: "qsd"; description: "Alternar ajustes rápidos"
         onPressed: {
             if (root.hasFullscreen)
                 return;
@@ -87,7 +89,7 @@ Scope {
         }
     }
     CustomShortcut {
-        name: "settings"; description: "Toggle Cortetsu Settings Center"
+        name: "settings"; description: "Alternar centro de ajustes de Cortetsu"
         onPressed: if (!root.hasFullscreen) root.toggleExclusive(CortetsuShellState.forActive(), "settings")
     }
 

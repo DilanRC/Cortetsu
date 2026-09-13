@@ -16,7 +16,7 @@ Item {
 
     property var previewState: ({ active: false })
     property var lastResult: ({})
-    property string statusText: qsTr("No active preview")
+    property string statusText: qsTr("No hay vista previa activa")
     property string actionPath: ""
     property string previewCandidateJson: ""
     property string confirmedCandidateJson: ""
@@ -42,30 +42,30 @@ Item {
         lastResult = ({});
         confirmedCandidateJson = "";
         previewCandidateJson = currentCandidateJson;
-        statusText = qsTr("Starting preview…");
+        statusText = qsTr("Iniciando vista previa…");
         runTool(transactionPath, ["preview", "--timeout", "15", "--candidate", previewCandidateJson]);
     }
 
     function confirm(): void {
-        statusText = qsTr("Keeping for this session…");
+        statusText = qsTr("Conservando durante esta sesión…");
         runTool(transactionPath, ["confirm"]);
     }
 
     function persist(): void {
         if (!canPersist) return;
-        statusText = qsTr("Saving atomically…");
+        statusText = qsTr("Guardando de forma atómica…");
         runTool(persistPath, ["persist", "--candidate", confirmedCandidateJson]);
     }
 
     function revert(): void {
-        statusText = qsTr("Restoring previous layout…");
+        statusText = qsTr("Restaurando distribución anterior…");
         confirmedCandidateJson = "";
         runTool(transactionPath, ["revert"]);
     }
 
     onCurrentCandidateJsonChanged: {
         if (confirmedCandidateJson.length > 0 && confirmedCandidateJson !== currentCandidateJson && !root.active)
-            statusText = qsTr("Candidate changed · preview again before Save");
+        statusText = qsTr("La propuesta cambió · vuelve a previsualizar antes de guardar");
     }
 
     Component.onCompleted: refresh()
@@ -86,11 +86,11 @@ Item {
                     const parsed = JSON.parse(text.trim());
                     root.previewState = parsed;
                     if (parsed?.active)
-                        root.statusText = qsTr("Auto-revert in %1 s").arg(Number(parsed?.remaining_seconds ?? 0).toFixed(1));
+                        root.statusText = qsTr("Reversión automática en %1 s").arg(Number(parsed?.remaining_seconds ?? 0).toFixed(1));
                     else if (!action.running && !(root.lastResult?.confirmed ?? false) && !(root.lastResult?.persisted ?? false))
-                        root.statusText = qsTr("Rollback protected");
+                        root.statusText = qsTr("Reversión protegida");
                 } catch (error) {
-                    root.statusText = qsTr("Preview status unavailable");
+                        root.statusText = qsTr("Estado de vista previa no disponible");
                 }
             }
         }
@@ -106,28 +106,28 @@ Item {
                     root.lastResult = parsed;
                     if (root.actionPath === root.persistPath) {
                         if (parsed?.ok && parsed?.persisted) {
-                            root.statusText = qsTr("Saved and verified");
+                            root.statusText = qsTr("Guardado y verificado");
                         } else {
                             root.confirmedCandidateJson = "";
-                            root.statusText = parsed?.error ?? qsTr("Save failed · previous state restored");
+                            root.statusText = parsed?.error ?? qsTr("No se pudo guardar · se restauró el estado anterior");
                         }
                     } else if (parsed?.ok && parsed?.preview) {
-                        root.statusText = qsTr("Preview active · Keep or Revert");
+                        root.statusText = qsTr("Vista previa activa · conservar o revertir");
                     } else if (parsed?.ok && parsed?.confirmed) {
                         root.confirmedCandidateJson = root.previewCandidateJson;
                         root.statusText = root.confirmedCandidateJson === root.currentCandidateJson
-                            ? qsTr("Kept · Save to persist")
-                            : qsTr("Candidate changed · preview again");
+                            ? qsTr("Conservado · guarda para persistir")
+                            : qsTr("La propuesta cambió · vuelve a previsualizar");
                     } else if (parsed?.ok && parsed?.reverted) {
                         root.confirmedCandidateJson = "";
-                        root.statusText = qsTr("Previous layout restored");
+                        root.statusText = qsTr("Distribución anterior restaurada");
                     } else if (!(parsed?.ok ?? false)) {
                         root.confirmedCandidateJson = "";
-                        root.statusText = parsed?.error ?? qsTr("Display action failed");
+                        root.statusText = parsed?.error ?? qsTr("No se pudo ejecutar la acción de pantalla");
                     }
                 } catch (error) {
                     root.confirmedCandidateJson = "";
-                    root.statusText = qsTr("Display action unavailable");
+                    root.statusText = qsTr("Acción de pantalla no disponible");
                 }
                 root.refresh();
             }
@@ -145,14 +145,14 @@ Item {
 
             CortetsuText {
                 width: parent.width * 0.58
-                text: qsTr("Apply safely")
+                text: qsTr("Aplicar de forma segura")
                 color: CortetsuDesign.colorOnSurface
                 textSize: CortetsuTypography.titleSmallPx
                 font.weight: Font.DemiBold
             }
             CortetsuText {
                 width: parent.width * 0.42
-                text: root.active ? qsTr("%1 s").arg(root.remaining.toFixed(1)) : qsTr("rollback protected")
+                text: root.active ? qsTr("%1 s").arg(root.remaining.toFixed(1)) : qsTr("reversión protegida")
                 color: root.active ? CortetsuDesign.colorPrimary : CortetsuDesign.colorOutline
                 textSize: CortetsuTypography.labelSmallPx
                 horizontalAlignment: Text.AlignRight
@@ -176,7 +176,7 @@ Item {
             CortetsuButton {
                 width: (parent.width - parent.spacing * 3) / 4
                 height: 38
-                label: qsTr("Preview")
+                label: qsTr("Previsualizar")
                 active: !root.active
                 compact: true
                 disabled: root.active || action.running
@@ -186,7 +186,7 @@ Item {
             CortetsuButton {
                 width: (parent.width - parent.spacing * 3) / 4
                 height: 38
-                label: qsTr("Keep")
+                label: qsTr("Conservar")
                 active: root.active
                 compact: true
                 disabled: !root.active || action.running
@@ -196,7 +196,7 @@ Item {
             CortetsuButton {
                 width: (parent.width - parent.spacing * 3) / 4
                 height: 38
-                label: qsTr("Save")
+                label: qsTr("Guardar")
                 active: root.canPersist
                 compact: true
                 disabled: !root.canPersist || action.running
@@ -206,7 +206,7 @@ Item {
             CortetsuButton {
                 width: (parent.width - parent.spacing * 3) / 4
                 height: 38
-                label: qsTr("Revert")
+                label: qsTr("Revertir")
                 danger: root.active
                 compact: true
                 disabled: !root.active || action.running

@@ -29,8 +29,8 @@ Item {
 
             CortetsuSectionHeader {
                 Layout.fillWidth: true
-                title: qsTr("Quick settings")
-                detail: qsTr("System control")
+                title: qsTr("Ajustes rápidos")
+                detail: qsTr("Control del sistema")
             }
 
             CortetsuSurface {
@@ -79,8 +79,8 @@ Item {
                         CortetsuText {
                             Layout.fillWidth: true
                             text: CortetsuRecorder.running
-                                ? qsTr("Screen recording active")
-                                : qsTr("Cortetsu is ready")
+                                ? qsTr("Grabación de pantalla activa")
+                                : qsTr("Cortetsu está listo")
                             textSize: CortetsuTypography.bodyPx
                             font.weight: Font.DemiBold
                             color: CortetsuDesign.colorOnSurface
@@ -89,8 +89,8 @@ Item {
                         CortetsuText {
                             Layout.fillWidth: true
                             text: CortetsuIdleInhibitor.enabled
-                                ? qsTr("Keep-awake enabled · automatic idle suspended")
-                                : qsTr("Normal idle policy · system may suspend")
+                                ? qsTr("Mantener activo · reposo automático suspendido")
+                                : qsTr("Reposo normal · el sistema puede suspenderse")
                             textSize: CortetsuTypography.labelSmallPx
                             color: CortetsuDesign.colorOnSurfaceVariant
                             elide: Text.ElideRight
@@ -101,8 +101,8 @@ Item {
 
             CortetsuSectionHeader {
                 Layout.fillWidth: true
-                title: qsTr("Session controls")
-                detail: qsTr("Frequently used")
+                title: qsTr("Controles de sesión")
+                detail: qsTr("Uso frecuente")
             }
 
             RowLayout {
@@ -112,8 +112,8 @@ Item {
                 QuickAction {
                     Layout.fillWidth: true
                     icon: CortetsuIdleInhibitor.enabled ? "bedtime_off" : "bedtime"
-                    title: CortetsuIdleInhibitor.enabled ? qsTr("Keep-awake") : qsTr("Allow idle")
-                    detail: CortetsuIdleInhibitor.enabled ? qsTr("Active") : qsTr("Normal")
+                    title: CortetsuIdleInhibitor.enabled ? qsTr("Mantener activo") : qsTr("Permitir reposo")
+                    detail: CortetsuIdleInhibitor.enabled ? qsTr("Activo") : qsTr("Normal")
                     active: CortetsuIdleInhibitor.enabled
                     onTriggered: CortetsuIdleInhibitor.enabled = !CortetsuIdleInhibitor.enabled
                 }
@@ -121,8 +121,8 @@ Item {
                 QuickAction {
                     Layout.fillWidth: true
                     icon: CortetsuRecorder.running ? "stop_circle" : "radio_button_checked"
-                    title: CortetsuRecorder.running ? qsTr("Stop recording") : qsTr("Record screen")
-                    detail: CortetsuRecorder.running ? qsTr("Recording") : qsTr("Capture")
+                    title: CortetsuRecorder.running ? qsTr("Detener grabación") : qsTr("Grabar pantalla")
+                    detail: CortetsuRecorder.running ? qsTr("Grabando") : qsTr("Capturar")
                     active: CortetsuRecorder.running
                     danger: CortetsuRecorder.running
                     onTriggered: {
@@ -136,15 +136,15 @@ Item {
 
             CortetsuSectionHeader {
                 Layout.fillWidth: true
-                title: qsTr("More")
-                detail: qsTr("System surfaces")
+                title: qsTr("Más")
+                detail: qsTr("Superficies del sistema")
             }
 
             CortetsuListRow {
                 Layout.fillWidth: true
                 icon: "notifications"
-                title: qsTr("Notifications")
-                subtitle: qsTr("History, actions and interruption controls")
+                title: qsTr("Notificaciones")
+                subtitle: qsTr("Historial, acciones y controles de interrupción")
                 onClicked: {
                     root.screenState.utilities = false;
                     root.screenState.sidebar = true;

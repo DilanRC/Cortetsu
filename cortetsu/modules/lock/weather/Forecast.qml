@@ -14,7 +14,7 @@ CortetsuSurface {
         anchors.left: parent.left; anchors.top: parent.top; anchors.margins: CortetsuDesign.spacingComfortable
         spacing: CortetsuDesign.spacingCompact
         CortetsuIcon { text: "schedule"; iconSize: 20 }
-        CortetsuText { text: qsTr("Hourly forecast"); textSize: 20; font.weight: Font.DemiBold }
+        CortetsuText { text: qsTr("Pronóstico por hora"); textSize: 20; font.weight: Font.DemiBold }
     }
     RowLayout {
         id: content
@@ -33,7 +33,7 @@ CortetsuSurface {
                 }
                 CortetsuIcon { Layout.alignment: Qt.AlignHCenter; text: condition.icon; iconSize: 22; color: CortetsuDesign.colorSecondary }
                 CortetsuText { Layout.alignment: Qt.AlignHCenter; text: `${condition.precipChance}%`; textSize: 12; color: CortetsuDesign.colorPrimary }
-                CortetsuText { Layout.alignment: Qt.AlignHCenter; text: index === 0 ? qsTr("Now") : Qt.formatDateTime(new Date(condition.timestamp.replace("T", " ")), CortetsuRegional.hourPattern); textSize: 12; color: CortetsuDesign.colorOnSurfaceVariant }
+                CortetsuText { Layout.alignment: Qt.AlignHCenter; text: index === 0 ? qsTr("Ahora") : Qt.formatDateTime(new Date(condition.timestamp.replace("T", " ")), CortetsuRegional.hourPattern); textSize: 12; color: CortetsuDesign.colorOnSurfaceVariant }
             }
         }
     }

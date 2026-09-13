@@ -88,7 +88,7 @@ Searcher {
                         String(`${a.name} ${a.flavour}`).localeCompare(String(`${b.name} ${b.flavour}`)));
                     root.error = "";
                 } catch (error) {
-                    root.error = qsTr("Unable to read the scheme catalog");
+                    root.error = qsTr("No se pudo leer el catálogo de esquemas");
                     console.warn("Cortetsu Schemes: invalid catalog:", error);
                 }
             }
@@ -108,7 +108,7 @@ Searcher {
                 const variant = parts[2]?.trim() ?? "";
 
                 if (!name || !flavour) {
-                    root.error = root.error || qsTr("Unable to identify the active scheme");
+                    root.error = root.error || qsTr("No se pudo identificar el esquema activo");
                     return;
                 }
 
@@ -136,7 +136,7 @@ Searcher {
                 root.applyError = "";
             } else {
                 root.applyStatus = "failed";
-                root.applyError = detail || qsTr("Scheme apply failed");
+                root.applyError = detail || qsTr("No se pudo aplicar el esquema");
             }
             if (!detail && code !== 0)
                 console.warn(`Cortetsu Schemes: apply exited with code ${code}`);

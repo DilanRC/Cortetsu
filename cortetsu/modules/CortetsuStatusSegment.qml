@@ -111,7 +111,7 @@ Item {
                 iconColor: root.volumeMuted
                     ? Qt.alpha(CortetsuDesign.colorMuted, 0.68)
                     : CortetsuDesign.colorMuted
-                tooltip: root.volumeMuted ? qsTr("Unmute") : qsTr("Mute")
+                tooltip: root.volumeMuted ? qsTr("Activar sonido") : qsTr("Silenciar")
                 tooltipOnHover: false
                 onHoveredChanged: {
                     if (hovered && root.statusPopoutsEnabled)
@@ -189,7 +189,7 @@ Item {
                 iconSize: CortetsuTypography.iconMediumPx
                 icon: "notifications"
                 active: root.sidebarActive
-                tooltip: qsTr("Notifications")
+                tooltip: qsTr("Notificaciones")
                 onClicked: root.notificationsRequested()
             }
 
@@ -285,7 +285,7 @@ Item {
             iconSize: CortetsuTypography.iconMediumPx
             icon: "power_settings_new"
             active: root.sessionActive
-            tooltip: qsTr("Session")
+            tooltip: qsTr("Sesión")
             activeColor: Qt.alpha(CortetsuDesign.colorVermillion, 0.74)
             iconColor: active || hovered || activeFocus
                 ? CortetsuDesign.colorWashi

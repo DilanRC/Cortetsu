@@ -42,6 +42,9 @@ var spacingStandard = 12
 var spacingComfortable = 16
 var spacingSpacious = 24
 var spacingSection = 32
+// BottomHub surface height plus its transparent breathing room. This is the
+// shared clearance used by transient cards that must sit above the lower bar.
+var bottomHubHeight = 66
 
 var overlayOpacity = 0.94
 var scrimOpacity = 0.22

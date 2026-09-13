@@ -9,10 +9,10 @@ assert "component OrbitButton" not in content
 assert "OrbitButton" not in content
 assert content.count("CortetsuButton {") >= 4
 for marker in (
-    'label: qsTr("Cancel")',
+    'label: qsTr("Cancelar")',
     'icon: "shuffle"',
-    'label: qsTr("Random")',
-    'root.applying ? qsTr("Applying") : qsTr("Apply")',
+    'label: qsTr("Aleatorio")',
+    'root.applying ? qsTr("Aplicando") : qsTr("Aplicar")',
     "active: true",
     "onClicked: root.apply()",
 ):

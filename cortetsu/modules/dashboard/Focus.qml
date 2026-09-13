@@ -19,10 +19,10 @@ Item {
     readonly property string statePath: `${Quickshell.env("XDG_STATE_HOME") || `${Quickshell.env("HOME")}/.local/state`}/cortetsu/pomodoro.json`
     readonly property string helperPath: `${Quickshell.env("HOME")}/.local/bin/cortetsu-pomodoro`
     readonly property string actionLabel: pomodoro.phase === "PAUSED"
-        ? qsTr("Resume")
+        ? qsTr("Reanudar")
         : isActivePhase(pomodoro.phase)
-            ? qsTr("Pause")
-            : qsTr("Start")
+            ? qsTr("Pausar")
+            : qsTr("Iniciar")
     readonly property string actionIcon: pomodoro.phase === "PAUSED"
         ? "play_arrow"
         : isActivePhase(pomodoro.phase)
@@ -67,14 +67,14 @@ Item {
 
     function phaseLabel(): string {
         if (pomodoro.phase === "FOCUS")
-            return qsTr("Focus session");
+            return qsTr("Sesión de concentración");
         if (pomodoro.phase === "BREAK")
-            return qsTr("Short break");
+            return qsTr("Descanso corto");
         if (pomodoro.phase === "LONG_BREAK")
-            return qsTr("Long break");
+            return qsTr("Descanso largo");
         if (pomodoro.phase === "PAUSED")
-            return qsTr("Paused");
-        return qsTr("Ready to focus");
+            return qsTr("En pausa");
+        return qsTr("Listo para concentrarse");
     }
 
     function loadPomodoro(): void {
@@ -190,7 +190,7 @@ Item {
             Layout.fillWidth: true
 
             CortetsuText {
-                text: qsTr("FOCUS")
+                text: qsTr("CONCENTRACIÓN")
                 textSize: CortetsuTypography.labelSmallPx
                 color: CortetsuDesign.colorPrimary
                 font.weight: Font.DemiBold
@@ -255,7 +255,7 @@ Item {
             CortetsuButton {
                 compact: true
                 icon: root.isBreakPhase(root.pomodoro.phase) ? "skip_next" : "restart_alt"
-                label: root.isBreakPhase(root.pomodoro.phase) ? qsTr("Skip") : qsTr("Reset")
+                label: root.isBreakPhase(root.pomodoro.phase) ? qsTr("Saltar") : qsTr("Reiniciar")
                 disabled: actionProcess.running
                 onClicked: root.runPomodoro(root.isBreakPhase(root.pomodoro.phase) ? "skip" : "reset")
             }

@@ -24,20 +24,20 @@ Item {
         : batteryCharging
             ? qsTr("Charging")
             : CortetsuPower.onBattery
-                ? qsTr("On battery")
+                ? qsTr("Con batería")
                 : qsTr("External power")
     readonly property string networkTitle: CortetsuNetwork.connecting
         ? qsTr("Connecting")
         : CortetsuNetwork.activeEthernet
             ? qsTr("Ethernet")
-            : CortetsuNetwork.active?.ssid ?? qsTr("Offline")
+            : CortetsuNetwork.active?.ssid ?? qsTr("Sin conexión")
     readonly property string networkSubtitle: CortetsuNetwork.connecting
         ? qsTr("Negotiating link")
         : CortetsuNetwork.activeEthernet
             ? qsTr("Wired connection")
             : CortetsuNetwork.active
                 ? qsTr("Signal %1%").arg(Math.round(CortetsuNetwork.active.strength ?? 0))
-                : qsTr("No network connection")
+                : qsTr("Sin conexión de red")
     // Dashboard composition is controlled by the persisted product settings.
     // Each flag gates the corresponding Loader below, so disabled modules do
     // not keep rendering or subscribing to their live provider.
@@ -270,7 +270,7 @@ Item {
 
                 CortetsuText {
                     Layout.fillWidth: true
-                    text: Players.active?.trackTitle || qsTr("No active media")
+                    text: Players.active?.trackTitle || qsTr("No hay contenido activo")
                     textSize: CortetsuTypography.titleMediumPx
                     font.weight: Font.DemiBold
                     elide: Text.ElideRight
@@ -293,7 +293,7 @@ Item {
                         compact: true
                         icon: "skip_previous"
                         label: ""
-                        tooltipText: qsTr("Previous track")
+                        tooltipText: qsTr("Pista anterior")
                         disabled: !Players.active
                         onClicked: Players.active?.previous()
                     }
@@ -301,7 +301,7 @@ Item {
                         compact: true
                         icon: Players.active?.isPlaying ? "pause" : "play_arrow"
                         label: ""
-                        tooltipText: Players.active?.isPlaying ? qsTr("Pause") : qsTr("Play")
+                        tooltipText: Players.active?.isPlaying ? qsTr("Pausar") : qsTr("Reproducir")
                         active: true
                         disabled: !Players.active
                         onClicked: Players.active?.togglePlaying()
@@ -310,7 +310,7 @@ Item {
                         compact: true
                         icon: "skip_next"
                         label: ""
-                        tooltipText: qsTr("Next track")
+                        tooltipText: qsTr("Pista siguiente")
                         disabled: !Players.active
                         onClicked: Players.active?.next()
                     }
@@ -385,7 +385,7 @@ Item {
         CortetsuListRow {
             icon: "developer_board"
             title: Gpu.name || qsTr("GPU %1%").arg(Math.round(Gpu.percentage * 100))
-            subtitle: Gpu.name ? qsTr("%1% · %2°C").arg(Math.round(Gpu.percentage * 100)).arg(Math.round(Gpu.temperature)) : qsTr("Unavailable")
+            subtitle: Gpu.name ? qsTr("%1% · %2°C").arg(Math.round(Gpu.percentage * 100)).arg(Math.round(Gpu.temperature)) : qsTr("No disponible")
             selected: false
         }
     }
@@ -394,7 +394,7 @@ Item {
         id: memorySummary
         CortetsuListRow {
             icon: "data_usage"
-            title: qsTr("Memory %1%").arg(Math.round(Memory.percentage * 100))
+            title: qsTr("Memoria %1%").arg(Math.round(Memory.percentage * 100))
             subtitle: qsTr("%1 GB used").arg((Memory.used / 1048576).toFixed(1))
             selected: false
         }
@@ -404,7 +404,7 @@ Item {
         id: storageSummary
         CortetsuListRow {
             icon: "storage"
-            title: qsTr("Storage %1%").arg(Math.round(Storage.percentage * 100))
+            title: qsTr("Almacenamiento %1%").arg(Math.round(Storage.percentage * 100))
             subtitle: Storage.primaryDisk?.mount ?? qsTr("Primary volume")
             selected: false
         }
@@ -414,7 +414,7 @@ Item {
         id: batterySummary
         CortetsuListRow {
             icon: CortetsuPower.hasBattery ? Icons.getBatteryIcon(CortetsuPower.value, root.batteryCharging) : "power"
-            title: CortetsuPower.hasBattery ? qsTr("Battery %1%").arg(root.batteryPercent) : qsTr("Power")
+            title: CortetsuPower.hasBattery ? qsTr("Batería %1%").arg(root.batteryPercent) : qsTr("Energía")
             subtitle: root.batterySubtitle
             selected: false
         }

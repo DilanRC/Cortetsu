@@ -17,6 +17,8 @@ Item {
     required property var screenState
     required property ShellScreen screen
 
+    implicitHeight: body.implicitHeight
+
     readonly property var brightnessMonitor: Brightness.getMonitorForScreen(root.screen)
     readonly property real brightnessValue: brightnessMonitor?.brightness ?? -1
     readonly property bool bluetoothEnabled: Bluetooth.defaultAdapter?.enabled ?? false
@@ -27,14 +29,14 @@ Item {
     readonly property bool laptopBatteryAvailable: CortetsuPower.hasBattery
     readonly property int batteryPercent: CortetsuPower.percent
     readonly property string networkName: CortetsuNetwork.active?.ssid
-        ?? (CortetsuNetwork.activeEthernet ? qsTr("Ethernet") : qsTr("Offline"))
+        ?? (CortetsuNetwork.activeEthernet ? qsTr("Ethernet") : qsTr("Sin conexión"))
     readonly property string networkDetail: CortetsuNetwork.connecting
-        ? qsTr("Connecting")
+        ? qsTr("Conectando")
         : CortetsuNetwork.active
-            ? qsTr("Signal %1%").arg(Math.round(CortetsuNetwork.active.strength ?? 0))
+            ? qsTr("Señal %1%").arg(Math.round(CortetsuNetwork.active.strength ?? 0))
             : CortetsuNetwork.activeEthernet
-                ? qsTr("Wired connection")
-                : qsTr("Network unavailable")
+                ? qsTr("Conexión cableada")
+                : qsTr("Red no disponible")
     readonly property bool markPressed: soundTile.pressed || dndTile.pressed || bluetoothTile.pressed
     readonly property bool markIntent: markPressed
         || soundTile.hovered || soundTile.activeFocus
@@ -62,6 +64,7 @@ Item {
     }
 
     ColumnLayout {
+        id: body
         anchors.fill: parent
         spacing: CortetsuDesign.spacingStandard
 
@@ -87,7 +90,7 @@ Item {
                     font.weight: Font.DemiBold
                 }
                 CortetsuText {
-                    text: qsTr("Quick Settings")
+                    text: qsTr("Ajustes rápidos")
                     textSize: CortetsuTypography.labelSmallPx
                     color: CortetsuDesign.colorOnSurfaceVariant
                 }
@@ -97,7 +100,7 @@ Item {
                 compact: true
                 icon: "settings"
                 label: ""
-                tooltipText: qsTr("Open Settings")
+                tooltipText: qsTr("Abrir ajustes")
                 onClicked: root.openSettings()
             }
 
@@ -105,15 +108,15 @@ Item {
                 compact: true
                 icon: "close"
                 label: ""
-                tooltipText: qsTr("Close Quick Settings")
+                tooltipText: qsTr("Cerrar ajustes rápidos")
                 onClicked: root.closeQsd()
             }
         }
 
         CortetsuSectionHeader {
             Layout.fillWidth: true
-            title: qsTr("Controls")
-            detail: qsTr("Live system state")
+            title: qsTr("Controles")
+            detail: qsTr("Estado actual del sistema")
         }
 
         GridLayout {
@@ -126,8 +129,8 @@ Item {
                 id: soundTile
                 focus: true
                 Layout.fillWidth: true
-                label: CortetsuAudio.muted ? qsTr("Sound muted") : qsTr("Sound")
-                detail: CortetsuAudio.muted ? qsTr("Tap to unmute") : qsTr("Volume %1%").arg(root.volumePercent)
+                label: CortetsuAudio.muted ? qsTr("Sonido silenciado") : qsTr("Sonido")
+                detail: CortetsuAudio.muted ? qsTr("Pulsa para activar el sonido") : qsTr("Volumen %1%").arg(root.volumePercent)
                 icon: CortetsuAudio.muted ? "volume_off" : "volume_up"
                 highlighted: !CortetsuAudio.muted
                 // Mute is a user-selected state, not a fault or danger.
@@ -139,8 +142,8 @@ Item {
             CortetsuActionTile {
                 id: dndTile
                 Layout.fillWidth: true
-                label: CortetsuNotifications.dnd ? qsTr("Do Not Disturb") : qsTr("Notifications")
-                detail: CortetsuNotifications.dnd ? qsTr("Silenced") : qsTr("Allowed")
+                label: CortetsuNotifications.dnd ? qsTr("No molestar") : qsTr("Notificaciones")
+                detail: CortetsuNotifications.dnd ? qsTr("Silenciadas") : qsTr("Permitidas")
                 icon: CortetsuNotifications.dnd ? "notifications_off" : "notifications_active"
                 highlighted: CortetsuNotifications.dnd
                 // DND is an explicit user preference, not a danger state.
@@ -154,9 +157,9 @@ Item {
                 label: qsTr("Bluetooth")
                 detail: root.bluetoothEnabled
                     ? root.connectedBluetoothCount > 0
-                        ? qsTr("%1 connected").arg(root.connectedBluetoothCount)
-                        : qsTr("Ready")
-                    : qsTr("Off")
+                        ? qsTr("%1 conectados").arg(root.connectedBluetoothCount)
+                        : qsTr("Listo")
+                    : qsTr("Apagado")
                 icon: root.connectedBluetoothCount > 0 ? "bluetooth_connected" : "bluetooth"
                 highlighted: root.bluetoothEnabled
                 clickable: Bluetooth.defaultAdapter !== null
@@ -183,8 +186,8 @@ Item {
 
         CortetsuSectionHeader {
             Layout.fillWidth: true
-            title: qsTr("Levels")
-            detail: qsTr("Hardware readback")
+            title: qsTr("Niveles")
+            detail: qsTr("Lectura del hardware")
         }
 
         RowLayout {
@@ -196,11 +199,11 @@ Item {
             }
             CortetsuText {
                 Layout.fillWidth: true
-                text: qsTr("Brightness")
+                text: qsTr("Brillo")
                 textSize: CortetsuTypography.labelMediumPx
             }
             CortetsuText {
-                text: root.brightnessValue < 0 ? qsTr("Unavailable") : qsTr("%1%").arg(Math.round(root.brightnessValue * 100))
+                text: root.brightnessValue < 0 ? qsTr("No disponible") : qsTr("%1%").arg(Math.round(root.brightnessValue * 100))
                 textSize: CortetsuTypography.labelSmallPx
                 color: CortetsuDesign.colorOnSurfaceVariant
             }
@@ -223,7 +226,7 @@ Item {
             }
             CortetsuText {
                 Layout.fillWidth: true
-                text: qsTr("Volume")
+                text: qsTr("Volumen")
                 textSize: CortetsuTypography.labelMediumPx
             }
             CortetsuText {
@@ -241,7 +244,7 @@ Item {
 
         CortetsuSurface {
             Layout.fillWidth: true
-            Layout.fillHeight: true
+            Layout.preferredHeight: 78
             Layout.minimumHeight: 78
             radiusValue: CortetsuDesign.radiusLarge
             baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.66)
@@ -257,18 +260,18 @@ Item {
                     Layout.fillWidth: true
                     spacing: 1
                     CortetsuText {
-                        text: qsTr("Power")
+                        text: qsTr("Energía")
                         textSize: CortetsuTypography.labelSmallPx
                         color: CortetsuDesign.colorOnSurfaceVariant
                     }
                     CortetsuText {
                         text: root.laptopBatteryAvailable
-                            ? qsTr("Battery %1%").arg(root.batteryPercent)
+                            ? qsTr("Batería %1%").arg(root.batteryPercent)
                             : CortetsuPower.laptopBattery
-                                ? qsTr("Battery unavailable")
+                                ? qsTr("Batería no disponible")
                                 : CortetsuPower.devicePresent
-                                    ? qsTr("External power")
-                                    : qsTr("Power unavailable")
+                                    ? qsTr("Alimentación externa")
+                                    : qsTr("Energía no disponible")
                         textSize: CortetsuTypography.bodyPx
                         font.weight: Font.DemiBold
                     }
@@ -284,7 +287,7 @@ Item {
                     Layout.fillWidth: true
                     spacing: 1
                     CortetsuText {
-                        text: qsTr("Connection")
+                        text: qsTr("Conexión")
                         textSize: CortetsuTypography.labelSmallPx
                         color: CortetsuDesign.colorOnSurfaceVariant
                     }

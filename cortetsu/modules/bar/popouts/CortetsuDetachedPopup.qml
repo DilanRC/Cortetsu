@@ -44,5 +44,5 @@ Item {
     Component { id: battery; CortetsuBatteryPopup {} }
     Component { id: keyboard; CortetsuKeyboardPopup {} }
     Component { id: lockstatus; CortetsuLockStatusPopup {} }
-    Component { id: empty; CortetsuText { text: qsTr("Surface unavailable"); textSize: CortetsuDesign.bodyPx } }
+    Component { id: empty; CortetsuText { text: qsTr("Ventana no disponible"); textSize: CortetsuDesign.bodyPx } }
 }

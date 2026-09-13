@@ -17,6 +17,7 @@ CortetsuPopupSurface {
     implicitHeight: body.implicitHeight + CortetsuDesign.spacingComfortable * 2
 
     readonly property var device: CortetsuNetwork.wifiDevice
+    readonly property bool refreshing: CortetsuNetwork.refreshing
     readonly property bool wiredActive: !!CortetsuNetwork.activeEthernet
     property var passwordNetwork: null
     readonly property var networks: (device?.networks?.values ?? []).slice().sort((a, b) => {
@@ -31,15 +32,29 @@ CortetsuPopupSurface {
         anchors.margins: CortetsuDesign.spacingComfortable
         spacing: CortetsuDesign.spacingStandard
 
-        CortetsuSectionHeader {
-            title: qsTr("Network")
-            detail: CortetsuNetwork.connecting
-                ? qsTr("Connecting")
-                : root.device
-                    ? qsTr("Wi‑Fi ready")
-                    : root.wiredActive
-                        ? qsTr("Ethernet")
-                        : qsTr("Unavailable")
+        RowLayout {
+            Layout.fillWidth: true
+
+            CortetsuSectionHeader {
+                Layout.fillWidth: true
+                title: qsTr("Red")
+                detail: CortetsuNetwork.connecting
+                    ? qsTr("Conectando")
+                    : root.device
+                        ? qsTr("Wi‑Fi listo")
+                        : root.wiredActive
+                            ? qsTr("Ethernet")
+                            : qsTr("No disponible")
+            }
+
+            CortetsuButton {
+                compact: true
+                icon: root.refreshing ? "sync" : "refresh"
+                label: ""
+                tooltipText: qsTr("Actualizar redes")
+                disabled: !root.device || root.refreshing
+                onClicked: CortetsuNetwork.refresh()
+            }
         }
 
         CortetsuSurface {
@@ -93,7 +108,7 @@ CortetsuPopupSurface {
 
                     CortetsuText {
                         width: parent.width
-                        text: CortetsuNetwork.connecting ? qsTr("Connecting…") : qsTr("Connected")
+                        text: CortetsuNetwork.connecting ? qsTr("Conectando…") : qsTr("Conectado")
                         textSize: CortetsuDesign.labelSmallPx
                         color: CortetsuDesign.colorOnSurfaceVariant
                     }
@@ -107,21 +122,21 @@ CortetsuPopupSurface {
                 || (root.device && root.networks.length === 0)
             kind: CortetsuNetwork.connecting ? "loading" : !root.device && !root.wiredActive ? "error" : "empty"
             title: CortetsuNetwork.connecting
-                ? qsTr("Establishing connection…")
+                ? qsTr("Estableciendo conexión…")
                 : !root.device && !root.wiredActive
-                    ? qsTr("Network unavailable")
-                    : qsTr("No networks available")
+                    ? qsTr("Red no disponible")
+                    : qsTr("No hay redes disponibles")
             detail: !root.device && !root.wiredActive
-                ? qsTr("The network device is not ready")
+                ? qsTr("El dispositivo de red no está listo")
                 : CortetsuNetwork.connecting
-                    ? qsTr("Cortetsu will update this surface when the link is ready")
+                    ? qsTr("Cortetsu actualizará esta ventana cuando el enlace esté listo")
                     : ""
         }
 
         CortetsuSectionHeader {
             visible: root.device && root.availableNetworks.length > 0
-            title: qsTr("Available")
-            detail: qsTr("%1 networks").arg(root.availableNetworks.length)
+            title: qsTr("Disponibles")
+            detail: qsTr("%1 redes").arg(root.availableNetworks.length)
         }
 
         ListView {
@@ -135,12 +150,12 @@ CortetsuPopupSurface {
                 required property var modelData
                 width: ListView.view.width
                 icon: Icons.getNetworkIcon(modelData.signalStrength ?? 0)
-                title: modelData.name ?? qsTr("Hidden network")
+                title: modelData.name ?? qsTr("Red oculta")
                 subtitle: modelData.security === WifiSecurityType.None
-                    ? qsTr("Open network")
+                    ? qsTr("Red abierta")
                     : modelData.known
-                        ? qsTr("Saved · secured")
-                        : qsTr("Secured network")
+                        ? qsTr("Guardada · protegida")
+                        : qsTr("Red protegida")
                 selected: false
                 onClicked: {
                     if (modelData.known || modelData.security === WifiSecurityType.None) {

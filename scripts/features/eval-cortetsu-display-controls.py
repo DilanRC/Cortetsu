@@ -19,21 +19,21 @@ assert "vrrLayer" not in output_controls
 assert presets.count("CortetsuButton") == 3
 assert "MouseArea" not in presets
 assert "ActionButton" not in preview
-assert 'tooltipText: qsTr("Refresh displays")' in editor
-assert 'tooltipText: qsTr("Reset candidate")' in editor
-assert 'tooltipText: qsTr("Close Display Manager")' in editor
+assert 'tooltipText: qsTr("Actualizar pantallas")' in editor
+assert 'tooltipText: qsTr("Restablecer propuesta")' in editor
+assert 'tooltipText: qsTr("Cerrar gestor de pantallas")' in editor
 assert "activeFocusOnTab" in button
 assert "CortetsuTooltip" in button
 assert "Keys.onSpacePressed" in button
-for label in ("Preview", "Keep", "Save", "Revert"):
+for label in ("Previsualizar", "Conservar", "Guardar", "Revertir"):
     assert f'label: qsTr("{label}")' in preview
 for marker in (
     "label: modelData.label",
-    "tooltipText: qsTr(\"Previous display mode\")",
-    "tooltipText: qsTr(\"Next display mode\")",
-    "tooltipText: qsTr(\"Decrease %1\").arg(modelData.label)",
-    "tooltipText: qsTr(\"Increase %1\").arg(modelData.label)",
-    "label: planner.running ? qsTr(\"Validating…\") : qsTr(\"Dry run candidate\")",
+    "tooltipText: qsTr(\"Modo de pantalla anterior\")",
+    "tooltipText: qsTr(\"Modo de pantalla siguiente\")",
+    "tooltipText: qsTr(\"Reducir %1\").arg(modelData.label)",
+    "tooltipText: qsTr(\"Aumentar %1\").arg(modelData.label)",
+    "label: planner.running ? qsTr(\"Validando…\") : qsTr(\"Probar propuesta\")",
 ):
     assert marker in editor, marker
 print("PASS: Display controls share CortetsuButton focus, tooltip and semantic states")

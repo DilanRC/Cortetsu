@@ -17,7 +17,9 @@ CortetsuPopupSurface {
     property bool hovered: false
 
     implicitWidth: 248
-    implicitHeight: indicators.implicitHeight + CortetsuDesign.spacingStandard * 2 + 24
+    implicitHeight: CortetsuDesign.spacingSection
+        + indicators.implicitHeight
+        + CortetsuDesign.spacingStandard
 
     CortetsuEvolvingMark {
         id: signatureMark
@@ -35,7 +37,7 @@ CortetsuPopupSurface {
         anchors.right: parent.right
         anchors.topMargin: CortetsuDesign.spacingCompact
         anchors.rightMargin: CortetsuDesign.spacingStandard
-        text: qsTr("SYSTEM FEEDBACK")
+        text: qsTr("ESTADO DEL SISTEMA")
         textSize: CortetsuTypography.labelSmallPx
         color: CortetsuDesign.colorOnSurfaceVariant
     }
@@ -45,9 +47,9 @@ CortetsuPopupSurface {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.top: parent.top
-        anchors.bottom: parent.bottom
         anchors.topMargin: CortetsuDesign.spacingSection
-        anchors.margins: CortetsuDesign.spacingStandard
+        anchors.leftMargin: CortetsuDesign.spacingStandard
+        anchors.rightMargin: CortetsuDesign.spacingStandard
         spacing: CortetsuDesign.spacingCompact
 
         // Volume and brightness are one hover island. Tracking the parent
@@ -61,13 +63,13 @@ CortetsuPopupSurface {
             model: [
                 {
                     icon: root.muted ? "volume_off" : "volume_up",
-                    label: qsTr("Volume"),
+                    label: qsTr("Volumen"),
                     value: root.volume,
                     muted: root.muted
                 },
                 {
                     icon: "brightness_6",
-                    label: qsTr("Brightness"),
+                    label: qsTr("Brillo"),
                     value: root.brightness,
                     muted: false
                 }
@@ -137,9 +139,9 @@ CortetsuPopupSurface {
                                 id: indicatorValue
                                 anchors.right: parent.right
                                 text: indicator.modelData.muted
-                                    ? qsTr("Muted")
+                                    ? qsTr("Silenciado")
                                     : indicator.modelData.value < 0
-                                        ? qsTr("Unavailable")
+                                        ? qsTr("No disponible")
                                     : qsTr("%1%").arg(Math.round(indicator.modelData.value * 100))
                                 textSize: CortetsuTypography.labelSmallPx
                                 font.weight: Font.DemiBold

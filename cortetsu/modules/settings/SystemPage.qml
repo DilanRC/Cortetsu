@@ -28,14 +28,14 @@ Item {
     readonly property bool batteryCharging: CortetsuPower.charging
     readonly property int volumePercent: Math.round(CortetsuAudio.volume * 100)
     readonly property string networkName: CortetsuNetwork.active?.ssid
-        ?? (CortetsuNetwork.activeEthernet ? qsTr("Ethernet") : qsTr("Offline"))
+        ?? (CortetsuNetwork.activeEthernet ? qsTr("Ethernet") : qsTr("Sin conexión"))
     readonly property string networkDetail: CortetsuNetwork.connecting
-        ? qsTr("Connecting")
+        ? qsTr("Conectando")
         : CortetsuNetwork.active
-            ? qsTr("Signal %1%").arg(Math.round(CortetsuNetwork.active.strength ?? 0))
+        ? qsTr("Señal %1%").arg(Math.round(CortetsuNetwork.active.strength ?? 0))
             : CortetsuNetwork.activeEthernet
-                ? qsTr("Wired connection")
-                : qsTr("No active connection")
+                ? qsTr("Conexión cableada")
+                : qsTr("Sin conexión activa")
 
     function savePreference(): void {
         CortetsuConfig.save();
@@ -313,13 +313,13 @@ Item {
 
             CortetsuSectionHeader {
                 Layout.fillWidth: true
-                title: qsTr("Desktop behavior")
-                detail: qsTr("First-party workspace and desktop presentation")
+                title: qsTr("Comportamiento del escritorio")
+                detail: qsTr("Espacios y presentación del escritorio")
             }
 
             PreferenceToggle {
-                title: qsTr("Desktop clock")
-                detail: qsTr("Show the Cortetsu clock directly on the desktop")
+                title: qsTr("Reloj del escritorio")
+                detail: qsTr("Mostrar el reloj de Cortetsu en el escritorio")
                 icon: "schedule"
                 checked: CortetsuConfig.desktopClockEnabled
                 onChanged: checked => {
@@ -329,8 +329,8 @@ Item {
             }
 
             PreferenceToggle {
-                title: qsTr("Per-monitor workspaces")
-                detail: qsTr("Keep BottomHub workspace state scoped to each display")
+                title: qsTr("Espacios por monitor")
+                detail: qsTr("Mantener el estado de espacios separado por pantalla")
                 icon: "view_carousel"
                 checked: CortetsuConfig.bar.workspaces.perMonitorWorkspaces
                 onChanged: checked => {
@@ -347,13 +347,13 @@ Item {
 
             CortetsuSectionHeader {
                 Layout.fillWidth: true
-                title: qsTr("BottomHub behavior")
-                detail: qsTr("Status context and pointer interactions")
+                title: qsTr("Comportamiento de BottomHub")
+                detail: qsTr("Estado e interacción con el puntero")
             }
 
             PreferenceToggle {
-                title: qsTr("Status popouts")
-                detail: qsTr("Allow contextual system popouts from status icons")
+                title: qsTr("Ventanas de estado")
+                detail: qsTr("Permitir ventanas contextuales desde los iconos de estado")
                 icon: "dock_to_bottom"
                 checked: CortetsuConfig.bar.popouts.statusIcons
                 onChanged: checked => {
@@ -363,8 +363,8 @@ Item {
             }
 
             PreferenceToggle {
-                title: qsTr("Volume scroll")
-                detail: qsTr("Adjust volume by scrolling the BottomHub control")
+                title: qsTr("Desplazamiento del volumen")
+                detail: qsTr("Ajustar el volumen con la rueda sobre BottomHub")
                 icon: "volume_up"
                 checked: CortetsuConfig.bar.scrollActions.volume
                 onChanged: checked => {
@@ -375,13 +375,13 @@ Item {
 
             CortetsuSectionHeader {
                 Layout.fillWidth: true
-                title: qsTr("Visible segments")
-                detail: qsTr("Choose which BottomHub islands stay in the dock")
+                title: qsTr("Segmentos visibles")
+                detail: qsTr("Elegir qué grupos de BottomHub permanecen en la barra")
             }
 
             PreferenceToggle {
-                title: qsTr("Mode and workspaces")
-                detail: qsTr("Show launcher, wallpaper and workspace controls")
+                title: qsTr("Modo y espacios")
+                detail: qsTr("Mostrar controles del lanzador, fondo y espacios")
                 icon: "apps"
                 checked: CortetsuConfig.bottomHub.segments.mode
                 onChanged: checked => {
@@ -391,8 +391,8 @@ Item {
             }
 
             PreferenceToggle {
-                title: qsTr("App rail")
-                detail: qsTr("Show running and pinned applications")
+                title: qsTr("Barra de aplicaciones")
+                detail: qsTr("Mostrar aplicaciones abiertas y fijadas")
                 icon: "apps"
                 checked: CortetsuConfig.bottomHub.segments.apps
                 onChanged: checked => {
@@ -402,8 +402,8 @@ Item {
             }
 
             PreferenceToggle {
-                title: qsTr("Tray")
-                detail: qsTr("Show StatusNotifier applications and menus")
+                title: qsTr("Bandeja")
+                detail: qsTr("Mostrar aplicaciones y menús de StatusNotifier")
                 icon: "notifications"
                 checked: CortetsuConfig.bottomHub.segments.tray
                 onChanged: checked => {
@@ -413,8 +413,8 @@ Item {
             }
 
             PreferenceToggle {
-                title: qsTr("Status cluster")
-                detail: qsTr("Show notifications, hardware and session controls")
+                title: qsTr("Grupo de estado")
+                detail: qsTr("Mostrar notificaciones, hardware y controles de sesión")
                 icon: "tune"
                 checked: CortetsuConfig.bottomHub.segments.status
                 onChanged: checked => {
@@ -425,13 +425,13 @@ Item {
 
             CortetsuSectionHeader {
                 Layout.fillWidth: true
-                title: qsTr("Visible status controls")
-                detail: qsTr("Choose which hardware controls stay in the BottomHub")
+                title: qsTr("Controles de estado visibles")
+                detail: qsTr("Elegir qué controles de hardware quedan en BottomHub")
             }
 
             PreferenceToggle {
-                title: qsTr("Volume")
-                detail: qsTr("Show the audio control and its contextual popup")
+                title: qsTr("Volumen")
+                detail: qsTr("Mostrar el control de audio y su ventana contextual")
                 icon: "volume_up"
                 checked: CortetsuConfig.bottomHub.statusCluster.audio
                 onChanged: checked => {
@@ -441,8 +441,8 @@ Item {
             }
 
             PreferenceToggle {
-                title: qsTr("Network")
-                detail: qsTr("Show Wi-Fi and Ethernet state")
+                title: qsTr("Red")
+                detail: qsTr("Mostrar el estado de Wi‑Fi y Ethernet")
                 icon: "wifi"
                 checked: CortetsuConfig.bottomHub.statusCluster.network
                 onChanged: checked => {
@@ -453,7 +453,7 @@ Item {
 
             PreferenceToggle {
                 title: qsTr("Bluetooth")
-                detail: qsTr("Show the Bluetooth adapter and device state")
+                detail: qsTr("Mostrar el adaptador y los dispositivos Bluetooth")
                 icon: "bluetooth"
                 checked: CortetsuConfig.bottomHub.statusCluster.bluetooth
                 onChanged: checked => {
@@ -463,8 +463,8 @@ Item {
             }
 
             PreferenceToggle {
-                title: qsTr("Battery")
-                detail: qsTr("Show battery and power state")
+                title: qsTr("Batería")
+                detail: qsTr("Mostrar el estado de batería y energía")
                 icon: "battery_full"
                 checked: CortetsuConfig.bottomHub.statusCluster.battery
                 onChanged: checked => {
@@ -481,13 +481,13 @@ Item {
 
             CortetsuSectionHeader {
                 Layout.fillWidth: true
-                title: qsTr("Launcher search")
-                detail: qsTr("Tune how Cortetsu finds applications and actions")
+                title: qsTr("Búsqueda del lanzador")
+                detail: qsTr("Ajustar cómo Cortetsu encuentra aplicaciones y acciones")
             }
 
             PreferenceToggle {
-                title: qsTr("Fuzzy application search")
-                detail: qsTr("Match approximate application names")
+                title: qsTr("Búsqueda aproximada de aplicaciones")
+                detail: qsTr("Encontrar nombres de aplicaciones parecidos")
                 icon: "search"
                 checked: CortetsuConfig.useFuzzyApps
                 onChanged: checked => {
@@ -497,8 +497,8 @@ Item {
             }
 
             PreferenceToggle {
-                title: qsTr("Fuzzy actions")
-                detail: qsTr("Use approximate matching for launcher actions")
+                title: qsTr("Acciones aproximadas")
+                detail: qsTr("Usar coincidencias aproximadas para las acciones")
                 icon: "bolt"
                 checked: CortetsuConfig.useFuzzyActions
                 onChanged: checked => {
@@ -516,21 +516,21 @@ Item {
 
             CortetsuSectionHeader {
                 Layout.fillWidth: true
-                title: qsTr("Notification behavior")
-                detail: qsTr("Live DND state and presentation preferences")
+                title: qsTr("Comportamiento de notificaciones")
+                detail: qsTr("Estado de No molestar y preferencias de presentación")
             }
 
             PreferenceToggle {
-                title: qsTr("Do Not Disturb")
-                detail: CortetsuNotifications.dnd ? qsTr("Notification interruptions are silenced") : qsTr("Notifications may interrupt")
+                title: qsTr("No molestar")
+                detail: CortetsuNotifications.dnd ? qsTr("Las interrupciones están silenciadas") : qsTr("Las notificaciones pueden interrumpir")
                 icon: CortetsuNotifications.dnd ? "notifications_off" : "notifications_active"
                 checked: CortetsuNotifications.dnd
                 onChanged: checked => CortetsuNotifications.dnd = checked
             }
 
             PreferenceToggle {
-                title: qsTr("Open expanded")
-                detail: qsTr("Expand notification groups when the center opens")
+                title: qsTr("Abrir expandido")
+                detail: qsTr("Expandir los grupos al abrir el centro")
                 icon: "unfold_more"
                 checked: CortetsuConfig.notificationOpenExpanded
                 onChanged: checked => {
@@ -540,8 +540,8 @@ Item {
             }
 
             PreferenceToggle {
-                title: qsTr("Suppress in fullscreen")
-                detail: qsTr("Keep notification surfaces out of fullscreen work")
+                title: qsTr("Ocultar en pantalla completa")
+                detail: qsTr("Ocultar las notificaciones durante el trabajo a pantalla completa")
                 icon: "fullscreen"
                 checked: CortetsuConfig.suppressNotificationsInFullscreen
                 onChanged: checked => {
@@ -558,12 +558,12 @@ Item {
 
             CortetsuSectionHeader {
                 Layout.fillWidth: true
-                title: qsTr("Network status")
-                detail: qsTr("Native NetworkManager readback; no fake controls")
+                title: qsTr("Estado de la red")
+                detail: qsTr("Lectura nativa de NetworkManager; sin controles falsos")
             }
 
             StatusCard {
-                title: qsTr("Current connection")
+                title: qsTr("Conexión actual")
                 value: root.networkName
                 detail: root.networkDetail
                 icon: CortetsuNetwork.activeEthernet
@@ -579,7 +579,7 @@ Item {
 
             CortetsuText {
                 Layout.fillWidth: true
-                text: qsTr("Connection changes stay in the native network popout until the service exposes a safe first-party write contract here.")
+                text: qsTr("Los cambios de conexión se hacen en la ventana de red; esta vista muestra el estado actual.")
                 textSize: CortetsuTypography.bodySmallPx
                 color: CortetsuDesign.colorOnSurfaceVariant
                 wrapMode: Text.WordWrap
@@ -594,24 +594,24 @@ Item {
             CortetsuSectionHeader {
                 Layout.fillWidth: true
                 title: qsTr("Bluetooth")
-                detail: qsTr("Native adapter state")
+                detail: qsTr("Estado nativo del adaptador")
             }
 
             StatusCard {
-                title: qsTr("Devices")
+                title: qsTr("Dispositivos")
                 value: root.bluetoothEnabled
                     ? root.bluetoothConnected > 0
-                        ? qsTr("%1 connected").arg(root.bluetoothConnected)
-                        : qsTr("Ready")
-                    : qsTr("Bluetooth off")
-                detail: root.bluetoothEnabled ? qsTr("Adapter enabled") : qsTr("Adapter disabled")
+                        ? qsTr("%1 conectados").arg(root.bluetoothConnected)
+                        : qsTr("Listo")
+                    : qsTr("Bluetooth apagado")
+                detail: root.bluetoothEnabled ? qsTr("Adaptador activado") : qsTr("Adaptador desactivado")
                 icon: root.bluetoothConnected > 0 ? "bluetooth_connected" : "bluetooth"
                 activeState: root.bluetoothEnabled
             }
 
             PreferenceToggle {
-                title: qsTr("Bluetooth adapter")
-                detail: qsTr("Turn the default adapter on or off")
+                title: qsTr("Adaptador Bluetooth")
+                detail: qsTr("Activar o desactivar el adaptador predeterminado")
                 icon: "bluetooth"
                 checked: root.bluetoothEnabled
                 controlDisabled: Bluetooth.defaultAdapter === null
@@ -630,12 +630,12 @@ Item {
             CortetsuSectionHeader {
                 Layout.fillWidth: true
                 title: qsTr("Audio")
-                detail: qsTr("Live PipeWire output control")
+                detail: qsTr("Control de salida PipeWire en vivo")
             }
 
             PreferenceToggle {
-                title: CortetsuAudio.muted ? qsTr("Output muted") : qsTr("Output enabled")
-                detail: qsTr("Current volume %1%").arg(root.volumePercent)
+                title: CortetsuAudio.muted ? qsTr("Salida silenciada") : qsTr("Salida activada")
+                detail: qsTr("Volumen actual %1%").arg(root.volumePercent)
                 icon: CortetsuAudio.muted ? "volume_off" : "volume_up"
                 checked: !CortetsuAudio.muted
                 controlDisabled: !CortetsuAudio.sink?.audio
@@ -661,7 +661,7 @@ Item {
                         Layout.fillWidth: true
                         CortetsuText {
                             Layout.fillWidth: true
-                            text: qsTr("Output volume")
+                            text: qsTr("Volumen de salida")
                             textSize: CortetsuTypography.bodyPx
                             font.weight: Font.DemiBold
                         }
@@ -687,14 +687,14 @@ Item {
 
             CortetsuSectionHeader {
                 Layout.fillWidth: true
-                title: qsTr("Power")
-                detail: qsTr("Battery readback and idle policy")
+                title: qsTr("Energía")
+                detail: qsTr("Lectura de batería y política de reposo")
             }
 
             StatusCard {
-                title: CortetsuPower.laptopBattery ? qsTr("Battery") : qsTr("Power source")
-                value: CortetsuPower.hasBattery ? qsTr("%1%").arg(root.batteryPercent) : qsTr("External power")
-                detail: CortetsuPower.onBattery ? qsTr("Running on battery") : qsTr("Connected to external power")
+                title: CortetsuPower.laptopBattery ? qsTr("Batería") : qsTr("Fuente de energía")
+                value: CortetsuPower.hasBattery ? qsTr("%1%").arg(root.batteryPercent) : qsTr("Alimentación externa")
+                detail: CortetsuPower.onBattery ? qsTr("Funcionando con batería") : qsTr("Conectado a alimentación externa")
                 icon: CortetsuPower.hasBattery
                     ? Icons.getBatteryIcon(CortetsuPower.value, root.batteryCharging)
                     : "power"
@@ -703,8 +703,8 @@ Item {
             }
 
             PreferenceToggle {
-                title: qsTr("Prevent idle while audio plays")
-                detail: qsTr("Keep the session active during playback")
+                title: qsTr("Evitar reposo durante el audio")
+                detail: qsTr("Mantener activa la sesión durante la reproducción")
                 icon: "music_note"
                 checked: CortetsuConfig.idleInhibitWhenAudio
                 onChanged: checked => {
@@ -714,8 +714,8 @@ Item {
             }
 
             PreferenceToggle {
-                title: qsTr("Prevent idle while charging")
-                detail: qsTr("Keep the session active on external power")
+                title: qsTr("Evitar reposo mientras carga")
+                detail: qsTr("Mantener activa la sesión con alimentación externa")
                 icon: "power"
                 checked: CortetsuConfig.idleInhibitWhenCharging
                 onChanged: checked => {
@@ -732,8 +732,8 @@ Item {
 
             CortetsuSectionHeader {
                 Layout.fillWidth: true
-                title: qsTr("Display")
-                detail: qsTr("Current-screen brightness and display layout")
+                title: qsTr("Pantalla")
+                detail: qsTr("Brillo y distribución de la pantalla actual")
             }
 
             CortetsuSurface {
@@ -757,13 +757,13 @@ Item {
                         }
                         CortetsuText {
                             Layout.fillWidth: true
-                            text: qsTr("Brightness")
+                            text: qsTr("Brillo")
                             textSize: CortetsuTypography.bodyPx
                             font.weight: Font.DemiBold
                         }
                         CortetsuText {
                             text: root.brightnessValue < 0
-                                ? qsTr("Unavailable")
+                                ? qsTr("No disponible")
                                 : qsTr("%1%").arg(Math.round(root.brightnessValue * 100))
                             textSize: CortetsuTypography.labelSmallPx
                             color: CortetsuDesign.colorOnSurfaceVariant
@@ -779,8 +779,8 @@ Item {
             }
 
             ActionCard {
-                title: qsTr("Open Display Manager")
-                detail: qsTr("Arrange monitors, modes and display-specific options")
+                title: qsTr("Abrir gestor de pantallas")
+                detail: qsTr("Organizar monitores, modos y opciones de cada pantalla")
                 icon: "monitor"
                 onActivated: root.openRetained("displayManager")
             }
@@ -793,13 +793,13 @@ Item {
 
             CortetsuSectionHeader {
                 Layout.fillWidth: true
-                title: qsTr("Input behavior")
-                detail: qsTr("Shell keyboard interaction preferences")
+                title: qsTr("Comportamiento de entrada")
+                detail: qsTr("Preferencias de interacción del teclado")
             }
 
             PreferenceToggle {
-                title: qsTr("Vim-style navigation")
-                detail: qsTr("Allow shell surfaces to expose Vim-oriented navigation where supported")
+                title: qsTr("Navegación estilo Vim")
+                detail: qsTr("Permitir navegación estilo Vim donde sea compatible")
                 icon: "keyboard"
                 checked: CortetsuConfig.vimKeybinds
                 onChanged: checked => {
@@ -809,8 +809,8 @@ Item {
             }
 
             PreferenceToggle {
-                title: qsTr("Caps Lock feedback")
-                detail: qsTr("Show semantic feedback when Caps Lock changes")
+                title: qsTr("Aviso de Bloq Mayús")
+                detail: qsTr("Mostrar un aviso al cambiar Bloq Mayús")
                 icon: "keyboard_capslock"
                 checked: CortetsuConfig.toastCapsLockChanged
                 onChanged: checked => {
@@ -820,8 +820,8 @@ Item {
             }
 
             PreferenceToggle {
-                title: qsTr("Num Lock feedback")
-                detail: qsTr("Show semantic feedback when Num Lock changes")
+                title: qsTr("Aviso de Bloq Num")
+                detail: qsTr("Mostrar un aviso al cambiar Bloq Num")
                 icon: "dialpad"
                 checked: CortetsuConfig.toastNumLockChanged
                 onChanged: checked => {
@@ -838,15 +838,15 @@ Item {
 
             CortetsuSectionHeader {
                 Layout.fillWidth: true
-                title: qsTr("Configured Cortetsu bindings")
-                detail: qsTr("Read-only view of the first-party shell entry points")
+                title: qsTr("Atajos configurados de Cortetsu")
+                detail: qsTr("Vista de solo lectura de los accesos del shell")
             }
 
-            ShortcutRow { keys: qsTr("SUPER + SHIFT + D"); action: qsTr("Dashboard") }
-            ShortcutRow { keys: qsTr("SUPER + I"); action: qsTr("Settings") }
-            ShortcutRow { keys: qsTr("SUPER + /"); action: qsTr("Quick Settings") }
-            ShortcutRow { keys: qsTr("SUPER + V"); action: qsTr("Clipboard") }
-            ShortcutRow { keys: qsTr("SUPER + SHIFT + W"); action: qsTr("Wallpaper Manager") }
+            ShortcutRow { keys: qsTr("SUPER + SHIFT + D"); action: qsTr("Panel principal") }
+            ShortcutRow { keys: qsTr("SUPER + I"); action: qsTr("Ajustes") }
+            ShortcutRow { keys: qsTr("SUPER + /"); action: qsTr("Ajustes rápidos") }
+            ShortcutRow { keys: qsTr("SUPER + V"); action: qsTr("Portapapeles") }
+            ShortcutRow { keys: qsTr("SUPER + SHIFT + W"); action: qsTr("Gestor de fondos") }
         }
 
         ColumnLayout {
@@ -856,18 +856,18 @@ Item {
 
             CortetsuSectionHeader {
                 Layout.fillWidth: true
-                title: qsTr("Wallpaper")
-                detail: qsTr("Current first-party wallpaper source")
+                title: qsTr("Fondo de pantalla")
+                detail: qsTr("Fuente actual del fondo de pantalla")
             }
 
             StatusCard {
-                title: qsTr("Wallpaper")
+                title: qsTr("Fondo de pantalla")
                 value: CortetsuWallpapers.applyStatus === "applying"
-                    ? qsTr("Applying…")
+                    ? qsTr("Aplicando…")
                     : CortetsuWallpapers.applyStatus === "failed"
-                        ? qsTr("Apply failed")
+                        ? qsTr("Error al aplicar")
                         : CortetsuWallpapers.applyStatus === "applied"
-                            ? qsTr("Applied")
+                            ? qsTr("Aplicado")
                             : CortetsuWallpapers.actualCurrent.split("/").pop()
                 detail: CortetsuWallpapers.applyStatus === "applying" || CortetsuWallpapers.applyStatus === "failed"
                     ? CortetsuWallpapers.applyStatusPath.split("/").pop()
@@ -883,8 +883,8 @@ Item {
             }
 
             PreferenceToggle {
-                title: qsTr("Wallpaper integration")
-                detail: qsTr("Allow Cortetsu to own the desktop wallpaper surface")
+                title: qsTr("Integración del fondo")
+                detail: qsTr("Permitir que Cortetsu controle el fondo del escritorio")
                 icon: "wallpaper"
                 checked: CortetsuConfig.wallpaperEnabled
                 onChanged: checked => {
@@ -894,8 +894,8 @@ Item {
             }
 
             ActionCard {
-                title: qsTr("Open Wallpaper Manager")
-                detail: qsTr("Browse the orbital selector and preview a wallpaper")
+                title: qsTr("Abrir gestor de fondos")
+                detail: qsTr("Explorar el selector orbital y previsualizar un fondo")
                 icon: "collections"
                 onActivated: root.openRetained("wallpaperManager")
             }

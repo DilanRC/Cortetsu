@@ -33,7 +33,7 @@ Item {
         id: title
         anchors.top: parent.top
         anchors.left: parent.left
-        text: qsTr("Cortetsu Settings")
+        text: qsTr("Ajustes de Cortetsu")
         textSize: CortetsuTypography.titleLargePx
         font.weight: Font.DemiBold
     }
@@ -42,7 +42,7 @@ Item {
         anchors.top: title.bottom
         anchors.topMargin: CortetsuDesign.spacingUnit
         anchors.left: title.left
-        text: qsTr("A quiet control room for your desktop shell")
+        text: qsTr("Un centro de control sereno para tu escritorio")
         textSize: CortetsuTypography.bodySmallPx
         color: CortetsuDesign.colorOnSurfaceVariant
     }
@@ -52,7 +52,7 @@ Item {
         anchors.top: parent.top
         compact: true
         icon: "close"
-        label: qsTr("Close")
+        label: qsTr("Cerrar")
         onClicked: root.screenState.settings = false
     }
 
@@ -79,7 +79,7 @@ Item {
                 CortetsuText {
                     Layout.leftMargin: CortetsuDesign.spacingCompact
                     Layout.topMargin: CortetsuDesign.spacingCompact
-                    text: qsTr("CONTROL SURFACES")
+                    text: qsTr("SUPERFICIES DE CONTROL")
                     textSize: CortetsuTypography.labelSmallPx
                     color: CortetsuDesign.colorOnSurfaceVariant
                     font.weight: Font.DemiBold
@@ -89,7 +89,7 @@ Item {
                     id: searchField
                     Layout.fillWidth: true
                     compact: true
-                    placeholderText: qsTr("Search settings")
+                    placeholderText: qsTr("Buscar ajustes")
                     onTextChanged: root.controller.search = text
                 }
 
@@ -155,7 +155,7 @@ Item {
                             spacing: 2
 
                             CortetsuText {
-                                text: root.selectedCategory?.title ?? qsTr("Settings")
+                                text: root.selectedCategory?.title ?? qsTr("Ajustes")
                                 textSize: CortetsuTypography.titleLargePx
                                 font.weight: Font.DemiBold
                             }
@@ -175,12 +175,12 @@ Item {
 
                         CortetsuSectionHeader {
                             Layout.fillWidth: true
-                            title: qsTr("Scheme gallery")
+                            title: qsTr("Galería de esquemas")
                             detail: Schemes.error.length > 0
                                 ? Schemes.error
                                 : Schemes.loading
-                                    ? qsTr("Reading installed scheme families…")
-                                    : qsTr("%1 installed · %2 active").arg(Schemes.catalogCount).arg(Schemes.currentScheme || qsTr("none"))
+                                    ? qsTr("Leyendo familias de esquemas instaladas…")
+                                    : qsTr("%1 instalados · %2 activo").arg(Schemes.catalogCount).arg(Schemes.currentScheme || qsTr("ninguno"))
                         }
 
                         CortetsuSurface {
@@ -222,10 +222,10 @@ Item {
                                     CortetsuText {
                                         Layout.fillWidth: true
                                         text: Schemes.applying
-                                            ? qsTr("Applying scheme")
+                                            ? qsTr("Aplicando esquema")
                                             : Schemes.applyStatus === "failed"
-                                                ? qsTr("Scheme apply failed")
-                                                : qsTr("Scheme applied")
+                                                ? qsTr("No se pudo aplicar el esquema")
+                                                : qsTr("Esquema aplicado")
                                         textSize: CortetsuTypography.bodySmallPx
                                         font.weight: Font.DemiBold
                                     }
@@ -267,10 +267,10 @@ Item {
                                 CortetsuText {
                                     Layout.fillWidth: true
                                     text: Schemes.loading
-                                        ? qsTr("Loading scheme catalog")
+                                        ? qsTr("Cargando catálogo de esquemas")
                                         : Schemes.error.length > 0
                                             ? Schemes.error
-                                            : qsTr("No schemes are currently available")
+                                            : qsTr("No hay esquemas disponibles")
                                     textSize: CortetsuTypography.bodySmallPx
                                     color: CortetsuDesign.colorOnSurfaceVariant
                                     wrapMode: Text.WordWrap
@@ -280,7 +280,7 @@ Item {
                                     compact: true
                                     icon: "refresh"
                                     label: ""
-                                    tooltipText: qsTr("Reload schemes")
+                                    tooltipText: qsTr("Recargar esquemas")
                                     disabled: Schemes.loading
                                     onClicked: Schemes.reload()
                                 }
@@ -323,8 +323,8 @@ Item {
 
                         CortetsuSectionHeader {
                             Layout.fillWidth: true
-                            title: qsTr("Shell appearance")
-                            detail: qsTr("Persistent Cortetsu presentation preferences")
+                            title: qsTr("Apariencia del shell")
+                            detail: qsTr("Preferencias persistentes de presentación de Cortetsu")
                         }
 
                         SystemPage {
@@ -339,7 +339,7 @@ Item {
                             Layout.fillWidth: true
                             CortetsuText {
                                 Layout.fillWidth: true
-                                text: qsTr("Smart scheme")
+                                text: qsTr("Esquema inteligente")
                                 textSize: CortetsuTypography.bodyPx
                             }
                             CortetsuToggle {
@@ -355,7 +355,7 @@ Item {
                             Layout.fillWidth: true
                             CortetsuText {
                                 Layout.fillWidth: true
-                                text: qsTr("Wallpaper integration")
+                                text: qsTr("Integración del fondo")
                                 textSize: CortetsuTypography.bodyPx
                             }
                             CortetsuToggle {
@@ -371,7 +371,7 @@ Item {
                             Layout.fillWidth: true
                             CortetsuText {
                                 Layout.fillWidth: true
-                                text: qsTr("Transparent surfaces")
+                                text: qsTr("Superficies transparentes")
                                 textSize: CortetsuTypography.bodyPx
                             }
                             CortetsuToggle {
@@ -399,8 +399,8 @@ Item {
 
                         CortetsuSectionHeader {
                             Layout.fillWidth: true
-                            title: qsTr("About Cortetsu")
-                            detail: qsTr("First-party desktop shell")
+                            title: qsTr("Acerca de Cortetsu")
+                            detail: qsTr("Shell de escritorio propio")
                         }
 
                         CortetsuSurface {
@@ -433,12 +433,12 @@ Item {
                                         font.weight: Font.DemiBold
                                     }
                                     CortetsuText {
-                                        text: qsTr("Precision shell for focused work")
+                                        text: qsTr("Shell preciso para trabajo concentrado")
                                         textSize: CortetsuTypography.bodyPx
                                         color: CortetsuDesign.colorOnSurfaceVariant
                                     }
                                     CortetsuText {
-                                        text: qsTr("Generation: Ascension · first-party surfaces")
+                                        text: qsTr("Generación: Ascension · superficies propias")
                                         textSize: CortetsuTypography.labelMediumPx
                                         color: CortetsuDesign.colorOnSurfaceVariant
                                     }
