@@ -119,7 +119,8 @@ CortetsuPopupSurface {
             id: menu
             required property QsMenuHandle handle
             property bool subMenu: false
-            readonly property int entryCount: opener.children?.length ?? 0
+            property var entries: []
+            readonly property int entryCount: entries.length
             padding: CortetsuDesign.spacingCompact
             spacing: CortetsuDesign.spacingUnit
             width: 320 + padding * 2
@@ -133,6 +134,20 @@ CortetsuPopupSurface {
 
             onHeightChanged: root.menuContentHeight = height
 
+            function syncEntries(): void {
+                entries = Array.from(opener.children ?? [])
+                    .filter(entry => entry !== null && entry !== undefined);
+            }
+
+            Component.onCompleted: Qt.callLater(syncEntries)
+
+            Timer {
+                interval: 50
+                repeat: true
+                running: menu.entries.length === 0
+                onTriggered: menu.syncEntries()
+            }
+
             QsMenuOpener {
                 id: opener
                 menu: menu.handle
@@ -143,8 +158,7 @@ CortetsuPopupSurface {
                 // menu is rebuilding. Keep invalid entries out of the
                 // delegate model so the popup never dereferences a stale
                 // QsMenuEntry during that update window.
-                model: Array.from(opener.children ?? [])
-                    .filter(entry => entry !== null && entry !== undefined)
+                model: menu.entries
 
                 CortetsuSurface {
                     required property QsMenuEntry modelData

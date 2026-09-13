@@ -8,8 +8,9 @@ ROOT = Path(__file__).resolve().parents[2]
 source = (ROOT / "cortetsu/modules/bar/popouts/CortetsuTrayMenu.qml").read_text(encoding="utf-8")
 
 assert "if (!entry)" in source, "tray activation must ignore stale entries"
-assert "model: Array.from(opener.children ?? [])" in source
+assert "model: menu.entries" in source
 assert "filter(entry => entry !== null && entry !== undefined)" in source
+assert "function syncEntries()" in source
 assert "required property QsMenuEntry modelData" in source
 assert "CortetsuPopupSurface" in source
 assert "CortetsuStateLayer" in source
