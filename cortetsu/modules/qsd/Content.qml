@@ -77,8 +77,8 @@ Item {
                 phase: root.markPhase
                 monochrome: true
                 monochromeColor: CortetsuDesign.colorWashi
-                Layout.preferredWidth: 24
-                Layout.preferredHeight: 24
+                Layout.preferredWidth: 32
+                Layout.preferredHeight: 32
             }
 
             ColumnLayout {
@@ -181,6 +181,37 @@ Item {
                 highlighted: !!CortetsuNetwork.active || !!CortetsuNetwork.activeEthernet
                 warning: !CortetsuNetwork.active && !CortetsuNetwork.activeEthernet && !CortetsuNetwork.connecting
                 clickable: false
+            }
+
+            CortetsuActionTile {
+                Layout.fillWidth: true
+                label: CortetsuRecorder.running ? qsTr("Detener grabación") : qsTr("Grabar pantalla")
+                detail: CortetsuRecorder.running ? qsTr("Grabando") : qsTr("Iniciar captura")
+                icon: CortetsuRecorder.running ? "stop_circle" : "radio_button_checked"
+                highlighted: CortetsuRecorder.running
+                warning: false
+                onActivated: CortetsuRecorder.running ? CortetsuRecorder.stop() : CortetsuRecorder.start()
+            }
+
+            CortetsuActionTile {
+                Layout.fillWidth: true
+                label: CortetsuIdleInhibitor.enabled ? qsTr("Permitir reposo") : qsTr("Mantener activo")
+                detail: CortetsuIdleInhibitor.enabled ? qsTr("Desactivado") : qsTr("Activo mientras trabajas")
+                icon: CortetsuIdleInhibitor.enabled ? "bedtime" : "bedtime_off"
+                highlighted: CortetsuIdleInhibitor.enabled
+                warning: false
+                onActivated: CortetsuIdleInhibitor.enabled = !CortetsuIdleInhibitor.enabled
+            }
+
+            CortetsuActionTile {
+                Layout.columnSpan: 2
+                Layout.fillWidth: true
+                label: GameMode.enabled ? qsTr("Desactivar modo juego") : qsTr("Activar modo juego")
+                detail: GameMode.enabled ? qsTr("Efectos reducidos") : qsTr("Menos animaciones y efectos")
+                icon: GameMode.enabled ? "sports_esports" : "videogame_asset"
+                highlighted: GameMode.enabled
+                warning: false
+                onActivated: GameMode.toggle()
             }
         }
 

@@ -21,7 +21,7 @@ for name, path in SURFACES.items():
 qsd = QSD.read_text(encoding="utf-8")
 checks["QSD uses renderer"] = "CortetsuEvolvingMark" in qsd
 checks["QSD uses contextual phase"] = 'phase: root.markPhase' in qsd
-checks["QSD keeps fixed 24px slot"] = "Layout.preferredWidth: 24" in qsd and "Layout.preferredHeight: 24" in qsd
+checks["QSD keeps fixed 32px slot"] = "Layout.preferredWidth: 32" in qsd and "Layout.preferredHeight: 32" in qsd
 checks["QSD keeps brand color private"] = "monochromeColor: CortetsuDesign.colorWashi" in qsd
 
 lock = LOCK.read_text(encoding="utf-8")

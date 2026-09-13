@@ -23,6 +23,12 @@ vpn_service = (repo / "cortetsu/base/services/VPN.qml").read_text(encoding="utf-
 battery_monitor = (modules / "BatteryMonitor.qml").read_text(encoding="utf-8")
 service_loader = (modules / "ServiceLoader.qml").read_text(encoding="utf-8")
 game_mode = (repo / "cortetsu/services/GameMode.qml").read_text(encoding="utf-8")
+assert "function dispatchKeyword(key: string, value: string)" in game_mode
+assert 'Quickshell.execDetached(["hyprctl", "eval"' in game_mode
+assert 'hl.config({ animations = { enabled = false }' in game_mode
+assert 'Quickshell.execDetached(["hyprctl", "keyword", key, value])' in game_mode
+assert 'Quickshell.execDetached(["hyprctl", "reload"])' in game_mode
+assert "dispatchKeyword(setting[0], setting[1])" in game_mode
 requests = (repo / "cortetsu/services/Requests.qml").read_text(encoding="utf-8")
 assert "onExited: code => root.finish(request, code" in requests
 assert "onExited: root.finish(request, exitCode" not in requests
@@ -46,6 +52,9 @@ assert "bottomHub.statusCluster" in config
 assert "bottomHub.segments" in config
 assert "saveLegacy();" in config
 assert "payload.bottomHub" in config
+assert "watchChanges: false" in config
+assert "property bool patchBottomHubAfterSave" in config
+assert "onSaved:" in config
 assert "loaded = false;" in config
 assert "bar: { persistent: bar.persistent" in config
 panel_sources = "\n".join(path.read_text(encoding="utf-8") for path in (repo / "cortetsu/base/modules/nexus/pages/panels").glob("*.qml"))
@@ -233,7 +242,9 @@ for legacy in ("Caelestia", "GlobalConfig", "GameMode", "Notifs", "Weather", "VP
 assert "CortetsuAudio" in service_loader and "CortetsuNotifications" in service_loader
 for legacy in ("Caelestia", "GlobalConfig", "Toaster", "SessionManager", "Hypr.extras"):
     assert legacy not in game_mode, legacy
-assert "CortetsuHypr.dispatch" in game_mode and "target: \"gameMode\"" in game_mode
+assert 'Quickshell.execDetached(["hyprctl", "keyword", key, value])' in game_mode
+assert 'Quickshell.execDetached(["hyprctl", "reload"])' in game_mode
+assert 'target: "gameMode"' in game_mode
 for legacy in ("Caelestia", "GlobalConfig", "Requests.get", "QNetworkAccessManager"):
     assert legacy not in requests, legacy
 assert "function get(url, onSuccess, onError, headers = {})" in requests

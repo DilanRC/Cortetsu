@@ -68,6 +68,10 @@ Item {
         id: hideTimer
         interval: 1500
         onTriggered: {
+            if (CortetsuShellState.screenshotActive) {
+                restart();
+                return;
+            }
             if (root.screenState && !content.hovered)
                 root.screenState.osd = false;
             else

@@ -196,7 +196,7 @@ Item {
 
                 CortetsuText {
                     id: selectedLabel
-                    text: qsTr("Selected")
+                    text: qsTr("Seleccionada")
                     color: CortetsuDesign.colorOnSecondaryContainer
                     textSize: CortetsuTypography.labelSmallPx
                 }
@@ -351,8 +351,8 @@ Item {
 
                 ToolTip.visible: floatMouse.containsMouse || parent.activeFocus
                 ToolTip.text: root.client?.lastIpcObject?.floating
-                    ? qsTr("Tile window")
-                    : qsTr("Float window")
+                    ? qsTr("Acoplar ventana")
+                    : qsTr("Flotar ventana")
                 ToolTip.delay: CortetsuDesign.motionDeliberateMs
 
                 Keys.onEnterPressed:
@@ -417,7 +417,7 @@ Item {
                 }
 
                 ToolTip.visible: closeMouse.containsMouse || parent.activeFocus
-                ToolTip.text: qsTr("Close window")
+                ToolTip.text: qsTr("Cerrar ventana")
                 ToolTip.delay: CortetsuDesign.motionDeliberateMs
 
                 Keys.onEnterPressed:

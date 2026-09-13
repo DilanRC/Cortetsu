@@ -107,7 +107,7 @@ Item {
         screenState: root.screenState
         panels: root
         anchors.horizontalCenter: parent.horizontalCenter
-        anchors.bottom: parent.bottom
+        anchors.verticalCenter: parent.verticalCenter
     }
     // Retained surfaces are rendered by RetainedSurfacesHost. These aliases
     // remain as compatibility handles for the shared drawer contract.

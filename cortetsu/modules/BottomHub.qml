@@ -745,9 +745,6 @@ Scope {
                 height: implicitHeight
 
                 launcherActive: win.screenState?.launcher ?? false
-                wallpaperActive: win.cortetsuState?.wallpaperManager ?? false
-                wallpaperSource: CortetsuWallpapers.actualCurrent
-                clipboardActive: win.cortetsuState?.clipboard ?? false
                 workspaceCount: win.workspaceCount
                 workspaceOffset: win.workspaceOffset
                 activeWsId: win.activeWsId
@@ -783,8 +780,6 @@ Scope {
                 sessionActive: win.screenState?.session ?? false
 
                 onLauncherRequested: hubRoot.toggleLauncherFor(win.modelData)
-                onWallpaperRequested: hubRoot.openWallpaperFor(win.modelData)
-                onClipboardRequested: hubRoot.toggleClipboardFor(win.modelData)
                 onWorkspaceRequested: workspaceId => CortetsuHypr.dispatch(
                     CortetsuHypr.usingLua
                         ? `hl.dsp.focus({ workspace = \"${workspaceId}\" })`

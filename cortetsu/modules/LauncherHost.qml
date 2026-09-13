@@ -33,8 +33,7 @@ Scope {
             Content {
                 id: launcher
                 anchors.horizontalCenter: parent.horizontalCenter
-                anchors.bottom: parent.bottom
-                anchors.bottomMargin: Math.max(96, parent.height * 0.12)
+                anchors.verticalCenter: parent.verticalCenter
                 visible: window.screenState?.launcher ?? false
                 screenState: window.screenState
                 panels: null

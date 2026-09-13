@@ -6,6 +6,7 @@ QtObject {
     property var states: []
     property var components: []
     property var attachedPopupHoverOwner: null
+    property bool screenshotActive: false
 
     function registerState(screen, state): void {
         states = states.filter(entry => entry.screen !== screen).concat([{ screen, state }]);

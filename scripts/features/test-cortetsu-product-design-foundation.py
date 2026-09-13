@@ -17,5 +17,6 @@ for name, value in (("spacingUnit", 4), ("spacingCompact", 8), ("spacingStandard
                     ("controlHeightPrimary", 40), ("motionFastMs", 120),
                     ("motionStandardMs", 180), ("motionDeliberateMs", 240)):
     assert re.search(rf"var {name} = {value}(?:\D|$)", design), f"missing design token {name}={value}"
+assert re.search(r"var bottomHubHeight = 66(?:\D|$)", design), "missing BottomHub clearance token"
 assert doc.is_file() and "Product Rebuild" in doc.read_text(encoding="utf-8")
 print("PASS: Cortetsu product foundation defines brand mark, tokens, motion, and design record")

@@ -11,7 +11,7 @@ Item {
     property Item sessionPanel
     property Item utilitiesPanel
 
-    implicitWidth: 352
+    implicitWidth: 320
     implicitHeight: list.implicitHeight
     visible: Notifs.popups().length > 0
 

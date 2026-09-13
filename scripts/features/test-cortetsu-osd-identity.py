@@ -2,10 +2,13 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 content = (ROOT / "cortetsu/modules/osd/Content.qml").read_text(encoding="utf-8")
-assert "ESTADO DEL SISTEMA" in content
+assert "Acciones rápidas" in content
 assert "CortetsuEvolvingMark" in content
 assert 'phase: "Ascended"' in content
 assert "animated: false" in content
-assert "signatureMark" in content
-assert "Brillo" in content and "Volumen" in content
-print("PASS: OSD has a shared Cortetsu feedback header, geometry, and live levels")
+assert "Grabar pantalla" in content
+assert "Mantener activo" in content
+assert "Activar modo juego" in content
+assert "ESTADO DEL SISTEMA" not in content
+assert "implicitWidth: 420" in content
+print("PASS: OSD exposes the Cortetsu quick actions surface")

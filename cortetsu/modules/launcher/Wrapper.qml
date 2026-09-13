@@ -14,9 +14,8 @@ Item {
     required property var panels
 
     readonly property bool shouldBeActive: screenState?.launcher ?? false
-    readonly property real dockOffset: 72
     readonly property real maxHeight: {
-        let max = (screen?.height ?? 0) + CortetsuDesign.spacingSpacious - dockOffset;
+        let max = (screen?.height ?? 0) - CortetsuDesign.spacingSection * 2;
         if (screenState?.dashboard)
             max -= panels.dashboard.nonAnimHeight;
         return max;
@@ -34,9 +33,8 @@ Item {
     }
 
     visible: offsetScale < 1
-    anchors.bottomMargin:
-        dockOffset +
-        (-implicitHeight - 5 - dockOffset) * offsetScale
+    anchors.verticalCenter: parent.verticalCenter
+    anchors.horizontalCenter: parent.horizontalCenter
     implicitHeight: content.implicitHeight
     implicitWidth: content.implicitWidth || 630
     opacity: 1 - offsetScale

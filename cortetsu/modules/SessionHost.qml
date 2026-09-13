@@ -49,16 +49,20 @@ Scope {
                 radiusValue: CortetsuDesign.radiusSurface
                 outlineColor: Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.72)
 
-                Column {
-                    id: contentColumn
-                    anchors.fill: parent
+                    Column {
+                        id: contentColumn
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.top: parent.top
                     anchors.margins: CortetsuDesign.spacingComfortable
                     spacing: CortetsuDesign.spacingStandard
 
                     Row {
+                        width: parent.width
                         spacing: CortetsuDesign.spacingStandard
+                        anchors.horizontalCenter: parent.horizontalCenter
                         CortetsuEvolvingMark {
-                            width: 44; height: 44
+                            width: 50; height: 50
                             phase: window.open ? "Awakening" : "Human"
                             monochrome: true
                             monochromeColor: CortetsuDesign.colorPrimary
@@ -76,6 +80,7 @@ Scope {
 
                     Session.Content {
                         width: parent.width
+                        anchors.horizontalCenter: parent.horizontalCenter
                         screenState: window.screenState
                         lockController: root.lockController
                     }

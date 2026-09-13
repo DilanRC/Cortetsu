@@ -14,8 +14,13 @@ assert "required property QsMenuEntry modelData" in source
 assert "CortetsuPopupSurface" in source
 assert "CortetsuStateLayer" in source
 assert "Keys.onPressed" in source
-assert "menuMaxWidth: 152" in source
+assert "menuMaxWidth: 220" in source
 assert "TextMetrics" in source and "Text.ElideRight" in source
 assert "property real naturalWidth" in source
+assert "outlined: false" in source
+assert "implicitSize: 16" in source
+assert "modelData?.icon ?? \"\"" in source
+assert "modelData?.text ?? \"\"" in source
+assert "modelData?.hasChildren ?? false" in source
 
 print("PASS: tray menu keeps the live ObjectModel and sizes from rendered content")

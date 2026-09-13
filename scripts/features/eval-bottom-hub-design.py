@@ -30,15 +30,15 @@ criteria = {
     ),
     "segmentos con CortetsuDesign": all("CortetsuDesign" in text for text in (rail, tray, status, mode)),
     "launcher first-party": "CortetsuModeSegment" in view and "launcherRequested" in view,
-    "clipboard first-party": all(
-        token in mode
+    "bottomhub sin controles duplicados": all(
+        token not in mode + view
         for token in (
-            "signal clipboardRequested()",
-            "required property bool clipboardActive",
-            'import "CortetsuTypography.js" as CortetsuTypography',
-            'icon: "content_paste_search"',
+            "clipboardActive",
+            "clipboardRequested",
+            "wallpaperActive",
+            "wallpaperRequested",
         )
-    ) and "onClipboardRequested" in view and "toggleClipboardFor" in hub,
+    ),
     "workspace state": "occupiedWorkspaceIds" in view and "activeWsId" in view,
     "centro adaptativo": "appRailMaxWidth" in view and "maxWidth: root.appRailMaxWidth" in view,
     "centro geometrico": "anchors.horizontalCenter: parent.horizontalCenter" in view,

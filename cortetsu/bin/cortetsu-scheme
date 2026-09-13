@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
+import subprocess
 import sys
 import tempfile
 from pathlib import Path
@@ -29,6 +31,30 @@ def write_state(value: dict) -> None:
         handle.write("\n")
         temporary = Path(handle.name)
     os.replace(temporary, path)
+
+
+def hypr_scheme_path() -> Path:
+    return Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config")) / "hypr/scheme/current.lua"
+
+
+def write_hypr_scheme(colours: dict) -> None:
+    """Keep the live Hyprland palette in sync when it already exists."""
+    path = hypr_scheme_path()
+    if not path.is_file():
+        return
+    keys = ("primary", "onPrimary", "secondary", "surfaceContainer", "outline",
+            "inversePrimary", "onSurfaceVariant")
+    payload = {key: colours[key].lstrip("#") for key in keys if isinstance(colours.get(key), str)}
+    if len(payload) != len(keys):
+        return
+    lines = ["return {"] + [f'    {key} = "{payload[key]}",' for key in keys] + ["}\n"]
+    with tempfile.NamedTemporaryFile("w", encoding="utf-8", dir=path.parent, delete=False) as handle:
+        handle.writelines(f"{line}\n" for line in lines)
+        temporary = Path(handle.name)
+    os.replace(temporary, path)
+    hyprctl = shutil.which("hyprctl")
+    if hyprctl:
+        subprocess.run([hyprctl, "reload"], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 
 def resource_root() -> Path:
@@ -89,8 +115,15 @@ def main(argv: list[str]) -> int:
         print(state.get("variant", "tonal-spot"))
         return 0
     if len(argv) == 4 and argv[:2] == ["set", "-n"] and argv[2]:
+        schemes = catalog()
+        colours = schemes.get(argv[2], {}).get(argv[3])
+        if not isinstance(colours, dict):
+            print(f"esquema no encontrado: {argv[2]} {argv[3]}", file=sys.stderr)
+            return 1
         state["name"], state["flavour"] = argv[2], argv[3]
+        state["colours"] = colours
         write_state(state)
+        write_hypr_scheme(colours)
         return 0
     if len(argv) == 3 and argv[:2] == ["set", "-v"] and argv[2]:
         state["variant"] = argv[2]

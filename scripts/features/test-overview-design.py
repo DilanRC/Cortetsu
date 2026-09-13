@@ -13,9 +13,9 @@ for name in ("Wrapper.qml", "WindowCard.qml", "Content.qml"):
 card = (overview / "WindowCard.qml").read_text()
 assert "CortetsuDesign.colorSurface" in card
 assert "CortetsuText" in card and "CortetsuIcon" in card
-assert 'text: qsTr("Selected")' in card and "visible: root.selected" in card
+assert 'text: qsTr("Seleccionada")' in card and "visible: root.selected" in card
 assert "activeFocusOnTab: true" in card
-assert 'ToolTip.text: qsTr("Close window")' in card
+assert 'ToolTip.text: qsTr("Cerrar ventana")' in card
 assert "onPressed: parent.forceActiveFocus()" in card
 assert "property real visualScale" in card
 assert "scale: 1" in card

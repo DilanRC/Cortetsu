@@ -134,7 +134,9 @@ Item {
     CortetsuEvolvingMark {
         anchors.centerIn: parent
         visible: root.evolvingMarkPhase.length > 0
-        width: Math.round(root.buttonSize * 0.56)
+        // The brand mark is the identity anchor of the BottomHub launcher.
+        // 56% left it visually weaker than the neighbouring app icons.
+        width: Math.round(root.buttonSize * 0.68)
         height: width
         phase: root.evolvingMarkPhase
         accent: root.evolvingMarkAccent

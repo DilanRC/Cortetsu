@@ -179,6 +179,9 @@ QtObject {
     property bool idleLockBeforeSleep: true
     property list<var> idleTimeouts: [{ enabled: true, timeout: 900000, respectInhibitors: true, idleAction: "lock", returnAction: "unlock" }]
     property bool loaded: false
+    property bool writing: false
+    property bool saveQueued: false
+    property bool patchBottomHubAfterSave: false
 
     readonly property QtObject dashboard: QtObject {
         property bool enabled: true
@@ -552,25 +555,16 @@ QtObject {
     function save(): void {
         if (!loaded)
             return;
+        saveQueued = true;
+        if (!writing)
+            writeState();
+    }
+
+    function writeState(): void {
+        saveQueued = false;
+        writing = true;
+        patchBottomHubAfterSave = true;
         saveLegacy();
-        try {
-            const payload = JSON.parse(storage.text());
-            payload.bottomHub = {
-                segments: {
-                    mode: bottomHub.segments.mode,
-                    apps: bottomHub.segments.apps,
-                    tray: bottomHub.segments.tray,
-                    status: bottomHub.segments.status
-                },
-                statusCluster: {
-                    audio: bottomHub.statusCluster.audio,
-                    network: bottomHub.statusCluster.network,
-                    bluetooth: bottomHub.statusCluster.bluetooth,
-                    battery: bottomHub.statusCluster.battery
-                }
-            };
-            storage.setText(JSON.stringify(payload, null, 2) + "\n");
-        } catch (_) {}
     }
 
     function saveLegacy(): void {
@@ -647,9 +641,41 @@ QtObject {
 
     property var storage: FileView {
         path: root.path
-        watchChanges: true
+        // The shell owns this file. Watching our own atomic writes caused the
+        // initial snapshot to race with the new favourite-app list.
+        watchChanges: false
         printErrors: false
         onLoaded: root.load(text())
-        onFileChanged: root.load(text())
+        onSaved: {
+            if (root.patchBottomHubAfterSave) {
+                root.patchBottomHubAfterSave = false;
+                try {
+                    const payload = JSON.parse(text());
+                    payload.bottomHub = {
+                        segments: {
+                            mode: root.bottomHub.segments.mode,
+                            apps: root.bottomHub.segments.apps,
+                            tray: root.bottomHub.segments.tray,
+                            status: root.bottomHub.segments.status
+                        },
+                        statusCluster: {
+                            audio: root.bottomHub.statusCluster.audio,
+                            network: root.bottomHub.statusCluster.network,
+                            bluetooth: root.bottomHub.statusCluster.bluetooth,
+                            battery: root.bottomHub.statusCluster.battery
+                        }
+                    };
+                    setText(JSON.stringify(payload, null, 2) + "\n");
+                    return;
+                } catch (_) {}
+            }
+            root.writing = false;
+            if (root.saveQueued)
+                root.writeState();
+        }
+        onSaveFailed: {
+            root.writing = false;
+            root.patchBottomHubAfterSave = false;
+        }
     }
 }

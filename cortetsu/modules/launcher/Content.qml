@@ -5,7 +5,6 @@ import QtQuick.Controls
 import ".."
 import "../../components"
 import "../CortetsuDesign.js" as CortetsuDesign
-import "../CortetsuTypography.js" as CortetsuTypography
 import "../CortetsuSearchBar.qml"
 import "services"
 
@@ -19,32 +18,9 @@ Item {
 
     readonly property int padding: CortetsuDesign.spacingStandard
     readonly property int rounding: CortetsuDesign.radiusLarge
-    readonly property bool markIntent: search.activeFocus || search.text.length > 0
-    // Monster identifies the active Launcher surface. Awakening is reserved
-    // for intent inside it; wallpaper apply belongs to Wallpaper Manager.
-    readonly property string markPhase: !(root.screenState?.launcher ?? false)
-        ? "Human"
-        : markIntent
-            ? "Awakening"
-            : "Monster"
-
     function focusSearch(): void {
         search.forceActiveFocus();
         search.cursorPosition = search.text.length;
-    }
-
-    function modeLabel(): string {
-        if (search.text.startsWith(`${CortetsuConfig.actionPrefix}scheme `)) return qsTr("Tema");
-        if (search.text.startsWith(`${CortetsuConfig.actionPrefix}wallpaper `)) return qsTr("Fondo");
-        if (search.text.startsWith(CortetsuConfig.actionPrefix)) return qsTr("Comando");
-        return qsTr("Aplicaciones");
-    }
-
-    function modeIcon(): string {
-        if (modeLabel() === qsTr("Tema")) return "palette";
-        if (modeLabel() === qsTr("Fondo")) return "wallpaper";
-        if (modeLabel() === qsTr("Comando")) return "terminal";
-        return "apps";
     }
 
     function requestWallpaper(path: string): void {
@@ -65,8 +41,6 @@ Item {
         padding +
         search.implicitHeight +
         CortetsuDesign.spacingStandard +
-        mode.implicitHeight +
-        CortetsuDesign.spacingCompact +
         listWrapper.implicitHeight +
         padding
 
@@ -74,35 +48,6 @@ Item {
         anchors.fill: parent
         baseColor: Qt.alpha(CortetsuDesign.colorTetsu, 0.94)
         outlineColor: Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.16)
-    }
-
-    CortetsuSurface {
-        id: mode
-        anchors.top: search.bottom
-        anchors.left: search.left
-        anchors.right: search.right
-        anchors.topMargin: CortetsuDesign.spacingCompact
-        implicitHeight: 32
-        radiusValue: CortetsuDesign.radiusSmall
-        baseColor: Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.42)
-        outlined: true
-        Row {
-            anchors.fill: parent
-            anchors.leftMargin: CortetsuDesign.spacingCompact
-            anchors.rightMargin: CortetsuDesign.spacingCompact
-            spacing: CortetsuDesign.spacingCompact
-            CortetsuEvolvingMark {
-                width: 20
-                height: 20
-                anchors.verticalCenter: parent.verticalCenter
-                phase: root.markPhase
-                monochrome: true
-                monochromeColor: CortetsuDesign.colorWashi
-            }
-            CortetsuIcon { anchors.verticalCenter: parent.verticalCenter; text: root.modeIcon(); iconSize: CortetsuTypography.iconSmallPx; color: CortetsuDesign.colorPrimary }
-            CortetsuText { anchors.verticalCenter: parent.verticalCenter; text: root.modeLabel(); textSize: CortetsuTypography.labelSmallPx; font.weight: Font.DemiBold; color: CortetsuDesign.colorOnPrimaryContainer }
-            CortetsuText { anchors.verticalCenter: parent.verticalCenter; text: CortetsuWallpapers.applyStatus === "failed" && root.pendingWallpaperPath ? qsTr("Error al aplicar") : root.modeLabel() === qsTr("Aplicaciones") ? qsTr("Buscar primero") : qsTr("Modo por prefijo"); textSize: CortetsuTypography.labelSmallPx; color: CortetsuDesign.colorOnSurfaceVariant }
-        }
     }
 
     CortetsuSearchBar {
@@ -225,8 +170,8 @@ Item {
         id: listWrapper
         implicitWidth: list.width
         implicitHeight: list.height
-        anchors.top: mode.bottom
-        anchors.topMargin: CortetsuDesign.spacingCompact
+        anchors.top: search.bottom
+        anchors.topMargin: CortetsuDesign.spacingStandard
         anchors.horizontalCenter: parent.horizontalCenter
 
         ContentList {

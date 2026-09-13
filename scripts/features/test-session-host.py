@@ -31,7 +31,12 @@ assert "onClicked: root.run(actionRow.modelData)" in content
 assert "CortetsuActionRow" in content
 assert "CortetsuEvolvingMark" in host
 assert 'phase: window.open ? "Awakening" : "Human"' in host
-assert "width: 44; height: 44" in host
+assert "width: 50; height: 50" in host
+assert "id: contentColumn\n                    anchors.fill: parent" not in host
+wrapper = (repo / "cortetsu/modules/session/Wrapper.qml").read_text(encoding="utf-8")
+assert "implicitWidth: 440" in wrapper
+assert "width: parent.width" in wrapper
+assert "anchors.verticalCenter: parent.verticalCenter" not in wrapper
 assert "MouseArea" not in host
 assert "required property var lockController" in host
 assert "lockController: root.lockController" in host

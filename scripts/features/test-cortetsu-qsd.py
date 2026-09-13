@@ -16,7 +16,7 @@ for marker in (
     "Brightness.getMonitorForScreen",
     "CortetsuAudio.setVolume",
     "CortetsuNotifications.dnd",
-    "Network unavailable",
+    "Red no disponible",
     "Bluetooth.defaultAdapter.enabled",
     "connectedBluetoothCount",
     "CortetsuPower",
@@ -29,6 +29,9 @@ for marker in (
     'id: soundTile',
     'id: dndTile',
     'id: bluetoothTile',
+    'Grabar pantalla',
+    'Mantener activo',
+    'Activar modo juego',
     'function closeQsd(): void',
     'state.qsdOpenedByShortcut = false',
     'state.qsdEdgeHovered = false',
@@ -84,7 +87,7 @@ assert "focus: true" in content
 assert 'markPressed: soundTile.pressed || dndTile.pressed || bluetoothTile.pressed' in content
 assert 'markIntent: markPressed' in content
 assert ' ? "Monster"' in content and ' ? "Awakening"' in content and ': "Human"' in content
-assert "Layout.preferredWidth: 24" in content and "Layout.preferredHeight: 24" in content
+assert "Layout.preferredWidth: 32" in content and "Layout.preferredHeight: 32" in content
 assert 'phase: "Ascended"' not in content
 
 print("PASS: QSD is a first-party right-side surface with brightness, audio, DND, Bluetooth, power and network context")

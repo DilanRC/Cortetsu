@@ -5,9 +5,6 @@ Item {
     id: root
 
     required property bool launcherActive
-    required property bool wallpaperActive
-    required property string wallpaperSource
-    required property bool clipboardActive
     required property int workspaceCount
     required property int workspaceOffset
     required property int activeWsId
@@ -43,8 +40,6 @@ Item {
     required property bool sessionActive
 
     signal launcherRequested()
-    signal wallpaperRequested()
-    signal clipboardRequested()
     signal workspaceRequested(int workspaceId)
     signal appActivateRequested(string key)
     signal appTogglePinnedRequested(string key)
@@ -113,16 +108,11 @@ Item {
         anchors.leftMargin: 6
         anchors.verticalCenter: parent.verticalCenter
         launcherActive: root.launcherActive
-        wallpaperActive: root.wallpaperActive
-        wallpaperSource: root.wallpaperSource
-        clipboardActive: root.clipboardActive
         workspaceCount: root.workspaceCount
         workspaceOffset: root.workspaceOffset
         activeWsId: root.activeWsId
         occupiedWorkspaceIds: root.occupiedWorkspaceIds
         onLauncherRequested: root.launcherRequested()
-        onWallpaperRequested: root.wallpaperRequested()
-        onClipboardRequested: root.clipboardRequested()
         onWorkspaceRequested: workspaceId => root.workspaceRequested(workspaceId)
     }
 

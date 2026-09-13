@@ -168,7 +168,7 @@ Column {
             id: actionRow
             required property var modelData
 
-            width: 328
+            width: root.width
             icon: actionRow.modelData.icon
             title: root.pendingAction === actionRow.modelData.id
                 ? qsTr("Confirmar %1").arg(actionRow.modelData.label)

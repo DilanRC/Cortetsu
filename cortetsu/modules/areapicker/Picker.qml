@@ -25,6 +25,7 @@ MouseArea {
     property real rsy: Math.min(sy, ey)
     property real sw: Math.abs(sx - ex)
     property real sh: Math.abs(sy - ey)
+    property var pendingCommand: []
 
     readonly property var clients: {
         const monitor = CortetsuHypr.monitorFor(screen);
@@ -74,11 +75,27 @@ MouseArea {
         const command = ["cortetsu-area-capture", geometry, path];
         if (root.state.clipboardOnly)
             command.push("--clipboard");
-        Quickshell.execDetached(command);
+        root.pendingCommand = command;
         close();
+        captureTimer.restart();
     }
 
     function close(): void { root.state.close(); }
+
+    // Let the layer-shell commit the hidden state before grim reads the
+    // compositor. Without this frame, screenshots occasionally contain the
+    // picker's dimming layer and look darker than the selected desktop area.
+    Timer {
+        id: captureTimer
+        interval: 120
+        repeat: false
+        onTriggered: {
+            if (root.pendingCommand.length > 0) {
+                Quickshell.execDetached(root.pendingCommand);
+                root.pendingCommand = [];
+            }
+        }
+    }
 
     anchors.fill: parent
     opacity: root.state.active ? 1 : 0

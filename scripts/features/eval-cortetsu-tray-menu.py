@@ -13,7 +13,9 @@ criteria = {
     "stale activation guarded": "if (!entry)" in source,
     "typed menu delegates": "required property QsMenuEntry modelData" in source,
     "shared popup surface": "CortetsuPopupSurface" in source,
-    "content-fit width cap": all(token in source for token in ("menuMaxWidth: 152", "fittedWidth", "naturalWidth", "TextMetrics")),
+    "content-fit width cap": all(token in source for token in ("menuMaxWidth: 220", "fittedWidth", "naturalWidth", "TextMetrics")),
+    "flat rows with game icons": "outlined: false" in source and "implicitSize: 16" in source,
+    "async DBus entries are null-safe": all(token in source for token in ("modelData?.icon", "modelData?.text", "modelData?.hasChildren")),
     "single visible panel": "PanelBg" not in source,
     "keyboard navigation preserved": all(token in source for token in ("Keys.onPressed", "Qt.Key_Right", "Qt.Key_Left", "Qt.Key_Escape")),
 }

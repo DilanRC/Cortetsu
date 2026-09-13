@@ -9,7 +9,7 @@ action_row = (ROOT / "cortetsu/components/CortetsuActionRow.qml").read_text(enco
 assert "CortetsuActionRow" in content
 assert "CortetsuEvolvingMark" in host
 assert 'phase: window.open ? "Awakening" : "Human"' in host
-assert "width: 44; height: 44" in host
+assert "width: 50; height: 50" in host
 assert "MouseArea" not in host
 assert "required property var lockController" in host
 assert "lockController: root.lockController" in host

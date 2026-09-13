@@ -22,9 +22,14 @@ for source in (picker, picker_content):
     for legacy in ("Caelestia", "CUtils", "Colours.", "Tokens.", "StyledRect", "StyledText", "MaterialIcon", "qs.services", "qs.components"):
         assert legacy not in source, legacy
 assert 'target: "picker"' in picker
+assert "screenshotActive" in picker
+assert "CortetsuShellState.screenshotActive = active" in picker
+assert "CortetsuShellState.screenshotActive" in (repo / "cortetsu/modules/osd/Wrapper.qml").read_text(encoding="utf-8")
 for method in ("open", "openFreeze", "openClip", "openFreezeClip"):
     assert f"function {method}()" in picker
 assert '"cortetsu-area-capture", geometry, path' in picker_content
+assert "captureTimer" in picker_content and "interval: 120" in picker_content
+assert "root.close()" in picker_content and "Quickshell.execDetached(root.pendingCommand)" in picker_content
 assert '"sh", "-c"' not in picker_content
 assert 'subprocess.run(["grim", "-g", args.geometry, str(args.path)])' in capture_helper
 assert 'subprocess.run(["swappy", "-f", str(args.path)])' in capture_helper

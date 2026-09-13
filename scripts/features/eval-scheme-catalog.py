@@ -7,6 +7,10 @@ import shutil
 from pathlib import Path
 
 root = Path(__file__).resolve().parents[2]
+helper = (root / "cortetsu/bin/cortetsu-scheme").read_text(encoding="utf-8")
+assert "def write_hypr_scheme" in helper
+assert "hypr/scheme/current.lua" in helper
+assert "subprocess.run([hyprctl, \"reload\"]" in helper
 expected = json.loads((root / 'cortetsu/data/schemes/palettes.json').read_text())
 with tempfile.TemporaryDirectory() as state:
     actual = json.loads(subprocess.check_output([str(root / 'cortetsu/bin/cortetsu-scheme'), 'list'], text=True,

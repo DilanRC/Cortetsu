@@ -308,7 +308,7 @@ Item {
                                     title: schemeCard.schemeData.name
 
                                     subtitle: schemeCard.selectedScheme
-                                        ? qsTr("%1 · active").arg(schemeCard.schemeData.flavour)
+                                        ? qsTr("%1 · activo").arg(schemeCard.schemeData.flavour)
                                         : schemeCard.schemeData.flavour
                                     selected: schemeCard.selectedScheme
                                     disabled: Schemes.applying

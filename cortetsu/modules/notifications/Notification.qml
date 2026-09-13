@@ -128,8 +128,8 @@ CortetsuSurface {
             spacing: CortetsuDesign.spacingStandard
 
             Item {
-                Layout.preferredWidth: 36
-                Layout.preferredHeight: 36
+                Layout.preferredWidth: 30
+                Layout.preferredHeight: 30
 
                 CortetsuSurface {
                     anchors.fill: parent

@@ -18,7 +18,7 @@ CortetsuPopupSurface {
     // Keep long DBus labels readable without letting one Steam title stretch
     // the popup. The width cap leaves the useful name prefix visible and
     // lets Text.ElideRight handle the rest.
-    readonly property real menuMaxWidth: 152
+    readonly property real menuMaxWidth: 220
     // StackView does not propagate the implicit size of a dynamically-created
     // Column. Keep the popup measurable so the menu is not rendered as an
     // empty square while its DBus entries are loading.
@@ -159,28 +159,27 @@ CortetsuPopupSurface {
 
                 CortetsuSurface {
                     required property QsMenuEntry modelData
-                    readonly property real naturalWidth: modelData.isSeparator
+                    readonly property real naturalWidth: (modelData?.isSeparator ?? false)
                         ? 0
                         : labelMetrics.width
                             + (menuIcon.visible ? menuIcon.width + row.spacing : 0)
                             + (submenuIcon.visible ? submenuIcon.width + row.spacing : 0)
                             + CortetsuDesign.spacingCompact * 2
-                    focus: modelData.enabled && index === 0
-                    activeFocusOnTab: modelData.enabled
+                    focus: (modelData?.enabled ?? false) && index === 0
+                    activeFocusOnTab: modelData?.enabled ?? false
                     width: Math.max(0, menu.width - menu.padding * 2)
-                    implicitHeight: modelData.isSeparator
+                    implicitHeight: (modelData?.isSeparator ?? false)
                         ? 1
                         : row.implicitHeight + CortetsuDesign.spacingStandard
-                    baseColor: modelData.isSeparator ? CortetsuDesign.colorOutlineVariant : "transparent"
-                    disabled: !modelData.enabled
-                    focused: activeFocus && !modelData.isSeparator
+                    baseColor: (modelData?.isSeparator ?? false) ? CortetsuDesign.colorOutlineVariant : "transparent"
+                    disabled: !(modelData?.enabled ?? false)
+                    focused: false
                     hovered: stateLayer.containsMouse
                     pressed: stateLayer.pressed
-                    radiusValue: modelData.isSeparator ? 0 : CortetsuDesign.radiusSmall
+                    radiusValue: 0
                     hoverColor: Qt.alpha(CortetsuDesign.colorSurfaceGlassStrong, 0.9)
-                    outlineColor: activeFocus
-                        ? Qt.alpha(CortetsuDesign.colorWashi, 0.82)
-                        : Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.12)
+                    outlined: false
+                    outlineColor: "transparent"
 
                     Row {
                         id: row
@@ -190,9 +189,9 @@ CortetsuPopupSurface {
 
                         IconImage {
                             id: menuIcon
-                            visible: modelData.icon !== ""
-                            implicitSize: label.implicitHeight
-                            source: modelData.icon
+                            visible: (modelData?.icon ?? "") !== ""
+                            implicitSize: 16
+                            source: modelData?.icon ?? ""
                             anchors.verticalCenter: parent.verticalCenter
                         }
 
@@ -201,8 +200,8 @@ CortetsuPopupSurface {
                             width: Math.max(0, row.width
                                 - (menuIcon.visible ? menuIcon.width + row.spacing : 0)
                                 - (submenuIcon.visible ? submenuIcon.width + row.spacing : 0))
-                            text: modelData.text
-                            color: modelData.enabled
+                            text: modelData?.text ?? ""
+                            color: (modelData?.enabled ?? false)
                                 ? CortetsuDesign.colorOnSurface
                                 : CortetsuDesign.colorOutline
                             elide: Text.ElideRight
@@ -211,7 +210,7 @@ CortetsuPopupSurface {
 
                         CortetsuIcon {
                             id: submenuIcon
-                            visible: modelData.hasChildren
+                            visible: modelData?.hasChildren ?? false
                             text: "chevron_right"
                             color: activeFocus
                                 ? CortetsuDesign.colorWashi
@@ -222,7 +221,7 @@ CortetsuPopupSurface {
 
                     TextMetrics {
                         id: labelMetrics
-                        text: modelData.text
+                        text: modelData?.text ?? ""
                         font: label.font
                     }
 
@@ -230,7 +229,7 @@ CortetsuPopupSurface {
                         id: stateLayer
                         anchors.fill: parent
                         radius: parent.radiusValue
-                        disabled: !modelData.enabled
+                        disabled: !(modelData?.enabled ?? false)
                         onPressed: parent.forceActiveFocus()
                         onClicked: root.activateEntry(modelData)
                     }
@@ -239,7 +238,7 @@ CortetsuPopupSurface {
                         if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) {
                             root.activateEntry(modelData);
                             event.accepted = true;
-                        } else if (event.key === Qt.Key_Right && modelData.hasChildren) {
+                        } else if (event.key === Qt.Key_Right && (modelData?.hasChildren ?? false)) {
                             root.activateEntry(modelData);
                             event.accepted = true;
                         } else if (event.key === Qt.Key_Left && menu.subMenu) {
