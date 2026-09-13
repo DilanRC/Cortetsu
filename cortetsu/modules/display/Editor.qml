@@ -5,6 +5,7 @@ import QtCore
 import Quickshell
 import Quickshell.Io
 import ".."
+import "../../components"
 import "../CortetsuDesign.js" as CortetsuDesign
 import "../CortetsuTypography.js" as CortetsuTypography
 
@@ -19,8 +20,8 @@ FocusScope {
     property var candidateOutputs: []
     property int selectedIndex: 0
     property var planResult: ({})
-    property string statusText: qsTr("Waiting for display inventory…")
-    property string planStatus: qsTr("No dry run yet")
+    property string statusText: qsTr("Esperando inventario de pantallas…")
+    property string planStatus: qsTr("Aún no se ha probado la propuesta")
 
     readonly property string probePath:
         StandardPaths.writableLocation(StandardPaths.HomeLocation) + "/.local/bin/cortetsu-display-probe"
@@ -80,7 +81,7 @@ FocusScope {
         candidateOutputs = next;
         selectedIndex = Math.max(0, Math.min(selectedIndex, next.length - 1));
         planResult = ({});
-        planStatus = qsTr("Candidate reset to the current live layout");
+        planStatus = qsTr("Propuesta restablecida al diseño actual");
     }
 
     function updateSelected(field, value): void {
@@ -90,7 +91,7 @@ FocusScope {
         next[selectedIndex][field] = value;
         candidateOutputs = next;
         planResult = ({});
-        planStatus = qsTr("Candidate changed · run Dry run again");
+        planStatus = qsTr("La propuesta cambió · vuelve a probarla");
     }
 
     function toggleSelectedEnabled(): void {
@@ -98,7 +99,7 @@ FocusScope {
             return;
         const current = candidateOutputs[selectedIndex];
         if ((current?.enabled ?? true) && enabledCount <= 1) {
-            planStatus = qsTr("Blocked: at least one output must stay enabled");
+            planStatus = qsTr("Bloqueado: al menos una salida debe permanecer activa");
             return;
         }
         updateSelected("enabled", !(current?.enabled ?? true));
@@ -146,13 +147,13 @@ FocusScope {
             }
         }
         if (!found) {
-            planStatus = qsTr("Laptop preset unavailable: no eDP output is active");
+            planStatus = qsTr("La distribución portátil no está disponible: no hay una salida eDP activa");
             return;
         }
         candidateOutputs = next;
         selectedIndex = Math.max(0, next.findIndex(item => String(item?.name ?? "").startsWith("eDP-")));
         planResult = ({});
-        planStatus = qsTr("Preset: Laptop only · run Dry run");
+        planStatus = qsTr("Distribución: solo portátil · prueba la propuesta");
     }
 
     function applyDualPreset(): void {
@@ -160,7 +161,7 @@ FocusScope {
         const internalIndex = next.findIndex(item => String(item?.name ?? "").startsWith("eDP-"));
         const externalIndex = next.findIndex(item => !String(item?.name ?? "").startsWith("eDP-"));
         if (internalIndex < 0 || externalIndex < 0) {
-            planStatus = qsTr("Dual preset unavailable: connect an external output first");
+            planStatus = qsTr("La distribución doble no está disponible: conecta primero una salida externa");
             return;
         }
         for (let i = 0; i < next.length; ++i)
@@ -172,14 +173,14 @@ FocusScope {
         candidateOutputs = next;
         selectedIndex = externalIndex;
         planResult = ({});
-        planStatus = qsTr("Preset: Dual · external left, laptop right · run Dry run");
+        planStatus = qsTr("Distribución: doble · externa a la izquierda, portátil a la derecha · prueba la propuesta");
     }
 
     function applyExternalPreset(): void {
         const next = candidateOutputs.map(item => Object.assign({}, item));
         const externalIndex = next.findIndex(item => !String(item?.name ?? "").startsWith("eDP-"));
         if (externalIndex < 0) {
-            planStatus = qsTr("External-only preset unavailable: no external output connected");
+            planStatus = qsTr("La distribución externa no está disponible: no hay una salida externa conectada");
             return;
         }
         for (let i = 0; i < next.length; ++i)
@@ -189,7 +190,7 @@ FocusScope {
         candidateOutputs = next;
         selectedIndex = externalIndex;
         planResult = ({});
-        planStatus = qsTr("Preset: External only · run Dry run");
+        planStatus = qsTr("Distribución: solo externa · prueba la propuesta");
     }
 
     function layoutBounds(): var {
@@ -226,14 +227,14 @@ FocusScope {
     function refresh(): void {
         if (!displayVisible || probe.running)
             return;
-        statusText = qsTr("Refreshing outputs…");
+        statusText = qsTr("Actualizando salidas…");
         probe.running = true;
     }
 
     function runPlan(): void {
         if (planner.running || !candidateOutputs.length)
             return;
-        planStatus = qsTr("Validating candidate…");
+        planStatus = qsTr("Validando propuesta…");
         planner.command = [plannerPath, "--candidate", JSON.stringify({ outputs: candidateOutputs })];
         planner.running = true;
     }
@@ -266,13 +267,13 @@ FocusScope {
                 try {
                     const parsed = JSON.parse(text.trim());
                     root.snapshot = parsed;
-                    root.statusText = qsTr("%1 output(s) · %2 focused")
+                    root.statusText = qsTr("%1 salida(s) · %2 enfocada(s)")
                         .arg(parsed?.summary?.connected ?? 0)
-                        .arg(parsed?.summary?.focused ?? qsTr("none"));
+                        .arg(parsed?.summary?.focused ?? qsTr("ninguna"));
                     if (!root.candidateOutputs.length)
                         root.resetCandidate();
                 } catch (error) {
-                    root.statusText = qsTr("Display probe returned invalid JSON");
+                    root.statusText = qsTr("La consulta de pantallas devolvió JSON no válido");
                     console.warn(`Display Manager probe JSON: ${error}`);
                 }
             }
@@ -288,11 +289,11 @@ FocusScope {
                     const parsed = JSON.parse(text.trim());
                     root.planResult = parsed;
                     root.planStatus = parsed?.ok
-                        ? qsTr("Dry run valid · %1 monitor command(s)").arg(parsed?.commands?.length ?? 0)
-                        : qsTr("Dry run blocked · %1 error(s)").arg(parsed?.errors?.length ?? 0);
+                        ? qsTr("Propuesta válida · %1 comando(s) de monitor").arg(parsed?.commands?.length ?? 0)
+                        : qsTr("Propuesta bloqueada · %1 error(es)").arg(parsed?.errors?.length ?? 0);
                 } catch (error) {
                     root.planResult = ({ ok: false, errors: [String(error)] });
-                    root.planStatus = qsTr("Planner returned invalid JSON");
+                    root.planStatus = qsTr("El planificador devolvió JSON no válido");
                 }
             }
         }
@@ -350,7 +351,7 @@ FocusScope {
                     spacing: 0
                     CortetsuText {
                         width: parent.width
-                        text: qsTr("Display Manager")
+                        text: qsTr("Gestor de pantallas")
                         color: CortetsuDesign.colorOnSurface
                         textSize: CortetsuTypography.titleLargePx
                     }
@@ -363,39 +364,48 @@ FocusScope {
                     }
                     CortetsuText {
                         width: parent.width
-                        text: qsTr("Edit safely · P validates · Preview is temporary · Keep confirms · Save persists")
+                        text: qsTr("Edita con seguridad · P valida · Previsualizar es temporal · Conservar confirma · Guardar persiste")
                         color: CortetsuDesign.colorOutline
                         textSize: CortetsuTypography.labelSmallPx
                         elide: Text.ElideRight
                     }
                 }
 
-                Rectangle {
+                CortetsuButton {
                     id: refreshButton
-                    width: 44; height: 44
+                    width: 44
+                    height: 44
+                    compact: true
+                    label: ""
+                    icon: probe.running ? "progress_activity" : "refresh"
+                    tooltipText: qsTr("Actualizar pantallas")
                     anchors.verticalCenter: parent.verticalCenter
-                    radius: CortetsuDesign.radiusMedium
-                    color: CortetsuDesign.colorSurfaceHigh
-                    CortetsuStateLayer { radius: parent.radius; onClicked: root.refresh() }
-                    CortetsuIcon { anchors.centerIn: parent; text: probe.running ? "progress_activity" : "refresh"; color: CortetsuDesign.colorPrimary }
+                    focus: false
+                    onClicked: root.refresh()
                 }
-                Rectangle {
+                CortetsuButton {
                     id: resetButton
-                    width: 44; height: 44
+                    width: 44
+                    height: 44
+                    compact: true
+                    label: ""
+                    icon: "restart_alt"
+                    tooltipText: qsTr("Restablecer propuesta")
                     anchors.verticalCenter: parent.verticalCenter
-                    radius: CortetsuDesign.radiusMedium
-                    color: CortetsuDesign.colorSurfaceHigh
-                    CortetsuStateLayer { radius: parent.radius; onClicked: root.resetCandidate() }
-                    CortetsuIcon { anchors.centerIn: parent; text: "restart_alt"; color: CortetsuDesign.colorOnSurfaceVariant }
+                    focus: false
+                    onClicked: root.resetCandidate()
                 }
-                Rectangle {
+                CortetsuButton {
                     id: closeButton
-                    width: 44; height: 44
+                    width: 44
+                    height: 44
+                    compact: true
+                    label: ""
+                    icon: "close"
+                    tooltipText: qsTr("Cerrar gestor de pantallas")
                     anchors.verticalCenter: parent.verticalCenter
-                    radius: CortetsuDesign.radiusMedium
-                    color: CortetsuDesign.colorSurfaceHigh
-                    CortetsuStateLayer { radius: parent.radius; onClicked: root.closeDisplayManager() }
-                    CortetsuIcon { anchors.centerIn: parent; text: "close"; color: CortetsuDesign.colorOnSurfaceVariant }
+                    focus: false
+                    onClicked: root.closeDisplayManager()
                 }
             }
 
@@ -417,7 +427,7 @@ FocusScope {
                         anchors.left: parent.left
                         anchors.top: parent.top
                         anchors.margins: 14
-                        text: qsTr("Topology candidate")
+                        text: qsTr("Propuesta de topología")
                         color: CortetsuDesign.colorOnSurface
                         textSize: CortetsuTypography.titleSmallPx
                     }
@@ -492,7 +502,7 @@ FocusScope {
                             width: parent.width
                             CortetsuText {
                                 width: parent.width * 0.70
-                                text: root.selectedCandidate?.name ?? qsTr("No output")
+                                text: root.selectedCandidate?.name ?? qsTr("Sin salida")
                                 color: CortetsuDesign.colorOnSurface
                                 textSize: CortetsuTypography.titleMediumPx
                             }
@@ -518,77 +528,90 @@ FocusScope {
                             spacing: 7
                             Repeater {
                                 model: [
-                                    { label: qsTr("Laptop"), action: () => root.applyLaptopPreset() },
-                                    { label: qsTr("Dual"), action: () => root.applyDualPreset() },
-                                    { label: qsTr("External"), action: () => root.applyExternalPreset() }
+                                    { label: qsTr("Portátil"), action: () => root.applyLaptopPreset() },
+                                    { label: qsTr("Doble"), action: () => root.applyDualPreset() },
+                                    { label: qsTr("Externa"), action: () => root.applyExternalPreset() }
                                 ]
-                                delegate: Rectangle {
+                                delegate: CortetsuButton {
                                     required property var modelData
                                     width: (parent.width - 14) / 3
                                     height: 34
-                                    radius: CortetsuDesign.radiusSmall
-                                    color: CortetsuDesign.colorSurfaceHigh
-                                    CortetsuStateLayer { radius: parent.radius; onClicked: modelData.action() }
-                                    CortetsuText { anchors.centerIn: parent; text: modelData.label; color: CortetsuDesign.colorOnSurfaceVariant; textSize: CortetsuTypography.labelSmallPx }
+                                    compact: true
+                                    label: modelData.label
+                                    focus: false
+                                    onClicked: modelData.action()
                                 }
                             }
                         }
 
                         Row {
                             width: parent.width; height: 42; spacing: 8
-                            Rectangle {
-                                width: 42; height: 42; radius: CortetsuDesign.radiusMedium; color: CortetsuDesign.colorSurfaceHigh
-                                CortetsuStateLayer { radius: parent.radius; onClicked: root.cycleMode(-1) }
-                                CortetsuIcon { anchors.centerIn: parent; text: "chevron_left"; color: CortetsuDesign.colorOnSurfaceVariant }
+                            CortetsuButton {
+                                width: 42; height: 42
+                                compact: true
+                                label: ""
+                                icon: "chevron_left"
+                                tooltipText: qsTr("Modo de pantalla anterior")
+                                focus: false
+                                onClicked: root.cycleMode(-1)
                             }
                             Rectangle {
                                 width: parent.width - 92; height: 42; radius: CortetsuDesign.radiusMedium; color: CortetsuDesign.colorSurfaceHigh
                                 CortetsuText { anchors.centerIn: parent; width: parent.width - 12; text: root.selectedCandidate?.mode ?? "—"; color: CortetsuDesign.colorOnSurface; textSize: CortetsuTypography.labelMediumPx; horizontalAlignment: Text.AlignHCenter; elide: Text.ElideMiddle }
                             }
-                            Rectangle {
-                                width: 42; height: 42; radius: CortetsuDesign.radiusMedium; color: CortetsuDesign.colorSurfaceHigh
-                                CortetsuStateLayer { radius: parent.radius; onClicked: root.cycleMode(1) }
-                                CortetsuIcon { anchors.centerIn: parent; text: "chevron_right"; color: CortetsuDesign.colorOnSurfaceVariant }
+                            CortetsuButton {
+                                width: 42; height: 42
+                                compact: true
+                                label: ""
+                                icon: "chevron_right"
+                                tooltipText: qsTr("Modo de pantalla siguiente")
+                                focus: false
+                                onClicked: root.cycleMode(1)
                             }
                         }
 
                         Repeater {
                             model: [
-                                { label: qsTr("Scale"), value: Number(root.selectedCandidate?.scale ?? 1).toFixed(2), minus: () => root.updateSelected("scale", Math.max(0.5, Number(root.selectedCandidate?.scale ?? 1) - 0.25)), plus: () => root.updateSelected("scale", Math.min(3, Number(root.selectedCandidate?.scale ?? 1) + 0.25)) },
-                                { label: qsTr("X position"), value: String(root.selectedCandidate?.x ?? 0), minus: () => root.updateSelected("x", Number(root.selectedCandidate?.x ?? 0) - 100), plus: () => root.updateSelected("x", Number(root.selectedCandidate?.x ?? 0) + 100) },
-                                { label: qsTr("Y position"), value: String(root.selectedCandidate?.y ?? 0), minus: () => root.updateSelected("y", Number(root.selectedCandidate?.y ?? 0) - 100), plus: () => root.updateSelected("y", Number(root.selectedCandidate?.y ?? 0) + 100) },
-                                { label: qsTr("Transform"), value: String(root.selectedCandidate?.transform ?? 0), minus: () => root.cycleTransform(-1), plus: () => root.cycleTransform(1) }
+                                { label: qsTr("Escala"), value: Number(root.selectedCandidate?.scale ?? 1).toFixed(2), minus: () => root.updateSelected("scale", Math.max(0.5, Number(root.selectedCandidate?.scale ?? 1) - 0.25)), plus: () => root.updateSelected("scale", Math.min(3, Number(root.selectedCandidate?.scale ?? 1) + 0.25)) },
+                                { label: qsTr("Posición X"), value: String(root.selectedCandidate?.x ?? 0), minus: () => root.updateSelected("x", Number(root.selectedCandidate?.x ?? 0) - 100), plus: () => root.updateSelected("x", Number(root.selectedCandidate?.x ?? 0) + 100) },
+                                { label: qsTr("Posición Y"), value: String(root.selectedCandidate?.y ?? 0), minus: () => root.updateSelected("y", Number(root.selectedCandidate?.y ?? 0) - 100), plus: () => root.updateSelected("y", Number(root.selectedCandidate?.y ?? 0) + 100) },
+                                { label: qsTr("Transformación"), value: String(root.selectedCandidate?.transform ?? 0), minus: () => root.cycleTransform(-1), plus: () => root.cycleTransform(1) }
                             ]
                             delegate: Row {
                                 required property var modelData
                                 width: parent.width; height: 31; spacing: 7
                                 CortetsuText { width: parent.width * 0.36; anchors.verticalCenter: parent.verticalCenter; text: modelData.label; color: CortetsuDesign.colorOutline; textSize: CortetsuTypography.labelSmallPx }
-                                Rectangle {
-                                    width: 30; height: 30; radius: CortetsuDesign.radiusSmall; color: CortetsuDesign.colorSurfaceHigh
-                                    CortetsuStateLayer { radius: parent.radius; onClicked: modelData.minus() }
-                                    CortetsuIcon { anchors.centerIn: parent; text: "remove"; color: CortetsuDesign.colorOnSurfaceVariant; iconSize: CortetsuTypography.iconSmallPx }
+                                CortetsuButton {
+                                    width: 30; height: 30
+                                    compact: true
+                                    label: ""
+                                    icon: "remove"
+                                    tooltipText: qsTr("Reducir %1").arg(modelData.label)
+                                    focus: false
+                                    onClicked: modelData.minus()
                                 }
                                 CortetsuText { width: parent.width * 0.28; anchors.verticalCenter: parent.verticalCenter; text: modelData.value; color: CortetsuDesign.colorOnSurface; textSize: CortetsuTypography.labelMediumPx; horizontalAlignment: Text.AlignHCenter }
-                                Rectangle {
-                                    width: 30; height: 30; radius: CortetsuDesign.radiusSmall; color: CortetsuDesign.colorSurfaceHigh
-                                    CortetsuStateLayer { radius: parent.radius; onClicked: modelData.plus() }
-                                    CortetsuIcon { anchors.centerIn: parent; text: "add"; color: CortetsuDesign.colorOnSurfaceVariant; iconSize: CortetsuTypography.iconSmallPx }
+                                CortetsuButton {
+                                    width: 30; height: 30
+                                    compact: true
+                                    label: ""
+                                    icon: "add"
+                                    tooltipText: qsTr("Aumentar %1").arg(modelData.label)
+                                    focus: false
+                                    onClicked: modelData.plus()
                                 }
                             }
                         }
 
-                        Rectangle {
+                        CortetsuButton {
                             width: parent.width
                             height: 32
-                            radius: CortetsuDesign.radiusSmall
-                            color: (root.selectedCandidate?.enabled ?? true) ? CortetsuDesign.colorSecondaryContainer : CortetsuDesign.colorSurfaceHigh
-                            CortetsuStateLayer { radius: parent.radius; onClicked: root.toggleSelectedEnabled() }
-                            Row {
-                                anchors.centerIn: parent
-                                spacing: 7
-                                CortetsuIcon { text: (root.selectedCandidate?.enabled ?? true) ? "toggle_on" : "toggle_off"; color: (root.selectedCandidate?.enabled ?? true) ? CortetsuDesign.colorOnSecondaryContainer : CortetsuDesign.colorOutline }
-                                CortetsuText { text: (root.selectedCandidate?.enabled ?? true) ? qsTr("Output enabled") : qsTr("Output disabled"); color: (root.selectedCandidate?.enabled ?? true) ? CortetsuDesign.colorOnSecondaryContainer : CortetsuDesign.colorOutline; textSize: CortetsuTypography.labelSmallPx }
-                            }
+                            compact: true
+                            icon: (root.selectedCandidate?.enabled ?? true) ? "toggle_on" : "toggle_off"
+                            label: (root.selectedCandidate?.enabled ?? true) ? qsTr("Salida activa") : qsTr("Salida desactivada")
+                            active: root.selectedCandidate?.enabled ?? true
+                            focus: false
+                            onClicked: root.toggleSelectedEnabled()
                         }
                     }
                 }
@@ -619,7 +642,7 @@ FocusScope {
                             CortetsuText { width: parent.width; text: String(outputCard.modelData?.mode ?? ""); color: CortetsuDesign.colorOnSurfaceVariant; textSize: CortetsuTypography.labelSmallPx; elide: Text.ElideRight }
                             CortetsuText { text: `${outputCard.modelData?.x ?? 0} × ${outputCard.modelData?.y ?? 0} · scale ${Number(outputCard.modelData?.scale ?? 1).toFixed(2)} · transform ${outputCard.modelData?.transform ?? 0}`; color: CortetsuDesign.colorOutline; textSize: CortetsuTypography.labelSmallPx }
                             CortetsuText { text: `${root.liveByName(outputCard.modelData?.name)?.gpu_vendor ?? "—"} · ${root.liveByName(outputCard.modelData?.name)?.drm_card ?? "—"}`; color: CortetsuDesign.colorPrimary; textSize: CortetsuTypography.labelSmallPx }
-                            CortetsuText { text: `${root.liveByName(outputCard.modelData?.name)?.workspace?.name ?? qsTr("no workspace")} · ${(outputCard.modelData?.enabled ?? true) ? qsTr("enabled") : qsTr("disabled")}`; color: CortetsuDesign.colorOnSurfaceVariant; textSize: CortetsuTypography.labelSmallPx }
+                        CortetsuText { text: `${root.liveByName(outputCard.modelData?.name)?.workspace?.name ?? qsTr("sin espacio de trabajo")} · ${(outputCard.modelData?.enabled ?? true) ? qsTr("activa") : qsTr("desactivada")}`; color: CortetsuDesign.colorOnSurfaceVariant; textSize: CortetsuTypography.labelSmallPx }
                         }
                     }
                 }
@@ -627,7 +650,10 @@ FocusScope {
 
             Rectangle {
                 width: parent.width
-                height: parent.height - 58 - 320 - 168 - 36
+                // Content.qml overlays the three footer controls at the bottom
+                // of this panel. Reserve that area so the dry-run card never
+                // sits underneath "Apply safely" at 1920x1080.
+                height: parent.height - 58 - 320 - 168 - 36 - 150
                 radius: CortetsuDesign.radiusLarge
                 color: CortetsuDesign.colorSurface
                 border.width: 1
@@ -642,7 +668,7 @@ FocusScope {
                         width: parent.width * 0.66
                         height: parent.height
                         spacing: 5
-                        CortetsuText { text: qsTr("Dry-run plan"); color: CortetsuDesign.colorOnSurface; textSize: CortetsuTypography.titleSmallPx }
+                        CortetsuText { text: qsTr("Plan de prueba"); color: CortetsuDesign.colorOnSurface; textSize: CortetsuTypography.titleSmallPx }
                         CortetsuText { width: parent.width; text: root.planStatus; color: root.planResult?.ok ? CortetsuDesign.colorPrimary : CortetsuDesign.colorOutline; textSize: CortetsuTypography.labelMediumPx; elide: Text.ElideRight }
                         CortetsuText {
                             width: parent.width
@@ -661,18 +687,19 @@ FocusScope {
                         width: parent.width * 0.34 - 14
                         anchors.verticalCenter: parent.verticalCenter
                         spacing: 9
-                        Rectangle {
-                            width: parent.width; height: 46; radius: CortetsuDesign.radiusMedium
-                            color: CortetsuDesign.colorPrimaryContainer
-                            CortetsuStateLayer { radius: parent.radius; onClicked: root.runPlan() }
-                            Row { anchors.centerIn: parent; spacing: 7
-                                CortetsuIcon { text: "fact_check"; color: CortetsuDesign.colorOnPrimaryContainer }
-                                CortetsuText { text: planner.running ? qsTr("Validating…") : qsTr("Dry run candidate"); color: CortetsuDesign.colorOnPrimaryContainer; textSize: CortetsuTypography.labelMediumPx }
-                            }
+                        CortetsuButton {
+                            width: parent.width; height: 46
+                            compact: true
+                            icon: "fact_check"
+                            label: planner.running ? qsTr("Validando…") : qsTr("Probar propuesta")
+                            active: true
+                            disabled: planner.running || !root.candidateOutputs.length
+                            focus: false
+                            onClicked: root.runPlan()
                         }
                         CortetsuText {
                             width: parent.width
-                            text: qsTr("Dry run never changes outputs. Use Preview for a timed live test, Keep to confirm it, then Save to persist with backup/rollback.")
+                            text: qsTr("La prueba no cambia las salidas. Usa Previsualizar para una prueba temporal, Conservar para confirmarla y Guardar para persistirla con respaldo y reversión.")
                             color: CortetsuDesign.colorOutline
                             textSize: CortetsuTypography.bodySmallPx
                             wrapMode: Text.WordWrap

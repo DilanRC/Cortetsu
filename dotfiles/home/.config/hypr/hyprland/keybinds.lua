@@ -57,6 +57,11 @@ create_bind(vars.kbShowSidebar, hl.dsp.global("cortetsu:sidebar"))
 create_bind(vars.kbClearNotifs, hl.dsp.global("cortetsu:clearNotifs"), locked)
 create_bind(vars.kbShowPanels, hl.dsp.global("cortetsu:showall"))
 create_bind(vars.kbLock, hl.dsp.global("cortetsu:lock"))
+create_bind(
+    { "SUPER + SLASH", "SUPER + SHIFT + 7" },
+    hl.dsp.global("cortetsu:qsd")
+)
+create_bind("SUPER + I", hl.dsp.global("cortetsu:settings"))
 
 -- Restore lock
 create_bind(vars.kbRestoreLock, function()
@@ -156,21 +161,16 @@ create_bind(vars.kbFileExplorer, hl.dsp.exec_cmd(vars.fileExplorer))
 create_bind(vars.kbAudioSettings, hl.dsp.exec_cmd(vars.audioSettings))
 
 -- Utilities
-create_bind(vars.kbScreenshot, hl.dsp.exec_cmd("cortetsu screenshot"), locked)
--- kbScreenshotFreeze/kbScreenshotRegion already target cortetsu:* IPC names,
--- but no CortetsuShortcut receiver implements them yet (see cortetsu/modules;
--- Task 18/screenshot backend). Leaving them orphaned rather than pretending
--- they work -- not a caelestia dependency, just an unbuilt receiver.
+-- Print keeps the existing frozen-region behavior; all screenshot ownership
+-- remains in this canonical keybind module.
+create_bind(vars.kbScreenshot, hl.dsp.exec_cmd("cortetsu screenshot -r -f"), locked)
+-- Freeze and region shortcuts target the first-party AreaPicker receiver.
+-- The Cortetsu runtime exposes both names through its picker IPC handler.
 create_bind(vars.kbScreenshotFreeze, hl.dsp.global("cortetsu:screenshotFreeze"))
 create_bind(vars.kbScreenshotRegion, hl.dsp.global("cortetsu:screenshot"))
--- kbRecord/kbRecordSound/kbRecordRegion still call the caelestia CLI: the
--- first-party replacement (cortetsu-record / `cortetsu record`) only has
--- status/stop, no start-recording action yet (Task 19). Migrating these
--- three to it would silently break the "start recording" keybinds, so they
--- stay pointed at caelestia until cortetsu record grows a start action.
-create_bind(vars.kbRecord, hl.dsp.exec_cmd("caelestia record"))
-create_bind(vars.kbRecordSound, hl.dsp.exec_cmd("caelestia record -s"))
-create_bind(vars.kbRecordRegion, hl.dsp.exec_cmd("caelestia record -r"))
+create_bind(vars.kbRecord, hl.dsp.exec_cmd("cortetsu-record start"))
+create_bind(vars.kbRecordSound, hl.dsp.exec_cmd("cortetsu-record start -s"))
+create_bind(vars.kbRecordRegion, hl.dsp.exec_cmd("cortetsu-record start -r"))
 create_bind(vars.kbColorPicker, hl.dsp.exec_cmd("hyprpicker -a"))
 
 -- Brightness
@@ -206,8 +206,6 @@ create_bind(
 create_bind(vars.kbSleep, hl.dsp.exec_cmd(vars.sleepGestureCmd), locked)
 
 -- Clipboard and emoji picker
-create_bind(vars.kbClipboard, hl.dsp.exec_cmd("kitty --class clipse -e clipse"))
-create_bind(vars.kbClipboardDel, hl.dsp.exec_cmd("kitty --class clipse -e clipse"))
 create_bind(vars.kbEmoji, hl.dsp.exec_cmd("pkill fuzzel || cortetsu emoji -p"))
 create_bind(
     vars.kbClipboardPasteLatest,

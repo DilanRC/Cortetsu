@@ -27,16 +27,22 @@ Scope {
 
     function closeOtherPanels(): void {
         for (const screen of CortetsuScreens.screens)
-            OverlayPolicy.closeOtherPanels(CortetsuShellState.forScreen(screen)?.cortetsuState?.legacyState);
+            OverlayPolicy.closeOtherPanels(CortetsuShellState.forScreen(screen)?.cortetsuState);
     }
 
-    function open(): void {
-        const state = CortetsuShellState.forActive()?.cortetsuState;
+    function open(screen): void {
+        const target = screen ?? CortetsuScreens.screens.find(candidate =>
+            CortetsuHypr.monitorFor(candidate) === CortetsuHypr.focusedMonitor);
+        const state = CortetsuShellState.forScreen(target)?.cortetsuState;
         if (!state)
             return;
         closeAll();
         closeOtherPanels();
         state.setRetained("displayManager", true);
+    }
+
+    function openActive(): void {
+        open(undefined);
     }
 
     function close(): void {
@@ -48,7 +54,7 @@ Scope {
             closeAll();
             return;
         }
-        open();
+        openActive();
     }
 
     CortetsuShortcut {
@@ -60,7 +66,7 @@ Scope {
     IpcHandler {
         target: "display"
         function toggle(): void { root.toggle(); }
-        function open(): void { root.open(); }
+        function open(): void { root.openActive(); }
         function close(): void { root.close(); }
         function isOpen(): bool { return root.anyOpen(); }
     }

@@ -31,14 +31,11 @@ jobs:
       - name: Validate shell scripts
         run: |
           bash -n cortetsu/bin/build-runtime.sh
-          bash -n cortetsu/bin/ensure-upstream.sh
-          bash -n cortetsu/bin/caelestia
           bash -n cortetsu/bin/install-patches.sh
           bash -n cortetsu/bin/install.sh
           bash -n cortetsu/bin/rollback-runtime.sh
           bash -n scripts/install-cortetsu.sh
           bash -n scripts/migrate-cortetsu-v2.sh
-          bash -n scripts/features/test-upstream-bootstrap.sh
       - name: Run unit and contract tests
         run: |
           python3 cortetsu/tests/test-calendar-credentials.py
@@ -46,16 +43,22 @@ jobs:
           python3 cortetsu/tests/test-calendar-polish.py
           python3 cortetsu/tests/test-pomodoro.py
           python3 cortetsu/tests/test-runtime-contract.py
-      - name: Fetch exact Caelestia base
+      - name: Validate Ascension launcher contracts
         run: |
-          git clone --depth 1 --branch v2.4.0 \
-            https://github.com/caelestia-dots/shell.git \
-            "$RUNNER_TEMP/caelestia-shell"
-      - name: Verify upstream cache bootstrap
-        env:
-          CORTETSU_UPSTREAM_TEST_SOURCE: ${{ runner.temp }}/caelestia-shell
-        run: bash scripts/features/test-upstream-bootstrap.sh
+          python3 scripts/features/test-cortetsu-launcher.py
+          python3 scripts/features/test-launcher-fonts.py
+          python3 scripts/features/test-launcher-process-scope.py
+      - name: Validate Ascension overview and display contracts
+        run: |
+          python3 scripts/features/test-overview-design.py
+          python3 scripts/features/test-overview-popout-exclusivity.py
+          python3 scripts/features/test-display-design.py
+          python3 scripts/features/test-display-primary.py
+      - name: Validate Ascension hardware and shell contracts
+        run: |
+          python3 scripts/features/test-hardware-design.py
+          python3 scripts/features/test-cortetsu-quality.py
+          python3 scripts/features/test-native-bottom-hub.py
+          python3 scripts/features/test-native-theme.py
       - name: Build two isolated generations and roll back
-        env:
-          CORTETSU_UPSTREAM_SOURCE: ${{ runner.temp }}/caelestia-shell
         run: python3 scripts/features/test-cortetsu-build.py

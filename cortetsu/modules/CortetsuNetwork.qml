@@ -20,6 +20,23 @@ import QtQuick
 Singleton {
     id: root
 
+    property bool refreshing: false
+
+    function refresh(): void {
+        const device = root.wifiDevice;
+        if (!device || root.refreshing)
+            return;
+        root.refreshing = true;
+        device.scannerEnabled = false;
+        // A queued turn is enough to force NetworkManager to restart its
+        // scanner. This stays an explicit user action, not a polling loop.
+        Qt.callLater(() => {
+            if (root.wifiDevice)
+                root.wifiDevice.scannerEnabled = true;
+            root.refreshing = false;
+        });
+    }
+
     function deviceOfType(type): var {
         return (Networking.devices?.values ?? []).find(device => device.type === type) ?? null;
     }

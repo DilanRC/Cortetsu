@@ -63,13 +63,13 @@ FocusScope {
 
     readonly property string windowCountText:
         clients.length === 1
-            ? qsTr("1 window")
-            : qsTr("%1 windows").arg(clients.length)
+            ? qsTr("1 ventana")
+            : qsTr("%1 ventanas").arg(clients.length)
 
     readonly property string monitorCountText:
         monitorCount === 1
-            ? qsTr("1 monitor")
-            : qsTr("%1 monitors").arg(monitorCount)
+            ? qsTr("1 pantalla")
+            : qsTr("%1 pantallas").arg(monitorCount)
 
     /*
      * Adaptive overview grid:
@@ -498,18 +498,23 @@ FocusScope {
 
         anchors.fill: parent
 
-        anchors.topMargin: 46
-        anchors.bottomMargin: 26
+        anchors.topMargin: 24
+        anchors.bottomMargin: 24
         anchors.leftMargin: 38
         anchors.rightMargin: 38
 
-        spacing: 14
+        spacing: 0
 
         Rectangle {
             id: header
 
+            // Super+Tab is a window switcher. The old title bar duplicated
+            // information and consumed the most valuable vertical space.
+            visible: false
+            height: 0
+
             width: parent.width
-            implicitHeight: 62
+            implicitHeight: 0
 
             radius:
                 CortetsuDesign.radiusLarge
@@ -560,7 +565,7 @@ FocusScope {
                     spacing: -1
 
                     CortetsuText {
-                        text: qsTr("Overview")
+                        text: qsTr("Vista general")
 
                         textSize: CortetsuTypography.titleLargePx
                     }
@@ -619,7 +624,7 @@ FocusScope {
 
                         text:
                             qsTr(
-                                "Arrows navigate · Enter/Space focus · Del close · F float"
+                                "Flechas mover · Enter/Espacio enfocar · Supr cerrar · F flotar"
                             )
 
                         color:
@@ -639,10 +644,11 @@ FocusScope {
         Item {
             id: monitorRailHost
 
+            visible: false
+
             width: parent.width
 
-            height:
-                monitorRail.implicitHeight
+            height: 0
 
             Flow {
                 id: monitorRail
@@ -751,7 +757,7 @@ FocusScope {
                                     CortetsuText {
                                         text:
                                             monitorBox.monitor?.name ??
-                                            qsTr("Monitor")
+                                            qsTr("Pantalla")
 
                                         textSize: CortetsuTypography.labelLargePx
                                     }
@@ -761,7 +767,7 @@ FocusScope {
                                             monitorBox.monitor
                                                 ?.activeWorkspace
                                                 ?.id
-                                            ? `active · ${monitorBox.monitor.activeWorkspace.id}`
+                                            ? `activa · ${monitorBox.monitor.activeWorkspace.id}`
                                             : ""
 
                                         color:
@@ -927,6 +933,7 @@ FocusScope {
         }
 
         Rectangle {
+            visible: false
             width: parent.width
             height: 1
 
@@ -952,8 +959,7 @@ FocusScope {
                     180,
                     layout.height -
                         header.height -
-                        monitorRailHost.height -
-                        62
+                        monitorRailHost.height
                 )
 
             contentWidth: width
@@ -1087,8 +1093,8 @@ FocusScope {
                 visible:
                     root.clients.length === 0
                 icon: "web_asset_off"
-                title: qsTr("No windows to show")
-                detail: qsTr("Open an application to see it here")
+                title: qsTr("No hay ventanas para mostrar")
+                detail: qsTr("Abre una aplicación para verla aquí")
             }
         }
     }

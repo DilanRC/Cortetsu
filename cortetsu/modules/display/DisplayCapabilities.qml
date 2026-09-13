@@ -21,7 +21,7 @@ Rectangle {
 
     Column {
         anchors.fill: parent; anchors.margins: 12; spacing: 6
-        CortetsuText { text: qsTr("Output capabilities"); color: CortetsuDesign.colorOnSurface; textSize: CortetsuTypography.titleSmallPx }
+        CortetsuText { text: qsTr("Capacidades de salida"); color: CortetsuDesign.colorOnSurface; textSize: CortetsuTypography.titleSmallPx }
         Row { width: parent.width
             CortetsuText { width: parent.width * 0.52; text: qsTr("VRR capable"); color: CortetsuDesign.colorOutline; textSize: CortetsuTypography.labelSmallPx }
             CortetsuText { width: parent.width * 0.48; text: root.tri(root.monitor?.vrr_capable); color: CortetsuDesign.colorPrimary; textSize: CortetsuTypography.labelSmallPx; horizontalAlignment: Text.AlignRight }
@@ -34,6 +34,6 @@ Rectangle {
             CortetsuText { width: parent.width * 0.52; text: qsTr("Max bpc / format"); color: CortetsuDesign.colorOutline; textSize: CortetsuTypography.labelSmallPx }
             CortetsuText { width: parent.width * 0.48; text: `${root.monitor?.max_bpc ?? "—"} / ${root.monitor?.current_format ?? "—"}`; color: CortetsuDesign.colorOnSurfaceVariant; textSize: CortetsuTypography.labelSmallPx; horizontalAlignment: Text.AlignRight; elide: Text.ElideLeft }
         }
-        CortetsuText { width: parent.width; text: qsTr("Unknown is never treated as supported. HDR/10-bit controls stay disabled until capability is established."); color: CortetsuDesign.colorOutline; textSize: CortetsuTypography.labelSmallPx; wrapMode: Text.WordWrap; maximumLineCount: 2; elide: Text.ElideRight }
+        CortetsuText { width: parent.width; text: qsTr("Lo desconocido nunca se considera compatible. Los controles HDR/10 bits permanecen desactivados hasta confirmar la capacidad."); color: CortetsuDesign.colorOutline; textSize: CortetsuTypography.labelSmallPx; wrapMode: Text.WordWrap; maximumLineCount: 2; elide: Text.ElideRight }
     }
 }

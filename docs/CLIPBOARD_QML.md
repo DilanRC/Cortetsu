@@ -21,7 +21,11 @@ Reemplazar la apertura de Clipse con un drawer nativo de Cortetsu integrado en e
 
 ## Arquitectura
 
-El overlay se integra en `modules/drawers/ContentWindow.qml`; no se crea un `PanelWindow` separado.
+El contenido vive en `modules/RetainedSurfacesHost.qml`, una ventana overlay propia y
+monitor-local. `ContentWindow.qml` conserva la composición histórica y desactiva su
+`HyprlandFocusGrab` mientras el retained overlay está abierto, para que un clic interno
+no se interprete como pérdida de foco. La ventana usa foco exclusivo mientras Clipboard
+está activo y un `MouseArea` de fondo que solo cierra fuera del panel.
 
 Módulos propios:
 
@@ -36,15 +40,16 @@ Integraciones upstream:
 
 - `shell.qml`: instancia `ClipboardController`.
 - `components/ScreenState.qml`: estado `clipboard` por pantalla.
-- `modules/drawers/ContentWindow.qml`: focus/input y scrim del drawer.
+- `modules/RetainedSurfacesHost.qml`: ventana, foco e input del retained overlay.
+- `modules/drawers/ContentWindow.qml`: composición compatible y coordinación del focus grab.
 - `modules/drawers/Panels.qml`: integra `Clipboard.Wrapper` en el árbol nativo.
-- `hypr-user.lua`: `Super+V -> caelestia:clipboard`.
+- `hypr-user.lua`: `Super+V -> cortetsu shell ipc clipboard toggle`.
 
 ## Backend
 
 Clipse sigue siendo el backend de captura de historial mediante `clipse -listen` y sus procesos `wl-paste --watch`. El QML reemplaza únicamente la interfaz TUI. El historial se consume desde `~/.config/clipse/clipboard_history.json` mediante `FileView` con vigilancia de cambios y escrituras atómicas.
 
-Al cerrar el drawer, `Wrapper.qml` destruye el `Loader` del contenido pesado. `FileView`, `ListView`, previews y delegates dejan de existir mientras el Clipboard está cerrado; no se mata el proceso completo de Quickshell porque ese proceso aloja todo Caelestia.
+Al cerrar el overlay, `Wrapper.qml` destruye el `Loader` del contenido pesado. `FileView`, `ListView`, previews y delegates dejan de existir mientras Clipboard está cerrado; no se mata el proceso completo de Quickshell porque ese proceso aloja las superficies de Cortetsu.
 
 ## Diseño Cortetsu
 
@@ -67,4 +72,4 @@ La referencia visual es el mock-up premium generado durante el desarrollo, pero 
 
 ## Criterio de terminado
 
-El módulo se considera estable cuando funciona con teclado y touchpad, conserva historial entre reinicios, no roba foco después de cerrar, descarga el contenido pesado al cerrarse, no rompe Overview/Dock/Launcher, responde correctamente al IPC del runtime Cortetsu y `cortetsu verify` reporta el estado esperado.
+El módulo se considera estable cuando funciona con teclado y touchpad, conserva historial entre reinicios, conserva los clics dentro del panel, cierra solo al pulsar fuera, recibe `Escape` con foco exclusivo, no roba foco después de cerrar, descarga el contenido pesado al cerrarse, no rompe Overview/Dock/Launcher, responde correctamente al IPC del runtime Cortetsu y `cortetsu verify` reporta el estado esperado.

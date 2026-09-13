@@ -5,6 +5,7 @@ import "../services"
 Scope {
     Component.onCompleted: {
         CortetsuAudio;
+        CortetsuPower;
         Audio;
         Brightness;
         Players;

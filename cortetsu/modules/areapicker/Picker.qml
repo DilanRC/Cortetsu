@@ -25,6 +25,7 @@ MouseArea {
     property real rsy: Math.min(sy, ey)
     property real sw: Math.abs(sx - ex)
     property real sh: Math.abs(sy - ey)
+    property var pendingCommand: []
 
     readonly property var clients: {
         const monitor = CortetsuHypr.monitorFor(screen);
@@ -71,14 +72,30 @@ MouseArea {
         }
         const path = `/tmp/cortetsu-picker-${Quickshell.processId}-${Date.now()}.png`;
         const geometry = `${x},${y} ${width}x${height}`;
-        const action = root.state.clipboardOnly
-            ? `grim -g '${geometry}' '${path}' && wl-copy --type image/png < '${path}' && notify-send -a cortetsu -i '${path}' 'Screenshot taken' 'Screenshot copied to clipboard'`
-            : `grim -g '${geometry}' '${path}' && swappy -f '${path}'`;
-        Quickshell.execDetached(["sh", "-c", action]);
+        const command = ["cortetsu-area-capture", geometry, path];
+        if (root.state.clipboardOnly)
+            command.push("--clipboard");
+        root.pendingCommand = command;
         close();
+        captureTimer.restart();
     }
 
     function close(): void { root.state.close(); }
+
+    // Let the layer-shell commit the hidden state before grim reads the
+    // compositor. Without this frame, screenshots occasionally contain the
+    // picker's dimming layer and look darker than the selected desktop area.
+    Timer {
+        id: captureTimer
+        interval: 120
+        repeat: false
+        onTriggered: {
+            if (root.pendingCommand.length > 0) {
+                Quickshell.execDetached(root.pendingCommand);
+                root.pendingCommand = [];
+            }
+        }
+    }
 
     anchors.fill: parent
     opacity: root.state.active ? 1 : 0
@@ -151,7 +168,7 @@ MouseArea {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: parent.top
         anchors.topMargin: CortetsuDesign.spacingComfortable
-        text: root.state.freeze ? qsTr("Select an area to capture") : qsTr("Select an area")
+        text: root.state.freeze ? qsTr("Selecciona un área para capturar") : qsTr("Selecciona un área")
         textSize: CortetsuTypography.bodyLargePx
         color: CortetsuDesign.colorOnSurface
     }

@@ -3,14 +3,13 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
-import Quickshell.Services.UPower
 import "../services"
 
 Scope {
     id: root
     required property var lock
     readonly property bool hasPlayer: Players.list.some(player => player.isPlaying)
-    readonly property bool isCharging: !UPower.onBattery
+    readonly property bool isCharging: !CortetsuPower.onBattery
     readonly property bool enabled: !(CortetsuConfig.idleInhibitWhenAudio && hasPlayer)
         && !(CortetsuConfig.idleInhibitWhenCharging && isCharging)
 

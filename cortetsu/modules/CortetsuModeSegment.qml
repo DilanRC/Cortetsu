@@ -1,32 +1,23 @@
 import QtQuick
+import Quickshell
 import "CortetsuDesign.js" as CortetsuDesign
 
 Item {
     id: root
 
     required property bool launcherActive
-    required property bool wallpaperActive
-    required property string wallpaperSource
     required property int workspaceCount
     required property int workspaceOffset
     required property int activeWsId
     required property var occupiedWorkspaceIds
 
     signal launcherRequested()
-    signal wallpaperRequested()
     signal workspaceRequested(int workspaceId)
 
-    implicitWidth: content.implicitWidth + CortetsuDesign.spacingStandard
-    implicitHeight: 52
+    implicitWidth: content.implicitWidth + CortetsuDesign.spacingCompact
+    implicitHeight: 50
     width: implicitWidth
     height: implicitHeight
-
-    CortetsuSurface {
-        anchors.fill: parent
-        radiusValue: CortetsuDesign.radiusLarge
-        baseColor: CortetsuDesign.colorTetsu
-        outlined: true
-    }
 
     Row {
         id: content
@@ -34,20 +25,24 @@ Item {
         spacing: 2
 
         HubButton {
+            id: launcherButton
             buttonSize: 44
-            imageSource: "file:///usr/share/icons/cachyos.svg"
+            evolvingMarkPhase: root.launcherActive || launcherButton.pressed
+                ? "Monster"
+                : launcherButton.hovered || launcherButton.activeFocus
+                    ? "Awakening"
+                    : "Human"
             active: root.launcherActive
-            tooltip: qsTr("Applications")
+            tooltip: qsTr("Aplicaciones")
             onClicked: root.launcherRequested()
         }
 
-        HubButton {
-            buttonSize: 40
-            cropImage: true
-            imageSource: root.wallpaperSource
-            active: root.wallpaperActive
-            tooltip: qsTr("Wallpaper manager")
-            onClicked: root.wallpaperRequested()
+        Rectangle {
+            anchors.verticalCenter: parent.verticalCenter
+            width: 1
+            height: 22
+            radius: 1
+            color: Qt.alpha(CortetsuDesign.colorMuted, 0.14)
         }
 
         CortetsuWorkspaceDots {

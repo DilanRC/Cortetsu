@@ -1,6 +1,6 @@
 import QtQuick
 import Quickshell
-import Quickshell.Services.UPower
+import "../services"
 
 Scope {
     id: root
@@ -13,33 +13,31 @@ Scope {
     }
 
     function inspect(): void {
-        if (!UPower.displayDevice.ready)
+        if (!CortetsuPower.hasBattery)
             return;
-        const percentage = UPower.displayDevice.percentage * 100;
-        if (!UPower.onBattery) {
+        const percentage = CortetsuPower.percent;
+        if (!CortetsuPower.onBattery) {
             lastPercentage = percentage;
             criticalNoticeSent = false;
             return;
         }
         if (percentage <= 10 && lastPercentage > 10)
-            notify(qsTr("Battery low"), qsTr("Battery level is %1%").arg(Math.round(percentage)));
+            notify(qsTr("Batería baja"), qsTr("El nivel de batería es %1%").arg(Math.round(percentage)));
         if (percentage <= 3 && !criticalNoticeSent) {
             criticalNoticeSent = true;
-            notify(qsTr("Critical battery"), qsTr("Hibernating to prevent data loss"));
+            notify(qsTr("Batería crítica"), qsTr("Hibernando para evitar la pérdida de datos"));
             hibernateTimer.start();
         }
         lastPercentage = percentage;
     }
 
     Connections {
-        target: UPower
+        target: CortetsuPower
         function onOnBatteryChanged(): void { root.inspect(); }
-    }
-    Connections {
-        target: UPower.displayDevice
         function onReadyChanged(): void { root.inspect(); }
-        function onPercentageChanged(): void { root.inspect(); }
+        function onPercentChanged(): void { root.inspect(); }
     }
+    Component.onCompleted: root.inspect()
     Timer {
         id: hibernateTimer
         interval: 5000

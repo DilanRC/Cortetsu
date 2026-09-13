@@ -27,13 +27,13 @@ CortetsuSurface {
         spacing: CortetsuDesign.spacingStandard
 
         CortetsuSectionHeader {
-            title: qsTr("Join network")
+            title: qsTr("Conectarse a una red")
             detail: root.network?.name ?? qsTr("Wi‑Fi")
         }
 
         CortetsuText {
             Layout.fillWidth: true
-            text: qsTr("Enter the password to connect.")
+            text: qsTr("Escribe la contraseña para conectarte.")
             textSize: CortetsuDesign.bodySmallPx
             color: CortetsuDesign.colorOnSurfaceVariant
             wrapMode: Text.WordWrap
@@ -43,7 +43,7 @@ CortetsuSurface {
             id: password
             Layout.fillWidth: true
             implicitHeight: CortetsuDesign.controlHeight
-            placeholderText: qsTr("Password")
+            placeholderText: qsTr("Contraseña")
             echoMode: TextInput.Password
             enabled: !root.connecting
             color: CortetsuDesign.colorOnSurface
@@ -55,6 +55,11 @@ CortetsuSurface {
                 outlined: true
             }
             Keys.onReturnPressed: root.connect()
+
+            Component.onCompleted: {
+                if (root.popouts.currentName === "wirelesspassword")
+                    forceActiveFocus();
+            }
         }
 
         CortetsuText {
@@ -70,7 +75,7 @@ CortetsuSurface {
             Layout.fillWidth: true
             CortetsuButton {
                 compact: true
-                label: qsTr("Back")
+                label: qsTr("Atrás")
                 icon: "arrow_back"
                 enabled: !root.connecting
                 onClicked: root.closeDialog()
@@ -79,7 +84,7 @@ CortetsuSurface {
             CortetsuButton {
                 compact: true
                 active: true
-                label: root.connecting ? qsTr("Connecting…") : qsTr("Connect")
+                label: root.connecting ? qsTr("Conectando…") : qsTr("Conectar")
                 icon: root.connecting ? "sync" : "link"
                 disabled: root.connecting || !root.network || password.text.length === 0
                 onClicked: root.connect()
@@ -92,7 +97,7 @@ CortetsuSurface {
         interval: 8000
         onTriggered: {
             root.connecting = false;
-            root.errorText = qsTr("The connection timed out. Check the password and try again.");
+            root.errorText = qsTr("Se agotó el tiempo. Revisa la contraseña e inténtalo de nuevo.");
         }
     }
 
@@ -104,6 +109,26 @@ CortetsuSurface {
                 root.connecting = false;
                 root.popouts.hasCurrent = false;
             }
+        }
+    }
+
+    Connections {
+        target: root.network
+        function onConnectionFailed(_reason): void {
+            if (!root.connecting)
+                return;
+            timeout.stop();
+            root.connecting = false;
+            root.errorText = qsTr("No se pudo conectar. Revisa la contraseña.");
+            password.forceActiveFocus();
+        }
+    }
+
+    Connections {
+        target: root.popouts
+        function onCurrentNameChanged(): void {
+            if (root.popouts.currentName === "wirelesspassword")
+                Qt.callLater(() => password.forceActiveFocus());
         }
     }
 
@@ -119,7 +144,7 @@ CortetsuSurface {
             if (result?.success !== true) {
                 timeout.stop();
                 root.connecting = false;
-                root.errorText = qsTr("Unable to connect to this network.");
+                root.errorText = qsTr("No se pudo conectar a esta red.");
             }
         });
     }

@@ -7,16 +7,41 @@ CortetsuSurface {
 
     required property var toast
     signal dismissed()
+    property bool hovered: false
+    readonly property bool urgent: toast.type === 2
+
     implicitHeight: body.implicitHeight + CortetsuDesign.spacingStandard * 2
     width: parent ? parent.width : implicitWidth
     height: implicitHeight
     radiusValue: CortetsuDesign.radiusMedium
-    baseColor: CortetsuDesign.colorSurfaceGlass
+    baseColor: root.urgent
+        ? Qt.alpha(CortetsuDesign.colorVermillion, 0.10)
+        : Qt.alpha(CortetsuDesign.colorSurfaceHigh, 0.94)
     outlined: true
-    focus: true
+    focus: false
     activeFocusOnTab: true
     focused: root.activeFocus
-    outlineColor: toast.type === 2 ? CortetsuDesign.colorVermillion : CortetsuDesign.colorOutlineVariant
+    pressed: toastMouse.pressed
+    outlineColor: root.activeFocus
+        ? Qt.alpha(CortetsuDesign.colorWashi, 0.82)
+        : root.urgent
+            ? Qt.alpha(CortetsuDesign.colorVermillion, 0.48)
+            : Qt.alpha(CortetsuDesign.colorOutlineVariant, root.hovered ? 0.40 : 0.24)
+    // Keep the toast hitbox and stack geometry stable. Hover and press feedback
+    // is carried by CortetsuSurface color/outline state instead of transforming
+    // the root item beneath the pointer.
+    scale: 1
+
+    Rectangle {
+        anchors.left: parent.left
+        anchors.leftMargin: 3
+        anchors.verticalCenter: parent.verticalCenter
+        width: 2
+        height: Math.max(24, parent.height - CortetsuDesign.spacingStandard * 2)
+        radius: 1
+        color: root.urgent ? CortetsuDesign.colorVermillion : CortetsuDesign.colorPrimary
+        opacity: 0.82
+    }
 
     Row {
         id: body
@@ -24,16 +49,32 @@ CortetsuSurface {
         anchors.margins: CortetsuDesign.spacingStandard
         spacing: CortetsuDesign.spacingStandard
 
-        CortetsuIcon {
-            width: 28
-            height: parent.height
-            text: root.toast.icon || "info"
-            color: CortetsuDesign.colorTertiary
-            iconSize: CortetsuDesign.iconMediumPx
+        Item {
+            width: 36
+            height: 36
+            anchors.verticalCenter: parent.verticalCenter
+
+            CortetsuSurface {
+                anchors.fill: parent
+                radiusValue: CortetsuDesign.radiusSmall
+                baseColor: root.urgent
+                    ? Qt.alpha(CortetsuDesign.colorVermillion, 0.14)
+                    : Qt.alpha(CortetsuDesign.colorPrimary, 0.14)
+            }
+
+            CortetsuIcon {
+                anchors.centerIn: parent
+                text: root.toast.icon || "info"
+                color: root.urgent
+                    ? CortetsuDesign.colorVermillion
+                    : CortetsuDesign.colorPrimary
+                iconSize: CortetsuDesign.iconMediumPx
+            }
         }
 
         Column {
-            width: parent.width - 28 - parent.spacing
+            width: Math.max(0, parent.width - 36 - parent.spacing)
+            anchors.verticalCenter: parent.verticalCenter
             spacing: 2
 
             CortetsuText {
@@ -41,22 +82,31 @@ CortetsuSurface {
                 text: root.toast.title
                 textSize: CortetsuDesign.bodyPx
                 font.weight: Font.DemiBold
+                color: CortetsuDesign.colorOnSurface
                 elide: Text.ElideRight
             }
 
             CortetsuText {
                 width: parent.width
                 text: root.toast.message
-                textSize: CortetsuDesign.bodyPx
+                textSize: CortetsuDesign.bodySmallPx
                 color: CortetsuDesign.colorOnSurfaceVariant
+                maximumLineCount: 3
+                elide: Text.ElideRight
                 wrapMode: Text.Wrap
             }
         }
     }
 
     MouseArea {
+        id: toastMouse
         anchors.fill: parent
         acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
+        hoverEnabled: true
+        cursorShape: Qt.PointingHandCursor
+        onEntered: root.hovered = true
+        onExited: root.hovered = false
+        onPressed: root.forceActiveFocus()
         onClicked: root.dismissed()
     }
 
@@ -67,7 +117,7 @@ CortetsuSurface {
 
     Timer {
         interval: 5000
-        running: true
+        running: !root.hovered && !root.activeFocus
         onTriggered: root.dismissed()
     }
 }

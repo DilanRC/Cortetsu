@@ -2,7 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import Quickshell
-import qs.modules.bar as Bar
+import "../bar" as Bar
 import ".."
 
 Region {

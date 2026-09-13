@@ -23,6 +23,12 @@ vpn_service = (repo / "cortetsu/base/services/VPN.qml").read_text(encoding="utf-
 battery_monitor = (modules / "BatteryMonitor.qml").read_text(encoding="utf-8")
 service_loader = (modules / "ServiceLoader.qml").read_text(encoding="utf-8")
 game_mode = (repo / "cortetsu/services/GameMode.qml").read_text(encoding="utf-8")
+assert "function dispatchKeyword(key: string, value: string)" in game_mode
+assert 'Quickshell.execDetached(["hyprctl", "eval"' in game_mode
+assert 'hl.config({ animations = { enabled = false }' in game_mode
+assert 'Quickshell.execDetached(["hyprctl", "keyword", key, value])' in game_mode
+assert 'Quickshell.execDetached(["hyprctl", "reload"])' in game_mode
+assert "dispatchKeyword(setting[0], setting[1])" in game_mode
 requests = (repo / "cortetsu/services/Requests.qml").read_text(encoding="utf-8")
 assert "onExited: code => root.finish(request, code" in requests
 assert "onExited: root.finish(request, exitCode" not in requests
@@ -40,6 +46,17 @@ assert "pragma Singleton" in config
 assert "XDG_CONFIG_HOME" in config and "/cortetsu/preferences.json" in config
 for marker in ("favouriteApps", "hiddenApps", "hiddenTrayIcons", "terminalCommand", "audioCommand", "playbackCommand", "explorerCommand", "gpuType", "statusIcons", "quickToggles", "transparencyEnabled", "actionPrefix", "specialPrefix", "actions", "enableDangerousActions", "useFuzzyApps", "useFuzzyWallpapers", "useFuzzyActions", "useFuzzySchemes", "useFuzzyVariants", "smartScheme", "wallpaperDirectory", "wallpaperEnabled", "desktopClockEnabled", "desktopClockPosition", "borderThickness", "useTwelveHourClock", "useFahrenheit", "useFahrenheitPerformance", "weatherLocation", "audioIncrement", "brightnessIncrement", "maxVolume", "visualiserBars", "defaultPlayer", "playerAliases", "toastAudioOutputChanged", "toastAudioInputChanged", "toastNowPlaying", "toastFullscreen", "maxToasts", "toastChargingChanged", "toastCapsLockChanged", "toastNumLockChanged", "toastKbLayoutChanged", "toastKbLimit", "toastVpnChanged", "notificationExpire", "suppressNotificationsInFullscreen", "notificationDefaultExpireTimeout", "notificationFullscreenExpireTimeout", "notificationActionOnClick", "notificationFullscreenMode", "notificationClearThreshold", "notificationExpandThreshold", "notificationGroupPreviewNum", "notificationOpenExpanded", "lockRecolourLogo", "lockHideNotifs", "lockEnableFprint", "lockMaxFprintTries", "lockEnableHowdy", "lockMaxHowdyTries", "lockTriggerHowdyOnWake", "dashboardMediaUpdateInterval", "dashboardResourceUpdateInterval", "nexusWallpapersPerRow", "nexusMaxNetworksShown", "nexusNetworkRescanInterval", "toastDndChanged", "toastGameModeChanged", "vimKeybinds", "workspacesShown", "dashboard", "launcher", "sidebar", "utilities", "bar", "activeIndicator", "activeTrail", "maxWindowIcons", "perMonitorWorkspaces", "persistent", "scrollActions", "background", "activeWindow", "popouts", "clock", "function load", "function save", "function setFavouriteApps", "function setHiddenApps", "function setHiddenTrayIcons", "function setWorkspacesShown", "function moveStatusIcon", "function removeStatusIcon", "function setStatusIconEnabled", "function insertStatusIcon", "function setQuickToggleEnabled"):
     assert marker in config, marker
+assert "entries: bar.entries" in config
+assert "CortetsuConfig.bar.workspaces.perMonitorWorkspaces" in hub
+assert "bottomHub.statusCluster" in config
+assert "bottomHub.segments" in config
+assert "saveLegacy();" in config
+assert "payload.bottomHub" in config
+assert "watchChanges: false" in config
+assert "property bool patchBottomHubAfterSave" in config
+assert "onSaved:" in config
+assert "loaded = false;" in config
+assert "bar: { persistent: bar.persistent" in config
 panel_sources = "\n".join(path.read_text(encoding="utf-8") for path in (repo / "cortetsu/base/modules/nexus/pages/panels").glob("*.qml"))
 workspace_sources = "\n".join(path.read_text(encoding="utf-8") for path in (repo / "cortetsu/base/modules/bar/components/workspaces").glob("*.qml"))
 bar_sources = "\n".join(path.read_text(encoding="utf-8") for path in (repo / "cortetsu/base/modules/bar").rglob("*.qml"))
@@ -140,6 +157,9 @@ for filename, markers in metrics.items():
     service_text = (repo / "cortetsu/services" / filename).read_text(encoding="utf-8")
     for marker in markers:
         assert marker in service_text, (filename, marker)
+storage = (repo / "cortetsu/services/Storage.qml").read_text(encoding="utf-8")
+assert "match[4].startsWith(\"/\")" in storage
+assert "match[5].startsWith(\"/\")" not in storage
 for metric_consumer in (
     repo / "cortetsu/base/modules/dashboard/Performance.qml",
     repo / "cortetsu/base/modules/dashboard/dash/Resources.qml",
@@ -212,17 +232,19 @@ for legacy in ("Caelestia.Config", "qs.services", "qs.components", "Colours.", "
 assert "Time.hourStr" in bar_clock and "CortetsuDesign.colorTertiary" in bar_clock
 for legacy in ("Caelestia.Config", "qs.services", "qs.components", "Colours.", "Tokens.", "StyledRect", "StyledText", "MaterialIcon", "GlobalConfig"):
     assert legacy not in status_icons, legacy
-assert "CortetsuAudio" in status_icons and "CortetsuNetwork" in status_icons and "UPower" in status_icons
+assert "CortetsuAudio" in status_icons and "CortetsuNetwork" in status_icons and "CortetsuPower" in status_icons
 for legacy in ("Caelestia", "GlobalConfig", "Toaster", "SessionManager"):
     assert legacy not in battery_monitor, legacy
-assert "Quickshell.Services.UPower" in battery_monitor
+assert "CortetsuPower" in battery_monitor
 assert "notify-send" in battery_monitor and '"systemctl", "hibernate"' in battery_monitor
 for legacy in ("Caelestia", "GlobalConfig", "GameMode", "Notifs", "Weather", "VPN"):
     assert legacy not in service_loader, legacy
 assert "CortetsuAudio" in service_loader and "CortetsuNotifications" in service_loader
 for legacy in ("Caelestia", "GlobalConfig", "Toaster", "SessionManager", "Hypr.extras"):
     assert legacy not in game_mode, legacy
-assert "CortetsuHypr.dispatch" in game_mode and "target: \"gameMode\"" in game_mode
+assert 'Quickshell.execDetached(["hyprctl", "keyword", key, value])' in game_mode
+assert 'Quickshell.execDetached(["hyprctl", "reload"])' in game_mode
+assert 'target: "gameMode"' in game_mode
 for legacy in ("Caelestia", "GlobalConfig", "Requests.get", "QNetworkAccessManager"):
     assert legacy not in requests, legacy
 assert "function get(url, onSuccess, onError, headers = {})" in requests

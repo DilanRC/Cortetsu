@@ -104,7 +104,11 @@ ColumnLayout {
                 onClicked: {
                     root.screenState.utilities = false;
                     root.screenState.sidebar = false;
-                    Quickshell.execDetached([...CortetsuConfig.playbackCommand, recording.modelData.path]);
+                    CortetsuProcessLauncher.launchPersistent(
+                        [...CortetsuConfig.playbackCommand, recording.modelData.path],
+                        "",
+                        "recording-playback"
+                    );
                 }
             }
 
@@ -114,7 +118,11 @@ ColumnLayout {
                 onClicked: {
                     root.screenState.utilities = false;
                     root.screenState.sidebar = false;
-                    Quickshell.execDetached([...CortetsuConfig.explorerCommand, recording.modelData.path]);
+                    CortetsuProcessLauncher.launchPersistent(
+                        [...CortetsuConfig.explorerCommand, recording.modelData.path],
+                        "",
+                        "recording-explorer"
+                    );
                 }
             }
 

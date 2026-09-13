@@ -2,7 +2,7 @@ schema = 1
 
 [identity]
 name = "Cortetsu"
-concept = "forged restraint"
+concept = "transformation under pressure"
 
 [palette]
 sumi = "#0B0D10"
@@ -12,11 +12,6 @@ indigo = "#334E68"
 vermillion = "#D64B32"
 muted = "#8A919B"
 
-# Material-3-style semantic roles, layered on top of the six base colours
-# above. surface/on-surface/primary/tertiary/outline alias base palette
-# entries directly; the rest are literal because no combination of the base
-# six reproduces them. Consumed by ~26 QML modules via CortetsuDesign.js --
-# see core/theme.py:render_design.
 [palette.semantic]
 surface_high = "#222831"
 primary_container = "#263E53"
@@ -32,33 +27,48 @@ warning = "#C49A62"
 
 [shape]
 radius_small = 8
-radius_medium = 14
-radius_large = 22
+radius_medium = 12
+radius_large = 20
+radius_surface = 28
 radius_pill = 999
 
 [spacing]
 unit = 4
 compact = 8
 standard = 12
-comfortable = 20
-spacious = 28
+comfortable = 16
+spacious = 24
+section = 32
 
 [density]
 control_height = 36
 row_height = 52
+control_height_primary = 40
 outline_width = 1
 overlay_opacity = 0.94
 scrim_opacity = 0.22
 
 [motion]
-instant_ms = 70
-fast_ms = 100
-standard_ms = 160
-deliberate_ms = 220
-panel_ms = 260
-hover_scale = 1.04
+instant_ms = 80
+fast_ms = 120
+standard_ms = 180
+deliberate_ms = 240
+panel_ms = 240
+hover_scale = 1.025
+
+[wall_utility]
+surface_radius = "shape.radius_surface"
+panel_motion = "motion.panel_ms"
+orbit_motion = "motion.standard_ms"
+crossfade_motion = "motion.standard_ms"
+orbit_top_gap = "spacing.section"
+orbit_bottom_gap = "spacing.section"
+footer_gap = "spacing.compact"
+category_gap = "spacing.compact"
 
 [principles]
 space = "ma"
 material = "sumi-tetsu-washi"
 accent = "vermillion"
+accent_policy = "indigo-for-interaction-vermillion-for-danger"
+success_policy = "healthy-connected-success-only"

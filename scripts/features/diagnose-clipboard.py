@@ -11,7 +11,7 @@ from pathlib import Path
 HOME = Path.home()
 UID = os.getuid()
 LIVE = Path(os.environ.get("CORTETSU_LIVE_ROOT", str(Path.home() / ".config/quickshell/cortetsu/current")))
-REPO = HOME / "Cortetsu"
+REPO = Path(__file__).resolve().parents[2]
 
 
 def newest_log() -> Path | None:
@@ -94,7 +94,7 @@ files = [
 ]
 for rel in files:
     live_path = LIVE / rel
-    repo_path = REPO / "cortetsu/modules" / rel
+    repo_path = REPO / "cortetsu" / rel
     live_hash = sha256(live_path) if live_path.exists() else "MISSING"
     repo_hash = sha256(repo_path) if repo_path.exists() else "MISSING"
     state = "MATCH" if live_hash == repo_hash else "DIFF"

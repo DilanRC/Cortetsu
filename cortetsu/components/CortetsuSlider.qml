@@ -14,48 +14,95 @@ Item {
     property real step: 0.05
     signal moved(real value)
 
-    implicitHeight: 28
+    implicitHeight: 30
+    opacity: disabled ? 0.46 : 1
 
     Rectangle {
         id: track
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
-        height: 6
-        radius: 3
-        color: CortetsuDesign.colorSurfaceGlassStrong
+        height: mouse.containsMouse || root.activeFocus ? 5 : 4
+        radius: height / 2
+        color: Qt.alpha(CortetsuDesign.colorSurfaceGlassStrong, 0.92)
+
+        Behavior on height {
+            NumberAnimation {
+                duration: CortetsuDesign.motionFastMs
+                easing.type: Easing.OutCubic
+            }
+        }
 
         Rectangle {
             width: track.width * root.progress
             height: parent.height
             radius: parent.radius
             color: CortetsuDesign.colorPrimary
+
+            Behavior on width {
+                enabled: !mouse.pressed
+                NumberAnimation {
+                    duration: CortetsuDesign.motionFastMs
+                    easing.type: Easing.OutCubic
+                }
+            }
         }
     }
 
     Rectangle {
-        id: focusRing
-        anchors.fill: parent
-        color: "transparent"
-        border.width: root.activeFocus ? 1 : 0
-        border.color: CortetsuDesign.colorWashi
-        radius: 4
+        anchors.centerIn: handle
+        width: handle.width + 10
+        height: width
+        radius: width / 2
+        color: Qt.alpha(CortetsuDesign.colorPrimary, root.activeFocus ? 0.18 : mouse.containsMouse ? 0.1 : 0)
+
+        Behavior on color {
+            ColorAnimation {
+                duration: CortetsuDesign.motionFastMs
+                easing.type: Easing.OutCubic
+            }
+        }
     }
 
     Rectangle {
         id: handle
-        width: 18
+        width: mouse.pressed || root.activeFocus ? 17 : mouse.containsMouse ? 16 : 14
         height: width
         radius: width / 2
         x: Math.max(0, Math.min(root.width - width, root.progress * (root.width - width)))
         anchors.verticalCenter: parent.verticalCenter
-        color: mouse.containsMouse || mouse.pressed ? CortetsuDesign.colorWashi : CortetsuDesign.colorPrimary
+        color: mouse.containsMouse || mouse.pressed || root.activeFocus
+            ? CortetsuDesign.colorWashi
+            : CortetsuDesign.colorPrimary
         border.width: 1
-        border.color: CortetsuDesign.colorOutline
-        Behavior on x { NumberAnimation { duration: CortetsuDesign.motionFastMs; easing.type: Easing.OutCubic } }
+        border.color: Qt.alpha(CortetsuDesign.colorOutline, 0.72)
+
+        Behavior on x {
+            enabled: !mouse.pressed
+            NumberAnimation {
+                duration: CortetsuDesign.motionFastMs
+                easing.type: Easing.OutCubic
+            }
+        }
+
+        Behavior on width {
+            NumberAnimation {
+                duration: CortetsuDesign.motionFastMs
+                easing.type: Easing.OutCubic
+            }
+        }
+
+        Behavior on color {
+            ColorAnimation {
+                duration: CortetsuDesign.motionFastMs
+                easing.type: Easing.OutCubic
+            }
+        }
     }
 
-    readonly property real progress: root.to === root.from ? 0 : Math.max(0, Math.min(1, (root.value - root.from) / (root.to - root.from)))
+    readonly property real progress: root.to === root.from
+        ? 0
+        : Math.max(0, Math.min(1, (root.value - root.from) / (root.to - root.from)))
 
     MouseArea {
         id: mouse
@@ -63,8 +110,14 @@ Item {
         enabled: !root.disabled
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
-        onPressed: event => root.setFromPosition(event.x)
-        onPositionChanged: event => { if (pressed) root.setFromPosition(event.x); }
+        onPressed: event => {
+            root.forceActiveFocus();
+            root.setFromPosition(event.x);
+        }
+        onPositionChanged: event => {
+            if (pressed)
+                root.setFromPosition(event.x);
+        }
     }
 
     function setFromPosition(position: real): void {

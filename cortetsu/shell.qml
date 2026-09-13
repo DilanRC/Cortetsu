@@ -15,12 +15,22 @@ import "services"
 ShellRoot {
     id: root
     settings.watchFiles: false
+    // Keep the wallpaper lifecycle controller alive with the shell so its
+    // monitor-aware IPC contract is available before the first visual open.
+    readonly property var wallpaperController: WallpaperController
     Binding { target: ShellState; property: "shellRoot"; value: root }
+    ShellLifecycle {}
     ServiceLoader {}
     Background {}
     Drawers {}
     BottomHub {}
     AreaPicker {}
+    QsdHost {}
+    DashboardHost {}
+    LauncherHost {}
+    SettingsHost {}
+    SessionHost { lockController: lock }
+    RetainedSurfacesHost {}
     Lock { id: lock }
     Shortcuts {}
     BatteryMonitor {}
@@ -29,6 +39,5 @@ ShellRoot {
     ClipboardController {}
     HardwareController {}
     DisplayController {}
-    WallpaperController {}
     IdleMonitors { lock: lock }
 }

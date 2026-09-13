@@ -94,6 +94,24 @@ def main() -> None:
     require(view, "anchors.horizontalCenter: parent.horizontalCenter", "centered app segment")
     require(view, "id: traySegment", "tray segment")
     require(view, "id: statusSegment", "right status segment")
+    for token in (
+        "required property bool modeVisible",
+        "required property bool appsVisible",
+        "required property bool trayVisible",
+        "required property bool statusVisible",
+        "visible: root.modeVisible",
+        "visible: root.appsVisible",
+        "visible: root.trayVisible",
+        "visible: root.statusVisible",
+    ):
+        require(view, token, "configurable dock segment")
+    for token in (
+        "modeVisible: CortetsuConfig.bottomHub.segments.mode",
+        "appsVisible: CortetsuConfig.bottomHub.segments.apps",
+        "trayVisible: CortetsuConfig.bottomHub.segments.tray",
+        "statusVisible: CortetsuConfig.bottomHub.segments.status",
+    ):
+        require(bottom, token, "persisted dock segment")
     require_order(
         view,
         [
@@ -113,13 +131,18 @@ def main() -> None:
     require(rail, "root.cycleRequested(appItem.modelData.key, -1);", "wheel previous request")
     require(rail, "root.cycleRequested(appItem.modelData.key, 1);", "wheel next request")
 
-    require(mode, 'imageSource: "file:///usr/share/icons/cachyos.svg"', "CachyOS launcher logo")
+    require(mode, "evolvingMarkPhase:", "Cortetsu evolving launcher logo")
+    require(mode, '"Human"', "Cortetsu Human idle phase")
+    require(mode, '"Awakening"', "Cortetsu Awakening intent phase")
+    require(mode, '"Monster"', "Cortetsu Monster active phase")
+    if "/usr/share/icons/cachyos.svg" in mode:
+        raise SystemExit("FAIL: BottomHub product identity must not fall back to the distro badge")
     require(mode, "CortetsuWorkspaceDots {", "workspace indicator component")
 
     require(bottom, "Icons.getVolumeIcon(CortetsuAudio.volume, CortetsuAudio.muted)", "volume icon controller")
     require(bottom, "Icons.getNetworkIcon(CortetsuNetwork.active.strength ?? 0)", "network icon controller")
     require(bottom, '"bluetooth_connected"', "bluetooth state icon")
-    require(bottom, "Icons.getBatteryIcon(UPower.displayDevice.percentage, batteryCharging)", "battery icon controller")
+    require(bottom, "Icons.getBatteryIcon(CortetsuPower.value, batteryCharging)", "battery icon controller")
     require(bottom, "SystemTray.items.values", "system tray controller")
     require(bottom, "item.icon || Icons.getTrayIcon(item.id, item.icon)", "tray icon priority")
     require(bottom, "`traymenu${sourceIndex}`", "native tray hover menu")
@@ -127,10 +150,40 @@ def main() -> None:
     if "ColouredIcon" in tray or "Config.bar.tray.recolour" in tray:
         raise SystemExit("FAIL: tray view must not depend on Caelestia recolour primitives")
 
-    require(status, 'root.attachedControlRequested("audio", root.centerFor(volumeButton))', "anchored audio hover")
-    require(status, 'root.attachedControlRequested("network", root.centerFor(networkButton))', "anchored network hover")
-    require(status, 'root.attachedControlRequested("bluetooth", root.centerFor(bluetoothButton))', "anchored bluetooth hover")
-    require(status, 'root.attachedControlRequested("battery", root.centerFor(batteryButton))', "anchored battery hover")
+    require(status, "id: systemControls", "system hover island")
+    require(status, "required property bool audioVisible", "audio visibility contract")
+    require(status, "required property bool networkVisible", "network visibility contract")
+    require(status, "required property bool bluetoothVisible", "Bluetooth visibility contract")
+    require(status, "required property bool batteryVisible", "battery visibility contract")
+    require(status, "visible: root.audioVisible", "audio visibility binding")
+    require(status, "visible: root.networkVisible", "network visibility binding")
+    require(status, "visible: root.bluetoothVisible", "Bluetooth visibility binding")
+    require(status, "visible: root.batteryVisible", "battery visibility binding")
+    require(status, "id: systemControlsHover", "system hover island")
+    require(status, "signal systemControlsEntered()", "system hover entry bridge")
+    require(status, "signal systemControlsExited()", "system hover exit bridge")
+    require(status, "root.systemControlsEntered();", "system hover entry")
+    require(status, "root.systemControlsExited();", "system hover exit")
+    if "root.syncSystemControlHover()" in status:
+        raise SystemExit("FAIL: individual button hover exits must not close the system island")
+    for marker in (
+        'root.attachedControlEntered("audio"',
+        'root.attachedControlEntered("network"',
+        'root.attachedControlEntered("bluetooth"',
+        'root.attachedControlEntered("battery"',
+    ):
+        require(status, marker, "all system controls participate in hover ownership")
+    require(status, "root.systemControlsExited()", "single island exit")
+    require(status, 'root.attachedControlEntered("audio", root.centerFor(volumeButton))', "anchored audio hover")
+    require(status, 'root.attachedControlEntered("network", root.centerFor(networkButton))', "anchored network hover")
+    require(status, 'root.attachedControlEntered("bluetooth", root.centerFor(bluetoothButton))', "anchored bluetooth hover")
+    require(status, 'root.attachedControlEntered("battery", root.centerFor(batteryButton))', "anchored battery hover")
+    if status.count("root.systemControlsExited()") != 1:
+        raise SystemExit("FAIL: attached system controls must close only when the hover island is exited")
+    require(status, 'if (root.statusPopoutsEnabled)\n                    root.attachedControlRequested("network", root.centerFor(networkButton))', "guarded network click request")
+    require(status, 'if (root.statusPopoutsEnabled)\n                    root.attachedControlRequested("bluetooth", root.centerFor(bluetoothButton))', "guarded bluetooth click request")
+    require(status, 'if (root.statusPopoutsEnabled)\n                    root.attachedControlRequested("battery", root.centerFor(batteryButton))', "guarded battery click request")
+    require(status, "tooltipOnHover: false", "rich popup tooltip suppression")
     require(status, "onClicked: root.calendarRequested()", "clock-click calendar request")
 
     require(bottom, "onLauncherRequested: hubRoot.toggleLauncherFor(win.modelData)", "launcher action")
@@ -145,6 +198,7 @@ def main() -> None:
     require(button, "property int buttonSize: 48", "button size parameter")
     require(button, "property int iconSize:", "button icon size parameter")
     require(button, 'property string imageSource: ""', "image button support")
+    require(button, "property bool tooltipOnHover: true", "tooltip hover policy")
     require(button, "signal wheel(real delta)", "wheel interaction support")
     require(button, "property color activeColor:", "button active color parameter")
     require(button, "property color iconColor:", "button icon color parameter")

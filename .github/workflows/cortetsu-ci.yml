@@ -50,12 +50,18 @@ jobs:
           while IFS= read -r -d '' file; do bash -n "$file"; done < <(find scripts cortetsu/bin -type f -name '*.sh' -print0)
           bash -n scripts/cortetsu
           bash -n scripts/migrate-cortetsu-v2.sh
-          bash -n cortetsu/bin/ensure-upstream.sh
-          bash -n scripts/features/test-upstream-bootstrap.sh
       - name: Validate shell quality
         run: python3 scripts/features/test-cortetsu-quality.py
       - name: Validate first-party Bottom Hub
         run: python3 scripts/features/test-native-bottom-hub.py
+      - name: Validate shared Launcher and Dashboard typography
+        run: |
+          python3 scripts/features/test-cortetsu-dashboard-typography.py
+          python3 scripts/features/eval-cortetsu-dashboard-typography.py
+      - name: Validate tray menu data boundary
+        run: |
+          python3 scripts/features/test-cortetsu-tray-menu.py
+          python3 scripts/features/eval-cortetsu-tray-menu.py
       - name: Validate native theme
         run: python3 scripts/features/test-native-theme.py
       - name: Validate legacy theme retirement
@@ -79,7 +85,7 @@ jobs:
           test -f core/theme.py
           test -f core/shell_lifecycle.py
           test -f core/import_fish.py
-          test -f core/retire_legacy_theme.py
+          test -f scripts/maintenance/retire_legacy_theme.py
           test -x scripts/features/test-dotfiles-platform.py
           test -x scripts/features/test-system-generations.py
           test -f scripts/features/test-shell-lifecycle.py
@@ -87,6 +93,9 @@ jobs:
           test -f scripts/features/test-theme-retirement.py
           test -f scripts/features/test-fish-import.py
           test -f scripts/features/test-native-bottom-hub.py
+          test -f scripts/features/test-cortetsu-wall-utility-contract.py
+          test -f scripts/features/eval-cortetsu-wall-utility-contract.py
+          test -f cortetsu/contracts/wall-utility.json
           test ! -e cortetsu/bin/native-bottom-hub.py
           test -f cortetsu/modules/CortetsuBottomHubView.qml
           test -f cortetsu/modules/CortetsuModeSegment.qml
@@ -100,11 +109,13 @@ jobs:
           test -f dotfiles/generated/theme/home/.config/kdeglobals
           test ! -e dotfiles/imported/desktop/home/.config/kitty/caelestia-theme.conf
           test ! -e scripts/features/install-theme-bridge.py
+          test ! -e cortetsu/bin/ensure-upstream.sh
+          test ! -e scripts/features/test-upstream-bootstrap.sh
+          test ! -e caelestia/compatibility.json
           test -f profiles/base.toml
           test -f profiles/personal.toml
           test -f packages/arch.toml
           test -f config/systemd/user/cortetsu-shell.service
-          test -f cortetsu/bin/ensure-upstream.sh
           test -f docs/CORTETSU_ARCHITECTURE.md
           test -f docs/DOTFILES_PLATFORM.md
           test -f docs/IDENTITY.md
@@ -113,20 +124,35 @@ jobs:
           grep -q '^\[group.personal-shell\]' packages/arch.toml
           grep -q 'packages = \["fish"\]' packages/arch.toml
           grep -q '"personal-shell"' profiles/personal.toml
-          grep -q '"upstreamRepo": "https://github.com/caelestia-dots/shell.git"' caelestia/compatibility.json
-          grep -q 'ensure-upstream.sh' cortetsu/bin/build-runtime.sh
+          ! grep -q 'ensure-upstream.sh' cortetsu/bin/build-runtime.sh
           grep -q 'CortetsuBottomHubView.qml' cortetsu/bin/build-runtime.sh
           ! grep -q 'native-bottom-hub.py' cortetsu/bin/build-runtime.sh
           grep -q 'core/dotfiles.py' scripts/install-cortetsu.sh
           grep -q 'core/system.py' scripts/install-cortetsu.sh
           grep -q 'core/theme.py' scripts/install-cortetsu.sh
-          grep -q 'core/retire_legacy_theme.py' scripts/install-cortetsu.sh
+          grep -q 'scripts/maintenance/retire_legacy_theme.py' scripts/install-cortetsu.sh
           grep -q 'core/shell_lifecycle.py' scripts/install-cortetsu.sh
           grep -q 'theme) theme_cmd' scripts/cortetsu
           grep -q 'rollback) rollback_cmd' scripts/cortetsu
           ! grep -q 'install-theme-bridge.py' scripts/install-cortetsu.sh
           ! grep -q 'caelestia-theme.conf' dotfiles/manifest.toml
-          ! git grep -n -I -E 'caerice-|CAERICE_|~/.config/caerice|~/.local/state/caerice' -- ':!docs/history/**' ':!docs/PROVENANCE.md' ':!scripts/migrate-cortetsu-v2.sh' ':!scripts/features/test-v2-migration-unreadable.sh' ':!scripts/features/test-upstream-bootstrap.sh' ':!cortetsu/bin/ensure-upstream.sh' ':!cortetsu/tests/test-runtime-contract.py' ':!.github/workflows/**'
+          ! git grep -n -I -E 'caerice-|CAERICE_|~/.config/caerice|~/.local/state/caerice' -- ':!docs/history/**' ':!docs/PROVENANCE.md' ':!scripts/migrate-cortetsu-v2.sh' ':!cortetsu/tests/test-runtime-contract.py' ':!.github/workflows/**'
           ! git grep -n -I 'sh -c' -- '*.qml'
           ! git grep -n -I 'CORTETSU_DATA_ROOT:-${CORTETSU_DATA_ROOT' -- ':!docs/history/**' ':!.github/workflows/**'
           ! git grep -n -I 'CORTETSU_RUNTIME_ROOT:-${CORTETSU_RUNTIME_ROOT' -- ':!docs/history/**' ':!.github/workflows/**'
+
+  wall-utility-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Compile Wall Utility checks
+        run: |
+          python3 -m py_compile \
+            scripts/features/test-cortetsu-wall-utility-contract.py \
+            scripts/features/eval-cortetsu-wall-utility-contract.py
+      - name: Validate Wall Utility BCDE contract
+        run: |
+          python3 scripts/features/test-cortetsu-wall-utility-contract.py
+          python3 scripts/features/eval-cortetsu-wall-utility-contract.py
+          python3 scripts/features/test-cortetsu-launcher-wallpaper-apply.py
+          python3 scripts/features/eval-cortetsu-launcher-wallpaper-apply.py
