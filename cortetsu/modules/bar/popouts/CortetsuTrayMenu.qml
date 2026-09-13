@@ -12,14 +12,12 @@ CortetsuPopupSurface {
 
     required property PopoutState popouts
     required property QsMenuHandle trayItem
+    property real menuContentHeight: 72
     // StackView does not propagate the implicit size of a dynamically-created
     // Column. Keep the popup measurable so the menu is not rendered as an
     // empty square while its DBus entries are loading.
     implicitWidth: 320 + CortetsuDesign.spacingStandard * 2
-    implicitHeight: Math.max(
-        72,
-        (stack.currentItem?.implicitHeight ?? 0) + CortetsuDesign.spacingStandard * 2
-    )
+    implicitHeight: menuContentHeight + CortetsuDesign.spacingStandard * 2
 
     StackView {
         id: stack
@@ -124,14 +122,16 @@ CortetsuPopupSurface {
             readonly property int entryCount: opener.children?.length ?? 0
             padding: CortetsuDesign.spacingCompact
             spacing: CortetsuDesign.spacingUnit
-            implicitWidth: 320 + padding * 2
-            implicitHeight: Math.max(
+            width: 320 + padding * 2
+            height: Math.max(
                 48,
                 entryCount * (CortetsuDesign.spacingStandard + 32)
                     + Math.max(0, entryCount - 1) * spacing
                     + padding * 2
                     + (subMenu ? CortetsuDesign.spacingStandard + 48 : 0)
             )
+
+            onHeightChanged: root.menuContentHeight = height
 
             QsMenuOpener {
                 id: opener
