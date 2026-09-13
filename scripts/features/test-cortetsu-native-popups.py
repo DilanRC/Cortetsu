@@ -123,6 +123,8 @@ assert "Keys.onPressed" in tray_menu
 assert "Qt.Key_Right" in tray_menu and "Qt.Key_Left" in tray_menu
 assert "Qt.Key_Escape" in tray_menu
 assert "focused: activeFocus" in tray_menu
+assert "implicitWidth: 320 + CortetsuDesign.spacingStandard * 2" in tray_menu
+assert "entryCount * (CortetsuDesign.spacingStandard + 32)" in tray_menu
 for legacy in ("sourceComponent: Battery", "sourceComponent: ActiveWindow", "sourceComponent: KbLayout", "sourceComponent: LockStatus", "sourceComponent: TrayMenu"):
     assert legacy not in content, legacy
 assert "sourceComponent: Network {" not in content

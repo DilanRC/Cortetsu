@@ -612,6 +612,20 @@ Scope {
                 );
             }
 
+            function openTrayMenu(itemId, centerX): void {
+                const item = trayItemForId(itemId);
+                if (!item)
+                    return;
+                const sourceIndex = SystemTray.items.values.indexOf(item);
+                if (sourceIndex < 0)
+                    return;
+                hubRoot.openAttachedControlNow(
+                    modelData,
+                    `traymenu${sourceIndex}`,
+                    hubMargin + centerX
+                );
+            }
+
             function activateTrayItem(itemId, secondary = false): void {
                 const item = trayItemForId(itemId);
                 if (!item)
@@ -779,7 +793,7 @@ Scope {
                 onAppCycleRequested: (key, direction) => win.cycleDockKey(key, direction)
                 onTrayHoverRequested: (itemId, centerX) => win.showTrayMenu(itemId, centerX)
                 onTrayActivateRequested: itemId => win.activateTrayItem(itemId)
-                onTraySecondaryRequested: (itemId, centerX) => win.showTrayMenu(itemId, centerX)
+                onTraySecondaryRequested: (itemId, centerX) => win.openTrayMenu(itemId, centerX)
                 onAttachedControlRequested: (mode, centerX) => hubRoot.showAttachedControlFor(
                     win.modelData,
                     mode,
