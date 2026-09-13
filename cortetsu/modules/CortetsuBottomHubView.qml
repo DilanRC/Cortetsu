@@ -52,7 +52,7 @@ Item {
     signal appCycleRequested(string key, int direction)
     signal trayHoverRequested(string itemId, real centerX)
     signal trayActivateRequested(string itemId)
-    signal traySecondaryRequested(string itemId)
+    signal traySecondaryRequested(string itemId, real centerX)
     signal attachedControlRequested(string mode, real centerX)
     signal attachedControlEntered(string mode, real centerX)
     signal systemControlsEntered()
@@ -153,7 +153,10 @@ Item {
             traySegment.x + centerX
         )
         onActivateRequested: itemId => root.trayActivateRequested(itemId)
-        onSecondaryRequested: itemId => root.traySecondaryRequested(itemId)
+        onSecondaryRequested: (itemId, centerX) => root.traySecondaryRequested(
+            itemId,
+            traySegment.x + centerX
+        )
     }
 
     CortetsuStatusSegment {

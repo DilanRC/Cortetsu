@@ -779,7 +779,7 @@ Scope {
                 onAppCycleRequested: (key, direction) => win.cycleDockKey(key, direction)
                 onTrayHoverRequested: (itemId, centerX) => win.showTrayMenu(itemId, centerX)
                 onTrayActivateRequested: itemId => win.activateTrayItem(itemId)
-                onTraySecondaryRequested: itemId => win.activateTrayItem(itemId, true)
+                onTraySecondaryRequested: (itemId, centerX) => win.showTrayMenu(itemId, centerX)
                 onAttachedControlRequested: (mode, centerX) => hubRoot.showAttachedControlFor(
                     win.modelData,
                     mode,

@@ -170,7 +170,7 @@ def assert_view_contract(source: dict[str, str]) -> None:
     tray = source["CortetsuTraySegment.qml"]
     assert "signal hoverRequested(string itemId, real centerX)" in tray
     assert "signal activateRequested(string itemId)" in tray
-    assert "signal secondaryRequested(string itemId)" in tray
+    assert "signal secondaryRequested(string itemId, real centerX)" in tray
     assert "width: visible ? implicitWidth : 0" in tray
     assert "modelData.title" in tray
     assert "CortetsuTooltip" in tray

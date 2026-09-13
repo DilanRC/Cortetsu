@@ -12,7 +12,7 @@ Item {
 
     signal hoverRequested(string itemId, real centerX)
     signal activateRequested(string itemId)
-    signal secondaryRequested(string itemId)
+    signal secondaryRequested(string itemId, real centerX)
 
     implicitWidth: trayRow.implicitWidth + CortetsuDesign.spacingStandard
     implicitHeight: 52
@@ -87,14 +87,20 @@ Item {
                         if (event.button === Qt.LeftButton)
                             root.activateRequested(trayItem.modelData.id);
                         else
-                            root.secondaryRequested(trayItem.modelData.id);
+                            root.secondaryRequested(
+                                trayItem.modelData.id,
+                                trayItem.x + trayItem.width / 2
+                            );
                     }
                 }
 
                 Keys.onEnterPressed: root.activateRequested(trayItem.modelData.id)
                 Keys.onReturnPressed: root.activateRequested(trayItem.modelData.id)
                 Keys.onSpacePressed: root.activateRequested(trayItem.modelData.id)
-                Keys.onMenuPressed: root.secondaryRequested(trayItem.modelData.id)
+                Keys.onMenuPressed: root.secondaryRequested(
+                    trayItem.modelData.id,
+                    trayItem.x + trayItem.width / 2
+                )
 
                 CortetsuTooltip {
                     target: trayItem

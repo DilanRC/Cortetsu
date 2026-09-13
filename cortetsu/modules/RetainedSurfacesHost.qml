@@ -44,7 +44,7 @@ Scope {
             Rectangle {
                 anchors.fill: parent
                 visible: window.surfaceOpen
-                color: Qt.alpha(CortetsuDesign.colorSumi, 0.78)
+                color: Qt.alpha(CortetsuDesign.colorSumi, 0.34)
                 z: -1
             }
 

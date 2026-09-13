@@ -88,7 +88,7 @@ assert "?? CortetsuShellState.forActive()" not in shell_service.split("function 
 assert "model: CortetsuScreens.screens" in retained_host
 assert "CortetsuShellState.forScreen(modelData)" in retained_host
 assert "CortetsuShellState.forActive()" not in retained_host
-assert "Qt.alpha(CortetsuDesign.colorSumi, 0.78)" in retained_host
+assert "Qt.alpha(CortetsuDesign.colorSumi, 0.34)" in retained_host
 
 assert "cortetsuState" in calendar
 assert 'state.setRetained("calendar", false)' in calendar
