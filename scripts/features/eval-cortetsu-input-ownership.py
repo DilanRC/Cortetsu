@@ -4,7 +4,6 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 files = [
-    ROOT / "cortetsu/modules/QsdHost.qml",
     ROOT / "cortetsu/modules/DashboardHost.qml",
     ROOT / "cortetsu/modules/SettingsHost.qml",
     ROOT / "cortetsu/modules/LauncherHost.qml",

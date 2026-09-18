@@ -75,12 +75,20 @@ assert "CortetsuConfig.actionPrefix" in texts["Content.qml"]
 assert 'import "../../components"' in texts["Content.qml"]
 assert "CortetsuConfig.actionPrefix" in texts["ContentList.qml"]
 assert "listLoading" in texts["ContentList.qml"]
-assert 'title: qsTr("Loading wallpapers")' in texts["ContentList.qml"]
+assert "visible: root.listLoading" in texts["ContentList.qml"]
 
 # actionPrefix and specialPrefix are the two distinct prefixes upstream
 # used to split across GlobalConfig.launcher.actionPrefix/specialPrefix;
 # both now come from the same CortetsuConfig singleton.
 assert "CortetsuConfig.specialPrefix" in texts["services/Apps.qml"]
+assert "function isLaunchable(entry): bool" in texts["services/Apps.qml"]
+assert "!entry.noDisplay" in texts["services/Apps.qml"]
+assert "Array.from(entry.command ?? []).length > 0" in texts["services/Apps.qml"]
+
+pruner = (repo / "cortetsu/bin/cortetsu-prune-applications").read_text(encoding="utf-8")
+assert "XDG_DATA_HOME" in pruner
+assert "cortetsu/quarantine/applications" in pruner
+assert "shutil.which" in pruner and "shutil.move" in pruner
 
 # useFuzzy.{apps,actions,schemes,variants} is deliberately unified into a
 # single CortetsuConfig.useFuzzyApps flag (see docs/LAUNCHER_MIGRATION.md

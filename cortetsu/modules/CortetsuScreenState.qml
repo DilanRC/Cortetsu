@@ -24,7 +24,7 @@ QtObject {
         if (flag === "overview" || flag === "calendar" || flag === "clipboard"
                 || flag === "hardware" || flag === "displayManager" || flag === "wallpaperManager")
             return setRetained(flag, value);
-        if (["launcher", "session", "dashboard", "utilities", "qsd", "settings", "sidebar", "osd"].indexOf(flag) < 0
+        if (["launcher", "session", "dashboard", "utilities", "settings", "sidebar", "osd"].indexOf(flag) < 0
                 || legacyState[flag] === undefined)
             return false;
         legacyState[flag] = value;

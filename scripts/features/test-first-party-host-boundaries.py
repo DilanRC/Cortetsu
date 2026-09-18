@@ -4,7 +4,6 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 HOSTS = {
-    "QsdHost.qml": ("../components", "../components/containers", "../services", "."),
     "SettingsHost.qml": ("../components", "../components/containers", "../services", "."),
     "LauncherHost.qml": ("../components/containers", "../services", "."),
     "DashboardHost.qml": ("../components", "../components/containers", "../services", "."),

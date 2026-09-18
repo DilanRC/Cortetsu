@@ -35,10 +35,10 @@ assert "Layout.preferredHeight: childrenRect.height" in content
 assert "implicitHeight: childrenRect.height" not in content
 assert "ScrollBar.vertical" in content
 assert "ScrollBar.AsNeeded" in content
-assert 'title: qsTr("Controles de estado visibles")' in system
-for label in ("Volumen", "Red", "Bluetooth", "Batería"):
+assert 'title: qsTr("Comportamiento de BottomHub")' in system
+for label in ("Estado de la red", "Bluetooth", "Energía"):
     assert f'title: qsTr("{label}")' in system
-assert "CortetsuConfig.bottomHub.statusCluster" in system
+assert "CortetsuConfig.bar.popouts.statusIcons" in system
 assert "WallpaperController.open(root.screen)" in system
 assert "root.screenState.cortetsuState?.closeRetainedOverlaysExcept(flag)" in system
 assert 'title: qsTr("Segmentos visibles")' in system
@@ -56,7 +56,7 @@ checks = {
         "CortetsuConfig.transparencyEnabled = checked;",
         "CortetsuConfig.save();",
     )),
-    "system preferences persist": system.count("root.savePreference();") >= 18,
+    "system preferences persist": system.count("root.savePreference();") >= 16,
     "scheme application state is observable": all(marker in schemes for marker in (
         "pendingScheme", 'applyStatus = "applying"', "applyError", "stderr: StdioCollector", "onExited",
     )),

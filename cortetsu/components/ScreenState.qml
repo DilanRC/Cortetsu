@@ -16,10 +16,6 @@ PersistentProperties {
     property bool launcher
     property bool dashboard
     property bool utilities
-    property bool qsd
-    property bool qsdEdgeHovered
-    property bool qsdDrawerHovered
-    property bool qsdOpenedByShortcut
     property bool settings
     property bool sidebar
     property int dashboardTab
@@ -40,7 +36,6 @@ PersistentProperties {
     Component.onCompleted: {
         // Migrate persisted legacy quick-settings flags to the single OSD.
         root.utilities = false;
-        root.qsd = false;
         CortetsuShellState.registerState(modelData, root);
     }
     Component.onDestruction: CortetsuShellState.unregisterState(modelData, root)

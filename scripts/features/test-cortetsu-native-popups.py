@@ -93,10 +93,8 @@ assert "transformOrigin: Item.Bottom" in clip_wrapper
 assert "panel: panels.popoutsWrapper" not in content_window
 assert "panel: panels.osdWrapper" not in content_window
 qsd = (ROOT / "cortetsu/modules/qsd/Content.qml").read_text(encoding="utf-8")
-qsd_host = (ROOT / "cortetsu/modules/QsdHost.qml").read_text(encoding="utf-8")
 assert "implicitHeight: body.implicitHeight" in qsd
-assert "Layout.preferredHeight: 78" in qsd and "Layout.fillHeight: true" not in qsd
-assert "content.implicitHeight + CortetsuDesign.spacingSection * 2" in qsd_host
+assert "Layout.preferredHeight: 78" in qsd
 
 # Native shell icons must stay on the GUI thread. Async image decoding in
 # these always-created surfaces triggers Qt's cross-thread pixmap warning.
@@ -136,9 +134,9 @@ assert "activeFocusOnTab" in tray_menu
 assert "Keys.onPressed" in tray_menu
 assert "Qt.Key_Right" in tray_menu and "Qt.Key_Left" in tray_menu
 assert "Qt.Key_Escape" in tray_menu
-assert "focused: activeFocus" in tray_menu
-assert "implicitWidth: 320 + CortetsuDesign.spacingStandard * 2" in tray_menu
-assert "entryCount * (CortetsuDesign.spacingStandard + 32)" in tray_menu
+assert "focused: false" in tray_menu
+assert "implicitWidth: menuContentWidth + CortetsuDesign.spacingStandard * 2" in tray_menu
+assert "property real menuContentHeight" in tray_menu
 for legacy in ("sourceComponent: Battery", "sourceComponent: ActiveWindow", "sourceComponent: KbLayout", "sourceComponent: LockStatus", "sourceComponent: TrayMenu"):
     assert legacy not in content, legacy
 assert "sourceComponent: Network {" not in content

@@ -14,9 +14,14 @@ QtObject {
 
     readonly property bool useFuzzyApps: CortetsuConfig.useFuzzyApps
 
+    function isLaunchable(entry): bool {
+        return !!entry && !entry.noDisplay && Array.from(entry.command ?? []).length > 0;
+    }
+
     function entries(): var {
         return DesktopEntries.applications.values.filter(entry =>
-            !Strings.testRegexList(CortetsuConfig.hiddenApps, entry.id));
+            isLaunchable(entry)
+            && !Strings.testRegexList(CortetsuConfig.hiddenApps, entry.id));
     }
 
     function launch(entry): void {

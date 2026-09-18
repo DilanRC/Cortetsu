@@ -3,12 +3,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 content = (ROOT / "cortetsu/modules/qsd/Content.qml").read_text(encoding="utf-8")
 action_tile = (ROOT / "cortetsu/components/CortetsuActionTile.qml").read_text(encoding="utf-8")
-host = (ROOT / "cortetsu/modules/QsdHost.qml").read_text(encoding="utf-8")
 policy = (ROOT / "cortetsu/modules/CortetsuOverlayPolicy.js").read_text(encoding="utf-8")
 power = (ROOT / "cortetsu/services/CortetsuPower.qml").read_text(encoding="utf-8")
 
-assert "anchors.right: parent.right" in host and "width: 400" in host
-assert "baseColor: Qt.alpha(CortetsuDesign.colorSumi" in host
+assert not (ROOT / "cortetsu/modules/QsdHost.qml").exists()
 assert "highlighted: CortetsuNotifications.dnd" in content
 assert 'icon: CortetsuAudio.muted ? "volume_off" : "volume_up"' in content
 assert 'warning: false' in content
@@ -21,7 +19,7 @@ assert "onMoved: nextValue => CortetsuAudio.setVolume(nextValue)" in content
 assert "onMoved: root.brightnessMonitor?.setBrightness(value)" not in content
 assert "onMoved: CortetsuAudio.setVolume(value)" not in content
 assert "root.screenState.settings = true" in content
-assert '"qsd"' in policy
+assert '"qsd"' not in policy
 assert "import qs." not in content
 assert "CortetsuActionTile" in content
 assert "CortetsuEvolvingMark" in content
@@ -36,9 +34,6 @@ assert "onEntered: tile.hovered = true" not in content
 checks = {
     "explicit close clears shortcut pin": all(marker in content for marker in (
         "function closeQsd(): void",
-        "state.qsdOpenedByShortcut = false",
-        "state.qsdEdgeHovered = false",
-        "state.qsdDrawerHovered = false",
         "onClicked: root.closeQsd()",
     )),
     "battery capability is finite and clamped": all(marker in content for marker in (

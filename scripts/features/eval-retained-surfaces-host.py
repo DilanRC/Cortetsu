@@ -20,7 +20,7 @@ null_safe_wrappers = {
     "session/Wrapper.qml": ("screenState?.session === true",),
     "dashboard/Wrapper.qml": ("screenState?.dashboard === true",),
     "sidebar/Wrapper.qml": ("screenState?.sidebar ?? false",),
-    "utilities/Wrapper.qml": ("screenState?.utilities ?? false", "screenState?.session ?? false"),
+    "utilities/Wrapper.qml": ("readonly property bool shouldBeActive: false",),
     "wallpaper/Wrapper.qml": ("screenState?.cortetsuState",),
 }
 checks = {

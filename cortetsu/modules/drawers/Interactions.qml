@@ -87,7 +87,6 @@ CustomMouseArea {
         if (CortetsuShellState.screenshotActive)
             return;
         if (!containsMouse) {
-            root.screenState.qsdEdgeHovered = false;
             // Only hide if not activated by shortcut
             if (!osdShortcutActive) {
                 screenState.osd = false;

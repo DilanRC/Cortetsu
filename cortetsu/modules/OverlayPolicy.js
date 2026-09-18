@@ -17,7 +17,7 @@ function setFlag(state, flag, value) {
 function closeOtherPanels(state) {
     if (!state)
         return;
-    for (const flag of ["launcher", "session", "dashboard", "utilities", "qsd", "settings", "sidebar",
+    for (const flag of ["launcher", "session", "dashboard", "utilities", "settings", "sidebar",
                         "overview", "calendar", "wallpaperManager", "clipboard", "hardware", "displayManager"])
         setFlag(state, flag, false);
 }
@@ -25,13 +25,13 @@ function closeOtherPanels(state) {
 function closeForWallpaper(state) {
     if (!state)
         return;
-    for (const flag of ["launcher", "session", "dashboard", "utilities", "qsd", "settings", "sidebar",
+    for (const flag of ["launcher", "session", "dashboard", "utilities", "settings", "sidebar",
                         "overview", "calendar", "clipboard", "hardware", "displayManager"])
         setFlag(state, flag, false);
 }
 
 function hasCompetingPanel(state) {
     return !!state && (state.launcher || state.session || state.dashboard || state.utilities
-        || state.qsd || state.settings || state.sidebar || state.overview || state.calendar
+        || state.settings || state.sidebar || state.overview || state.calendar
         || state.clipboard || state.hardware || state.displayManager);
 }

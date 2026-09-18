@@ -217,7 +217,7 @@ def main(argv: list[str]) -> int:
         state["colours"] = colours
         write_state(state)
         write_hypr_scheme(colours)
-        if write_runtime_design(colours):
+        if write_runtime_design(colours) and not os.environ.get("CORTETSU_SKIP_RELOAD"):
             reload_runtime()
         return 0
     if len(argv) == 3 and argv[:2] == ["set", "-v"] and argv[2]:

@@ -53,10 +53,6 @@ Item {
         const state = root.screenState;
         if (!state)
             return;
-        state.qsdOpenedByShortcut = false;
-        state.qsdEdgeHovered = false;
-        state.qsdDrawerHovered = false;
-        state.qsd = false;
         state.osd = false;
     }
 

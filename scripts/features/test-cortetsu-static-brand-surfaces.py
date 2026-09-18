@@ -16,8 +16,10 @@ SESSION = ROOT / "cortetsu/modules/SessionHost.qml"
 for name, (path, size_marker) in SURFACES.items():
     content = path.read_text(encoding="utf-8")
     assert "CortetsuEvolvingMark" in content, name
-    assert 'phase: "Ascended"' in content, name
-    assert "animated: false" in content, name
+    expected_phase = 'phase: root.markPhase' if name == "osd" else 'phase: "Ascended"'
+    assert expected_phase in content, name
+    if name != "osd":
+        assert "animated: false" in content, name
     assert "monochrome: true" in content, name
     assert "monochromeColor: CortetsuDesign.colorWashi" in content, name
     assert size_marker in content, (name, size_marker)
