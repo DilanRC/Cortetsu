@@ -22,7 +22,8 @@ CortetsuPopupSurface {
     property var passwordNetwork: null
     readonly property var networks: (device?.networks?.values ?? []).slice().sort((a, b) => {
         if (a.connected !== b.connected) return b.connected - a.connected;
-        return (b.signalStrength ?? 0) - (a.signalStrength ?? 0);
+        return CortetsuNetwork.strengthPercent(b.signalStrength)
+            - CortetsuNetwork.strengthPercent(a.signalStrength);
     })
     readonly property var availableNetworks: root.networks.filter(network => !network.connected)
 
@@ -149,7 +150,7 @@ CortetsuPopupSurface {
             delegate: CortetsuListRow {
                 required property var modelData
                 width: ListView.view.width
-                icon: Icons.getNetworkIcon(modelData.signalStrength ?? 0)
+                icon: Icons.getNetworkIcon(CortetsuNetwork.strengthPercent(modelData.signalStrength))
                 title: modelData.name ?? qsTr("Red oculta")
                 subtitle: modelData.security === WifiSecurityType.None
                     ? qsTr("Red abierta")

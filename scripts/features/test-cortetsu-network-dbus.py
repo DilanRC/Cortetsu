@@ -24,6 +24,8 @@ for banned in ("Quickshell.Io", "Process {", "StdioCollector", "Timer {", "nmcli
 assert re.search(r"readonly property var active:", text)
 assert re.search(r"readonly property var activeEthernet:", text)
 assert "strength" in text and "ssid" in text and "connected: true" in text
+assert "function strengthPercent" in text
+assert "value *= 100" in text
 
 # Balanced braces -> catches an obviously broken QML edit.
 assert text.count("{") == text.count("}")

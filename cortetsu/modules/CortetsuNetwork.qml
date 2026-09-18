@@ -41,6 +41,17 @@ Singleton {
         return (Networking.devices?.values ?? []).find(device => device.type === type) ?? null;
     }
 
+    // Quickshell exposes Wi-Fi strength as a normalized 0..1 value. The
+    // visual consumers and NetworkManager's UI contract use percentages.
+    function strengthPercent(raw): int {
+        let value = Number(raw);
+        if (!isFinite(value))
+            return 0;
+        if (value >= 0 && value <= 1)
+            value *= 100;
+        return Math.max(0, Math.min(100, Math.round(value)));
+    }
+
     readonly property var wifiDevice: deviceOfType(DeviceType.Wifi)
     readonly property var wiredDevice: deviceOfType(DeviceType.Wired)
 
@@ -49,7 +60,7 @@ Singleton {
         : null
 
     readonly property var active: activeWifiNetwork
-        ? { strength: Math.round(activeWifiNetwork.signalStrength ?? 0), ssid: activeWifiNetwork.name }
+        ? { strength: root.strengthPercent(activeWifiNetwork.signalStrength), ssid: activeWifiNetwork.name }
         : null
 
     readonly property var activeEthernet: (wiredDevice?.connected ?? false)
