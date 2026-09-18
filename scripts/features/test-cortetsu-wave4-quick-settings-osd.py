@@ -11,15 +11,17 @@ for source in (utilities_wrapper, osd):
         assert legacy not in source, legacy
 
 assert "readonly property bool shouldBeActive: false" in utilities_wrapper
-assert "Acciones rápidas" not in osd
-assert "CortetsuActionTile" not in osd
-assert "visible: true" in osd
-assert "CortetsuProgressBar" in osd
-assert "value: indicator.modelData.value" in osd
+assert 'import "../qsd" as FullOsd' in osd
+assert "FullOsd.Content" in osd
+assert "implicitWidth: 520" in osd
+qsd = (ROOT / "cortetsu/modules/qsd/Content.qml").read_text(encoding="utf-8")
+assert "CortetsuActionTile" in qsd
+assert 'title: qsTr("Controles")' in qsd
+assert 'title: qsTr("Niveles")' in qsd
+assert 'title: qsTr("Energía")' not in qsd  # energy is a card label, not a section
+assert "CortetsuSlider" in qsd
+assert "CortetsuPower" in qsd
 assert "Math.max(0, Math.min(1, root.value))" in progress
-assert "CortetsuAudio.incrementVolume" in osd
-assert "setBrightness" in osd
-assert "id: indicatorSummary" in osd
-assert "Row {\n                            CortetsuText" not in osd
+assert "state.osd = false" in qsd
 
 print("PASS: Wave 4 Quick Settings and OSD stay first-party and state-legible")

@@ -2,10 +2,13 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 content = (ROOT / "cortetsu/modules/osd/Content.qml").read_text(encoding="utf-8")
+qsd = (ROOT / "cortetsu/modules/qsd/Content.qml").read_text(encoding="utf-8")
 progress = (ROOT / "cortetsu/components/CortetsuProgressBar.qml").read_text(encoding="utf-8")
-assert "Acciones rápidas" not in content
-assert "CortetsuActionTile" not in content
-assert "id: indicators" in content
-assert "CortetsuProgressBar" in content
+assert 'import "../qsd" as FullOsd' in content
+assert "FullOsd.Content" in content
+assert "implicitWidth: 520" in content
+assert "CortetsuActionTile" in qsd
+assert "CortetsuSlider" in qsd
+assert "CortetsuPower" in qsd
 assert "Behavior on width" in progress
-print("PASS: OSD geometry stays restrained and animated with the existing motion contract")
+print("PASS: OSD exposes the complete large system-control surface")

@@ -11,7 +11,6 @@ assert component.count("Behavior on width") == 1
 consumer_paths = [
     ROOT / "cortetsu/modules/dashboard/Focus.qml",
     ROOT / "cortetsu/modules/hardware/MetricCard.qml",
-    ROOT / "cortetsu/modules/osd/Content.qml",
     ROOT / "cortetsu/modules/calendar/Content.qml",
     ROOT / "cortetsu/modules/bar/popouts/CortetsuBatteryPopup.qml",
 ]

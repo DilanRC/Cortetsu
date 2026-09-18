@@ -17,6 +17,7 @@ Item {
     required property var screenState
     required property ShellScreen screen
 
+    implicitWidth: 520
     implicitHeight: body.implicitHeight
 
     readonly property var brightnessMonitor: Brightness.getMonitorForScreen(root.screen)
@@ -56,6 +57,7 @@ Item {
         state.qsdEdgeHovered = false;
         state.qsdDrawerHovered = false;
         state.qsd = false;
+        state.osd = false;
     }
 
     function openSettings(): void {
@@ -65,7 +67,9 @@ Item {
 
     ColumnLayout {
         id: body
-        anchors.fill: parent
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: parent.top
         spacing: CortetsuDesign.spacingStandard
 
         RowLayout {

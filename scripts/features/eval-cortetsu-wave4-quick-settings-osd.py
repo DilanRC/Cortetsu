@@ -7,19 +7,18 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 utilities = (ROOT / "cortetsu/modules/utilities/Wrapper.qml").read_text(encoding="utf-8")
 osd = (ROOT / "cortetsu/modules/osd/Content.qml").read_text(encoding="utf-8")
+qsd = (ROOT / "cortetsu/modules/qsd/Content.qml").read_text(encoding="utf-8")
 progress = (ROOT / "cortetsu/components/CortetsuProgressBar.qml").read_text(encoding="utf-8")
 
 checks = {
     "legacy quick settings host is inert": "readonly property bool shouldBeActive: false" in utilities,
-    "osd has no action card": "Acciones rápidas" not in osd and "CortetsuActionTile" not in osd,
-    "osd keeps volume wheel control": "CortetsuAudio.incrementVolume" in osd and "CortetsuAudio.decrementVolume" in osd,
-    "osd uses one shared surface": "CortetsuPopupSurface" in osd and "id: indicators" in osd,
-    "osd keeps brightness wheel control": "root.monitor.setBrightness" in osd,
-    "osd uses the shared bounded level primitive": "CortetsuProgressBar" in osd
-    and "value: indicator.modelData.value" in osd
+    "osd composes the complete large surface": 'import "../qsd" as FullOsd' in osd and "FullOsd.Content" in osd,
+    "large surface keeps system controls": "CortetsuActionTile" in qsd and "CortetsuSlider" in qsd,
+    "osd has a stable large width": "implicitWidth: 520" in osd,
+    "large surface closes the OSD": "state.osd = false" in qsd,
+    "large surface keeps power and network context": "CortetsuPower" in qsd and "networkName" in qsd,
+    "osd uses the shared bounded level primitive": "CortetsuSlider" in qsd
     and "Math.max(0, Math.min(1, root.value))" in progress,
-    "osd distinguishes mute": "indicator.modelData.muted" in osd,
-    "osd summary avoids invalid Row anchors": "id: indicatorSummary" in osd and "Row {\n                            CortetsuText" not in osd,
     "surfaces avoid legacy ownership": all(
         legacy not in utilities and legacy not in osd
         for legacy in ("Caelestia", "GlobalConfig", "qs.services", "qs.components", "Tokens", "Colours")

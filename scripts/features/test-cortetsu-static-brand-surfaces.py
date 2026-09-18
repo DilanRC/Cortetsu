@@ -4,7 +4,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 SURFACES = {
-    "osd": (ROOT / "cortetsu/modules/osd/Content.qml", "Layout.preferredWidth: 32"),
+    "osd": (ROOT / "cortetsu/modules/qsd/Content.qml", "Layout.preferredWidth: 32"),
     "dashboard": (ROOT / "cortetsu/modules/dashboard/Dash.qml", "Layout.preferredWidth: 38"),
     "settings": (ROOT / "cortetsu/modules/settings/Content.qml", "Layout.preferredWidth: 72"),
 }

@@ -6,6 +6,8 @@ for name in ("Wrapper.qml", "Content.qml"):
     for legacy in ("Caelestia", "GlobalConfig", "qs.services", "qs.components", "Tokens", "Colours"):
         assert legacy not in source, f"{name}: {legacy}"
 assert "screenState?.osd" in (repo / "cortetsu/modules/osd/Wrapper.qml").read_text(encoding="utf-8")
-assert "CortetsuAudio.incrementVolume" in (repo / "cortetsu/modules/osd/Content.qml").read_text(encoding="utf-8")
-assert "CortetsuSurface" in (repo / "cortetsu/modules/osd/Content.qml").read_text(encoding="utf-8")
+qsd = (repo / "cortetsu/modules/qsd/Content.qml").read_text(encoding="utf-8")
+assert "CortetsuAudio.setVolume" in qsd
+assert "CortetsuSurface" in qsd
+assert "CortetsuActionTile" in qsd
 print("PASS: OSD host uses first-party audio, brightness, and state")

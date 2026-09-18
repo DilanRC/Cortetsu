@@ -23,7 +23,6 @@ for token in (
 consumers = {
     "cortetsu/modules/dashboard/Focus.qml": "value: root.progress()",
     "cortetsu/modules/hardware/MetricCard.qml": "value: root.progress",
-    "cortetsu/modules/osd/Content.qml": "value: indicator.modelData.value",
     "cortetsu/modules/calendar/Content.qml": "value: root.progress()",
     "cortetsu/modules/bar/popouts/CortetsuBatteryPopup.qml": "value: CortetsuPower.value",
 }
@@ -32,4 +31,4 @@ for name, token in consumers.items():
     assert "CortetsuProgressBar" in consumer, f"{name} does not use shared progress primitive"
     assert token in consumer, f"{name} lost its progress source"
 
-print("PASS: OSD, Dashboard, Hardware, Calendar and Battery feedback share CortetsuProgressBar")
+print("PASS: Dashboard, Hardware, Calendar and Battery feedback use shared progress primitive")

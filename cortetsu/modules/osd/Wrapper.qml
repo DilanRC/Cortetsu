@@ -85,6 +85,7 @@ Item {
         anchors.left: parent.left
         monitor: root.monitor
         screenState: root.screenState
+        screen: root.screen
         volume: root.volume
         muted: root.muted
         brightness: root.brightness
