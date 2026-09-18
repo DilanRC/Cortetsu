@@ -22,10 +22,11 @@ Item {
     readonly property var profiles: CortetsuSettingsNetwork.profiles.filter(profile => profile.type === "802-11-wireless")
     readonly property var selectedNetwork: networks[selectedIndex] ?? null
     readonly property var selectedProfile: profiles[selectedIndex] ?? null
+    readonly property var activeNetwork: networks.find(network => network.active) ?? null
 
     // This page is content-sized so the settings scroller does not enter a
     // polish loop by deriving its implicit height from its parent.
-    implicitHeight: 560
+    implicitHeight: 660
 
     function selectFirst(): void {
         selectedIndex = 0;
@@ -107,10 +108,74 @@ Item {
             }
         }
 
+        CortetsuSurface {
+            Layout.fillWidth: true
+            visible: !!root.activeNetwork
+            implicitHeight: 94
+            baseColor: Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.48)
+            outlined: true
+            outlineColor: Qt.alpha(CortetsuDesign.colorPrimary, 0.42)
+            radiusValue: CortetsuDesign.radiusMedium
+
+            RowLayout {
+                anchors.fill: parent
+                anchors.margins: CortetsuDesign.spacingStandard
+                spacing: CortetsuDesign.spacingStandard
+
+                CortetsuIcon {
+                    text: "wifi"
+                    color: CortetsuDesign.colorSuccess
+                    iconSize: CortetsuTypography.iconLargePx
+                }
+
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 2
+                    CortetsuText {
+                        text: qsTr("Conexión actual")
+                        textSize: CortetsuTypography.labelSmallPx
+                        color: CortetsuDesign.colorOnSurfaceVariant
+                    }
+                    CortetsuText {
+                        text: root.activeNetwork?.ssid ?? CortetsuSettingsNetwork.activeSsid
+                        textSize: CortetsuTypography.bodyPx
+                        font.weight: Font.DemiBold
+                        elide: Text.ElideRight
+                    }
+                    CortetsuText {
+                        text: root.activeNetwork
+                            ? qsTr("%1% · %2 · %3").arg(root.activeNetwork.signal).arg(root.signalLabel(root.activeNetwork.signal)).arg(root.activeNetwork.security || qsTr("Red abierta"))
+                            : qsTr("Conexión gestionada por NetworkManager")
+                        textSize: CortetsuTypography.labelSmallPx
+                        color: CortetsuDesign.colorOnSurfaceVariant
+                    }
+                }
+
+                ColumnLayout {
+                    Layout.preferredWidth: 180
+                    spacing: 4
+                    CortetsuText {
+                        Layout.alignment: Qt.AlignRight
+                        Layout.fillWidth: true
+                        text: root.activeNetwork ? qsTr("Señal %1%").arg(root.activeNetwork.signal) : ""
+                        textSize: CortetsuTypography.labelSmallPx
+                        color: CortetsuDesign.colorOnSurfaceVariant
+                        horizontalAlignment: Text.AlignRight
+                    }
+                    CortetsuProgressBar {
+                        Layout.fillWidth: true
+                        value: root.signalValue(root.activeNetwork?.signal)
+                        fillColor: CortetsuDesign.colorSuccess
+                        barHeight: 5
+                    }
+                }
+            }
+        }
+
         RowLayout {
             Layout.fillWidth: true
-            Layout.preferredHeight: 420
-            Layout.maximumHeight: 420
+            Layout.preferredHeight: 360
+            Layout.maximumHeight: 360
             spacing: CortetsuDesign.spacingSection
 
             CortetsuSurface {
@@ -230,7 +295,7 @@ Item {
                     CortetsuSurface {
                         Layout.fillWidth: true
                         visible: !root.showingProfiles && !!root.selectedNetwork
-                        implicitHeight: 188
+                        implicitHeight: 172
                         baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.60)
                         outlined: true
                         radiusValue: CortetsuDesign.radiusMedium
