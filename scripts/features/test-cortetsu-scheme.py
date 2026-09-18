@@ -15,6 +15,11 @@ with tempfile.TemporaryDirectory() as directory:
     live_scheme = Path(env["XDG_CONFIG_HOME"]) / "hypr/scheme/current.lua"
     live_scheme.parent.mkdir(parents=True)
     live_scheme.write_text("return {}\n", encoding="utf-8")
+    runtime = Path(directory) / "runtime/current/modules"
+    runtime.mkdir(parents=True)
+    design = REPO / "cortetsu/modules/CortetsuDesign.js"
+    (runtime / "CortetsuDesign.js").write_text(design.read_text(encoding="utf-8"), encoding="utf-8")
+    env["CORTETSU_RUNTIME_ROOT"] = str(Path(directory) / "runtime")
     subprocess.run([str(script), "set", "-v", "expressive"], env=env, check=True)
     result = subprocess.run([str(script), "get", "-nfv"], env=env, check=True, text=True, capture_output=True)
     assert result.stdout.splitlines() == ["dynamic", "default", "expressive"]
@@ -29,6 +34,9 @@ with tempfile.TemporaryDirectory() as directory:
     live = live_scheme.read_text(encoding="utf-8")
     assert f'primary = "{catalog["aura"]["default"]["primary"].lstrip("#")}"' in live
     assert 'surfaceContainer =' in live and 'onSurfaceVariant =' in live
+    runtime_design = (runtime / "CortetsuDesign.js").read_text(encoding="utf-8")
+    assert 'var colorPrimary = "#A277FF"' in runtime_design
+    assert 'var colorTetsu = "#211F2D"' in runtime_design
 
     installed = Path(directory) / "bin/cortetsu-scheme"
     installed.parent.mkdir()

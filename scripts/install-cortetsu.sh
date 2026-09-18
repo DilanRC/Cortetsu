@@ -54,6 +54,7 @@ install -m 0644 "$REPO/config/systemd/user/$WALLPAPER_COLOR_UNIT" "$SYSTEMD_USER
 # Low-level shell rollback remains available for recovery. Normal operation uses
 # `cortetsu rollback`, which reverts the full system generation.
 install -m 0755 "$REPO/cortetsu/bin/rollback-runtime.sh" "$BIN_DIR/cortetsu-rollback"
+install -m 0755 "$REPO/cortetsu/bin/cortetsu-scheme" "$BIN_DIR/cortetsu-scheme"
 
 if [[ -x "$REPO/scripts/cortetsu" ]]; then
     atomic_symlink "$REPO" "$DATA_ROOT/repository"

@@ -37,6 +37,99 @@ def hypr_scheme_path() -> Path:
     return Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config")) / "hypr/scheme/current.lua"
 
 
+def normalise_hex(value: object) -> str | None:
+    if not isinstance(value, str):
+        return None
+    value = value.strip().lstrip("#")
+    if len(value) != 6:
+        return None
+    try:
+        int(value, 16)
+    except ValueError:
+        return None
+    return value.upper()
+
+
+def runtime_design_path() -> Path:
+    runtime_root = Path(
+        os.environ.get(
+            "CORTETSU_RUNTIME_ROOT",
+            Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config")) / "quickshell/cortetsu",
+        )
+    )
+    return runtime_root / "current/modules/CortetsuDesign.js"
+
+
+def write_runtime_design(colours: dict) -> bool:
+    """Project the selected M3 roles into the live Cortetsu design tokens."""
+    path = runtime_design_path()
+    if not path.is_file():
+        return False
+
+    source = path.read_text(encoding="utf-8")
+    roles = {
+        "colorSumi": "background",
+        "colorTetsu": "surface",
+        "colorWashi": "onSurface",
+        "colorIndigo": "primary",
+        "colorSurfaceHigh": "surfaceContainerHigh",
+        "colorOnSurfaceVariant": "onSurfaceVariant",
+        "colorPrimary": "primary",
+        "colorOnPrimary": "onPrimary",
+        "colorPrimaryContainer": "primaryContainer",
+        "colorOnPrimaryContainer": "onPrimaryContainer",
+        "colorSecondary": "secondary",
+        "colorSecondaryContainer": "secondaryContainer",
+        "colorOnSecondaryContainer": "onSecondaryContainer",
+        "colorTertiary": "tertiary",
+        "colorOutline": "outline",
+        "colorOutlineVariant": "outlineVariant",
+        "colorSurfaceGlass": "surfaceContainer",
+        "colorSurfaceGlassStrong": "surfaceContainerHigh",
+        "colorSuccess": "success",
+    }
+
+    replacements = {}
+    for token, role in roles.items():
+        value = normalise_hex(colours.get(role))
+        if value:
+            replacements[token] = f'var {token} = "#{value}"'
+
+    if not replacements:
+        return False
+
+    lines = source.splitlines(keepends=True)
+    changed = False
+    for index, line in enumerate(lines):
+        stripped = line.lstrip()
+        for token, replacement in replacements.items():
+            if stripped.startswith(f"var {token} ="):
+                newline = "\n" if line.endswith("\n") else ""
+                indentation = line[: len(line) - len(stripped)]
+                updated = f"{indentation}{replacement}{newline}"
+                if updated != line:
+                    lines[index] = updated
+                    changed = True
+                break
+
+    if not changed:
+        return False
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.NamedTemporaryFile("w", encoding="utf-8", dir=path.parent, delete=False) as handle:
+        handle.writelines(lines)
+        temporary = Path(handle.name)
+    os.replace(temporary, path)
+    return True
+
+
+def reload_runtime() -> None:
+    """Reload only when this machine has an installed live runtime."""
+    helper = shutil.which("cortetsu")
+    if helper and runtime_design_path().is_file():
+        subprocess.run([helper, "shell", "reload"], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
 def write_hypr_scheme(colours: dict) -> None:
     """Keep the live Hyprland palette in sync when it already exists."""
     path = hypr_scheme_path()
@@ -124,6 +217,8 @@ def main(argv: list[str]) -> int:
         state["colours"] = colours
         write_state(state)
         write_hypr_scheme(colours)
+        if write_runtime_design(colours):
+            reload_runtime()
         return 0
     if len(argv) == 3 and argv[:2] == ["set", "-v"] and argv[2]:
         state["variant"] = argv[2]
