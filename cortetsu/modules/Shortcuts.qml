@@ -21,15 +21,6 @@ Scope {
         return opening;
     }
 
-    function toggleSettingsFullscreen(): void {
-        const state = CortetsuShellState.forActive();
-        if (!state || !state.settings)
-            return;
-        CortetsuHypr.dispatch(CortetsuHypr.usingLua
-            ? "hl.dsp.window.fullscreen({ mode = 'fullscreen' })"
-            : "fullscreen");
-    }
-
     CustomShortcut {
         name: "showall"; description: "Alternar lanzador, panel y OSD"
         onPressed: {
@@ -115,19 +106,6 @@ Scope {
             root.toggleExclusive(state, "settings");
         }
     }
-    IpcHandler {
-        target: "settings"
-
-        function toggleFullscreen(): void { root.toggleSettingsFullscreen(); }
-    }
-
-    IpcHandler {
-        // Hyprland's global binding uses cortetsu:settingsFullscreen.
-        target: "cortetsu"
-
-        function settingsFullscreen(): void { root.toggleSettingsFullscreen(); }
-    }
-
     IpcHandler {
         target: "drawers"
         function toggle(drawer: string): void {

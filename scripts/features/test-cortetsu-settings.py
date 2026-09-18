@@ -38,10 +38,9 @@ assert 'keywords: qsTr("tema color transparencia reloj visualizador")' in (setti
 assert "FloatingWindow" in host
 assert "minimumSize.width" in host
 assert "surfaceFormat.opaque: false" in host
-assert "function toggleFullscreen()" in shortcuts
-assert 'target: "cortetsu"' in shortcuts
-assert "function settingsFullscreen()" in shortcuts
-assert 'hl.dsp.global("cortetsu:settingsFullscreen")' in base_hypr
+assert 'create_bind(vars.kbWindowFullscreen, hl.dsp.window.fullscreen({ mode = "fullscreen" }))' in base_hypr
+hyprland = (ROOT / "dotfiles/home/.config/hypr/hyprland.lua").read_text(encoding="utf-8")
+assert "package.loaded[mod] = nil" in hyprland
 assert 'visible: root.controller.selectedId === "network"' in content
 assert "property bool showingProfiles" in network_page
 assert "CortetsuSettingsNetwork.setAutoconnect" in network_page

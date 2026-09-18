@@ -62,9 +62,6 @@ create_bind(
     hl.dsp.global("cortetsu:osd")
 )
 create_bind("SUPER + I", hl.dsp.global("cortetsu:settings"))
--- Settings owns SUPER+F while open; otherwise preserve the normal window action.
-create_bind("SUPER + F", hl.dsp.global("cortetsu:settingsFullscreen"))
-
 -- Restore lock
 create_bind(vars.kbRestoreLock, function()
     hl.dispatch(hl.dsp.exec_cmd("systemctl --user start cortetsu-shell.service"))
@@ -143,9 +140,7 @@ create_bind(vars.kbWindowPip, function()
     end
 end)
 create_bind(vars.kbPinWindow, hl.dsp.window.pin())
-if normalise_keybind(vars.kbWindowFullscreen) ~= normalise_keybind("SUPER + F") then
-    create_bind(vars.kbWindowFullscreen, hl.dsp.window.fullscreen({ mode = "fullscreen" }))
-end
+create_bind(vars.kbWindowFullscreen, hl.dsp.window.fullscreen({ mode = "fullscreen" }))
 create_bind(vars.kbWindowBorderedFullscreen, hl.dsp.window.fullscreen({ mode = "maximized" }))
 create_bind(vars.kbToggleWindowFloating, hl.dsp.window.float())
 create_bind(vars.kbCloseWindow, hl.dsp.window.close())
