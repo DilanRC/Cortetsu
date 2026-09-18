@@ -2,16 +2,13 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 content = (ROOT / "cortetsu/modules/launcher/Content.qml").read_text(encoding="utf-8")
-assert "function modeLabel()" in content
-assert "Theme" in content and "Wallpaper" in content and "Command" in content
-assert "Search-first" in content and "Prefix mode" in content
-assert "CortetsuDesign.colorPrimaryContainer" in content
-assert "CortetsuEvolvingMark" in content
-assert "readonly property string markPhase" in content
-assert '"Human"' in content and '"Awakening"' in content and '"Monster"' in content
-assert "readonly property bool markIntent" in content
-assert 'readonly property string markPhase: !(root.screenState?.launcher ?? false)' in content
-assert "markPhase: CortetsuWallpapers.applying" not in content
-assert '"Cosmic"' not in content
-assert "width: 20" in content and "height: 20" in content
-print("PASS: launcher exposes distinct Apps, Command, Theme, and Wallpaper modes")
+content_list = (ROOT / "cortetsu/modules/launcher/ContentList.qml").read_text(encoding="utf-8")
+mode = (ROOT / "cortetsu/modules/CortetsuModeSegment.qml").read_text(encoding="utf-8")
+assert "CortetsuSearchBar" in content and "onAccepted" in content
+assert "CortetsuWallpapers.apply" in content
+assert "ContentList" in content and "AppList" in content_list and "WallpaperList" in content_list
+assert "showWallpapers" in content_list and "sourceComponent: AppList" in content_list
+assert "evolvingMarkPhase" in mode
+assert '"Human"' in mode and '"Awakening"' in mode and '"Monster"' in mode
+assert '"Cosmic"' not in mode
+print("PASS: launcher delegates app/wallpaper search and keeps mode identity in the BottomHub segment")

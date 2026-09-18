@@ -38,7 +38,7 @@ for marker in ("batteryCharging", "batteryPercent", "batterySubtitle", "networkT
 assert 'subtitle: root.batterySubtitle' in dash
 assert 'subtitle: root.networkSubtitle' in dash
 assert 'title: root.networkTitle' in dash
-assert 'CortetsuNetwork.active?.ssid ?? qsTr("Offline")' in dash
+assert 'CortetsuNetwork.active?.ssid ?? qsTr("Sin conexión")' in dash
 assert 'subtitle: CortetsuNetwork.active?.ssid ?? qsTr("Network unavailable")' not in dash
 assert 'CortetsuPower.onBattery' in dash and 'CortetsuPower.charging' in dash
 assert "Icons.getBatteryIcon" in dash

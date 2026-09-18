@@ -59,7 +59,7 @@ assert 'root.openRetained("displayManager")' in system
 assert 'root.openRetained("wallpaperManager")' in system
 assert "WallpaperController.open(root.screen)" in system
 assert "root.screenState.cortetsuState?.closeRetainedOverlaysExcept(flag)" in system
-assert "Native NetworkManager readback; no fake controls" in system
+assert "Lectura nativa de NetworkManager; sin controles falsos" in system
 assert 'title: qsTr("Desplazamiento del volumen")' in system
 assert 'title: qsTr("Brightness scroll")' not in system
 assert 'title: qsTr("Open on hover")' not in system
@@ -96,7 +96,7 @@ for marker in (
     '["cortetsu-scheme", "set", "-n", name, flavour]',
     "readonly property bool applying: applyStatus === \"applying\"",
     "root.reload();",
-    "Unable to read the scheme catalog",
+    "No se pudo leer el catálogo de esquemas",
 ):
     assert marker in schemes, marker
 for marker in ("pendingScheme", 'applyStatus = "applying"', "applyError", "stderr: StdioCollector", "onExited"):
@@ -116,10 +116,10 @@ assert "implicitHeight: childrenRect.height" not in content
 assert "import QtQuick.Controls" in content
 assert "ScrollBar.vertical" in content
 assert "scroller.contentHeight > scroller.height" in content
-assert 'title: qsTr("Visible segments")' in system
+assert 'title: qsTr("Segmentos visibles")' in system
 assert 'value: CortetsuWallpapers.applyStatus === "applying"' in system
 assert 'warningState: CortetsuWallpapers.applyStatus === "failed"' in system
-for label in ("Mode and workspaces", "App rail", "Tray", "Status cluster"):
+for label in ("Modo y espacios", "Barra de aplicaciones", "Bandeja", "Grupo de estado"):
     assert f'title: qsTr("{label}")' in system
 assert "CortetsuConfig.bottomHub.segments" in system
 

@@ -7,12 +7,12 @@ controller = (ROOT / "cortetsu/modules/settings/SettingsController.qml").read_te
 schemes = (ROOT / "cortetsu/modules/launcher/services/Schemes.qml").read_text(encoding="utf-8")
 choice_card = (ROOT / "cortetsu/components/CortetsuChoiceCard.qml").read_text(encoding="utf-8")
 
-assert "CONTROL SURFACES" in content
+assert "SUPERFICIES DE CONTROL" in content
 assert "schemeColour" in content and "primary" in content
 assert "filteredCategories" in controller
 assert "This section is connected in stages" not in content
 assert "SystemPage" in content
-assert "Native NetworkManager readback; no fake controls" in system
+assert "Lectura nativa de NetworkManager; sin controles falsos" in system
 assert "Brightness.getMonitorForScreen(root.screen)" in system
 assert "onMoved: nextValue => CortetsuAudio.setVolume(nextValue)" in system
 assert "onMoved: nextValue => root.brightnessMonitor?.setBrightness(nextValue)" in system
@@ -35,13 +35,13 @@ assert "Layout.preferredHeight: childrenRect.height" in content
 assert "implicitHeight: childrenRect.height" not in content
 assert "ScrollBar.vertical" in content
 assert "ScrollBar.AsNeeded" in content
-assert 'title: qsTr("Visible status controls")' in system
-for label in ("Volume", "Network", "Bluetooth", "Battery"):
+assert 'title: qsTr("Controles de estado visibles")' in system
+for label in ("Volumen", "Red", "Bluetooth", "Batería"):
     assert f'title: qsTr("{label}")' in system
 assert "CortetsuConfig.bottomHub.statusCluster" in system
 assert "WallpaperController.open(root.screen)" in system
 assert "root.screenState.cortetsuState?.closeRetainedOverlaysExcept(flag)" in system
-assert 'title: qsTr("Visible segments")' in system
+assert 'title: qsTr("Segmentos visibles")' in system
 assert "CortetsuConfig.bottomHub.segments" in system
 overlay_config = (ROOT / "cortetsu/modules/CortetsuOverlayConfig.qml").read_text(encoding="utf-8")
 assert "CortetsuConfig.bar.dragThreshold" in overlay_config

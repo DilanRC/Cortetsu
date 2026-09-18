@@ -8,7 +8,7 @@ shortcuts = (ROOT / "cortetsu/modules/Shortcuts.qml").read_text(encoding="utf-8"
 assert "CortetsuShellState.forScreen(modelData)" in host
 assert "CortetsuShellState.forActive()" not in host
 assert "Desktop context" in dash
-assert "No active media" in dash
+assert "No hay contenido activo" in dash
 assert "Live context" in dash
 assert "Weather" in dash
 assert "Today" in dash and "Focus" in dash

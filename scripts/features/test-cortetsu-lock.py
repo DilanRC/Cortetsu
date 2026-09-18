@@ -13,8 +13,8 @@ for marker in (
     "WlSessionLockSurface",
     'import ".."',
     "pam.handleKey",
-    "Password",
-    "Authentication failed",
+    "Contraseña",
+    "La autenticación falló. Inténtalo de nuevo.",
     "ScreencopyView",
     "CortetsuEvolvingMark",
     'phase: root.markPhase',
@@ -49,7 +49,7 @@ assert "root.userLabel" in surface
 mark_start = surface.index("readonly property string markPhase")
 assert "pam.state" not in surface[mark_start:mark_start + 320]
 assert 'text: qsTr("CAPS")' in surface
-assert 'text: qsTr("Enter to authenticate")' in surface
+assert 'text: qsTr("Pulsa Enter para autenticarte")' in surface
 assert "Lock { id: lock }" in shell
 assert "SessionHost { lockController: lock }" in shell
 for marker in ("signal authenticationSucceeded", "property bool successPending", "root.authenticationSucceeded()", "function releaseAfterSuccess", "root.lock.unlock()"):

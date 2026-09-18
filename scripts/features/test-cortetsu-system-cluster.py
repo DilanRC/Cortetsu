@@ -12,7 +12,7 @@ content_window = (ROOT / "cortetsu/modules/drawers/ContentWindow.qml").read_text
 assert "CortetsuSurface" in segment
 assert "networkTooltip" in segment and "networkTooltip" in hub
 assert '"sync"' in hub and "CortetsuNetwork.connecting" in hub
-assert "signal %2%" in hub
+assert "señal %2%" in hub
 assert "required property bool statusPopoutsEnabled" in segment
 assert "statusPopoutsEnabled: CortetsuConfig.bar.popouts.statusIcons" in hub
 
