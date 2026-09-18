@@ -170,7 +170,9 @@ Item {
                 Layout.fillHeight: true
 
                 ColumnLayout {
-                    anchors.fill: parent
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.top: parent.top
                     spacing: CortetsuDesign.spacingSection
 
                     CortetsuSectionHeader {

@@ -43,6 +43,10 @@ assert 'hl.dsp.global("cortetsu:settingsFullscreen")' in base_hypr
 assert 'visible: root.controller.selectedId === "network"' in content
 assert "property bool showingProfiles" in network_page
 assert "CortetsuSettingsNetwork.setAutoconnect" in network_page
+surface = (ROOT / "cortetsu/components/CortetsuSurface.qml").read_text(encoding="utf-8")
+assert "CortetsuConfig.transparencyEnabled" in surface
+assert "transparencyFactor" in surface
+assert "function paintColor" in surface
 
 # Placeholder-only pages are gone; every non-appearance/about category owns a page.
 assert "This section is connected in stages" not in content
