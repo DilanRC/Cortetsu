@@ -53,6 +53,8 @@ Usage:
   cortetsu emoji [-p] [-f]        Emoji/glyph picker (-p) or data refresh (-f)
   cortetsu test                    Run repository, UX and transaction regressions
   cortetsu verify                  Verify the complete promoted Cortetsu system
+  cortetsu gc [--dry-run] [--keep N]
+                                  Collect unreferenced generations safely
   cortetsu audit                   Run status, doctor, tests and verification
   cortetsu install                 Build shell, dotfiles and unified system generation
   cortetsu help                    Show this help
@@ -121,6 +123,12 @@ system_cmd() {
     local action="${1:-status}"
     [[ $# -eq 0 ]] || shift
     python3 "$ROOT/core/system.py" "$action" --repo "$ROOT" "$@"
+}
+
+gc_cmd() {
+    require_repo
+    require_file "$ROOT/core/generation_gc.py"
+    python3 "$ROOT/core/generation_gc.py" --repo "$ROOT" "$@"
 }
 
 theme_cmd() {
@@ -363,6 +371,7 @@ test_cmd() {
         "scripts/features/test-native-theme.py"
         "scripts/features/test-dotfiles-platform.py"
         "scripts/features/test-system-generations.py"
+        "scripts/features/test-cortetsu-generation-gc.py"
         "scripts/features/test-shell-lifecycle.py"
         "scripts/features/eval-shell-application-safety.py"
         "scripts/features/eval-cortetsu-shell-ipc.py"
@@ -550,6 +559,7 @@ case "$command" in
     emoji) emoji_cmd "$@" ;;
     test) test_cmd "$@" ;;
     verify) verify_cmd "$@" ;;
+    gc) gc_cmd "$@" ;;
     audit) audit_cmd "$@" ;;
     install) install_cmd "$@" ;;
     help|-h|--help) usage ;;

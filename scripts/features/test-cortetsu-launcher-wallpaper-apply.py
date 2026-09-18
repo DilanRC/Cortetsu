@@ -49,7 +49,7 @@ assert "lastApplyPath = path;" in fail_body
 assert "actualCurrent = next" in read_body
 assert "function completeApply(path: string, generation: int): void" in service
 assert "paletteApply.requestGeneration !== root.applyGeneration" in service
-assert 'root.failApply(detail || qsTr("Dynamic scheme apply failed"))' in service
+assert 'root.failApply(detail || qsTr("No se pudo aplicar el esquema dinámico"))' in service
 
 assert "function requestWallpaper(path: string): void" in launcher
 assert "CortetsuWallpapers.applying" in request_body

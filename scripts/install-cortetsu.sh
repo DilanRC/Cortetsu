@@ -108,6 +108,11 @@ fi
 printf '==> Generación unificada Cortetsu\n'
 python3 "$REPO/core/system.py" promote --repo "$REPO"
 
+printf '==> Verificación completa antes de GC\n'
+"$REPO/scripts/cortetsu" verify
+printf '==> GC conservador de generaciones\n'
+"$REPO/scripts/cortetsu" gc --keep 5
+
 # Never restart shell supervision implicitly. The promoted generation is safe
 # to adopt on an explicit soft reload that keeps the process alive. Persistent
 # application launches use independent user scopes, so an explicit hard shell

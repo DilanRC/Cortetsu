@@ -19,7 +19,7 @@ checks = {
     "explicit failure signal": "wallpaperApplyFailed(string path, int generation)" in service,
     "state-file acknowledgement": "root.completeApply(next, generation)" in service,
     "smart scheme waits for palette": 'paletteApply.command = ["cortetsu-apply-wallpaper-colors", next];' in service and "root.completeApply(next, generation)" in service,
-    "palette failure is visible": 'root.failApply(detail || qsTr("Dynamic scheme apply failed"))' in service and "property string applyError" in service,
+    "palette failure is visible": 'root.failApply(detail || qsTr("No se pudo aplicar el esquema dinámico"))' in service and "property string applyError" in service,
     "stale palette result ignored": "paletteApply.requestGeneration !== root.applyGeneration" in service and "paletteApply.requestPath !== root.actualCurrent" in service,
     "timeout is bounded": "motionDeliberateMs * 8" in service,
     "manager uses shared apply": "CortetsuWallpapers.apply(currentPath)" in manager,

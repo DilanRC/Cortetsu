@@ -106,3 +106,47 @@ Los objetivos de rendimiento están en [`docs/PERFORMANCE.md`](docs/PERFORMANCE.
 ## Procedencia
 
 Cortetsu mantiene documentación histórica y atribución explícita en [`docs/PROVENANCE.md`](docs/PROVENANCE.md) y `docs/history/`. La procedencia se conserva; el código activo no depende del namespace anterior.
+
+# Generation storage and garbage collection
+
+Cortetsu stores immutable generations in three coordinated layers:
+
+- `~/.local/share/cortetsu/builds`: shell runtimes;
+- `~/.local/share/cortetsu/dotfiles/builds`: dotfiles generations;
+- `~/.local/share/cortetsu/system/builds`: promotion metadata linking both.
+
+`current` is the active generation. `previous` is the rollback generation. A
+system generation is retained together with the shell and dotfiles generations
+named by its `SYSTEM.json`; deleting any of those references would make the
+rollback contract invalid.
+
+Use the coordinator for collection:
+
+```bash
+cortetsu gc --dry-run
+cortetsu gc --keep 5 --dry-run
+cortetsu gc --keep 5
+```
+
+The default keeps `current`, `previous`, five additional recent generations in
+each layer, all components referenced by retained system metadata, and manual
+pins. A dry-run is read-only and prints protected generations, deletion
+candidates, invalid entries, total size, and estimated reclaim. An apply run
+locks the data root, recomputes and validates the entire plan, writes a small
+metadata backup under `~/.local/share/cortetsu/gc-backups/`, then removes only
+direct generation directories below their known build root. It never removes
+`current` or `previous`, follows no top-level symlink, and aborts on drift,
+broken links, invalid metadata, or unsafe paths.
+
+Manual pins are one generation name per file:
+
+```text
+~/.local/share/cortetsu/pins/shell.txt
+~/.local/share/cortetsu/pins/dotfiles.txt
+~/.local/share/cortetsu/pins/system.txt
+```
+
+Blank lines and `#` comments are ignored. A pin must name an existing
+generation. Normal installation verifies the complete promoted system and then
+runs the same conservative collector with `--keep 5`; a failed verification
+never reaches GC. Rollback remains available with `cortetsu rollback`.
