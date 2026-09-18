@@ -1,12 +1,13 @@
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-content = (ROOT / "cortetsu/modules/qsd/Content.qml").read_text(encoding="utf-8")
+content = (ROOT / "cortetsu/modules/osd/FullContent.qml").read_text(encoding="utf-8")
 action_tile = (ROOT / "cortetsu/components/CortetsuActionTile.qml").read_text(encoding="utf-8")
 policy = (ROOT / "cortetsu/modules/CortetsuOverlayPolicy.js").read_text(encoding="utf-8")
 power = (ROOT / "cortetsu/services/CortetsuPower.qml").read_text(encoding="utf-8")
 
 assert not (ROOT / "cortetsu/modules/QsdHost.qml").exists()
+assert not (ROOT / "cortetsu/modules/qsd").exists()
 assert "highlighted: CortetsuNotifications.dnd" in content
 assert 'icon: CortetsuAudio.muted ? "volume_off" : "volume_up"' in content
 assert 'warning: false' in content
@@ -49,6 +50,6 @@ checks = {
         and "warning: CortetsuNotifications.dnd" not in content,
 }
 assert all(checks.values()), [name for name, passed in checks.items() if not passed]
-print(f"QSD lifecycle/state eval: {sum(checks.values())}/{len(checks)}")
+print(f"OSD lifecycle/state eval: {sum(checks.values())}/{len(checks)}")
 
-print("PASS: QSD eval covers lateral motion, semantic tiles, real levels, Bluetooth, power, settings handoff and overlay exclusion")
+print("PASS: OSD eval covers lateral motion, semantic tiles, real levels, Bluetooth, power, settings handoff and overlay exclusion")

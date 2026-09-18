@@ -11,10 +11,9 @@ for source in (utilities_wrapper, osd):
         assert legacy not in source, legacy
 
 assert "readonly property bool shouldBeActive: false" in utilities_wrapper
-assert 'import "../qsd" as FullOsd' in osd
-assert "FullOsd.Content" in osd
+assert "FullContent" in osd
 assert "implicitWidth: 520" in osd
-qsd = (ROOT / "cortetsu/modules/qsd/Content.qml").read_text(encoding="utf-8")
+qsd = (ROOT / "cortetsu/modules/osd/FullContent.qml").read_text(encoding="utf-8")
 assert "CortetsuActionTile" in qsd
 assert 'title: qsTr("Controles")' in qsd
 assert 'title: qsTr("Niveles")' in qsd

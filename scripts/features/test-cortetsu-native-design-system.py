@@ -49,7 +49,7 @@ for path in (
     components / "CortetsuIcon.qml",
     components / "CortetsuSectionHeader.qml",
     ROOT / "cortetsu/modules/CortetsuIcon.qml",
-    ROOT / "cortetsu/modules/qsd/Content.qml",
+    ROOT / "cortetsu/modules/osd/FullContent.qml",
 ):
     text = path.read_text(encoding="utf-8")
     assert "CortetsuTypography" in text, f"{path.name} must source font sizes from CortetsuTypography"

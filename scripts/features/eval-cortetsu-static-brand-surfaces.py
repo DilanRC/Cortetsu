@@ -4,11 +4,11 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 SURFACES = {
-    "OSD": ROOT / "cortetsu/modules/qsd/Content.qml",
+    "OSD": ROOT / "cortetsu/modules/osd/FullContent.qml",
     "Dashboard": ROOT / "cortetsu/modules/dashboard/Dash.qml",
     "Settings": ROOT / "cortetsu/modules/settings/Content.qml",
 }
-QSD = ROOT / "cortetsu/modules/qsd/Content.qml"
+QSD = ROOT / "cortetsu/modules/osd/FullContent.qml"
 LOCK = ROOT / "cortetsu/modules/lock/LockSurface.qml"
 
 checks = {}
@@ -22,10 +22,10 @@ for name, path in SURFACES.items():
     checks[f"{name} keeps brand color private"] = "monochromeColor: CortetsuDesign.colorWashi" in content
 
 qsd = QSD.read_text(encoding="utf-8")
-checks["QSD uses renderer"] = "CortetsuEvolvingMark" in qsd
-checks["QSD uses contextual phase"] = 'phase: root.markPhase' in qsd
-checks["QSD keeps fixed 32px slot"] = "Layout.preferredWidth: 32" in qsd and "Layout.preferredHeight: 32" in qsd
-checks["QSD keeps brand color private"] = "monochromeColor: CortetsuDesign.colorWashi" in qsd
+checks["OSD uses renderer"] = "CortetsuEvolvingMark" in qsd
+checks["OSD uses contextual phase"] = 'phase: root.markPhase' in qsd
+checks["OSD keeps fixed 32px slot"] = "Layout.preferredWidth: 32" in qsd and "Layout.preferredHeight: 32" in qsd
+checks["OSD keeps brand color private"] = "monochromeColor: CortetsuDesign.colorWashi" in qsd
 
 lock = LOCK.read_text(encoding="utf-8")
 checks["Lock uses renderer"] = "CortetsuEvolvingMark" in lock

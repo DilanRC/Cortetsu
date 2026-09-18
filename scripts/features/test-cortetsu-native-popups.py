@@ -92,7 +92,7 @@ assert "        x: 0\n        transformOrigin: Item.Bottom" in clip_wrapper
 assert "transformOrigin: Item.Bottom" in clip_wrapper
 assert "panel: panels.popoutsWrapper" not in content_window
 assert "panel: panels.osdWrapper" not in content_window
-qsd = (ROOT / "cortetsu/modules/qsd/Content.qml").read_text(encoding="utf-8")
+qsd = (ROOT / "cortetsu/modules/osd/FullContent.qml").read_text(encoding="utf-8")
 assert "implicitHeight: body.implicitHeight" in qsd
 assert "Layout.preferredHeight: 78" in qsd
 

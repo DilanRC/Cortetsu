@@ -35,6 +35,9 @@ assert "required property QtObject legacyState" in state
 assert "function closeRetainedOverlays" in state
 assert "function closeRetainedOverlaysExcept(exceptFlag: string): void" in state
 assert "function setRetained(flag: string, value: bool): bool" in state
+assert "function resetTransientState(): void" in screen_component
+assert "root.resetTransientState();" in screen_component
+assert '"launcher", "dashboard", "utilities"' in screen_component
 assert "function openExclusive" in policy
 assert "function isRetainedFlag(flag)" in policy
 assert "function closeOtherRetained(state, exceptFlag)" in policy

@@ -4,11 +4,11 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 SURFACES = {
-    "osd": (ROOT / "cortetsu/modules/qsd/Content.qml", "Layout.preferredWidth: 32"),
+    "osd": (ROOT / "cortetsu/modules/osd/FullContent.qml", "Layout.preferredWidth: 32"),
     "dashboard": (ROOT / "cortetsu/modules/dashboard/Dash.qml", "Layout.preferredWidth: 38"),
     "settings": (ROOT / "cortetsu/modules/settings/Content.qml", "Layout.preferredWidth: 72"),
 }
-QSD = ROOT / "cortetsu/modules/qsd/Content.qml"
+OSD = ROOT / "cortetsu/modules/osd/FullContent.qml"
 HUB_BUTTON = ROOT / "cortetsu/modules/HubButton.qml"
 LOCK = ROOT / "cortetsu/modules/lock/LockSurface.qml"
 SESSION = ROOT / "cortetsu/modules/SessionHost.qml"
@@ -25,7 +25,7 @@ for name, (path, size_marker) in SURFACES.items():
     assert size_marker in content, (name, size_marker)
     assert 'source: Quickshell.shellPath("assets/branding/cortetsu-mark-ascended.svg")' not in content, name
 
-qsd = QSD.read_text(encoding="utf-8")
+qsd = OSD.read_text(encoding="utf-8")
 assert "CortetsuEvolvingMark" in qsd
 assert 'phase: root.markPhase' in qsd
 assert "Layout.preferredWidth: 32" in qsd and "Layout.preferredHeight: 32" in qsd

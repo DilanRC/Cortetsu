@@ -4,7 +4,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 wrapper = (ROOT / "cortetsu/modules/osd/Wrapper.qml").read_text(encoding="utf-8")
-content = (ROOT / "cortetsu/modules/qsd/Content.qml").read_text(encoding="utf-8")
+content = (ROOT / "cortetsu/modules/osd/FullContent.qml").read_text(encoding="utf-8")
 assert "monitor?.supported ? monitor.brightness : -1" in wrapper
 assert 'qsTr("No disponible")' in content
 assert "brightnessMonitor" in content

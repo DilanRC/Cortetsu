@@ -10,7 +10,7 @@ assert "scale: 1" in button
 assert button.count("scale: root.visualScale") == 2
 
 paths = [
-    ROOT / "cortetsu/modules/qsd/Content.qml",
+    ROOT / "cortetsu/modules/osd/FullContent.qml",
     ROOT / "cortetsu/modules/settings/Content.qml",
     ROOT / "cortetsu/modules/dashboard/Dash.qml",
     ROOT / "cortetsu/modules/dashboard/Today.qml",

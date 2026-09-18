@@ -18,7 +18,7 @@ for marker in (
     assert marker in button, marker
 
 surfaces = {
-    "qsd": ROOT / "cortetsu/modules/qsd/Content.qml",
+    "osd": ROOT / "cortetsu/modules/osd/FullContent.qml",
     "settings": ROOT / "cortetsu/modules/settings/Content.qml",
     "dashboard": ROOT / "cortetsu/modules/dashboard/Dash.qml",
     "today": ROOT / "cortetsu/modules/dashboard/Today.qml",

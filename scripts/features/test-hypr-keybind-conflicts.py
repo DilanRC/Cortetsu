@@ -32,4 +32,4 @@ assert '"SUPER + CTRL + " .. key' not in user
 assert '"SUPER + W"' in user and "linux-wallpaper-engine-once" in user
 assert '"SUPER + V"' in user and '/home/dilan/.local/bin/cortetsu shell ipc clipboard toggle' in user
 assert '"SUPER + SHIFT + C"' in user and 'cortetsu:calendar' in user
-print("PASS: browser, calendar, QSD, Settings, screenshot and clipboard keybind ownership is single-layer")
+print("PASS: browser, calendar, OSD, Settings, screenshot and clipboard keybind ownership is single-layer")

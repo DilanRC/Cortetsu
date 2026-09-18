@@ -33,9 +33,16 @@ PersistentProperties {
     readonly property bool requiresFullInputMask: retainedOverlayOpen
     readonly property bool requiresWindowKeyboardFocus: requiresFullInputMask || launcher || session || settings
 
+    function resetTransientState(): void {
+        for (const flag of ["bar", "osd", "session", "launcher", "dashboard", "utilities",
+                            "settings", "sidebar", "overview", "calendar", "clipboard",
+                            "hardware", "displayManager", "wallpaperManager"])
+            root[flag] = false;
+    }
+
     Component.onCompleted: {
-        // Migrate persisted legacy quick-settings flags to the single OSD.
-        root.utilities = false;
+        // Overlay visibility and input ownership are session state, never preferences.
+        root.resetTransientState();
         CortetsuShellState.registerState(modelData, root);
     }
     Component.onDestruction: CortetsuShellState.unregisterState(modelData, root)

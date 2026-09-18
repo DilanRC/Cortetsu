@@ -5,7 +5,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 service = (ROOT / "cortetsu/services/CortetsuPower.qml").read_text(encoding="utf-8")
-qsd = (ROOT / "cortetsu/modules/qsd/Content.qml").read_text(encoding="utf-8")
+qsd = (ROOT / "cortetsu/modules/osd/FullContent.qml").read_text(encoding="utf-8")
 hub = (ROOT / "cortetsu/modules/BottomHub.qml").read_text(encoding="utf-8")
 dashboard = (ROOT / "cortetsu/modules/dashboard/Dash.qml").read_text(encoding="utf-8")
 settings = (ROOT / "cortetsu/modules/settings/SystemPage.qml").read_text(encoding="utf-8")
@@ -28,7 +28,7 @@ checks = {
         "CortetsuPower.critical",
         "CortetsuPower.percent",
     )),
-    "QSD uses shared capability": all(marker in qsd for marker in (
+    "OSD uses shared capability": all(marker in qsd for marker in (
         "CortetsuPower.value",
         "CortetsuPower.available",
         "CortetsuPower.hasBattery",

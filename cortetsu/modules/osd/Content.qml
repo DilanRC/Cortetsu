@@ -2,10 +2,9 @@ import QtQuick
 import Quickshell
 import "../../components"
 import "../CortetsuDesign.js" as CortetsuDesign
-import "../qsd" as FullOsd
 
 // The large OSD is the canonical full system-control surface. The legacy
-// QSD host and the compact Utilities card are not instantiated anywhere.
+// The legacy compact host and Utilities card are not instantiated anywhere.
 Item {
     id: root
 
@@ -26,7 +25,7 @@ Item {
 
     CortetsuPopupSurface {
         anchors.fill: parent
-        FullOsd.Content {
+        FullContent {
             id: content
             anchors.fill: parent
             anchors.margins: CortetsuDesign.spacingSection

@@ -8,7 +8,7 @@ service = ROOT / "cortetsu/services/CortetsuPower.qml"
 source = service.read_text(encoding="utf-8")
 consumers = [
     ROOT / "cortetsu/modules/BottomHub.qml",
-    ROOT / "cortetsu/modules/qsd/Content.qml",
+    ROOT / "cortetsu/modules/osd/FullContent.qml",
     ROOT / "cortetsu/modules/dashboard/Dash.qml",
     ROOT / "cortetsu/modules/settings/SystemPage.qml",
     ROOT / "cortetsu/modules/lock/LockSurface.qml",
