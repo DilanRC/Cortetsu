@@ -31,6 +31,8 @@ assert "required property var screen" in wrapper
 assert "screen: root.screen" in wrapper
 assert "required property var screen" in content
 assert "SystemPage" in content and "screen: root.screen" in content
+assert 'section.property: "group"' in content
+assert 'keywords: qsTr("tema color transparencia reloj visualizador")' in (settings / "SettingsController.qml").read_text(encoding="utf-8")
 
 # Placeholder-only pages are gone; every non-appearance/about category owns a page.
 assert "This section is connected in stages" not in content

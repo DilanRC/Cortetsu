@@ -100,6 +100,19 @@ Item {
                     clip: true
                     spacing: 2
                     model: root.controller.filteredCategories
+                    section.property: "group"
+                    section.criteria: ViewSection.FullString
+                    section.delegate: CortetsuText {
+                        required property string section
+                        width: nav.width
+                        topPadding: CortetsuDesign.spacingStandard
+                        bottomPadding: CortetsuDesign.spacingUnit
+                        leftPadding: CortetsuDesign.spacingCompact
+                        text: section.toUpperCase()
+                        textSize: CortetsuTypography.labelSmallPx
+                        color: CortetsuDesign.colorOnSurfaceVariant
+                        font.weight: Font.DemiBold
+                    }
 
                     delegate: CortetsuListRow {
                         required property var modelData
@@ -109,6 +122,14 @@ Item {
                         subtitle: ""
                         selected: root.controller.selectedId === modelData.id
                         onClicked: root.controller.select(modelData.id)
+                    }
+
+                    CortetsuStateMessage {
+                        anchors.centerIn: parent
+                        visible: nav.count === 0
+                        kind: "empty"
+                        title: qsTr("Sin resultados")
+                        detail: qsTr("Prueba con una categoría, dispositivo o función")
                     }
                 }
             }

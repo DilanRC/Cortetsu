@@ -10,6 +10,8 @@ choice_card = (ROOT / "cortetsu/components/CortetsuChoiceCard.qml").read_text(en
 assert "SUPERFICIES DE CONTROL" in content
 assert "schemeColour" in content and "primary" in content
 assert "filteredCategories" in controller
+assert 'section.property: "group"' in content
+assert "keywords" in controller
 assert "This section is connected in stages" not in content
 assert "SystemPage" in content
 assert "Lectura nativa de NetworkManager; sin controles falsos" in system
