@@ -3,6 +3,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 content = (ROOT / "cortetsu/modules/settings/Content.qml").read_text(encoding="utf-8")
 system = (ROOT / "cortetsu/modules/settings/SystemPage.qml").read_text(encoding="utf-8")
+network_service = (ROOT / "cortetsu/services/CortetsuSettingsNetwork.qml").read_text(encoding="utf-8")
 controller = (ROOT / "cortetsu/modules/settings/SettingsController.qml").read_text(encoding="utf-8")
 schemes = (ROOT / "cortetsu/modules/launcher/services/Schemes.qml").read_text(encoding="utf-8")
 choice_card = (ROOT / "cortetsu/components/CortetsuChoiceCard.qml").read_text(encoding="utf-8")
@@ -14,11 +15,16 @@ assert 'section.property: "group"' in content
 assert "keywords" in controller
 assert "This section is connected in stages" not in content
 assert "SystemPage" in content
-assert "NetworkManager · señal y redes disponibles en vivo" in system
+assert "NetworkManager · operaciones y señal en vivo" in system
+assert "CortetsuSettingsNetwork.setWifi(enabled)" in system
+assert "CortetsuSettingsNetwork.disconnect(modelData.name)" in system
 assert "CortetsuNetwork.refresh()" in system
 assert "CortetsuAudio.setSourceVolume(nextValue)" in system
 assert "CortetsuAudio.setAudioSink(modelData)" in system
 assert "Nvibrant.setValue(nextValue * 1024)" in content
+assert "function refreshNetworks()" in network_service
+assert "function connect(" in network_service
+assert "function forget(" in network_service
 assert "Brightness.getMonitorForScreen(root.screen)" in system
 assert "onMoved: nextValue => CortetsuAudio.setVolume(nextValue)" in system
 assert "onMoved: nextValue => root.brightnessMonitor?.setBrightness(nextValue)" in system

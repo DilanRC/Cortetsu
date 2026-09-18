@@ -5,6 +5,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 modules = ROOT / "cortetsu/modules"
 settings = modules / "settings"
+network_service = (ROOT / "cortetsu/services/CortetsuSettingsNetwork.qml").read_text(encoding="utf-8")
 
 host = (modules / "SettingsHost.qml").read_text(encoding="utf-8")
 wrapper = (settings / "Wrapper.qml").read_text(encoding="utf-8")
@@ -61,12 +62,16 @@ assert 'root.openRetained("displayManager")' in system
 assert 'root.openRetained("wallpaperManager")' in system
 assert "WallpaperController.open(root.screen)" in system
 assert "root.screenState.cortetsuState?.closeRetainedOverlaysExcept(flag)" in system
-assert "NetworkManager · señal y redes disponibles en vivo" in system
+assert "NetworkManager · operaciones y señal en vivo" in system
+assert "CortetsuSettingsNetwork.setWifi(enabled)" in system
+assert "CortetsuSettingsNetwork.disconnect(modelData.name)" in system
 assert "CortetsuNetwork.refresh()" in system
 assert "Dispositivos conectados" in system
 assert "CortetsuAudio.setSourceVolume(nextValue)" in system
 assert "CortetsuAudio.setAudioSink(modelData)" in system
 assert "Nvibrant.setValue(nextValue * 1024)" in content
+for marker in ("function connect(", "function forget(", "function setAutoconnect(", "NetworkManager rechazó la operación", "connection.autoconnect"):
+    assert marker in network_service, marker
 assert "visible: Nvibrant.available || Nvibrant.error.length > 0" in content
 assert 'title: qsTr("Desplazamiento del volumen")' in system
 assert 'title: qsTr("Brightness scroll")' not in system

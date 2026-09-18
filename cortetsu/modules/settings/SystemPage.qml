@@ -675,7 +675,7 @@ Item {
             CortetsuSectionHeader {
                 Layout.fillWidth: true
                 title: qsTr("Estado de la red")
-                detail: qsTr("NetworkManager · señal y redes disponibles en vivo")
+                detail: qsTr("NetworkManager · operaciones y señal en vivo")
             }
 
             RowLayout {
@@ -697,6 +697,35 @@ Item {
                     disabled: !CortetsuNetwork.wifiDevice || CortetsuNetwork.refreshing
                     onClicked: CortetsuNetwork.refresh()
                 }
+            }
+
+            PreferenceToggle {
+                title: CortetsuSettingsNetwork.wifiEnabled ? qsTr("Wi‑Fi activado") : qsTr("Wi‑Fi desactivado")
+                detail: CortetsuSettingsNetwork.state === "error"
+                    ? CortetsuSettingsNetwork.error
+                    : qsTr("Radio gestionada por NetworkManager")
+                icon: CortetsuSettingsNetwork.wifiEnabled ? "wifi" : "wifi_off"
+                checked: CortetsuSettingsNetwork.wifiEnabled
+                controlDisabled: CortetsuSettingsNetwork.busy
+                onChanged: enabled => CortetsuSettingsNetwork.setWifi(enabled)
+            }
+
+            StatusCard {
+                title: CortetsuSettingsNetwork.operation.length > 0
+                    ? CortetsuSettingsNetwork.operation
+                    : qsTr("NetworkManager")
+                value: CortetsuSettingsNetwork.state === "loading"
+                    ? qsTr("Aplicando…")
+                    : CortetsuSettingsNetwork.state === "error"
+                        ? qsTr("Error")
+                        : CortetsuSettingsNetwork.lastMessage.length > 0
+                            ? CortetsuSettingsNetwork.lastMessage
+                            : qsTr("Listo")
+                detail: CortetsuSettingsNetwork.error
+                icon: CortetsuSettingsNetwork.state === "error" ? "error"
+                    : CortetsuSettingsNetwork.state === "loading" ? "sync" : "check_circle"
+                activeState: CortetsuSettingsNetwork.state === "ready"
+                warningState: CortetsuSettingsNetwork.state === "error"
             }
 
             StatusCard {
@@ -738,9 +767,33 @@ Item {
                 }
             }
 
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 0
+
+                CortetsuSectionHeader {
+                    Layout.fillWidth: true
+                    title: qsTr("Perfiles guardados")
+                    detail: qsTr("Autoconexión y desconexión sin salir de Ajustes")
+                }
+
+                Repeater {
+                    model: CortetsuSettingsNetwork.profiles.filter(profile => profile.type === "802-11-wireless")
+                    delegate: CortetsuListRow {
+                        required property var modelData
+                        Layout.fillWidth: true
+                        title: modelData.name
+                        subtitle: modelData.autoconnect ? qsTr("Autoconexión activa") : qsTr("Autoconexión desactivada")
+                        icon: "bookmark"
+                        selected: modelData.name === CortetsuSettingsNetwork.activeSsid
+                        onClicked: CortetsuSettingsNetwork.disconnect(modelData.name)
+                    }
+                }
+            }
+
             CortetsuText {
                 Layout.fillWidth: true
-                text: qsTr("Para conectar, editar un perfil, configurar DNS o quitar una red guardada, usa el gestor de red completo.")
+                text: qsTr("Selecciona una red guardada para desconectarla. Las operaciones de conexión segura, DNS e IPv4 se incorporarán en el detalle del perfil.")
                 textSize: CortetsuTypography.bodySmallPx
                 color: CortetsuDesign.colorOnSurfaceVariant
                 wrapMode: Text.WordWrap
