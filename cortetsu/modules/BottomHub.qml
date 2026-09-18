@@ -451,7 +451,7 @@ Scope {
                     client => client.lastIpcObject?.address === activeAddress
                 ),
                 title: item.entry?.name ?? item.className,
-                iconSource: Icons.getAppIcon(item.className, "image-missing"),
+                iconSource: Icons.getAppIcon(item.entry?.icon || item.className, "image-missing"),
                 windowCount: item.windows.length
             }))
 
@@ -752,7 +752,9 @@ Scope {
                 modeVisible: CortetsuConfig.bottomHub.segments.mode
                 appsVisible: CortetsuConfig.bottomHub.segments.apps
                 trayVisible: CortetsuConfig.bottomHub.segments.tray
-                statusVisible: CortetsuConfig.bottomHub.segments.status
+                // The compact status cluster duplicated controls already
+                // owned by the full OSD in drawers/Panels.qml.
+                statusVisible: false
 
                 volumeIcon: win.volumeIcon
                 volumeMuted: CortetsuAudio.muted

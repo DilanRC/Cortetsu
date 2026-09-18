@@ -10,7 +10,10 @@ Singleton {
 
     function getAppIcon(name: string, fallback: string): string {
         const value = String(name ?? "");
-        const steamMatch = value.match(/^steam_app_(\d+)$/i);
+        const entry = DesktopEntries.heuristicLookup(value);
+        const entryIcon = String(entry?.icon ?? "");
+        const steamMatch = (value.match(/^steam_app_(\d+)$/i)
+            ?? entryIcon.match(/^steam_icon_(\d+)$/i));
         if (steamMatch) {
             const iconName = `steam_icon_${steamMatch[1]}`;
             // Steam's generated desktop entries are not always visible to
@@ -21,7 +24,7 @@ Singleton {
             return Quickshell.iconPath(iconName, cachedIcon);
         }
 
-        return Quickshell.iconPath(DesktopEntries.heuristicLookup(value)?.icon, fallback);
+        return Quickshell.iconPath(entryIcon || value, fallback);
     }
     function getAppCategoryIcon(name: string, fallback: string): string {
         const categories = DesktopEntries.heuristicLookup(name)?.categories ?? [];

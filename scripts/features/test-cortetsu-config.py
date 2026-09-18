@@ -258,6 +258,7 @@ for utility in (icons, sysinfo):
         assert legacy not in utility, legacy
 assert "getAppIcon" in icons and "getBatteryIcon" in icons and "getNotifIcon" in icons
 assert "steam_icon_${steamMatch[1]}" in icons and "128x128/apps" in icons
+assert "entryIcon.match" in icons and "entryIcon || value" in icons
 assert "sanitiseDmi" in sysinfo and "/etc/os-release" in sysinfo
 for notification_file in (notifs, notif_data):
     for legacy in ("Caelestia", "GlobalConfig", "qs.services", "qs.components"):
