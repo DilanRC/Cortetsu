@@ -14,7 +14,6 @@ CustomMouseArea {
     required property BarPopouts.Wrapper popouts
     required property ScreenState screenState
     required property Panels panels
-    property var qsd: null
     required property Bar.BarWrapper bar
     required property real borderThickness
     required property bool fullscreen
@@ -23,17 +22,6 @@ CustomMouseArea {
     property bool dashboardShortcutActive
     property bool osdShortcutActive
     property bool utilitiesShortcutActive
-    property bool qsdShortcutActive
-    property bool qsdEdgePending
-
-    Timer {
-        id: qsdOpenTimer
-        interval: 180
-        onTriggered: {
-            if (!root.pressed && root.qsdEdgePending && !root.fullscreen)
-                root.screenState.qsd = true;
-        }
-    }
 
     function withinPanelHeight(panel: Item, x: real, y: real): bool {
         const panelY = root.borderThickness + panel.y;
@@ -84,6 +72,8 @@ CustomMouseArea {
 
     onPressed: event => dragStart = Qt.point(event.x, event.y)
     onContainsMouseChanged: {
+        if (CortetsuShellState.screenshotActive)
+            return;
         if (!containsMouse) {
             root.screenState.qsdEdgeHovered = false;
             // Only hide if not activated by shortcut
@@ -119,18 +109,13 @@ CustomMouseArea {
     onPositionChanged: event => {
         if (popouts.isDetached)
             return;
+        if (CortetsuShellState.screenshotActive)
+            return;
 
         const x = event.x;
         const y = event.y;
         const dragX = x - dragStart.x;
         const dragY = y - dragStart.y;
-
-        root.qsdEdgePending = x >= width - 6;
-        root.screenState.qsdEdgeHovered = root.qsdEdgePending;
-        if (root.qsdEdgePending && !root.pressed && !root.screenState.qsd)
-            qsdOpenTimer.restart();
-        else if (!root.qsdEdgePending)
-            qsdOpenTimer.stop();
 
         if (fullscreen) {
             root.panels.osd.hovered = inRightPanel(panels.osdWrapper, x, y);
@@ -326,14 +311,6 @@ CustomMouseArea {
             } else {
                 // Utilities hidden, clear shortcut flag
                 root.utilitiesShortcutActive = false;
-            }
-        }
-
-        function onQsdChanged() {
-            if (root.screenState.qsd) {
-                root.qsdShortcutActive = !(root.qsd?.hovered ?? false);
-            } else {
-                root.qsdShortcutActive = false;
             }
         }
 

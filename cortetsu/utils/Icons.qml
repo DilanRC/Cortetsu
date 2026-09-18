@@ -11,8 +11,15 @@ Singleton {
     function getAppIcon(name: string, fallback: string): string {
         const value = String(name ?? "");
         const steamMatch = value.match(/^steam_app_(\d+)$/i);
-        if (steamMatch)
-            return Quickshell.iconPath(`steam_icon_${steamMatch[1]}`, fallback);
+        if (steamMatch) {
+            const iconName = `steam_icon_${steamMatch[1]}`;
+            // Steam's generated desktop entries are not always visible to
+            // Quickshell's icon theme lookup. Keep the user icon cache as a
+            // deterministic fallback for taskbar/overview surfaces.
+            const home = Quickshell.env("HOME") || "";
+            const cachedIcon = `file://${home}/.local/share/icons/hicolor/128x128/apps/${iconName}.png`;
+            return Quickshell.iconPath(iconName, cachedIcon);
+        }
 
         return Quickshell.iconPath(DesktopEntries.heuristicLookup(value)?.icon, fallback);
     }

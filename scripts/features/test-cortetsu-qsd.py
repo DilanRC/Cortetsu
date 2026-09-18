@@ -7,11 +7,14 @@ action_tile = (ROOT / "cortetsu/components/CortetsuActionTile.qml").read_text(en
 panels = (ROOT / "cortetsu/modules/drawers/Panels.qml").read_text(encoding="utf-8")
 window = (ROOT / "cortetsu/modules/drawers/ContentWindow.qml").read_text(encoding="utf-8")
 host = (ROOT / "cortetsu/modules/QsdHost.qml").read_text(encoding="utf-8")
+shell = (ROOT / "cortetsu/shell.qml").read_text(encoding="utf-8")
 state = (ROOT / "cortetsu/components/ScreenState.qml").read_text(encoding="utf-8")
 shortcuts = (ROOT / "cortetsu/modules/Shortcuts.qml").read_text(encoding="utf-8")
 hypr = (ROOT / "dotfiles/home/.config/hypr/hyprland/keybinds.lua").read_text(encoding="utf-8")
 
 assert (qsd / "qmldir").is_file()
+assert "QsdHost {}" not in shell
+assert 'const target = drawer === "qsd" ? "osd" : drawer;' in shortcuts
 for marker in (
     "Brightness.getMonitorForScreen",
     "CortetsuAudio.setVolume",
@@ -49,13 +52,14 @@ assert "qsdOpenedByShortcut" in host
 assert "interval: 260" in host
 for marker in ("Variants", "StyledWindow", 'name: "qsd"', "WlrLayer.Overlay", "width: 400", "Content"):
     assert marker in host, marker
-assert 'qsd: null' in window
+assert 'qsd: null' not in window
 assert "property bool qsd" in state and "|| qsd" in state
 assert "property bool qsdEdgeHovered" in state
 assert "property bool qsdDrawerHovered" in state
 assert "property bool qsdOpenedByShortcut" in state
 assert 'name: "qsd"' in shortcuts
-assert 'state.qsdOpenedByShortcut = state.qsd' in shortcuts
+assert 'root.toggleExclusive(state, "osd")' in shortcuts
+assert 'const target = drawer === "qsd" ? "osd" : drawer;' in shortcuts
 assert 'onClicked: root.closeQsd()' in content
 assert 'hl.dsp.global("cortetsu:qsd")' in hypr
 

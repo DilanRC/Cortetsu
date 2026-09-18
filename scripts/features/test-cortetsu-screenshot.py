@@ -30,6 +30,7 @@ for method in ("open", "openFreeze", "openClip", "openFreezeClip"):
 assert '"cortetsu-area-capture", geometry, path' in picker_content
 assert "captureTimer" in picker_content and "interval: 120" in picker_content
 assert "root.close()" in picker_content and "Quickshell.execDetached(root.pendingCommand)" in picker_content
+assert "else if (!root.state.freeze)" in picker_content
 assert '"sh", "-c"' not in picker_content
 assert 'subprocess.run(["grim", "-g", args.geometry, str(args.path)])' in capture_helper
 assert 'subprocess.run(["swappy", "-f", str(args.path)])' in capture_helper

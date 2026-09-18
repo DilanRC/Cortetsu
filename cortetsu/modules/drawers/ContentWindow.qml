@@ -196,7 +196,6 @@ StyledWindow {
         popouts: panels.popouts
         screenState: root.screenState
         panels: panels
-        qsd: null
         bar: bar
         borderThickness: root.borderLayoutThickness
         fullscreen: root.hasFullscreen

@@ -27,12 +27,11 @@ Scope {
             if (root.hasFullscreen) return;
             const state = CortetsuShellState.forActive();
             if (!state) return;
-            const open = !(state.launcher || state.dashboard || state.osd || state.utilities || state.qsd || state.settings);
+            const open = !(state.launcher || state.dashboard || state.osd || state.utilities || state.settings);
             state.launcher = open && CortetsuConfig.launcher.enabled;
             state.dashboard = open && CortetsuConfig.dashboard.enabled && CortetsuConfig.dashboard.showDashboard;
             state.osd = open;
             state.utilities = open && CortetsuConfig.utilities.enabled;
-            state.qsd = open;
             state.settings = open;
         }
     }
@@ -83,9 +82,9 @@ Scope {
             const state = CortetsuShellState.forActive();
             if (!state)
                 return;
-            root.toggleExclusive(state, "qsd");
-            state.qsdOpenedByShortcut = state.qsd;
-            state.qsdEdgeHovered = false;
+            // Compatibility name: the compact QSD was removed from the
+            // shell. Existing Hyprland bindings now open the full OSD.
+            root.toggleExclusive(state, "osd");
         }
     }
     CustomShortcut {
@@ -97,16 +96,13 @@ Scope {
         target: "drawers"
         function toggle(drawer: string): void {
             const state = CortetsuShellState.forActive();
-            if (!state || typeof state[drawer] !== "boolean") return;
-            if (root.hasFullscreen && ["launcher", "session", "dashboard", "utilities", "qsd", "settings"].includes(drawer)) return;
-            if (["launcher", "session", "dashboard", "utilities", "qsd", "settings"].includes(drawer))
-                root.toggleExclusive(state, drawer);
+            const target = drawer === "qsd" ? "osd" : drawer;
+            if (!state || typeof state[target] !== "boolean") return;
+            if (root.hasFullscreen && ["launcher", "session", "dashboard", "utilities", "settings"].includes(target)) return;
+            if (["launcher", "session", "dashboard", "utilities", "settings"].includes(target))
+                root.toggleExclusive(state, target);
             else
-                state[drawer] = !state[drawer];
-            if (drawer === "qsd") {
-                state.qsdOpenedByShortcut = state.qsd;
-                state.qsdEdgeHovered = false;
-            }
+                state[target] = !state[target];
         }
         function list(): string { const state = CortetsuShellState.forActive(); return state ? Object.keys(state).filter(k => typeof state[k] === "boolean").join("\n") : ""; }
         function isOpen(drawer: string): string { const state = CortetsuShellState.forActive(); return !state || typeof state[drawer] !== "boolean" ? "unknown" : state[drawer] ? "1" : "0"; }

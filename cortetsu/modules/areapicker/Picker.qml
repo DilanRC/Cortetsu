@@ -132,7 +132,7 @@ MouseArea {
             sy = ssy;
             ex = event.x;
             ey = event.y;
-        } else {
+        } else if (!root.state.freeze) {
             checkClientRects(event.x, event.y);
         }
     }

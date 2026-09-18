@@ -25,7 +25,6 @@ ShellRoot {
     Drawers {}
     BottomHub {}
     AreaPicker {}
-    QsdHost {}
     DashboardHost {}
     LauncherHost {}
     SettingsHost {}
