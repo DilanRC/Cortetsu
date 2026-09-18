@@ -17,6 +17,7 @@ PersistentProperties {
     property bool dashboard
     property bool utilities
     property bool settings
+    property bool settingsFullscreen: false
     property bool sidebar
     property int dashboardTab
     property date dashboardDate: new Date()
@@ -35,7 +36,7 @@ PersistentProperties {
 
     function resetTransientState(): void {
         for (const flag of ["bar", "osd", "session", "launcher", "dashboard", "utilities",
-                            "settings", "sidebar", "overview", "calendar", "clipboard",
+                            "settings", "settingsFullscreen", "sidebar", "overview", "calendar", "clipboard",
                             "hardware", "displayManager", "wallpaperManager"])
             root[flag] = false;
     }

@@ -54,7 +54,10 @@ Item {
         compact: true
         icon: "close"
         label: qsTr("Cerrar")
-        onClicked: root.screenState.settings = false
+        onClicked: {
+            root.screenState.settings = false;
+            root.screenState.settingsFullscreen = false;
+        }
     }
 
     RowLayout {
@@ -525,7 +528,16 @@ Item {
                     SystemPage {
                         Layout.fillWidth: true
                         visible: root.controller.selectedId !== "appearance" && root.controller.selectedId !== "about"
+                            && root.controller.selectedId !== "network"
                         section: root.controller.selectedId
+                        screen: root.screen
+                        screenState: root.screenState
+                    }
+
+                    NetworkPage {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        visible: root.controller.selectedId === "network"
                         screen: root.screen
                         screenState: root.screenState
                     }
@@ -596,6 +608,9 @@ Item {
 
     Shortcut {
         sequence: "Escape"
-        onActivated: root.screenState.settings = false
+        onActivated: {
+            root.screenState.settings = false;
+            root.screenState.settingsFullscreen = false;
+        }
     }
 }

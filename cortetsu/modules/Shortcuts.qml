@@ -97,7 +97,32 @@ Scope {
     }
     CustomShortcut {
         name: "settings"; description: "Alternar centro de ajustes de Cortetsu"
-        onPressed: if (!root.hasFullscreen) root.toggleExclusive(CortetsuShellState.forActive(), "settings")
+        onPressed: {
+            if (root.hasFullscreen)
+                return;
+            const state = CortetsuShellState.forActive();
+            if (!state)
+                return;
+            root.toggleExclusive(state, "settings");
+            if (!state.settings)
+                state.settingsFullscreen = false;
+        }
+    }
+    IpcHandler {
+        target: "settings"
+
+        function toggleFullscreen(): void {
+            const state = CortetsuShellState.forActive();
+            if (!state)
+                return;
+            if (state.settings) {
+                state.settingsFullscreen = !state.settingsFullscreen;
+                return;
+            }
+            CortetsuHypr.dispatch(CortetsuHypr.usingLua
+                ? "hl.dsp.window.fullscreen({ mode = 'fullscreen' })"
+                : "fullscreen");
+        }
     }
 
     IpcHandler {

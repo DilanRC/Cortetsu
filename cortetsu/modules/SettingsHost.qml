@@ -31,20 +31,39 @@ Scope {
 
             Region { id: emptyRegion }
 
-            Rectangle { anchors.fill: parent; color: Qt.alpha(CortetsuDesign.colorSumi, 0.74); visible: window.screenState?.settings ?? false }
-            CortetsuSurface {
-                anchors.centerIn: parent
-                width: Math.min(parent.width - CortetsuDesign.spacingSection * 2, 1180)
-                height: Math.min(parent.height - CortetsuDesign.spacingSection * 2, 760)
+            Rectangle {
+                anchors.fill: parent
+                color: Qt.alpha(CortetsuDesign.colorSumi, window.screenState?.settingsFullscreen ? 0.92 : 0.74)
                 visible: window.screenState?.settings ?? false
-                baseColor: Qt.alpha(CortetsuDesign.colorTetsu, 0.985)
-                radiusValue: CortetsuDesign.radiusSurface
-                outlined: true
-                Wrapper {
+            }
+
+            Item {
+                id: frame
+                x: window.screenState?.settingsFullscreen
+                    ? 0
+                    : Math.round((parent.width - width) / 2)
+                y: window.screenState?.settingsFullscreen
+                    ? 0
+                    : Math.round((parent.height - height) / 2)
+                width: window.screenState?.settingsFullscreen
+                    ? parent.width
+                    : Math.min(parent.width - CortetsuDesign.spacingSection * 2, 1180)
+                height: window.screenState?.settingsFullscreen
+                    ? parent.height
+                    : Math.min(parent.height - CortetsuDesign.spacingSection * 2, 760)
+                visible: window.screenState?.settings ?? false
+
+                CortetsuSurface {
                     anchors.fill: parent
-                    anchors.margins: CortetsuDesign.spacingSpacious
-                    screenState: window.screenState
-                    screen: window.modelData
+                    baseColor: Qt.alpha(CortetsuDesign.colorTetsu, 0.985)
+                    radiusValue: window.screenState?.settingsFullscreen ? 0 : CortetsuDesign.radiusSurface
+                    outlined: !window.screenState?.settingsFullscreen
+                    Wrapper {
+                        anchors.fill: parent
+                        anchors.margins: CortetsuDesign.spacingSpacious
+                        screenState: window.screenState
+                        screen: window.modelData
+                    }
                 }
             }
         }

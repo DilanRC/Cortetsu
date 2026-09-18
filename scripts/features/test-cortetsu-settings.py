@@ -6,6 +6,7 @@ ROOT = Path(__file__).resolve().parents[2]
 modules = ROOT / "cortetsu/modules"
 settings = modules / "settings"
 network_service = (ROOT / "cortetsu/services/CortetsuSettingsNetwork.qml").read_text(encoding="utf-8")
+network_page = (settings / "NetworkPage.qml").read_text(encoding="utf-8")
 
 host = (modules / "SettingsHost.qml").read_text(encoding="utf-8")
 wrapper = (settings / "Wrapper.qml").read_text(encoding="utf-8")
@@ -34,6 +35,12 @@ assert "required property var screen" in content
 assert "SystemPage" in content and "screen: root.screen" in content
 assert 'section.property: "group"' in content
 assert 'keywords: qsTr("tema color transparencia reloj visualizador")' in (settings / "SettingsController.qml").read_text(encoding="utf-8")
+assert "settingsFullscreen" in host
+assert "function toggleFullscreen()" in shortcuts
+assert 'hl.dsp.global("cortetsu:settingsFullscreen")' in base_hypr
+assert 'visible: root.controller.selectedId === "network"' in content
+assert "property bool showingProfiles" in network_page
+assert "CortetsuSettingsNetwork.setAutoconnect" in network_page
 
 # Placeholder-only pages are gone; every non-appearance/about category owns a page.
 assert "This section is connected in stages" not in content
