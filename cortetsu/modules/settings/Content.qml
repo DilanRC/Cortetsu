@@ -54,10 +54,7 @@ Item {
         compact: true
         icon: "close"
         label: qsTr("Cerrar")
-        onClicked: {
-            root.screenState.settings = false;
-            root.screenState.settingsFullscreen = false;
-        }
+        onClicked: root.screenState.settings = false
     }
 
     RowLayout {
@@ -608,9 +605,6 @@ Item {
 
     Shortcut {
         sequence: "Escape"
-        onActivated: {
-            root.screenState.settings = false;
-            root.screenState.settingsFullscreen = false;
-        }
+        onActivated: root.screenState.settings = false
     }
 }

@@ -104,8 +104,6 @@ Scope {
             if (!state)
                 return;
             root.toggleExclusive(state, "settings");
-            if (!state.settings)
-                state.settingsFullscreen = false;
         }
     }
     IpcHandler {
@@ -115,10 +113,6 @@ Scope {
             const state = CortetsuShellState.forActive();
             if (!state)
                 return;
-            if (state.settings) {
-                state.settingsFullscreen = !state.settingsFullscreen;
-                return;
-            }
             CortetsuHypr.dispatch(CortetsuHypr.usingLua
                 ? "hl.dsp.window.fullscreen({ mode = 'fullscreen' })"
                 : "fullscreen");

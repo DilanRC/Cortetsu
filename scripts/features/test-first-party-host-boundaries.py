@@ -4,7 +4,6 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 HOSTS = {
-    "SettingsHost.qml": ("../components", "../components/containers", "../services", "."),
     "LauncherHost.qml": ("../components/containers", "../services", "."),
     "DashboardHost.qml": ("../components", "../components/containers", "../services", "."),
     "SessionHost.qml": ("../components", "../components/containers", ".", "session"),
@@ -21,6 +20,12 @@ HOSTS = {
     ),
 }
 
+settings_source = (ROOT / "cortetsu/modules/SettingsHost.qml").read_text(encoding="utf-8")
+assert "FloatingWindow" in settings_source
+assert "PanelWindow" not in settings_source
+assert "import qs." not in settings_source
+assert "import Caelestia" not in settings_source
+
 for name, imports in HOSTS.items():
     path = ROOT / "cortetsu/modules" / name
     source = path.read_text(encoding="utf-8")
@@ -31,4 +36,4 @@ for name, imports in HOSTS.items():
     for marker in ("Variants {", "model: CortetsuScreens.screens", "WlrLayer.Overlay"):
         assert marker in source, f"{name} lost monitor-local overlay ownership: {marker}"
 
-print(f"PASS: {len(HOSTS)} visible overlay hosts use explicit Cortetsu import boundaries")
+print(f"PASS: {len(HOSTS)} layer hosts and Settings FloatingWindow use explicit Cortetsu boundaries")

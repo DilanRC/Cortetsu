@@ -35,7 +35,9 @@ assert "required property var screen" in content
 assert "SystemPage" in content and "screen: root.screen" in content
 assert 'section.property: "group"' in content
 assert 'keywords: qsTr("tema color transparencia reloj visualizador")' in (settings / "SettingsController.qml").read_text(encoding="utf-8")
-assert "settingsFullscreen" in host
+assert "FloatingWindow" in host
+assert "minimumSize.width" in host
+assert "surfaceFormat.opaque: false" in host
 assert "function toggleFullscreen()" in shortcuts
 assert 'hl.dsp.global("cortetsu:settingsFullscreen")' in base_hypr
 assert 'visible: root.controller.selectedId === "network"' in content
@@ -167,7 +169,7 @@ assert '"SUPER + I",\n    hl.dsp.global("cortetsu:utilities")' not in user_hypr
 assert 'name: "settings"' in shortcuts and 'name: "qsd"' in shortcuts
 
 # Existing Settings host/runtime identity contract remains intact.
-for marker in ('name: "settings"', "WlrLayer.Overlay", "Exclusive", "Wrapper"):
+for marker in ("FloatingWindow", "Wrapper", "minimumSize.width"):
     assert marker in host, marker
 assert "property bool settings" in state and "|| settings" in state
 assert 'cortetsu/assets/branding' in runtime_builder and 'STAGING/assets/branding' in runtime_builder
