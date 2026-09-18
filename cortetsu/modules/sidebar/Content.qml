@@ -191,12 +191,12 @@ Item {
                 delegate: CortetsuListRow {
                     required property var modelData
                     width: historyList.width
+                    disabled: true
                     icon: modelData.urgency >= 2 ? "priority_high" : "history"
                     title: modelData.summary ?? qsTr("Notificación")
                     subtitle: [modelData.appName, modelData.timeStr]
                         .filter(value => value && value.length > 0)
                         .join(" · ") || modelData.body || qsTr("Notificación guardada")
-                    onClicked: {}
                 }
 
                 CortetsuStateMessage {

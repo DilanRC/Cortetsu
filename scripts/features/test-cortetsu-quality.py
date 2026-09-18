@@ -48,6 +48,10 @@ assert "focus: false" in hub_button, "HubButton steals focus while loading"
 interactions = (modules / "drawers/Interactions.qml").read_text(encoding="utf-8")
 assert "if (false &&" not in interactions, "dead interaction branch remains"
 
+sidebar = (modules / "sidebar/Content.qml").read_text(encoding="utf-8")
+assert "onClicked: {}" not in sidebar, "interactive-looking no-op remains"
+assert "disabled: true" in sidebar, "read-only notification history lacks a disabled row contract"
+
 assert 'import "CortetsuDesign.js" as CortetsuDesign' in hub
 assert 'import "CortetsuDesign.js" as CortetsuDesign' in status
 assert 'import "CortetsuDesign.js" as CortetsuDesign' in surface
