@@ -39,6 +39,8 @@ assert "FloatingWindow" in host
 assert "minimumSize.width" in host
 assert "surfaceFormat.opaque: false" in host
 assert "function toggleFullscreen()" in shortcuts
+assert 'target: "cortetsu"' in shortcuts
+assert "function settingsFullscreen()" in shortcuts
 assert 'hl.dsp.global("cortetsu:settingsFullscreen")' in base_hypr
 assert 'visible: root.controller.selectedId === "network"' in content
 assert "property bool showingProfiles" in network_page
