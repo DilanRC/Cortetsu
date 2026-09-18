@@ -61,7 +61,13 @@ assert 'root.openRetained("displayManager")' in system
 assert 'root.openRetained("wallpaperManager")' in system
 assert "WallpaperController.open(root.screen)" in system
 assert "root.screenState.cortetsuState?.closeRetainedOverlaysExcept(flag)" in system
-assert "Lectura nativa de NetworkManager; sin controles falsos" in system
+assert "NetworkManager · señal y redes disponibles en vivo" in system
+assert "CortetsuNetwork.refresh()" in system
+assert "Dispositivos conectados" in system
+assert "CortetsuAudio.setSourceVolume(nextValue)" in system
+assert "CortetsuAudio.setAudioSink(modelData)" in system
+assert "Nvibrant.setValue(nextValue * 1024)" in content
+assert "visible: Nvibrant.available || Nvibrant.error.length > 0" in content
 assert 'title: qsTr("Desplazamiento del volumen")' in system
 assert 'title: qsTr("Brightness scroll")' not in system
 assert 'title: qsTr("Open on hover")' not in system

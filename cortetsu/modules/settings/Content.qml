@@ -5,6 +5,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
 import "../../components"
+import "../../services"
 import ".."
 import "../launcher/services"
 import "../CortetsuSearchBar.qml"
@@ -345,7 +346,58 @@ Item {
                         CortetsuSectionHeader {
                             Layout.fillWidth: true
                             title: qsTr("Apariencia del shell")
-                            detail: qsTr("Preferencias persistentes de presentación de Cortetsu")
+                            detail: qsTr("Preferencias persistentes y calibración disponible del sistema")
+                        }
+
+                        CortetsuSurface {
+                            Layout.fillWidth: true
+                            implicitHeight: 92
+                            visible: Nvibrant.available || Nvibrant.error.length > 0
+                            radiusValue: CortetsuDesign.radiusMedium
+                            baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.72)
+                            outlined: true
+                            outlineColor: Nvibrant.error.length > 0
+                                ? Qt.alpha(CortetsuDesign.colorWarning, 0.38)
+                                : Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.48)
+
+                            ColumnLayout {
+                                anchors.fill: parent
+                                anchors.margins: CortetsuDesign.spacingStandard
+                                spacing: CortetsuDesign.spacingCompact
+
+                                RowLayout {
+                                    Layout.fillWidth: true
+                                    CortetsuText {
+                                        Layout.fillWidth: true
+                                        text: qsTr("Vibrance NVIDIA")
+                                        textSize: CortetsuTypography.bodyPx
+                                        font.weight: Font.DemiBold
+                                    }
+                                    CortetsuText {
+                                        text: Nvibrant.error.length > 0
+                                            ? qsTr("No disponible")
+                                            : qsTr("%1 / 1024").arg(Nvibrant.value)
+                                        textSize: CortetsuTypography.labelSmallPx
+                                        color: Nvibrant.error.length > 0
+                                            ? CortetsuDesign.colorWarning
+                                            : CortetsuDesign.colorOnSurfaceVariant
+                                    }
+                                }
+                                CortetsuSlider {
+                                    Layout.fillWidth: true
+                                    value: Nvibrant.value / 1024
+                                    disabled: !Nvibrant.available || Nvibrant.busy
+                                    onMoved: nextValue => Nvibrant.setValue(nextValue * 1024)
+                                }
+                                CortetsuText {
+                                    Layout.fillWidth: true
+                                    visible: Nvibrant.error.length > 0
+                                    text: Nvibrant.error
+                                    textSize: CortetsuTypography.labelSmallPx
+                                    color: CortetsuDesign.colorWarning
+                                    elide: Text.ElideRight
+                                }
+                            }
                         }
 
                         SystemPage {

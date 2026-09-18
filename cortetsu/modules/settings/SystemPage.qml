@@ -27,6 +27,11 @@ Item {
     readonly property int batteryPercent: CortetsuPower.percent
     readonly property bool batteryCharging: CortetsuPower.charging
     readonly property int volumePercent: Math.round(CortetsuAudio.volume * 100)
+    readonly property int inputVolumePercent: Math.round(CortetsuAudio.sourceVolume * 100)
+    readonly property string activeOutputName: CortetsuAudio.sink?.description
+        ?? CortetsuAudio.sink?.name ?? qsTr("Sin salida")
+    readonly property string activeInputName: CortetsuAudio.source?.description
+        ?? CortetsuAudio.source?.name ?? qsTr("Sin entrada")
     readonly property string networkName: CortetsuNetwork.active?.ssid
         ?? (CortetsuNetwork.activeEthernet ? qsTr("Ethernet") : qsTr("Sin conexión"))
     readonly property string networkDetail: CortetsuNetwork.connecting
@@ -670,7 +675,28 @@ Item {
             CortetsuSectionHeader {
                 Layout.fillWidth: true
                 title: qsTr("Estado de la red")
-                detail: qsTr("Lectura nativa de NetworkManager; sin controles falsos")
+                detail: qsTr("NetworkManager · señal y redes disponibles en vivo")
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+
+                CortetsuText {
+                    Layout.fillWidth: true
+                    text: CortetsuNetwork.wifiDevice
+                        ? qsTr("Wi‑Fi · %1 redes visibles").arg(CortetsuNetwork.wifiDevice.networks?.values?.length ?? 0)
+                        : qsTr("Wi‑Fi no disponible")
+                    textSize: CortetsuTypography.bodySmallPx
+                    color: CortetsuDesign.colorOnSurfaceVariant
+                }
+
+                CortetsuButton {
+                    compact: true
+                    icon: CortetsuNetwork.refreshing ? "sync" : "refresh"
+                    label: qsTr("Actualizar")
+                    disabled: !CortetsuNetwork.wifiDevice || CortetsuNetwork.refreshing
+                    onClicked: CortetsuNetwork.refresh()
+                }
             }
 
             StatusCard {
@@ -688,9 +714,33 @@ Item {
                 warningState: !CortetsuNetwork.active && !CortetsuNetwork.activeEthernet && !CortetsuNetwork.connecting
             }
 
+            Flow {
+                Layout.fillWidth: true
+                spacing: CortetsuDesign.spacingCompact
+
+                Repeater {
+                    model: (CortetsuNetwork.wifiDevice?.networks?.values ?? [])
+                        .slice().sort((a, b) => Number(b.connected) - Number(a.connected)
+                            || CortetsuNetwork.strengthPercent(b.signalStrength)
+                            - CortetsuNetwork.strengthPercent(a.signalStrength)).slice(0, 6)
+
+                    delegate: StatusCard {
+                        required property var modelData
+                        width: Math.max(220, (parent?.width ?? 440) / 2 - CortetsuDesign.spacingCompact / 2)
+                        title: modelData.name ?? qsTr("Red Wi‑Fi")
+                        value: modelData.connected
+                            ? qsTr("Conectada · %1%").arg(CortetsuNetwork.strengthPercent(modelData.signalStrength))
+                            : qsTr("Señal %1%").arg(CortetsuNetwork.strengthPercent(modelData.signalStrength))
+                        detail: modelData.secured ? qsTr("Red protegida") : qsTr("Red abierta")
+                        icon: Icons.getNetworkIcon(CortetsuNetwork.strengthPercent(modelData.signalStrength))
+                        activeState: modelData.connected
+                    }
+                }
+            }
+
             CortetsuText {
                 Layout.fillWidth: true
-                text: qsTr("Los cambios de conexión se hacen en la ventana de red; esta vista muestra el estado actual.")
+                text: qsTr("Para conectar, editar un perfil, configurar DNS o quitar una red guardada, usa el gestor de red completo.")
                 textSize: CortetsuTypography.bodySmallPx
                 color: CortetsuDesign.colorOnSurfaceVariant
                 wrapMode: Text.WordWrap
@@ -718,6 +768,31 @@ Item {
                 detail: root.bluetoothEnabled ? qsTr("Adaptador activado") : qsTr("Adaptador desactivado")
                 icon: root.bluetoothConnected > 0 ? "bluetooth_connected" : "bluetooth"
                 activeState: root.bluetoothEnabled
+            }
+
+            ColumnLayout {
+                Layout.fillWidth: true
+                visible: root.bluetoothEnabled && root.bluetoothConnected > 0
+                spacing: 0
+
+                CortetsuSectionHeader {
+                    Layout.fillWidth: true
+                    title: qsTr("Dispositivos conectados")
+                    detail: qsTr("Conexión gestionada por BlueZ")
+                }
+
+                Repeater {
+                    model: (Bluetooth.devices?.values ?? []).filter(device => device.connected)
+                    delegate: CortetsuListRow {
+                        required property var modelData
+                        Layout.fillWidth: true
+                        title: modelData.name ?? qsTr("Dispositivo Bluetooth")
+                        subtitle: qsTr("Conectado · pulsa para desconectar")
+                        icon: "bluetooth_connected"
+                        selected: true
+                        onClicked: modelData.connected = false
+                    }
+                }
             }
 
             PreferenceToggle {
@@ -787,6 +862,50 @@ Item {
                         value: CortetsuAudio.volume
                         onMoved: nextValue => CortetsuAudio.setVolume(nextValue)
                     }
+                }
+            }
+
+            CortetsuSectionHeader {
+                Layout.fillWidth: true
+                title: qsTr("Entrada")
+                detail: root.activeInputName
+            }
+
+            PreferenceToggle {
+                title: CortetsuAudio.sourceMuted ? qsTr("Entrada silenciada") : qsTr("Entrada activa")
+                detail: qsTr("Volumen del micrófono %1%").arg(root.inputVolumePercent)
+                icon: CortetsuAudio.sourceMuted ? "mic_off" : "mic"
+                checked: !CortetsuAudio.sourceMuted
+                controlDisabled: !CortetsuAudio.source?.audio
+                onChanged: enabled => {
+                    if (CortetsuAudio.source?.audio)
+                        CortetsuAudio.source.audio.muted = !enabled;
+                }
+            }
+
+            CortetsuSlider {
+                Layout.fillWidth: true
+                value: CortetsuAudio.sourceVolume
+                disabled: CortetsuAudio.sourceMuted || !CortetsuAudio.source
+                onMoved: nextValue => CortetsuAudio.setSourceVolume(nextValue)
+            }
+
+            CortetsuSectionHeader {
+                Layout.fillWidth: true
+                title: qsTr("Dispositivos de salida")
+                detail: qsTr("%1 disponibles · %2 activo").arg(CortetsuAudio.sinks.length).arg(root.activeOutputName)
+            }
+
+            Repeater {
+                model: CortetsuAudio.sinks
+                delegate: CortetsuListRow {
+                    required property var modelData
+                    Layout.fillWidth: true
+                    title: modelData.description ?? modelData.name ?? qsTr("Salida desconocida")
+                    subtitle: CortetsuAudio.sink?.id === modelData.id ? qsTr("Salida actual") : qsTr("Usar esta salida")
+                    icon: "speaker"
+                    selected: CortetsuAudio.sink?.id === modelData.id
+                    onClicked: CortetsuAudio.setAudioSink(modelData)
                 }
             }
         }

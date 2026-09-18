@@ -14,7 +14,11 @@ assert 'section.property: "group"' in content
 assert "keywords" in controller
 assert "This section is connected in stages" not in content
 assert "SystemPage" in content
-assert "Lectura nativa de NetworkManager; sin controles falsos" in system
+assert "NetworkManager · señal y redes disponibles en vivo" in system
+assert "CortetsuNetwork.refresh()" in system
+assert "CortetsuAudio.setSourceVolume(nextValue)" in system
+assert "CortetsuAudio.setAudioSink(modelData)" in system
+assert "Nvibrant.setValue(nextValue * 1024)" in content
 assert "Brightness.getMonitorForScreen(root.screen)" in system
 assert "onMoved: nextValue => CortetsuAudio.setVolume(nextValue)" in system
 assert "onMoved: nextValue => root.brightnessMonitor?.setBrightness(nextValue)" in system
