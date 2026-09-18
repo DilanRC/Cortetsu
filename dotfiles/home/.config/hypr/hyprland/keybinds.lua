@@ -59,7 +59,7 @@ create_bind(vars.kbShowPanels, hl.dsp.global("cortetsu:showall"))
 create_bind(vars.kbLock, hl.dsp.global("cortetsu:lock"))
 create_bind(
     { "SUPER + SLASH", "SUPER + SHIFT + 7" },
-    hl.dsp.global("cortetsu:qsd")
+    hl.dsp.global("cortetsu:osd")
 )
 create_bind("SUPER + I", hl.dsp.global("cortetsu:settings"))
 

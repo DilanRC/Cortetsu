@@ -412,66 +412,6 @@ Item {
                 }
             }
 
-            PreferenceToggle {
-                title: qsTr("Grupo de estado")
-                detail: qsTr("Mostrar notificaciones, hardware y controles de sesión")
-                icon: "tune"
-                checked: CortetsuConfig.bottomHub.segments.status
-                onChanged: checked => {
-                    CortetsuConfig.bottomHub.segments.status = checked;
-                    root.savePreference();
-                }
-            }
-
-            CortetsuSectionHeader {
-                Layout.fillWidth: true
-                title: qsTr("Controles de estado visibles")
-                detail: qsTr("Elegir qué controles de hardware quedan en BottomHub")
-            }
-
-            PreferenceToggle {
-                title: qsTr("Volumen")
-                detail: qsTr("Mostrar el control de audio y su ventana contextual")
-                icon: "volume_up"
-                checked: CortetsuConfig.bottomHub.statusCluster.audio
-                onChanged: checked => {
-                    CortetsuConfig.bottomHub.statusCluster.audio = checked;
-                    root.savePreference();
-                }
-            }
-
-            PreferenceToggle {
-                title: qsTr("Red")
-                detail: qsTr("Mostrar el estado de Wi‑Fi y Ethernet")
-                icon: "wifi"
-                checked: CortetsuConfig.bottomHub.statusCluster.network
-                onChanged: checked => {
-                    CortetsuConfig.bottomHub.statusCluster.network = checked;
-                    root.savePreference();
-                }
-            }
-
-            PreferenceToggle {
-                title: qsTr("Bluetooth")
-                detail: qsTr("Mostrar el adaptador y los dispositivos Bluetooth")
-                icon: "bluetooth"
-                checked: CortetsuConfig.bottomHub.statusCluster.bluetooth
-                onChanged: checked => {
-                    CortetsuConfig.bottomHub.statusCluster.bluetooth = checked;
-                    root.savePreference();
-                }
-            }
-
-            PreferenceToggle {
-                title: qsTr("Batería")
-                detail: qsTr("Mostrar el estado de batería y energía")
-                icon: "battery_full"
-                checked: CortetsuConfig.bottomHub.statusCluster.battery
-                onChanged: checked => {
-                    CortetsuConfig.bottomHub.statusCluster.battery = checked;
-                    root.savePreference();
-                }
-            }
         }
 
         ColumnLayout {

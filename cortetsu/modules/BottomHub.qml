@@ -752,9 +752,7 @@ Scope {
                 modeVisible: CortetsuConfig.bottomHub.segments.mode
                 appsVisible: CortetsuConfig.bottomHub.segments.apps
                 trayVisible: CortetsuConfig.bottomHub.segments.tray
-                // The compact status cluster duplicated controls already
-                // owned by the full OSD in drawers/Panels.qml.
-                statusVisible: false
+                statusVisible: CortetsuConfig.bottomHub.segments.status
 
                 volumeIcon: win.volumeIcon
                 volumeMuted: CortetsuAudio.muted

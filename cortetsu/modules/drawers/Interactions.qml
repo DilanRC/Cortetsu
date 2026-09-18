@@ -22,6 +22,18 @@ CustomMouseArea {
     property bool dashboardShortcutActive
     property bool osdShortcutActive
     property bool utilitiesShortcutActive
+    property bool osdEdgePending
+
+    Timer {
+        id: osdEdgeOpenTimer
+        interval: 180
+        onTriggered: {
+            if (!root.pressed && root.osdEdgePending && !root.fullscreen) {
+                root.screenState.osd = true;
+                root.osdShortcutActive = true;
+            }
+        }
+    }
 
     function withinPanelHeight(panel: Item, x: real, y: real): bool {
         const panelY = root.borderThickness + panel.y;
@@ -116,6 +128,12 @@ CustomMouseArea {
         const y = event.y;
         const dragX = x - dragStart.x;
         const dragY = y - dragStart.y;
+
+        root.osdEdgePending = x >= width - 6;
+        if (root.osdEdgePending && !root.pressed && !root.screenState.osd)
+            osdEdgeOpenTimer.restart();
+        else if (!root.osdEdgePending)
+            osdEdgeOpenTimer.stop();
 
         if (fullscreen) {
             root.panels.osd.hovered = inRightPanel(panels.osdWrapper, x, y);

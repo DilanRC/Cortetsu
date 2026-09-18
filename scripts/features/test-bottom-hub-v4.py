@@ -57,7 +57,7 @@ def main() -> None:
     CANONICAL_HYPR = (ROOT / "dotfiles/home/.config/hypr/hyprland/keybinds.lua").read_text()
     require(CANONICAL_HYPR, 'create_bind("SUPER + I", hl.dsp.global("cortetsu:settings"))', "SUPER+I a Settings")
     require(CANONICAL_HYPR, 'create_bind(vars.kbShowSidebar, hl.dsp.global("cortetsu:sidebar"))', "SUPER+N a notificaciones")
-    require(CANONICAL_HYPR, 'create_bind(\n    { "SUPER + SLASH", "SUPER + SHIFT + 7" },\n    hl.dsp.global("cortetsu:qsd")\n)', "SUPER+/ a Quick Settings")
+    require(CANONICAL_HYPR, 'create_bind(\n    { "SUPER + SLASH", "SUPER + SHIFT + 7" },\n    hl.dsp.global("cortetsu:osd")\n)', "SUPER+/ a OSD")
     require(HYPR, 'move_key = "SUPER + SHIFT + F7"', "workspace 7 sin colisión")
     forbid(HYPR, '"SUPER + I",\n    hl.dsp.global("cortetsu:settings")', "SUPER+I duplicado")
     forbid(HYPR, '"SUPER + Slash",\n    hl.dsp.global("cortetsu:qsd")', "SUPER+/ duplicado")

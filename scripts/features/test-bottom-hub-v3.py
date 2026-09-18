@@ -109,7 +109,7 @@ def main() -> None:
         "modeVisible: CortetsuConfig.bottomHub.segments.mode",
         "appsVisible: CortetsuConfig.bottomHub.segments.apps",
         "trayVisible: CortetsuConfig.bottomHub.segments.tray",
-        "statusVisible: false",
+        "statusVisible: CortetsuConfig.bottomHub.segments.status",
     ):
         require(bottom, token, "persisted dock segment")
     require_order(

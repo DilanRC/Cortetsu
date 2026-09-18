@@ -77,18 +77,13 @@ for preference in (
     'CortetsuConfig.bottomHub.segments.mode',
     'CortetsuConfig.bottomHub.segments.apps',
     'CortetsuConfig.bottomHub.segments.tray',
-    'CortetsuConfig.bottomHub.segments.status',
-    'CortetsuConfig.bottomHub.statusCluster.audio',
-    'CortetsuConfig.bottomHub.statusCluster.network',
-    'CortetsuConfig.bottomHub.statusCluster.bluetooth',
-    'CortetsuConfig.bottomHub.statusCluster.battery',
     'CortetsuConfig.useFuzzyActions',
     'CortetsuConfig.notificationOpenExpanded',
     'CortetsuConfig.toastCapsLockChanged',
     'CortetsuConfig.toastNumLockChanged',
 ):
     assert preference in system, preference
-assert system.count('root.savePreference();') >= 18
+assert system.count('root.savePreference();') >= 10
 
 # Scheme selection is a single owned transaction and refreshes the active highlight.
 for marker in (
@@ -119,14 +114,15 @@ assert "scroller.contentHeight > scroller.height" in content
 assert 'title: qsTr("Segmentos visibles")' in system
 assert 'value: CortetsuWallpapers.applyStatus === "applying"' in system
 assert 'warningState: CortetsuWallpapers.applyStatus === "failed"' in system
-for label in ("Modo y espacios", "Barra de aplicaciones", "Bandeja", "Grupo de estado"):
+for label in ("Modo y espacios", "Barra de aplicaciones", "Bandeja"):
     assert f'title: qsTr("{label}")' in system
+assert 'title: qsTr("Grupo de estado")' not in system
 assert "CortetsuConfig.bottomHub.segments" in system
 
 # Global first-party bindings have one canonical owner. User overrides must not
 # register a second spelling of the same shortcut after that module is loaded.
 assert 'create_bind("SUPER + I", hl.dsp.global("cortetsu:settings"))' in base_hypr
-assert 'create_bind(\n    { "SUPER + SLASH", "SUPER + SHIFT + 7" },\n    hl.dsp.global("cortetsu:qsd")\n)' in base_hypr
+assert 'create_bind(\n    { "SUPER + SLASH", "SUPER + SHIFT + 7" },\n    hl.dsp.global("cortetsu:osd")\n)' in base_hypr
 assert '"SUPER + I",\n    hl.dsp.global("cortetsu:settings")' not in user_hypr
 assert '"SUPER + Slash",\n    hl.dsp.global("cortetsu:qsd")' not in user_hypr
 assert '"SUPER + I",\n    hl.dsp.global("cortetsu:utilities")' not in user_hypr

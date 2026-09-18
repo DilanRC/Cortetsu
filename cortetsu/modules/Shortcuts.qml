@@ -75,6 +75,14 @@ Scope {
         onPressed: if (!root.hasFullscreen) root.toggleExclusive(CortetsuShellState.forActive(), "utilities")
     }
     CustomShortcut {
+        name: "osd"; description: "Alternar OSD de acciones rápidas"
+        onPressed: {
+            if (root.hasFullscreen)
+                return;
+            root.toggleExclusive(CortetsuShellState.forActive(), "osd");
+        }
+    }
+    CustomShortcut {
         name: "qsd"; description: "Alternar ajustes rápidos"
         onPressed: {
             if (root.hasFullscreen)
