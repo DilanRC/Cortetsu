@@ -39,6 +39,20 @@ assert 'title: qsTr("Comportamiento de BottomHub")' in system
 for label in ("Estado de la red", "Bluetooth", "Energía"):
     assert f'title: qsTr("{label}")' in system
 assert "CortetsuConfig.bar.popouts.statusIcons" in system
+for marker in (
+    "CortetsuConfig.dashboard.showOnHover",
+    "CortetsuConfig.dashboard.showWeather",
+    "CortetsuConfig.launcher.showOnHover",
+    "CortetsuConfig.bottomHub.statusCluster.audio",
+    "CortetsuConfig.bottomHub.statusCluster.network",
+    "CortetsuConfig.bottomHub.statusCluster.bluetooth",
+    "CortetsuConfig.bottomHub.statusCluster.battery",
+    "CortetsuConfig.useFuzzyWallpapers",
+    "CortetsuConfig.useFuzzySchemes",
+    "CortetsuConfig.toastNowPlaying",
+    "CortetsuConfig.notificationExpire",
+):
+    assert marker in system, marker
 assert "WallpaperController.open(root.screen)" in system
 assert "root.screenState.cortetsuState?.closeRetainedOverlaysExcept(flag)" in system
 assert 'title: qsTr("Segmentos visibles")' in system
@@ -54,9 +68,13 @@ checks = {
     "appearance preference persists": all(marker in content for marker in (
         "checked: CortetsuConfig.transparencyEnabled",
         "CortetsuConfig.transparencyEnabled = checked;",
+        "CortetsuConfig.useTwelveHourClock",
+        "CortetsuConfig.useFahrenheit",
+        "CortetsuConfig.visualiserEnabled",
+        "CortetsuConfig.visualiserAutoHide",
         "CortetsuConfig.save();",
     )),
-    "system preferences persist": system.count("root.savePreference();") >= 16,
+    "system preferences persist": system.count("root.savePreference();") >= 30,
     "scheme application state is observable": all(marker in schemes for marker in (
         "pendingScheme", 'applyStatus = "applying"', "applyError", "stderr: StdioCollector", "onExited",
     )),

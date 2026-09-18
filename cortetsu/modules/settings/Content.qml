@@ -382,6 +382,71 @@ Item {
                                 }
                             }
                         }
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            CortetsuText {
+                                Layout.fillWidth: true
+                                text: qsTr("Reloj de 12 horas")
+                                textSize: CortetsuTypography.bodyPx
+                            }
+                            CortetsuToggle {
+                                checked: CortetsuConfig.useTwelveHourClock
+                                onToggled: {
+                                    CortetsuConfig.useTwelveHourClock = checked;
+                                    CortetsuConfig.save();
+                                }
+                            }
+                        }
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            CortetsuText {
+                                Layout.fillWidth: true
+                                text: qsTr("Temperatura en Fahrenheit")
+                                textSize: CortetsuTypography.bodyPx
+                            }
+                            CortetsuToggle {
+                                checked: CortetsuConfig.useFahrenheit
+                                onToggled: {
+                                    CortetsuConfig.useFahrenheit = checked;
+                                    CortetsuConfig.save();
+                                }
+                            }
+                        }
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            CortetsuText {
+                                Layout.fillWidth: true
+                                text: qsTr("Visualizador de audio")
+                                textSize: CortetsuTypography.bodyPx
+                            }
+                            CortetsuToggle {
+                                checked: CortetsuConfig.visualiserEnabled
+                                onToggled: {
+                                    CortetsuConfig.visualiserEnabled = checked;
+                                    CortetsuConfig.save();
+                                }
+                            }
+                        }
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            CortetsuText {
+                                Layout.fillWidth: true
+                                text: qsTr("Ocultar visualizador sin ventanas flotantes")
+                                textSize: CortetsuTypography.bodyPx
+                            }
+                            CortetsuToggle {
+                                checked: CortetsuConfig.visualiserAutoHide
+                                disabled: !CortetsuConfig.visualiserEnabled
+                                onToggled: {
+                                    CortetsuConfig.visualiserAutoHide = checked;
+                                    CortetsuConfig.save();
+                                }
+                            }
+                        }
                     }
 
                     SystemPage {

@@ -186,6 +186,9 @@ Item {
         property string icon: "arrow_forward"
         signal activated()
 
+        focus: false
+        activeFocusOnTab: true
+
         Layout.fillWidth: true
         implicitHeight: 64
         radiusValue: CortetsuDesign.radiusMedium
@@ -193,6 +196,9 @@ Item {
         hoverColor: Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.52)
         outlined: true
         outlineColor: Qt.alpha(CortetsuDesign.colorPrimary, 0.28)
+        focused: action.activeFocus
+        hovered: actionMouse.containsMouse
+        pressed: actionMouse.pressed
 
         RowLayout {
             anchors.fill: parent
@@ -231,17 +237,17 @@ Item {
         }
 
         MouseArea {
+            id: actionMouse
             anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
-            onEntered: action.hovered = true
-            onExited: {
-                action.hovered = false;
-                action.pressed = false;
-            }
-            onPressedChanged: action.pressed = pressed
+            onPressed: action.forceActiveFocus()
             onClicked: action.activated()
         }
+
+        Keys.onEnterPressed: action.activated()
+        Keys.onReturnPressed: action.activated()
+        Keys.onSpacePressed: action.activated()
     }
 
     component ShortcutRow: CortetsuSurface {
@@ -338,6 +344,50 @@ Item {
                     root.savePreference();
                 }
             }
+
+            PreferenceToggle {
+                title: qsTr("Panel superior al pasar el puntero")
+                detail: qsTr("Mostrar el Dashboard al acercarte al borde superior")
+                icon: "dashboard"
+                checked: CortetsuConfig.dashboard.showOnHover
+                onChanged: checked => {
+                    CortetsuConfig.dashboard.showOnHover = checked;
+                    root.savePreference();
+                }
+            }
+
+            PreferenceToggle {
+                title: qsTr("Contenido multimedia del Dashboard")
+                detail: qsTr("Mostrar el reproductor en el panel superior")
+                icon: "music_note"
+                checked: CortetsuConfig.dashboard.showMedia
+                onChanged: checked => {
+                    CortetsuConfig.dashboard.showMedia = checked;
+                    root.savePreference();
+                }
+            }
+
+            PreferenceToggle {
+                title: qsTr("Métricas del Dashboard")
+                detail: qsTr("Mostrar CPU, GPU, memoria y red en el panel superior")
+                icon: "monitoring"
+                checked: CortetsuConfig.dashboard.showPerformance
+                onChanged: checked => {
+                    CortetsuConfig.dashboard.showPerformance = checked;
+                    root.savePreference();
+                }
+            }
+
+            PreferenceToggle {
+                title: qsTr("Clima del Dashboard")
+                detail: qsTr("Mostrar el estado del tiempo en el panel superior")
+                icon: "cloud"
+                checked: CortetsuConfig.dashboard.showWeather
+                onChanged: checked => {
+                    CortetsuConfig.dashboard.showWeather = checked;
+                    root.savePreference();
+                }
+            }
         }
 
         ColumnLayout {
@@ -412,6 +462,50 @@ Item {
                 }
             }
 
+            PreferenceToggle {
+                title: qsTr("Estado de audio")
+                detail: qsTr("Mostrar volumen y salida en el grupo de estado")
+                icon: "volume_up"
+                checked: CortetsuConfig.bottomHub.statusCluster.audio
+                onChanged: checked => {
+                    CortetsuConfig.bottomHub.statusCluster.audio = checked;
+                    root.savePreference();
+                }
+            }
+
+            PreferenceToggle {
+                title: qsTr("Estado de red")
+                detail: qsTr("Mostrar Wi-Fi o Ethernet en el grupo de estado")
+                icon: "wifi"
+                checked: CortetsuConfig.bottomHub.statusCluster.network
+                onChanged: checked => {
+                    CortetsuConfig.bottomHub.statusCluster.network = checked;
+                    root.savePreference();
+                }
+            }
+
+            PreferenceToggle {
+                title: qsTr("Estado de Bluetooth")
+                detail: qsTr("Mostrar el adaptador Bluetooth en el grupo de estado")
+                icon: "bluetooth"
+                checked: CortetsuConfig.bottomHub.statusCluster.bluetooth
+                onChanged: checked => {
+                    CortetsuConfig.bottomHub.statusCluster.bluetooth = checked;
+                    root.savePreference();
+                }
+            }
+
+            PreferenceToggle {
+                title: qsTr("Estado de batería")
+                detail: qsTr("Mostrar carga y alimentación en el grupo de estado")
+                icon: "battery_full"
+                checked: CortetsuConfig.bottomHub.statusCluster.battery
+                onChanged: checked => {
+                    CortetsuConfig.bottomHub.statusCluster.battery = checked;
+                    root.savePreference();
+                }
+            }
+
         }
 
         ColumnLayout {
@@ -443,6 +537,39 @@ Item {
                 checked: CortetsuConfig.useFuzzyActions
                 onChanged: checked => {
                     CortetsuConfig.useFuzzyActions = checked;
+                    root.savePreference();
+                }
+            }
+
+            PreferenceToggle {
+                title: qsTr("Abrir el lanzador al pasar el puntero")
+                detail: qsTr("Mostrar el lanzador al acercarte al borde inferior")
+                icon: "search"
+                checked: CortetsuConfig.launcher.showOnHover
+                onChanged: checked => {
+                    CortetsuConfig.launcher.showOnHover = checked;
+                    root.savePreference();
+                }
+            }
+
+            PreferenceToggle {
+                title: qsTr("Búsqueda aproximada de fondos")
+                detail: qsTr("Encontrar fondos aunque el nombre no coincida exactamente")
+                icon: "wallpaper"
+                checked: CortetsuConfig.useFuzzyWallpapers
+                onChanged: checked => {
+                    CortetsuConfig.useFuzzyWallpapers = checked;
+                    root.savePreference();
+                }
+            }
+
+            PreferenceToggle {
+                title: qsTr("Búsqueda aproximada de esquemas")
+                detail: qsTr("Encontrar esquemas por nombre y variante")
+                icon: "palette"
+                checked: CortetsuConfig.useFuzzySchemes
+                onChanged: checked => {
+                    CortetsuConfig.useFuzzySchemes = checked;
                     root.savePreference();
                 }
             }
@@ -486,6 +613,50 @@ Item {
                 checked: CortetsuConfig.suppressNotificationsInFullscreen
                 onChanged: checked => {
                     CortetsuConfig.suppressNotificationsInFullscreen = checked;
+                    root.savePreference();
+                }
+            }
+
+            PreferenceToggle {
+                title: qsTr("Avisar al cambiar el estado de No molestar")
+                detail: qsTr("Mostrar un aviso cuando DND se active o desactive")
+                icon: "notifications_active"
+                checked: CortetsuConfig.toastDndChanged
+                onChanged: checked => {
+                    CortetsuConfig.toastDndChanged = checked;
+                    root.savePreference();
+                }
+            }
+
+            PreferenceToggle {
+                title: qsTr("Avisar al cambiar el modo de juego")
+                detail: qsTr("Mostrar un aviso al entrar o salir del modo de juego")
+                icon: "sports_esports"
+                checked: CortetsuConfig.toastGameModeChanged
+                onChanged: checked => {
+                    CortetsuConfig.toastGameModeChanged = checked;
+                    root.savePreference();
+                }
+            }
+
+            PreferenceToggle {
+                title: qsTr("Avisar sobre reproducción multimedia")
+                detail: qsTr("Mostrar avisos cuando cambie la pista o el reproductor")
+                icon: "music_note"
+                checked: CortetsuConfig.toastNowPlaying
+                onChanged: checked => {
+                    CortetsuConfig.toastNowPlaying = checked;
+                    root.savePreference();
+                }
+            }
+
+            PreferenceToggle {
+                title: qsTr("Caducidad automática")
+                detail: qsTr("Retirar las notificaciones después del tiempo configurado")
+                icon: "timer"
+                checked: CortetsuConfig.notificationExpire
+                onChanged: checked => {
+                    CortetsuConfig.notificationExpire = checked;
                     root.savePreference();
                 }
             }
@@ -663,6 +834,17 @@ Item {
                     root.savePreference();
                 }
             }
+
+            PreferenceToggle {
+                title: qsTr("Bloquear antes de suspender")
+                detail: qsTr("Bloquear la sesión antes de que el equipo entre en suspensión")
+                icon: "lock"
+                checked: CortetsuConfig.idleLockBeforeSleep
+                onChanged: checked => {
+                    CortetsuConfig.idleLockBeforeSleep = checked;
+                    root.savePreference();
+                }
+            }
         }
 
         ColumnLayout {
@@ -766,6 +948,17 @@ Item {
                 checked: CortetsuConfig.toastNumLockChanged
                 onChanged: checked => {
                     CortetsuConfig.toastNumLockChanged = checked;
+                    root.savePreference();
+                }
+            }
+
+            PreferenceToggle {
+                title: qsTr("Aviso de distribución del teclado")
+                detail: qsTr("Mostrar un aviso al cambiar el idioma del teclado")
+                icon: "language"
+                checked: CortetsuConfig.toastKbLayoutChanged
+                onChanged: checked => {
+                    CortetsuConfig.toastKbLayoutChanged = checked;
                     root.savePreference();
                 }
             }

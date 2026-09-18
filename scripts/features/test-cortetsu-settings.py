@@ -69,21 +69,39 @@ assert 'onMoved: CortetsuAudio.setVolume(value)' not in system
 assert 'onMoved: root.brightnessMonitor?.setBrightness(value)' not in system
 assert 'checked: CortetsuConfig.transparencyEnabled' in content
 assert 'CortetsuConfig.transparencyEnabled = checked;' in content
+for preference in (
+    'CortetsuConfig.useTwelveHourClock',
+    'CortetsuConfig.useFahrenheit',
+    'CortetsuConfig.visualiserEnabled',
+    'CortetsuConfig.visualiserAutoHide',
+):
+    assert preference in content, preference
 assert 'CortetsuConfig.save();' in content
 for preference in (
     'CortetsuConfig.bar.workspaces.perMonitorWorkspaces',
+    'CortetsuConfig.dashboard.showOnHover',
+    'CortetsuConfig.dashboard.showWeather',
+    'CortetsuConfig.launcher.showOnHover',
     'CortetsuConfig.bar.popouts.statusIcons',
     'CortetsuConfig.bar.scrollActions.volume',
     'CortetsuConfig.bottomHub.segments.mode',
     'CortetsuConfig.bottomHub.segments.apps',
     'CortetsuConfig.bottomHub.segments.tray',
+    'CortetsuConfig.bottomHub.statusCluster.audio',
+    'CortetsuConfig.bottomHub.statusCluster.network',
+    'CortetsuConfig.bottomHub.statusCluster.bluetooth',
+    'CortetsuConfig.bottomHub.statusCluster.battery',
     'CortetsuConfig.useFuzzyActions',
+    'CortetsuConfig.useFuzzyWallpapers',
+    'CortetsuConfig.useFuzzySchemes',
     'CortetsuConfig.notificationOpenExpanded',
+    'CortetsuConfig.toastNowPlaying',
+    'CortetsuConfig.notificationExpire',
     'CortetsuConfig.toastCapsLockChanged',
     'CortetsuConfig.toastNumLockChanged',
 ):
     assert preference in system, preference
-assert system.count('root.savePreference();') >= 10
+assert system.count('root.savePreference();') >= 30
 
 # Scheme selection is a single owned transaction and refreshes the active highlight.
 for marker in (
