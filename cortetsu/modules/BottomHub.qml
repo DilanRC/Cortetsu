@@ -451,9 +451,7 @@ Scope {
                     client => client.lastIpcObject?.address === activeAddress
                 ),
                 title: item.entry?.name ?? item.className,
-                iconSource: item.entry?.icon
-                    ? Quickshell.iconPath(item.entry.icon, "image-missing")
-                    : Icons.getAppIcon(item.className, "image-missing"),
+                iconSource: Icons.getAppIcon(item.className, "image-missing"),
                 windowCount: item.windows.length
             }))
 

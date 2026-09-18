@@ -41,6 +41,7 @@ def main() -> None:
     )
     require(HUB, "const sourceIndex = SystemTray.items.values.indexOf(item);", "indice SNI estable")
     require(HUB, "item.icon || Icons.getTrayIcon(item.id, item.icon)", "icono SNI prioritario")
+    require(HUB, 'Icons.getAppIcon(item.className, "image-missing")', "iconos de aplicaciones por clase")
     require(HUB, "toggleUtilitiesFor", "control legacy de sidebar/utilities")
     forbid(TRAY, "SystemTray", "backend SNI dentro de la vista")
     forbid(HUB, "`traymenu${trayItem.index}`", "índice filtrado incorrecto")
