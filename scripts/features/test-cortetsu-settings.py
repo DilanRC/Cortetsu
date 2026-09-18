@@ -38,6 +38,10 @@ assert 'keywords: qsTr("tema color transparencia reloj visualizador")' in (setti
 assert "FloatingWindow" in host
 assert "minimumSize.width" in host
 assert "surfaceFormat.opaque: false" in host
+assert 'import "settings"' in host
+assert 'import "nexus"' not in host
+assert "Nexus {" not in host
+assert "Wrapper {" in host
 assert 'create_bind(vars.kbWindowFullscreen, hl.dsp.window.fullscreen({ mode = "fullscreen" }))' in base_hypr
 hyprland = (ROOT / "dotfiles/home/.config/hypr/hyprland.lua").read_text(encoding="utf-8")
 assert "package.loaded[mod] = nil" in hyprland
