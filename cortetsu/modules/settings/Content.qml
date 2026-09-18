@@ -533,7 +533,7 @@ Item {
 
                     NetworkPage {
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 660
+                        Layout.preferredHeight: 760
                         visible: root.controller.selectedId === "network"
                         screen: root.screen
                         screenState: root.screenState
