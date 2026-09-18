@@ -2,19 +2,18 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-utilities = (ROOT / "cortetsu/modules/utilities/Content.qml").read_text(encoding="utf-8")
+utilities_wrapper = (ROOT / "cortetsu/modules/utilities/Wrapper.qml").read_text(encoding="utf-8")
 osd = (ROOT / "cortetsu/modules/osd/Content.qml").read_text(encoding="utf-8")
 progress = (ROOT / "cortetsu/components/CortetsuProgressBar.qml").read_text(encoding="utf-8")
 
-for source in (utilities, osd):
+for source in (utilities_wrapper, osd):
     for legacy in ("Caelestia", "GlobalConfig", "qs.services", "qs.components", "Tokens", "Colours"):
         assert legacy not in source, legacy
 
-assert "CortetsuPopupSurface" in utilities
-assert "Screen recording active" in utilities
-assert "Cortetsu is ready" in utilities
-assert "CortetsuIdleInhibitor.enabled" in utilities
-assert "CortetsuRecorder.running" in utilities
+assert "readonly property bool shouldBeActive: false" in utilities_wrapper
+assert "Acciones rápidas" not in osd
+assert "CortetsuActionTile" not in osd
+assert "visible: true" in osd
 assert "CortetsuProgressBar" in osd
 assert "value: indicator.modelData.value" in osd
 assert "Math.max(0, Math.min(1, root.value))" in progress

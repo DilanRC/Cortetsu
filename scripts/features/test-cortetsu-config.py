@@ -268,7 +268,8 @@ assert "function close" in notif_data and "property list<var> actions" in notif_
 for legacy in ("Caelestia", "GlobalConfig", "qs.components", "qs.services"):
     assert legacy not in notification_view, legacy
 assert "CortetsuSurface" in notification_view and "modelData.close()" in notification_view
-assert "CortetsuConfig" in utilities_wrapper and "modules__utilities__Wrapper.qml.patch" not in utilities_wrapper
+assert "readonly property bool shouldBeActive: false" in utilities_wrapper
+assert "modules__utilities__Wrapper.qml.patch" not in utilities_wrapper
 assert "readonly property real nonAnimHeight" in utilities_wrapper
 vpn = (repo / "cortetsu/base/services/VPN.qml").read_text(encoding="utf-8")
 assert "GlobalConfig" not in vpn and "Caelestia" not in vpn

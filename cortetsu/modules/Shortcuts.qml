@@ -31,7 +31,7 @@ Scope {
             state.launcher = open && CortetsuConfig.launcher.enabled;
             state.dashboard = open && CortetsuConfig.dashboard.enabled && CortetsuConfig.dashboard.showDashboard;
             state.osd = open;
-            state.utilities = open && CortetsuConfig.utilities.enabled;
+            state.utilities = false;
             state.settings = open;
         }
     }
@@ -72,7 +72,7 @@ Scope {
     }
     CustomShortcut {
         name: "utilities"; description: "Alternar utilidades"
-        onPressed: if (!root.hasFullscreen) root.toggleExclusive(CortetsuShellState.forActive(), "utilities")
+        onPressed: if (!root.hasFullscreen) root.toggleExclusive(CortetsuShellState.forActive(), "osd")
     }
     CustomShortcut {
         name: "osd"; description: "Alternar OSD de acciones rápidas"

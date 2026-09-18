@@ -15,8 +15,9 @@ Item {
         property string recordingMode: ""
         reloadableId: "utilities"
     }
-    readonly property bool shouldBeActive: (screenState?.utilities ?? false)
-        && !((screenState?.session ?? false) && CortetsuConfig.notificationExpire === false)
+    // Legacy quick-settings surface intentionally has no visual host. The
+    // full OSD is the only owner of transient controls now.
+    readonly property bool shouldBeActive: false
     readonly property real totalPadding: CortetsuDesign.spacingComfortable * 2
     readonly property real nonAnimHeight: ((content.item as Content)?.nonAnimHeight ?? 0) + totalPadding
     property real offsetScale: shouldBeActive ? 0 : 1

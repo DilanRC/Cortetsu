@@ -17,106 +17,18 @@ CortetsuPopupSurface {
     required property real brightness
     property bool hovered: false
 
-    // Two action tiles need enough room for their Spanish labels at the
-    // normal desktop scale. This avoids truncating "Mantener activo".
-    implicitWidth: 420
-    implicitHeight: body.implicitHeight + CortetsuDesign.spacingComfortable * 2
+    // The OSD owns transient level feedback. Action tiles belong to no
+    // surface anymore; keeping them here created a second quick-settings UI.
+    implicitWidth: 360
+    implicitHeight: indicators.implicitHeight + CortetsuDesign.spacingComfortable * 2
 
     HoverHandler {
         onHoveredChanged: root.hovered = hovered
     }
 
-    ColumnLayout {
-        id: body
-        anchors.fill: parent
-        anchors.margins: CortetsuDesign.spacingComfortable
-        spacing: CortetsuDesign.spacingStandard
-
-        RowLayout {
-            Layout.fillWidth: true
-            spacing: CortetsuDesign.spacingStandard
-
-            CortetsuEvolvingMark {
-                Layout.preferredWidth: 32
-                Layout.preferredHeight: 32
-                phase: "Ascended"
-                animated: false
-                monochrome: true
-                monochromeColor: CortetsuDesign.colorWashi
-            }
-
-            CortetsuText {
-                Layout.fillWidth: true
-                text: qsTr("Acciones rápidas")
-                textSize: CortetsuTypography.titleMediumPx
-            }
-        }
-
-        GridLayout {
-            Layout.fillWidth: true
-            columns: 2
-            rowSpacing: CortetsuDesign.spacingCompact
-            columnSpacing: CortetsuDesign.spacingCompact
-
-            CortetsuActionTile {
-                Layout.fillWidth: true
-                label: CortetsuRecorder.running ? qsTr("Detener grabación") : qsTr("Grabar pantalla")
-                detail: CortetsuRecorder.running ? qsTr("Grabando") : qsTr("Iniciar captura")
-                icon: CortetsuRecorder.running ? "stop_circle" : "radio_button_checked"
-                highlighted: CortetsuRecorder.running
-                warning: false
-                onActivated: CortetsuRecorder.running ? CortetsuRecorder.stop() : CortetsuRecorder.start()
-            }
-
-            CortetsuActionTile {
-                Layout.fillWidth: true
-                label: CortetsuIdleInhibitor.enabled ? qsTr("Permitir reposo") : qsTr("Mantener activo")
-                detail: CortetsuIdleInhibitor.enabled ? qsTr("Desactivado") : qsTr("Activo mientras trabajas")
-                icon: CortetsuIdleInhibitor.enabled ? "bedtime" : "bedtime_off"
-                highlighted: CortetsuIdleInhibitor.enabled
-                warning: false
-                onActivated: CortetsuIdleInhibitor.enabled = !CortetsuIdleInhibitor.enabled
-            }
-
-            CortetsuActionTile {
-                Layout.columnSpan: 2
-                Layout.fillWidth: true
-                label: GameMode.enabled ? qsTr("Desactivar modo juego") : qsTr("Activar modo juego")
-                detail: GameMode.enabled ? qsTr("Efectos reducidos") : qsTr("Menos animaciones y efectos")
-                icon: GameMode.enabled ? "sports_esports" : "videogame_asset"
-                highlighted: GameMode.enabled
-                warning: false
-                onActivated: GameMode.toggle()
-            }
-        }
-    }
-
-    CortetsuEvolvingMark {
-        id: signatureMark
-        visible: false
-        x: CortetsuDesign.spacingStandard
-        y: CortetsuDesign.spacingUnit
-        width: 24
-        height: 24
-        phase: "Ascended"
-        animated: false
-        monochrome: true
-        monochromeColor: CortetsuDesign.colorWashi
-    }
-    CortetsuText {
-        visible: false
-        anchors.top: parent.top
-        anchors.right: parent.right
-        anchors.topMargin: CortetsuDesign.spacingCompact
-        anchors.rightMargin: CortetsuDesign.spacingStandard
-        text: qsTr("Controles anteriores")
-        textSize: CortetsuTypography.labelSmallPx
-        color: CortetsuDesign.colorOnSurfaceVariant
-    }
-
     Column {
         id: indicators
-        visible: false
+        visible: true
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.top: parent.top

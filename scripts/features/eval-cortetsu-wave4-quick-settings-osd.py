@@ -5,18 +5,13 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-utilities = (ROOT / "cortetsu/modules/utilities/Content.qml").read_text(encoding="utf-8")
+utilities = (ROOT / "cortetsu/modules/utilities/Wrapper.qml").read_text(encoding="utf-8")
 osd = (ROOT / "cortetsu/modules/osd/Content.qml").read_text(encoding="utf-8")
 progress = (ROOT / "cortetsu/components/CortetsuProgressBar.qml").read_text(encoding="utf-8")
 
 checks = {
-    "quick settings has a shared popup surface": "CortetsuPopupSurface" in utilities,
-    "quick settings balances primary controls": "RowLayout" in utilities and "Layout.fillWidth" in utilities,
-    "quick settings has an active recording status": "Screen recording active" in utilities,
-    "quick settings has a ready status": "Cortetsu is ready" in utilities,
-    "keep-awake remains actionable": "CortetsuIdleInhibitor.enabled = !CortetsuIdleInhibitor.enabled" in utilities,
-    "recording remains actionable": "CortetsuRecorder.stop()" in utilities and '"cortetsu-record", "start"' in utilities,
-    "notifications remain reachable": "root.screenState.sidebar = true" in utilities,
+    "legacy quick settings host is inert": "readonly property bool shouldBeActive: false" in utilities,
+    "osd has no action card": "Acciones rápidas" not in osd and "CortetsuActionTile" not in osd,
     "osd keeps volume wheel control": "CortetsuAudio.incrementVolume" in osd and "CortetsuAudio.decrementVolume" in osd,
     "osd uses one shared surface": "CortetsuPopupSurface" in osd and "id: indicators" in osd,
     "osd keeps brightness wheel control": "root.monitor.setBrightness" in osd,

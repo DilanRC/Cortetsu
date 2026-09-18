@@ -189,13 +189,11 @@ Scope {
         if (!state)
             return;
 
-        const wasOpen = state.utilities;
         closeAllLaunchers();
         closeAllPanels();
-        if (!wasOpen)
-            closeAllPopouts();
+        closeAllPopouts();
         OverlayPolicy.closeOtherPanels(state);
-        state.utilities = !wasOpen;
+        state.osd = !state.osd;
         shown = true;
     }
 

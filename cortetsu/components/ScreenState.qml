@@ -33,10 +33,15 @@ PersistentProperties {
     property bool wallpaperManager
 
     readonly property bool retainedOverlayOpen: overview || calendar || clipboard || hardware || displayManager || wallpaperManager
-    readonly property bool requiresOverlayLayer: retainedOverlayOpen || launcher || session || qsd || settings
+    readonly property bool requiresOverlayLayer: retainedOverlayOpen || launcher || session || settings
     readonly property bool requiresFullInputMask: retainedOverlayOpen
-    readonly property bool requiresWindowKeyboardFocus: requiresFullInputMask || launcher || session || qsd || settings
+    readonly property bool requiresWindowKeyboardFocus: requiresFullInputMask || launcher || session || settings
 
-    Component.onCompleted: CortetsuShellState.registerState(modelData, root)
+    Component.onCompleted: {
+        // Migrate persisted legacy quick-settings flags to the single OSD.
+        root.utilities = false;
+        root.qsd = false;
+        CortetsuShellState.registerState(modelData, root);
+    }
     Component.onDestruction: CortetsuShellState.unregisterState(modelData, root)
 }
