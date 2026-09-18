@@ -5,7 +5,8 @@ import "../modules/CortetsuTypography.js" as CortetsuTypography
 Item {
     id: root
 
-    focus: !disabled
+    // Selection cards participate in Tab order without taking focus on load.
+    focus: false
     activeFocusOnTab: !disabled
 
     property string title: ""

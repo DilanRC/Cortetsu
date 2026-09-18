@@ -5,7 +5,9 @@ import "../modules/CortetsuTypography.js" as CortetsuTypography
 Item {
     id: root
 
-    focus: !disabled
+    // Reusable controls must not steal keyboard focus while an overlay is
+    // being constructed. Focus is assigned by Tab traversal or on click.
+    focus: false
     activeFocusOnTab: !disabled
 
     property string label

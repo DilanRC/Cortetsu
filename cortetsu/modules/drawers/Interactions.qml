@@ -112,8 +112,6 @@ CustomMouseArea {
             if (CortetsuOverlayConfig.bar.showOnHover)
                 bar.isHovered = false;
 
-            if (false && CortetsuOverlayConfig.sidebar.showOnHover)
-                screenState.sidebar = false;
         }
     }
 
@@ -165,16 +163,6 @@ CustomMouseArea {
                 root.panels.osd.hovered = true;
             }
 
-            const showSidebar = false;
-
-            // Show sidebar on hover (top-right corner, bounded by notification panel height)
-            if (false && CortetsuOverlayConfig.sidebar.showOnHover) {
-                const sidebarTriggerY = Math.max(CortetsuOverlayConfig.sidebar.minHoverThreshold, panels.notifications.y + panels.notifications.height + borderThickness);
-                const showSidebarHover = x > Math.min(width - CortetsuOverlayConfig.border.minThickness, bar.implicitWidth + panels.sidebar.x) && y <= sidebarTriggerY;
-                if (showSidebarHover && !screenState.sidebar)
-                    screenState.sidebar = true;
-            }
-
             // Show/hide session on drag
             if (pressed && inRightPanel(panels.sessionWrapper, dragStart.x, dragStart.y) && withinPanelHeight(panels.sessionWrapper, x, y)) {
                 if (dragX < -CortetsuOverlayConfig.session.dragThreshold)
@@ -182,12 +170,6 @@ CustomMouseArea {
                 else if (dragX > CortetsuOverlayConfig.session.dragThreshold)
                     screenState.session = false;
 
-                // Show sidebar on drag if in session area and session is nearly fully visible
-                if (showSidebar && panels.session.offsetScale <= 0 && dragX < -CortetsuOverlayConfig.sidebar.dragThreshold)
-                    screenState.sidebar = true;
-            } else if (showSidebar && dragX < -CortetsuOverlayConfig.sidebar.dragThreshold) {
-                // Show sidebar on drag if not in session area
-                screenState.sidebar = true;
             }
         } else {
             const outOfSidebar = x < width - panels.sidebar.width * (1 - panels.sidebar.offsetScale);
@@ -212,22 +194,6 @@ CustomMouseArea {
                     screenState.session = false;
             }
 
-            // Show/hide sidebar on hover
-            if (false && CortetsuOverlayConfig.sidebar.showOnHover && !pressed) {
-                const sidebarTriggerY = Math.max(CortetsuOverlayConfig.sidebar.minHoverThreshold, panels.notifications.y + panels.notifications.height + borderThickness);
-                const showSidebarHover = x > Math.min(width - CortetsuOverlayConfig.border.minThickness, bar.implicitWidth + panels.sidebar.x) && y <= sidebarTriggerY;
-                if (showSidebarHover && !screenState.sidebar) {
-                    screenState.sidebar = true;
-                } else {
-                    const inSidebarArea = inRightPanel(panels.sidebar, x, y) || inRightPanel(panels.sessionWrapper, x, y);
-                    if (!inSidebarArea)
-                        screenState.sidebar = false;
-                }
-            }
-
-            // Hide sidebar on drag
-            if (false && pressed && inRightPanel(panels.sidebar, dragStart.x, 0) && dragX > CortetsuOverlayConfig.sidebar.dragThreshold)
-                screenState.sidebar = false;
         }
 
         // Show launcher on hover, or show/hide on drag if hover is disabled

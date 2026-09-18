@@ -27,6 +27,27 @@ visualiser = (modules / "background/Visualiser.qml").read_text(encoding="utf-8")
 launcher = (modules / "launcher/Wrapper.qml").read_text(encoding="utf-8")
 bottom_hub = (modules / "BottomHub.qml").read_text(encoding="utf-8")
 
+# Shared controls remain in the tab order but must not claim focus while an
+# overlay is being constructed. Otherwise the last loaded control becomes the
+# keyboard owner and Escape appears to be the only way back to normal input.
+components = repo / "cortetsu/components"
+for relative in (
+    "CortetsuButton.qml",
+    "CortetsuToggle.qml",
+    "CortetsuSlider.qml",
+    "CortetsuChoiceCard.qml",
+    "CortetsuListRow.qml",
+):
+    text = (components / relative).read_text(encoding="utf-8")
+    assert "focus: false" in text, f"{relative} steals focus while loading"
+    assert "activeFocusOnTab" in text, f"{relative} lost keyboard traversal"
+
+hub_button = (modules / "HubButton.qml").read_text(encoding="utf-8")
+assert "focus: false" in hub_button, "HubButton steals focus while loading"
+
+interactions = (modules / "drawers/Interactions.qml").read_text(encoding="utf-8")
+assert "if (false &&" not in interactions, "dead interaction branch remains"
+
 assert 'import "CortetsuDesign.js" as CortetsuDesign' in hub
 assert 'import "CortetsuDesign.js" as CortetsuDesign' in status
 assert 'import "CortetsuDesign.js" as CortetsuDesign' in surface

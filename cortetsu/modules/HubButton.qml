@@ -6,7 +6,8 @@ import "CortetsuTypography.js" as CortetsuTypography
 Item {
     id: root
 
-    focus: !disabled
+    // Status buttons are focusable, but never claim focus merely by loading.
+    focus: false
     activeFocusOnTab: !disabled
 
     property string icon: "circle"

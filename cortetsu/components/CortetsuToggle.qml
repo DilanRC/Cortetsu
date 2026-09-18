@@ -4,7 +4,9 @@ import "../modules/CortetsuDesign.js" as CortetsuDesign
 Item {
     id: root
 
-    focus: !disabled
+    // Do not claim focus during component construction; click and Tab still
+    // focus this control normally.
+    focus: false
     activeFocusOnTab: !disabled
 
     property bool checked: false

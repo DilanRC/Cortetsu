@@ -4,7 +4,8 @@ import "../modules/CortetsuDesign.js" as CortetsuDesign
 Item {
     id: root
 
-    focus: !disabled
+    // List rows must not race the parent panel for initial keyboard focus.
+    focus: false
     activeFocusOnTab: !disabled
 
     property string icon
