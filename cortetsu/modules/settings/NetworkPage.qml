@@ -102,6 +102,7 @@ Item {
 
             CortetsuSurface {
                 Layout.preferredWidth: Math.max(270, Math.min(360, parent.width * 0.38))
+                Layout.fillHeight: true
                 baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.42)
                 outlined: true
                 radiusValue: CortetsuDesign.radiusMedium
