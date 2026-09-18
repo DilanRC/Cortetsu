@@ -417,7 +417,7 @@ Item {
                             }
                             CortetsuToggle {
                                 checked: CortetsuConfig.smartScheme
-                                onToggled: {
+                                onToggled: checked => {
                                     CortetsuConfig.smartScheme = checked;
                                     CortetsuConfig.save();
                                 }
@@ -433,7 +433,7 @@ Item {
                             }
                             CortetsuToggle {
                                 checked: CortetsuConfig.wallpaperEnabled
-                                onToggled: {
+                                onToggled: checked => {
                                     CortetsuConfig.wallpaperEnabled = checked;
                                     CortetsuConfig.save();
                                 }
@@ -449,7 +449,7 @@ Item {
                             }
                             CortetsuToggle {
                                 checked: CortetsuConfig.transparencyEnabled
-                                onToggled: {
+                                onToggled: checked => {
                                     CortetsuConfig.transparencyEnabled = checked;
                                     CortetsuConfig.save();
                                 }
@@ -465,7 +465,7 @@ Item {
                             }
                             CortetsuToggle {
                                 checked: CortetsuConfig.useTwelveHourClock
-                                onToggled: {
+                                onToggled: checked => {
                                     CortetsuConfig.useTwelveHourClock = checked;
                                     CortetsuConfig.save();
                                 }
@@ -481,7 +481,7 @@ Item {
                             }
                             CortetsuToggle {
                                 checked: CortetsuConfig.useFahrenheit
-                                onToggled: {
+                                onToggled: checked => {
                                     CortetsuConfig.useFahrenheit = checked;
                                     CortetsuConfig.save();
                                 }
@@ -497,7 +497,7 @@ Item {
                             }
                             CortetsuToggle {
                                 checked: CortetsuConfig.visualiserEnabled
-                                onToggled: {
+                                onToggled: checked => {
                                     CortetsuConfig.visualiserEnabled = checked;
                                     CortetsuConfig.save();
                                 }
@@ -514,7 +514,7 @@ Item {
                             CortetsuToggle {
                                 checked: CortetsuConfig.visualiserAutoHide
                                 disabled: !CortetsuConfig.visualiserEnabled
-                                onToggled: {
+                                onToggled: checked => {
                                     CortetsuConfig.visualiserAutoHide = checked;
                                     CortetsuConfig.save();
                                 }
@@ -533,7 +533,7 @@ Item {
 
                     NetworkPage {
                         Layout.fillWidth: true
-                        Layout.fillHeight: true
+                        Layout.preferredHeight: 560
                         visible: root.controller.selectedId === "network"
                         screen: root.screen
                         screenState: root.screenState

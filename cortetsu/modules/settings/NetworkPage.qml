@@ -23,7 +23,9 @@ Item {
     readonly property var selectedNetwork: networks[selectedIndex] ?? null
     readonly property var selectedProfile: profiles[selectedIndex] ?? null
 
-    implicitHeight: Math.max(520, parent?.height ?? 520)
+    // This page is content-sized so the settings scroller does not enter a
+    // polish loop by deriving its implicit height from its parent.
+    implicitHeight: 560
 
     function selectFirst(): void {
         selectedIndex = 0;
@@ -94,12 +96,12 @@ Item {
 
         RowLayout {
             Layout.fillWidth: true
-            Layout.fillHeight: true
+            Layout.preferredHeight: 420
+            Layout.maximumHeight: 420
             spacing: CortetsuDesign.spacingSection
 
             CortetsuSurface {
                 Layout.preferredWidth: Math.max(270, Math.min(360, parent.width * 0.38))
-                Layout.fillHeight: true
                 baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.42)
                 outlined: true
                 radiusValue: CortetsuDesign.radiusMedium
@@ -167,7 +169,6 @@ Item {
 
             Item {
                 Layout.fillWidth: true
-                Layout.fillHeight: true
 
                 ColumnLayout {
                     anchors.left: parent.left
