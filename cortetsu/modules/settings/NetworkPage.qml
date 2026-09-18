@@ -31,6 +31,19 @@ Item {
         selectedIndex = 0;
     }
 
+    function signalLabel(signal): string {
+        const value = Number(signal ?? -1);
+        if (value < 0) return qsTr("Sin medición");
+        if (value >= 75) return qsTr("Excelente");
+        if (value >= 50) return qsTr("Buena");
+        if (value >= 25) return qsTr("Débil");
+        return qsTr("Muy débil");
+    }
+
+    function signalValue(signal): real {
+        return Math.max(0, Math.min(100, Number(signal ?? 0))) / 100;
+    }
+
     onShowingProfilesChanged: selectFirst()
     Connections {
         target: CortetsuSettingsNetwork
@@ -117,7 +130,7 @@ Item {
                         CortetsuButton {
                             Layout.fillWidth: true
                             compact: true
-                            label: qsTr("Cercanas")
+                            label: qsTr("Cercanas · %1").arg(root.networks.length)
                             icon: "wifi"
                             active: !root.showingProfiles
                             onClicked: root.showingProfiles = false
@@ -125,7 +138,7 @@ Item {
                         CortetsuButton {
                             Layout.fillWidth: true
                             compact: true
-                            label: qsTr("Guardadas")
+                            label: qsTr("Guardadas · %1").arg(root.profiles.length)
                             icon: "bookmark"
                             active: root.showingProfiles
                             onClicked: root.showingProfiles = true
@@ -149,7 +162,7 @@ Item {
                             title: root.showingProfiles ? modelData.name : (modelData.ssid || qsTr("Red sin nombre"))
                             subtitle: root.showingProfiles
                                 ? (modelData.autoconnect ? qsTr("Autoconexión activa") : qsTr("Autoconexión desactivada"))
-                                : qsTr("Señal %1% · %2").arg(modelData.signal).arg(modelData.security || qsTr("Abierta"))
+                                : qsTr("%1 · %2").arg(root.signalLabel(modelData.signal)).arg(modelData.security || qsTr("Red abierta"))
                             icon: root.showingProfiles ? "bookmark" : (modelData.active ? "wifi" : "wifi_find")
                             selected: index === root.selectedIndex
                             onClicked: root.selectedIndex = index
@@ -192,7 +205,7 @@ Item {
                     CortetsuSurface {
                         Layout.fillWidth: true
                         visible: root.showingProfiles && !!root.selectedProfile
-                        implicitHeight: 92
+                        implicitHeight: 132
                         baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.60)
                         outlined: true
                         radiusValue: CortetsuDesign.radiusMedium
@@ -203,6 +216,7 @@ Item {
                             CortetsuIcon { text: "bookmark"; color: CortetsuDesign.colorPrimary; iconSize: CortetsuTypography.iconMediumPx }
                             ColumnLayout {
                                 Layout.fillWidth: true
+                                CortetsuText { text: qsTr("Perfil guardado"); textSize: CortetsuTypography.labelSmallPx; color: CortetsuDesign.colorOnSurfaceVariant }
                                 CortetsuText { text: qsTr("Autoconexión"); textSize: CortetsuTypography.bodyPx; font.weight: Font.DemiBold }
                                 CortetsuText { text: root.selectedProfile?.autoconnect ? qsTr("Se conectará al iniciar sesión") : qsTr("Requiere conexión manual"); textSize: CortetsuTypography.labelSmallPx; color: CortetsuDesign.colorOnSurfaceVariant }
                             }
@@ -216,18 +230,47 @@ Item {
                     CortetsuSurface {
                         Layout.fillWidth: true
                         visible: !root.showingProfiles && !!root.selectedNetwork
-                        implicitHeight: 112
+                        implicitHeight: 188
                         baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.60)
                         outlined: true
                         radiusValue: CortetsuDesign.radiusMedium
-                        RowLayout {
+                        ColumnLayout {
                             anchors.fill: parent
                             anchors.margins: CortetsuDesign.spacingStandard
-                            CortetsuIcon { text: root.selectedNetwork?.active ? "wifi" : "wifi_find"; color: CortetsuDesign.colorPrimary; iconSize: CortetsuTypography.iconLargePx }
-                            ColumnLayout {
+                            spacing: CortetsuDesign.spacingCompact
+
+                            RowLayout {
                                 Layout.fillWidth: true
-                                CortetsuText { text: root.selectedNetwork?.active ? qsTr("Conectada") : qsTr("Disponible"); textSize: CortetsuTypography.bodyPx; font.weight: Font.DemiBold }
-                                CortetsuText { text: root.selectedNetwork ? qsTr("Señal %1% · %2").arg(root.selectedNetwork.signal).arg(root.selectedNetwork.security || qsTr("red abierta")) : ""; textSize: CortetsuTypography.bodySmallPx; color: CortetsuDesign.colorOnSurfaceVariant }
+                                spacing: CortetsuDesign.spacingCompact
+                                CortetsuIcon { text: root.selectedNetwork?.active ? "wifi" : "wifi_find"; color: root.selectedNetwork?.active ? CortetsuDesign.colorSuccess : CortetsuDesign.colorPrimary; iconSize: CortetsuTypography.iconLargePx }
+                                ColumnLayout {
+                                    Layout.fillWidth: true
+                                    CortetsuText { text: root.selectedNetwork?.active ? qsTr("Conectada") : qsTr("Disponible"); textSize: CortetsuTypography.bodyPx; font.weight: Font.DemiBold }
+                                    CortetsuText { text: root.selectedNetwork ? qsTr("Señal %1% · %2").arg(root.selectedNetwork.signal).arg(root.signalLabel(root.selectedNetwork.signal)) : ""; textSize: CortetsuTypography.bodySmallPx; color: CortetsuDesign.colorOnSurfaceVariant }
+                                }
+                                CortetsuText { text: root.selectedNetwork ? qsTr("%1%").arg(root.selectedNetwork.signal) : "—"; textSize: CortetsuTypography.titleMediumPx; font.weight: Font.DemiBold; color: CortetsuDesign.colorOnSurface }
+                            }
+
+                            CortetsuProgressBar {
+                                Layout.fillWidth: true
+                                value: root.signalValue(root.selectedNetwork?.signal)
+                                fillColor: root.selectedNetwork?.active ? CortetsuDesign.colorSuccess : CortetsuDesign.colorPrimary
+                                barHeight: 6
+                            }
+
+                            RowLayout {
+                                Layout.fillWidth: true
+                                spacing: CortetsuDesign.spacingSection
+                                ColumnLayout {
+                                    Layout.fillWidth: true
+                                    CortetsuText { text: qsTr("Seguridad"); textSize: CortetsuTypography.labelSmallPx; color: CortetsuDesign.colorOnSurfaceVariant }
+                                    CortetsuText { text: root.selectedNetwork?.security || qsTr("Red abierta"); textSize: CortetsuTypography.bodySmallPx; font.weight: Font.DemiBold }
+                                }
+                                ColumnLayout {
+                                    Layout.fillWidth: true
+                                    CortetsuText { text: qsTr("Dispositivo"); textSize: CortetsuTypography.labelSmallPx; color: CortetsuDesign.colorOnSurfaceVariant }
+                                    CortetsuText { text: root.selectedNetwork?.device || qsTr("No disponible"); textSize: CortetsuTypography.bodySmallPx; font.weight: Font.DemiBold; elide: Text.ElideRight }
+                                }
                             }
                         }
                     }
