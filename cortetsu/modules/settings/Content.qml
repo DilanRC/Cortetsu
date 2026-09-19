@@ -28,6 +28,63 @@ Item {
         return text.startsWith("#") ? text : `#${text}`;
     }
 
+    component AppearanceToggle: CortetsuSurface {
+        id: appearanceToggle
+
+        required property string title
+        required property string detail
+        required property string icon
+        required property bool checked
+        property bool disabled: false
+        signal changed(bool value)
+
+        Layout.fillWidth: true
+        implicitHeight: 68
+        radiusValue: CortetsuDesign.radiusMedium
+        baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.72)
+        outlined: true
+        outlineColor: Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.48)
+
+        RowLayout {
+            anchors.fill: parent
+            anchors.margins: CortetsuDesign.spacingStandard
+            spacing: CortetsuDesign.spacingStandard
+
+            CortetsuIcon {
+                text: appearanceToggle.icon
+                iconSize: CortetsuTypography.iconMediumPx
+                color: appearanceToggle.checked
+                    ? CortetsuDesign.colorPrimary
+                    : CortetsuDesign.colorOnSurfaceVariant
+            }
+
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 1
+                CortetsuText {
+                    Layout.fillWidth: true
+                    text: appearanceToggle.title
+                    textSize: CortetsuTypography.bodyPx
+                    font.weight: Font.DemiBold
+                    elide: Text.ElideRight
+                }
+                CortetsuText {
+                    Layout.fillWidth: true
+                    text: appearanceToggle.detail
+                    textSize: CortetsuTypography.labelSmallPx
+                    color: CortetsuDesign.colorOnSurfaceVariant
+                    elide: Text.ElideRight
+                }
+            }
+
+            CortetsuToggle {
+                checked: appearanceToggle.checked
+                disabled: appearanceToggle.disabled
+                onToggled: value => appearanceToggle.changed(value)
+            }
+        }
+    }
+
     Component.onCompleted: Schemes.reload()
 
     CortetsuText {
@@ -234,10 +291,72 @@ Item {
                         }
                     }
 
-                    ColumnLayout {
-                        Layout.fillWidth: true
-                        visible: root.controller.selectedId === "appearance"
-                        spacing: CortetsuDesign.spacingSection
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            visible: root.controller.selectedId === "appearance"
+                            spacing: CortetsuDesign.spacingSection
+
+                        CortetsuSurface {
+                            Layout.fillWidth: true
+                            implicitHeight: 112
+                            radiusValue: CortetsuDesign.radiusMedium
+                            baseColor: Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.42)
+                            outlineColor: Qt.alpha(CortetsuDesign.colorPrimary, 0.42)
+                            outlined: true
+
+                            RowLayout {
+                                anchors.fill: parent
+                                anchors.margins: CortetsuDesign.spacingStandard
+                                spacing: CortetsuDesign.spacingStandard
+
+                                CortetsuSurface {
+                                    Layout.preferredWidth: 64
+                                    Layout.preferredHeight: 64
+                                    radiusValue: CortetsuDesign.radiusMedium
+                                    baseColor: Qt.alpha(CortetsuDesign.colorPrimary, 0.18)
+                                    outlined: false
+                                    CortetsuEvolvingMark {
+                                        anchors.fill: parent
+                                        phase: "Ascended"
+                                        animated: false
+                                        monochrome: true
+                                        monochromeColor: CortetsuDesign.colorWashi
+                                    }
+                                }
+
+                                ColumnLayout {
+                                    Layout.fillWidth: true
+                                    spacing: 2
+                                    CortetsuText {
+                                        Layout.fillWidth: true
+                                        text: qsTr("Esquema activo")
+                                        textSize: CortetsuTypography.titleMediumPx
+                                        font.weight: Font.DemiBold
+                                    }
+                                    CortetsuText {
+                                        Layout.fillWidth: true
+                                        text: Schemes.currentScheme || qsTr("Sin esquema aplicado")
+                                        textSize: CortetsuTypography.bodySmallPx
+                                        color: CortetsuDesign.colorOnSurfaceVariant
+                                        elide: Text.ElideRight
+                                    }
+                                    CortetsuText {
+                                        Layout.fillWidth: true
+                                        text: CortetsuConfig.transparencyEnabled
+                                            ? qsTr("Superficies transparentes activas")
+                                            : qsTr("Superficies opacas")
+                                        textSize: CortetsuTypography.labelSmallPx
+                                        color: CortetsuDesign.colorOnSurfaceVariant
+                                    }
+                                }
+
+                                CortetsuText {
+                                    text: qsTr("%1 familias").arg(Schemes.catalogCount)
+                                    textSize: CortetsuTypography.bodySmallPx
+                                    color: CortetsuDesign.colorOnSurfaceVariant
+                                }
+                            }
+                        }
 
                         CortetsuSectionHeader {
                             Layout.fillWidth: true
@@ -452,117 +571,67 @@ Item {
                             visible: false
                         }
 
-                        RowLayout {
+                        CortetsuSectionHeader {
                             Layout.fillWidth: true
-                            CortetsuText {
-                                Layout.fillWidth: true
-                                text: qsTr("Esquema inteligente")
-                                textSize: CortetsuTypography.bodyPx
-                            }
-                            CortetsuToggle {
-                                checked: CortetsuConfig.smartScheme
-                                onToggled: checked => {
-                                    CortetsuConfig.smartScheme = checked;
-                                    CortetsuConfig.save();
-                                }
-                            }
+                            title: qsTr("Preferencias de superficie")
+                            detail: qsTr("Cambios persistentes aplicados a todo Cortetsu")
                         }
 
-                        RowLayout {
-                            Layout.fillWidth: true
-                            CortetsuText {
-                                Layout.fillWidth: true
-                                text: qsTr("Integración del fondo")
-                                textSize: CortetsuTypography.bodyPx
-                            }
-                            CortetsuToggle {
-                                checked: CortetsuConfig.wallpaperEnabled
-                                onToggled: checked => {
-                                    CortetsuConfig.wallpaperEnabled = checked;
-                                    CortetsuConfig.save();
-                                }
-                            }
+                        AppearanceToggle {
+                            title: qsTr("Esquema inteligente")
+                            detail: qsTr("Permitir que el shell adapte el esquema a la superficie activa")
+                            icon: "auto_awesome"
+                            checked: CortetsuConfig.smartScheme
+                            onChanged: value => { CortetsuConfig.smartScheme = value; CortetsuConfig.save(); }
                         }
 
-                        RowLayout {
-                            Layout.fillWidth: true
-                            CortetsuText {
-                                Layout.fillWidth: true
-                                text: qsTr("Superficies transparentes")
-                                textSize: CortetsuTypography.bodyPx
-                            }
-                            CortetsuToggle {
-                                checked: CortetsuConfig.transparencyEnabled
-                                onToggled: checked => {
-                                    CortetsuConfig.transparencyEnabled = checked;
-                                    CortetsuConfig.save();
-                                }
-                            }
+                        AppearanceToggle {
+                            title: qsTr("Integración del fondo")
+                            detail: qsTr("Permitir que el fondo participe en la composición del shell")
+                            icon: "wallpaper"
+                            checked: CortetsuConfig.wallpaperEnabled
+                            onChanged: value => { CortetsuConfig.wallpaperEnabled = value; CortetsuConfig.save(); }
                         }
 
-                        RowLayout {
-                            Layout.fillWidth: true
-                            CortetsuText {
-                                Layout.fillWidth: true
-                                text: qsTr("Reloj de 12 horas")
-                                textSize: CortetsuTypography.bodyPx
-                            }
-                            CortetsuToggle {
-                                checked: CortetsuConfig.useTwelveHourClock
-                                onToggled: checked => {
-                                    CortetsuConfig.useTwelveHourClock = checked;
-                                    CortetsuConfig.save();
-                                }
-                            }
+                        AppearanceToggle {
+                            title: qsTr("Superficies transparentes")
+                            detail: qsTr("Aplicar transparencia calibrada a paneles y tarjetas")
+                            icon: "blur_on"
+                            checked: CortetsuConfig.transparencyEnabled
+                            onChanged: value => { CortetsuConfig.transparencyEnabled = value; CortetsuConfig.save(); }
                         }
 
-                        RowLayout {
-                            Layout.fillWidth: true
-                            CortetsuText {
-                                Layout.fillWidth: true
-                                text: qsTr("Temperatura en Fahrenheit")
-                                textSize: CortetsuTypography.bodyPx
-                            }
-                            CortetsuToggle {
-                                checked: CortetsuConfig.useFahrenheit
-                                onToggled: checked => {
-                                    CortetsuConfig.useFahrenheit = checked;
-                                    CortetsuConfig.save();
-                                }
-                            }
+                        AppearanceToggle {
+                            title: qsTr("Reloj de 12 horas")
+                            detail: qsTr("Usar formato de 12 horas en reloj y avisos")
+                            icon: "schedule"
+                            checked: CortetsuConfig.useTwelveHourClock
+                            onChanged: value => { CortetsuConfig.useTwelveHourClock = value; CortetsuConfig.save(); }
                         }
 
-                        RowLayout {
-                            Layout.fillWidth: true
-                            CortetsuText {
-                                Layout.fillWidth: true
-                                text: qsTr("Visualizador de audio")
-                                textSize: CortetsuTypography.bodyPx
-                            }
-                            CortetsuToggle {
-                                checked: CortetsuConfig.visualiserEnabled
-                                onToggled: checked => {
-                                    CortetsuConfig.visualiserEnabled = checked;
-                                    CortetsuConfig.save();
-                                }
-                            }
+                        AppearanceToggle {
+                            title: qsTr("Temperatura en Fahrenheit")
+                            detail: qsTr("Mostrar temperatura en °F en Dashboard y métricas")
+                            icon: "thermostat"
+                            checked: CortetsuConfig.useFahrenheit
+                            onChanged: value => { CortetsuConfig.useFahrenheit = value; CortetsuConfig.save(); }
                         }
 
-                        RowLayout {
-                            Layout.fillWidth: true
-                            CortetsuText {
-                                Layout.fillWidth: true
-                                text: qsTr("Ocultar visualizador sin ventanas flotantes")
-                                textSize: CortetsuTypography.bodyPx
-                            }
-                            CortetsuToggle {
-                                checked: CortetsuConfig.visualiserAutoHide
-                                disabled: !CortetsuConfig.visualiserEnabled
-                                onToggled: checked => {
-                                    CortetsuConfig.visualiserAutoHide = checked;
-                                    CortetsuConfig.save();
-                                }
-                            }
+                        AppearanceToggle {
+                            title: qsTr("Visualizador de audio")
+                            detail: qsTr("Mostrar el visualizador reactivo cuando hay audio")
+                            icon: "graphic_eq"
+                            checked: CortetsuConfig.visualiserEnabled
+                            onChanged: value => { CortetsuConfig.visualiserEnabled = value; CortetsuConfig.save(); }
+                        }
+
+                        AppearanceToggle {
+                            title: qsTr("Ocultar visualizador sin ventanas flotantes")
+                            detail: qsTr("Liberar el visualizador cuando no hay contenido visible")
+                            icon: "visibility_off"
+                            checked: CortetsuConfig.visualiserAutoHide
+                            disabled: !CortetsuConfig.visualiserEnabled
+                            onChanged: value => { CortetsuConfig.visualiserAutoHide = value; CortetsuConfig.save(); }
                         }
                     }
 

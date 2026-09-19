@@ -48,6 +48,20 @@ assert "CortetsuChoiceCard" in content
 assert "CortetsuSurface" in choice_card
 assert "activeFocusOnTab" in choice_card and "Keys.onSpacePressed" in choice_card
 assert "property var swatches" in choice_card
+assert "component AppearanceToggle" in content
+assert "Esquema activo" in content
+assert "component DomainHero" in system
+for marker in (
+    "CortetsuConfig.dashboard.performance.showCpu",
+    "CortetsuConfig.bar.scrollActions.workspaces",
+    "CortetsuConfig.launcher.maxShown",
+    "CortetsuConfig.notificationDefaultExpireTimeout",
+    "CortetsuNotifications.clear()",
+    "CortetsuAudio.setStreamVolume",
+    "CortetsuAudio.setAudioSource(modelData)",
+    "Hypr.monitors?.values ?? []",
+):
+    assert marker in system, marker
 assert "schemeCard.hovered = true" not in content
 assert "Layout.preferredHeight: childrenRect.height" in content
 assert "implicitHeight: childrenRect.height" not in content
@@ -85,7 +99,7 @@ assert "TextInput" not in content
 checks = {
     "appearance preference persists": all(marker in content for marker in (
         "checked: CortetsuConfig.transparencyEnabled",
-        "CortetsuConfig.transparencyEnabled = checked;",
+        "CortetsuConfig.transparencyEnabled = value;",
         "CortetsuConfig.useTwelveHourClock",
         "CortetsuConfig.useFahrenheit",
         "CortetsuConfig.visualiserEnabled",

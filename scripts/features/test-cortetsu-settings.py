@@ -91,7 +91,7 @@ assert "NetworkManager · operaciones y señal en vivo" in system
 assert "CortetsuSettingsNetwork.setWifi(enabled)" in system
 assert "CortetsuSettingsNetwork.disconnect(modelData.name)" in system
 assert "CortetsuNetwork.refresh()" in system
-assert "Dispositivos conectados" in system
+assert "Dispositivos conocidos" in system
 assert "CortetsuAudio.setSourceVolume(nextValue)" in system
 assert "CortetsuAudio.setAudioSink(modelData)" in system
 assert "Nvibrant.setValue(nextValue * 1024)" in content
@@ -107,8 +107,24 @@ assert 'onMoved: nextValue => CortetsuAudio.setVolume(nextValue)' in system
 assert 'onMoved: nextValue => root.brightnessMonitor?.setBrightness(nextValue)' in system
 assert 'onMoved: CortetsuAudio.setVolume(value)' not in system
 assert 'onMoved: root.brightnessMonitor?.setBrightness(value)' not in system
+for marker in (
+    "component DomainHero",
+    "CortetsuConfig.dashboard.performance.showCpu",
+    "CortetsuConfig.bar.scrollActions.workspaces",
+    "CortetsuConfig.launcher.maxShown",
+    "CortetsuConfig.notificationDefaultExpireTimeout",
+    "CortetsuNotifications.clear()",
+    "CortetsuAudio.setStreamVolume",
+    "CortetsuAudio.setAudioSource(modelData)",
+    "Bluetooth.devices?.values ?? []",
+    "Hypr.monitors?.values ?? []",
+    "SUPER + / · SUPER + SHIFT + 7",
+):
+    assert marker in system, marker
+assert "component AppearanceToggle" in content
+assert "Esquema activo" in content
 assert 'checked: CortetsuConfig.transparencyEnabled' in content
-assert 'CortetsuConfig.transparencyEnabled = checked;' in content
+assert 'CortetsuConfig.transparencyEnabled = value;' in content
 for preference in (
     'CortetsuConfig.useTwelveHourClock',
     'CortetsuConfig.useFahrenheit',
