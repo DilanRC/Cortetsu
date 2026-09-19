@@ -20,6 +20,16 @@ Item {
     required property var controller
 
     readonly property var selectedCategory: controller.categories.find(item => item.id === controller.selectedId) ?? null
+    property string appearanceQuery: ""
+    readonly property var filteredSchemes: Schemes.list.filter(item => {
+        const needle = root.appearanceQuery.trim().toLowerCase();
+        return !needle || `${item.name} ${item.flavour}`.toLowerCase().includes(needle);
+    })
+    readonly property var activeSchemeData: Schemes.list.find(item =>
+        `${item.name} ${item.flavour}` === Schemes.currentScheme) ?? null
+    readonly property int schemeColumns: Math.max(2, Math.floor((schemeGrid.width + CortetsuDesign.spacingCompact) / 228))
+    readonly property real schemeCardWidth: Math.floor(
+        (schemeGrid.width - (root.schemeColumns - 1) * CortetsuDesign.spacingCompact) / root.schemeColumns)
 
     function schemeColour(value, fallback) {
         const text = String(value ?? "").trim();
@@ -355,6 +365,26 @@ Item {
                                     textSize: CortetsuTypography.bodySmallPx
                                     color: CortetsuDesign.colorOnSurfaceVariant
                                 }
+
+                                Row {
+                                    spacing: CortetsuDesign.spacingUnit
+                                    Repeater {
+                                        model: root.activeSchemeData
+                                            ? ["primary", "secondary", "tertiary", "surface", "error"]
+                                            : []
+                                        delegate: Rectangle {
+                                            required property string modelData
+                                            width: 18
+                                            height: 18
+                                            radius: 4
+                                            color: root.schemeColour(
+                                                root.activeSchemeData?.colours[modelData],
+                                                CortetsuDesign.colorOutlineVariant)
+                                            border.width: 1
+                                            border.color: Qt.alpha(CortetsuDesign.colorWashi, 0.18)
+                                        }
+                                    }
+                                }
                             }
                         }
 
@@ -366,6 +396,32 @@ Item {
                                 : Schemes.loading
                                     ? qsTr("Leyendo familias de esquemas instaladas…")
                                     : qsTr("%1 instalados · %2 activo").arg(Schemes.catalogCount).arg(Schemes.currentScheme || qsTr("ninguno"))
+                        }
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: CortetsuDesign.spacingCompact
+
+                            CortetsuSearchBar {
+                                Layout.fillWidth: true
+                                placeholderText: qsTr("Filtrar por familia o variante")
+                                onTextChanged: root.appearanceQuery = text
+                            }
+
+                            CortetsuText {
+                                text: qsTr("%1 visibles").arg(root.filteredSchemes.length)
+                                textSize: CortetsuTypography.bodySmallPx
+                                color: CortetsuDesign.colorOnSurfaceVariant
+                            }
+
+                            CortetsuButton {
+                                compact: true
+                                icon: "refresh"
+                                label: qsTr("Recargar")
+                                tooltipText: qsTr("Volver a leer el catálogo de esquemas")
+                                disabled: Schemes.loading
+                                onClicked: Schemes.reload()
+                            }
                         }
 
                         CortetsuSurface {
@@ -479,7 +535,7 @@ Item {
                             spacing: CortetsuDesign.spacingCompact
 
                             Repeater {
-                                model: Schemes.list
+                                model: root.filteredSchemes
 
                                 delegate: CortetsuChoiceCard {
                                     id: schemeCard
@@ -488,7 +544,7 @@ Item {
                                     readonly property var schemeData: modelData
                                     readonly property bool selectedScheme: `${modelData.name} ${modelData.flavour}` === Schemes.currentScheme
 
-                                    width: 192
+                                    width: root.schemeCardWidth
                                     height: 116
                                     title: schemeCard.schemeData.name
 
@@ -561,14 +617,6 @@ Item {
                                     elide: Text.ElideRight
                                 }
                             }
-                        }
-
-                        SystemPage {
-                            Layout.fillWidth: true
-                            section: "appearance-internal"
-                            screen: root.screen
-                            screenState: root.screenState
-                            visible: false
                         }
 
                         CortetsuSectionHeader {

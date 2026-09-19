@@ -26,6 +26,7 @@ MouseArea {
     property real sw: Math.abs(sx - ex)
     property real sh: Math.abs(sy - ey)
     property var pendingCommand: []
+    readonly property real dragThreshold: 8
 
     readonly property var clients: {
         const monitor = CortetsuHypr.monitorFor(screen);
@@ -62,10 +63,14 @@ MouseArea {
     }
 
     function capture(): void {
-        const x = Math.ceil(screen.x + rsx);
-        const y = Math.ceil(screen.y + rsy);
-        const width = Math.floor(sw);
-        const height = Math.floor(sh);
+        const left = Math.max(0, Math.min(screen.width, rsx));
+        const top = Math.max(0, Math.min(screen.height, rsy));
+        const right = Math.max(left, Math.min(screen.width, rsx + sw));
+        const bottom = Math.max(top, Math.min(screen.height, rsy + sh));
+        const x = Math.round(screen.x + left);
+        const y = Math.round(screen.y + top);
+        const width = Math.round(right - left);
+        const height = Math.round(bottom - top);
         if (width <= 0 || height <= 0) {
             close();
             return;
@@ -123,9 +128,25 @@ MouseArea {
     onPressed: event => {
         ssx = event.x;
         ssy = event.y;
+        sx = event.x;
+        sy = event.y;
+        ex = event.x;
+        ey = event.y;
         onClient = false;
     }
-    onReleased: root.capture()
+    onReleased: event => {
+        if (Math.abs(event.x - ssx) < root.dragThreshold
+                && Math.abs(event.y - ssy) < root.dragThreshold) {
+            root.checkClientRects(event.x, event.y);
+            if (!root.onClient) {
+                root.sx = 0;
+                root.sy = 0;
+                root.ex = root.screen.width;
+                root.ey = root.screen.height;
+            }
+        }
+        root.capture();
+    }
     onPositionChanged: event => {
         if (pressed) {
             sx = ssx;

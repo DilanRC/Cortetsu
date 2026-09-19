@@ -13,8 +13,9 @@ checks = {
     "picker does not construct a shell command": '"sh", "-c"' not in picker,
     "helper validates geometry": "GEOMETRY = re.compile" in helper,
     "helper executes grim with argv": 'subprocess.run(["grim", "-g", args.geometry, str(args.path)])' in helper,
-    "helper executes clipboard without a shell": 'subprocess.run(\n                ["wl-copy", "--type", "image/png"]' in helper,
+    "helper executes clipboard without a shell": '["wl-copy", "--type", "image/png"]' in helper and "shell=True" not in helper,
     "helper executes preview with argv": 'subprocess.run(["swappy", "-f", str(args.path)])' in helper,
+    "helper removes its temporary image": "args.path.unlink(missing_ok=True)" in helper,
 }
 
 missing = [name for name, passed in checks.items() if not passed]

@@ -27,33 +27,36 @@ def main() -> int:
         print("invalid capture geometry", file=sys.stderr)
         return 2
 
-    result = subprocess.run(["grim", "-g", args.geometry, str(args.path)])
-    if result.returncode != 0:
-        return result.returncode
+    try:
+        result = subprocess.run(["grim", "-g", args.geometry, str(args.path)])
+        if result.returncode != 0:
+            return result.returncode
 
-    if args.clipboard:
-        with args.path.open("rb") as image:
-            clipboard = subprocess.run(
-                ["wl-copy", "--type", "image/png"],
-                stdin=image,
+        if args.clipboard:
+            with args.path.open("rb") as image:
+                clipboard = subprocess.run(
+                    ["wl-copy", "--type", "image/png"],
+                    stdin=image,
+                )
+            if clipboard.returncode != 0:
+                return clipboard.returncode
+            subprocess.run(
+                [
+                    "notify-send",
+                    "-a",
+                    "cortetsu",
+                    "-i",
+                    str(args.path),
+                    "Screenshot taken",
+                    "Screenshot copied to clipboard",
+                ],
+                check=False,
             )
-        if clipboard.returncode != 0:
-            return clipboard.returncode
-        subprocess.Popen(
-            [
-                "notify-send",
-                "-a",
-                "cortetsu",
-                "-i",
-                str(args.path),
-                "Screenshot taken",
-                "Screenshot copied to clipboard",
-            ],
-            start_new_session=True,
-        )
-        return 0
+            return 0
 
-    return subprocess.run(["swappy", "-f", str(args.path)]).returncode
+        return subprocess.run(["swappy", "-f", str(args.path)]).returncode
+    finally:
+        args.path.unlink(missing_ok=True)
 
 
 if __name__ == "__main__":

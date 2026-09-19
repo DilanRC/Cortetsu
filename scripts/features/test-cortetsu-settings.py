@@ -33,6 +33,9 @@ assert "required property var screen" in wrapper
 assert "screen: root.screen" in wrapper
 assert "required property var screen" in content
 assert "SystemPage" in content and "screen: root.screen" in content
+assert "filteredSchemes" in content and "appearanceQuery" in content
+assert "schemeCardWidth" in content
+assert 'section: "appearance-internal"' not in content
 assert 'section.property: "group"' in content
 assert 'keywords: qsTr("tema color transparencia reloj visualizador")' in (settings / "SettingsController.qml").read_text(encoding="utf-8")
 assert "FloatingWindow" in host
