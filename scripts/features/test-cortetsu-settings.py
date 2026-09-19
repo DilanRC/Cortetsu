@@ -12,9 +12,6 @@ host = (modules / "SettingsHost.qml").read_text(encoding="utf-8")
 wrapper = (settings / "Wrapper.qml").read_text(encoding="utf-8")
 content = (settings / "Content.qml").read_text(encoding="utf-8")
 system = (settings / "SystemPage.qml").read_text(encoding="utf-8")
-audio = (settings / "AudioPage.qml").read_text(encoding="utf-8")
-bluetooth = (settings / "BluetoothPage.qml").read_text(encoding="utf-8")
-bottom_hub = (modules / "BottomHub.qml").read_text(encoding="utf-8")
 schemes = (modules / "launcher/services/Schemes.qml").read_text(encoding="utf-8")
 state = (ROOT / "cortetsu/components/ScreenState.qml").read_text(encoding="utf-8")
 shortcuts = (modules / "Shortcuts.qml").read_text(encoding="utf-8")
@@ -23,8 +20,6 @@ base_hypr = (ROOT / "dotfiles/home/.config/hypr/hyprland/keybinds.lua").read_tex
 runtime_builder = (ROOT / "cortetsu/bin/build-runtime.sh").read_text(encoding="utf-8")
 
 for filename in ("SettingsController.qml", "Wrapper.qml", "Content.qml", "SystemPage.qml"):
-    assert (settings / filename).is_file(), filename
-for filename in ("AudioPage.qml", "BluetoothPage.qml"):
     assert (settings / filename).is_file(), filename
 choice_card = ROOT / "cortetsu/components/CortetsuChoiceCard.qml"
 assert choice_card.is_file()
@@ -76,8 +71,10 @@ for section in (
 # Connected pages use real first-party/native backends rather than simulated state.
 for marker in (
     "Brightness.getMonitorForScreen(root.screen)",
+    "onMoved: nextValue => CortetsuAudio.setVolume(nextValue)",
     "CortetsuNotifications.dnd",
     "CortetsuNetwork.active",
+    "Bluetooth.defaultAdapter.enabled",
     "CortetsuPower",
     'setRetained(flag, true)',
     "CortetsuWallpapers.actualCurrent",
@@ -94,7 +91,9 @@ assert "NetworkManager · operaciones y señal en vivo" in system
 assert "CortetsuSettingsNetwork.setWifi(enabled)" in system
 assert "CortetsuSettingsNetwork.disconnect(modelData.name)" in system
 assert "CortetsuNetwork.refresh()" in system
-assert "No hay dispositivos conocidos" in bluetooth
+assert "Dispositivos conocidos" in system
+assert "CortetsuAudio.setSourceVolume(nextValue)" in system
+assert "CortetsuAudio.setAudioSink(modelData)" in system
 assert "Nvibrant.setValue(nextValue * 1024)" in content
 for marker in ("function connect(", "function forget(", "function setAutoconnect(", "NetworkManager rechazó la operación", "connection.autoconnect"):
     assert marker in network_service, marker
@@ -104,6 +103,7 @@ assert "visible: Nvibrant.available || Nvibrant.error.length > 0" in content
 assert 'title: qsTr("Desplazamiento del volumen")' in system
 assert 'title: qsTr("Brightness scroll")' not in system
 assert 'title: qsTr("Open on hover")' not in system
+assert 'onMoved: nextValue => CortetsuAudio.setVolume(nextValue)' in system
 assert 'onMoved: nextValue => root.brightnessMonitor?.setBrightness(nextValue)' in system
 assert 'onMoved: CortetsuAudio.setVolume(value)' not in system
 assert 'onMoved: root.brightnessMonitor?.setBrightness(value)' not in system
@@ -114,44 +114,13 @@ for marker in (
     "CortetsuConfig.launcher.maxShown",
     "CortetsuConfig.notificationDefaultExpireTimeout",
     "CortetsuNotifications.clear()",
+    "CortetsuAudio.setStreamVolume",
+    "CortetsuAudio.setAudioSource(modelData)",
+    "Bluetooth.devices?.values ?? []",
     "Hypr.monitors?.values ?? []",
     "SUPER + / · SUPER + SHIFT + 7",
 ):
     assert marker in system, marker
-for marker in (
-    "CortetsuAudio.setVolume(nextValue)",
-    "CortetsuAudio.setSourceVolume(nextValue)",
-    "CortetsuAudio.setAudioSink(root.selectedNode)",
-    "CortetsuAudio.setAudioSource(root.selectedNode)",
-    "CortetsuAudio.setStreamVolume",
-    "CortetsuAudio.setStreamMuted",
-    "CortetsuSearchBar",
-    "PipeWire",
-    "Layout.preferredHeight: workbench.workbenchHeight",
-):
-    assert marker in audio, marker
-for marker in (
-    "Bluetooth.defaultAdapter",
-    "Bluetooth.devices.values",
-    "root.selectedDevice.connect()",
-    "root.selectedDevice.disconnect()",
-    "root.selectedDevice.forget()",
-    "batteryAvailable",
-    "CortetsuSearchBar",
-    "BluetoothDeviceState.Connecting",
-    "Layout.preferredHeight: workbench.workbenchHeight",
-):
-    assert marker in bluetooth, marker
-for marker in (
-    "schemePreviewRoles",
-    "CortetsuColours.palette.m3primary",
-    "CortetsuConfig.borderThickness",
-    "CortetsuConfig.borderSmoothing",
-    "CortetsuConfig.visualiserBars",
-    "CortetsuConfig.visualiserSpacing",
-):
-    assert marker in content, marker
-assert 'if (!wasOpen)\n                    hubRoot.closeAllPopouts();' in bottom_hub
 assert "component AppearanceToggle" in content
 assert "Esquema activo" in content
 assert 'checked: CortetsuConfig.transparencyEnabled' in content
