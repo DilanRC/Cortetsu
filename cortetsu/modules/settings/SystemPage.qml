@@ -3,7 +3,6 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import Quickshell.Bluetooth
 import "../../components"
 import ".."
 import "../../services"
@@ -22,16 +21,8 @@ Item {
 
     readonly property var brightnessMonitor: Brightness.getMonitorForScreen(root.screen)
     readonly property real brightnessValue: brightnessMonitor?.brightness ?? -1
-    readonly property bool bluetoothEnabled: Bluetooth.defaultAdapter?.enabled ?? false
-    readonly property int bluetoothConnected: (Bluetooth.devices?.values ?? []).filter(device => device.connected).length
     readonly property int batteryPercent: CortetsuPower.percent
     readonly property bool batteryCharging: CortetsuPower.charging
-    readonly property int volumePercent: Math.round(CortetsuAudio.volume * 100)
-    readonly property int inputVolumePercent: Math.round(CortetsuAudio.sourceVolume * 100)
-    readonly property string activeOutputName: CortetsuAudio.sink?.description
-        ?? CortetsuAudio.sink?.name ?? qsTr("Sin salida")
-    readonly property string activeInputName: CortetsuAudio.source?.description
-        ?? CortetsuAudio.source?.name ?? qsTr("Sin entrada")
     readonly property string networkName: CortetsuNetwork.active?.ssid
         ?? (CortetsuNetwork.activeEthernet ? qsTr("Ethernet") : qsTr("Sin conexión"))
     readonly property string networkDetail: CortetsuNetwork.connecting
@@ -1247,281 +1238,14 @@ Item {
             }
         }
 
-        ColumnLayout {
+        BluetoothPage {
             Layout.fillWidth: true
             visible: root.section === "bluetooth"
-            spacing: CortetsuDesign.spacingStandard
-
-            CortetsuSectionHeader {
-                Layout.fillWidth: true
-                title: qsTr("Bluetooth")
-                detail: qsTr("Estado nativo del adaptador")
-            }
-
-            DomainHero {
-                icon: root.bluetoothConnected > 0 ? "bluetooth_connected" : "bluetooth"
-                title: root.bluetoothEnabled ? qsTr("Bluetooth preparado") : qsTr("Bluetooth desactivado")
-                detail: qsTr("Dispositivos gestionados por BlueZ")
-                value: qsTr("%1 conectados").arg(root.bluetoothConnected)
-                meta: Bluetooth.defaultAdapter
-                    ? qsTr("%1 dispositivos conocidos").arg(Bluetooth.devices?.values?.length ?? 0)
-                    : qsTr("No hay adaptador disponible")
-                warningState: !Bluetooth.defaultAdapter || !root.bluetoothEnabled
-            }
-
-            StatusCard {
-                title: qsTr("Dispositivos")
-                value: root.bluetoothEnabled
-                    ? root.bluetoothConnected > 0
-                        ? qsTr("%1 conectados").arg(root.bluetoothConnected)
-                        : qsTr("Listo")
-                    : qsTr("Bluetooth apagado")
-                detail: root.bluetoothEnabled ? qsTr("Adaptador activado") : qsTr("Adaptador desactivado")
-                icon: root.bluetoothConnected > 0 ? "bluetooth_connected" : "bluetooth"
-                activeState: root.bluetoothEnabled
-            }
-
-            ColumnLayout {
-                Layout.fillWidth: true
-                visible: root.bluetoothEnabled
-                spacing: 0
-
-                CortetsuSectionHeader {
-                    Layout.fillWidth: true
-                    title: qsTr("Dispositivos conocidos")
-                    detail: qsTr("Selecciona un dispositivo para conectar o desconectar")
-                }
-
-                Repeater {
-                    model: Bluetooth.devices?.values ?? []
-                    delegate: CortetsuListRow {
-                        required property var modelData
-                        Layout.fillWidth: true
-                        title: modelData.name ?? qsTr("Dispositivo Bluetooth")
-                        subtitle: modelData.connected ? qsTr("Conectado · pulsa para desconectar") : qsTr("Disponible · pulsa para conectar")
-                        icon: modelData.connected ? "bluetooth_connected" : "bluetooth"
-                        selected: modelData.connected
-                        onClicked: modelData.connected = !modelData.connected
-                    }
-                }
-
-                CortetsuStateMessage {
-                    Layout.fillWidth: true
-                    visible: (Bluetooth.devices?.values ?? []).length === 0
-                    kind: "empty"
-                    title: qsTr("No hay dispositivos conocidos")
-                    detail: qsTr("Empareja un dispositivo desde tu herramienta Bluetooth del sistema para verlo aquí")
-                }
-            }
-
-            PreferenceToggle {
-                title: qsTr("Adaptador Bluetooth")
-                detail: qsTr("Activar o desactivar el adaptador predeterminado")
-                icon: "bluetooth"
-                checked: root.bluetoothEnabled
-                controlDisabled: Bluetooth.defaultAdapter === null
-                onChanged: checked => {
-                    if (Bluetooth.defaultAdapter)
-                        Bluetooth.defaultAdapter.enabled = checked;
-                }
-            }
         }
 
-        ColumnLayout {
+        AudioPage {
             Layout.fillWidth: true
             visible: root.section === "audio"
-            spacing: CortetsuDesign.spacingStandard
-
-            CortetsuSectionHeader {
-                Layout.fillWidth: true
-                title: qsTr("Audio")
-                detail: qsTr("Control de salida PipeWire en vivo")
-            }
-
-            DomainHero {
-                icon: CortetsuAudio.muted ? "volume_off" : "volume_up"
-                title: CortetsuAudio.muted ? qsTr("Salida silenciada") : qsTr("Audio disponible")
-                detail: root.activeOutputName
-                value: qsTr("%1%").arg(root.volumePercent)
-                meta: qsTr("%1 salidas · %2 entradas · %3 streams")
-                    .arg(CortetsuAudio.sinks.length)
-                    .arg(CortetsuAudio.sources.length)
-                    .arg(CortetsuAudio.streams.length)
-                progress: CortetsuAudio.volume
-                warningState: !CortetsuAudio.sink
-            }
-
-            PreferenceToggle {
-                title: CortetsuAudio.muted ? qsTr("Salida silenciada") : qsTr("Salida activada")
-                detail: qsTr("Volumen actual %1%").arg(root.volumePercent)
-                icon: CortetsuAudio.muted ? "volume_off" : "volume_up"
-                checked: !CortetsuAudio.muted
-                controlDisabled: !CortetsuAudio.sink?.audio
-                onChanged: enabled => {
-                    if (CortetsuAudio.sink?.audio)
-                        CortetsuAudio.sink.audio.muted = !enabled;
-                }
-            }
-
-            CortetsuSurface {
-                Layout.fillWidth: true
-                implicitHeight: 86
-                radiusValue: CortetsuDesign.radiusMedium
-                baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.72)
-                outlined: true
-                outlineColor: Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.48)
-
-                ColumnLayout {
-                    anchors.fill: parent
-                    anchors.margins: CortetsuDesign.spacingStandard
-                    spacing: CortetsuDesign.spacingCompact
-                    RowLayout {
-                        Layout.fillWidth: true
-                        CortetsuText {
-                            Layout.fillWidth: true
-                            text: qsTr("Volumen de salida")
-                            textSize: CortetsuTypography.bodyPx
-                            font.weight: Font.DemiBold
-                        }
-                        CortetsuText {
-                            text: qsTr("%1%").arg(root.volumePercent)
-                            textSize: CortetsuTypography.labelSmallPx
-                            color: CortetsuDesign.colorOnSurfaceVariant
-                        }
-                    }
-                    CortetsuSlider {
-                        Layout.fillWidth: true
-                        value: CortetsuAudio.volume
-                        onMoved: nextValue => CortetsuAudio.setVolume(nextValue)
-                    }
-                }
-            }
-
-            CortetsuSectionHeader {
-                Layout.fillWidth: true
-                title: qsTr("Entrada")
-                detail: root.activeInputName
-            }
-
-            PreferenceToggle {
-                title: CortetsuAudio.sourceMuted ? qsTr("Entrada silenciada") : qsTr("Entrada activa")
-                detail: qsTr("Volumen del micrófono %1%").arg(root.inputVolumePercent)
-                icon: CortetsuAudio.sourceMuted ? "mic_off" : "mic"
-                checked: !CortetsuAudio.sourceMuted
-                controlDisabled: !CortetsuAudio.source?.audio
-                onChanged: enabled => {
-                    if (CortetsuAudio.source?.audio)
-                        CortetsuAudio.source.audio.muted = !enabled;
-                }
-            }
-
-            CortetsuSlider {
-                Layout.fillWidth: true
-                value: CortetsuAudio.sourceVolume
-                disabled: CortetsuAudio.sourceMuted || !CortetsuAudio.source
-                onMoved: nextValue => CortetsuAudio.setSourceVolume(nextValue)
-            }
-
-            CortetsuSectionHeader {
-                Layout.fillWidth: true
-                title: qsTr("Dispositivos de salida")
-                detail: qsTr("%1 disponibles · %2 activo").arg(CortetsuAudio.sinks.length).arg(root.activeOutputName)
-            }
-
-            Repeater {
-                model: CortetsuAudio.sinks
-                delegate: CortetsuListRow {
-                    required property var modelData
-                    Layout.fillWidth: true
-                    title: modelData.description ?? modelData.name ?? qsTr("Salida desconocida")
-                    subtitle: CortetsuAudio.sink?.id === modelData.id ? qsTr("Salida actual") : qsTr("Usar esta salida")
-                    icon: "speaker"
-                    selected: CortetsuAudio.sink?.id === modelData.id
-                    onClicked: CortetsuAudio.setAudioSink(modelData)
-                }
-            }
-
-            CortetsuSectionHeader {
-                Layout.fillWidth: true
-                title: qsTr("Dispositivos de entrada")
-                detail: qsTr("Selecciona el micrófono predeterminado de PipeWire")
-            }
-
-            Repeater {
-                model: CortetsuAudio.sources
-                delegate: CortetsuListRow {
-                    required property var modelData
-                    Layout.fillWidth: true
-                    title: modelData.description ?? modelData.name ?? qsTr("Entrada desconocida")
-                    subtitle: CortetsuAudio.source?.id === modelData.id ? qsTr("Entrada actual") : qsTr("Usar esta entrada")
-                    icon: "mic"
-                    selected: CortetsuAudio.source?.id === modelData.id
-                    onClicked: CortetsuAudio.setAudioSource(modelData)
-                }
-            }
-
-            CortetsuStateMessage {
-                Layout.fillWidth: true
-                visible: CortetsuAudio.streams.length === 0
-                kind: "empty"
-                icon: "music_off"
-                title: qsTr("Sin aplicaciones reproduciendo audio")
-                detail: qsTr("Los controles por aplicación aparecerán cuando PipeWire detecte un stream")
-            }
-
-            CortetsuSectionHeader {
-                Layout.fillWidth: true
-                title: qsTr("Aplicaciones reproduciendo")
-                detail: qsTr("Volumen independiente por stream")
-                visible: CortetsuAudio.streams.length > 0
-            }
-
-            Repeater {
-                model: CortetsuAudio.streams
-                delegate: CortetsuSurface {
-                    required property var modelData
-                    Layout.fillWidth: true
-                    implicitHeight: 78
-                    radiusValue: CortetsuDesign.radiusMedium
-                    baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.72)
-                    outlined: true
-
-                    RowLayout {
-                        anchors.fill: parent
-                        anchors.margins: CortetsuDesign.spacingStandard
-                        spacing: CortetsuDesign.spacingStandard
-
-                        CortetsuIcon {
-                            text: CortetsuAudio.getStreamMuted(parent.parent.modelData) ? "volume_off" : "music_note"
-                            iconSize: CortetsuTypography.iconMediumPx
-                            color: CortetsuDesign.colorPrimary
-                        }
-
-                        ColumnLayout {
-                            Layout.fillWidth: true
-                            spacing: 2
-                            CortetsuText {
-                                Layout.fillWidth: true
-                                text: CortetsuAudio.getStreamName(parent.parent.modelData)
-                                textSize: CortetsuTypography.bodyPx
-                                font.weight: Font.DemiBold
-                                elide: Text.ElideRight
-                            }
-                            CortetsuSlider {
-                                Layout.fillWidth: true
-                                value: CortetsuAudio.getStreamVolume(parent.parent.modelData)
-                                disabled: CortetsuAudio.getStreamMuted(parent.parent.modelData)
-                                onMoved: nextValue => CortetsuAudio.setStreamVolume(parent.parent.modelData, nextValue)
-                            }
-                        }
-
-                        CortetsuToggle {
-                            checked: !CortetsuAudio.getStreamMuted(parent.parent.modelData)
-                            onToggled: checked => CortetsuAudio.setStreamMuted(parent.parent.modelData, !checked)
-                        }
-                    }
-                }
-            }
         }
 
         ColumnLayout {

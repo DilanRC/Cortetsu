@@ -3,6 +3,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 content = (ROOT / "cortetsu/modules/settings/Content.qml").read_text(encoding="utf-8")
 system = (ROOT / "cortetsu/modules/settings/SystemPage.qml").read_text(encoding="utf-8")
+audio = (ROOT / "cortetsu/modules/settings/AudioPage.qml").read_text(encoding="utf-8")
+bluetooth = (ROOT / "cortetsu/modules/settings/BluetoothPage.qml").read_text(encoding="utf-8")
 network_service = (ROOT / "cortetsu/services/CortetsuSettingsNetwork.qml").read_text(encoding="utf-8")
 controller = (ROOT / "cortetsu/modules/settings/SettingsController.qml").read_text(encoding="utf-8")
 schemes = (ROOT / "cortetsu/modules/launcher/services/Schemes.qml").read_text(encoding="utf-8")
@@ -19,8 +21,6 @@ assert "NetworkManager · operaciones y señal en vivo" in system
 assert "CortetsuSettingsNetwork.setWifi(enabled)" in system
 assert "CortetsuSettingsNetwork.disconnect(modelData.name)" in system
 assert "CortetsuNetwork.refresh()" in system
-assert "CortetsuAudio.setSourceVolume(nextValue)" in system
-assert "CortetsuAudio.setAudioSink(modelData)" in system
 assert "Nvibrant.setValue(nextValue * 1024)" in content
 assert "function refreshNetworks()" in network_service
 assert "function connect(" in network_service
@@ -32,9 +32,7 @@ assert "activeDetails" in network_service
 assert "CortetsuSettingsNetwork.copyPassword" in content or "CortetsuSettingsNetwork.copyPassword" in (ROOT / "cortetsu/modules/settings/NetworkPage.qml").read_text(encoding="utf-8")
 assert "Dirección IP" in (ROOT / "cortetsu/modules/settings/NetworkPage.qml").read_text(encoding="utf-8")
 assert "Brightness.getMonitorForScreen(root.screen)" in system
-assert "onMoved: nextValue => CortetsuAudio.setVolume(nextValue)" in system
 assert "onMoved: nextValue => root.brightnessMonitor?.setBrightness(nextValue)" in system
-assert "Bluetooth.defaultAdapter.enabled" in system
 assert "CortetsuPower" in system
 assert "Icons.getBatteryIcon" in system
 assert "CortetsuWallpapers.applyStatus" in system
@@ -57,19 +55,37 @@ for marker in (
     "CortetsuConfig.launcher.maxShown",
     "CortetsuConfig.notificationDefaultExpireTimeout",
     "CortetsuNotifications.clear()",
-    "CortetsuAudio.setStreamVolume",
-    "CortetsuAudio.setAudioSource(modelData)",
     "Hypr.monitors?.values ?? []",
 ):
     assert marker in system, marker
+for marker in (
+    "CortetsuAudio.setVolume(nextValue)",
+    "CortetsuAudio.setSourceVolume(nextValue)",
+    "CortetsuAudio.setAudioSink(root.selectedNode)",
+    "CortetsuAudio.setAudioSource(root.selectedNode)",
+    "CortetsuAudio.setStreamVolume",
+    "CortetsuAudio.setStreamMuted",
+    "CortetsuSearchBar",
+):
+    assert marker in audio, marker
+for marker in (
+    "Bluetooth.defaultAdapter",
+    "Bluetooth.devices.values",
+    "root.selectedDevice.connect()",
+    "root.selectedDevice.disconnect()",
+    "root.selectedDevice.forget()",
+    "batteryAvailable",
+):
+    assert marker in bluetooth, marker
 assert "schemeCard.hovered = true" not in content
 assert "Layout.preferredHeight: childrenRect.height" in content
 assert "implicitHeight: childrenRect.height" not in content
 assert "ScrollBar.vertical" in content
 assert "ScrollBar.AsNeeded" in content
 assert 'title: qsTr("Comportamiento de BottomHub")' in system
-for label in ("Estado de la red", "Bluetooth", "Energía"):
+for label in ("Estado de la red", "Energía"):
     assert f'title: qsTr("{label}")' in system
+assert 'title: qsTr("Bluetooth")' in bluetooth
 assert "CortetsuConfig.bar.popouts.statusIcons" in system
 for marker in (
     "CortetsuConfig.dashboard.showOnHover",
@@ -104,6 +120,11 @@ checks = {
         "CortetsuConfig.useFahrenheit",
         "CortetsuConfig.visualiserEnabled",
         "CortetsuConfig.visualiserAutoHide",
+        "schemePreviewRoles",
+        "CortetsuConfig.borderThickness",
+        "CortetsuConfig.borderSmoothing",
+        "CortetsuConfig.visualiserBars",
+        "CortetsuConfig.visualiserSpacing",
         "CortetsuConfig.save();",
     )),
     "system preferences persist": system.count("root.savePreference();") >= 30,

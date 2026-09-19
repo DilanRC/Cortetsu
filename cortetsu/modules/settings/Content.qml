@@ -20,6 +20,13 @@ Item {
     required property var controller
 
     readonly property var selectedCategory: controller.categories.find(item => item.id === controller.selectedId) ?? null
+    readonly property var schemePreviewRoles: [
+        { label: qsTr("Principal"), color: CortetsuColours.palette.m3primary },
+        { label: qsTr("Secundario"), color: CortetsuColours.palette.m3secondary },
+        { label: qsTr("Acento"), color: CortetsuColours.palette.m3tertiary },
+        { label: qsTr("Superficie"), color: CortetsuColours.palette.m3surface },
+        { label: qsTr("Aviso"), color: CortetsuColours.palette.m3error }
+    ]
 
     function schemeColour(value, fallback) {
         const text = String(value ?? "").trim();
@@ -632,6 +639,169 @@ Item {
                             checked: CortetsuConfig.visualiserAutoHide
                             disabled: !CortetsuConfig.visualiserEnabled
                             onChanged: value => { CortetsuConfig.visualiserAutoHide = value; CortetsuConfig.save(); }
+                        }
+
+                        CortetsuSectionHeader {
+                            Layout.fillWidth: true
+                            title: qsTr("Roles de color activos")
+                            detail: qsTr("Vista directa del esquema que usan las superficies de Cortetsu")
+                        }
+
+                        Flow {
+                            Layout.fillWidth: true
+                            spacing: CortetsuDesign.spacingCompact
+
+                            Repeater {
+                                model: root.schemePreviewRoles
+                                delegate: CortetsuSurface {
+                                    required property var modelData
+                                    width: Math.max(132, (parent?.width ?? 660) / 5 - CortetsuDesign.spacingCompact)
+                                    implicitHeight: 68
+                                    radiusValue: CortetsuDesign.radiusMedium
+                                    baseColor: modelData.color
+                                    outlined: true
+                                    outlineColor: Qt.alpha(CortetsuColours.on(modelData.color), 0.30)
+
+                                    ColumnLayout {
+                                        anchors.fill: parent
+                                        anchors.margins: CortetsuDesign.spacingCompact
+                                        spacing: 1
+                                        CortetsuText {
+                                            Layout.fillWidth: true
+                                            text: modelData.label
+                                            textSize: CortetsuTypography.labelSmallPx
+                                            color: CortetsuColours.on(modelData.color)
+                                            font.weight: Font.DemiBold
+                                        }
+                                        CortetsuText {
+                                            Layout.fillWidth: true
+                                            text: String(modelData.color)
+                                            textSize: CortetsuTypography.labelSmallPx
+                                            color: Qt.alpha(CortetsuColours.on(modelData.color), 0.78)
+                                            elide: Text.ElideRight
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        CortetsuSectionHeader {
+                            Layout.fillWidth: true
+                            title: qsTr("Calibración de superficie")
+                            detail: qsTr("Bordes, transparencia y densidad visual persistentes")
+                        }
+
+                        CortetsuSurface {
+                            Layout.fillWidth: true
+                            implicitHeight: 132
+                            radiusValue: CortetsuDesign.radiusMedium
+                            baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.72)
+                            outlined: true
+
+                            ColumnLayout {
+                                anchors.fill: parent
+                                anchors.margins: CortetsuDesign.spacingStandard
+                                spacing: CortetsuDesign.spacingCompact
+
+                                RowLayout {
+                                    Layout.fillWidth: true
+                                    CortetsuIcon { text: "rounded_corner"; iconSize: CortetsuTypography.iconMediumPx; color: CortetsuDesign.colorPrimary }
+                                    CortetsuText {
+                                        Layout.fillWidth: true
+                                        text: qsTr("Grosor del borde")
+                                        textSize: CortetsuTypography.bodyPx
+                                        font.weight: Font.DemiBold
+                                    }
+                                    CortetsuText {
+                                        text: qsTr("%1 px").arg(CortetsuConfig.borderThickness)
+                                        textSize: CortetsuTypography.labelSmallPx
+                                        color: CortetsuDesign.colorOnSurfaceVariant
+                                    }
+                                }
+
+                                CortetsuSlider {
+                                    Layout.fillWidth: true
+                                    from: 0
+                                    to: 8
+                                    step: 1
+                                    value: CortetsuConfig.borderThickness
+                                    onMoved: nextValue => { CortetsuConfig.borderThickness = Math.round(nextValue); CortetsuConfig.save(); }
+                                }
+
+                                AppearanceToggle {
+                                    Layout.fillWidth: true
+                                    implicitHeight: 58
+                                    title: qsTr("Suavizar bordes")
+                                    detail: qsTr("Aplicar antialiasing en las superficies del shell")
+                                    icon: "blur_linear"
+                                    checked: CortetsuConfig.borderSmoothing
+                                    onChanged: value => { CortetsuConfig.borderSmoothing = value; CortetsuConfig.save(); }
+                                }
+                            }
+                        }
+
+                        CortetsuSurface {
+                            Layout.fillWidth: true
+                            implicitHeight: 176
+                            radiusValue: CortetsuDesign.radiusMedium
+                            baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.72)
+                            outlined: true
+
+                            ColumnLayout {
+                                anchors.fill: parent
+                                anchors.margins: CortetsuDesign.spacingStandard
+                                spacing: CortetsuDesign.spacingCompact
+
+                                RowLayout {
+                                    Layout.fillWidth: true
+                                    CortetsuIcon { text: "graphic_eq"; iconSize: CortetsuTypography.iconMediumPx; color: CortetsuDesign.colorPrimary }
+                                    CortetsuText {
+                                        Layout.fillWidth: true
+                                        text: qsTr("Densidad del visualizador")
+                                        textSize: CortetsuTypography.bodyPx
+                                        font.weight: Font.DemiBold
+                                    }
+                                    CortetsuText {
+                                        text: qsTr("%1 barras").arg(CortetsuConfig.visualiserBars)
+                                        textSize: CortetsuTypography.labelSmallPx
+                                        color: CortetsuDesign.colorOnSurfaceVariant
+                                    }
+                                }
+
+                                CortetsuSlider {
+                                    Layout.fillWidth: true
+                                    from: 8
+                                    to: 128
+                                    step: 4
+                                    value: CortetsuConfig.visualiserBars
+                                    disabled: !CortetsuConfig.visualiserEnabled
+                                    onMoved: nextValue => { CortetsuConfig.visualiserBars = Math.round(nextValue / 4) * 4; CortetsuConfig.save(); }
+                                }
+
+                                RowLayout {
+                                    Layout.fillWidth: true
+                                    CortetsuText {
+                                        Layout.fillWidth: true
+                                        text: qsTr("Separación")
+                                        textSize: CortetsuTypography.bodySmallPx
+                                        color: CortetsuDesign.colorOnSurfaceVariant
+                                    }
+                                    CortetsuSlider {
+                                        Layout.preferredWidth: 220
+                                        from: 0
+                                        to: 10
+                                        step: 1
+                                        value: CortetsuConfig.visualiserSpacing
+                                        disabled: !CortetsuConfig.visualiserEnabled
+                                        onMoved: nextValue => { CortetsuConfig.visualiserSpacing = Math.round(nextValue); CortetsuConfig.save(); }
+                                    }
+                                    CortetsuText {
+                                        text: qsTr("%1 px").arg(Math.round(CortetsuConfig.visualiserSpacing))
+                                        textSize: CortetsuTypography.labelSmallPx
+                                        color: CortetsuDesign.colorOnSurfaceVariant
+                                    }
+                                }
+                            }
                         }
                     }
 

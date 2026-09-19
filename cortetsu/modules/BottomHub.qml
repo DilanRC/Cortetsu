@@ -642,6 +642,8 @@ Scope {
                 const wasOpen = screenState.session;
                 hubRoot.closeAllLaunchers();
                 hubRoot.closeAllPanels();
+                if (!wasOpen)
+                    hubRoot.closeAllPopouts();
                 OverlayPolicy.closeOtherPanels(screenState);
                 screenState.session = !wasOpen;
             }
