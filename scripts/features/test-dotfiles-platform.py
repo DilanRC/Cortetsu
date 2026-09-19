@@ -59,6 +59,9 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-dotfiles-test-") as tmp:
     assert target.read_text(encoding="utf-8").startswith("schema = 1")
     service = home / ".config/systemd/user/cortetsu-shell.service"
     assert service.is_symlink()
+    hypr_loader = home / ".config/hypr/hyprland.lua"
+    assert hypr_loader.is_file() and not hypr_loader.is_symlink()
+    assert "dotfiles/current/home/.config/hypr/hyprland.lua" in hypr_loader.read_text(encoding="utf-8")
 
     backups = list((data / "dotfiles/backups").glob("*/home/.config/cortetsu/ui.toml"))
     assert backups, "unmanaged config was not backed up"

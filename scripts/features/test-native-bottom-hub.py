@@ -97,12 +97,11 @@ def assert_controller(text: str) -> None:
         "Audio.decrementVolume()",
         "CortetsuNetwork.activeEthernet",
         "Bluetooth.devices.values",
-        "UPower.displayDevice",
-        "Recorder.stop()",
+        "CortetsuPower",
+        "CortetsuRecorder.stop()",
         "CortetsuNotifications.dnd = !CortetsuNotifications.dnd",
         "CortetsuIdleInhibitor.enabled = !CortetsuIdleInhibitor.enabled",
         "hubRoot.toggleLauncherFor(win.modelData)",
-        "hubRoot.openWallpaperFor(win.modelData)",
         "hubRoot.toggleSidebarFor(win.modelData)",
     ):
         assert fingerprint in text, f"BottomHub controller lost behavior: {fingerprint}"
@@ -133,7 +132,10 @@ def assert_view_contract(source: dict[str, str]) -> None:
     mode = source["CortetsuModeSegment.qml"]
     assert mode.count("CortetsuWorkspaceDots {") == 1
     assert "signal launcherRequested()" in mode
-    assert "signal wallpaperRequested()" in mode
+    assert "signal wallpaperRequested()" not in mode
+    assert "signal clipboardRequested()" not in mode
+    assert "required property bool clipboardActive" not in mode
+    assert 'icon: "content_paste_search"' not in mode
     assert "signal workspaceRequested(int workspaceId)" in mode
     assert "width: implicitWidth" in mode
     assert "height: implicitHeight" in mode
@@ -155,23 +157,23 @@ def assert_view_contract(source: dict[str, str]) -> None:
         "signal cycleRequested(string key, int direction)",
     ):
         assert signal in rail
-    assert "CortetsuDesign.hoverScale" in rail
+    assert "hovered: appMouse.containsMouse" in rail
+    assert "scale: appMouse" not in rail
     assert "width: implicitWidth" in rail
     assert "modelData.title" in rail
-    assert "ToolTip" in rail
+    assert "CortetsuTooltip" in rail
     assert "onPressed: appItem.forceActiveFocus()" in rail
 
     tray = source["CortetsuTraySegment.qml"]
     assert "signal hoverRequested(string itemId, real centerX)" in tray
     assert "signal activateRequested(string itemId)" in tray
-    assert "signal secondaryRequested(string itemId)" in tray
+    assert "signal secondaryRequested(string itemId, real centerX)" in tray
     assert "width: visible ? implicitWidth : 0" in tray
     assert "modelData.title" in tray
-    assert "ToolTip" in tray
+    assert "CortetsuTooltip" in tray
     assert "onPressed: trayItem.forceActiveFocus()" in tray
-    assert "CortetsuTypography.labelSmallPx" in tray
     assert "baseColor: CortetsuDesign.colorTetsu" in tray
-    assert "contentItem: CortetsuText" in tray
+    assert "CortetsuTooltip" in tray
 
     status = source["CortetsuStatusSegment.qml"]
     for signal in (

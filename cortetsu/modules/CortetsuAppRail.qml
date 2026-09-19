@@ -1,8 +1,9 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import QtQuick.Controls
+import "../components"
 import "CortetsuDesign.js" as CortetsuDesign
+import "CortetsuTypography.js" as CortetsuTypography
 
 Item {
     id: root
@@ -15,24 +16,17 @@ Item {
     signal closeRequested(string key)
     signal cycleRequested(string key, int direction)
 
-    implicitWidth: Math.min(appRailContent.implicitWidth + 14, maxWidth)
-    implicitHeight: 52
+    implicitWidth: Math.min(appRailContent.implicitWidth + CortetsuDesign.spacingCompact, maxWidth)
+    implicitHeight: 50
     width: implicitWidth
     height: implicitHeight
     clip: true
 
-    CortetsuSurface {
-        anchors.fill: parent
-        radiusValue: CortetsuDesign.radiusLarge
-        baseColor: CortetsuDesign.colorTetsu
-        outlined: true
-    }
-
     Flickable {
         id: appRail
         anchors.fill: parent
-        anchors.leftMargin: 7
-        anchors.rightMargin: 7
+        anchors.leftMargin: CortetsuDesign.spacingUnit
+        anchors.rightMargin: CortetsuDesign.spacingUnit
         contentWidth: appRailContent.implicitWidth
         contentHeight: height
         boundsBehavior: Flickable.StopAtBounds
@@ -42,7 +36,7 @@ Item {
         Row {
             id: appRailContent
             height: parent.height
-            spacing: CortetsuDesign.spacingUnit
+            spacing: 2
 
             Repeater {
                 model: root.items
@@ -52,41 +46,35 @@ Item {
                     required property var modelData
 
                     implicitWidth: 46
-                    implicitHeight: 52
+                    implicitHeight: 50
                     width: implicitWidth
                     height: implicitHeight
                     focus: true
                     activeFocusOnTab: true
-                    scale: appMouse.containsMouse ? CortetsuDesign.hoverScale : 1
-
-                    Behavior on scale {
-                        NumberAnimation {
-                            duration: CortetsuDesign.motionFastMs
-                            easing.type: Easing.OutCubic
-                        }
-                    }
 
                     CortetsuSurface {
                         anchors.fill: parent
-                        anchors.topMargin: 2
-                        anchors.bottomMargin: 2
+                        anchors.margins: 3
                         radiusValue: CortetsuDesign.radiusMedium
-                        baseColor: "transparent"
-                        hoverColor: Qt.lighter(CortetsuDesign.colorTetsu, 1.16)
-                        activeColor: CortetsuDesign.colorIndigo
+                        baseColor: appItem.modelData.active
+                            ? Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.62)
+                            : "transparent"
+                        hoverColor: Qt.alpha(CortetsuDesign.colorSurfaceGlassStrong, 0.84)
+                        outlineColor: appItem.activeFocus
+                            ? Qt.alpha(CortetsuDesign.colorWashi, 0.72)
+                            : "transparent"
                         hovered: appMouse.containsMouse
                         pressed: appMouse.pressed
-                        active: appItem.modelData.active
                         focused: appItem.activeFocus
-                        outlined: appItem.modelData.active
+                        outlined: appItem.activeFocus
                     }
 
                     Image {
                         anchors.horizontalCenter: parent.horizontalCenter
                         anchors.top: parent.top
-                        anchors.topMargin: 6
-                        width: 32
-                        height: 32
+                        anchors.topMargin: appItem.modelData.running ? 6 : 8
+                        width: 31
+                        height: 31
                         source: appItem.modelData.iconSource
                         sourceSize.width: 64
                         sourceSize.height: 64
@@ -95,19 +83,32 @@ Item {
                         fillMode: Image.PreserveAspectFit
                         smooth: true
                         mipmap: true
-                        opacity: appItem.modelData.running ? 1 : 0.62
+                        opacity: appItem.modelData.running || appMouse.containsMouse || appItem.activeFocus ? 1 : 0.72
+
+                        Behavior on anchors.topMargin {
+                            NumberAnimation {
+                                duration: CortetsuDesign.motionFastMs
+                                easing.type: Easing.OutCubic
+                            }
+                        }
+                        Behavior on opacity {
+                            NumberAnimation {
+                                duration: CortetsuDesign.motionFastMs
+                                easing.type: Easing.OutCubic
+                            }
+                        }
                     }
 
                     Rectangle {
                         visible: appItem.modelData.pinned && !appItem.modelData.running
                         anchors.top: parent.top
                         anchors.right: parent.right
-                        anchors.topMargin: 6
+                        anchors.topMargin: 7
                         anchors.rightMargin: 5
-                        width: 7
-                        height: 7
-                        radius: 4
-                        color: CortetsuDesign.colorMuted
+                        width: 5
+                        height: 5
+                        radius: 3
+                        color: Qt.alpha(CortetsuDesign.colorMuted, 0.66)
                     }
 
                     Row {
@@ -122,13 +123,20 @@ Item {
 
                             Rectangle {
                                 required property int index
-                                width: appItem.modelData.active ? 12 : 5
-                                height: 5
-                                radius: 3
+                                width: appItem.modelData.active ? 10 : 4
+                                height: 3
+                                radius: 2
                                 color: appItem.modelData.active
                                     ? CortetsuDesign.colorWashi
                                     : CortetsuDesign.colorMuted
-                                opacity: index < 3 ? 1 : 0.55
+                                opacity: index < 3 ? 0.88 : 0.48
+
+                                Behavior on width {
+                                    NumberAnimation {
+                                        duration: CortetsuDesign.motionFastMs
+                                        easing.type: Easing.OutCubic
+                                    }
+                                }
                             }
                         }
                     }
@@ -147,12 +155,10 @@ Item {
                                 root.togglePinnedRequested(appItem.modelData.key);
                                 return;
                             }
-
                             if (event.button === Qt.MiddleButton) {
                                 root.closeRequested(appItem.modelData.key);
                                 return;
                             }
-
                             root.activateRequested(appItem.modelData.key);
                         }
 
@@ -161,7 +167,6 @@ Item {
                                 root.cycleRequested(appItem.modelData.key, -1);
                             else if (wheel.angleDelta.y < 0)
                                 root.cycleRequested(appItem.modelData.key, 1);
-
                             wheel.accepted = true;
                         }
                     }
@@ -172,12 +177,10 @@ Item {
                     Keys.onLeftPressed: root.cycleRequested(appItem.modelData.key, -1)
                     Keys.onRightPressed: root.cycleRequested(appItem.modelData.key, 1)
 
-                    ToolTip {
-                        id: appTooltip
-                        parent: appItem
-                        visible: appItem.modelData.title?.length > 0
-                            && (appMouse.containsMouse || appItem.activeFocus)
-                        delay: CortetsuDesign.motionDeliberateMs
+                    CortetsuTooltip {
+                        target: appItem
+                        hovered: appMouse.containsMouse
+                        focused: appItem.activeFocus
                         text: appItem.modelData.title
                     }
                 }

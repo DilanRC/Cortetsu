@@ -46,14 +46,14 @@ Singleton {
     function forScreen(screen): var {
         return states.instances.find(state => state.modelData === screen)
             ?? CortetsuShellState.forScreen(screen)
-            ?? CortetsuShellState.forActive();
+            ?? null;
     }
 
     function forActive(): var {
         const monitor = CortetsuHypr.focusedMonitor;
         return states.instances.find(state => CortetsuHypr.monitorFor(state.modelData) === monitor)
-            ?? states.instances[0]
-            ?? CortetsuShellState.forActive();
+            ?? CortetsuShellState.forActive()
+            ?? null;
     }
 
     function componentsFor(screen): var {

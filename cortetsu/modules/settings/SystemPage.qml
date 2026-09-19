@@ -1,0 +1,1855 @@
+pragma ComponentBehavior: Bound
+
+import QtQuick
+import QtQuick.Layouts
+import Quickshell
+import Quickshell.Bluetooth
+import "../../components"
+import ".."
+import "../../services"
+import "../../utils"
+import "../CortetsuDesign.js" as CortetsuDesign
+import "../CortetsuTypography.js" as CortetsuTypography
+
+Item {
+    id: root
+
+    required property string section
+    required property var screen
+    required property var screenState
+
+    implicitHeight: content.implicitHeight
+
+    readonly property var brightnessMonitor: Brightness.getMonitorForScreen(root.screen)
+    readonly property real brightnessValue: brightnessMonitor?.brightness ?? -1
+    readonly property bool bluetoothEnabled: Bluetooth.defaultAdapter?.enabled ?? false
+    readonly property int bluetoothConnected: (Bluetooth.devices?.values ?? []).filter(device => device.connected).length
+    readonly property int batteryPercent: CortetsuPower.percent
+    readonly property bool batteryCharging: CortetsuPower.charging
+    readonly property int volumePercent: Math.round(CortetsuAudio.volume * 100)
+    readonly property int inputVolumePercent: Math.round(CortetsuAudio.sourceVolume * 100)
+    readonly property string activeOutputName: CortetsuAudio.sink?.description
+        ?? CortetsuAudio.sink?.name ?? qsTr("Sin salida")
+    readonly property string activeInputName: CortetsuAudio.source?.description
+        ?? CortetsuAudio.source?.name ?? qsTr("Sin entrada")
+    readonly property string networkName: CortetsuNetwork.active?.ssid
+        ?? (CortetsuNetwork.activeEthernet ? qsTr("Ethernet") : qsTr("Sin conexión"))
+    readonly property string networkDetail: CortetsuNetwork.connecting
+        ? qsTr("Conectando")
+        : CortetsuNetwork.active
+        ? qsTr("Señal %1%").arg(Math.round(CortetsuNetwork.active.strength ?? 0))
+            : CortetsuNetwork.activeEthernet
+                ? qsTr("Conexión cableada")
+                : qsTr("Sin conexión activa")
+
+    readonly property int monitorCount: Hypr.monitors?.values?.length ?? 0
+    readonly property int workspaceCount: Hypr.workspaces?.values?.length ?? 0
+    readonly property int enabledBottomSegments: [
+        CortetsuConfig.bottomHub.segments.mode,
+        CortetsuConfig.bottomHub.segments.apps,
+        CortetsuConfig.bottomHub.segments.tray,
+        CortetsuConfig.bottomHub.segments.status
+    ].filter(Boolean).length
+    readonly property int enabledStatusSegments: [
+        CortetsuConfig.bottomHub.statusCluster.audio,
+        CortetsuConfig.bottomHub.statusCluster.network,
+        CortetsuConfig.bottomHub.statusCluster.bluetooth,
+        CortetsuConfig.bottomHub.statusCluster.battery
+    ].filter(Boolean).length
+    readonly property int enabledSearchModes: [
+        CortetsuConfig.useFuzzyApps,
+        CortetsuConfig.useFuzzyActions,
+        CortetsuConfig.useFuzzyWallpapers,
+        CortetsuConfig.useFuzzySchemes,
+        CortetsuConfig.useFuzzyVariants
+    ].filter(Boolean).length
+    readonly property string batteryStatus: CortetsuPower.hasBattery
+        ? qsTr("%1% · %2").arg(batteryPercent).arg(batteryCharging ? qsTr("cargando") : qsTr("batería"))
+        : qsTr("Alimentación externa")
+
+    function savePreference(): void {
+        CortetsuConfig.save();
+    }
+
+    function formatDuration(milliseconds: int): string {
+        if (milliseconds <= 0)
+            return qsTr("Sin estimación");
+        const minutes = Math.round(milliseconds / 60000);
+        if (minutes < 60)
+            return qsTr("%1 min").arg(minutes);
+        return qsTr("%1 h %2 min").arg(Math.floor(minutes / 60)).arg(minutes % 60);
+    }
+
+    function openRetained(flag: string): void {
+        root.screenState.settings = false;
+        Qt.callLater(() => {
+            if (flag === "wallpaperManager") {
+                WallpaperController.open(root.screen);
+                return;
+            }
+            root.screenState.cortetsuState?.closeRetainedOverlaysExcept(flag);
+            root.screenState.cortetsuState?.setRetained(flag, true);
+        });
+    }
+
+    component PreferenceToggle: CortetsuSurface {
+        id: preference
+
+        required property string title
+        property string detail: ""
+        property string icon: "tune"
+        property bool checked: false
+        property bool controlDisabled: false
+        signal changed(bool checked)
+
+        Layout.fillWidth: true
+        implicitHeight: 68
+        radiusValue: CortetsuDesign.radiusMedium
+        baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.72)
+        outlined: true
+        outlineColor: Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.48)
+
+        RowLayout {
+            anchors.fill: parent
+            anchors.margins: CortetsuDesign.spacingStandard
+            spacing: CortetsuDesign.spacingStandard
+
+            CortetsuIcon {
+                text: preference.icon
+                iconSize: CortetsuTypography.iconMediumPx
+                color: preference.checked ? CortetsuDesign.colorPrimary : CortetsuDesign.colorOnSurfaceVariant
+            }
+
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 1
+
+                CortetsuText {
+                    Layout.fillWidth: true
+                    text: preference.title
+                    textSize: CortetsuTypography.bodyPx
+                    font.weight: Font.DemiBold
+                    elide: Text.ElideRight
+                }
+
+                CortetsuText {
+                    Layout.fillWidth: true
+                    visible: preference.detail.length > 0
+                    text: preference.detail
+                    textSize: CortetsuTypography.labelSmallPx
+                    color: CortetsuDesign.colorOnSurfaceVariant
+                    elide: Text.ElideRight
+                }
+            }
+
+            CortetsuToggle {
+                checked: preference.checked
+                disabled: preference.controlDisabled
+                onToggled: checked => preference.changed(checked)
+            }
+        }
+    }
+
+    component StatusCard: CortetsuSurface {
+        id: status
+
+        required property string title
+        required property string value
+        property string detail: ""
+        property string icon: "info"
+        property bool activeState: false
+        property bool warningState: false
+
+        Layout.fillWidth: true
+        implicitHeight: 78
+        radiusValue: CortetsuDesign.radiusMedium
+        baseColor: activeState
+            ? Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.42)
+            : warningState
+                ? Qt.alpha(CortetsuDesign.colorWarning, 0.08)
+                : Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.72)
+        outlined: true
+        outlineColor: activeState
+            ? Qt.alpha(CortetsuDesign.colorPrimary, 0.30)
+            : warningState
+                ? Qt.alpha(CortetsuDesign.colorWarning, 0.36)
+                : Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.48)
+
+        RowLayout {
+            anchors.fill: parent
+            anchors.margins: CortetsuDesign.spacingStandard
+            spacing: CortetsuDesign.spacingStandard
+
+            CortetsuIcon {
+                text: status.icon
+                iconSize: CortetsuTypography.iconMediumPx
+                color: status.warningState
+                    ? CortetsuDesign.colorWarning
+                    : status.activeState
+                        ? CortetsuDesign.colorPrimary
+                        : CortetsuDesign.colorOnSurfaceVariant
+            }
+
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 1
+                CortetsuText {
+                    text: status.title
+                    textSize: CortetsuTypography.labelSmallPx
+                    color: CortetsuDesign.colorOnSurfaceVariant
+                }
+                CortetsuText {
+                    Layout.fillWidth: true
+                    text: status.value
+                    textSize: CortetsuTypography.bodyPx
+                    font.weight: Font.DemiBold
+                    elide: Text.ElideMiddle
+                }
+                CortetsuText {
+                    Layout.fillWidth: true
+                    visible: status.detail.length > 0
+                    text: status.detail
+                    textSize: CortetsuTypography.labelSmallPx
+                    color: CortetsuDesign.colorOnSurfaceVariant
+                    elide: Text.ElideRight
+                }
+            }
+        }
+    }
+
+    component DomainHero: CortetsuSurface {
+        id: hero
+
+        required property string icon
+        required property string title
+        required property string detail
+        required property string value
+        property string meta: ""
+        property real progress: -1
+        property color accentColor: CortetsuDesign.colorPrimary
+        property bool warningState: false
+
+        Layout.fillWidth: true
+        implicitHeight: 112
+        radiusValue: CortetsuDesign.radiusMedium
+        baseColor: warningState
+            ? Qt.alpha(CortetsuDesign.colorWarning, 0.10)
+            : Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.42)
+        outlineColor: warningState
+            ? Qt.alpha(CortetsuDesign.colorWarning, 0.42)
+            : Qt.alpha(accentColor, 0.42)
+        outlined: true
+
+        RowLayout {
+            anchors.fill: parent
+            anchors.margins: CortetsuDesign.spacingStandard
+            spacing: CortetsuDesign.spacingStandard
+
+            CortetsuSurface {
+                Layout.preferredWidth: 64
+                Layout.preferredHeight: 64
+                radiusValue: CortetsuDesign.radiusMedium
+                baseColor: warningState
+                    ? Qt.alpha(CortetsuDesign.colorWarning, 0.16)
+                    : Qt.alpha(hero.accentColor, 0.18)
+                outlined: false
+
+                CortetsuIcon {
+                    anchors.centerIn: parent
+                    text: hero.icon
+                    iconSize: CortetsuTypography.iconLargePx
+                    color: hero.warningState ? CortetsuDesign.colorWarning : hero.accentColor
+                }
+            }
+
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 2
+
+                CortetsuText {
+                    Layout.fillWidth: true
+                    text: hero.title
+                    textSize: CortetsuTypography.titleMediumPx
+                    font.weight: Font.DemiBold
+                    elide: Text.ElideRight
+                }
+
+                CortetsuText {
+                    Layout.fillWidth: true
+                    text: hero.detail
+                    textSize: CortetsuTypography.bodySmallPx
+                    color: CortetsuDesign.colorOnSurfaceVariant
+                    elide: Text.ElideRight
+                }
+
+                CortetsuText {
+                    Layout.fillWidth: true
+                    visible: hero.meta.length > 0
+                    text: hero.meta
+                    textSize: CortetsuTypography.labelSmallPx
+                    color: hero.warningState ? CortetsuDesign.colorWarning : CortetsuDesign.colorOnSurfaceVariant
+                    elide: Text.ElideRight
+                }
+            }
+
+            ColumnLayout {
+                Layout.minimumWidth: 128
+                Layout.alignment: Qt.AlignVCenter
+                spacing: CortetsuDesign.spacingCompact
+
+                CortetsuText {
+                    Layout.fillWidth: true
+                    text: hero.value
+                    textSize: CortetsuTypography.titleMediumPx
+                    font.weight: Font.DemiBold
+                    horizontalAlignment: Text.AlignRight
+                    elide: Text.ElideRight
+                }
+
+                CortetsuProgressBar {
+                    visible: hero.progress >= 0
+                    Layout.fillWidth: true
+                    value: Math.max(0, Math.min(1, hero.progress))
+                    fillColor: hero.warningState ? CortetsuDesign.colorWarning : hero.accentColor
+                    barHeight: 5
+                }
+            }
+        }
+    }
+
+    component ActionCard: CortetsuSurface {
+        id: action
+
+        required property string title
+        property string detail: ""
+        property string icon: "arrow_forward"
+        signal activated()
+
+        focus: false
+        activeFocusOnTab: true
+
+        Layout.fillWidth: true
+        implicitHeight: 64
+        radiusValue: CortetsuDesign.radiusMedium
+        baseColor: Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.30)
+        hoverColor: Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.52)
+        outlined: true
+        outlineColor: Qt.alpha(CortetsuDesign.colorPrimary, 0.28)
+        focused: action.activeFocus
+        hovered: actionMouse.containsMouse
+        pressed: actionMouse.pressed
+
+        RowLayout {
+            anchors.fill: parent
+            anchors.margins: CortetsuDesign.spacingStandard
+            spacing: CortetsuDesign.spacingStandard
+
+            CortetsuIcon {
+                text: action.icon
+                iconSize: CortetsuTypography.iconMediumPx
+                color: CortetsuDesign.colorPrimary
+            }
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 1
+                CortetsuText {
+                    Layout.fillWidth: true
+                    text: action.title
+                    textSize: CortetsuTypography.bodyPx
+                    font.weight: Font.DemiBold
+                    elide: Text.ElideRight
+                }
+                CortetsuText {
+                    Layout.fillWidth: true
+                    visible: action.detail.length > 0
+                    text: action.detail
+                    textSize: CortetsuTypography.labelSmallPx
+                    color: CortetsuDesign.colorOnSurfaceVariant
+                    elide: Text.ElideRight
+                }
+            }
+            CortetsuIcon {
+                text: "chevron_right"
+                iconSize: CortetsuTypography.iconSmallPx
+                color: CortetsuDesign.colorOnSurfaceVariant
+            }
+        }
+
+        MouseArea {
+            id: actionMouse
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onPressed: action.forceActiveFocus()
+            onClicked: action.activated()
+        }
+
+        Keys.onEnterPressed: action.activated()
+        Keys.onReturnPressed: action.activated()
+        Keys.onSpacePressed: action.activated()
+    }
+
+    component ShortcutRow: CortetsuSurface {
+        id: shortcut
+
+        required property string keys
+        required property string action
+        property string detail: ""
+
+        Layout.fillWidth: true
+        implicitHeight: 58
+        radiusValue: CortetsuDesign.radiusMedium
+        baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.66)
+        outlined: true
+        outlineColor: Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.42)
+
+        RowLayout {
+            anchors.fill: parent
+            anchors.margins: CortetsuDesign.spacingStandard
+            spacing: CortetsuDesign.spacingStandard
+
+            CortetsuSurface {
+                Layout.preferredWidth: keyLabel.implicitWidth + CortetsuDesign.spacingStandard * 2
+                Layout.preferredHeight: 30
+                radiusValue: CortetsuDesign.radiusSmall
+                baseColor: Qt.alpha(CortetsuDesign.colorSumi, 0.60)
+                outlined: true
+                outlineColor: Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.58)
+                CortetsuText {
+                    id: keyLabel
+                    anchors.centerIn: parent
+                    text: shortcut.keys
+                    textSize: CortetsuTypography.labelSmallPx
+                    font.weight: Font.DemiBold
+                }
+            }
+
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 0
+                CortetsuText {
+                    Layout.fillWidth: true
+                    text: shortcut.action
+                    textSize: CortetsuTypography.bodyPx
+                    font.weight: Font.DemiBold
+                    elide: Text.ElideRight
+                }
+                CortetsuText {
+                    Layout.fillWidth: true
+                    visible: shortcut.detail.length > 0
+                    text: shortcut.detail
+                    textSize: CortetsuTypography.labelSmallPx
+                    color: CortetsuDesign.colorOnSurfaceVariant
+                    elide: Text.ElideRight
+                }
+            }
+        }
+    }
+
+    ColumnLayout {
+        id: content
+        width: parent.width
+        spacing: CortetsuDesign.spacingStandard
+
+        ColumnLayout {
+            Layout.fillWidth: true
+            visible: root.section === "desktop"
+            spacing: CortetsuDesign.spacingStandard
+
+            CortetsuSectionHeader {
+                Layout.fillWidth: true
+                title: qsTr("Comportamiento del escritorio")
+                detail: qsTr("Espacios y presentación del escritorio")
+            }
+
+            DomainHero {
+                icon: "desktop_windows"
+                title: qsTr("Escritorio preparado")
+                detail: qsTr("Estado de los monitores, espacios y Dashboard")
+                value: qsTr("%1 monitores").arg(root.monitorCount)
+                meta: qsTr("%1 espacios · Dashboard %2")
+                    .arg(root.workspaceCount)
+                    .arg(CortetsuConfig.dashboard.showDashboard ? qsTr("visible") : qsTr("oculto"))
+            }
+
+            PreferenceToggle {
+                title: qsTr("Dashboard disponible")
+                detail: qsTr("Permitir que Cortetsu presente el panel superior y sus controles")
+                icon: "dashboard"
+                checked: CortetsuConfig.dashboard.enabled
+                onChanged: checked => {
+                    CortetsuConfig.dashboard.enabled = checked;
+                    root.savePreference();
+                }
+            }
+
+            PreferenceToggle {
+                title: qsTr("Dashboard al abrirlo")
+                detail: qsTr("Mantener el panel visible cuando se solicita desde el atajo")
+                icon: "visibility"
+                checked: CortetsuConfig.dashboard.showDashboard
+                controlDisabled: !CortetsuConfig.dashboard.enabled
+                onChanged: checked => {
+                    CortetsuConfig.dashboard.showDashboard = checked;
+                    root.savePreference();
+                }
+            }
+
+            PreferenceToggle {
+                title: qsTr("Reloj del escritorio")
+                detail: qsTr("Mostrar el reloj de Cortetsu en el escritorio")
+                icon: "schedule"
+                checked: CortetsuConfig.desktopClockEnabled
+                onChanged: checked => {
+                    CortetsuConfig.desktopClockEnabled = checked;
+                    root.savePreference();
+                }
+            }
+
+            PreferenceToggle {
+                title: qsTr("Espacios por monitor")
+                detail: qsTr("Mantener el estado de espacios separado por pantalla")
+                icon: "view_carousel"
+                checked: CortetsuConfig.bar.workspaces.perMonitorWorkspaces
+                onChanged: checked => {
+                    CortetsuConfig.bar.workspaces.perMonitorWorkspaces = checked;
+                    root.savePreference();
+                }
+            }
+
+            PreferenceToggle {
+                title: qsTr("Panel superior al pasar el puntero")
+                detail: qsTr("Mostrar el Dashboard al acercarte al borde superior")
+                icon: "dashboard"
+                checked: CortetsuConfig.dashboard.showOnHover
+                onChanged: checked => {
+                    CortetsuConfig.dashboard.showOnHover = checked;
+                    root.savePreference();
+                }
+            }
+
+            PreferenceToggle {
+                title: qsTr("Contenido multimedia del Dashboard")
+                detail: qsTr("Mostrar el reproductor en el panel superior")
+                icon: "music_note"
+                checked: CortetsuConfig.dashboard.showMedia
+                onChanged: checked => {
+                    CortetsuConfig.dashboard.showMedia = checked;
+                    root.savePreference();
+                }
+            }
+
+            PreferenceToggle {
+                title: qsTr("Métricas del Dashboard")
+                detail: qsTr("Mostrar CPU, GPU, memoria y red en el panel superior")
+                icon: "monitoring"
+                checked: CortetsuConfig.dashboard.showPerformance
+                onChanged: checked => {
+                    CortetsuConfig.dashboard.showPerformance = checked;
+                    root.savePreference();
+                }
+            }
+
+            PreferenceToggle {
+                title: qsTr("Clima del Dashboard")
+                detail: qsTr("Mostrar el estado del tiempo en el panel superior")
+                icon: "cloud"
+                checked: CortetsuConfig.dashboard.showWeather
+                onChanged: checked => {
+                    CortetsuConfig.dashboard.showWeather = checked;
+                    root.savePreference();
+                }
+            }
+
+            CortetsuSectionHeader {
+                Layout.fillWidth: true
+                title: qsTr("Métricas visibles")
+                detail: qsTr("Elegir qué lecturas ocupan espacio en el Dashboard")
+            }
+
+            PreferenceToggle {
+                title: qsTr("CPU")
+                detail: qsTr("Uso del procesador")
+                icon: "memory"
+                checked: CortetsuConfig.dashboard.performance.showCpu
+                controlDisabled: !CortetsuConfig.dashboard.showPerformance
+                onChanged: checked => { CortetsuConfig.dashboard.performance.showCpu = checked; root.savePreference(); }
+            }
+
+            PreferenceToggle {
+                title: qsTr("GPU")
+                detail: qsTr("Uso de la tarjeta gráfica cuando está disponible")
+                icon: "developer_board"
+                checked: CortetsuConfig.dashboard.performance.showGpu
+                controlDisabled: !CortetsuConfig.dashboard.showPerformance
+                onChanged: checked => { CortetsuConfig.dashboard.performance.showGpu = checked; root.savePreference(); }
+            }
+
+            PreferenceToggle {
+                title: qsTr("Memoria y almacenamiento")
+                detail: qsTr("Consumo de RAM y espacio usado")
+                icon: "storage"
+                checked: CortetsuConfig.dashboard.performance.showMemory && CortetsuConfig.dashboard.performance.showStorage
+                controlDisabled: !CortetsuConfig.dashboard.showPerformance
+                onChanged: checked => {
+                    CortetsuConfig.dashboard.performance.showMemory = checked;
+                    CortetsuConfig.dashboard.performance.showStorage = checked;
+                    root.savePreference();
+                }
+            }
+
+            PreferenceToggle {
+                title: qsTr("Red y batería")
+                detail: qsTr("Tráfico de red y estado de la batería")
+                icon: "monitoring"
+                checked: CortetsuConfig.dashboard.performance.showNetwork && CortetsuConfig.dashboard.performance.showBattery
+                controlDisabled: !CortetsuConfig.dashboard.showPerformance
+                onChanged: checked => {
+                    CortetsuConfig.dashboard.performance.showNetwork = checked;
+                    CortetsuConfig.dashboard.performance.showBattery = checked;
+                    root.savePreference();
+                }
+            }
+        }
+
+        ColumnLayout {
+            Layout.fillWidth: true
+            visible: root.section === "bottomhub"
+            spacing: CortetsuDesign.spacingStandard
+
+            CortetsuSectionHeader {
+                Layout.fillWidth: true
+                title: qsTr("Comportamiento de BottomHub")
+                detail: qsTr("Estado e interacción con el puntero")
+            }
+
+            DomainHero {
+                icon: "dock_to_bottom"
+                title: qsTr("BottomHub activo")
+                detail: qsTr("La barra se actualiza con esta configuración en todos los monitores")
+                value: qsTr("%1 grupos").arg(root.enabledBottomSegments)
+                meta: qsTr("%1 estados visibles · %2")
+                    .arg(root.enabledStatusSegments)
+                    .arg(CortetsuConfig.bar.persistent ? qsTr("persistente") : qsTr("al pasar el puntero"))
+            }
+
+            PreferenceToggle {
+                title: qsTr("Barra persistente")
+                detail: qsTr("Mantener BottomHub visible sin depender del borde inferior")
+                icon: "push_pin"
+                checked: CortetsuConfig.bar.persistent
+                onChanged: checked => { CortetsuConfig.bar.persistent = checked; root.savePreference(); }
+            }
+
+            PreferenceToggle {
+                title: qsTr("Ventanas emergentes del estado")
+                detail: qsTr("Abrir el detalle de audio, red, Bluetooth y batería desde la barra")
+                icon: "open_in_new"
+                checked: CortetsuConfig.bar.popouts.statusIcons
+                onChanged: checked => { CortetsuConfig.bar.popouts.statusIcons = checked; root.savePreference(); }
+            }
+
+            PreferenceToggle {
+                title: qsTr("Desplazamiento del volumen")
+                detail: qsTr("Ajustar el volumen con la rueda sobre BottomHub")
+                icon: "volume_up"
+                checked: CortetsuConfig.bar.scrollActions.volume
+                onChanged: checked => {
+                    CortetsuConfig.bar.scrollActions.volume = checked;
+                    root.savePreference();
+                }
+            }
+
+            PreferenceToggle {
+                title: qsTr("Desplazamiento de espacios")
+                detail: qsTr("Cambiar de espacio con la rueda sobre el grupo de espacios")
+                icon: "view_carousel"
+                checked: CortetsuConfig.bar.scrollActions.workspaces
+                onChanged: checked => { CortetsuConfig.bar.scrollActions.workspaces = checked; root.savePreference(); }
+            }
+
+            PreferenceToggle {
+                title: qsTr("Desplazamiento del brillo")
+                detail: qsTr("Ajustar el brillo con la rueda sobre la barra")
+                icon: "brightness_6"
+                checked: CortetsuConfig.bar.scrollActions.brightness
+                onChanged: checked => { CortetsuConfig.bar.scrollActions.brightness = checked; root.savePreference(); }
+            }
+
+            CortetsuSectionHeader {
+                Layout.fillWidth: true
+                title: qsTr("Segmentos visibles")
+                detail: qsTr("Elegir qué grupos de BottomHub permanecen en la barra")
+            }
+
+            PreferenceToggle {
+                title: qsTr("Modo y espacios")
+                detail: qsTr("Mostrar controles del lanzador, fondo y espacios")
+                icon: "apps"
+                checked: CortetsuConfig.bottomHub.segments.mode
+                onChanged: checked => {
+                    CortetsuConfig.bottomHub.segments.mode = checked;
+                    root.savePreference();
+                }
+            }
+
+            PreferenceToggle {
+                title: qsTr("Barra de aplicaciones")
+                detail: qsTr("Mostrar aplicaciones abiertas y fijadas")
+                icon: "apps"
+                checked: CortetsuConfig.bottomHub.segments.apps
+                onChanged: checked => {
+                    CortetsuConfig.bottomHub.segments.apps = checked;
+                    root.savePreference();
+                }
+            }
+
+            PreferenceToggle {
+                title: qsTr("Bandeja")
+                detail: qsTr("Mostrar aplicaciones y menús de StatusNotifier")
+                icon: "notifications"
+                checked: CortetsuConfig.bottomHub.segments.tray
+                onChanged: checked => {
+                    CortetsuConfig.bottomHub.segments.tray = checked;
+                    root.savePreference();
+                }
+            }
+
+            PreferenceToggle {
+                title: qsTr("Estado de audio")
+                detail: qsTr("Mostrar volumen y salida en el grupo de estado")
+                icon: "volume_up"
+                checked: CortetsuConfig.bottomHub.statusCluster.audio
+                onChanged: checked => {
+                    CortetsuConfig.bottomHub.statusCluster.audio = checked;
+                    root.savePreference();
+                }
+            }
+
+            PreferenceToggle {
+                title: qsTr("Estado de red")
+                detail: qsTr("Mostrar Wi-Fi o Ethernet en el grupo de estado")
+                icon: "wifi"
+                checked: CortetsuConfig.bottomHub.statusCluster.network
+                onChanged: checked => {
+                    CortetsuConfig.bottomHub.statusCluster.network = checked;
+                    root.savePreference();
+                }
+            }
+
+            PreferenceToggle {
+                title: qsTr("Estado de Bluetooth")
+                detail: qsTr("Mostrar el adaptador Bluetooth en el grupo de estado")
+                icon: "bluetooth"
+                checked: CortetsuConfig.bottomHub.statusCluster.bluetooth
+                onChanged: checked => {
+                    CortetsuConfig.bottomHub.statusCluster.bluetooth = checked;
+                    root.savePreference();
+                }
+            }
+
+            PreferenceToggle {
+                title: qsTr("Estado de batería")
+                detail: qsTr("Mostrar carga y alimentación en el grupo de estado")
+                icon: "battery_full"
+                checked: CortetsuConfig.bottomHub.statusCluster.battery
+                onChanged: checked => {
+                    CortetsuConfig.bottomHub.statusCluster.battery = checked;
+                    root.savePreference();
+                }
+            }
+
+            CortetsuSectionHeader {
+                Layout.fillWidth: true
+                title: qsTr("Presentación de la barra")
+                detail: qsTr("Densidad, reloj y ventanas activas")
+            }
+
+            PreferenceToggle {
+                title: qsTr("Bandeja compacta")
+                detail: qsTr("Agrupar los iconos de StatusNotifier en menos espacio")
+                icon: "apps"
+                checked: CortetsuConfig.bar.tray.compact
+                onChanged: checked => { CortetsuConfig.bar.tray.compact = checked; root.savePreference(); }
+            }
+
+            PreferenceToggle {
+                title: qsTr("Fecha en el reloj")
+                detail: qsTr("Mostrar la fecha junto a la hora")
+                icon: "calendar_today"
+                checked: CortetsuConfig.bar.clock.showDate
+                onChanged: checked => { CortetsuConfig.bar.clock.showDate = checked; root.savePreference(); }
+            }
+
+            PreferenceToggle {
+                title: qsTr("Ventana activa compacta")
+                detail: qsTr("Reducir el ancho del título de la ventana enfocada")
+                icon: "web_asset"
+                checked: CortetsuConfig.bar.activeWindow.compact
+                onChanged: checked => { CortetsuConfig.bar.activeWindow.compact = checked; root.savePreference(); }
+            }
+
+        }
+
+        ColumnLayout {
+            Layout.fillWidth: true
+            visible: root.section === "launcher"
+            spacing: CortetsuDesign.spacingStandard
+
+            CortetsuSectionHeader {
+                Layout.fillWidth: true
+                title: qsTr("Búsqueda del lanzador")
+                detail: qsTr("Ajustar cómo Cortetsu encuentra aplicaciones y acciones")
+            }
+
+            DomainHero {
+                icon: "search"
+                title: CortetsuConfig.launcher.enabled ? qsTr("Lanzador disponible") : qsTr("Lanzador desactivado")
+                detail: qsTr("Aplicaciones, acciones, fondos y esquemas")
+                value: qsTr("%1 modos").arg(root.enabledSearchModes)
+                meta: qsTr("%1 resultados visibles").arg(CortetsuConfig.launcher.maxShown)
+                warningState: !CortetsuConfig.launcher.enabled
+            }
+
+            PreferenceToggle {
+                title: qsTr("Lanzador habilitado")
+                detail: qsTr("Permitir que Cortetsu abra el buscador con SUPER")
+                icon: "search"
+                checked: CortetsuConfig.launcher.enabled
+                onChanged: checked => { CortetsuConfig.launcher.enabled = checked; root.savePreference(); }
+            }
+
+            PreferenceToggle {
+                title: qsTr("Búsqueda aproximada de aplicaciones")
+                detail: qsTr("Encontrar nombres de aplicaciones parecidos")
+                icon: "search"
+                checked: CortetsuConfig.useFuzzyApps
+                onChanged: checked => {
+                    CortetsuConfig.useFuzzyApps = checked;
+                    root.savePreference();
+                }
+            }
+
+            PreferenceToggle {
+                title: qsTr("Acciones aproximadas")
+                detail: qsTr("Usar coincidencias aproximadas para las acciones")
+                icon: "bolt"
+                checked: CortetsuConfig.useFuzzyActions
+                onChanged: checked => {
+                    CortetsuConfig.useFuzzyActions = checked;
+                    root.savePreference();
+                }
+            }
+
+            PreferenceToggle {
+                title: qsTr("Abrir el lanzador al pasar el puntero")
+                detail: qsTr("Mostrar el lanzador al acercarte al borde inferior")
+                icon: "search"
+                checked: CortetsuConfig.launcher.showOnHover
+                onChanged: checked => {
+                    CortetsuConfig.launcher.showOnHover = checked;
+                    root.savePreference();
+                }
+            }
+
+            PreferenceToggle {
+                title: qsTr("Búsqueda aproximada de fondos")
+                detail: qsTr("Encontrar fondos aunque el nombre no coincida exactamente")
+                icon: "wallpaper"
+                checked: CortetsuConfig.useFuzzyWallpapers
+                onChanged: checked => {
+                    CortetsuConfig.useFuzzyWallpapers = checked;
+                    root.savePreference();
+                }
+            }
+
+            PreferenceToggle {
+                title: qsTr("Búsqueda aproximada de esquemas")
+                detail: qsTr("Encontrar esquemas por nombre y variante")
+                icon: "palette"
+                checked: CortetsuConfig.useFuzzySchemes
+                onChanged: checked => {
+                    CortetsuConfig.useFuzzySchemes = checked;
+                    root.savePreference();
+                }
+            }
+
+            CortetsuSectionHeader {
+                Layout.fillWidth: true
+                title: qsTr("Densidad de resultados")
+                detail: qsTr("Controlar cuántas opciones muestra cada búsqueda")
+            }
+
+            CortetsuSurface {
+                Layout.fillWidth: true
+                implicitHeight: 94
+                radiusValue: CortetsuDesign.radiusMedium
+                baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.72)
+                outlined: true
+
+                ColumnLayout {
+                    anchors.fill: parent
+                    anchors.margins: CortetsuDesign.spacingStandard
+                    spacing: CortetsuDesign.spacingCompact
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        CortetsuText { Layout.fillWidth: true; text: qsTr("Aplicaciones y acciones"); textSize: CortetsuTypography.bodyPx; font.weight: Font.DemiBold }
+                        CortetsuText { text: qsTr("%1").arg(CortetsuConfig.launcher.maxShown); textSize: CortetsuTypography.labelSmallPx; color: CortetsuDesign.colorOnSurfaceVariant }
+                    }
+                    CortetsuSlider {
+                        Layout.fillWidth: true
+                        from: 4
+                        to: 16
+                        step: 1
+                        value: CortetsuConfig.launcher.maxShown
+                        disabled: !CortetsuConfig.launcher.enabled
+                        onMoved: nextValue => { CortetsuConfig.launcher.maxShown = Math.round(nextValue); root.savePreference(); }
+                    }
+                }
+            }
+
+            CortetsuSurface {
+                Layout.fillWidth: true
+                implicitHeight: 94
+                radiusValue: CortetsuDesign.radiusMedium
+                baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.72)
+                outlined: true
+
+                ColumnLayout {
+                    anchors.fill: parent
+                    anchors.margins: CortetsuDesign.spacingStandard
+                    spacing: CortetsuDesign.spacingCompact
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        CortetsuText { Layout.fillWidth: true; text: qsTr("Fondos y esquemas"); textSize: CortetsuTypography.bodyPx; font.weight: Font.DemiBold }
+                        CortetsuText { text: qsTr("%1").arg(CortetsuConfig.launcher.maxWallpapers); textSize: CortetsuTypography.labelSmallPx; color: CortetsuDesign.colorOnSurfaceVariant }
+                    }
+                    CortetsuSlider {
+                        Layout.fillWidth: true
+                        from: 4
+                        to: 16
+                        step: 1
+                        value: CortetsuConfig.launcher.maxWallpapers
+                        disabled: !CortetsuConfig.launcher.enabled
+                        onMoved: nextValue => { CortetsuConfig.launcher.maxWallpapers = Math.round(nextValue); root.savePreference(); }
+                    }
+                }
+            }
+
+            ActionCard {
+                title: qsTr("Abrir lanzador")
+                detail: qsTr("Probar la búsqueda con la configuración actual")
+                icon: "search"
+                onActivated: root.openRetained("launcher")
+            }
+
+        }
+
+        ColumnLayout {
+            Layout.fillWidth: true
+            visible: root.section === "notifications"
+            spacing: CortetsuDesign.spacingStandard
+
+            CortetsuSectionHeader {
+                Layout.fillWidth: true
+                title: qsTr("Comportamiento de notificaciones")
+                detail: qsTr("Estado de No molestar y preferencias de presentación")
+            }
+
+            DomainHero {
+                icon: CortetsuNotifications.dnd ? "notifications_off" : "notifications_active"
+                title: CortetsuNotifications.dnd ? qsTr("No molestar activo") : qsTr("Notificaciones permitidas")
+                detail: qsTr("Avisos en vivo e historial de la sesión")
+                value: qsTr("%1 guardadas").arg(CortetsuNotifications.count)
+                meta: CortetsuConfig.suppressNotificationsInFullscreen
+                    ? qsTr("Silenciadas en pantalla completa")
+                    : qsTr("Interrupciones disponibles")
+                warningState: CortetsuNotifications.dnd
+            }
+
+            PreferenceToggle {
+                title: qsTr("No molestar")
+                detail: CortetsuNotifications.dnd ? qsTr("Las interrupciones están silenciadas") : qsTr("Las notificaciones pueden interrumpir")
+                icon: CortetsuNotifications.dnd ? "notifications_off" : "notifications_active"
+                checked: CortetsuNotifications.dnd
+                onChanged: checked => CortetsuNotifications.dnd = checked
+            }
+
+            PreferenceToggle {
+                title: qsTr("Abrir expandido")
+                detail: qsTr("Expandir los grupos al abrir el centro")
+                icon: "unfold_more"
+                checked: CortetsuConfig.notificationOpenExpanded
+                onChanged: checked => {
+                    CortetsuConfig.notificationOpenExpanded = checked;
+                    root.savePreference();
+                }
+            }
+
+            PreferenceToggle {
+                title: qsTr("Ocultar en pantalla completa")
+                detail: qsTr("Ocultar las notificaciones durante el trabajo a pantalla completa")
+                icon: "fullscreen"
+                checked: CortetsuConfig.suppressNotificationsInFullscreen
+                onChanged: checked => {
+                    CortetsuConfig.suppressNotificationsInFullscreen = checked;
+                    root.savePreference();
+                }
+            }
+
+            PreferenceToggle {
+                title: qsTr("Avisar al cambiar el estado de No molestar")
+                detail: qsTr("Mostrar un aviso cuando DND se active o desactive")
+                icon: "notifications_active"
+                checked: CortetsuConfig.toastDndChanged
+                onChanged: checked => {
+                    CortetsuConfig.toastDndChanged = checked;
+                    root.savePreference();
+                }
+            }
+
+            PreferenceToggle {
+                title: qsTr("Avisar al cambiar el modo de juego")
+                detail: qsTr("Mostrar un aviso al entrar o salir del modo de juego")
+                icon: "sports_esports"
+                checked: CortetsuConfig.toastGameModeChanged
+                onChanged: checked => {
+                    CortetsuConfig.toastGameModeChanged = checked;
+                    root.savePreference();
+                }
+            }
+
+            PreferenceToggle {
+                title: qsTr("Avisar sobre reproducción multimedia")
+                detail: qsTr("Mostrar avisos cuando cambie la pista o el reproductor")
+                icon: "music_note"
+                checked: CortetsuConfig.toastNowPlaying
+                onChanged: checked => {
+                    CortetsuConfig.toastNowPlaying = checked;
+                    root.savePreference();
+                }
+            }
+
+            PreferenceToggle {
+                title: qsTr("Caducidad automática")
+                detail: qsTr("Retirar las notificaciones después del tiempo configurado")
+                icon: "timer"
+                checked: CortetsuConfig.notificationExpire
+                onChanged: checked => {
+                    CortetsuConfig.notificationExpire = checked;
+                    root.savePreference();
+                }
+            }
+
+            CortetsuSectionHeader {
+                Layout.fillWidth: true
+                title: qsTr("Presentación y duración")
+                detail: qsTr("Ajustar el ritmo sin perder el control del historial")
+            }
+
+            CortetsuSurface {
+                Layout.fillWidth: true
+                implicitHeight: 94
+                radiusValue: CortetsuDesign.radiusMedium
+                baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.72)
+                outlined: true
+
+                ColumnLayout {
+                    anchors.fill: parent
+                    anchors.margins: CortetsuDesign.spacingStandard
+                    spacing: CortetsuDesign.spacingCompact
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        CortetsuText { Layout.fillWidth: true; text: qsTr("Duración normal"); textSize: CortetsuTypography.bodyPx; font.weight: Font.DemiBold }
+                        CortetsuText { text: qsTr("%1 s").arg(Math.round(CortetsuConfig.notificationDefaultExpireTimeout / 1000)); textSize: CortetsuTypography.labelSmallPx; color: CortetsuDesign.colorOnSurfaceVariant }
+                    }
+                    CortetsuSlider {
+                        Layout.fillWidth: true
+                        from: 2
+                        to: 15
+                        step: 1
+                        value: CortetsuConfig.notificationDefaultExpireTimeout / 1000
+                        disabled: !CortetsuConfig.notificationExpire
+                        onMoved: nextValue => { CortetsuConfig.notificationDefaultExpireTimeout = Math.round(nextValue) * 1000; root.savePreference(); }
+                    }
+                }
+            }
+
+            CortetsuSurface {
+                Layout.fillWidth: true
+                implicitHeight: 94
+                radiusValue: CortetsuDesign.radiusMedium
+                baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.72)
+                outlined: true
+
+                ColumnLayout {
+                    anchors.fill: parent
+                    anchors.margins: CortetsuDesign.spacingStandard
+                    spacing: CortetsuDesign.spacingCompact
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        CortetsuText { Layout.fillWidth: true; text: qsTr("Previsualización de grupos"); textSize: CortetsuTypography.bodyPx; font.weight: Font.DemiBold }
+                        CortetsuText { text: qsTr("%1 avisos").arg(CortetsuConfig.notificationGroupPreviewNum); textSize: CortetsuTypography.labelSmallPx; color: CortetsuDesign.colorOnSurfaceVariant }
+                    }
+                    CortetsuSlider {
+                        Layout.fillWidth: true
+                        from: 1
+                        to: 6
+                        step: 1
+                        value: CortetsuConfig.notificationGroupPreviewNum
+                        onMoved: nextValue => { CortetsuConfig.notificationGroupPreviewNum = Math.round(nextValue); root.savePreference(); }
+                    }
+                }
+            }
+
+            ActionCard {
+                title: qsTr("Limpiar historial")
+                detail: qsTr("Eliminar las notificaciones guardadas, sin cambiar No molestar")
+                icon: "delete_sweep"
+                onActivated: CortetsuNotifications.clear()
+            }
+        }
+
+        ColumnLayout {
+            Layout.fillWidth: true
+            visible: root.section === "network"
+            spacing: CortetsuDesign.spacingStandard
+
+            CortetsuSectionHeader {
+                Layout.fillWidth: true
+                title: qsTr("Estado de la red")
+                detail: qsTr("NetworkManager · operaciones y señal en vivo")
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+
+                CortetsuText {
+                    Layout.fillWidth: true
+                    text: CortetsuNetwork.wifiDevice
+                        ? qsTr("Wi‑Fi · %1 redes visibles").arg(CortetsuNetwork.wifiDevice.networks?.values?.length ?? 0)
+                        : qsTr("Wi‑Fi no disponible")
+                    textSize: CortetsuTypography.bodySmallPx
+                    color: CortetsuDesign.colorOnSurfaceVariant
+                }
+
+                CortetsuButton {
+                    compact: true
+                    icon: CortetsuNetwork.refreshing ? "sync" : "refresh"
+                    label: qsTr("Actualizar")
+                    disabled: !CortetsuNetwork.wifiDevice || CortetsuNetwork.refreshing
+                    onClicked: CortetsuNetwork.refresh()
+                }
+            }
+
+            PreferenceToggle {
+                title: CortetsuSettingsNetwork.wifiEnabled ? qsTr("Wi‑Fi activado") : qsTr("Wi‑Fi desactivado")
+                detail: CortetsuSettingsNetwork.state === "error"
+                    ? CortetsuSettingsNetwork.error
+                    : qsTr("Radio gestionada por NetworkManager")
+                icon: CortetsuSettingsNetwork.wifiEnabled ? "wifi" : "wifi_off"
+                checked: CortetsuSettingsNetwork.wifiEnabled
+                controlDisabled: CortetsuSettingsNetwork.busy
+                onChanged: enabled => CortetsuSettingsNetwork.setWifi(enabled)
+            }
+
+            StatusCard {
+                title: CortetsuSettingsNetwork.operation.length > 0
+                    ? CortetsuSettingsNetwork.operation
+                    : qsTr("NetworkManager")
+                value: CortetsuSettingsNetwork.state === "loading"
+                    ? qsTr("Aplicando…")
+                    : CortetsuSettingsNetwork.state === "error"
+                        ? qsTr("Error")
+                        : CortetsuSettingsNetwork.lastMessage.length > 0
+                            ? CortetsuSettingsNetwork.lastMessage
+                            : qsTr("Listo")
+                detail: CortetsuSettingsNetwork.error
+                icon: CortetsuSettingsNetwork.state === "error" ? "error"
+                    : CortetsuSettingsNetwork.state === "loading" ? "sync" : "check_circle"
+                activeState: CortetsuSettingsNetwork.state === "ready"
+                warningState: CortetsuSettingsNetwork.state === "error"
+            }
+
+            StatusCard {
+                title: qsTr("Conexión actual")
+                value: root.networkName
+                detail: root.networkDetail
+                icon: CortetsuNetwork.activeEthernet
+                    ? "cable"
+                    : CortetsuNetwork.connecting
+                        ? "sync"
+                        : CortetsuNetwork.active
+                            ? "wifi"
+                            : "wifi_off"
+                activeState: !!CortetsuNetwork.active || !!CortetsuNetwork.activeEthernet
+                warningState: !CortetsuNetwork.active && !CortetsuNetwork.activeEthernet && !CortetsuNetwork.connecting
+            }
+
+            Flow {
+                Layout.fillWidth: true
+                spacing: CortetsuDesign.spacingCompact
+
+                Repeater {
+                    model: (CortetsuNetwork.wifiDevice?.networks?.values ?? [])
+                        .slice().sort((a, b) => Number(b.connected) - Number(a.connected)
+                            || CortetsuNetwork.strengthPercent(b.signalStrength)
+                            - CortetsuNetwork.strengthPercent(a.signalStrength)).slice(0, 6)
+
+                    delegate: StatusCard {
+                        required property var modelData
+                        width: Math.max(220, (parent?.width ?? 440) / 2 - CortetsuDesign.spacingCompact / 2)
+                        title: modelData.name ?? qsTr("Red Wi‑Fi")
+                        value: modelData.connected
+                            ? qsTr("Conectada · %1%").arg(CortetsuNetwork.strengthPercent(modelData.signalStrength))
+                            : qsTr("Señal %1%").arg(CortetsuNetwork.strengthPercent(modelData.signalStrength))
+                        detail: modelData.secured ? qsTr("Red protegida") : qsTr("Red abierta")
+                        icon: Icons.getNetworkIcon(CortetsuNetwork.strengthPercent(modelData.signalStrength))
+                        activeState: modelData.connected
+                    }
+                }
+            }
+
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 0
+
+                CortetsuSectionHeader {
+                    Layout.fillWidth: true
+                    title: qsTr("Perfiles guardados")
+                    detail: qsTr("Autoconexión y desconexión sin salir de Ajustes")
+                }
+
+                Repeater {
+                    model: CortetsuSettingsNetwork.profiles.filter(profile => profile.type === "802-11-wireless")
+                    delegate: CortetsuListRow {
+                        required property var modelData
+                        Layout.fillWidth: true
+                        title: modelData.name
+                        subtitle: modelData.autoconnect ? qsTr("Autoconexión activa") : qsTr("Autoconexión desactivada")
+                        icon: "bookmark"
+                        selected: modelData.name === CortetsuSettingsNetwork.activeSsid
+                        onClicked: CortetsuSettingsNetwork.disconnect(modelData.name)
+                    }
+                }
+            }
+
+            CortetsuText {
+                Layout.fillWidth: true
+                text: qsTr("Selecciona una red guardada para desconectarla. Las operaciones de conexión segura, DNS e IPv4 se incorporarán en el detalle del perfil.")
+                textSize: CortetsuTypography.bodySmallPx
+                color: CortetsuDesign.colorOnSurfaceVariant
+                wrapMode: Text.WordWrap
+            }
+        }
+
+        ColumnLayout {
+            Layout.fillWidth: true
+            visible: root.section === "bluetooth"
+            spacing: CortetsuDesign.spacingStandard
+
+            CortetsuSectionHeader {
+                Layout.fillWidth: true
+                title: qsTr("Bluetooth")
+                detail: qsTr("Estado nativo del adaptador")
+            }
+
+            DomainHero {
+                icon: root.bluetoothConnected > 0 ? "bluetooth_connected" : "bluetooth"
+                title: root.bluetoothEnabled ? qsTr("Bluetooth preparado") : qsTr("Bluetooth desactivado")
+                detail: qsTr("Dispositivos gestionados por BlueZ")
+                value: qsTr("%1 conectados").arg(root.bluetoothConnected)
+                meta: Bluetooth.defaultAdapter
+                    ? qsTr("%1 dispositivos conocidos").arg(Bluetooth.devices?.values?.length ?? 0)
+                    : qsTr("No hay adaptador disponible")
+                warningState: !Bluetooth.defaultAdapter || !root.bluetoothEnabled
+            }
+
+            StatusCard {
+                title: qsTr("Dispositivos")
+                value: root.bluetoothEnabled
+                    ? root.bluetoothConnected > 0
+                        ? qsTr("%1 conectados").arg(root.bluetoothConnected)
+                        : qsTr("Listo")
+                    : qsTr("Bluetooth apagado")
+                detail: root.bluetoothEnabled ? qsTr("Adaptador activado") : qsTr("Adaptador desactivado")
+                icon: root.bluetoothConnected > 0 ? "bluetooth_connected" : "bluetooth"
+                activeState: root.bluetoothEnabled
+            }
+
+            ColumnLayout {
+                Layout.fillWidth: true
+                visible: root.bluetoothEnabled
+                spacing: 0
+
+                CortetsuSectionHeader {
+                    Layout.fillWidth: true
+                    title: qsTr("Dispositivos conocidos")
+                    detail: qsTr("Selecciona un dispositivo para conectar o desconectar")
+                }
+
+                Repeater {
+                    model: Bluetooth.devices?.values ?? []
+                    delegate: CortetsuListRow {
+                        required property var modelData
+                        Layout.fillWidth: true
+                        title: modelData.name ?? qsTr("Dispositivo Bluetooth")
+                        subtitle: modelData.connected ? qsTr("Conectado · pulsa para desconectar") : qsTr("Disponible · pulsa para conectar")
+                        icon: modelData.connected ? "bluetooth_connected" : "bluetooth"
+                        selected: modelData.connected
+                        onClicked: modelData.connected = !modelData.connected
+                    }
+                }
+
+                CortetsuStateMessage {
+                    Layout.fillWidth: true
+                    visible: (Bluetooth.devices?.values ?? []).length === 0
+                    kind: "empty"
+                    title: qsTr("No hay dispositivos conocidos")
+                    detail: qsTr("Empareja un dispositivo desde tu herramienta Bluetooth del sistema para verlo aquí")
+                }
+            }
+
+            PreferenceToggle {
+                title: qsTr("Adaptador Bluetooth")
+                detail: qsTr("Activar o desactivar el adaptador predeterminado")
+                icon: "bluetooth"
+                checked: root.bluetoothEnabled
+                controlDisabled: Bluetooth.defaultAdapter === null
+                onChanged: checked => {
+                    if (Bluetooth.defaultAdapter)
+                        Bluetooth.defaultAdapter.enabled = checked;
+                }
+            }
+        }
+
+        ColumnLayout {
+            Layout.fillWidth: true
+            visible: root.section === "audio"
+            spacing: CortetsuDesign.spacingStandard
+
+            CortetsuSectionHeader {
+                Layout.fillWidth: true
+                title: qsTr("Audio")
+                detail: qsTr("Control de salida PipeWire en vivo")
+            }
+
+            DomainHero {
+                icon: CortetsuAudio.muted ? "volume_off" : "volume_up"
+                title: CortetsuAudio.muted ? qsTr("Salida silenciada") : qsTr("Audio disponible")
+                detail: root.activeOutputName
+                value: qsTr("%1%").arg(root.volumePercent)
+                meta: qsTr("%1 salidas · %2 entradas · %3 streams")
+                    .arg(CortetsuAudio.sinks.length)
+                    .arg(CortetsuAudio.sources.length)
+                    .arg(CortetsuAudio.streams.length)
+                progress: CortetsuAudio.volume
+                warningState: !CortetsuAudio.sink
+            }
+
+            PreferenceToggle {
+                title: CortetsuAudio.muted ? qsTr("Salida silenciada") : qsTr("Salida activada")
+                detail: qsTr("Volumen actual %1%").arg(root.volumePercent)
+                icon: CortetsuAudio.muted ? "volume_off" : "volume_up"
+                checked: !CortetsuAudio.muted
+                controlDisabled: !CortetsuAudio.sink?.audio
+                onChanged: enabled => {
+                    if (CortetsuAudio.sink?.audio)
+                        CortetsuAudio.sink.audio.muted = !enabled;
+                }
+            }
+
+            CortetsuSurface {
+                Layout.fillWidth: true
+                implicitHeight: 86
+                radiusValue: CortetsuDesign.radiusMedium
+                baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.72)
+                outlined: true
+                outlineColor: Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.48)
+
+                ColumnLayout {
+                    anchors.fill: parent
+                    anchors.margins: CortetsuDesign.spacingStandard
+                    spacing: CortetsuDesign.spacingCompact
+                    RowLayout {
+                        Layout.fillWidth: true
+                        CortetsuText {
+                            Layout.fillWidth: true
+                            text: qsTr("Volumen de salida")
+                            textSize: CortetsuTypography.bodyPx
+                            font.weight: Font.DemiBold
+                        }
+                        CortetsuText {
+                            text: qsTr("%1%").arg(root.volumePercent)
+                            textSize: CortetsuTypography.labelSmallPx
+                            color: CortetsuDesign.colorOnSurfaceVariant
+                        }
+                    }
+                    CortetsuSlider {
+                        Layout.fillWidth: true
+                        value: CortetsuAudio.volume
+                        onMoved: nextValue => CortetsuAudio.setVolume(nextValue)
+                    }
+                }
+            }
+
+            CortetsuSectionHeader {
+                Layout.fillWidth: true
+                title: qsTr("Entrada")
+                detail: root.activeInputName
+            }
+
+            PreferenceToggle {
+                title: CortetsuAudio.sourceMuted ? qsTr("Entrada silenciada") : qsTr("Entrada activa")
+                detail: qsTr("Volumen del micrófono %1%").arg(root.inputVolumePercent)
+                icon: CortetsuAudio.sourceMuted ? "mic_off" : "mic"
+                checked: !CortetsuAudio.sourceMuted
+                controlDisabled: !CortetsuAudio.source?.audio
+                onChanged: enabled => {
+                    if (CortetsuAudio.source?.audio)
+                        CortetsuAudio.source.audio.muted = !enabled;
+                }
+            }
+
+            CortetsuSlider {
+                Layout.fillWidth: true
+                value: CortetsuAudio.sourceVolume
+                disabled: CortetsuAudio.sourceMuted || !CortetsuAudio.source
+                onMoved: nextValue => CortetsuAudio.setSourceVolume(nextValue)
+            }
+
+            CortetsuSectionHeader {
+                Layout.fillWidth: true
+                title: qsTr("Dispositivos de salida")
+                detail: qsTr("%1 disponibles · %2 activo").arg(CortetsuAudio.sinks.length).arg(root.activeOutputName)
+            }
+
+            Repeater {
+                model: CortetsuAudio.sinks
+                delegate: CortetsuListRow {
+                    required property var modelData
+                    Layout.fillWidth: true
+                    title: modelData.description ?? modelData.name ?? qsTr("Salida desconocida")
+                    subtitle: CortetsuAudio.sink?.id === modelData.id ? qsTr("Salida actual") : qsTr("Usar esta salida")
+                    icon: "speaker"
+                    selected: CortetsuAudio.sink?.id === modelData.id
+                    onClicked: CortetsuAudio.setAudioSink(modelData)
+                }
+            }
+
+            CortetsuSectionHeader {
+                Layout.fillWidth: true
+                title: qsTr("Dispositivos de entrada")
+                detail: qsTr("Selecciona el micrófono predeterminado de PipeWire")
+            }
+
+            Repeater {
+                model: CortetsuAudio.sources
+                delegate: CortetsuListRow {
+                    required property var modelData
+                    Layout.fillWidth: true
+                    title: modelData.description ?? modelData.name ?? qsTr("Entrada desconocida")
+                    subtitle: CortetsuAudio.source?.id === modelData.id ? qsTr("Entrada actual") : qsTr("Usar esta entrada")
+                    icon: "mic"
+                    selected: CortetsuAudio.source?.id === modelData.id
+                    onClicked: CortetsuAudio.setAudioSource(modelData)
+                }
+            }
+
+            CortetsuStateMessage {
+                Layout.fillWidth: true
+                visible: CortetsuAudio.streams.length === 0
+                kind: "empty"
+                icon: "music_off"
+                title: qsTr("Sin aplicaciones reproduciendo audio")
+                detail: qsTr("Los controles por aplicación aparecerán cuando PipeWire detecte un stream")
+            }
+
+            CortetsuSectionHeader {
+                Layout.fillWidth: true
+                title: qsTr("Aplicaciones reproduciendo")
+                detail: qsTr("Volumen independiente por stream")
+                visible: CortetsuAudio.streams.length > 0
+            }
+
+            Repeater {
+                model: CortetsuAudio.streams
+                delegate: CortetsuSurface {
+                    required property var modelData
+                    Layout.fillWidth: true
+                    implicitHeight: 78
+                    radiusValue: CortetsuDesign.radiusMedium
+                    baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.72)
+                    outlined: true
+
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.margins: CortetsuDesign.spacingStandard
+                        spacing: CortetsuDesign.spacingStandard
+
+                        CortetsuIcon {
+                            text: CortetsuAudio.getStreamMuted(parent.parent.modelData) ? "volume_off" : "music_note"
+                            iconSize: CortetsuTypography.iconMediumPx
+                            color: CortetsuDesign.colorPrimary
+                        }
+
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 2
+                            CortetsuText {
+                                Layout.fillWidth: true
+                                text: CortetsuAudio.getStreamName(parent.parent.modelData)
+                                textSize: CortetsuTypography.bodyPx
+                                font.weight: Font.DemiBold
+                                elide: Text.ElideRight
+                            }
+                            CortetsuSlider {
+                                Layout.fillWidth: true
+                                value: CortetsuAudio.getStreamVolume(parent.parent.modelData)
+                                disabled: CortetsuAudio.getStreamMuted(parent.parent.modelData)
+                                onMoved: nextValue => CortetsuAudio.setStreamVolume(parent.parent.modelData, nextValue)
+                            }
+                        }
+
+                        CortetsuToggle {
+                            checked: !CortetsuAudio.getStreamMuted(parent.parent.modelData)
+                            onToggled: checked => CortetsuAudio.setStreamMuted(parent.parent.modelData, !checked)
+                        }
+                    }
+                }
+            }
+        }
+
+        ColumnLayout {
+            Layout.fillWidth: true
+            visible: root.section === "power"
+            spacing: CortetsuDesign.spacingStandard
+
+            CortetsuSectionHeader {
+                Layout.fillWidth: true
+                title: qsTr("Energía")
+                detail: qsTr("Lectura de batería y política de reposo")
+            }
+
+            DomainHero {
+                icon: CortetsuPower.hasBattery
+                    ? Icons.getBatteryIcon(CortetsuPower.value, root.batteryCharging)
+                    : "power"
+                title: CortetsuPower.hasBattery
+                    ? (root.batteryCharging ? qsTr("Batería cargando") : qsTr("Batería en uso"))
+                    : qsTr("Alimentación externa")
+                detail: CortetsuPower.onBattery
+                    ? qsTr("Funcionando sin alimentación externa")
+                    : qsTr("Conectado a la alimentación externa")
+                value: root.batteryStatus
+                meta: CortetsuPower.charging
+                    ? qsTr("Carga completa en %1").arg(root.formatDuration(CortetsuPower.timeToFull * 1000))
+                    : qsTr("Autonomía estimada: %1").arg(root.formatDuration(CortetsuPower.timeToEmpty * 1000))
+                progress: CortetsuPower.hasBattery ? CortetsuPower.value : -1
+                warningState: CortetsuPower.critical
+            }
+
+            StatusCard {
+                title: CortetsuPower.laptopBattery ? qsTr("Batería") : qsTr("Fuente de energía")
+                value: CortetsuPower.hasBattery ? qsTr("%1%").arg(root.batteryPercent) : qsTr("Alimentación externa")
+                detail: CortetsuPower.onBattery ? qsTr("Funcionando con batería") : qsTr("Conectado a alimentación externa")
+                icon: CortetsuPower.hasBattery
+                    ? Icons.getBatteryIcon(CortetsuPower.value, root.batteryCharging)
+                    : "power"
+                activeState: !CortetsuPower.onBattery
+                warningState: CortetsuPower.critical
+            }
+
+            PreferenceToggle {
+                title: qsTr("Evitar reposo durante el audio")
+                detail: qsTr("Mantener activa la sesión durante la reproducción")
+                icon: "music_note"
+                checked: CortetsuConfig.idleInhibitWhenAudio
+                onChanged: checked => {
+                    CortetsuConfig.idleInhibitWhenAudio = checked;
+                    root.savePreference();
+                }
+            }
+
+            PreferenceToggle {
+                title: qsTr("Evitar reposo mientras carga")
+                detail: qsTr("Mantener activa la sesión con alimentación externa")
+                icon: "power"
+                checked: CortetsuConfig.idleInhibitWhenCharging
+                onChanged: checked => {
+                    CortetsuConfig.idleInhibitWhenCharging = checked;
+                    root.savePreference();
+                }
+            }
+
+            PreferenceToggle {
+                title: qsTr("Bloquear antes de suspender")
+                detail: qsTr("Bloquear la sesión antes de que el equipo entre en suspensión")
+                icon: "lock"
+                checked: CortetsuConfig.idleLockBeforeSleep
+                onChanged: checked => {
+                    CortetsuConfig.idleLockBeforeSleep = checked;
+                    root.savePreference();
+                }
+            }
+        }
+
+        ColumnLayout {
+            Layout.fillWidth: true
+            visible: root.section === "display"
+            spacing: CortetsuDesign.spacingStandard
+
+            CortetsuSectionHeader {
+                Layout.fillWidth: true
+                title: qsTr("Pantalla")
+                detail: qsTr("Brillo y distribución de la pantalla actual")
+            }
+
+            DomainHero {
+                icon: "monitor"
+                title: root.brightnessValue < 0 ? qsTr("Brillo no disponible") : qsTr("Pantalla activa")
+                detail: root.screen?.name ?? qsTr("Monitor actual")
+                value: root.brightnessValue < 0
+                    ? qsTr("Sin lectura")
+                    : qsTr("%1% de brillo").arg(Math.round(root.brightnessValue * 100))
+                meta: qsTr("%1 monitores detectados").arg(root.monitorCount)
+                progress: root.brightnessValue
+                warningState: root.brightnessValue < 0
+            }
+
+            CortetsuSurface {
+                Layout.fillWidth: true
+                implicitHeight: 92
+                radiusValue: CortetsuDesign.radiusMedium
+                baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.72)
+                outlined: true
+                outlineColor: Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.48)
+
+                ColumnLayout {
+                    anchors.fill: parent
+                    anchors.margins: CortetsuDesign.spacingStandard
+                    spacing: CortetsuDesign.spacingCompact
+                    RowLayout {
+                        Layout.fillWidth: true
+                        CortetsuIcon {
+                            text: "brightness_6"
+                            iconSize: CortetsuTypography.iconSmallPx
+                            color: root.brightnessValue < 0 ? CortetsuDesign.colorOnSurfaceVariant : CortetsuDesign.colorPrimary
+                        }
+                        CortetsuText {
+                            Layout.fillWidth: true
+                            text: qsTr("Brillo")
+                            textSize: CortetsuTypography.bodyPx
+                            font.weight: Font.DemiBold
+                        }
+                        CortetsuText {
+                            text: root.brightnessValue < 0
+                                ? qsTr("No disponible")
+                                : qsTr("%1%").arg(Math.round(root.brightnessValue * 100))
+                            textSize: CortetsuTypography.labelSmallPx
+                            color: CortetsuDesign.colorOnSurfaceVariant
+                        }
+                    }
+                    CortetsuSlider {
+                        Layout.fillWidth: true
+                        value: root.brightnessValue
+                        disabled: value < 0
+                        onMoved: nextValue => root.brightnessMonitor?.setBrightness(nextValue)
+                    }
+                }
+            }
+
+            ActionCard {
+                title: qsTr("Abrir gestor de pantallas")
+                detail: qsTr("Organizar monitores, modos y opciones de cada pantalla")
+                icon: "monitor"
+                onActivated: root.openRetained("displayManager")
+            }
+
+            CortetsuSectionHeader {
+                Layout.fillWidth: true
+                title: qsTr("Monitores detectados")
+                detail: qsTr("Lectura actual de Hyprland; los modos se editan en el gestor")
+            }
+
+            Repeater {
+                model: Hypr.monitors?.values ?? []
+                delegate: StatusCard {
+                    required property var modelData
+                    title: modelData.name ?? qsTr("Monitor")
+                    value: modelData.active ? qsTr("Enfocado") : qsTr("Disponible")
+                    detail: modelData.width && modelData.height
+                        ? qsTr("%1 × %2 · escala %3").arg(modelData.width).arg(modelData.height).arg(modelData.scale ?? 1)
+                        : qsTr("Modo administrado por Hyprland")
+                    icon: modelData.active ? "monitor" : "desktop_windows"
+                    activeState: modelData.active === true
+                }
+            }
+        }
+
+        ColumnLayout {
+            Layout.fillWidth: true
+            visible: root.section === "input"
+            spacing: CortetsuDesign.spacingStandard
+
+            CortetsuSectionHeader {
+                Layout.fillWidth: true
+                title: qsTr("Comportamiento de entrada")
+                detail: qsTr("Preferencias de interacción del teclado")
+            }
+
+            DomainHero {
+                icon: "keyboard"
+                title: qsTr("Entrada configurada")
+                detail: qsTr("Preferencias de teclado y avisos del shell")
+                value: CortetsuConfig.vimKeybinds ? qsTr("Vim activo") : qsTr("Vim desactivado")
+                meta: qsTr("Distribución %1").arg(Hypr.kbLayoutFull)
+                warningState: Hypr.kbLayout === "??"
+            }
+
+            PreferenceToggle {
+                title: qsTr("Navegación estilo Vim")
+                detail: qsTr("Permitir navegación estilo Vim donde sea compatible")
+                icon: "keyboard"
+                checked: CortetsuConfig.vimKeybinds
+                onChanged: checked => {
+                    CortetsuConfig.vimKeybinds = checked;
+                    root.savePreference();
+                }
+            }
+
+            PreferenceToggle {
+                title: qsTr("Aviso de Bloq Mayús")
+                detail: qsTr("Mostrar un aviso al cambiar Bloq Mayús")
+                icon: "keyboard_capslock"
+                checked: CortetsuConfig.toastCapsLockChanged
+                onChanged: checked => {
+                    CortetsuConfig.toastCapsLockChanged = checked;
+                    root.savePreference();
+                }
+            }
+
+            PreferenceToggle {
+                title: qsTr("Aviso de Bloq Num")
+                detail: qsTr("Mostrar un aviso al cambiar Bloq Num")
+                icon: "dialpad"
+                checked: CortetsuConfig.toastNumLockChanged
+                onChanged: checked => {
+                    CortetsuConfig.toastNumLockChanged = checked;
+                    root.savePreference();
+                }
+            }
+
+            PreferenceToggle {
+                title: qsTr("Aviso de distribución del teclado")
+                detail: qsTr("Mostrar un aviso al cambiar el idioma del teclado")
+                icon: "language"
+                checked: CortetsuConfig.toastKbLayoutChanged
+                onChanged: checked => {
+                    CortetsuConfig.toastKbLayoutChanged = checked;
+                    root.savePreference();
+                }
+            }
+        }
+
+        ColumnLayout {
+            Layout.fillWidth: true
+            visible: root.section === "shortcuts"
+            spacing: CortetsuDesign.spacingCompact
+
+            CortetsuSectionHeader {
+                Layout.fillWidth: true
+                title: qsTr("Atajos configurados de Cortetsu")
+                detail: qsTr("Asignaciones activas de la capa global de Hyprland")
+            }
+
+            DomainHero {
+                icon: "keyboard_command_key"
+                title: qsTr("Atajos del shell")
+                detail: qsTr("Los atajos se resuelven en la configuración canónica de Cortetsu")
+                value: qsTr("%1 accesos").arg(6)
+                meta: qsTr("SUPER + I abre este centro")
+            }
+
+            ShortcutRow { keys: qsTr("SUPER + SHIFT + D"); action: qsTr("Panel principal"); detail: qsTr("Abrir o cerrar el Dashboard") }
+            ShortcutRow { keys: qsTr("SUPER + I"); action: qsTr("Ajustes"); detail: qsTr("Abrir o cerrar este centro") }
+            ShortcutRow { keys: qsTr("SUPER + / · SUPER + SHIFT + 7"); action: qsTr("OSD completo"); detail: qsTr("Controles rápidos de audio, brillo, red y sesión") }
+            ShortcutRow { keys: qsTr("SUPER + V"); action: qsTr("Portapapeles"); detail: qsTr("Abrir el historial de Clipse") }
+            ShortcutRow { keys: qsTr("SUPER + SHIFT + W"); action: qsTr("Gestor de fondos"); detail: qsTr("Abrir el selector orbital de fondos") }
+            ShortcutRow { keys: qsTr("Print"); action: qsTr("Captura de área"); detail: qsTr("Seleccionar una región sin cerrar superficies QML") }
+        }
+
+        ColumnLayout {
+            Layout.fillWidth: true
+            visible: root.section === "wallpaper"
+            spacing: CortetsuDesign.spacingStandard
+
+            CortetsuSectionHeader {
+                Layout.fillWidth: true
+                title: qsTr("Fondo de pantalla")
+                detail: qsTr("Fuente actual del fondo de pantalla")
+            }
+
+            DomainHero {
+                icon: CortetsuWallpapers.applyStatus === "failed" ? "error" : "wallpaper"
+                title: CortetsuWallpapers.applyStatus === "applying"
+                    ? qsTr("Aplicando fondo")
+                    : CortetsuWallpapers.applyStatus === "failed"
+                        ? qsTr("No se pudo aplicar")
+                        : qsTr("Fondo activo")
+                detail: CortetsuConfig.wallpaperEnabled
+                    ? qsTr("Cortetsu controla la superficie del escritorio")
+                    : qsTr("La integración automática está desactivada")
+                value: CortetsuWallpapers.actualCurrent.split("/").pop() || qsTr("Sin fondo")
+                meta: CortetsuWallpapers.actualCurrent.length > 0
+                    ? CortetsuWallpapers.actualCurrent
+                    : qsTr("Abre el gestor para elegir una imagen")
+                warningState: CortetsuWallpapers.applyStatus === "failed"
+            }
+
+            StatusCard {
+                title: qsTr("Fondo de pantalla")
+                value: CortetsuWallpapers.applyStatus === "applying"
+                    ? qsTr("Aplicando…")
+                    : CortetsuWallpapers.applyStatus === "failed"
+                        ? qsTr("Error al aplicar")
+                        : CortetsuWallpapers.applyStatus === "applied"
+                            ? qsTr("Aplicado")
+                            : CortetsuWallpapers.actualCurrent.split("/").pop()
+                detail: CortetsuWallpapers.applyStatus === "applying" || CortetsuWallpapers.applyStatus === "failed"
+                    ? CortetsuWallpapers.applyStatusPath.split("/").pop()
+                    : CortetsuWallpapers.actualCurrent
+                icon: CortetsuWallpapers.applyStatus === "applying"
+                    ? "sync"
+                    : CortetsuWallpapers.applyStatus === "failed"
+                        ? "error"
+                        : "wallpaper"
+                activeState: CortetsuConfig.wallpaperEnabled
+                    && (CortetsuWallpapers.applyStatus === "applying" || CortetsuWallpapers.applyStatus === "applied")
+                warningState: CortetsuWallpapers.applyStatus === "failed"
+            }
+
+            PreferenceToggle {
+                title: qsTr("Integración del fondo")
+                detail: qsTr("Permitir que Cortetsu controle el fondo del escritorio")
+                icon: "wallpaper"
+                checked: CortetsuConfig.wallpaperEnabled
+                onChanged: checked => {
+                    CortetsuConfig.wallpaperEnabled = checked;
+                    root.savePreference();
+                }
+            }
+
+            ActionCard {
+                title: qsTr("Abrir gestor de fondos")
+                detail: qsTr("Explorar el selector orbital y previsualizar un fondo")
+                icon: "collections"
+                onActivated: root.openRetained("wallpaperManager")
+            }
+        }
+    }
+}

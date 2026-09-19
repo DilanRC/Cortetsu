@@ -1,0 +1,50 @@
+{
+  "schema": 1,
+  "id": "wall-utility-bcde",
+  "product": "Cortetsu",
+  "direction": {
+    "wallpaperAware": true,
+    "utilityFirst": true,
+    "workbenchSettings": true,
+    "configurableModularity": true
+  },
+  "entrypoint": "modules/wallpaper/Content.qml",
+  "host": "modules/RetainedSurfacesHost.qml",
+  "wrapper": "modules/wallpaper/Wrapper.qml",
+  "stateOwner": "CortetsuWallpapers",
+  "screenOwner": "CortetsuShellState.forScreen",
+  "applyOwner": "CortetsuWallpapers",
+  "configSource": "dotfiles/home/.config/cortetsu/ui.toml",
+  "runtimePreferences": "XDG config file cortetsu/preferences.json",
+  "states": ["idle", "selected", "applying", "applied", "failed"],
+  "modularity": {
+    "dashboard": {
+      "host": "modules/DashboardHost.qml",
+      "content": "modules/dashboard/Dash.qml",
+      "configPath": "dashboard",
+      "moduleFlags": {
+        "weather": "showWeather",
+        "media": "showMedia",
+        "performance": "showPerformance",
+        "cpu": "performance.showCpu",
+        "gpu": "performance.showGpu",
+        "memory": "performance.showMemory",
+        "storage": "performance.showStorage",
+        "network": "performance.showNetwork",
+        "battery": "performance.showBattery"
+      }
+    }
+  },
+  "screenPolicy": {
+    "surfaceOwnership": "monitor-local",
+    "shortcutTarget": "active-monitor",
+    "selectionTarget": "clicked-monitor"
+  },
+  "applyLifecycle": {
+    "acknowledgement": "XDG state file cortetsu/wallpaper/path.txt",
+    "smartSchemeAcknowledgement": "Process exit 0 from cortetsu-apply-wallpaper-colors after the wallpaper acknowledgement",
+    "successState": "applied",
+    "failureState": "failed",
+    "cosmicPolicy": "combined-success-pulse-only"
+  }
+}

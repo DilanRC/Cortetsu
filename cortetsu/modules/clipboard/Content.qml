@@ -243,7 +243,7 @@ FocusScope {
         history = history.filter(item => Boolean(item.pinned));
         saveHistory();
         selectedIndex = filteredEntries.length > 0 ? 0 : -1;
-        statusText = qsTr("History cleared; pinned items kept");
+        statusText = qsTr("Historial limpiado; los elementos fijados se conservaron");
     }
 
     function openClipboard(): void {
@@ -333,8 +333,17 @@ FocusScope {
      */
     MouseArea {
         anchors.fill: parent
-        onClicked:
-            root.screenState.cortetsuState?.setRetained("clipboard", false)
+        acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
+        onClicked: mouse => {
+            const outsidePanel =
+                mouse.x < panel.x ||
+                mouse.x >= panel.x + panel.width ||
+                mouse.y < panel.y ||
+                mouse.y >= panel.y + panel.height;
+
+            if (outsidePanel)
+                root.screenState.cortetsuState?.setRetained("clipboard", false);
+        }
     }
 
     /*
@@ -475,7 +484,7 @@ FocusScope {
 
                             CortetsuText {
                                 anchors.centerIn: parent
-                                text: qsTr("All")
+                                text: qsTr("Todo")
                                 color:
                                     !root.pinnedOnly
                                         ? root.accent
@@ -572,7 +581,7 @@ FocusScope {
                                 }
 
                                 CortetsuText {
-                                    text: qsTr("Clear")
+                                    text: qsTr("Limpiar")
                                     color:
                                         clearMouse.containsMouse
                                             ? CortetsuDesign.colorVermillion
@@ -852,7 +861,7 @@ FocusScope {
                 anchors.topMargin: 12
                 text:
                     root.query.length > 0
-                        ? qsTr("No matching clipboard entries")
+                        ? qsTr("No hay elementos coincidentes en el portapapeles")
                         : qsTr("Clipboard history is empty")
                 color: root.textMuted
                 textSize: CortetsuTypography.bodyPx

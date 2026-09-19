@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell.Wayland
 import Quickshell.Widgets
-import qs.utils
+import "../../../utils"
 import ".."
 import "../.."
 import "../../../components"
@@ -33,10 +33,10 @@ Item {
                 IconImage { Layout.preferredWidth: 32; Layout.preferredHeight: 32; source: Icons.getAppIcon(CortetsuHypr.activeToplevel?.lastIpcObject.class ?? "", "image-missing") }
                 ColumnLayout {
                     Layout.fillWidth: true
-                    CortetsuText { Layout.fillWidth: true; text: CortetsuHypr.activeToplevel?.title ?? qsTr("No active window"); elide: Text.ElideRight }
-                    CortetsuText { Layout.fillWidth: true; text: CortetsuHypr.activeToplevel?.lastIpcObject.class ?? qsTr("Desktop"); color: CortetsuDesign.colorOnSurfaceVariant; elide: Text.ElideRight }
+                    CortetsuText { Layout.fillWidth: true; text: CortetsuHypr.activeToplevel?.title ?? qsTr("No hay ventana activa"); elide: Text.ElideRight }
+                    CortetsuText { Layout.fillWidth: true; text: CortetsuHypr.activeToplevel?.lastIpcObject.class ?? qsTr("Escritorio"); color: CortetsuDesign.colorOnSurfaceVariant; elide: Text.ElideRight }
                 }
-                CortetsuButton { compact: true; icon: "open_in_full"; label: qsTr("Details"); onClicked: root.popouts.detachRequested("winfo") }
+                CortetsuButton { compact: true; icon: "open_in_full"; label: qsTr("Detalles"); onClicked: root.popouts.detachRequested("winfo") }
             }
         }
 

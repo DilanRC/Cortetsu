@@ -12,7 +12,7 @@ Item {
     id: root
 
     property var power: ({})
-    property string statusText: qsTr("Reading power policy…")
+    property string statusText: qsTr("Leyendo política de energía…")
     property string pendingProfile: ""
 
     readonly property string helperPath:
@@ -42,7 +42,7 @@ Item {
             return qsTr("Performance");
         if (name === "balanced")
             return qsTr("Balanced");
-        return name || qsTr("Unknown");
+        return name || qsTr("Desconocido");
     }
 
     function profileIcon(name): string {
@@ -62,7 +62,7 @@ Item {
         if (!root.profiles?.can_set || !profileAvailable(name) || root.pendingProfile.length > 0)
             return;
         root.pendingProfile = name;
-        root.statusText = qsTr("Applying %1…").arg(profileLabel(name));
+        root.statusText = qsTr("Aplicando %1…").arg(profileLabel(name));
         Quickshell.execDetached([root.helperPath, "set-profile", name]);
         refreshAfterAction.restart();
         verifyAction.restart();
@@ -118,10 +118,10 @@ Item {
                     } else if (root.pendingProfile.length === 0) {
                         root.statusText = parsed?.profiles?.backend === "powerprofilesctl"
                             ? qsTr("Power Profiles daemon connected")
-                            : qsTr("Read-only power telemetry · no profile backend detected");
+                            : qsTr("Telemetría de energía de solo lectura · no se detectó un backend de perfiles");
                     }
                 } catch (error) {
-                    root.statusText = qsTr("Power telemetry returned invalid JSON");
+                    root.statusText = qsTr("La telemetría de energía devolvió JSON no válido");
                     console.warn(`Hardware Center Power: invalid JSON: ${error}`);
                 }
             }
@@ -251,8 +251,8 @@ Item {
                                 CortetsuText {
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     text: profileButton.supported
-                                        ? (profileButton.active ? qsTr("Active") : qsTr("Available"))
-                                        : qsTr("Unavailable")
+                                        ? (profileButton.active ? qsTr("Activo") : qsTr("Disponible"))
+                                        : qsTr("No disponible")
                                     color: profileButton.active
                                         ? CortetsuDesign.colorOnSecondaryContainer
                                         : CortetsuDesign.colorOutline
@@ -300,7 +300,7 @@ Item {
                             }
                             CortetsuText {
                                 width: parent.width
-                                text: root.cpu?.driver ?? qsTr("Unknown driver")
+                                text: root.cpu?.driver ?? qsTr("Controlador desconocido")
                                 color: CortetsuDesign.colorOutline
                                 textSize: CortetsuTypography.labelSmallPx
                                 elide: Text.ElideRight
@@ -403,10 +403,10 @@ Item {
 
                     Repeater {
                         model: [
-                            { label: qsTr("Battery"), value: root.battery?.present ? `${root.number(root.battery?.percent, 0)}% · ${root.battery?.status ?? "—"}` : qsTr("Not detected") },
-                            { label: qsTr("Current draw"), value: root.battery?.power_w !== null && root.battery?.power_w !== undefined ? `${root.number(root.battery.power_w, 1)} W` : "—" },
-                            { label: qsTr("Full capacity"), value: root.battery?.energy_full_wh !== null && root.battery?.energy_full_wh !== undefined ? `${root.number(root.battery.energy_full_wh, 1)} Wh` : "—" },
-                            { label: qsTr("Battery health"), value: root.battery?.health_percent !== null && root.battery?.health_percent !== undefined ? `${root.number(root.battery.health_percent, 1)}%` : "—" }
+                            { label: qsTr("Batería"), value: root.battery?.present ? `${root.number(root.battery?.percent, 0)}% · ${root.battery?.status ?? "—"}` : qsTr("No detectada") },
+                            { label: qsTr("Consumo actual"), value: root.battery?.power_w !== null && root.battery?.power_w !== undefined ? `${root.number(root.battery.power_w, 1)} W` : "—" },
+                            { label: qsTr("Capacidad total"), value: root.battery?.energy_full_wh !== null && root.battery?.energy_full_wh !== undefined ? `${root.number(root.battery.energy_full_wh, 1)} Wh` : "—" },
+                            { label: qsTr("Salud de la batería"), value: root.battery?.health_percent !== null && root.battery?.health_percent !== undefined ? `${root.number(root.battery.health_percent, 1)}%` : "—" }
                         ]
 
                         delegate: Row {
@@ -484,7 +484,7 @@ Item {
 
                                 CortetsuText {
                                     width: parent.width
-                                    text: modelData?.name ?? modelData?.card ?? qsTr("No telemetry")
+                                    text: modelData?.name ?? modelData?.card ?? qsTr("Sin telemetría")
                                     color: CortetsuDesign.colorOutline
                                     textSize: CortetsuTypography.labelSmallPx
                                     elide: Text.ElideRight
