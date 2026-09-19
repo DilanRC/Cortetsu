@@ -25,6 +25,12 @@ assert "Nvibrant.setValue(nextValue * 1024)" in content
 assert "function refreshNetworks()" in network_service
 assert "function connect(" in network_service
 assert "function forget(" in network_service
+assert "function refreshAll(" in network_service
+assert "function refreshDetails(" in network_service
+assert "function copyPassword(" in network_service
+assert "activeDetails" in network_service
+assert "CortetsuSettingsNetwork.copyPassword" in content or "CortetsuSettingsNetwork.copyPassword" in (ROOT / "cortetsu/modules/settings/NetworkPage.qml").read_text(encoding="utf-8")
+assert "Dirección IP" in (ROOT / "cortetsu/modules/settings/NetworkPage.qml").read_text(encoding="utf-8")
 assert "Brightness.getMonitorForScreen(root.screen)" in system
 assert "onMoved: nextValue => CortetsuAudio.setVolume(nextValue)" in system
 assert "onMoved: nextValue => root.brightnessMonitor?.setBrightness(nextValue)" in system

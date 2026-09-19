@@ -48,6 +48,13 @@ assert "package.loaded[mod] = nil" in hyprland
 assert 'visible: root.controller.selectedId === "network"' in content
 assert "property bool showingProfiles" in network_page
 assert "CortetsuSettingsNetwork.setAutoconnect" in network_page
+assert "CortetsuSettingsNetwork.refreshAll()" in network_page
+assert "CortetsuSettingsNetwork.copyPassword" in network_page
+assert "Dirección IP" in network_page
+assert "Puerta de enlace" in network_page
+assert "CortetsuSettingsNetwork.activeDevice" in network_page
+assert "function networkIsActive" in network_page
+assert "function signalText" in network_page
 surface = (ROOT / "cortetsu/components/CortetsuSurface.qml").read_text(encoding="utf-8")
 assert "CortetsuConfig.transparencyEnabled" in surface
 assert "transparencyFactor" in surface
@@ -89,6 +96,8 @@ assert "CortetsuAudio.setSourceVolume(nextValue)" in system
 assert "CortetsuAudio.setAudioSink(modelData)" in system
 assert "Nvibrant.setValue(nextValue * 1024)" in content
 for marker in ("function connect(", "function forget(", "function setAutoconnect(", "NetworkManager rechazó la operación", "connection.autoconnect"):
+    assert marker in network_service, marker
+for marker in ("property var activeDetails", "function refreshAll(", "function refreshDetails(", "function copyPassword(", "IP4.ADDRESS", "IP4.GATEWAY", "IP4.DNS", "Quickshell.clipboardText"):
     assert marker in network_service, marker
 assert "visible: Nvibrant.available || Nvibrant.error.length > 0" in content
 assert 'title: qsTr("Desplazamiento del volumen")' in system

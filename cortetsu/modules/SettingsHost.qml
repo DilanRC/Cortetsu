@@ -24,10 +24,10 @@ Scope {
             title: qsTr("Ajustes de Cortetsu")
             color: "transparent"
             surfaceFormat.opaque: false
-            implicitWidth: 1180
-            implicitHeight: 760
-            minimumSize.width: 820
-            minimumSize.height: 560
+            implicitWidth: 1368
+            implicitHeight: 900
+            minimumSize.width: 1040
+            minimumSize.height: 680
 
             CortetsuSurface {
                 anchors.fill: parent

@@ -33,10 +33,23 @@ Item {
     CortetsuText {
         id: title
         anchors.top: parent.top
-        anchors.left: parent.left
+        anchors.left: headerMark.right
+        anchors.leftMargin: CortetsuDesign.spacingStandard
         text: qsTr("Ajustes de Cortetsu")
         textSize: CortetsuTypography.titleLargePx
         font.weight: Font.DemiBold
+    }
+
+    CortetsuEvolvingMark {
+        id: headerMark
+        anchors.left: parent.left
+        anchors.top: parent.top
+        width: 28
+        height: 28
+        phase: "Ascended"
+        animated: false
+        monochrome: true
+        monochromeColor: CortetsuDesign.colorWashi
     }
 
     CortetsuText {
@@ -120,7 +133,7 @@ Item {
                         width: nav.width
                         icon: modelData.icon
                         title: modelData.title
-                        subtitle: ""
+                        subtitle: modelData.detail
                         selected: root.controller.selectedId === modelData.id
                         onClicked: root.controller.select(modelData.id)
                     }
@@ -164,12 +177,22 @@ Item {
                         spacing: CortetsuDesign.spacingStandard
 
                         CortetsuEvolvingMark {
+                            visible: root.controller.selectedId !== "network"
                             phase: "Ascended"
                             animated: false
                             monochrome: true
                             monochromeColor: CortetsuDesign.colorWashi
                             Layout.preferredWidth: 32
                             Layout.preferredHeight: 32
+                        }
+
+                        CortetsuIcon {
+                            visible: root.controller.selectedId === "network"
+                            text: "wifi"
+                            color: CortetsuDesign.colorPrimary
+                            iconSize: 42
+                            Layout.preferredWidth: 48
+                            Layout.preferredHeight: 48
                         }
 
                         ColumnLayout {
@@ -186,6 +209,27 @@ Item {
                                 text: root.selectedCategory?.detail ?? ""
                                 textSize: CortetsuTypography.bodySmallPx
                                 color: CortetsuDesign.colorOnSurfaceVariant
+                            }
+                        }
+
+                        RowLayout {
+                            visible: root.controller.selectedId === "network"
+                            Layout.alignment: Qt.AlignRight
+                            spacing: CortetsuDesign.spacingCompact
+
+                            CortetsuToggle {
+                                checked: CortetsuSettingsNetwork.wifiEnabled
+                                disabled: CortetsuSettingsNetwork.busy
+                                onToggled: checked => CortetsuSettingsNetwork.setWifi(checked)
+                            }
+
+                            CortetsuButton {
+                                compact: true
+                                icon: "refresh"
+                                label: qsTr("Actualizar")
+                                tooltipText: qsTr("Buscar redes y volver a leer perfiles")
+                                disabled: CortetsuSettingsNetwork.busy
+                                onClicked: networkPage.refreshAll()
                             }
                         }
                     }
@@ -532,8 +576,9 @@ Item {
                     }
 
                     NetworkPage {
+                        id: networkPage
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 760
+                        Layout.preferredHeight: implicitHeight
                         visible: root.controller.selectedId === "network"
                         screen: root.screen
                         screenState: root.screenState
