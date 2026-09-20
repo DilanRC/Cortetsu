@@ -102,6 +102,9 @@ QtObject {
     property real audioIncrement: 0.1
     property real brightnessIncrement: 0.1
     property real maxVolume: 1.0
+    property bool colorCalibrationEnabled: false
+    property int colorTemperature: 6000
+    property int colorGamma: 100
     property int visualiserBars: 60
     property bool visualiserEnabled: false
     property bool visualiserAutoHide: true
@@ -500,6 +503,14 @@ QtObject {
                 brightnessIncrement = Math.max(0.01, Math.min(1, data.brightnessIncrement));
             if (typeof data.maxVolume === "number")
                 maxVolume = Math.max(0, Math.min(2, data.maxVolume));
+            if (data.displayCalibration && typeof data.displayCalibration === "object") {
+                if (typeof data.displayCalibration.enabled === "boolean")
+                    colorCalibrationEnabled = data.displayCalibration.enabled;
+                if (Number.isInteger(data.displayCalibration.temperature))
+                    colorTemperature = Math.max(2500, Math.min(6500, data.displayCalibration.temperature));
+                if (Number.isInteger(data.displayCalibration.gamma))
+                    colorGamma = Math.max(50, Math.min(150, data.displayCalibration.gamma));
+            }
             if (Number.isInteger(data.visualiserBars))
                 visualiserBars = Math.max(1, Math.min(256, data.visualiserBars));
             if (typeof data.visualiserEnabled === "boolean")
@@ -664,6 +675,11 @@ QtObject {
                             bluetooth: root.bottomHub.statusCluster.bluetooth,
                             battery: root.bottomHub.statusCluster.battery
                         }
+                    };
+                    payload.displayCalibration = {
+                        enabled: root.colorCalibrationEnabled,
+                        temperature: root.colorTemperature,
+                        gamma: root.colorGamma
                     };
                     setText(JSON.stringify(payload, null, 2) + "\n");
                     return;

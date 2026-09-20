@@ -12,6 +12,9 @@ host = (modules / "SettingsHost.qml").read_text(encoding="utf-8")
 wrapper = (settings / "Wrapper.qml").read_text(encoding="utf-8")
 content = (settings / "Content.qml").read_text(encoding="utf-8")
 system = (settings / "SystemPage.qml").read_text(encoding="utf-8")
+calibration = (settings / "DisplayCalibration.qml").read_text(encoding="utf-8")
+controller = (settings / "SettingsController.qml").read_text(encoding="utf-8")
+config = (modules / "CortetsuConfig.qml").read_text(encoding="utf-8")
 schemes = (modules / "launcher/services/Schemes.qml").read_text(encoding="utf-8")
 state = (ROOT / "cortetsu/components/ScreenState.qml").read_text(encoding="utf-8")
 shortcuts = (modules / "Shortcuts.qml").read_text(encoding="utf-8")
@@ -97,12 +100,12 @@ assert "CortetsuNetwork.refresh()" in system
 assert "Dispositivos conocidos" in system
 assert "CortetsuAudio.setSourceVolume(nextValue)" in system
 assert "CortetsuAudio.setAudioSink(modelData)" in system
-assert "Nvibrant.setValue(nextValue * 1024)" in content
+assert "Nvibrant.setValue(value * 1024)" in calibration
 for marker in ("function connect(", "function forget(", "function setAutoconnect(", "NetworkManager rechazó la operación", "connection.autoconnect"):
     assert marker in network_service, marker
 for marker in ("property var activeDetails", "function refreshAll(", "function refreshDetails(", "function copyPassword(", "IP4.ADDRESS", "IP4.GATEWAY", "IP4.DNS", "Quickshell.clipboardText"):
     assert marker in network_service, marker
-assert "visible: Nvibrant.available || Nvibrant.error.length > 0" in content
+assert "visible: Nvibrant.available || Nvibrant.error.length > 0" in calibration
 assert 'title: qsTr("Desplazamiento del volumen")' in system
 assert 'title: qsTr("Brightness scroll")' not in system
 assert 'title: qsTr("Open on hover")' not in system
@@ -136,6 +139,29 @@ for preference in (
 ):
     assert preference in content, preference
 assert 'CortetsuConfig.save();' in content
+assert "property bool navigationCollapsed" in content
+assert "compact: root.navigationCollapsed" in content
+assert "tooltipText: root.navigationCollapsed ? modelData.title" in content
+assert 'text: root.navigationCollapsed ? "" : section.toUpperCase()' in content
+assert controller.index('group: qsTr("Sistema")') < controller.index('group: qsTr("Personalización")')
+assert controller.index('group: qsTr("Personalización")') < controller.index('group: qsTr("Escritorio")')
+assert controller.index('group: qsTr("Escritorio")') < controller.index('group: qsTr("Hardware")')
+assert 'group: qsTr("Información")' in controller
+for marker in (
+    'title: qsTr("Color y calibración")',
+    '"hyprsunset.service"',
+    '"hyprsunset", "temperature"',
+    '"hyprsunset", "gamma"',
+    "CortetsuConfig.colorTemperature",
+    "CortetsuConfig.colorGamma",
+    "function onLoadedChanged()",
+    "CortetsuConfig.colorCalibrationEnabled = !root.requestedEnabled",
+):
+    assert marker in calibration, marker
+for marker in ("colorCalibrationEnabled", "colorTemperature", "colorGamma", "displayCalibration"):
+    assert marker in config, marker
+for marker in ("CortetsuConfig.borderThickness", "CortetsuConfig.visualiserBars"):
+    assert marker in content, marker
 for preference in (
     'CortetsuConfig.bar.workspaces.perMonitorWorkspaces',
     'CortetsuConfig.dashboard.showOnHover',

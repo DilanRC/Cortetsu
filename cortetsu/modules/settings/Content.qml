@@ -21,6 +21,7 @@ Item {
 
     readonly property var selectedCategory: controller.categories.find(item => item.id === controller.selectedId) ?? null
     property string appearanceQuery: ""
+    property bool navigationCollapsed: false
     readonly property var filteredSchemes: Schemes.list.filter(item => {
         const needle = root.appearanceQuery.trim().toLowerCase();
         return !needle || `${item.name} ${item.flavour}`.toLowerCase().includes(needle);
@@ -147,7 +148,7 @@ Item {
 
         CortetsuSurface {
             Layout.fillHeight: true
-            Layout.preferredWidth: 278
+            Layout.preferredWidth: root.navigationCollapsed ? 82 : 278
             radiusValue: CortetsuDesign.radiusLarge
             baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.72)
             outlined: true
@@ -157,18 +158,34 @@ Item {
                 anchors.margins: CortetsuDesign.spacingCompact
                 spacing: CortetsuDesign.spacingUnit
 
-                CortetsuText {
+                RowLayout {
+                    Layout.fillWidth: true
                     Layout.leftMargin: CortetsuDesign.spacingCompact
+                    Layout.rightMargin: CortetsuDesign.spacingCompact
                     Layout.topMargin: CortetsuDesign.spacingCompact
-                    text: qsTr("SUPERFICIES DE CONTROL")
-                    textSize: CortetsuTypography.labelSmallPx
-                    color: CortetsuDesign.colorOnSurfaceVariant
-                    font.weight: Font.DemiBold
+
+                    CortetsuText {
+                        Layout.fillWidth: true
+                        visible: !root.navigationCollapsed
+                        text: qsTr("SUPERFICIES DE CONTROL")
+                        textSize: CortetsuTypography.labelSmallPx
+                        color: CortetsuDesign.colorOnSurfaceVariant
+                        font.weight: Font.DemiBold
+                    }
+
+                    CortetsuButton {
+                        compact: true
+                        icon: root.navigationCollapsed ? "right_panel_open" : "left_panel_close"
+                        label: ""
+                        tooltipText: root.navigationCollapsed ? qsTr("Expandir navegación") : qsTr("Contraer navegación")
+                        onClicked: root.navigationCollapsed = !root.navigationCollapsed
+                    }
                 }
 
                 CortetsuSearchBar {
                     id: searchField
                     Layout.fillWidth: true
+                    visible: !root.navigationCollapsed
                     compact: true
                     placeholderText: qsTr("Buscar ajustes")
                     onTextChanged: root.controller.search = text
@@ -186,10 +203,11 @@ Item {
                     section.delegate: CortetsuText {
                         required property string section
                         width: nav.width
+                        text: root.navigationCollapsed ? "" : section.toUpperCase()
+                        height: root.navigationCollapsed ? 0 : implicitHeight
                         topPadding: CortetsuDesign.spacingStandard
                         bottomPadding: CortetsuDesign.spacingUnit
                         leftPadding: CortetsuDesign.spacingCompact
-                        text: section.toUpperCase()
                         textSize: CortetsuTypography.labelSmallPx
                         color: CortetsuDesign.colorOnSurfaceVariant
                         font.weight: Font.DemiBold
@@ -199,8 +217,10 @@ Item {
                         required property var modelData
                         width: nav.width
                         icon: modelData.icon
-                        title: modelData.title
-                        subtitle: modelData.detail
+                        compact: root.navigationCollapsed
+                        tooltipText: root.navigationCollapsed ? modelData.title : ""
+                        title: root.navigationCollapsed ? "" : modelData.title
+                        subtitle: root.navigationCollapsed ? "" : modelData.detail
                         selected: root.controller.selectedId === modelData.id
                         onClicked: root.controller.select(modelData.id)
                     }
@@ -568,57 +588,6 @@ Item {
                             detail: qsTr("Preferencias persistentes y calibración disponible del sistema")
                         }
 
-                        CortetsuSurface {
-                            Layout.fillWidth: true
-                            implicitHeight: 92
-                            visible: Nvibrant.available || Nvibrant.error.length > 0
-                            radiusValue: CortetsuDesign.radiusMedium
-                            baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.72)
-                            outlined: true
-                            outlineColor: Nvibrant.error.length > 0
-                                ? Qt.alpha(CortetsuDesign.colorWarning, 0.38)
-                                : Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.48)
-
-                            ColumnLayout {
-                                anchors.fill: parent
-                                anchors.margins: CortetsuDesign.spacingStandard
-                                spacing: CortetsuDesign.spacingCompact
-
-                                RowLayout {
-                                    Layout.fillWidth: true
-                                    CortetsuText {
-                                        Layout.fillWidth: true
-                                        text: qsTr("Vibrance NVIDIA")
-                                        textSize: CortetsuTypography.bodyPx
-                                        font.weight: Font.DemiBold
-                                    }
-                                    CortetsuText {
-                                        text: Nvibrant.error.length > 0
-                                            ? qsTr("No disponible")
-                                            : qsTr("%1 / 1024").arg(Nvibrant.value)
-                                        textSize: CortetsuTypography.labelSmallPx
-                                        color: Nvibrant.error.length > 0
-                                            ? CortetsuDesign.colorWarning
-                                            : CortetsuDesign.colorOnSurfaceVariant
-                                    }
-                                }
-                                CortetsuSlider {
-                                    Layout.fillWidth: true
-                                    value: Nvibrant.value / 1024
-                                    disabled: !Nvibrant.available || Nvibrant.busy
-                                    onMoved: nextValue => Nvibrant.setValue(nextValue * 1024)
-                                }
-                                CortetsuText {
-                                    Layout.fillWidth: true
-                                    visible: Nvibrant.error.length > 0
-                                    text: Nvibrant.error
-                                    textSize: CortetsuTypography.labelSmallPx
-                                    color: CortetsuDesign.colorWarning
-                                    elide: Text.ElideRight
-                                }
-                            }
-                        }
-
                         CortetsuSectionHeader {
                             Layout.fillWidth: true
                             title: qsTr("Preferencias de superficie")
@@ -680,6 +649,69 @@ Item {
                             checked: CortetsuConfig.visualiserAutoHide
                             disabled: !CortetsuConfig.visualiserEnabled
                             onChanged: value => { CortetsuConfig.visualiserAutoHide = value; CortetsuConfig.save(); }
+                        }
+
+                        CortetsuSectionHeader {
+                            Layout.fillWidth: true
+                            title: qsTr("Geometría de la interfaz")
+                            detail: qsTr("Bordes y densidad del visualizador de audio")
+                        }
+
+                        CortetsuSurface {
+                            Layout.fillWidth: true
+                            implicitHeight: 112
+                            radiusValue: CortetsuDesign.radiusMedium
+                            baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.72)
+                            outlined: true
+                            ColumnLayout {
+                                anchors.fill: parent
+                                anchors.margins: CortetsuDesign.spacingStandard
+                                spacing: CortetsuDesign.spacingCompact
+                                RowLayout {
+                                    Layout.fillWidth: true
+                                    CortetsuIcon { text: "rounded_corner"; color: CortetsuDesign.colorPrimary }
+                                    CortetsuText { Layout.fillWidth: true; text: qsTr("Grosor de bordes"); font.weight: Font.DemiBold }
+                                    CortetsuText { text: qsTr("%1 px").arg(CortetsuConfig.borderThickness); color: CortetsuDesign.colorOnSurfaceVariant }
+                                }
+                                CortetsuSlider {
+                                    Layout.fillWidth: true
+                                    from: 0; to: 8; step: 1
+                                    value: CortetsuConfig.borderThickness
+                                    onMoved: nextValue => {
+                                        CortetsuConfig.borderThickness = Math.round(nextValue);
+                                        CortetsuConfig.save();
+                                    }
+                                }
+                            }
+                        }
+
+                        CortetsuSurface {
+                            Layout.fillWidth: true
+                            implicitHeight: 112
+                            radiusValue: CortetsuDesign.radiusMedium
+                            baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.72)
+                            outlined: true
+                            ColumnLayout {
+                                anchors.fill: parent
+                                anchors.margins: CortetsuDesign.spacingStandard
+                                spacing: CortetsuDesign.spacingCompact
+                                RowLayout {
+                                    Layout.fillWidth: true
+                                    CortetsuIcon { text: "graphic_eq"; color: CortetsuDesign.colorPrimary }
+                                    CortetsuText { Layout.fillWidth: true; text: qsTr("Barras del visualizador"); font.weight: Font.DemiBold }
+                                    CortetsuText { text: qsTr("%1").arg(CortetsuConfig.visualiserBars); color: CortetsuDesign.colorOnSurfaceVariant }
+                                }
+                                CortetsuSlider {
+                                    Layout.fillWidth: true
+                                    from: 8; to: 128; step: 4
+                                    value: CortetsuConfig.visualiserBars
+                                    disabled: !CortetsuConfig.visualiserEnabled
+                                    onMoved: nextValue => {
+                                        CortetsuConfig.visualiserBars = Math.round(nextValue / 4) * 4;
+                                        CortetsuConfig.save();
+                                    }
+                                }
+                            }
                         }
                     }
 

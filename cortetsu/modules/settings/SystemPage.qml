@@ -1663,6 +1663,10 @@ Item {
                 }
             }
 
+            DisplayCalibration {
+                Layout.fillWidth: true
+            }
+
             ActionCard {
                 title: qsTr("Abrir gestor de pantallas")
                 detail: qsTr("Organizar monitores, modos y opciones de cada pantalla")

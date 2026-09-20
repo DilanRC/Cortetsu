@@ -11,6 +11,8 @@ Item {
     property string icon
     property string title
     property string subtitle
+    property bool compact: false
+    property string tooltipText: ""
     property bool selected: false
     property bool disabled: false
     signal clicked()
@@ -66,8 +68,8 @@ Item {
 
     Row {
         anchors.fill: parent
-        anchors.leftMargin: CortetsuDesign.spacingStandard
-        anchors.rightMargin: CortetsuDesign.spacingStandard
+        anchors.leftMargin: root.compact ? (root.width - 34) / 2 : CortetsuDesign.spacingStandard
+        anchors.rightMargin: root.compact ? (root.width - 34) / 2 : CortetsuDesign.spacingStandard
         spacing: CortetsuDesign.spacingStandard
         scale: root.visualScale
 
@@ -97,6 +99,7 @@ Item {
         }
 
         Column {
+            visible: !root.compact
             anchors.verticalCenter: parent.verticalCenter
             spacing: 2
             width: Math.max(0, parent.width - x)
@@ -123,6 +126,13 @@ Item {
                 elide: Text.ElideRight
             }
         }
+    }
+
+    CortetsuTooltip {
+        target: root
+        hovered: mouse.containsMouse
+        focused: root.activeFocus
+        text: root.tooltipText
     }
 
     MouseArea {

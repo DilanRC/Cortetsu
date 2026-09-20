@@ -3,6 +3,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 content = (ROOT / "cortetsu/modules/settings/Content.qml").read_text(encoding="utf-8")
 system = (ROOT / "cortetsu/modules/settings/SystemPage.qml").read_text(encoding="utf-8")
+calibration = (ROOT / "cortetsu/modules/settings/DisplayCalibration.qml").read_text(encoding="utf-8")
 network_service = (ROOT / "cortetsu/services/CortetsuSettingsNetwork.qml").read_text(encoding="utf-8")
 controller = (ROOT / "cortetsu/modules/settings/SettingsController.qml").read_text(encoding="utf-8")
 schemes = (ROOT / "cortetsu/modules/launcher/services/Schemes.qml").read_text(encoding="utf-8")
@@ -21,7 +22,7 @@ assert "CortetsuSettingsNetwork.disconnect(modelData.name)" in system
 assert "CortetsuNetwork.refresh()" in system
 assert "CortetsuAudio.setSourceVolume(nextValue)" in system
 assert "CortetsuAudio.setAudioSink(modelData)" in system
-assert "Nvibrant.setValue(nextValue * 1024)" in content
+assert "Nvibrant.setValue(value * 1024)" in calibration
 assert "function refreshNetworks()" in network_service
 assert "function connect(" in network_service
 assert "function forget(" in network_service
@@ -107,6 +108,15 @@ checks = {
         "CortetsuConfig.save();",
     )),
     "system preferences persist": system.count("root.savePreference();") >= 30,
+    "display calibration is real and persistent": all(marker in calibration for marker in (
+        '"hyprsunset.service"', '"hyprsunset", "temperature"',
+        '"hyprsunset", "gamma"', "CortetsuConfig.colorTemperature",
+        "CortetsuConfig.colorGamma", "Nvibrant.setValue",
+    )),
+    "navigation collapses without losing discovery": all(marker in content for marker in (
+        "property bool navigationCollapsed", "compact: root.navigationCollapsed",
+        "tooltipText: root.navigationCollapsed ? modelData.title",
+    )),
     "scheme application state is observable": all(marker in schemes for marker in (
         "pendingScheme", 'applyStatus = "applying"', "applyError", "stderr: StdioCollector", "onExited",
     )),
