@@ -251,15 +251,18 @@ StyledWindow {
     }
 
     component PanelBg: Rectangle {
-        required property Item panel
+        // The panel graph is assembled after this background layer. Keep the
+        // background empty until its alias resolves instead of dereferencing
+        // a transient null panel during shell startup/shutdown.
+        property Item panel: null
         property real deformAmount: 0.15
-        visible: panel.visible && panel.width > 0 && panel.height > 0 && (panel.offsetScale ?? 0) < 1
-        x: panel.x + bar.implicitWidth
-        y: panel.y + root.borderThickness
-        width: panel.width
-        height: panel.height
+        visible: (panel?.visible ?? false) && (panel?.width ?? 0) > 0 && (panel?.height ?? 0) > 0 && (panel?.offsetScale ?? 1) < 1
+        x: (panel?.x ?? 0) + bar.implicitWidth
+        y: (panel?.y ?? 0) + root.borderThickness
+        width: panel?.width ?? 0
+        height: panel?.height ?? 0
         radius: root.borderRounding
-        color: Qt.alpha(root.surfaceColour, Math.max(0, 1 - (panel.offsetScale ?? 0)))
+        color: Qt.alpha(root.surfaceColour, Math.max(0, 1 - (panel?.offsetScale ?? 1)))
         border.width: root.borderThickness
         border.color: CortetsuDesign.colorOutlineVariant
     }

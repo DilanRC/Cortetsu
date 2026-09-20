@@ -24,57 +24,60 @@ Region {
     R {
         panel: root.panels.dashboard
         y: 0
-        height: panel.height * (1 - root.panels.dashboard.offsetScale) + root.borderThickness
+        height: (panel?.height ?? 0) * (1 - (root.panels.dashboard?.offsetScale ?? 1)) + root.borderThickness
     }
 
     R {
         panel: root.panels.launcher
-        y: root.win.height - height - panel.dockOffset
-        height: panel.height * (1 - root.panels.launcher.offsetScale) + root.borderThickness
+        y: root.win.height - height - (panel?.dockOffset ?? 0)
+        height: (panel?.height ?? 0) * (1 - (root.panels.launcher?.offsetScale ?? 1)) + root.borderThickness
     }
 
     R {
         id: sessionRegion
         panel: root.panels.sessionWrapper
         x: root.win.width - width
-        width: panel.width * (1 - root.panels.session.offsetScale) + root.borderThickness + sidebarRegion.width
+        width: (panel?.width ?? 0) * (1 - (root.panels.session?.offsetScale ?? 1)) + root.borderThickness + sidebarRegion.width
     }
 
     R {
         id: sidebarRegion
         panel: root.panels.sidebar
         x: root.win.width - width
-        width: panel.width * (1 - root.panels.sidebar.offsetScale) + root.borderThickness
+        width: (panel?.width ?? 0) * (1 - (root.panels.sidebar?.offsetScale ?? 1)) + root.borderThickness
     }
 
     R {
         panel: root.panels.osdWrapper
         x: root.win.width - width
-        width: panel.width * (1 - root.panels.osd.offsetScale) + root.borderThickness + sessionRegion.width
+        width: (panel?.width ?? 0) * (1 - (root.panels.osd?.offsetScale ?? 1)) + root.borderThickness + sessionRegion.width
     }
 
     R {
         panel: root.panels.notifications
         y: 0
-        height: panel.height + root.borderThickness
+        height: (panel?.height ?? 0) + root.borderThickness
     }
 
     R {
         panel: root.panels.utilities
-        height: panel.height * (1 - root.panels.utilities.offsetScale) + root.borderThickness
+        height: (panel?.height ?? 0) * (1 - (root.panels.utilities?.offsetScale ?? 1)) + root.borderThickness
     }
 
     R {
         panel: root.panels.popoutsWrapper
-        width: panel.width * (1 - root.panels.popoutsWrapper.offsetScale)
+        width: (panel?.width ?? 0) * (1 - (root.panels.popoutsWrapper?.offsetScale ?? 1))
     }
 
     component R: Region {
-        required property Item panel
-        x: panel.x + root.bar.implicitWidth
-        y: panel.y + root.borderThickness
-        width: panel.width
-        height: panel.height
+        // Panel aliases become null briefly while the drawer graph is being
+        // constructed or torn down. An empty subtracting region is correct
+        // during that interval and avoids invalid mask geometry.
+        property Item panel: null
+        x: (panel?.x ?? 0) + root.bar.implicitWidth
+        y: (panel?.y ?? 0) + root.borderThickness
+        width: panel?.width ?? 0
+        height: panel?.height ?? 0
         intersection: Intersection.Subtract
     }
 }

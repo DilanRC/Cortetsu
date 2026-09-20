@@ -492,6 +492,11 @@ Scope {
                 if (!address)
                     return;
 
+                if (!CortetsuHypr.toplevels.values.some(
+                    candidate => candidate.lastIpcObject?.address === address
+                ))
+                    return;
+
                 const selector = `address:${address}`;
                 CortetsuHypr.dispatch(
                     CortetsuHypr.usingLua

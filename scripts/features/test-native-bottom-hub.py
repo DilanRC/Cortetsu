@@ -83,6 +83,8 @@ def assert_controller(text: str) -> None:
         'target: "customDock"',
         "function togglePinned(item): void",
         "function focusWindowNow(client): void",
+        "CortetsuHypr.toplevels.values.some(",
+        "candidate => candidate.lastIpcObject?.address === address",
         "function closeWindow(client): void",
         "function activateItem(item): void",
         "function cycleItem(item, direction): void",
@@ -105,6 +107,15 @@ def assert_controller(text: str) -> None:
         "hubRoot.toggleSidebarFor(win.modelData)",
     ):
         assert fingerprint in text, f"BottomHub controller lost behavior: {fingerprint}"
+
+    focus = text[text.index("function focusWindowNow(client): void"):text.index("function closeWindow(client): void")]
+    assert "CortetsuHypr.toplevels.values.some(" in focus, (
+        "deferred focus must revalidate that the client still exists before dispatching"
+    )
+    assert "if (!CortetsuHypr.toplevels.values.some(" in focus
+    assert focus.index("CortetsuHypr.toplevels.values.some(") < focus.index("CortetsuHypr.dispatch("), (
+        "client liveness check must occur before the Hyprland focus dispatch"
+    )
 
     toaster = (repo / "cortetsu/services/CortetsuToaster.qml").read_text(encoding="utf-8")
     assert "/cortetsu/pomodoro-notification.json" in text
