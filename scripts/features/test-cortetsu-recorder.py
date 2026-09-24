@@ -9,6 +9,7 @@ cli = (repo / "scripts/cortetsu").read_text(encoding="utf-8")
 keybinds = (repo / "dotfiles/home/.config/hypr/hyprland/keybinds.lua").read_text(encoding="utf-8")
 
 assert 'RECORDER = "gpu-screen-recorder"' in helper
+assert '"-a", "default_output", "-a", "default_input"' in helper
 assert "def signal_owned" in helper and "pidof" not in helper
 assert "STATE_PATH" in helper and "outputTempPath" in helper
 assert '"starttime"' in helper and "rsplit(\")\", 1)" in helper

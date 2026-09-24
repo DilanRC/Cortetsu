@@ -126,7 +126,7 @@ def start_args(args: argparse.Namespace) -> list[str]:
         available = parse_monitors(listed.stdout + listed.stderr) | {"screen"}
         command += [capture_target(focused["name"], available), "-f", str(round(focused["refreshRate"]))]
     if args.sound:
-        command += ["-a", "default_output"]
+        command += ["-a", "default_output", "-a", "default_input"]
     extra = load_config().get("record", {}).get("extraArgs", [])
     if not isinstance(extra, list):
         raise ValueError("Config option 'record.extraArgs' should be an array")
