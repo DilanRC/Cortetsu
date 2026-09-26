@@ -54,11 +54,6 @@ Singleton {
     }
 
     function layer(colour, layerNumber = 0) { return colour; }
-    function on(colour) {
-        return colour.hslLightness < 0.5
-            ? CortetsuDesign.colorWashi
-            : CortetsuDesign.colorTetsu;
-    }
     function load(data, isPreview) {
         try {
             const value = JSON.parse(data);

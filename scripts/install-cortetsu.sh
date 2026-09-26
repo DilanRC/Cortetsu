@@ -4,6 +4,7 @@ set -euo pipefail
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BIN_DIR="${HOME}/.local/bin"
 DATA_ROOT="${CORTETSU_DATA_ROOT:-${XDG_DATA_HOME:-$HOME/.local/share}/cortetsu}"
+export CORTETSU_DATA_ROOT="$DATA_ROOT"
 SYSTEMD_USER_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
 KEEP_AWAKE_UNIT="cortetsu-keep-awake.service"
 WALLPAPER_COLOR_UNIT="cortetsu-wallpaper-color.service"
@@ -64,6 +65,9 @@ fi
 printf '==> Tema nativo Cortetsu\n'
 python3 "$REPO/core/theme.py" check --repo "$REPO"
 
+printf '==> Ownership de tema\n'
+python3 "$REPO/core/theme.py" adopt --repo "$REPO"
+
 printf '==> Dotfiles Cortetsu\n'
 python3 "$REPO/core/dotfiles.py" apply --repo "$REPO"
 
@@ -72,9 +76,6 @@ python3 "$REPO/scripts/maintenance/retire_legacy_theme.py"
 
 printf '==> Ciclo de vida del shell\n'
 python3 "$REPO/core/shell_lifecycle.py" migrate
-
-printf '==> Ownership de tema\n'
-python3 "$REPO/core/theme.py" adopt --repo "$REPO"
 
 systemctl --user daemon-reload >/dev/null 2>&1 || true
 
@@ -129,7 +130,7 @@ printf '\nCortetsu runtime: %s/current\n' "$runtime_root"
 printf 'Dotfiles runtime: %s/dotfiles/current\n' "$DATA_ROOT"
 printf 'System runtime: %s/system/current\n' "$DATA_ROOT"
 printf 'No se escribió ningún runtime legacy de Caelestia.\n'
-printf 'Tema desktop: ui.toml -> CortetsuDesign/Kitty/GTK/KDE; Caelestia queda sin ownership de esas superficies.\n'
+printf 'Tema desktop: ui.toml -> CortetsuDesign/Kitty/GTK/KDE; kdeglobals permanece editable.\n'
 printf 'Shell personal: Fish es dependencia del perfil personal y se importa de forma explícita con core/import_fish.py.\n'
 printf 'cortetsu-shell.service no se habilita implícitamente; una adopción existente sí se conserva.\n'
 printf 'Rollback completo: cortetsu rollback\n'

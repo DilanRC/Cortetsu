@@ -13,10 +13,10 @@ for token in (
     "CortetsuNotifications.dnd",
     "CortetsuNotifications.clear()",
     "Notifs.clear()",
-    'title: qsTr(\"Now\")',
-    'title: qsTr(\"History\")',
-    'title: qsTr(\"All clear\")',
-    'title: qsTr(\"No saved notifications\")',
+    'title: qsTr(\"Ahora\")',
+    'title: qsTr(\"Historial\")',
+    'title: qsTr(\"Todo limpio\")',
+    'title: qsTr(\"No hay notificaciones guardadas\")',
     "CortetsuStateMessage",
     "CortetsuToggle",
     "CortetsuButton",
@@ -47,7 +47,7 @@ assert "property bool interactionActive: false" in notif_data
 assert "!root.interactionActive" in notif_data
 assert "Qt.alpha(CortetsuDesign.colorTertiary, 0.12)" not in notification
 assert "root.notificationActions.length > 0 || root.hovered || root.expanded || root.activeFocus" in notification
-assert 'label: qsTr("Dismiss")' in notification
+assert 'label: qsTr("Descartar")' in notification
 assert "dismissalRequested" in notif_data
 assert "function dismissAndRemove" in notif_data
 assert "if (closed)" in notif_data

@@ -25,7 +25,7 @@ assert "onStatusIconsChanged(): void" in hub
 leave_trigger = hover.split("function leaveTrigger(): void", 1)[1].split("function enterPopup(): void", 1)[0]
 assert "openTimer.stop();" in leave_trigger
 panel_window = (ROOT / "cortetsu/modules/drawers/ContentWindow.qml").read_text(encoding="utf-8")
-assert "visible: panel.visible && panel.width > 0" in panel_window
+assert "visible: (panel?.visible ?? false) && (panel?.width ?? 0) > 0 && (panel?.height ?? 0) > 0 && (panel?.offsetScale ?? 1) < 1" in panel_window
 assert "panels.popouts.isDetached || panels.popouts.currentName === \"wirelesspassword\"" in panel_window
 button = (ROOT / "cortetsu/modules/HubButton.qml").read_text(encoding="utf-8")
 interactions = (ROOT / "cortetsu/modules/drawers/Interactions.qml").read_text(encoding="utf-8")

@@ -6,8 +6,8 @@ source = (ROOT / "cortetsu/modules/sidebar/Content.qml").read_text(encoding="utf
 notification = (ROOT / "cortetsu/modules/notifications/Notification.qml").read_text(encoding="utf-8")
 notif_data = (ROOT / "cortetsu/services/NotifData.qml").read_text(encoding="utf-8")
 service = (ROOT / "cortetsu/services/Notifs.qml").read_text(encoding="utf-8")
-sections = sum(source.count(f'title: qsTr(\"{name}\")') for name in ("Now", "History"))
-states = sum(source.count(token) for token in ("All clear", "No saved notifications", "Do not disturb"))
+sections = sum(source.count(f'title: qsTr(\"{name}\")') for name in ("Ahora", "Historial"))
+states = sum(source.count(token) for token in ("Todo limpio", "No hay notificaciones guardadas", "No molestar"))
 assert sections == 2
 assert states >= 2
 assert source.count("CortetsuDesign.") >= 6
@@ -33,7 +33,7 @@ assert "property bool interactionActive: false" in notif_data
 assert "!root.interactionActive" in notif_data
 assert "Qt.alpha(CortetsuDesign.colorTertiary, 0.12)" not in notification
 assert "root.notificationActions.length > 0 || root.hovered || root.expanded || root.activeFocus" in notification
-assert 'label: qsTr("Dismiss")' in notification
+assert 'label: qsTr("Descartar")' in notification
 assert "dismissalRequested" in notif_data
 assert "function dismissAndRemove" in notif_data
 assert "property var list: []" in service

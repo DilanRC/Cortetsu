@@ -19,7 +19,4 @@ Singleton {
         toasts = toasts.filter(item => item.id !== id);
     }
 
-    function clear() {
-        toasts = [];
-    }
 }

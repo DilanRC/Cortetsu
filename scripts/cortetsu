@@ -4,6 +4,7 @@ set -euo pipefail
 SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}" 2>/dev/null || printf '%s' "${BASH_SOURCE[0]}")"
 SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
 DATA_ROOT="${CORTETSU_DATA_ROOT:-${XDG_DATA_HOME:-$HOME/.local/share}/cortetsu}"
+export CORTETSU_DATA_ROOT="$DATA_ROOT"
 RUNTIME_ROOT="${CORTETSU_RUNTIME_ROOT:-${XDG_CONFIG_HOME:-$HOME/.config}/quickshell/cortetsu}"
 CURRENT="$RUNTIME_ROOT/current"
 PREVIOUS="$RUNTIME_ROOT/previous"
@@ -111,6 +112,10 @@ dotfiles_cmd() {
     require_file "$ROOT/core/dotfiles.py"
     local action="${1:-status}"
     [[ $# -eq 0 ]] || shift
+    if [[ "$action" == "apply" ]]; then
+        require_file "$ROOT/core/theme.py"
+        python3 "$ROOT/core/theme.py" adopt --repo "$ROOT"
+    fi
     python3 "$ROOT/core/dotfiles.py" "$action" --repo "$ROOT" "$@"
     if [[ "$action" == "apply" || "$action" == "rollback" ]]; then
         systemctl --user daemon-reload >/dev/null 2>&1 || true

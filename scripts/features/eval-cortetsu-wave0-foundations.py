@@ -55,7 +55,7 @@ checks = {
             "CortetsuPopupSurface",
             "Icons.getBatteryIcon",
             "CortetsuPower.charging",
-            'qsTr(\"Fully charged\")',
+            'qsTr(\"Carga completa\")',
         )
     ),
     "keyboard popup exposes disabled layouts": "disabled: layoutIndex > 3" in keyboard,
@@ -63,18 +63,18 @@ checks = {
     "notification supports keyboard": all(x in notification for x in ("activeFocusOnTab", "Keys.onEnterPressed", "Keys.onEscapePressed", "CortetsuButton")),
     "toast supports keyboard": all(x in toast for x in ("activeFocusOnTab", "Keys.onEnterPressed", "Keys.onEscapePressed")),
     "notification center has reusable empty states": sidebar.count("CortetsuStateMessage") >= 2,
-    "launcher has reusable empty state": all(x in launcher_list for x in ("CortetsuStateMessage", "No wallpapers found", "No results")),
-    "launcher distinguishes wallpaper loading": all(x in launcher_list for x in ("listLoading", 'kind: "loading"', "Loading wallpapers")),
+    "launcher has reusable empty state": all(x in launcher_list for x in ("CortetsuStateMessage", "No se encontraron fondos", "Sin resultados")),
+    "launcher distinguishes wallpaper loading": all(x in launcher_list for x in ("listLoading", 'kind: "loading"', "Cargando fondos")),
     "launcher has product search hierarchy": all(
         x in launcher
         for x in (
             "CortetsuPopupSurface",
             'objectName: "launcherSearch"',
-            'placeholderText: qsTr("Search apps or commands…")',
+            'placeholderText: qsTr("Buscar aplicaciones o comandos…")',
             "anchors.top: parent.top",
         )
     ),
-    "overview has reusable empty state": all(x in overview for x in ("CortetsuStateMessage", "No windows to show", "Open an application")),
+    "overview has reusable empty state": all(x in overview for x in ("CortetsuStateMessage", "No hay ventanas para mostrar", "Abre una aplicación para verla aquí")),
     "button supports keyboard": all(x in button for x in ("Keys.onEnterPressed", "Keys.onReturnPressed", "Keys.onSpacePressed")),
     "row supports keyboard": all(x in row for x in ("Keys.onEnterPressed", "Keys.onReturnPressed", "Keys.onSpacePressed")),
     "hub button supports keyboard": all(x in hub_button for x in ("Keys.onEnterPressed", "Keys.onReturnPressed", "Keys.onSpacePressed")),

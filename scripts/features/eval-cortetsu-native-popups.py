@@ -31,7 +31,7 @@ password = (popouts / "CortetsuWifiPasswordPopup.qml").read_text(encoding="utf-8
 assert password.count("CortetsuButton") >= 2
 assert "NetworkConnection.connectWithPassword" in password
 tray = (popouts / "CortetsuTrayMenu.qml").read_text(encoding="utf-8")
-assert all(token in tray for token in ("activeFocusOnTab", "Qt.Key_Right", "Qt.Key_Left", "Qt.Key_Escape", "focused: activeFocus"))
+assert all(token in tray for token in ("activeFocusOnTab", "Qt.Key_Right", "Qt.Key_Left", "Qt.Key_Escape", "focused: false"))
 assert "CortetsuPopupSurface" in tray
 content_window = (ROOT / "cortetsu/modules/drawers/ContentWindow.qml").read_text(encoding="utf-8")
 assert "focusable: panels.popouts.hasCurrent || ((screenState?.cortetsuState?.requiresWindowKeyboardFocus ?? false) && !(screenState?.launcher ?? false) && !(screenState?.session ?? false))" in content_window

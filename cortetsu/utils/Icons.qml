@@ -5,7 +5,6 @@ import Quickshell
 import Quickshell.Services.Notifications
 
 Singleton {
-    readonly property var weatherIcons: ({"0":"clear_day", "1":"clear_day", "2":"partly_cloudy_day", "3":"cloud", "45":"foggy", "48":"foggy", "51":"rainy", "53":"rainy", "55":"rainy", "61":"rainy", "63":"rainy", "65":"rainy", "71":"cloudy_snowing", "73":"cloudy_snowing", "75":"snowing_heavy", "80":"rainy", "81":"rainy", "82":"rainy", "85":"cloudy_snowing", "86":"snowing_heavy", "95":"thunderstorm", "96":"thunderstorm", "99":"thunderstorm"})
     readonly property var categoryIcons: ({WebBrowser:"web", Printing:"print", Security:"security", Network:"chat", Development:"code", IDE:"code", Audio:"music_note", Music:"music_note", Player:"music_note", Recorder:"mic", Game:"sports_esports", FileManager:"files", Settings:"settings", TerminalEmulator:"terminal", Utility:"build", Monitor:"monitor_heart", Video:"videocam", Graphics:"photo_library", TV:"tv", System:"host", Office:"content_paste"})
 
     function getAppIcon(name: string, fallback: string): string {
@@ -47,7 +46,6 @@ Singleton {
         if (icon.includes("keyboard")) return "keyboard";
         return "bluetooth";
     }
-    function getWeatherIcon(code: string): string { return weatherIcons[code] ?? "air"; }
     function getNotifIcon(summary: string, urgency: int): string {
         const value = summary.toLowerCase();
         if (value.includes("reboot")) return "restart_alt";
