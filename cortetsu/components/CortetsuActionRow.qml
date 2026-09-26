@@ -8,7 +8,8 @@ Item {
 
     required property int index
     focus: root.index === 0 && !root.disabled
-    activeFocusOnTab: !root.disabled
+    enabled: !root.disabled
+    activeFocusOnTab: true
 
     property string icon: ""
     property string title: ""

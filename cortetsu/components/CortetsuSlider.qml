@@ -7,7 +7,8 @@ Item {
     // Avoid an arbitrary slider becoming the keyboard owner when a panel
     // loads. Mouse and Tab navigation still call into this control normally.
     focus: false
-    activeFocusOnTab: !disabled
+    enabled: !disabled
+    activeFocusOnTab: true
 
     property real value: 0
     property real from: 0

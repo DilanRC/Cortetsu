@@ -8,7 +8,8 @@ Item {
 
     // Status buttons are focusable, but never claim focus merely by loading.
     focus: false
-    activeFocusOnTab: !disabled
+    enabled: !disabled
+    activeFocusOnTab: true
 
     property string icon: "circle"
     property string imageSource: ""

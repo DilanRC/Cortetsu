@@ -21,7 +21,8 @@ Item {
     signal nextRequested()
 
     focus: root.selected && !root.disabled
-    activeFocusOnTab: !root.disabled
+    enabled: !root.disabled
+    activeFocusOnTab: true
     implicitHeight: 40
     opacity: root.disabled ? 0.46 : 1
 

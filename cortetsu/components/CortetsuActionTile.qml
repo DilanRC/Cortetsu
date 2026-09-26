@@ -7,7 +7,8 @@ Item {
     id: root
 
     focus: false
-    activeFocusOnTab: root.clickable && !root.disabled
+    enabled: root.clickable && !root.disabled
+    activeFocusOnTab: true
 
     property string label: ""
     property string icon: ""

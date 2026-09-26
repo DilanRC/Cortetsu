@@ -6,7 +6,8 @@ Item {
 
     // List rows must not race the parent panel for initial keyboard focus.
     focus: false
-    activeFocusOnTab: !disabled
+    enabled: !disabled
+    activeFocusOnTab: true
 
     property string icon
     property string title

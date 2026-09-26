@@ -243,6 +243,16 @@ status_cmd() {
 run_python_test() { local relative="$1"; shift; require_repo; require_file "$ROOT/$relative"; printf '==> %s\n' "$relative"; python3 "$ROOT/$relative" "$@"; }
 run_node_test() { local relative="$1"; require_repo; require_file "$ROOT/$relative"; printf '==> %s\n' "$relative"; node "$ROOT/$relative"; }
 run_bash_test() { local relative="$1"; require_repo; require_file "$ROOT/$relative"; printf '==> %s\n' "$relative"; bash "$ROOT/$relative"; }
+run_qml_test() {
+    local relative="$1" test_files=()
+    require_repo
+    [[ -d "$ROOT/$relative" ]] || fail "falta directorio de tests QML: $relative"
+    test_files=("$ROOT/$relative"/tst_*.qml)
+    [[ -f "${test_files[0]}" ]] || fail "no hay tests tst_*.qml en $relative"
+    require_file /usr/lib/qt6/bin/qmltestrunner
+    printf '==> Qt Quick Test: %s\n' "$relative"
+    QT_QPA_PLATFORM=offscreen /usr/lib/qt6/bin/qmltestrunner -input "$ROOT/$relative"
+}
 
 legacy_processes_cmd() {
     require_repo
@@ -440,6 +450,9 @@ test_cmd() {
     run_bash_test "scripts/features/test-v2-migration-unreadable.sh"
     run_bash_test "cortetsu/tests/test-calendar-readonly.sh"
     run_bash_test "cortetsu/tests/test-legacy-process-migration-eval.sh"
+    run_qml_test "cortetsu/tests/qml/focus"
+    run_qml_test "cortetsu/modules/wallpaper/tests"
+    run_qml_test "cortetsu/tests/qml/bottomhub"
     printf '\nCortetsu repository regressions passed.\n'
 }
 

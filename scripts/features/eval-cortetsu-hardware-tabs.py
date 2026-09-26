@@ -13,7 +13,8 @@ assert "onNextRequested: root.selectAdjacentTab(1)" in content
 assert "required property int index" in content
 assert "index: tabDelegate.index" in content
 assert "focus: root.selected && !root.disabled" in tab
-assert "activeFocusOnTab: !root.disabled" in tab
+assert "enabled: !root.disabled" in tab
+assert "activeFocusOnTab: true" in tab
 assert "Keys.onSpacePressed" in tab
 assert "outlined: root.activeFocus || root.selected" in tab
 print("PASS: Hardware tabs share selected, hover, focus and arrow-key behavior")

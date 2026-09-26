@@ -7,7 +7,8 @@ Item {
     // Do not claim focus during component construction; click and Tab still
     // focus this control normally.
     focus: false
-    activeFocusOnTab: !disabled
+    enabled: !disabled
+    activeFocusOnTab: true
 
     property bool checked: false
     property bool disabled: false

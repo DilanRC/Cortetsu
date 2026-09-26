@@ -30,7 +30,8 @@ inventory = (ROOT / "docs/architecture/qml-surface-inventory.md").read_text()
 for needle, label in (
     ("property bool focused", "surface focus state"),
     ("border.width: outlined || focused", "visible focus outline"),
-    ("activeFocusOnTab: !disabled", "keyboard tab focus"),
+    ("enabled: !disabled", "disabled controls leave the focus chain"),
+    ("activeFocusOnTab: true", "stable keyboard tab focus binding"),
     ("Keys.onEnterPressed", "Enter activation"),
     ("Keys.onSpacePressed", "Space activation"),
 ):

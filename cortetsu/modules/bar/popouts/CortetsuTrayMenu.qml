@@ -165,8 +165,9 @@ CortetsuPopupSurface {
                             + (menuIcon.visible ? menuIcon.width + row.spacing : 0)
                             + (submenuIcon.visible ? submenuIcon.width + row.spacing : 0)
                             + CortetsuDesign.spacingCompact * 2
-                    focus: (modelData?.enabled ?? false) && index === 0
-                    activeFocusOnTab: modelData?.enabled ?? false
+                    enabled: modelData?.enabled ?? false
+                    focus: enabled && index === 0
+                    activeFocusOnTab: true
                     width: Math.max(0, menu.width - menu.padding * 2)
                     implicitHeight: (modelData?.isSeparator ?? false)
                         ? 1

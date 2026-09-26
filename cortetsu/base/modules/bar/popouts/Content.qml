@@ -129,15 +129,24 @@ Item {
 
                 required property SystemTrayItem modelData
                 required property int index
+                readonly property var menuHandle: modelData?.menu ?? null
+                property bool menuReady: true
 
                 name: `traymenu${index}`
-                sourceComponent: trayMenuComp
+                sourceComponent: menuHandle && menuReady ? trayMenuComp : null
+
+                Timer {
+                    id: menuReload
+                    interval: 0
+                    repeat: false
+                    onTriggered: trayMenu.menuReady = true
+                }
 
                 Connections {
                     function onHasCurrentChanged(): void {
                         if (root.popouts.hasCurrent && trayMenu.shouldBeActive) {
-                            trayMenu.sourceComponent = null;
-                            trayMenu.sourceComponent = trayMenuComp;
+                            trayMenu.menuReady = false;
+                            menuReload.restart();
                         }
                     }
 
@@ -149,7 +158,7 @@ Item {
 
                     CortetsuTrayMenu {
                         popouts: root.popouts
-                        trayItem: trayMenu.modelData.menu // qmllint disable unresolved-type
+                        trayItem: trayMenu.menuHandle // qmllint disable unresolved-type
                     }
                 }
             }

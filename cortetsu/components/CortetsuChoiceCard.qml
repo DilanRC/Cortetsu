@@ -7,7 +7,8 @@ Item {
 
     // Selection cards participate in Tab order without taking focus on load.
     focus: false
-    activeFocusOnTab: !disabled
+    enabled: !disabled
+    activeFocusOnTab: true
 
     property string title: ""
     property string subtitle: ""
