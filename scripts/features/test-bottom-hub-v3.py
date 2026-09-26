@@ -101,7 +101,7 @@ def main() -> None:
         "required property bool statusVisible",
         "visible: root.modeVisible",
         "visible: root.appsVisible",
-        "visible: root.trayVisible",
+        "visible: root.trayVisible && root.trayItems.length > 0",
         "visible: root.statusVisible",
     ):
         require(view, token, "configurable dock segment")

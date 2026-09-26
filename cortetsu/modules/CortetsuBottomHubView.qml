@@ -133,7 +133,7 @@ Item {
     CortetsuTraySegment {
         id: traySegment
 
-        visible: root.trayVisible
+        visible: root.trayVisible && root.trayItems.length > 0
         anchors.right: statusSegment.visible ? statusSegment.left : parent.right
         anchors.rightMargin: 6
         anchors.verticalCenter: parent.verticalCenter

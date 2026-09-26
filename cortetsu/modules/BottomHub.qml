@@ -383,6 +383,77 @@ Scope {
             property date now: new Date()
             property var pendingFocusClient: null
 
+            function desktopEntryForClient(client): var {
+                const window = client.lastIpcObject ?? {};
+                const identities = [window.initialClass, window.class]
+                    .map(value => String(value ?? "").trim())
+                    .filter(value => value.length > 0);
+                const entries = DesktopEntries.applications.values;
+                const normalize = value => String(value ?? "")
+                    .toLowerCase()
+                    .replace(/[.]desktop$/, "")
+                    .replace(/[.]appimage$/, "");
+
+                for (const identity of identities) {
+                    const entry = DesktopEntries.byId(identity);
+                    if (entry)
+                        return entry;
+                }
+
+                for (const identity of identities) {
+                    const normalized = normalize(identity);
+                    const matches = entries.filter(candidate =>
+                        [candidate.startupClass, candidate.id].some(value =>
+                            normalize(value) === normalized
+                        )
+                    );
+                    if (matches.length === 1)
+                        return matches[0];
+                }
+
+                const steamAppId = identities
+                    .map(identity => identity.match(/^steam_app_([0-9]+)$/i)?.[1])
+                    .find(value => value);
+                if (steamAppId) {
+                    const steamUrl = `steam://rungameid/${steamAppId}`;
+                    const steamIcon = `steam_icon_${steamAppId}`;
+                    const matches = entries.filter(candidate => {
+                        const icon = String(candidate.icon ?? "")
+                            .split("/")
+                            .pop()
+                            .replace(/[.][^.]+$/, "");
+                        const command = Array.from(candidate.command ?? []);
+                        return icon === steamIcon
+                            || command.some(argument => String(argument).includes(steamUrl));
+                    });
+                    const pinnedEntry = matches.find(candidate =>
+                        Strings.testRegexList(CortetsuConfig.favouriteApps, candidate.id)
+                    );
+                    if (pinnedEntry)
+                        return pinnedEntry;
+                    if (matches.length === 1)
+                        return matches[0];
+                }
+
+                for (const identity of identities) {
+                    const entry = DesktopEntries.heuristicLookup(identity);
+                    if (entry)
+                        return entry;
+                }
+
+                for (const identity of identities) {
+                    const normalized = normalize(identity);
+                    const executableMatches = entries.filter(candidate => {
+                        const executable = Array.from(candidate.command ?? [])[0] ?? "";
+                        return normalize(String(executable).split("/").pop()) === normalized;
+                    });
+                    if (executableMatches.length === 1)
+                        return executableMatches[0];
+                }
+
+                return null;
+            }
+
             readonly property var dockItems: {
                 const clients = CortetsuHypr.toplevels.values.filter(client => {
                     if (!CortetsuHypr.isTaskbarToplevel(client))
@@ -394,10 +465,19 @@ Scope {
 
                 const groups = new Map();
 
+                let anonymousWindowIndex = 0;
+
                 for (const client of clients) {
-                    const cls = client.lastIpcObject?.class ?? "";
-                    const entry = DesktopEntries.heuristicLookup(cls);
-                    const key = entry?.id ?? cls.toLowerCase();
+                    const window = client.lastIpcObject ?? {};
+                    const cls = String(window.class ?? "").trim()
+                        || String(window.initialClass ?? "").trim();
+                    const entry = desktopEntryForClient(client);
+                    const identity = String(window.initialClass ?? "").trim()
+                        || String(window.class ?? "").trim();
+                    const key = entry?.id
+                        ?? (identity
+                            ? identity.toLowerCase()
+                            : `window:${window.address ?? anonymousWindowIndex++}`);
 
                     if (!groups.has(key)) {
                         groups.set(key, {

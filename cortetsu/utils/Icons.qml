@@ -9,9 +9,12 @@ Singleton {
 
     function getAppIcon(name: string, fallback: string): string {
         const value = String(name ?? "");
+        if (value.startsWith("file://") || value.startsWith("/"))
+            return value.startsWith("/") ? `file://${value}` : value;
+
         const entry = DesktopEntries.heuristicLookup(value);
         const entryIcon = String(entry?.icon ?? "");
-        const steamMatch = (value.match(/^steam_app_(\d+)$/i)
+        const steamMatch = (value.match(/^(?:steam_app|steam_icon)_([0-9]+)$/i)
             ?? entryIcon.match(/^steam_icon_(\d+)$/i));
         if (steamMatch) {
             const iconName = `steam_icon_${steamMatch[1]}`;
