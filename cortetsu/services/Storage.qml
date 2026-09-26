@@ -20,9 +20,9 @@ Singleton {
                 continue;
             const total = Number(match[1]);
             const used = Number(match[2]);
-            if (!total || !match[5].startsWith("/"))
+            if (!total || !match[4].startsWith("/"))
                 continue;
-            found.push({ mount: match[5], used, total, free: Number(match[3]), perc: used / total, hasRoot: match[5] === "/" });
+            found.push({ mount: match[4], used, total, free: Number(match[3]), perc: used / total, hasRoot: match[4] === "/" });
         }
         root.disks = found;
         if (root.manualPrimaryDisk && !found.some(disk => disk.mount === root.manualPrimaryDisk.mount))

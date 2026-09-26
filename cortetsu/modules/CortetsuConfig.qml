@@ -34,6 +34,28 @@ QtObject {
         { id: "battery", enabled: true }
     ]
     onStatusIconsChanged: if (loaded) save()
+    readonly property QtObject bottomHub: QtObject {
+        readonly property QtObject segments: QtObject {
+            property bool mode: true
+            onModeChanged: if (root.loaded) root.save()
+            property bool apps: true
+            onAppsChanged: if (root.loaded) root.save()
+            property bool tray: true
+            onTrayChanged: if (root.loaded) root.save()
+            property bool status: true
+            onStatusChanged: if (root.loaded) root.save()
+        }
+        readonly property QtObject statusCluster: QtObject {
+            property bool audio: true
+            onAudioChanged: if (root.loaded) root.save()
+            property bool network: true
+            onNetworkChanged: if (root.loaded) root.save()
+            property bool bluetooth: true
+            onBluetoothChanged: if (root.loaded) root.save()
+            property bool battery: true
+            onBatteryChanged: if (root.loaded) root.save()
+        }
+    }
     property list<var> quickToggles: [
         { id: "wifi", enabled: true },
         { id: "bluetooth", enabled: true },
@@ -80,6 +102,9 @@ QtObject {
     property real audioIncrement: 0.1
     property real brightnessIncrement: 0.1
     property real maxVolume: 1.0
+    property bool colorCalibrationEnabled: false
+    property int colorTemperature: 6000
+    property int colorGamma: 100
     property int visualiserBars: 60
     property bool visualiserEnabled: false
     property bool visualiserAutoHide: true
@@ -157,6 +182,9 @@ QtObject {
     property bool idleLockBeforeSleep: true
     property list<var> idleTimeouts: [{ enabled: true, timeout: 900000, respectInhibitors: true, idleAction: "lock", returnAction: "unlock" }]
     property bool loaded: false
+    property bool writing: false
+    property bool saveQueued: false
+    property bool patchBottomHubAfterSave: false
 
     readonly property QtObject dashboard: QtObject {
         property bool enabled: true
@@ -308,6 +336,7 @@ QtObject {
     }
 
     function load(raw: string): void {
+        loaded = false;
         try {
             const data = JSON.parse(raw);
             if (Array.isArray(data.favouriteApps))
@@ -326,6 +355,16 @@ QtObject {
                 lyricsBackend = Math.max(0, Math.min(3, data.lyricsBackend));
             if (Array.isArray(data.statusIcons))
                 statusIcons = data.statusIcons.filter(value => value && typeof value === "object" && typeof value.id === "string").map(value => ({ id: value.id, enabled: value.enabled !== false }));
+            if (data.bottomHub && typeof data.bottomHub === "object") {
+                if (data.bottomHub.segments && typeof data.bottomHub.segments === "object")
+                    for (const key of ["mode", "apps", "tray", "status"])
+                        if (typeof data.bottomHub.segments[key] === "boolean")
+                            bottomHub.segments[key] = data.bottomHub.segments[key];
+                if (data.bottomHub.statusCluster && typeof data.bottomHub.statusCluster === "object")
+                    for (const key of ["audio", "network", "bluetooth", "battery"])
+                        if (typeof data.bottomHub.statusCluster[key] === "boolean")
+                            bottomHub.statusCluster[key] = data.bottomHub.statusCluster[key];
+            }
             if (Array.isArray(data.quickToggles))
                 quickToggles = data.quickToggles.filter(value => value && typeof value === "object" && typeof value.id === "string").map(value => ({ id: value.id, enabled: value.enabled !== false }));
             if (data.vpn && typeof data.vpn === "object") {
@@ -464,6 +503,14 @@ QtObject {
                 brightnessIncrement = Math.max(0.01, Math.min(1, data.brightnessIncrement));
             if (typeof data.maxVolume === "number")
                 maxVolume = Math.max(0, Math.min(2, data.maxVolume));
+            if (data.displayCalibration && typeof data.displayCalibration === "object") {
+                if (typeof data.displayCalibration.enabled === "boolean")
+                    colorCalibrationEnabled = data.displayCalibration.enabled;
+                if (Number.isInteger(data.displayCalibration.temperature))
+                    colorTemperature = Math.max(2500, Math.min(6500, data.displayCalibration.temperature));
+                if (Number.isInteger(data.displayCalibration.gamma))
+                    colorGamma = Math.max(50, Math.min(150, data.displayCalibration.gamma));
+            }
             if (Number.isInteger(data.visualiserBars))
                 visualiserBars = Math.max(1, Math.min(256, data.visualiserBars));
             if (typeof data.visualiserEnabled === "boolean")
@@ -519,7 +566,22 @@ QtObject {
     function save(): void {
         if (!loaded)
             return;
-        storage.setText(JSON.stringify({ schema: 1, favouriteApps, hiddenApps, hiddenTrayIcons, terminalCommand, audioCommand, playbackCommand, explorerCommand, gpuType, lyricsBackend, statusIcons, quickToggles, vpn: { providers: vpn.providers, selectedProvider: vpn.selectedProvider, enabled: vpn.enabled }, actions, actionPrefix, specialPrefix, enableDangerousActions, useFuzzyApps, useFuzzyWallpapers, useFuzzyActions, useFuzzySchemes, useFuzzyVariants, smartScheme, wallpaperDirectory, wallpaperEnabled, transparencyEnabled, desktopClockEnabled, desktopClockPosition, borderThickness, borderSmoothing, useTwelveHourClock, useFahrenheit, useFahrenheitPerformance, weatherLocation, audioIncrement, brightnessIncrement, maxVolume, visualiserBars, visualiserEnabled, visualiserAutoHide, visualiserBlur, visualiserSpacing, visualiserRounding, defaultPlayer, playerAliases, toastAudioOutputChanged, toastAudioInputChanged, toastNowPlaying, toastFullscreen, maxToasts, toastChargingChanged, toastCapsLockChanged, toastNumLockChanged, toastKbLayoutChanged, toastKbLimit, toastVpnChanged, notificationExpire, suppressNotificationsInFullscreen, notificationDefaultExpireTimeout, notificationFullscreenExpireTimeout, notificationActionOnClick, notificationFullscreenMode, notificationClearThreshold, notificationExpandThreshold, notificationGroupPreviewNum, notificationOpenExpanded, toastDndChanged, toastGameModeChanged, lockRecolourLogo, lockHideNotifs, lockEnableFprint, lockMaxFprintTries, lockEnableHowdy, lockMaxHowdyTries, lockTriggerHowdyOnWake, vimKeybinds, workspacesShown, dashboardMediaUpdateInterval, dashboardResourceUpdateInterval, nexusWallpapersPerRow, nexusMaxNetworksShown, nexusNetworkRescanInterval, dashboard: { enabled: dashboard.enabled, showOnHover: dashboard.showOnHover, showDashboard: dashboard.showDashboard, showMedia: dashboard.showMedia, showPerformance: dashboard.showPerformance, showWeather: dashboard.showWeather, dragThreshold: dashboard.dragThreshold, performance: { showCpu: dashboard.performance.showCpu, showGpu: dashboard.performance.showGpu, showMemory: dashboard.performance.showMemory, showStorage: dashboard.performance.showStorage, showNetwork: dashboard.performance.showNetwork, showBattery: dashboard.performance.showBattery } }, launcher: { enabled: launcher.enabled, showOnHover: launcher.showOnHover, maxShown: launcher.maxShown, maxWallpapers: launcher.maxWallpapers, dragThreshold: launcher.dragThreshold }, sidebar: { enabled: sidebar.enabled, showOnHover: sidebar.showOnHover, dragThreshold: sidebar.dragThreshold, minHoverThreshold: sidebar.minHoverThreshold }, utilities: { enabled: utilities.enabled, cards: { keepAwake: utilities.cards.keepAwake, recorder: utilities.cards.recorder, quickToggles: utilities.cards.quickToggles } }, bar: { persistent: bar.persistent, showOnHover: bar.showOnHover, dragThreshold: bar.dragThreshold, entries, scrollActions: { workspaces: bar.scrollActions.workspaces, volume: bar.scrollActions.volume, brightness: bar.scrollActions.brightness }, tray: { background: bar.tray.background, compact: bar.tray.compact, recolour: bar.tray.recolour }, activeWindow: { compact: bar.activeWindow.compact, inverted: bar.activeWindow.inverted, showOnHover: bar.activeWindow.showOnHover }, popouts: { activeWindow: bar.popouts.activeWindow, statusIcons: bar.popouts.statusIcons, tray: bar.popouts.tray }, clock: { background: bar.clock.background, showDate: bar.clock.showDate, showIcon: bar.clock.showIcon }, workspaces: { activeIndicator: bar.workspaces.activeIndicator, activeTrail: bar.workspaces.activeTrail, occupiedBg: bar.workspaces.occupiedBg, showWindows: bar.workspaces.showWindows, showWindowsOnSpecialWorkspaces: bar.workspaces.showWindowsOnSpecialWorkspaces, maxWindowIcons: bar.workspaces.maxWindowIcons, perMonitorWorkspaces: bar.workspaces.perMonitorWorkspaces, displayType: bar.workspaces.displayType, label: bar.workspaces.label, occupiedLabel: bar.workspaces.occupiedLabel, activeLabel: bar.workspaces.activeLabel, capitalisation: bar.workspaces.capitalisation } }, idleInhibitWhenAudio, idleInhibitWhenCharging, idleLockBeforeSleep, idleTimeouts }, null, 2) + "\n");
+        saveQueued = true;
+        if (!writing)
+            writeState();
+    }
+
+    function writeState(): void {
+        saveQueued = false;
+        writing = true;
+        patchBottomHubAfterSave = true;
+        saveLegacy();
+    }
+
+    function saveLegacy(): void {
+        if (!loaded)
+            return;
+        storage.setText(JSON.stringify({ schema: 1, favouriteApps, hiddenApps, hiddenTrayIcons, terminalCommand, audioCommand, playbackCommand, explorerCommand, gpuType, lyricsBackend, statusIcons, quickToggles, vpn: { providers: vpn.providers, selectedProvider: vpn.selectedProvider, enabled: vpn.enabled }, actions, actionPrefix, specialPrefix, enableDangerousActions, useFuzzyApps, useFuzzyWallpapers, useFuzzyActions, useFuzzySchemes, useFuzzyVariants, smartScheme, wallpaperDirectory, wallpaperEnabled, transparencyEnabled, desktopClockEnabled, desktopClockPosition, borderThickness, borderSmoothing, useTwelveHourClock, useFahrenheit, useFahrenheitPerformance, weatherLocation, audioIncrement, brightnessIncrement, maxVolume, visualiserBars, visualiserEnabled, visualiserAutoHide, visualiserBlur, visualiserSpacing, visualiserRounding, defaultPlayer, playerAliases, toastAudioOutputChanged, toastAudioInputChanged, toastNowPlaying, toastFullscreen, maxToasts, toastChargingChanged, toastCapsLockChanged, toastNumLockChanged, toastKbLayoutChanged, toastKbLimit, toastVpnChanged, notificationExpire, suppressNotificationsInFullscreen, notificationDefaultExpireTimeout, notificationFullscreenExpireTimeout, notificationActionOnClick, notificationFullscreenMode, notificationClearThreshold, notificationExpandThreshold, notificationGroupPreviewNum, notificationOpenExpanded, toastDndChanged, toastGameModeChanged, lockRecolourLogo, lockHideNotifs, lockEnableFprint, lockMaxFprintTries, lockEnableHowdy, lockMaxHowdyTries, lockTriggerHowdyOnWake, vimKeybinds, workspacesShown, dashboardMediaUpdateInterval, dashboardResourceUpdateInterval, nexusWallpapersPerRow, nexusMaxNetworksShown, nexusNetworkRescanInterval, dashboard: { enabled: dashboard.enabled, showOnHover: dashboard.showOnHover, showDashboard: dashboard.showDashboard, showMedia: dashboard.showMedia, showPerformance: dashboard.showPerformance, showWeather: dashboard.showWeather, dragThreshold: dashboard.dragThreshold, performance: { showCpu: dashboard.performance.showCpu, showGpu: dashboard.performance.showGpu, showMemory: dashboard.performance.showMemory, showStorage: dashboard.performance.showStorage, showNetwork: dashboard.performance.showNetwork, showBattery: dashboard.performance.showBattery } }, launcher: { enabled: launcher.enabled, showOnHover: launcher.showOnHover, maxShown: launcher.maxShown, maxWallpapers: launcher.maxWallpapers, dragThreshold: launcher.dragThreshold }, sidebar: { enabled: sidebar.enabled, showOnHover: sidebar.showOnHover, dragThreshold: sidebar.dragThreshold, minHoverThreshold: sidebar.minHoverThreshold }, utilities: { enabled: utilities.enabled, cards: { keepAwake: utilities.cards.keepAwake, recorder: utilities.cards.recorder, quickToggles: utilities.cards.quickToggles } }, bar: { persistent: bar.persistent, showOnHover: bar.showOnHover, dragThreshold: bar.dragThreshold, entries: bar.entries, scrollActions: { workspaces: bar.scrollActions.workspaces, volume: bar.scrollActions.volume, brightness: bar.scrollActions.brightness }, tray: { background: bar.tray.background, compact: bar.tray.compact, recolour: bar.tray.recolour }, activeWindow: { compact: bar.activeWindow.compact, inverted: bar.activeWindow.inverted, showOnHover: bar.activeWindow.showOnHover }, popouts: { activeWindow: bar.popouts.activeWindow, statusIcons: bar.popouts.statusIcons, tray: bar.popouts.tray }, clock: { background: bar.clock.background, showDate: bar.clock.showDate, showIcon: bar.clock.showIcon }, workspaces: { activeIndicator: bar.workspaces.activeIndicator, activeTrail: bar.workspaces.activeTrail, occupiedBg: bar.workspaces.occupiedBg, showWindows: bar.workspaces.showWindows, maxWindowIcons: bar.workspaces.maxWindowIcons, showWindowsOnSpecialWorkspaces: bar.workspaces.showWindowsOnSpecialWorkspaces, perMonitorWorkspaces: bar.workspaces.perMonitorWorkspaces, displayType: bar.workspaces.displayType, label: bar.workspaces.label, occupiedLabel: bar.workspaces.occupiedLabel, activeLabel: bar.workspaces.activeLabel, capitalisation: bar.workspaces.capitalisation } }, idleInhibitWhenAudio, idleInhibitWhenCharging, idleLockBeforeSleep, idleTimeouts }, null, 2) + "\n");
     }
 
     function setFavouriteApps(values: list<string>): void {
@@ -590,9 +652,46 @@ QtObject {
 
     property var storage: FileView {
         path: root.path
-        watchChanges: true
+        // The shell owns this file. Watching our own atomic writes caused the
+        // initial snapshot to race with the new favourite-app list.
+        watchChanges: false
         printErrors: false
         onLoaded: root.load(text())
-        onFileChanged: root.load(text())
+        onSaved: {
+            if (root.patchBottomHubAfterSave) {
+                root.patchBottomHubAfterSave = false;
+                try {
+                    const payload = JSON.parse(text());
+                    payload.bottomHub = {
+                        segments: {
+                            mode: root.bottomHub.segments.mode,
+                            apps: root.bottomHub.segments.apps,
+                            tray: root.bottomHub.segments.tray,
+                            status: root.bottomHub.segments.status
+                        },
+                        statusCluster: {
+                            audio: root.bottomHub.statusCluster.audio,
+                            network: root.bottomHub.statusCluster.network,
+                            bluetooth: root.bottomHub.statusCluster.bluetooth,
+                            battery: root.bottomHub.statusCluster.battery
+                        }
+                    };
+                    payload.displayCalibration = {
+                        enabled: root.colorCalibrationEnabled,
+                        temperature: root.colorTemperature,
+                        gamma: root.colorGamma
+                    };
+                    setText(JSON.stringify(payload, null, 2) + "\n");
+                    return;
+                } catch (_) {}
+            }
+            root.writing = false;
+            if (root.saveQueued)
+                root.writeState();
+        }
+        onSaveFailed: {
+            root.writing = false;
+            root.patchBottomHubAfterSave = false;
+        }
     }
 }

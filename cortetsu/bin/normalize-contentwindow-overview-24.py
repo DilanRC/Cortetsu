@@ -29,7 +29,7 @@ SCRIM_UPSTREAM = (
     "panels.popouts.detachedMode !== \"\" ? 0.5 : 0"
 )
 SCRIM_TARGET = (
-    "        opacity: root.screenState.overview ? 0.58 : "
+    "        opacity: root.screenState.overview ? CortetsuDesign.scrimOpacity : "
     "((root.screenState.session && Config.session.enabled) || "
     "panels.popouts.detachedMode !== \"\" ? 0.5 : 0)"
 )
@@ -114,7 +114,12 @@ def normalize(root: Path) -> bool:
         "            root.screenState.overview = false;\n",
         "onCleared/overview",
     )
-    after = replace_recognized_line(after, SCRIM_UPSTREAM, SCRIM_TARGET, "opacity: root.screenState.overview ? 0.58")
+    after = replace_recognized_line(
+        after,
+        SCRIM_UPSTREAM,
+        SCRIM_TARGET,
+        "opacity: root.screenState.overview ? CortetsuDesign.scrimOpacity",
+    )
 
     if after == before:
         return False

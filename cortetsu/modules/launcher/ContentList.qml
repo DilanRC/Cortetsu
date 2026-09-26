@@ -10,7 +10,7 @@ import "../CortetsuText.qml"
 import "../CortetsuIcon.qml"
 import ".."
 import "../../components"
-import qs.utils
+import "../../utils"
 
 Item {
     id: root
@@ -125,10 +125,10 @@ Item {
         anchors.verticalCenter: parent.verticalCenter
         width: 360
         icon: root.state === "wallpapers" ? "wallpaper_slideshow" : "manage_search"
-        title: root.state === "wallpapers" ? qsTr("No wallpapers found") : qsTr("No results")
+        title: root.state === "wallpapers" ? qsTr("No se encontraron fondos") : qsTr("Sin resultados")
         detail: root.state === "wallpapers" && CortetsuWallpapers.list.length === 0
-            ? qsTr("Try putting some wallpapers in %1").arg(Paths.shortenHome(CortetsuWallpapers.wallsdir))
-            : qsTr("Try searching for something else")
+            ? qsTr("Coloca algunos fondos en %1").arg(Paths.shortenHome(CortetsuWallpapers.wallsdir))
+            : qsTr("Prueba con otra búsqueda")
 
         Behavior on opacity {
             CortetsuAnim {
@@ -150,18 +150,18 @@ Item {
         visible: root.listLoading
         kind: "loading"
         icon: "sync"
-        title: qsTr("Loading wallpapers")
-        detail: qsTr("Preparing the wallpaper library")
+        title: qsTr("Cargando fondos")
+        detail: qsTr("Preparando la biblioteca de fondos")
     }
 
     Behavior on implicitWidth {
-        enabled: root.screenState.launcher
+        enabled: root.screenState?.launcher ?? false
 
         CortetsuAnim {}
     }
 
     Behavior on implicitHeight {
-        enabled: root.screenState.launcher
+        enabled: root.screenState?.launcher ?? false
 
         CortetsuAnim {}
     }

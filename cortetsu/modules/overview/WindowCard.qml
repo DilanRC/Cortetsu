@@ -4,7 +4,7 @@ import QtQuick
 import QtQuick.Controls
 import Quickshell
 import Quickshell.Wayland
-import qs.utils
+import "../../utils"
 import ".."
 import "../CortetsuDesign.js" as CortetsuDesign
 import "../CortetsuTypography.js" as CortetsuTypography
@@ -77,11 +77,14 @@ Item {
     implicitHeight: previewHeight + 60
 
     opacity: pointer.drag.active ? 0.55 : 1
-    scale: selected ? 1.018 : pointer.containsMouse ? 1.008 : 1
+    property real visualScale: selected ? 1.018 : pointer.containsMouse ? 1.008 : 1
+    // Keep the card's grid cell, drag source and pointer target stable. The
+    // depth cue is applied to painted layers below instead of the root item.
+    scale: 1
 
-    Behavior on scale {
+    Behavior on visualScale {
         NumberAnimation {
-            duration: 115
+            duration: CortetsuDesign.motionFastMs
             easing.type: Easing.OutCubic
         }
     }
@@ -90,6 +93,7 @@ Item {
         id: cardBg
 
         anchors.fill: parent
+        scale: root.visualScale
 
         radius: CortetsuDesign.radiusLarge
 
@@ -129,6 +133,7 @@ Item {
     Rectangle {
         id: preview
         clip: true
+        scale: root.visualScale
 
         anchors.top: parent.top
         anchors.left: parent.left
@@ -191,7 +196,7 @@ Item {
 
                 CortetsuText {
                     id: selectedLabel
-                    text: qsTr("Selected")
+                    text: qsTr("Seleccionada")
                     color: CortetsuDesign.colorOnSecondaryContainer
                     textSize: CortetsuTypography.labelSmallPx
                 }
@@ -346,8 +351,8 @@ Item {
 
                 ToolTip.visible: floatMouse.containsMouse || parent.activeFocus
                 ToolTip.text: root.client?.lastIpcObject?.floating
-                    ? qsTr("Tile window")
-                    : qsTr("Float window")
+                    ? qsTr("Acoplar ventana")
+                    : qsTr("Flotar ventana")
                 ToolTip.delay: CortetsuDesign.motionDeliberateMs
 
                 Keys.onEnterPressed:
@@ -412,7 +417,7 @@ Item {
                 }
 
                 ToolTip.visible: closeMouse.containsMouse || parent.activeFocus
-                ToolTip.text: qsTr("Close window")
+                ToolTip.text: qsTr("Cerrar ventana")
                 ToolTip.delay: CortetsuDesign.motionDeliberateMs
 
                 Keys.onEnterPressed:
@@ -429,6 +434,7 @@ Item {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: parent.bottom
+        scale: root.visualScale
 
         anchors.leftMargin: 13
         anchors.rightMargin: 13

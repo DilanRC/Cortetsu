@@ -2,7 +2,6 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Bluetooth
-import Quickshell.Services.UPower
 import "../.."
 import "../../../services"
 import "../../CortetsuDesign.js" as CortetsuDesign
@@ -49,9 +48,9 @@ Rectangle {
                             return CortetsuNetwork.activeEthernet ? "󰈀" : (CortetsuNetwork.active ? "󰖩" : "󰖪");
                         if (modelData === "bluetooth")
                             return !Bluetooth.defaultAdapter?.enabled ? "󰂲" : (Bluetooth.devices.values.some(d => d.connected) ? "󰂱" : "󰂯");
-                        if (!UPower.displayDevice.isLaptopBattery)
+                        if (!CortetsuPower.hasBattery)
                             return "󰁹";
-                        return UPower.displayDevice.percentage > 0.2 ? "󰁹" : "󰂃";
+                        return CortetsuPower.value > 0.2 ? "󰁹" : "󰂃";
                     }
                     color: root.colour
                     font.family: "Material Symbols Rounded"

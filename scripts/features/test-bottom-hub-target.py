@@ -49,10 +49,10 @@ def content_window(
         f"            root.screenState.{flag} = false;\n" for flag in cleared_flags
     )
 
-    opacity = "opacity: root.screenState.overview ? 0.58 : 0"
+    opacity = "opacity: root.screenState.overview ? CortetsuDesign.scrimOpacity : 0"
     if "clipboard" in flags and clipboard_scrim:
         opacity = (
-            "opacity: root.screenState.overview ? 0.58 : "
+            "opacity: root.screenState.overview ? CortetsuDesign.scrimOpacity : "
             "(root.screenState.clipboard ? 0.48 : 0)"
         )
 

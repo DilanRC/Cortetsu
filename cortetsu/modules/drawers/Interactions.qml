@@ -4,8 +4,8 @@ import Quickshell
 import ".."
 import "../../components"
 import "../../components/controls"
-import qs.modules.bar as Bar
-import qs.modules.bar.popouts as BarPopouts
+import "../bar" as Bar
+import "../bar/popouts" as BarPopouts
 
 CustomMouseArea {
     id: root
@@ -22,6 +22,18 @@ CustomMouseArea {
     property bool dashboardShortcutActive
     property bool osdShortcutActive
     property bool utilitiesShortcutActive
+    property bool osdEdgePending
+
+    Timer {
+        id: osdEdgeOpenTimer
+        interval: 180
+        onTriggered: {
+            if (!root.pressed && root.osdEdgePending && !root.fullscreen) {
+                root.screenState.osd = true;
+                root.osdShortcutActive = true;
+            }
+        }
+    }
 
     function withinPanelHeight(panel: Item, x: real, y: real): bool {
         const panelY = root.borderThickness + panel.y;
@@ -72,6 +84,8 @@ CustomMouseArea {
 
     onPressed: event => dragStart = Qt.point(event.x, event.y)
     onContainsMouseChanged: {
+        if (CortetsuShellState.screenshotActive)
+            return;
         if (!containsMouse) {
             // Only hide if not activated by shortcut
             if (!osdShortcutActive) {
@@ -85,7 +99,11 @@ CustomMouseArea {
             if (!utilitiesShortcutActive)
                 screenState.utilities = false;
 
-            if (!popouts.currentName.startsWith("traymenu") || ((popouts.current as StackView)?.depth ?? 0) <= 1) {
+            // An attached BottomHub popout is owned by the trigger window
+            // until the shared hover controller closes it. Losing the full
+            // drawer window's pointer must not cancel that handoff.
+            if (!popouts.bottomAttached
+                    && (!popouts.currentName.startsWith("traymenu") || ((popouts.current as StackView)?.depth ?? 0) <= 1)) {
                 popouts.hasCurrent = false;
                 popouts.bottomAttached = false;
                 bar.closeTray();
@@ -94,19 +112,25 @@ CustomMouseArea {
             if (CortetsuOverlayConfig.bar.showOnHover)
                 bar.isHovered = false;
 
-            if (false && CortetsuOverlayConfig.sidebar.showOnHover)
-                screenState.sidebar = false;
         }
     }
 
     onPositionChanged: event => {
         if (popouts.isDetached)
             return;
+        if (CortetsuShellState.screenshotActive)
+            return;
 
         const x = event.x;
         const y = event.y;
         const dragX = x - dragStart.x;
         const dragY = y - dragStart.y;
+
+        root.osdEdgePending = x >= width - 6;
+        if (root.osdEdgePending && !root.pressed && !root.screenState.osd)
+            osdEdgeOpenTimer.restart();
+        else if (!root.osdEdgePending)
+            osdEdgeOpenTimer.stop();
 
         if (fullscreen) {
             root.panels.osd.hovered = inRightPanel(panels.osdWrapper, x, y);
@@ -139,16 +163,6 @@ CustomMouseArea {
                 root.panels.osd.hovered = true;
             }
 
-            const showSidebar = false;
-
-            // Show sidebar on hover (top-right corner, bounded by notification panel height)
-            if (false && CortetsuOverlayConfig.sidebar.showOnHover) {
-                const sidebarTriggerY = Math.max(CortetsuOverlayConfig.sidebar.minHoverThreshold, panels.notifications.y + panels.notifications.height + borderThickness);
-                const showSidebarHover = x > Math.min(width - CortetsuOverlayConfig.border.minThickness, bar.implicitWidth + panels.sidebar.x) && y <= sidebarTriggerY;
-                if (showSidebarHover && !screenState.sidebar)
-                    screenState.sidebar = true;
-            }
-
             // Show/hide session on drag
             if (pressed && inRightPanel(panels.sessionWrapper, dragStart.x, dragStart.y) && withinPanelHeight(panels.sessionWrapper, x, y)) {
                 if (dragX < -CortetsuOverlayConfig.session.dragThreshold)
@@ -156,12 +170,6 @@ CustomMouseArea {
                 else if (dragX > CortetsuOverlayConfig.session.dragThreshold)
                     screenState.session = false;
 
-                // Show sidebar on drag if in session area and session is nearly fully visible
-                if (showSidebar && panels.session.offsetScale <= 0 && dragX < -CortetsuOverlayConfig.sidebar.dragThreshold)
-                    screenState.sidebar = true;
-            } else if (showSidebar && dragX < -CortetsuOverlayConfig.sidebar.dragThreshold) {
-                // Show sidebar on drag if not in session area
-                screenState.sidebar = true;
             }
         } else {
             const outOfSidebar = x < width - panels.sidebar.width * (1 - panels.sidebar.offsetScale);
@@ -186,22 +194,6 @@ CustomMouseArea {
                     screenState.session = false;
             }
 
-            // Show/hide sidebar on hover
-            if (false && CortetsuOverlayConfig.sidebar.showOnHover && !pressed) {
-                const sidebarTriggerY = Math.max(CortetsuOverlayConfig.sidebar.minHoverThreshold, panels.notifications.y + panels.notifications.height + borderThickness);
-                const showSidebarHover = x > Math.min(width - CortetsuOverlayConfig.border.minThickness, bar.implicitWidth + panels.sidebar.x) && y <= sidebarTriggerY;
-                if (showSidebarHover && !screenState.sidebar) {
-                    screenState.sidebar = true;
-                } else {
-                    const inSidebarArea = inRightPanel(panels.sidebar, x, y) || inRightPanel(panels.sessionWrapper, x, y);
-                    if (!inSidebarArea)
-                        screenState.sidebar = false;
-                }
-            }
-
-            // Hide sidebar on drag
-            if (false && pressed && inRightPanel(panels.sidebar, dragStart.x, 0) && dragX > CortetsuOverlayConfig.sidebar.dragThreshold)
-                screenState.sidebar = false;
         }
 
         // Show launcher on hover, or show/hide on drag if hover is disabled

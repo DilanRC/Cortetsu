@@ -15,7 +15,7 @@ Item {
     property var cpuPowerHistory: []
     property var amdPowerHistory: []
     property var nvidiaPowerHistory: []
-    property string statusText: qsTr("Collecting energy samples…")
+    property string statusText: qsTr("Recopilando muestras de energía…")
 
     readonly property string helperPath:
         StandardPaths.writableLocation(StandardPaths.HomeLocation) +
@@ -54,12 +54,12 @@ Item {
     function batteryEstimate(): string {
         const status = String(battery?.status ?? "").toLowerCase();
         if (status === "discharging" && battery?.remaining_minutes !== null && battery?.remaining_minutes !== undefined)
-            return qsTr("Estimated remaining: %1").arg(duration(battery.remaining_minutes));
+            return qsTr("Tiempo restante estimado: %1").arg(duration(battery.remaining_minutes));
         if (status === "charging" && battery?.time_to_full_minutes !== null && battery?.time_to_full_minutes !== undefined)
-            return qsTr("Estimated to full: %1").arg(duration(battery.time_to_full_minutes));
+            return qsTr("Tiempo estimado para completar: %1").arg(duration(battery.time_to_full_minutes));
         if (status === "full")
-            return qsTr("Battery full");
-        return qsTr("Runtime estimate unavailable at the current power state");
+            return qsTr("Batería completa");
+        return qsTr("Estimación no disponible con el estado de energía actual");
     }
 
     function refresh(): void {
@@ -90,9 +90,9 @@ Item {
                     root.cpuPowerHistory = root.pushHistory(root.cpuPowerHistory, parsed?.cpu?.package_power_w);
                     root.amdPowerHistory = root.pushHistory(root.amdPowerHistory, parsed?.gpus?.[0]?.power_w);
                     root.nvidiaPowerHistory = root.pushHistory(root.nvidiaPowerHistory, parsed?.gpus?.[1]?.power_w);
-                    root.statusText = qsTr("Live energy telemetry · 2 s cadence");
+                    root.statusText = qsTr("Telemetría de energía en vivo · intervalo de 2 s");
                 } catch (error) {
-                    root.statusText = qsTr("Energy telemetry unavailable");
+                    root.statusText = qsTr("Telemetría de energía no disponible");
                     console.warn(`Hardware Center Energy: invalid JSON: ${error}`);
                 }
             }
@@ -114,25 +114,25 @@ Item {
                 model: [
                     {
                         icon: root.ac?.online ? "power" : "battery_5_bar",
-                        title: qsTr("Power source"),
-                        value: root.ac?.online ? qsTr("AC connected") : qsTr("Battery"),
+                        title: qsTr("Fuente de energía"),
+                        value: root.ac?.online ? qsTr("Conectado a la corriente") : qsTr("Batería"),
                         detail: root.statusText
                     },
                     {
                         icon: "battery_charging_full",
-                        title: qsTr("Battery energy"),
+                        title: qsTr("Energía de batería"),
                         value: root.battery?.present
                             ? `${root.number(root.battery?.energy_now_wh, 1)} / ${root.number(root.battery?.energy_full_wh, 1)} Wh`
-                            : qsTr("Not detected"),
+                            : qsTr("No detectada"),
                         detail: root.batteryEstimate()
                     },
                     {
                         icon: "electric_bolt",
-                        title: qsTr("Current power"),
+                        title: qsTr("Potencia actual"),
                         value: `${root.number(root.cpu?.package_power_w, 1)} W CPU · ${root.number(root.power?.total_gpu_power_w, 1)} W GPU`,
                         detail: root.battery?.present
                             ? `${root.number(root.battery?.power_w, 1)} W battery · ${root.number(root.battery?.health_percent, 1)}% health`
-                            : qsTr("Battery power telemetry unavailable")
+                            : qsTr("Telemetría de potencia de batería no disponible")
                     }
                 ]
 
@@ -207,11 +207,11 @@ Item {
             HistoryGraph {
                 width: (parent.width - 12) / 2
                 height: (parent.height - 12) / 2
-                title: qsTr("Battery power")
+                title: qsTr("Potencia de batería")
                 icon: "battery_charging_full"
                 headline: `${root.number(root.battery?.power_w, 2)} W`
                 subtitle: root.batteryEstimate()
-                legendA: qsTr("Battery flow")
+                legendA: qsTr("Flujo de batería")
                 seriesA: root.batteryPowerHistory
                 unit: "W"
                 colourA: CortetsuDesign.colorPrimary
@@ -220,13 +220,13 @@ Item {
             HistoryGraph {
                 width: (parent.width - 12) / 2
                 height: (parent.height - 12) / 2
-                title: qsTr("CPU package power")
+                title: qsTr("Potencia del paquete de CPU")
                 icon: "memory"
                 headline: root.cpu?.package_power_w !== null && root.cpu?.package_power_w !== undefined
                     ? `${root.number(root.cpu.package_power_w, 2)} W`
-                    : qsTr("Not exposed")
+                    : qsTr("No expuesta")
                 subtitle: `${root.cpu?.driver ?? "—"} · ${root.cpu?.platform_profile ?? "—"}`
-                legendA: qsTr("CPU package")
+                legendA: qsTr("Paquete de CPU")
                 seriesA: root.cpuPowerHistory
                 unit: "W"
                 colourA: CortetsuDesign.colorSecondary
@@ -235,11 +235,11 @@ Item {
             HistoryGraph {
                 width: (parent.width - 12) / 2
                 height: (parent.height - 12) / 2
-                title: qsTr("AMD GPU power")
+                title: qsTr("Potencia de GPU AMD")
                 icon: "view_in_ar"
                 headline: `${root.number(root.gpuAt(0)?.power_w, 2)} W`
                 subtitle: `${root.gpuAt(0)?.runtime_status ?? "—"} · ${root.number(root.gpuAt(0)?.temp_c, 1)} °C`
-                legendA: qsTr("AMD GPU")
+                legendA: qsTr("GPU AMD")
                 seriesA: root.amdPowerHistory
                 unit: "W"
                 colourA: CortetsuDesign.colorPrimary
@@ -248,11 +248,11 @@ Item {
             HistoryGraph {
                 width: (parent.width - 12) / 2
                 height: (parent.height - 12) / 2
-                title: qsTr("NVIDIA GPU power")
+                title: qsTr("Potencia de GPU NVIDIA")
                 icon: "sports_esports"
                 headline: `${root.number(root.gpuAt(1)?.power_w, 2)} W`
                 subtitle: `${root.gpuAt(1)?.pstate ?? "—"} · ${root.number(root.gpuAt(1)?.graphics_clock_mhz, 0)} MHz · ${root.number(root.gpuAt(1)?.temp_c, 1)} °C`
-                legendA: qsTr("NVIDIA GPU")
+                legendA: qsTr("GPU NVIDIA")
                 seriesA: root.nvidiaPowerHistory
                 unit: "W"
                 colourA: CortetsuDesign.colorTertiary

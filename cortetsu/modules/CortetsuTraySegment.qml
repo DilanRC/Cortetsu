@@ -1,7 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import QtQuick.Controls
+import "../components"
 import "CortetsuDesign.js" as CortetsuDesign
 import "CortetsuTypography.js" as CortetsuTypography
 
@@ -12,7 +12,7 @@ Item {
 
     signal hoverRequested(string itemId, real centerX)
     signal activateRequested(string itemId)
-    signal secondaryRequested(string itemId)
+    signal secondaryRequested(string itemId, real centerX)
 
     implicitWidth: trayRow.implicitWidth + CortetsuDesign.spacingStandard
     implicitHeight: 52
@@ -87,34 +87,26 @@ Item {
                         if (event.button === Qt.LeftButton)
                             root.activateRequested(trayItem.modelData.id);
                         else
-                            root.secondaryRequested(trayItem.modelData.id);
+                            root.secondaryRequested(
+                                trayItem.modelData.id,
+                                trayItem.x + trayItem.width / 2
+                            );
                     }
                 }
 
                 Keys.onEnterPressed: root.activateRequested(trayItem.modelData.id)
                 Keys.onReturnPressed: root.activateRequested(trayItem.modelData.id)
                 Keys.onSpacePressed: root.activateRequested(trayItem.modelData.id)
-                Keys.onMenuPressed: root.secondaryRequested(trayItem.modelData.id)
+                Keys.onMenuPressed: root.secondaryRequested(
+                    trayItem.modelData.id,
+                    trayItem.x + trayItem.width / 2
+                )
 
-                ToolTip {
-                    id: trayTooltip
-                    parent: trayItem
-                    visible: trayItem.modelData.title?.length > 0
-                        && (trayMouse.containsMouse || trayItem.activeFocus)
-                    delay: CortetsuDesign.motionDeliberateMs
+                CortetsuTooltip {
+                    target: trayItem
+                    hovered: trayMouse.containsMouse
+                    focused: trayItem.activeFocus
                     text: trayItem.modelData.title
-
-                    background: CortetsuSurface {
-                        radiusValue: CortetsuDesign.radiusSmall
-                        baseColor: CortetsuDesign.colorTetsu
-                        outlined: true
-                    }
-
-                    contentItem: CortetsuText {
-                        text: trayTooltip.text
-                        textSize: CortetsuTypography.labelSmallPx
-                        color: CortetsuDesign.colorWashi
-                    }
                 }
             }
         }

@@ -88,7 +88,7 @@ AFTER_BASE_PATCH = '''StyledWindow {
 
     StyledRect {
         anchors.fill: parent
-        opacity: root.screenState.overview ? 0.58 : ((root.screenState.session && Config.session.enabled) || panels.popouts.detachedMode !== "" ? 0.5 : 0)
+        opacity: root.screenState.overview ? CortetsuDesign.scrimOpacity : ((root.screenState.session && Config.session.enabled) || panels.popouts.detachedMode !== "" ? 0.5 : 0)
         color: Colours.palette.m3scrim
 
         Behavior on opacity {
@@ -109,6 +109,12 @@ def block_between(text: str, start: str, end: str) -> str:
 
 def main() -> None:
     text = (REPO / "cortetsu/modules/drawers/ContentWindow.qml").read_text(encoding="utf-8")
+    regions = (REPO / "cortetsu/modules/drawers/Regions.qml").read_text(encoding="utf-8")
+
+    assert 'import "../bar" as Bar' in text
+    assert "Bar.BarWrapper {" in text
+    assert "\n        BarWrapper {" not in text
+    print("PASS bar-import-boundary")
 
     fullscreen = block_between(text, "onHasFullscreenChanged: {", "panels.popouts.close();")
     escape = block_between(text, 'sequence: "Escape"', "        }\n    }")
@@ -129,12 +135,36 @@ def main() -> None:
         )
     print("PASS onCleared-closes-all-retained-overlays")
 
-    assert "screenState.cortetsuState?.requiresFullInputMask" in text
-    assert "screenState.cortetsuState?.requiresWindowKeyboardFocus" in text
+    assert "screenState?.cortetsuState?.requiresFullInputMask" in text
+    assert "screenState?.cortetsuState?.requiresWindowKeyboardFocus" in text
     assert "WlrKeyboardFocus.Exclusive" in text
-    assert "if (panels.popouts.hasCurrent)" in focus_grab
-    assert "root.screenState.cortetsuState?.overview ? 0.58" in text
+    assert "if (s.cortetsuState?.retainedOverlayOpen)\n                return false;" in focus_grab, (
+        "retained surfaces own their separate overlay input and must not be cleared "
+        "by the drawers focus grab"
+    )
+    assert "if (panels.popouts.isDetached || panels.popouts.currentName === \"wirelesspassword\")" in focus_grab
+    assert "root.screenState?.cortetsuState?.overview ? CortetsuDesign.scrimOpacity" in text
     print("PASS input-mask-focus-scrim-still-wired")
+
+    # Panels can be null while the QML graph starts or shuts down. Regions
+    # must then subtract an empty geometry instead of dereferencing a null
+    # alias and leaving the input mask in an invalid state.
+    assert "property Item panel: null" in regions
+    for expression in (
+        "panel?.x ?? 0",
+        "panel?.y ?? 0",
+        "panel?.width ?? 0",
+        "panel?.height ?? 0",
+        "panel?.dockOffset ?? 0",
+    ):
+        assert expression in regions, expression
+    assert "required property Item panel" not in regions
+    print("PASS drawer-regions-null-safe")
+
+    assert "property Item panel: null" in text
+    for expression in ("panel?.visible ?? false", "panel?.x ?? 0", "panel?.width ?? 0"):
+        assert expression in text, expression
+    print("PASS drawer-panel-background-null-safe")
 
     print("ContentWindow focus-grab parity tests: OK")
 

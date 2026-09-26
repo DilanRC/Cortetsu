@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import Iterable
 
 SCHEMA = 1
+HYPRLAND_LOADER_TARGET = ".config/hypr/hyprland.lua"
 
 
 class DotfilesError(RuntimeError):
@@ -236,6 +237,24 @@ def atomic_symlink(target: Path, link: Path) -> None:
         temporary.unlink(missing_ok=True)
 
 
+def stable_loader_text(stable: Path) -> str:
+    """Keep Hyprland's config filename stable across generation promotion."""
+    encoded = json.dumps(str(stable))
+    return (
+        "-- Cortetsu stable loader; the target is promoted atomically.\n"
+        f"dofile({encoded})\n"
+    )
+
+
+def points_to_stable_loader(target: Path, stable: Path) -> bool:
+    if target.is_symlink() or not target.is_file() or target.name != "hyprland.lua":
+        return False
+    try:
+        return target.read_text(encoding="utf-8") == stable_loader_text(stable)
+    except OSError:
+        return False
+
+
 def resolved_link(link: Path) -> Path | None:
     if not link.is_symlink():
         return None
@@ -259,6 +278,8 @@ def stable_target(data: Path, target: str) -> Path:
 
 
 def points_to_stable(target_path: Path, stable: Path) -> bool:
+    if target_path.name == "hyprland.lua":
+        return points_to_stable_loader(target_path, stable)
     if not target_path.is_symlink():
         return False
     raw = Path(os.readlink(target_path))
@@ -355,7 +376,10 @@ def apply(repo: Path, profile_name: str | None = None) -> int:
             target.parent.mkdir(parents=True, exist_ok=True)
             temporary = target.with_name(f"{target.name}.tmp.{os.getpid()}")
             temporary.unlink(missing_ok=True)
-            os.symlink(str(stable), temporary)
+            if entry.target == HYPRLAND_LOADER_TARGET:
+                temporary.write_text(stable_loader_text(stable), encoding="utf-8")
+            else:
+                os.symlink(str(stable), temporary)
             os.replace(temporary, target)
             changed.append(target)
     except Exception:

@@ -25,6 +25,8 @@ MouseArea {
     property real rsy: Math.min(sy, ey)
     property real sw: Math.abs(sx - ex)
     property real sh: Math.abs(sy - ey)
+    property var pendingCommand: []
+    readonly property real dragThreshold: 8
 
     readonly property var clients: {
         const monitor = CortetsuHypr.monitorFor(screen);
@@ -61,24 +63,44 @@ MouseArea {
     }
 
     function capture(): void {
-        const x = Math.ceil(screen.x + rsx);
-        const y = Math.ceil(screen.y + rsy);
-        const width = Math.floor(sw);
-        const height = Math.floor(sh);
+        const left = Math.max(0, Math.min(screen.width, rsx));
+        const top = Math.max(0, Math.min(screen.height, rsy));
+        const right = Math.max(left, Math.min(screen.width, rsx + sw));
+        const bottom = Math.max(top, Math.min(screen.height, rsy + sh));
+        const x = Math.round(screen.x + left);
+        const y = Math.round(screen.y + top);
+        const width = Math.round(right - left);
+        const height = Math.round(bottom - top);
         if (width <= 0 || height <= 0) {
             close();
             return;
         }
         const path = `/tmp/cortetsu-picker-${Quickshell.processId}-${Date.now()}.png`;
         const geometry = `${x},${y} ${width}x${height}`;
-        const action = root.state.clipboardOnly
-            ? `grim -g '${geometry}' '${path}' && wl-copy --type image/png < '${path}' && notify-send -a cortetsu -i '${path}' 'Screenshot taken' 'Screenshot copied to clipboard'`
-            : `grim -g '${geometry}' '${path}' && swappy -f '${path}'`;
-        Quickshell.execDetached(["sh", "-c", action]);
+        const command = ["cortetsu-area-capture", geometry, path];
+        if (root.state.clipboardOnly)
+            command.push("--clipboard");
+        root.pendingCommand = command;
         close();
+        captureTimer.restart();
     }
 
     function close(): void { root.state.close(); }
+
+    // Let the layer-shell commit the hidden state before grim reads the
+    // compositor. Without this frame, screenshots occasionally contain the
+    // picker's dimming layer and look darker than the selected desktop area.
+    Timer {
+        id: captureTimer
+        interval: 120
+        repeat: false
+        onTriggered: {
+            if (root.pendingCommand.length > 0) {
+                Quickshell.execDetached(root.pendingCommand);
+                root.pendingCommand = [];
+            }
+        }
+    }
 
     anchors.fill: parent
     opacity: root.state.active ? 1 : 0
@@ -106,16 +128,32 @@ MouseArea {
     onPressed: event => {
         ssx = event.x;
         ssy = event.y;
+        sx = event.x;
+        sy = event.y;
+        ex = event.x;
+        ey = event.y;
         onClient = false;
     }
-    onReleased: root.capture()
+    onReleased: event => {
+        if (Math.abs(event.x - ssx) < root.dragThreshold
+                && Math.abs(event.y - ssy) < root.dragThreshold) {
+            root.checkClientRects(event.x, event.y);
+            if (!root.onClient) {
+                root.sx = 0;
+                root.sy = 0;
+                root.ex = root.screen.width;
+                root.ey = root.screen.height;
+            }
+        }
+        root.capture();
+    }
     onPositionChanged: event => {
         if (pressed) {
             sx = ssx;
             sy = ssy;
             ex = event.x;
             ey = event.y;
-        } else {
+        } else if (!root.state.freeze) {
             checkClientRects(event.x, event.y);
         }
     }
@@ -151,7 +189,7 @@ MouseArea {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: parent.top
         anchors.topMargin: CortetsuDesign.spacingComfortable
-        text: root.state.freeze ? qsTr("Select an area to capture") : qsTr("Select an area")
+        text: root.state.freeze ? qsTr("Selecciona un área para capturar") : qsTr("Selecciona un área")
         textSize: CortetsuTypography.bodyLargePx
         color: CortetsuDesign.colorOnSurface
     }

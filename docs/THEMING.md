@@ -13,7 +13,7 @@ The repository copy under `dotfiles/home/.config/cortetsu/ui.toml` is compiled b
 - `cortetsu/modules/CortetsuDesign.js` for Cortetsu-owned QML tokens.
 - `dotfiles/generated/theme/home/.config/kitty/cortetsu-theme.conf` for Kitty.
 - GTK 3 and GTK 4 `cortetsu-colors.css` token files.
-- `dotfiles/generated/theme/home/.config/kdeglobals` for KDE/Qt applications that consume KDE colours.
+- `dotfiles/generated/theme/home/.local/share/color-schemes/Cortetsu.colors` for the KDE palette.
 
 `cortetsu theme check` is a deterministic build check. CI and `cortetsu install` both fail if generated files do not match `ui.toml`.
 
@@ -36,7 +36,9 @@ and disables Caelestia mutations for:
 
 Other optional Caelestia integrations and the existing postHook are preserved until Cortetsu explicitly replaces them. The migration is idempotent.
 
-This boundary prevents wallpaper/scheme changes from writing through Cortetsu-managed symlinks into an immutable dotfiles generation.
+Before `cortetsu install` or `cortetsu dotfiles apply` promotes a dotfiles generation, it runs `cortetsu theme adopt`. That detaches a `~/.config/kdeglobals` symlink only when it points into a Cortetsu generation. It preserves the file and backs it up at `~/.local/share/cortetsu/migrations/<timestamp>/theme-ownership/kdeglobals`. External or broken symlinks stop the operation without being modified. A regular `kdeglobals` remains user-editable, and only its `[General] ColorScheme` value is set to `Cortetsu`.
+
+This boundary prevents KDE from writing application settings through a Cortetsu-managed symlink into an immutable dotfiles generation.
 
 ## 3. Kitty
 
@@ -54,13 +56,11 @@ Thunar styling consumes those symbolic roles (`@window_bg_color`, `@card_bg_colo
 
 ## 5. KDE / Qt
 
-The managed `.config/kdeglobals` is generated from `ui.toml` and identifies itself as:
+The immutable palette file `~/.local/share/color-schemes/Cortetsu.colors` is generated from `ui.toml`. Editable `~/.config/kdeglobals` selects it with:
 
 `ColorScheme=Cortetsu`
 
-`Name=Cortetsu`
-
-The existing `qt6ct` behavioural configuration is still preserved. A later phase can replace the remaining toolkit adapter behaviour with a dedicated Cortetsu Qt style/plugin without changing the palette source.
+KDE continues to own its application preferences in `kdeglobals`; Cortetsu changes only the selected palette. The existing `qt6ct` behavioural configuration is still preserved. A later phase can replace the remaining toolkit adapter behaviour with a dedicated Cortetsu Qt style/plugin without changing the palette source.
 
 ## 6. Shell visual contract
 

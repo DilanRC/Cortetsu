@@ -7,7 +7,7 @@ import "../CortetsuDesign.js" as CortetsuDesign
 Item {
     id: root
     required property var screenState
-    readonly property bool shouldBeActive: screenState.cortetsuState?.calendar ?? false
+    readonly property bool shouldBeActive: screenState?.cortetsuState?.calendar ?? false
     property real offsetScale: shouldBeActive ? 0 : 1
 
     visible: offsetScale < 1
