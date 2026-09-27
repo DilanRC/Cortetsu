@@ -264,16 +264,26 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-startup-test-") as temp:
     assert lookup["audio.service"] == [app.command_key("user-audio --start")]
 
     expected_states = {
-        "enabled": ("persistent", True, True), "linked": ("persistent", True, True),
-        "enabled-runtime": ("runtime", True, True), "linked-runtime": ("runtime", True, True),
-        "disabled": ("disabled", False, True), "static": ("special", False, False),
-        "indirect": ("special", False, False), "generated": ("special", False, False),
-        "transient": ("special", False, False), "alias": ("special", False, False),
-        "masked": ("special", False, False), "bad": ("special", False, False),
+        "enabled": ("persistent", True, True, True, False),
+        "linked": ("special", False, False, False, False),
+        "enabled-runtime": ("runtime", True, True, False, True),
+        "linked-runtime": ("special", False, False, False, False),
+        "disabled": ("disabled", False, True, False, False),
+        "static": ("special", False, False, False, False),
+        "indirect": ("special", False, False, False, False),
+        "generated": ("special", False, False, False, False),
+        "transient": ("special", False, False, False, False),
+        "alias": ("special", False, False, False, False),
+        "masked": ("special", False, False, False, False),
+        "bad": ("special", False, False, False, False),
     }
     for unit_state, expected in expected_states.items():
         normalized = app.normalize_unit_state(unit_state)
-        assert (normalized["category"], normalized["configured"], normalized["modifiable"]) == expected
+        assert (normalized["category"], normalized["configured"], normalized["modifiable"],
+                normalized["persistent"], normalized["runtime"]) == expected
+    assert app.normalize_unit_state("linked")["label"] == "Enlazada; disponible, sin autoinicio"
+    assert app.normalize_unit_state("linked-runtime")["label"] == (
+        "Enlazada esta sesión; disponible, sin autoinicio")
     assert app.process_is_running(["find", "*", "-type", "f"]) is None
     assert app.process_is_running(["nmcli", "monitor"]) is None
     script_path = base / "bin/cortetsu-startup"
@@ -338,6 +348,8 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-startup-test-") as temp:
     assert app.activation_reason("unknown.service", {}, "disabled")[1] == "unknown"
     assert app.activation_reason("manual.service", {"ActiveState": "active"}, "disabled") == (
         "Activa; inicio manual o activador exacto no determinado.", "unknown")
+    assert app.activation_reason("linked.service", {"WantedBy": "default.target"}, "linked") == (
+        "Unidad enlazada para disponibilidad; no está habilitada para inicio automático.", "unknown")
     assert {entry["startupPhase"] for entry in app.CORTETSU_STARTUP} == {"always-on", "conditional", "on-demand"}
     phases = {entry["id"]: entry["startupPhase"] for entry in app.CORTETSU_STARTUP}
     assert phases["cortetsu:pomodoro"] == "always-on"
@@ -399,6 +411,8 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-startup-test-") as temp:
     assert '"always-on", "conditional", "on-demand"' in startup_page
     assert 'root.stateCategory(entry) === "always-on"' in startup_page
     assert 'root.stateCategory(entry) === "conditional"' in startup_page
+    assert 'root.stateCategory(entry) === "special"' in startup_page
+    assert '["all", "persistent", "runtime", "disabled", "special", "always-on", "conditional", "on-demand"]' in startup_page
     assert "running: true" not in SCRIPT.read_text(encoding="utf-8")
 
     # A systemctl shim isolates all unit operations from the host.
@@ -419,7 +433,8 @@ case "$1" in
           ;;
         enabled.service) printf 'Id=enabled.service\\nDescription=Enabled helper\\nActiveState=active\\nUnitFileState=enabled\\nExecStart={ path=user-app ; argv[]=user-app --background ; ignore_errors=no ; }\\n\\n' ;;
         runtime.service) printf 'Id=runtime.service\\nDescription=Runtime helper\\nActiveState=inactive\\nUnitFileState=enabled-runtime\\nWantedBy=default.target\\n\\n' ;;
-        linked-runtime.service) printf 'Id=linked-runtime.service\\nDescription=Linked runtime helper\\nActiveState=inactive\\nUnitFileState=linked-runtime\\n\\n' ;;
+        linked.service) printf 'Id=linked.service\\nDescription=Linked helper\\nActiveState=inactive\\nUnitFileState=linked\\nWantedBy=default.target\\n\\n' ;;
+        linked-runtime.service) printf 'Id=linked-runtime.service\\nDescription=Linked runtime helper\\nActiveState=inactive\\nUnitFileState=linked-runtime\\nWantedBy=default.target\\n\\n' ;;
         target.service) printf 'Id=target.service\\nDescription=Target helper\\nActiveState=inactive\\nUnitFileState=enabled\\nWantedBy=default.target\\n\\n' ;;
         socket-activated.service) printf 'Id=socket-activated.service\\nDescription=Socket helper\\nActiveState=inactive\\nUnitFileState=static\\nTriggeredBy=fixture.socket\\n\\n' ;;
         timer-activated.service) printf 'Id=timer-activated.service\\nDescription=Timer helper\\nActiveState=inactive\\nUnitFileState=static\\nTriggeredBy=fixture.timer\\n\\n' ;;
@@ -443,6 +458,7 @@ esac
     state.write_text("work.service disabled enabled\nenabled.service enabled enabled\nclock.timer static -\nwait.socket disabled enabled\ngenerated.service generated -\nalias.service alias -\nindirect.service indirect -\n", encoding="utf-8")
     with state.open("a", encoding="utf-8") as unit_file:
         unit_file.write("runtime.service enabled-runtime enabled\nlinked-runtime.service linked-runtime -\ntarget.service enabled enabled\nsocket-activated.service static -\ntimer-activated.service static -\n")
+        unit_file.write("linked.service linked enabled\n")
     env_path = os.environ.get("PATH", "")
     os.environ["PATH"] = str(fake_bin) + os.pathsep + env_path
     os.environ["UNIT_STATE"] = str(state)
@@ -467,7 +483,16 @@ esac
     assert units["user-unit:runtime.service"]["startupState"] == "runtime"
     assert units["user-unit:runtime.service"]["configured"] is True
     assert units["user-unit:runtime.service"]["runtimeOnly"] is True
-    assert units["user-unit:linked-runtime.service"]["startupState"] == "runtime"
+    for linked_id, linked_label in (("linked.service", "Enlazada; disponible, sin autoinicio"),
+                                    ("linked-runtime.service", "Enlazada esta sesión; disponible, sin autoinicio")):
+        linked = units["user-unit:" + linked_id]
+        assert linked["startupState"] == "special"
+        assert linked["configured"] is False
+        assert linked["runtimeOnly"] is False
+        assert linked["modifiable"] is False
+        assert linked["startupLabel"] == linked_label
+        assert linked["reason"] == (
+            "Unidad enlazada para disponibilidad; no está habilitada para inicio automático.")
     assert units["user-unit:target.service"]["reason"] == "Instalada para iniciarse con default.target"
     assert units["user-unit:socket-activated.service"]["reason"] == (
         "Puede activarse por socket fixture.socket; no se confirma que lo haya iniciado ahora.")

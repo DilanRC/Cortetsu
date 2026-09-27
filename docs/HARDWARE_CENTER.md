@@ -52,13 +52,15 @@ calls reached from those startup callbacks. Each producer marks its registry
 entry in QML. Dynamic commands that cannot be matched exactly show an unknown
 execution state. On-demand queries stay labeled as on-demand and are excluded
 from autostart counts.
-`enabled`/`linked` are persistent;
-`enabled-runtime`/`linked-runtime` are temporary; states such as `static`,
-`indirect`, `generated`, `transient` and `alias` are not toggleable. Target
-relationships are described as installation configuration. `TriggeredBy`
-shows possible socket/timer/path activators without claiming they caused a past
-run. Startup inventory refreshes on demand and Hardware Center telemetry polling
-stops when the panel closes.
+`enabled` is persistent and `enabled-runtime` is temporary. `linked` and
+`linked-runtime` only make a unit available through a symlink; they do not
+enable automatic start, so Inicio labels them as linked and groups them with
+special, non-toggleable states. `static`, `indirect`, `generated`, `transient`
+and `alias` are also non-toggleable. Target relationships are shown as
+installation configuration only for `enabled` or `enabled-runtime` units.
+`TriggeredBy` shows possible socket/timer/path activators without claiming they
+caused a past run. Startup inventory refreshes on demand and Hardware Center
+telemetry polling stops when the panel closes.
 
 Keybind changes are written only to the user's Caelestia files. Every change
 creates a snapshot under `~/.local/share/cortetsu/upstream/snapshots/keybinds/`.

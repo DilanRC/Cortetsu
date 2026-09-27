@@ -18,8 +18,13 @@ import time
 from pathlib import Path
 
 UNIT_RE = re.compile(r"^[A-Za-z0-9_.@:-]+\.(service|socket|timer|path)$")
-PERSISTENT_UNIT_STATES = {"enabled", "linked"}
-RUNTIME_UNIT_STATES = {"enabled-runtime", "linked-runtime"}
+PERSISTENT_UNIT_STATES = {"enabled"}
+RUNTIME_UNIT_STATES = {"enabled-runtime"}
+LINKED_UNIT_STATES = {"linked", "linked-runtime"}
+LINKED_UNIT_LABELS = {
+    "linked": "Enlazada; disponible, sin autoinicio",
+    "linked-runtime": "Enlazada esta sesión; disponible, sin autoinicio",
+}
 DISABLED_UNIT_STATES = {"disabled"}
 TOGGLEABLE_UNIT_STATES = PERSISTENT_UNIT_STATES | RUNTIME_UNIT_STATES | DISABLED_UNIT_STATES
 
@@ -157,7 +162,7 @@ def normalize_unit_state(state: str) -> dict[str, object]:
     elif state in DISABLED_UNIT_STATES:
         category, label = "disabled", "Deshabilitado"
     else:
-        category, label = "special", "No administrable"
+        category, label = "special", LINKED_UNIT_LABELS.get(state, "No administrable")
     return {
         "category": category,
         "label": label,
@@ -189,6 +194,8 @@ def activation_reason(unit: str, values: dict[str, str], file_state: str) -> tup
                 "la causalidad de esta ejecución no está confirmada."), "dependency"
     if values.get("ActiveState") == "active":
         return "Activa; inicio manual o activador exacto no determinado.", "unknown"
+    if file_state in LINKED_UNIT_STATES:
+        return "Unidad enlazada para disponibilidad; no está habilitada para inicio automático.", "unknown"
     return "Configurada mediante systemd --user. Activador exacto no determinado.", "unknown"
 
 
