@@ -405,6 +405,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-startup-test-") as temp:
     registry = {source: sorted(ids) for source, ids in registry.items()}
     assert declarations == registry, (declarations, registry)
     startup_page = (repo_root / "cortetsu/modules/hardware/StartupPage.qml").read_text(encoding="utf-8")
+    startup_docs = (repo_root / "docs/HARDWARE_CENTER.md").read_text(encoding="utf-8")
     assert 'return entry.startupState ?? (entry.configured ? "persistent" : "disabled")' in startup_page
     assert "root.stateCategory(entry)" in startup_page
     assert "root.stateLabel(modelData)" in startup_page
@@ -413,12 +414,18 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-startup-test-") as temp:
     assert 'root.stateCategory(entry) === "conditional"' in startup_page
     assert 'root.stateCategory(entry) === "special"' in startup_page
     assert '["all", "persistent", "runtime", "disabled", "special", "always-on", "conditional", "on-demand"]' in startup_page
+    assert "systemctl enable --dry-run" in startup_docs
+    assert "systemctl disable --dry-run" in startup_docs
+    assert all(name in startup_docs for name in ("show", "is-enabled", "list-unit-files", "cat", "list-dependencies"))
     assert "running: true" not in SCRIPT.read_text(encoding="utf-8")
 
     # A systemctl shim isolates all unit operations from the host.
     fake_bin = base / "bin"
     put(fake_bin / "systemctl", """#!/bin/sh
+printf '%s\\n' "$*" >> "$SYSTEMCTL_LOG"
 if [ "$1" = "--user" ]; then shift; fi
+runtime=no
+if [ "$1" = "--runtime" ]; then runtime=yes; shift; fi
 case "$1" in
   list-unit-files) cat "$UNIT_STATE" ;;
   list-units) printf 'transient.service loaded active running Temporary\\n' ;;
@@ -433,6 +440,7 @@ case "$1" in
           ;;
         enabled.service) printf 'Id=enabled.service\\nDescription=Enabled helper\\nActiveState=active\\nUnitFileState=enabled\\nExecStart={ path=user-app ; argv[]=user-app --background ; ignore_errors=no ; }\\n\\n' ;;
         runtime.service) printf 'Id=runtime.service\\nDescription=Runtime helper\\nActiveState=inactive\\nUnitFileState=enabled-runtime\\nWantedBy=default.target\\n\\n' ;;
+        disabled.service) printf 'Id=disabled.service\\nDescription=Disabled helper\\nActiveState=inactive\\nUnitFileState=disabled\\nWantedBy=default.target\\n\\n' ;;
         linked.service) printf 'Id=linked.service\\nDescription=Linked helper\\nActiveState=inactive\\nUnitFileState=linked\\nWantedBy=default.target\\n\\n' ;;
         linked-runtime.service) printf 'Id=linked-runtime.service\\nDescription=Linked runtime helper\\nActiveState=inactive\\nUnitFileState=linked-runtime\\nWantedBy=default.target\\n\\n' ;;
         target.service) printf 'Id=target.service\\nDescription=Target helper\\nActiveState=inactive\\nUnitFileState=enabled\\nWantedBy=default.target\\n\\n' ;;
@@ -447,15 +455,32 @@ case "$1" in
       esac
     done
     ;;
-  enable) sed -i 's/work.service disabled/work.service enabled/' "$UNIT_STATE" ;;
-  disable) sed -i 's/work.service enabled/work.service disabled/' "$UNIT_STATE" ;;
+  enable)
+    case "$2" in
+      work.service) sed -i 's/work.service disabled/work.service enabled/' "$UNIT_STATE" ;;
+      disabled.service) sed -i 's/disabled.service disabled/disabled.service enabled/' "$UNIT_STATE" ;;
+      runtime.service) sed -i 's/runtime.service disabled/runtime.service enabled/' "$UNIT_STATE" ;;
+      *) exit 71 ;;
+    esac
+    ;;
+  disable)
+    case "$2" in
+      work.service) sed -i 's/work.service enabled/work.service disabled/' "$UNIT_STATE" ;;
+      enabled.service) sed -i 's/enabled.service enabled/enabled.service disabled/' "$UNIT_STATE" ;;
+      runtime.service)
+        [ "$runtime" = yes ] || exit 72
+        sed -i 's/runtime.service enabled-runtime/runtime.service disabled/' "$UNIT_STATE"
+        ;;
+      *) exit 73 ;;
+    esac
+    ;;
   stop) touch "$STOPPED" ;;
 esac
 """)
 
     (fake_bin / "systemctl").chmod(0o755)
     state = base / "units"
-    state.write_text("work.service disabled enabled\nenabled.service enabled enabled\nclock.timer static -\nwait.socket disabled enabled\ngenerated.service generated -\nalias.service alias -\nindirect.service indirect -\n", encoding="utf-8")
+    state.write_text("work.service disabled enabled\nenabled.service enabled enabled\ndisabled.service disabled enabled\nclock.timer static -\nwait.socket disabled enabled\ngenerated.service generated -\nalias.service alias -\nindirect.service indirect -\n", encoding="utf-8")
     with state.open("a", encoding="utf-8") as unit_file:
         unit_file.write("runtime.service enabled-runtime enabled\nlinked-runtime.service linked-runtime -\ntarget.service enabled enabled\nsocket-activated.service static -\ntimer-activated.service static -\n")
         unit_file.write("linked.service linked enabled\n")
@@ -464,6 +489,9 @@ esac
     os.environ["UNIT_STATE"] = str(state)
     stopped = base / "stopped"
     os.environ["STOPPED"] = str(stopped)
+    systemctl_log = base / "systemctl.log"
+    systemctl_log.touch()
+    os.environ["SYSTEMCTL_LOG"] = str(systemctl_log)
     outside = base / "outside.desktop"
     put(outside, "[Desktop Entry]\nName=Outside\nExec=outside\n")
     os.symlink(outside, user_config / "autostart/link.desktop")
@@ -525,6 +553,28 @@ esac
     assert {item["id"]: item for item in app.systemd_entries(True)}["user-unit:work.service"]["configured"] is True
     app.action("user-unit:work.service", "disable")
     assert {item["id"]: item for item in app.systemd_entries(True)}["user-unit:work.service"]["configured"] is False
+    enabled_result = app.action("user-unit:enabled.service", "disable")
+    assert enabled_result["entry"]["unitState"] == "disabled"
+    runtime_result = app.action("user-unit:runtime.service", "disable")
+    assert runtime_result["entry"]["unitState"] == "disabled"
+    runtime_reenabled = app.action("user-unit:runtime.service", "enable")
+    assert runtime_reenabled["entry"]["unitState"] == "enabled"
+    disabled_result = app.action("user-unit:disabled.service", "enable")
+    assert disabled_result["entry"]["unitState"] == "enabled"
+    for linked_id in ("linked.service", "linked-runtime.service"):
+        try:
+            app.action("user-unit:" + linked_id, "enable")
+            raise AssertionError(f"{linked_id} must be rejected")
+        except ValueError as error:
+            assert "no se puede modificar" in str(error)
+    systemctl_calls = systemctl_log.read_text(encoding="utf-8").splitlines()
+    assert systemctl_calls.count("--user disable enabled.service") == 1
+    assert systemctl_calls.count("--user --runtime disable runtime.service") == 1
+    assert systemctl_calls.count("--user enable runtime.service") == 1
+    assert systemctl_calls.count("--user enable disabled.service") == 1
+    assert not any("--dry-run" in call for call in systemctl_calls)
+    assert not any(call.endswith(" linked.service") or call.endswith(" linked-runtime.service")
+                   for call in systemctl_calls if " enable " in call or " disable " in call)
     changes = [json.loads(line) for line in (home / ".local/state/cortetsu/startup/changes.jsonl").read_text().splitlines()]
     assert any(change.get("action") == "stop" and change.get("oldState") == "running" and change.get("newState") == "stopped" for change in changes)
 

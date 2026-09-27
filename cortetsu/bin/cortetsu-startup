@@ -626,6 +626,7 @@ def action(item_id: str, desired: str) -> dict:
             raise RuntimeError("la verificación posterior no confirmó que la unidad se detuviera")
         record_change(found["sourceType"], found["name"], "running", "stopped", "stop")
         return {"ok": True, "entry": updated}
+    systemd_transition = None
     if item_id.startswith("xdg:"):
         filename = item_id[4:]
         if Path(filename).name != filename or not filename.endswith(".desktop"):
@@ -646,16 +647,41 @@ def action(item_id: str, desired: str) -> dict:
         unit = item_id[len("user-unit:"):]
         if not UNIT_RE.fullmatch(unit) or unit == "cortetsu-shell.service":
             raise ValueError("unidad no administrable")
-        cp = run(["systemctl", "--user", desired, unit])
+        unit_state = found.get("unitState")
+        command = ["systemctl", "--user"]
+        if desired == "enable" and unit_state == "disabled":
+            command += ["enable", unit]
+            systemd_transition = "enabled"
+        elif desired == "disable" and unit_state == "enabled":
+            command += ["disable", unit]
+            systemd_transition = "disabled"
+        elif desired == "disable" and unit_state == "enabled-runtime":
+            command += ["--runtime", "disable", unit]
+            systemd_transition = "disabled-runtime"
+        else:
+            raise ValueError("el estado actual de systemd no permite esa transición")
+        cp = run(command)
         if not cp or cp.returncode:
             raise RuntimeError((cp.stderr.strip() if cp else "systemctl no disponible") or "systemctl falló")
     else:
         raise ValueError("origen no administrable")
     updated = next((item for item in scan() if item["id"] == item_id), None)
-    expected = desired == "enable"
-    if not updated or updated["configured"] != expected:
-        raise RuntimeError("la verificación posterior no confirmó el cambio")
-    record_change(found["sourceType"], found["name"], found["configured"], expected, desired)
+    if systemd_transition == "enabled":
+        verified = bool(updated and updated.get("unitState") == "enabled")
+    elif systemd_transition == "disabled":
+        verified = bool(updated and updated.get("unitState") == "disabled")
+    elif systemd_transition == "disabled-runtime":
+        resulting_state = updated.get("unitState") if updated else None
+        verified = (resulting_state is not None
+                    and resulting_state not in PERSISTENT_UNIT_STATES | RUNTIME_UNIT_STATES)
+    else:
+        expected = desired == "enable"
+        verified = bool(updated and updated.get("configured") == expected)
+    if not verified:
+        raise RuntimeError("la verificación posterior no confirmó el estado systemd esperado")
+    old_state = found.get("unitState") if systemd_transition else found["configured"]
+    new_state = updated.get("unitState") if systemd_transition else desired == "enable"
+    record_change(found["sourceType"], found["name"], old_state, new_state, desired)
     return {"ok": True, "entry": updated}
 
 

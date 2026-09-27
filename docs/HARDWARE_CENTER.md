@@ -62,6 +62,11 @@ installation configuration only for `enabled` or `enabled-runtime` units.
 caused a past run. Startup inventory refreshes on demand and Hardware Center
 telemetry polling stops when the panel closes.
 
+For read-only systemd inspection, use `show`, `is-enabled`, `list-unit-files`,
+`cat` and `list-dependencies`. Never use `systemctl enable --dry-run` or
+`systemctl disable --dry-run` as read-only checks; those operations can change
+unit symlinks.
+
 Keybind changes are written only to the user's Caelestia files. Every change
 creates a snapshot under `~/.local/share/cortetsu/upstream/snapshots/keybinds/`.
 If Hyprland rejects the reload or the new combination is missing, the helper
