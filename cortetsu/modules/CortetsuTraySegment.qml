@@ -12,11 +12,11 @@ Item {
     required property var items
     property var delegateModel: items
 
-    signal hoverRequested(string itemId, real centerX)
-    signal activateRequested(string itemId)
-    signal secondaryRequested(string itemId, real centerX)
-    signal secondaryActivateRequested(string itemId)
-    signal scrollRequested(string itemId, int delta, bool horizontal)
+    signal hoverRequested(string itemKey, real centerX)
+    signal activateRequested(string itemKey)
+    signal secondaryRequested(string itemKey, real centerX)
+    signal secondaryActivateRequested(string itemKey)
+    signal scrollRequested(string itemKey, int delta, bool horizontal)
 
     implicitWidth: trayRow.implicitWidth + CortetsuDesign.spacingStandard
     implicitHeight: 52
@@ -42,7 +42,7 @@ Item {
             Item {
                 id: trayItem
                 required property var modelData
-                objectName: `tray-${modelData.id}`
+                objectName: `tray-${modelData.key}`
                 enabled: modelData.enabled ?? true
 
                 implicitWidth: 34
@@ -54,9 +54,9 @@ Item {
                 function activatePrimary(): void {
                     const action = BottomHubTray.primaryAction(modelData);
                     if (action === "activate")
-                        root.activateRequested(modelData.id);
+                        root.activateRequested(modelData.key);
                     else if (action === "menu")
-                        root.secondaryRequested(modelData.id, x + width / 2);
+                        root.secondaryRequested(modelData.key, x + width / 2);
                 }
 
                 CortetsuSurface {
@@ -85,6 +85,19 @@ Item {
                     mipmap: true
                 }
 
+                Rectangle {
+                    objectName: `tray-${trayItem.modelData.key}-attention-indicator`
+                    visible: trayItem.modelData.needsAttention ?? false
+                    anchors.top: parent.top
+                    anchors.right: parent.right
+                    anchors.topMargin: 3
+                    anchors.rightMargin: 3
+                    width: 6
+                    height: 6
+                    radius: width / 2
+                    color: CortetsuDesign.colorVermillion
+                }
+
                 MouseArea {
                     id: trayMouse
                     anchors.fill: parent
@@ -98,14 +111,14 @@ Item {
                             : wheel.angleDelta.x;
                         if (delta !== 0)
                             root.scrollRequested(
-                                trayItem.modelData.id,
+                                trayItem.modelData.key,
                                 delta,
                                 wheel.angleDelta.y === 0
                             );
                         wheel.accepted = true;
                     }
                     onEntered: root.hoverRequested(
-                        trayItem.modelData.id,
+                        trayItem.modelData.key,
                         trayItem.x + trayItem.width / 2
                     )
                     onClicked: event => {
@@ -113,9 +126,9 @@ Item {
                             trayItem.activatePrimary();
                         else if (event.button === Qt.RightButton) {
                             if (BottomHubTray.contextAction(trayItem.modelData) === "menu")
-                                root.secondaryRequested(trayItem.modelData.id, trayItem.x + trayItem.width / 2);
+                                root.secondaryRequested(trayItem.modelData.key, trayItem.x + trayItem.width / 2);
                         } else
-                            root.secondaryActivateRequested(trayItem.modelData.id);
+                            root.secondaryActivateRequested(trayItem.modelData.key);
                     }
                 }
 
@@ -123,7 +136,7 @@ Item {
                 Keys.onReturnPressed: trayItem.activatePrimary()
                 Keys.onSpacePressed: trayItem.activatePrimary()
                 Keys.onMenuPressed: root.secondaryRequested(
-                    trayItem.modelData.id,
+                    trayItem.modelData.key,
                     trayItem.x + trayItem.width / 2
                 )
 

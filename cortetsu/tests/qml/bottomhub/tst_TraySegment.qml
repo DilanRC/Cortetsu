@@ -20,6 +20,7 @@ TestCase {
     }
 
     function test_empty_visible_then_empty_again() {
+        trayItems = [];
         const segment = trayComponent.createObject(testCase);
         verify(segment !== null);
         tryCompare(segment, "visible", false);
@@ -38,6 +39,19 @@ TestCase {
         trayItems = [];
         tryCompare(segment, "visible", false);
         tryCompare(segment, "width", 0);
+        segment.destroy();
+    }
+
+    function test_attention_state_has_discreet_indicator_only_when_requested() {
+        trayItems = [
+            { key: "active", id: "same-app", title: "Active", iconSource: "", needsAttention: false },
+            { key: "attention", id: "same-app", title: "Attention", iconSource: "", needsAttention: true }
+        ];
+        const segment = trayComponent.createObject(testCase);
+        verify(segment !== null);
+        tryVerify(() => findChild(segment, "tray-attention-attention-indicator") !== null);
+        tryVerify(() => findChild(segment, "tray-attention-attention-indicator")?.visible ?? false);
+        verify(!(findChild(segment, "tray-active-attention-indicator")?.visible ?? false));
         segment.destroy();
     }
 }

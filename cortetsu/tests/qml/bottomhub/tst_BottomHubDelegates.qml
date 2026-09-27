@@ -54,6 +54,7 @@ TestCase {
 
     function trayItem(id, title = id, enabled = true) {
         return {
+            key: id,
             id,
             title,
             iconSource: "",

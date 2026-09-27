@@ -88,10 +88,10 @@ def assert_controller(text: str) -> None:
         "function closeWindow(client): void",
         "function activateItem(item): void",
         "function cycleItem(item, direction): void",
-        "function showTrayMenu(itemId, centerX): void",
-        "function activateTrayItem(itemId): void",
-        "function activateTraySecondary(itemId): void",
-        "function scrollTrayItem(itemId, delta, horizontal): void",
+        "function showTrayMenu(itemKey, centerX): void",
+        "function activateTrayItem(itemKey): void",
+        "function activateTraySecondary(itemKey): void",
+        "function scrollTrayItem(itemKey, delta, horizontal): void",
         "function toggleSession(): void",
         "CortetsuConfig.favouriteApps",
         "SystemTray.items.values",
@@ -178,9 +178,9 @@ def assert_view_contract(source: dict[str, str]) -> None:
     assert "onPressed: appItem.forceActiveFocus()" in rail
 
     tray = source["CortetsuTraySegment.qml"]
-    assert "signal hoverRequested(string itemId, real centerX)" in tray
-    assert "signal activateRequested(string itemId)" in tray
-    assert "signal secondaryRequested(string itemId, real centerX)" in tray
+    assert "signal hoverRequested(string itemKey, real centerX)" in tray
+    assert "signal activateRequested(string itemKey)" in tray
+    assert "signal secondaryRequested(string itemKey, real centerX)" in tray
     assert "width: visible ? implicitWidth : 0" in tray
     assert "modelData.title" in tray
     assert "CortetsuTooltip" in tray

@@ -6,6 +6,7 @@ import Quickshell
 import Quickshell.Widgets
 import "../../../components"
 import "../../CortetsuDesign.js" as CortetsuDesign
+import "../../BottomHubTray.js" as BottomHubTray
 
 CortetsuPopupSurface {
     id: root
@@ -29,7 +30,7 @@ CortetsuPopupSurface {
         id: stack
         anchors.fill: parent
         anchors.margins: CortetsuDesign.spacingStandard
-        initialItem: menuComponent.createObject(null, { handle: root.trayItem })
+        initialItem: menuComponent
 
         pushEnter: Transition {
             ParallelAnimation {
@@ -106,12 +107,10 @@ CortetsuPopupSurface {
     }
 
     function activateEntry(entry): void {
-        if (!entry)
-            return;
-        if (!entry.enabled)
+        if (!entry || !entry.enabled || entry.isSeparator)
             return;
         if (entry.hasChildren)
-            stack.push(menuComponent.createObject(null, { handle: entry, subMenu: true }));
+            stack.push(menuComponent, { handle: entry, subMenu: true });
         else {
             entry.triggered();
             root.popouts.hasCurrent = false;
@@ -123,8 +122,10 @@ CortetsuPopupSurface {
 
         Column {
             id: menu
-            required property QsMenuHandle handle
+            property QsMenuHandle handle: root.trayItem
             property bool subMenu: false
+            property int focusedIndex: -1
+            property QsMenuEntry focusedEntry: null
             padding: CortetsuDesign.spacingCompact
             spacing: CortetsuDesign.spacingUnit
             readonly property real fittedWidth: {
@@ -146,6 +147,49 @@ CortetsuPopupSurface {
             onHeightChanged: root.menuContentHeight = height
             onWidthChanged: root.menuContentWidth = width
 
+            function selectable(index): bool {
+                const item = entries.itemAt(index);
+                return item !== null && item.enabled && !item.separator;
+            }
+
+            function nextSelectable(fromIndex, direction): int {
+                return BottomHubTray.nextSelectable(entries.count, fromIndex, direction, index => selectable(index));
+            }
+
+            function focusEntry(index): void {
+                if (!selectable(index))
+                    return;
+                focusedIndex = index;
+                focusedEntry = entries.itemAt(index).modelData;
+                entries.itemAt(index).forceActiveFocus();
+            }
+
+            function focusEdge(direction): void {
+                const start = direction > 0 ? -1 : entries.count;
+                const index = nextSelectable(start, direction);
+                if (index >= 0)
+                    focusEntry(index);
+            }
+
+            function restoreFocus(): void {
+                const currentIndex = focusedEntry
+                    ? BottomHubTray.indexOfEntry(entries.count, index => entries.itemAt(index)?.modelData, focusedEntry)
+                    : -1;
+                if (currentIndex >= 0 && selectable(currentIndex)) {
+                    focusEntry(currentIndex);
+                    return;
+                }
+                if (focusedIndex >= 0 && selectable(focusedIndex)) {
+                    focusEntry(focusedIndex);
+                    return;
+                }
+                focusedEntry = null;
+                focusedIndex = -1;
+                focusEdge(1);
+            }
+
+            Component.onCompleted: Qt.callLater(restoreFocus)
+
             QsMenuOpener {
                 id: opener
                 menu: menu.handle
@@ -157,30 +201,35 @@ CortetsuPopupSurface {
                 // the Repeater model preserves asynchronous DBus menu updates.
                 model: opener.children
 
+                onItemAdded: Qt.callLater(menu.restoreFocus)
+                onItemRemoved: Qt.callLater(menu.restoreFocus)
+
                 CortetsuSurface {
                     required property QsMenuEntry modelData
+                    readonly property bool separator: modelData?.isSeparator ?? false
+                    onEnabledChanged: Qt.callLater(menu.restoreFocus)
+                    onSeparatorChanged: Qt.callLater(menu.restoreFocus)
                     readonly property real naturalWidth: (modelData?.isSeparator ?? false)
                         ? 0
                         : labelMetrics.width
                             + (menuIcon.visible ? menuIcon.width + row.spacing : 0)
                             + (submenuIcon.visible ? submenuIcon.width + row.spacing : 0)
                             + CortetsuDesign.spacingCompact * 2
-                    enabled: modelData?.enabled ?? false
-                    focus: enabled && index === 0
-                    activeFocusOnTab: true
+                    enabled: (modelData?.enabled ?? false) && !separator
+                    activeFocusOnTab: enabled
                     width: Math.max(0, menu.width - menu.padding * 2)
                     implicitHeight: (modelData?.isSeparator ?? false)
                         ? 1
                         : row.implicitHeight + CortetsuDesign.spacingStandard
                     baseColor: (modelData?.isSeparator ?? false) ? CortetsuDesign.colorOutlineVariant : "transparent"
-                    disabled: !(modelData?.enabled ?? false)
-                    focused: false
+                    disabled: !enabled
+                    focused: activeFocus
                     hovered: stateLayer.containsMouse
                     pressed: stateLayer.pressed
                     radiusValue: 0
                     hoverColor: Qt.alpha(CortetsuDesign.colorSurfaceGlassStrong, 0.9)
-                    outlined: false
-                    outlineColor: "transparent"
+                    outlined: activeFocus
+                    outlineColor: activeFocus ? CortetsuDesign.colorWashi : "transparent"
 
                     Row {
                         id: row
@@ -230,13 +279,35 @@ CortetsuPopupSurface {
                         id: stateLayer
                         anchors.fill: parent
                         radius: parent.radiusValue
-                        disabled: !(modelData?.enabled ?? false)
+                        disabled: !parent.enabled
                         onPressed: parent.forceActiveFocus()
+                        onContainsMouseChanged: {
+                            if (containsMouse)
+                                menu.focusEntry(index);
+                        }
                         onClicked: root.activateEntry(modelData)
                     }
 
                     Keys.onPressed: event => {
-                        if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) {
+                        const tabForward = event.key === Qt.Key_Tab && !(event.modifiers & Qt.ShiftModifier);
+                        const tabBackward = event.key === Qt.Key_Tab && (event.modifiers & Qt.ShiftModifier);
+                        if (event.key === Qt.Key_Down || tabForward) {
+                            const next = menu.nextSelectable(index, 1);
+                            if (next >= 0)
+                                menu.focusEntry(next);
+                            event.accepted = !tabForward || next >= 0;
+                        } else if (event.key === Qt.Key_Up || tabBackward) {
+                            const previous = menu.nextSelectable(index, -1);
+                            if (previous >= 0)
+                                menu.focusEntry(previous);
+                            event.accepted = !tabBackward || previous >= 0;
+                        } else if (event.key === Qt.Key_Home) {
+                            menu.focusEdge(1);
+                            event.accepted = true;
+                        } else if (event.key === Qt.Key_End) {
+                            menu.focusEdge(-1);
+                            event.accepted = true;
+                        } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) {
                             root.activateEntry(modelData);
                             event.accepted = true;
                         } else if (event.key === Qt.Key_Right && (modelData?.hasChildren ?? false)) {
@@ -244,6 +315,9 @@ CortetsuPopupSurface {
                             event.accepted = true;
                         } else if (event.key === Qt.Key_Left && menu.subMenu) {
                             stack.pop();
+                            event.accepted = true;
+                        } else if (event.key === Qt.Key_Left && !menu.subMenu) {
+                            root.popouts.hasCurrent = false;
                             event.accepted = true;
                         } else if (event.key === Qt.Key_Escape) {
                             root.popouts.hasCurrent = false;

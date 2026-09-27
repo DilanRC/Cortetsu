@@ -10,14 +10,16 @@ source = (ROOT / "cortetsu/modules/bar/popouts/CortetsuTrayMenu.qml").read_text(
 criteria = {
     "live ObjectModel preserved": "model: opener.children" in source,
     "content-sized menu height": "childrenRect.height" in source,
-    "stale activation guarded": "if (!entry)" in source,
+    "stale and non-actionable activation guarded": "if (!entry || !entry.enabled || entry.isSeparator)" in source,
     "typed menu delegates": "required property QsMenuEntry modelData" in source,
     "shared popup surface": "CortetsuPopupSurface" in source,
     "content-fit width cap": all(token in source for token in ("menuMaxWidth: 220", "fittedWidth", "naturalWidth", "TextMetrics")),
-    "flat rows with game icons": "outlined: false" in source and "implicitSize: 16" in source,
+    "flat focusable rows with game icons": all(token in source for token in ("radiusValue: 0", "outlined: activeFocus", "implicitSize: 16")),
     "async DBus entries are null-safe": all(token in source for token in ("modelData?.icon", "modelData?.text", "modelData?.hasChildren")),
     "single visible panel": "PanelBg" not in source,
     "keyboard navigation preserved": all(token in source for token in ("Keys.onPressed", "Qt.Key_Right", "Qt.Key_Left", "Qt.Key_Escape")),
+    "keyboard focus skips separators and disabled rows": "activeFocusOnTab: enabled" in source,
+    "focus identity survives model reorder": "BottomHubTray.indexOfEntry" in source,
 }
 missing = [name for name, passed in criteria.items() if not passed]
 assert not missing, f"tray menu eval failed: {missing}"

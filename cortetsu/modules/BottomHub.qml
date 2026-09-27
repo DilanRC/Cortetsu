@@ -451,7 +451,9 @@ Scope {
                 Status.Passive
             )
                 .map(item => ({
+                    key: BottomHubTray.instanceKey(item),
                     id: item.id,
+                    needsAttention: item.status === Status.NeedsAttention,
                     title: BottomHubTray.tooltipFor(item),
                     iconSource: item.icon || Icons.getTrayIcon(item.id, item.icon),
                     onlyMenu: item.onlyMenu,
@@ -462,8 +464,8 @@ Scope {
                 return dockItems.find(item => item.key === key) ?? null;
             }
 
-            function trayItemForId(itemId): var {
-                return SystemTray.items.values.find(item => item.id === itemId) ?? null;
+            function trayItemForKey(key): var {
+                return BottomHubTray.itemForKey(SystemTray.items.values, key);
             }
 
             function togglePinned(item): void {
@@ -599,44 +601,44 @@ Scope {
                     togglePinned(item);
             }
 
-            function showTrayMenu(itemId, centerX): void {
-                const item = trayItemForId(itemId);
+            function showTrayMenu(itemKey, centerX): void {
+                const item = trayItemForKey(itemKey);
                 if (!item || BottomHubTray.contextAction(item) !== "menu")
                     return;
                 hubRoot.showAttachedControlFor(
                     modelData,
-                    `traymenu${itemId}`,
+                    BottomHubTray.menuName(itemKey),
                     hubMargin + centerX
                 );
             }
 
-            function openTrayMenu(itemId, centerX): void {
-                const item = trayItemForId(itemId);
+            function openTrayMenu(itemKey, centerX): void {
+                const item = trayItemForKey(itemKey);
                 if (!item || BottomHubTray.contextAction(item) !== "menu")
                     return;
                 hubRoot.openAttachedControlNow(
                     modelData,
-                    `traymenu${itemId}`,
+                    BottomHubTray.menuName(itemKey),
                     hubMargin + centerX
                 );
             }
 
-            function activateTrayItem(itemId): void {
-                const item = trayItemForId(itemId);
+            function activateTrayItem(itemKey): void {
+                const item = trayItemForKey(itemKey);
                 if (!item)
                     return;
                 if (BottomHubTray.primaryAction(item) === "activate")
                     item.activate();
             }
 
-            function activateTraySecondary(itemId): void {
-                const item = trayItemForId(itemId);
+            function activateTraySecondary(itemKey): void {
+                const item = trayItemForKey(itemKey);
                 if (item)
                     item.secondaryActivate();
             }
 
-            function scrollTrayItem(itemId, delta, horizontal): void {
-                const item = trayItemForId(itemId);
+            function scrollTrayItem(itemKey, delta, horizontal): void {
+                const item = trayItemForKey(itemKey);
                 if (item)
                     item.scroll(delta, horizontal);
             }
@@ -790,12 +792,12 @@ Scope {
                 onAppTogglePinnedRequested: key => win.togglePinnedKey(key)
                 onAppCloseRequested: key => win.closeDockKey(key)
                 onAppCycleRequested: (key, direction) => win.cycleDockKey(key, direction)
-                onTrayHoverRequested: (itemId, centerX) => win.showTrayMenu(itemId, centerX)
-                onTrayActivateRequested: itemId => win.activateTrayItem(itemId)
-                onTraySecondaryActivateRequested: itemId => win.activateTraySecondary(itemId)
-                onTrayScrollRequested: (itemId, delta, horizontal) =>
-                    win.scrollTrayItem(itemId, delta, horizontal)
-                onTraySecondaryRequested: (itemId, centerX) => win.openTrayMenu(itemId, centerX)
+                onTrayHoverRequested: (itemKey, centerX) => win.showTrayMenu(itemKey, centerX)
+                onTrayActivateRequested: itemKey => win.activateTrayItem(itemKey)
+                onTraySecondaryActivateRequested: itemKey => win.activateTraySecondary(itemKey)
+                onTrayScrollRequested: (itemKey, delta, horizontal) =>
+                    win.scrollTrayItem(itemKey, delta, horizontal)
+                onTraySecondaryRequested: (itemKey, centerX) => win.openTrayMenu(itemKey, centerX)
                 onAttachedControlRequested: (mode, centerX) => hubRoot.showAttachedControlFor(
                     win.modelData,
                     mode,

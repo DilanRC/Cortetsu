@@ -134,7 +134,8 @@ assert "activeFocusOnTab" in tray_menu
 assert "Keys.onPressed" in tray_menu
 assert "Qt.Key_Right" in tray_menu and "Qt.Key_Left" in tray_menu
 assert "Qt.Key_Escape" in tray_menu
-assert "focused: false" in tray_menu
+assert "focused: activeFocus" in tray_menu
+assert "outlined: activeFocus" in tray_menu
 assert "implicitWidth: menuContentWidth + CortetsuDesign.spacingStandard * 2" in tray_menu
 assert "property real menuContentHeight" in tray_menu
 for legacy in ("sourceComponent: Battery", "sourceComponent: ActiveWindow", "sourceComponent: KbLayout", "sourceComponent: LockStatus", "sourceComponent: TrayMenu"):
