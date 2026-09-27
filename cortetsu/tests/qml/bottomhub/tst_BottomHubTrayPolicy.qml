@@ -38,9 +38,12 @@ TestCase {
     }
 
     function test_menu_identity_survives_tray_reordering() {
-        const before = ["steam", "browser"].map(TrayPolicy.menuName);
-        const after = ["browser", "steam"].map(TrayPolicy.menuName);
+        const steam = { id: "same-id" };
+        const browser = { id: "same-id" };
+        const before = [steam, browser].map(TrayPolicy.instanceKey).map(TrayPolicy.menuName);
+        const after = [browser, steam].map(TrayPolicy.instanceKey).map(TrayPolicy.menuName);
         compare(before[0], after[1]);
         compare(before[1], after[0]);
+        verify(before[0] !== before[1]);
     }
 }

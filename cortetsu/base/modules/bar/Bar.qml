@@ -8,6 +8,7 @@ import QtQuick.Layouts
 import Quickshell
 import qs.components
 import qs.services
+import "SystemTrayIdentity.js" as TrayIdentity
 import qs.modules
 
 ColumnLayout {
@@ -58,7 +59,7 @@ ColumnLayout {
                 const index = Math.floor(((y - top - tray.padding * 2 + tray.spacing) / tray.layout.implicitHeight) * tray.items.count);
                 const trayItem = tray.items.itemAt(index);
                 if (trayItem) {
-                    popouts.currentName = `traymenu${trayItem.modelData.id}`;
+                    popouts.currentName = TrayIdentity.popupName(trayItem.modelData.key);
                     popouts.currentCenter = Qt.binding(() => trayItem.mapToItem(root, 0, trayItem.implicitHeight / 2).y);
                     popouts.hasCurrent = true;
                 } else {

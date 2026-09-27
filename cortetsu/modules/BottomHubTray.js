@@ -1,15 +1,9 @@
 .pragma library
 
-const instanceIds = new WeakMap();
-let nextInstanceId = 0;
+.import "../base/modules/bar/SystemTrayIdentity.js" as TrayIdentity
 
 function instanceKey(item) {
-    let key = instanceIds.get(item);
-    if (key === undefined) {
-        key = `tray-instance-${++nextInstanceId}`;
-        instanceIds.set(item, key);
-    }
-    return key;
+    return TrayIdentity.instanceKey(item);
 }
 
 function itemForKey(items, key) {
@@ -38,8 +32,8 @@ function contextAction(item) {
     return item.hasMenu ? "menu" : "none";
 }
 
-function menuName(itemId) {
-    return `traymenu${itemId}`;
+function menuName(itemKey) {
+    return TrayIdentity.popupName(itemKey);
 }
 
 function nextSelectable(count, fromIndex, direction, isSelectable) {

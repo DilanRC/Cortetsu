@@ -41,6 +41,8 @@ require_file "$WALL_UTILITY_CONTRACT"
 require_file "$SOURCE_BASE/PROVENANCE.md"
 require_file "$REPO/cortetsu/modules/BottomHub.qml"
 require_file "$REPO/cortetsu/modules/CortetsuBottomHubView.qml"
+require_file "$REPO/cortetsu/bin/cortetsu-startup"
+require_file "$REPO/cortetsu/modules/hardware/StartupPage.qml"
 
 mkdir -p "$BUILD_ROOT" "$RUNTIME_ROOT"
 exec 9>"$DATA_ROOT/build.lock"
@@ -68,6 +70,7 @@ install -m 0644 "$REPO/cortetsu/contracts/composition.json" "$STAGING/compositio
 install -m 0644 "$WALL_UTILITY_CONTRACT" "$STAGING/wall-utility.json"
 
 printf '==> Regresiones\n'
+python3 "$REPO/cortetsu/tests/test-startup-inventory.py"
 python3 "$REPO/scripts/features/test-native-bottom-hub.py" --runtime "$STAGING/modules/BottomHub.qml"
 python3 "$REPO/scripts/features/test-bottom-hub-target.py"
 python3 "$REPO/scripts/features/test-bottom-hub-v3.py"

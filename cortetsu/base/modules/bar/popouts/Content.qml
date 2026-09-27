@@ -7,6 +7,7 @@ import Quickshell.Services.SystemTray
 import qs.components
 import qs.modules
 import qs.services
+import "../SystemTrayIdentity.js" as TrayIdentity
 
 Item {
     id: root
@@ -122,18 +123,18 @@ Item {
 
         Repeater {
             model: ScriptModel {
-                values: SystemTray.items.values.filter(i => i.status !== Status.Passive && !CortetsuConfig.hiddenTrayIcons.includes(i.id))
-                objectProp: "id"
+                values: TrayIdentity.entries(SystemTray.items.values.filter(i => i.status !== Status.Passive && !CortetsuConfig.hiddenTrayIcons.includes(i.id)))
+                objectProp: "key"
             }
 
             Popout {
                 id: trayMenu
 
-                required property SystemTrayItem modelData
-                readonly property var menuHandle: modelData?.menu ?? null
+                required property var modelData
+                readonly property var menuHandle: modelData?.item?.menu ?? null
                 property bool menuReady: true
 
-                name: `traymenu${modelData.id}`
+                name: TrayIdentity.popupName(modelData.key)
                 sourceComponent: menuHandle && menuReady ? trayMenuComp : null
 
                 Component.onDestruction: {

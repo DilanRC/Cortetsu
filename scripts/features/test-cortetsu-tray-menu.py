@@ -6,6 +6,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 source = (ROOT / "cortetsu/modules/bar/popouts/CortetsuTrayMenu.qml").read_text(encoding="utf-8")
+identity = (ROOT / "cortetsu/base/modules/bar/SystemTrayIdentity.js").read_text(encoding="utf-8")
+bottom_hub = (ROOT / "cortetsu/modules/BottomHubTray.js").read_text(encoding="utf-8")
+base_bar = (ROOT / "cortetsu/base/modules/bar/Bar.qml").read_text(encoding="utf-8")
+popouts = (ROOT / "cortetsu/base/modules/bar/popouts/Content.qml").read_text(encoding="utf-8")
 
 assert "if (!entry || !entry.enabled || entry.isSeparator)" in source, "tray activation must ignore stale or non-actionable entries"
 assert "model: opener.children" in source
@@ -30,5 +34,10 @@ assert "implicitSize: 16" in source
 assert "modelData?.icon ?? \"\"" in source
 assert "modelData?.text ?? \"\"" in source
 assert "modelData?.hasChildren ?? false" in source
+assert "new WeakMap()" in identity and "function entries(items)" in identity
+assert "TrayIdentity.instanceKey(item)" in bottom_hub
+assert "TrayIdentity.popupName(trayItem.modelData.key)" in base_bar
+assert "TrayIdentity.popupName(modelData.key)" in popouts
+assert "function popupName(key)" in identity
 
 print("PASS: tray menu keeps the live ObjectModel and sizes from rendered content")

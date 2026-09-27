@@ -17,4 +17,12 @@ assert "enabled: !root.disabled" in tab
 assert "activeFocusOnTab: true" in tab
 assert "Keys.onSpacePressed" in tab
 assert "outlined: root.activeFocus || root.selected" in tab
+assert content.count("{ label:") == 10
+assert "count: 10" in content
+assert "event.key === Qt.Key_0" in content
+assert "Math.min(9, root.currentPage + delta)" in content
+assert "contentWidth: tabRow.implicitWidth" in content
+assert "tabs.contentWidth - tabs.width" in content
+assert "automationComponent" in content and "currentPage === 6" in content
+assert "startupComponent" in content
 print("PASS: Hardware tabs share selected, hover, focus and arrow-key behavior")

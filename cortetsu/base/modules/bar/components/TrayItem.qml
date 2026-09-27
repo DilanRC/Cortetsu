@@ -10,7 +10,8 @@ import qs.utils
 MouseArea {
     id: root
 
-    required property SystemTrayItem modelData
+    required property var modelData
+    readonly property SystemTrayItem trayItem: modelData.item
 
     acceptedButtons: Qt.LeftButton | Qt.RightButton
     implicitWidth: CortetsuTokens.font.body.small.pointSize * 2
@@ -18,16 +19,16 @@ MouseArea {
 
     onClicked: event => {
         if (event.button === Qt.LeftButton)
-            modelData.activate();
+            trayItem.activate();
         else
-            modelData.secondaryActivate();
+            trayItem.secondaryActivate();
     }
 
     ColouredIcon {
         id: icon
 
         anchors.fill: parent
-        source: Icons.getTrayIcon(root.modelData.id, root.modelData.icon)
+        source: Icons.getTrayIcon(root.trayItem.id, root.trayItem.icon)
         colour: CortetsuColours.palette.m3secondary
         layer.enabled: CortetsuConfig.bar.tray.recolour
     }

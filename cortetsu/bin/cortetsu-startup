@@ -1,0 +1,392 @@
+#!/usr/bin/env python3
+"""Inventory and safely manage user startup entries."""
+from __future__ import annotations
+
+import configparser
+import hashlib
+import json
+import os
+import re
+import shutil
+import shlex
+import subprocess
+import sys
+import tempfile
+import time
+from pathlib import Path
+
+UNIT_RE = re.compile(r"^[A-Za-z0-9_.@:-]+\.(service|socket|timer|path)$")
+MANAGEABLE_UNIT_STATES = {"enabled", "disabled", "linked"}
+
+
+def run(args: list[str], timeout: float = 4) -> subprocess.CompletedProcess[str] | None:
+    try:
+        return subprocess.run(args, text=True, capture_output=True, timeout=timeout, check=False)
+    except (OSError, subprocess.SubprocessError):
+        return None
+
+
+def systemd_command(exec_start: str) -> str:
+    commands = []
+    for match in re.finditer(r"argv\[\]=([^;]+)", exec_start):
+        try:
+            commands.append(shlex.join(shlex.split(match.group(1).strip())))
+        except ValueError:
+            continue
+    return "\n".join(commands)
+
+
+def config_home() -> Path:
+    return Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config"))
+
+
+def desktop_entry(path: Path, system: bool, current_desktops: set[str]) -> dict | None:
+    parser = configparser.ConfigParser(interpolation=None, strict=False)
+    parser.optionxform = str
+    try:
+        parser.read(path, encoding="utf-8")
+        entry = parser["Desktop Entry"]
+    except (OSError, KeyError, configparser.Error):
+        return None
+    hidden = entry.get("Hidden", "false").lower() == "true"
+    only = set(filter(None, entry.get("OnlyShowIn", "").split(";")))
+    not_show = set(filter(None, entry.get("NotShowIn", "").split(";")))
+    try_exec = entry.get("TryExec", "").strip()
+    try_ok = not try_exec or shutil.which(try_exec) is not None or (
+        Path(try_exec).is_absolute() and os.access(try_exec, os.X_OK)
+    )
+    eligible = (not only or bool(only & current_desktops)) and not bool(not_show & current_desktops) and try_ok
+    return {
+        "id": "xdg:" + path.name,
+        "name": entry.get("Name", path.stem),
+        "icon": entry.get("Icon", ""),
+        "description": entry.get("Comment", ""),
+        "sourceType": "xdg-user" if not system else "xdg-system",
+        "origin": str(path),
+        "command": entry.get("Exec", ""),
+        "startupPhase": "login",
+        "configured": not hidden,
+        "eligible": eligible,
+        "running": None,
+        "modifiable": True,
+        "reason": ("Entrada efectiva de inicio de sesión" if not hidden and eligible else
+                   "Configurada, pero no aplicable en este escritorio o TryExec no disponible" if not hidden else "Deshabilitada mediante Hidden=true"),
+        "_path": str(path),
+        "_system": system,
+    }
+
+
+def xdg_entries() -> list[dict]:
+    user_dir = config_home() / "autostart"
+    config_dirs = os.environ.get("XDG_CONFIG_DIRS", "/etc/xdg").split(":")
+    system_dirs = [Path(value) / "autostart" for value in config_dirs if value]
+    desktops = set(filter(None, os.environ.get("XDG_CURRENT_DESKTOP", "").split(":")))
+    by_name: dict[str, tuple[Path, bool]] = {}
+    for directory, is_system in [(d, True) for d in reversed(system_dirs)] + [(user_dir, False)]:
+        try:
+            paths = sorted(directory.glob("*.desktop"))
+        except OSError:
+            continue
+        for path in paths:
+            by_name[path.name] = (path, is_system)
+    result = []
+    for path, system in by_name.values():
+        item = desktop_entry(path, system, desktops)
+        if item:
+            result.append(item)
+    return result
+
+
+def systemd_entries(user: bool) -> list[dict]:
+    prefix = ["systemctl"] + (["--user"] if user else [])
+    listing = run(prefix + ["list-unit-files", "--type=service", "--type=socket", "--type=timer", "--type=path", "--no-legend", "--no-pager"])
+    unit_lines = listing.stdout.splitlines() if listing and listing.returncode == 0 else []
+    units_by_name = {fields[0]: fields[1] for line in unit_lines
+                     if len(fields := line.split()) >= 2 and UNIT_RE.fullmatch(fields[0])}
+    active_units = run(prefix + ["list-units", "--all", "--type=service", "--type=socket", "--type=timer", "--type=path", "--no-legend", "--no-pager"])
+    if active_units and active_units.returncode == 0:
+        for line in active_units.stdout.splitlines():
+            fields = line.split(None, 4)
+            if len(fields) >= 4 and UNIT_RE.fullmatch(fields[0]) and fields[0] not in units_by_name:
+                units_by_name[fields[0]] = "transient"
+    units = list(units_by_name.items())
+    snapshots: dict[str, dict[str, str]] = {}
+    for offset in range(0, len(units), 80):
+        names = [unit for unit, _ in units[offset:offset + 80]]
+        props = run(prefix + ["show", *names, "--property=Id,Description,ActiveState,UnitFileState,WantedBy,RequiredBy,Triggers,FragmentPath,ExecStart"])
+        for block in (props.stdout if props else "").split("\n\n"):
+            values = dict(part.split("=", 1) for part in block.splitlines() if "=" in part)
+            if values.get("Id"):
+                snapshots[values["Id"]] = values
+    result = []
+    for unit, file_state in units:
+        values = snapshots.get(unit, {})
+        active = values.get("ActiveState", "unknown")
+        source_type = "cortetsu" if user and unit.startswith("cortetsu-") else ("systemd-user" if user else "systemd-system")
+        modifiable = user and source_type == "systemd-user" and file_state in MANAGEABLE_UNIT_STATES
+        reason = f"systemd {'del usuario' if user else 'del sistema'} · {file_state} · {active}"
+        if unit == "cortetsu-shell.service":
+            reason = "Servicio principal de Cortetsu; esta página no permite desactivarlo"
+        elif source_type == "cortetsu":
+            reason = "Componente de Cortetsu; usa su control específico si está disponible"
+        result.append({
+            "id": ("user-unit:" if user else "system-unit:") + unit,
+            "name": values.get("Description") or unit,
+            "icon": "settings_suggest",
+            "description": unit,
+            "sourceType": source_type,
+            "origin": values.get("FragmentPath", unit),
+            "command": systemd_command(values.get("ExecStart", "")),
+            "startupPhase": "login" if user else "boot",
+            "configured": file_state in {"enabled", "enabled-runtime", "linked", "linked-runtime"},
+            "running": active == "active" if active in {"active", "inactive", "failed"} else None,
+            "activeState": active,
+            "unitState": file_state,
+            "target": ", ".join(filter(None, (values.get("WantedBy", "").split(" ") + values.get("RequiredBy", "").split(" ")))),
+            "modifiable": modifiable,
+            "reason": reason,
+            "_unit": unit,
+            "_user": user,
+            "_exec_start": values.get("ExecStart", ""),
+            "_file_state": file_state,
+        })
+    return result
+
+
+def hyprland_sources() -> list[Path]:
+    root = config_home() / "hypr/hyprland.lua"
+    if not root.is_file():
+        return []
+    sources: set[Path] = {root}
+    try:
+        wrapper = root.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return [root]
+    target = re.search(r'dofile\(\s*["\']([^"\']+)["\']\s*\)', wrapper)
+    active = Path(target.group(1)).expanduser() if target else root
+    if active.is_file():
+        sources.add(active)
+        try:
+            text = active.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            text = ""
+        module_block = re.search(r"local required_modules\s*=\s*\{(.*?)\}", text, re.S)
+        if module_block:
+            for module in re.findall(r'["\']([A-Za-z0-9_.-]+)["\']', module_block.group(1)):
+                candidate = active.parent / (module.replace(".", "/") + ".lua")
+                if candidate.is_file():
+                    sources.add(candidate)
+        custom_block = re.search(r"for _, name in ipairs\(\{(.*?)\}\)", text, re.S)
+        if custom_block:
+            for name in re.findall(r'["\']([A-Za-z0-9_.-]+)["\']', custom_block.group(1)):
+                candidate = config_home() / f"hypr/custom/{name}.lua"
+                if candidate.is_file():
+                    sources.add(candidate)
+        user_file = config_home() / "hypr/hypr-user.lua"
+        if user_file.is_file():
+            sources.add(user_file)
+    return sorted(sources)
+
+
+def scan() -> list[dict]:
+    entries = xdg_entries() + systemd_entries(True) + systemd_entries(False)
+    # Read only source files referenced by the active Lua loader; never evaluate Lua.
+    for path in hyprland_sources():
+        try:
+            lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+        except OSError:
+            continue
+        in_start = False
+        for number, line in enumerate(lines, 1):
+            if re.search(r'hl\.on\(\s*["\']hyprland\.start["\']', line):
+                in_start = True
+            elif in_start and re.match(r"^end\s*\)\s*$", line):
+                in_start = False
+            elif in_start and re.match(r"^\s+hl\.exec_cmd\(", line):
+                command_match = re.search(r'hl\.exec_cmd\(\s*(?:"((?:\\.|[^"\\])*)"|\'((?:\\.|[^\'\\])*)\'|\[\[(.*?)\]\])', line)
+                command = next((value for value in command_match.groups() if value is not None), "") if command_match else ""
+                entries.append({"id": f"hyprland:{path}:{number}", "name": "Hyprland startup command",
+                    "icon": "terminal", "description": "", "sourceType": "hyprland", "origin": f"{path}:{number}",
+                    "command": command or line.strip(), "startupPhase": "shell", "configured": True, "running": None,
+                    "modifiable": False, "reason": "Hyprland ejecuta esta entrada al iniciar la sesión"})
+    # Classify Cortetsu's own startup units and QML-owned processes for diagnosis.
+    source = Path(__file__).resolve().parents[1] / "modules"
+    if not source.is_dir():
+        runtime = config_home() / "quickshell/cortetsu/current/modules"
+        source = runtime if runtime.is_dir() else source
+    for path in source.rglob("*.qml"):
+        try:
+            lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+        except OSError:
+            continue
+        for number, line in enumerate(lines):
+            if "running: true" not in line:
+                continue
+            block = "\n".join(lines[max(0, number - 5):number + 1])
+            values = [match.group(1) for match in re.finditer(r'"([^"\n]*)"', block)]
+            command_index = next((i for i, value in enumerate(values) if "/.local/bin/cortetsu" in value), -1)
+            command = ""
+            if command_index >= 0:
+                argv = [Path(values[command_index]).name] + values[command_index + 1:]
+                command = " ".join(shlex.quote(value) for value in argv)
+            if command and "cortetsu" in command:
+                loaded_with_shell = path.name == "BottomHub.qml"
+                entries.append({"id": f"cortetsu:{path}:{number + 1}", "name": Path(command.split()[0]).name,
+                    "icon": "deployed_code", "description": "Proceso administrado por Cortetsu", "sourceType": "cortetsu",
+                    "origin": f"{path}:{number + 1}", "command": command, "startupPhase": "shell" if loaded_with_shell else "on-demand",
+                    "configured": True, "running": None, "modifiable": False,
+                    "reason": "Cortetsu lo inicia al cargar Bottom Hub durante su sesión" if loaded_with_shell else "Cortetsu inicia el proceso al cargar este módulo"})
+    counts: dict[str, int] = {}
+    for item in entries:
+        keys = duplicate_keys(item)
+        item["_duplicate_keys"] = keys
+        for key in keys:
+            counts[key] = counts.get(key, 0) + 1
+    for item in entries:
+        keys = item.pop("_duplicate_keys", [])
+        item["duplicateCount"] = max((counts[key] for key in keys), default=0)
+        item.pop("_path", None); item.pop("_system", None); item.pop("_unit", None); item.pop("_user", None); item.pop("_exec_start", None); item.pop("_file_state", None)
+    return entries
+
+
+def command_key(raw: str) -> str:
+    try:
+        argv = shlex.split(raw)
+    except ValueError:
+        return ""
+    if not argv or any("%" in value for value in argv):
+        return ""
+    executable = argv[0]
+    resolved = shutil.which(executable) if not os.path.isabs(executable) else executable
+    argv[0] = os.path.abspath(resolved) if resolved else executable
+    return "command:" + json.dumps(argv, ensure_ascii=False, separators=(",", ":"))
+
+
+def duplicate_keys(item: dict) -> list[str]:
+    source = item.get("sourceType")
+    if source in {"systemd-user", "cortetsu"} and item.get("_unit"):
+        unit = item.get("_unit", "")
+        keys = [f"unit:{unit}"] if unit and item.get("_file_state") != "alias" else []
+        for command in item.get("command", "").splitlines():
+            key = command_key(command)
+            if key:
+                keys.append(key)
+        return list(dict.fromkeys(keys))
+    if source not in {"xdg-user", "xdg-system", "hyprland", "cortetsu"}:
+        return []
+    raw = item.get("command", "")
+    if source == "hyprland" and raw.startswith("hl.exec_cmd("):
+        return []
+    try:
+        argv = shlex.split(raw)
+    except ValueError:
+        return []
+    if argv and argv[0] == "systemctl" and "--user" in argv:
+        unit = next((value for value in argv if UNIT_RE.fullmatch(value)), "")
+        return [f"unit:{unit}"] if unit else []
+    key = command_key(raw)
+    return [key] if key else []
+
+
+def atomic_write(path: Path, data: bytes, mode: int = 0o600) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, temp_name = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent)
+    try:
+        with os.fdopen(fd, "wb") as stream:
+            stream.write(data); stream.flush(); os.fsync(stream.fileno())
+        os.chmod(temp_name, mode)
+        os.replace(temp_name, path)
+    finally:
+        if os.path.exists(temp_name):
+            os.unlink(temp_name)
+
+
+def set_hidden(path: Path, hidden: bool) -> None:
+    old = path.read_bytes()
+    state_dir = Path(os.environ.get("XDG_STATE_HOME", Path.home() / ".local/state")) / "cortetsu/startup/backups"
+    state_dir.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+    state_dir.parent.chmod(0o700)
+    state_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
+    state_dir.chmod(0o700)
+    digest = hashlib.sha256(old).hexdigest()
+    backup = state_dir / f"{digest}.desktop"
+    if not backup.exists():
+        atomic_write(backup, old, 0o600)
+    text = old.decode("utf-8", "replace")
+    lines = text.splitlines()
+    start = next((i for i, line in enumerate(lines) if line.strip() == "[Desktop Entry]"), None)
+    if start is None:
+        raise ValueError("falta [Desktop Entry]")
+    end = next((i for i in range(start + 1, len(lines)) if lines[i].startswith("[")), len(lines))
+    positions = [i for i in range(start + 1, end) if lines[i].startswith("Hidden=")]
+    value = f"Hidden={'true' if hidden else 'false'}"
+    if positions:
+        lines[positions[0]] = value
+        for i in reversed(positions[1:]):
+            del lines[i]
+    else:
+        lines.insert(end, value)
+    atomic_write(path, ("\n".join(lines).rstrip("\n") + "\n").encode(), path.stat().st_mode & 0o777)
+
+
+def action(item_id: str, desired: str) -> dict:
+    if desired not in {"enable", "disable"}:
+        raise ValueError("acción inválida")
+    found = next((item for item in scan() if item["id"] == item_id), None)
+    if not found or not found.get("modifiable"):
+        raise ValueError("esta entrada no se puede modificar")
+    if item_id.startswith("xdg:"):
+        filename = item_id[4:]
+        if Path(filename).name != filename or not filename.endswith(".desktop"):
+            raise ValueError("identificador de archivo inválido")
+        target = config_home() / "autostart" / filename
+        target_dir = target.parent
+        if target_dir.is_symlink() or (target.exists() and target.is_symlink()):
+            raise ValueError("no se modifican enlaces simbólicos de autostart")
+        if target.resolve(strict=False).parent != target_dir.resolve(strict=False):
+            raise ValueError("ruta de autostart fuera del directorio del usuario")
+        if not target.exists():
+            source = Path(found["origin"])
+            if source.resolve().parent not in [Path(d).resolve() / "autostart" for d in os.environ.get("XDG_CONFIG_DIRS", "/etc/xdg").split(":") if Path(d).exists()]:
+                raise ValueError("origen XDG fuera de los directorios permitidos")
+            atomic_write(target, source.read_bytes(), 0o600)
+        set_hidden(target, desired == "disable")
+    elif item_id.startswith("user-unit:"):
+        unit = item_id[len("user-unit:"):]
+        if not UNIT_RE.fullmatch(unit) or unit == "cortetsu-shell.service":
+            raise ValueError("unidad no administrable")
+        cp = run(["systemctl", "--user", desired, unit])
+        if not cp or cp.returncode:
+            raise RuntimeError((cp.stderr.strip() if cp else "systemctl no disponible") or "systemctl falló")
+    else:
+        raise ValueError("origen no administrable")
+    updated = next((item for item in scan() if item["id"] == item_id), None)
+    expected = desired == "enable"
+    if not updated or updated["configured"] != expected:
+        raise RuntimeError("la verificación posterior no confirmó el cambio")
+    state = Path(os.environ.get("XDG_STATE_HOME", Path.home() / ".local/state")) / "cortetsu/startup/changes.jsonl"
+    state.parent.mkdir(parents=True, exist_ok=True)
+    state.parent.chmod(0o700)
+    descriptor = os.open(state, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600)
+    with os.fdopen(descriptor, "a", encoding="utf-8") as stream:
+        stream.write(json.dumps({"timestamp": int(time.time()), "source": found["sourceType"], "item": found["name"], "oldState": found["configured"], "newState": expected}) + "\n")
+    return {"ok": True, "entry": updated}
+
+
+def main(argv: list[str]) -> int:
+    try:
+        if argv == ["scan"]:
+            print(json.dumps({"ok": True, "entries": scan()}))
+        elif len(argv) == 3 and argv[0] == "set":
+            print(json.dumps(action(argv[1], argv[2])))
+        else:
+            print(json.dumps({"ok": False, "error": "uso: cortetsu-startup scan | set ID enable|disable"}))
+            return 2
+    except (ValueError, RuntimeError, OSError) as error:
+        print(json.dumps({"ok": False, "error": str(error)}))
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main(sys.argv[1:]))

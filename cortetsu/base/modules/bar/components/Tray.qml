@@ -6,6 +6,7 @@ import Quickshell.Services.SystemTray
 import qs.components
 import qs.modules
 import qs.services
+import "../SystemTrayIdentity.js" as TrayIdentity
 
 CortetsuSurface {
     id: root
@@ -71,8 +72,8 @@ CortetsuSurface {
             id: items
 
             model: ScriptModel {
-                values: SystemTray.items.values.filter(i => i.status !== Status.Passive && !CortetsuConfig.hiddenTrayIcons.includes(i.id))
-                objectProp: "id"
+                values: TrayIdentity.entries(SystemTray.items.values.filter(i => i.status !== Status.Passive && !CortetsuConfig.hiddenTrayIcons.includes(i.id)))
+                objectProp: "key"
             }
 
             TrayItem {}

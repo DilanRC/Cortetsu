@@ -112,12 +112,25 @@ FocusScope {
         if (event.key >= Qt.Key_1 && event.key <= Qt.Key_9) {
             root.currentPage = event.key - Qt.Key_1;
             event.accepted = true;
+            return;
+        }
+        if (event.key === Qt.Key_0) {
+            root.currentPage = 9;
+            event.accepted = true;
         }
     }
 
     function selectAdjacentTab(delta): void {
-        root.currentPage = Math.max(0, Math.min(8, root.currentPage + delta));
+        root.currentPage = Math.max(0, Math.min(9, root.currentPage + delta));
     }
+
+    function revealPageTab(index): void {
+        const tab = tabRepeater.itemAt(index);
+        if (tab)
+            tabs.contentX = Math.max(0, Math.min(tab.x, tabs.contentWidth - tabs.width));
+    }
+
+    onCurrentPageChanged: Qt.callLater(() => root.revealPageTab(root.currentPage))
 
     Timer {
         interval: 1500
@@ -277,42 +290,52 @@ FocusScope {
                 }
             }
 
-            Row {
+            Flickable {
                 id: tabs
                 width: parent.width
                 height: 40
-                spacing: CortetsuDesign.spacingUnit
+                contentWidth: tabRow.implicitWidth
+                clip: true
+                boundsBehavior: Flickable.StopAtBounds
 
-                Repeater {
-                    model: [
-                        { label: qsTr("Overview"), icon: "dashboard" },
-                        { label: qsTr("Performance"), icon: "monitoring" },
-                        { label: qsTr("Procesos"), icon: "account_tree" },
-                        { label: qsTr("Sensors"), icon: "device_thermostat" },
-                        { label: qsTr("I/O"), icon: "lan" },
-                        { label: qsTr("Energía"), icon: "bolt" },
-                        { label: qsTr("Automático"), icon: "auto_mode" },
-                        { label: qsTr("Energy"), icon: "electric_bolt" },
-                        { label: qsTr("Keys"), icon: "keyboard" }
-                    ]
+                Row {
+                    id: tabRow
+                    spacing: CortetsuDesign.spacingUnit
+                    height: parent.height
 
-                    delegate: Item {
-                        id: tabDelegate
-                        required property var modelData
-                        required property int index
-                        width: (tabs.width - tabs.spacing * 8) / 9
-                        height: tabs.height
+                    Repeater {
+                        id: tabRepeater
+                        model: [
+                            { label: qsTr("Overview"), icon: "dashboard" },
+                            { label: qsTr("Performance"), icon: "monitoring" },
+                            { label: qsTr("Procesos"), icon: "account_tree" },
+                            { label: qsTr("Sensors"), icon: "device_thermostat" },
+                            { label: qsTr("I/O"), icon: "lan" },
+                            { label: qsTr("Energía"), icon: "bolt" },
+                            { label: qsTr("Automático"), icon: "auto_mode" },
+                            { label: qsTr("Energy"), icon: "electric_bolt" },
+                            { label: qsTr("Keys"), icon: "keyboard" },
+                            { label: qsTr("Inicio"), icon: "play_circle" }
+                        ]
 
-                        CortetsuTab {
-                            anchors.fill: parent
-                            index: tabDelegate.index
-                            count: 9
-                            label: tabDelegate.modelData.label
-                            icon: tabDelegate.modelData.icon
-                            selected: root.currentPage === tabDelegate.index
-                            onActivated: root.currentPage = tabDelegate.index
-                            onPreviousRequested: root.selectAdjacentTab(-1)
-                            onNextRequested: root.selectAdjacentTab(1)
+                        delegate: Item {
+                            id: tabDelegate
+                            required property var modelData
+                            required property int index
+                            width: Math.max(92, (tabs.width - tabRow.spacing * 9) / 10)
+                            height: tabRow.height
+
+                            CortetsuTab {
+                                anchors.fill: parent
+                                index: tabDelegate.index
+                                count: 10
+                                label: tabDelegate.modelData.label
+                                icon: tabDelegate.modelData.icon
+                                selected: root.currentPage === tabDelegate.index
+                                onActivated: root.currentPage = tabDelegate.index
+                                onPreviousRequested: root.selectAdjacentTab(-1)
+                                onNextRequested: root.selectAdjacentTab(1)
+                            }
                         }
                     }
                 }
@@ -338,7 +361,9 @@ FocusScope {
                                             ? automationComponent
                                             : root.currentPage === 7
                                                 ? energyComponent
-                                                : keybindsComponent
+                                                : root.currentPage === 8
+                                                    ? keybindsComponent
+                                                    : startupComponent
             }
         }
     }
@@ -380,4 +405,5 @@ FocusScope {
     Component { id: automationComponent; PowerAutomationPage {} }
     Component { id: energyComponent; EnergyPage {} }
     Component { id: keybindsComponent; KeybindsPage {} }
+    Component { id: startupComponent; StartupPage {} }
 }
