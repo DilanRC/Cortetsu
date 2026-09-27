@@ -138,7 +138,7 @@ Item {
                 sourceComponent: menuHandle && menuReady ? trayMenuComp : null
 
                 Component.onDestruction: {
-                    if (shouldBeActive)
+                    if (shouldBeActive && menuReady)
                         root.popouts.close();
                 }
 

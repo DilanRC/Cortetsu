@@ -77,6 +77,7 @@ Item {
         onTriggered: root.refresh()
     }
 
+    // startup inventory: cortetsu:hardware-energy-probe
     Process {
         id: probe
         command: [root.helperPath]

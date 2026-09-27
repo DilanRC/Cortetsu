@@ -13,16 +13,17 @@ CortetsuPopupSurface {
 
     required property PopoutState popouts
     required property QsMenuHandle trayItem
-    property real menuContentHeight: 72
-    property real menuContentWidth: 184
     readonly property real menuMinWidth: 152
+    readonly property Item currentPage: stack.currentItem
+    readonly property real menuContentWidth: currentPage?.fittedWidth ?? menuMinWidth
+    readonly property real menuContentHeight: currentPage?.naturalHeight ?? 48
+    readonly property int menuDepth: stack.depth
     // Keep long DBus labels readable without letting one Steam title stretch
     // the popup. The width cap leaves the useful name prefix visible and
     // lets Text.ElideRight handle the rest.
     readonly property real menuMaxWidth: 220
-    // StackView does not propagate the implicit size of a dynamically-created
-    // Column. Keep the popup measurable so the menu is not rendered as an
-    // empty square while its DBus entries are loading.
+    // Bind directly to the current page so StackView pushes and DBus row
+    // updates resize the attached popup before ClipWrapper positions it.
     implicitWidth: menuContentWidth + CortetsuDesign.spacingStandard * 2
     implicitHeight: menuContentHeight + CortetsuDesign.spacingStandard * 2
 
@@ -137,15 +138,11 @@ CortetsuPopupSurface {
                 }
                 return Math.max(root.menuMinWidth, Math.min(root.menuMaxWidth, widest + padding * 2));
             }
+            readonly property real naturalHeight: {
+                return Math.max(48, childrenRect.height + padding * 2);
+            }
             width: fittedWidth
-            height: Math.max(
-                48,
-                childrenRect.height + padding * 2
-                    + (subMenu ? CortetsuDesign.spacingStandard + 48 : 0)
-            )
-
-            onHeightChanged: root.menuContentHeight = height
-            onWidthChanged: root.menuContentWidth = width
+            height: naturalHeight
 
             function selectable(index): bool {
                 const item = entries.itemAt(index);

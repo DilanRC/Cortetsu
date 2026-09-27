@@ -148,6 +148,7 @@ Item {
     PopoutState {
         id: popoutState
         onDetachRequested: mode => root.detach(mode)
+        onCloseRequested: root.close()
     }
 
     Comp {

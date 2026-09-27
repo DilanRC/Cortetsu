@@ -15,6 +15,7 @@ Singleton {
     property bool busy: false
     property string error: ""
 
+    // startup inventory: cortetsu:nvibrant-query
     readonly property Process readProcess: Process {
         command: ["nvibrant"]
         running: false

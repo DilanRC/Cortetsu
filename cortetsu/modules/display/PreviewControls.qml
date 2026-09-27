@@ -77,6 +77,7 @@ Item {
         onTriggered: root.refresh()
     }
 
+    // startup inventory: cortetsu:display-preview-status
     Process {
         id: statusProbe
         command: [root.transactionPath, "status"]

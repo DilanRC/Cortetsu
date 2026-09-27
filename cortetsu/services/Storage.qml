@@ -29,6 +29,7 @@ Singleton {
             root.manualPrimaryDisk = null;
     }
 
+    // startup inventory: cortetsu:storage-probe (on-demand resource view)
     Process {
         id: probe
         command: ["sh", "-c", "df -kP -x tmpfs -x devtmpfs 2>/dev/null"]

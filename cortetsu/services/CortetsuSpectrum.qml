@@ -26,6 +26,7 @@ QtObject {
         available = true;
     }
 
+    // startup inventory: cortetsu:spectrum (conditional on cava availability)
     property Process cavaProcess: Process {
         command: ["sh", "-c", "command -v cava >/dev/null 2>&1 && exec cava"]
         running: true

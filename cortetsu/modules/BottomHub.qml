@@ -106,6 +106,7 @@ Scope {
         command: [Paths.home + "/.local/bin/cortetsu-calendar", "sync"]
     }
 
+    // startup inventory: cortetsu:pomodoro (always-on with Bottom Hub)
     Process {
         id: pomodoroOwner
         command: [Paths.home + "/.local/bin/cortetsu-pomodoro", "daemon"]
@@ -258,12 +259,27 @@ Scope {
         function inspect(): string {
             return JSON.stringify(CortetsuScreens.screens.map(screen => {
                 const state = CortetsuShellState.forScreen(screen);
-                const popup = CortetsuShellState.componentsFor(screen)?.popouts;
+                const panels = CortetsuShellState.componentsFor(screen);
+                const popup = panels?.popouts;
+                const trayLoader = popup?.content?.item?.currentPopout ?? null;
+                const trayMenu = popup?.current ?? null;
+                const popupWindow = panels?.popoutsWrapper ?? null;
                 return { screen: screen.name, launcher: state?.launcher ?? false,
                     utilities: state?.utilities ?? false, sidebar: state?.sidebar ?? false,
                     popup: popup?.currentName ?? "", open: popup?.hasCurrent ?? false,
                     closing: popup?.closing ?? false, detached: popup?.detachedMode ?? "",
-                    anchor: popup?.bottomAnchorCenter ?? -1, focus: popup?.activeFocus ?? false };
+                    anchor: popup?.bottomAnchorCenter ?? -1, focus: popup?.activeFocus ?? false,
+                    tray: { itemKey: trayLoader?.modelData?.key ?? null,
+                        popupName: trayLoader?.name ?? null,
+                        shouldBeActive: trayLoader?.shouldBeActive ?? false,
+                        loaderActive: trayLoader?.active ?? false,
+                        menuHandle: !!trayLoader?.menuHandle,
+                        stackDepth: trayMenu?.menuDepth ?? 0,
+                        menuContentHeight: trayMenu?.menuContentHeight ?? 0,
+                        menuHeight: trayMenu?.implicitHeight ?? 0,
+                        popupY: popupWindow?.y ?? 0,
+                        popupHeight: popupWindow?.height ?? 0,
+                        screenHeight: screen.height ?? 0 } };
             }));
         }
         function launcher(): void {

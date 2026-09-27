@@ -39,6 +39,7 @@ ColumnLayout {
         CortetsuConfig.save();
     }
 
+    // startup inventory: cortetsu:display-calibration-control
     Process {
         id: service
         command: []

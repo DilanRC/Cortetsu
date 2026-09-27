@@ -18,6 +18,7 @@ Singleton {
     }
     onBacklightMaxChanged: monitors.forEach(monitor => monitor.reload())
 
+    // startup inventory: cortetsu:brightness-discovery (one-shot service load)
     readonly property Process discoverProcess: Process {
         command: ["brightnessctl", "-l", "-m"]
         stdout: StdioCollector {
@@ -31,6 +32,7 @@ Singleton {
         }
     }
 
+    // startup inventory: cortetsu:brightness-maximum (conditional device probe)
     readonly property Process maxProcess: Process {
         command: ["cat", "/sys/class/backlight/" + root.backlightDevice + "/max_brightness"]
         running: root.backlightDevice.length > 0

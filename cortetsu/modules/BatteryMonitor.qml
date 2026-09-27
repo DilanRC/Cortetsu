@@ -37,7 +37,9 @@ Scope {
         function onReadyChanged(): void { root.inspect(); }
         function onPercentChanged(): void { root.inspect(); }
     }
+    // startup inventory: cortetsu:battery-notification
     Component.onCompleted: root.inspect()
+    // startup inventory: cortetsu:battery-hibernate
     Timer {
         id: hibernateTimer
         interval: 5000

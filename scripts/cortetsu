@@ -465,6 +465,7 @@ test_cmd() {
     run_bash_test "cortetsu/tests/test-calendar-readonly.sh"
     run_bash_test "cortetsu/tests/test-legacy-process-migration-eval.sh"
     run_qml_test "cortetsu/tests/qml/focus"
+    run_qml_test "cortetsu/tests/qml/hardware"
     run_qml_test "cortetsu/modules/wallpaper/tests"
     run_qml_test "cortetsu/tests/qml/bottomhub"
     run_quickshell_fixture "cortetsu/tests/qml/bottomhub/fixture_ScriptModelIdentity.qml" "SCRIPT_MODEL_IDENTITY_PASS"

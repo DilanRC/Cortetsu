@@ -1668,6 +1668,7 @@ Singleton {
         onExited: root.getNetworks() // qmllint disable signal-handler-parameters
     }
 
+    // startup inventory: cortetsu:nmcli-monitor
     Process {
         id: monitorProc
 
@@ -1699,6 +1700,7 @@ Singleton {
         defaultLogLevel: LoggingCategory.Info
     }
 
+    // startup inventory: cortetsu:nmcli-command
     component CommandProcess: Process {
         id: proc
 

@@ -707,6 +707,7 @@ Singleton {
 
     // ── Generic engine ──────────────────────────────────────────────────────
 
+    // startup inventory: cortetsu:vpn-monitor (on-demand network page)
     Process {
         id: nmMonitor
 
@@ -717,6 +718,7 @@ Singleton {
         }
     }
 
+    // startup inventory: cortetsu:vpn-status
     Process {
         id: statusProc
 

@@ -81,6 +81,7 @@ Singleton {
         }
     }
 
+    // startup inventory: cortetsu:recorder-status (conditional on active recording)
     Process {
         id: status
         command: ["cortetsu-record", "status"]

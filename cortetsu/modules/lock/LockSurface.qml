@@ -98,6 +98,7 @@ WlSessionLockSurface {
         }
     }
 
+    // startup inventory: cortetsu:lock-keyboard-probe (on-demand lock surface)
     Process {
         id: keyboardProbe
         command: ["hyprctl", "-j", "devices"]

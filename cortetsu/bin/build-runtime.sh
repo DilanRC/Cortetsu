@@ -64,6 +64,12 @@ mkdir -p "$STAGING/services"
 cp -a "$REPO/cortetsu/services/." "$STAGING/services/"
 mkdir -p "$STAGING/assets/branding"
 cp -a "$REPO/cortetsu/assets/branding/." "$STAGING/assets/branding/"
+# Cortetsu JS imports retain their source-tree ../base path after the base
+# modules are flattened into the runtime root. Keep that referenced helper at
+# its source-relative runtime path as well.
+mkdir -p "$STAGING/base/modules/bar"
+install -m 0644 "$SOURCE_BASE/modules/bar/SystemTrayIdentity.js" \
+    "$STAGING/base/modules/bar/SystemTrayIdentity.js"
 python3 "$REPO/cortetsu/bin/compose-panels.py" "$STAGING"
 install -m 0644 "$PROVENANCE" "$STAGING/provenance.json"
 install -m 0644 "$REPO/cortetsu/contracts/composition.json" "$STAGING/composition.json"
@@ -71,6 +77,7 @@ install -m 0644 "$WALL_UTILITY_CONTRACT" "$STAGING/wall-utility.json"
 
 printf '==> Regresiones\n'
 python3 "$REPO/cortetsu/tests/test-startup-inventory.py"
+QT_QPA_PLATFORM=offscreen /usr/lib/qt6/bin/qmltestrunner -input "$REPO/cortetsu/tests/qml/hardware"
 python3 "$REPO/scripts/features/test-native-bottom-hub.py" --runtime "$STAGING/modules/BottomHub.qml"
 python3 "$REPO/scripts/features/test-bottom-hub-target.py"
 python3 "$REPO/scripts/features/test-bottom-hub-v3.py"
@@ -176,6 +183,7 @@ bash -n "$REPO/cortetsu/bin/cortetsu-apply-wallpaper-colors"
 
 for required in \
     shell.qml \
+    base/modules/bar/SystemTrayIdentity.js \
     modules/BottomHub.qml \
     modules/CortetsuBottomHubView.qml \
     components/ScreenState.qml \

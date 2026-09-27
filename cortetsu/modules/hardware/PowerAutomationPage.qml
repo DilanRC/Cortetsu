@@ -102,6 +102,7 @@ Item {
         onTriggered: root.refresh()
     }
 
+    // startup inventory: cortetsu:hardware-power-automation-status
     Process {
         id: statusProbe
         command: [root.controlPath, "status"]

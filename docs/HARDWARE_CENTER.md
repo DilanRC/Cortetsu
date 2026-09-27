@@ -44,6 +44,22 @@ left running. Active user services offer a separate **Detener ahora** action
 with explicit confirmation. Every successful action is re-scanned and recorded
 without copying command arguments into the history.
 
+Cortetsu process starts are declared by component in
+`cortetsu/bin/cortetsu-startup`, with startup phase, condition, command and live
+execution state kept separately. The drift test covers bound `running` states,
+`Component.onCompleted` starts, startup timers, detached commands and helper
+calls reached from those startup callbacks. Each producer marks its registry
+entry in QML. Dynamic commands that cannot be matched exactly show an unknown
+execution state. On-demand queries stay labeled as on-demand and are excluded
+from autostart counts.
+`enabled`/`linked` are persistent;
+`enabled-runtime`/`linked-runtime` are temporary; states such as `static`,
+`indirect`, `generated`, `transient` and `alias` are not toggleable. Target
+relationships are described as installation configuration. `TriggeredBy`
+shows possible socket/timer/path activators without claiming they caused a past
+run. Startup inventory refreshes on demand and Hardware Center telemetry polling
+stops when the panel closes.
+
 Keybind changes are written only to the user's Caelestia files. Every change
 creates a snapshot under `~/.local/share/cortetsu/upstream/snapshots/keybinds/`.
 If Hyprland rejects the reload or the new combination is missing, the helper

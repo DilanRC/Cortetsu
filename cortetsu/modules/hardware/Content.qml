@@ -4,6 +4,7 @@ import QtQuick
 import ".."
 import "../CortetsuDesign.js" as CortetsuDesign
 import "../CortetsuTypography.js" as CortetsuTypography
+import "Navigation.js" as HardwareNavigation
 import QtCore
 import Quickshell
 import Quickshell.Io
@@ -101,21 +102,20 @@ FocusScope {
         root.screenState.cortetsuState?.setRetained("hardware", false);
     }
 
-    Keys.onEscapePressed: root.closeHardware()
-
     Keys.onPressed: event => {
+        if (HardwareNavigation.isEscape(event.key, Qt.Key_Escape)) {
+            root.closeHardware();
+            event.accepted = true;
+            return;
+        }
         if (event.key === Qt.Key_R) {
             root.refresh();
             event.accepted = true;
             return;
         }
-        if (event.key >= Qt.Key_1 && event.key <= Qt.Key_9) {
-            root.currentPage = event.key - Qt.Key_1;
-            event.accepted = true;
-            return;
-        }
-        if (event.key === Qt.Key_0) {
-            root.currentPage = 9;
+        if (HardwareNavigation.handlesPageKey(event.key, Qt.Key_1, Qt.Key_9, Qt.Key_0)) {
+            root.currentPage = HardwareNavigation.pageForKey(
+                event.key, root.currentPage, Qt.Key_1, Qt.Key_9, Qt.Key_0);
             event.accepted = true;
         }
     }
@@ -140,6 +140,7 @@ FocusScope {
         onTriggered: root.refresh()
     }
 
+    // startup inventory: cortetsu:hardware-probe
     Process {
         id: probe
         command: [root.probePath]

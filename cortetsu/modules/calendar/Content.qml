@@ -145,6 +145,7 @@ Item {
     FileView { id: cache; path: root.cachePath; watchChanges: true; printErrors: false; onLoaded: root.loadCalendar(); onFileChanged: root.loadCalendar() }
     FileView { id: selectionFile; path: root.selectionPath; watchChanges: true; printErrors: false; onLoaded: root.loadSelection(); onFileChanged: root.loadSelection() }
     FileView { id: pomodoroFile; path: root.pomodoroPath; watchChanges: true; printErrors: false; onLoaded: root.loadPomodoro(); onFileChanged: pomodoroReload.restart() }
+    // startup inventory: cortetsu:calendar-sync
     Process {
         id: calendarSync
         stdout: StdioCollector {

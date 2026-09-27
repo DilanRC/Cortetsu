@@ -101,6 +101,7 @@ Item {
         }
     }
 
+    // startup inventory: cortetsu:hardware-power-probe
     Process {
         id: powerProbe
         command: [root.helperPath]

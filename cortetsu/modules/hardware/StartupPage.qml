@@ -32,11 +32,22 @@ Item {
             || (sourceFilter === "user" && source === "systemd-user")
             || (sourceFilter === "session" && ["hyprland", "cortetsu"].includes(source))
             || (sourceFilter === "system" && source === "systemd-system");
-        const stateMatch = enabledFilter === "all" || entry.configured === (enabledFilter === "enabled");
+        const state = root.stateCategory(entry);
+        const stateMatch = enabledFilter === "all" || state === enabledFilter;
         const term = query.trim().toLowerCase();
         const textMatch = !term || `${entry.name} ${entry.command} ${entry.origin} ${entry.description}`.toLowerCase().includes(term);
         return sourceMatch && stateMatch && textMatch;
     })
+
+    function stateCategory(entry): string {
+        return entry.startupState ?? (entry.configured ? "persistent" : "disabled");
+    }
+
+    function stateLabel(entry): string {
+        if (!entry)
+            return qsTr("Desconocido");
+        return entry.startupLabel ?? (entry.configured ? qsTr("Configurada") : qsTr("Deshabilitada"));
+    }
 
     function scan(): void {
         if (!busy) {
@@ -88,6 +99,8 @@ Item {
             "boot": qsTr("Sistema"),
             "login": qsTr("Sesión"),
             "shell": qsTr("Hyprland/Cortetsu"),
+            "always-on": qsTr("Cortetsu · siempre activo"),
+            "conditional": qsTr("Cortetsu · condicional"),
             "on-demand": qsTr("Bajo demanda")
         })[phase] ?? qsTr("Desconocido");
     }
@@ -105,8 +118,13 @@ Item {
         selected = selected ? entries.find(entry => entry.id === selected.id) ?? null : null;
         statusText = (actionError ? `${qsTr("Cambio no aplicado")}: ${actionError} · ` : "")
             + qsTr("Inventario actualizado")
-            + ` · ${entries.filter(entry => entry.configured && entry.eligible !== false).length} habilitados`
-            + ` · ${entries.filter(entry => entry.configured).length} configurados`
+            + ` · ${entries.filter(entry => root.stateCategory(entry) === "persistent").length} ${qsTr("persistentes")}`
+            + ` · ${entries.filter(entry => root.stateCategory(entry) === "runtime").length} ${qsTr("temporales")}`
+            + ` · ${entries.filter(entry => root.stateCategory(entry) === "disabled").length} ${qsTr("deshabilitados")}`
+            + ` · ${entries.filter(entry => root.stateCategory(entry) === "special").length} ${qsTr("no administrables")}`
+            + ` · ${entries.filter(entry => root.stateCategory(entry) === "always-on").length} ${qsTr("siempre activos")}`
+            + ` · ${entries.filter(entry => root.stateCategory(entry) === "conditional").length} ${qsTr("condicionales")}`
+            + ` · ${entries.filter(entry => root.stateCategory(entry) === "on-demand").length} ${qsTr("bajo demanda")}`
             + ` · ${entries.filter(entry => entry.running === true).length} ejecutándose`
             + ` · ${entries.filter(entry => entry.duplicateCount > 1).length} con inicio duplicado`;
     }
@@ -116,6 +134,7 @@ Item {
 
     Component.onCompleted: scan()
 
+    // startup inventory: cortetsu:hardware-startup-scan
     Process {
         id: scanProcess
         command: [root.helperPath, "scan"]
@@ -195,8 +214,8 @@ Item {
             ComboBox {
                 width: parent.width * 0.23
                 height: 44
-                model: [qsTr("Todos los estados"), qsTr("Habilitados"), qsTr("Deshabilitados")]
-                onActivated: root.enabledFilter = ["all", "enabled", "disabled"][currentIndex]
+                model: [qsTr("Todos los estados"), qsTr("Persistentes"), qsTr("Temporales"), qsTr("Deshabilitados"), qsTr("No administrables"), qsTr("Siempre activos"), qsTr("Condicionales"), qsTr("Bajo demanda")]
+                onActivated: root.enabledFilter = ["all", "persistent", "runtime", "disabled", "special", "always-on", "conditional", "on-demand"][currentIndex]
                 palette.buttonText: CortetsuDesign.colorOnSurface
                 palette.button: CortetsuDesign.colorSurface
                 background: Rectangle { radius: CortetsuDesign.radiusMedium; color: CortetsuDesign.colorSurface; border.width: 1; border.color: CortetsuDesign.colorOutlineVariant }
@@ -260,7 +279,7 @@ Item {
                             CortetsuText { width: parent.width; text: `${root.sourceLabel(modelData)} · ${modelData.origin}`; textSize: CortetsuTypography.labelSmallPx; color: CortetsuDesign.colorOnSurfaceVariant; elide: Text.ElideMiddle }
                             CortetsuText {
                                 width: parent.width
-                                text: `${qsTr("Configuración automática")}: ${modelData.configured ? qsTr("ON") : qsTr("OFF")}${modelData.eligible === false ? ` · ${qsTr("No aplicable en esta sesión")}` : ""} · ${modelData.running === null ? qsTr("Estado: desconocido") : modelData.running ? qsTr("Ejecutándose") : qsTr("Detenido")}${modelData.duplicateCount > 1 ? ` · ${modelData.duplicateCount} fuentes` : ""}`
+                                text: `${modelData.startupPhase === "on-demand" ? qsTr("Fase") : qsTr("Configurado para iniciar")}: ${root.stateLabel(modelData)}${modelData.runtimeOnly ? ` · ${qsTr("Activo para esta sesión/arranque; no persistirá necesariamente tras reiniciar")}` : ""}${modelData.eligible === false ? ` · ${qsTr("No aplicable en esta sesión")}` : ""} · ${qsTr("Ejecutándose ahora")}: ${modelData.running === null ? qsTr("Desconocido") : modelData.running ? qsTr("Sí") : qsTr("No")}${modelData.duplicateCount > 1 ? ` · ${modelData.duplicateCount} fuentes` : ""}`
                                 textSize: CortetsuTypography.labelSmallPx
                                 color: modelData.duplicateCount > 1 ? CortetsuDesign.colorWarning : CortetsuDesign.colorOnSurfaceVariant
                                 elide: Text.ElideRight
@@ -312,7 +331,7 @@ Item {
                         CortetsuText { width: parent.width; visible: root.selected?.eligible !== undefined; text: `${qsTr("Aplicable en esta sesión")}: ${root.selected?.eligible ? qsTr("Sí") : qsTr("No; la especificación XDG excluye esta entrada")}`; textSize: CortetsuTypography.labelSmallPx; color: root.selected?.eligible === false ? CortetsuDesign.colorWarning : CortetsuDesign.colorOnSurfaceVariant; wrapMode: Text.WordWrap }
                         CortetsuText { width: parent.width; text: `${qsTr("Inicio")}: ${root.phaseLabel(root.selected?.startupPhase)}`; textSize: CortetsuTypography.labelSmallPx }
                         CortetsuText { width: parent.width; text: `${qsTr("Estado actual")}: ${root.selected?.activeState ?? (root.selected?.running === null ? qsTr("Desconocido") : root.selected?.running ? qsTr("Ejecutándose") : qsTr("Detenido"))}`; textSize: CortetsuTypography.labelSmallPx }
-                        CortetsuText { width: parent.width; visible: !!root.selected?.unitState; text: `${qsTr("Estado systemd")}: ${root.selected?.unitState ?? "—"} · ${qsTr("Activación")}: ${root.selected?.target || "—"}`; textSize: CortetsuTypography.labelSmallPx; wrapMode: Text.WordWrap }
+                        CortetsuText { width: parent.width; visible: !!root.selected?.unitState; text: `${qsTr("Inicio automático")}: ${root.stateLabel(root.selected)} · ${qsTr("Estado systemd")}: ${root.selected?.unitState ?? "—"}`; textSize: CortetsuTypography.labelSmallPx; wrapMode: Text.WordWrap }
                         CortetsuButton { visible: root.selected?.sourceType === "systemd-user" && root.selected?.modifiable && root.selected?.running === true; label: root.stopConfirmationId === root.selected?.id ? qsTr("Confirmar detener") : qsTr("Detener ahora"); disabled: root.busy; onClicked: root.requestStop(root.selected) }
                         CortetsuText { width: parent.width; visible: root.selected?.sourceType === "systemd-system"; text: qsTr("Servicios del sistema: sólo lectura"); textSize: CortetsuTypography.labelSmallPx; color: CortetsuDesign.colorWarning }
                         CortetsuText { width: parent.width; visible: root.selected?.duplicateCount > 1; text: qsTr("Inicio duplicado: revisa cada origen antes de cambiarlo."); textSize: CortetsuTypography.bodySmallPx; color: CortetsuDesign.colorWarning; wrapMode: Text.WordWrap }

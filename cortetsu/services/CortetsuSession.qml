@@ -9,6 +9,7 @@ Singleton {
 
     signal resumed
 
+    // startup inventory: cortetsu:session-sleep-monitor
     Process {
         id: monitor
         command: ["dbus-monitor", "--system", "type='signal',interface='org.freedesktop.login1.Manager',member='PrepareForSleep'"]

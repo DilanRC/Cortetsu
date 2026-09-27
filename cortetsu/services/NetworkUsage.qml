@@ -54,6 +54,7 @@ Singleton {
         root.uploadHistory = root.uploadHistory.concat([root.uploadSpeed]).slice(-root.historyLength);
     }
 
+    // startup inventory: cortetsu:network-usage-probe (on-demand dashboard telemetry)
     Process {
         id: probe
         command: ["cat", "/proc/net/dev"]

@@ -19,7 +19,10 @@ assert "Keys.onSpacePressed" in tab
 assert "outlined: root.activeFocus || root.selected" in tab
 assert content.count("{ label:") == 10
 assert "count: 10" in content
-assert "event.key === Qt.Key_0" in content
+assert 'import "Navigation.js" as HardwareNavigation' in content
+assert "HardwareNavigation.pageForKey(" in content
+assert "HardwareNavigation.handlesPageKey" in content
+assert "HardwareNavigation.isEscape" in content
 assert "Math.min(9, root.currentPage + delta)" in content
 assert "contentWidth: tabRow.implicitWidth" in content
 assert "tabs.contentWidth - tabs.width" in content

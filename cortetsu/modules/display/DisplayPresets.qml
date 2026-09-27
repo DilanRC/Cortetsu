@@ -43,6 +43,7 @@ Item {
 
     Component.onCompleted: refresh()
 
+    // startup inventory: cortetsu:display-presets
     Process {
         id: worker
         command: []

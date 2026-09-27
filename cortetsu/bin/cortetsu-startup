@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import configparser
+from collections import Counter
+import fnmatch
 import hashlib
 import json
 import os
@@ -16,7 +18,264 @@ import time
 from pathlib import Path
 
 UNIT_RE = re.compile(r"^[A-Za-z0-9_.@:-]+\.(service|socket|timer|path)$")
-MANAGEABLE_UNIT_STATES = {"enabled", "disabled", "linked"}
+PERSISTENT_UNIT_STATES = {"enabled", "linked"}
+RUNTIME_UNIT_STATES = {"enabled-runtime", "linked-runtime"}
+DISABLED_UNIT_STATES = {"disabled"}
+TOGGLEABLE_UNIT_STATES = PERSISTENT_UNIT_STATES | RUNTIME_UNIT_STATES | DISABLED_UNIT_STATES
+
+# Startup-owned processes are declared by component rather than reconstructed
+# from QML layout/line distance. Keep source and launch policy alongside each row.
+CORTETSU_STARTUP = [
+    {"id": "cortetsu:pomodoro", "name": "Pomodoro daemon", "source": "modules/BottomHub.qml",
+     "qmlId": "pomodoroOwner",
+     "startupPhase": "always-on", "condition": "Bottom Hub se carga junto al shell",
+     "command": ["cortetsu-pomodoro", "daemon"], "manageable": False},
+    {"id": "cortetsu:wallpaper-scan", "name": "Wallpaper file index", "source": "modules/CortetsuWallpapers.qml",
+     "qmlId": "scan", "startupPhase": "always-on",
+     "condition": "Al cargar el controlador global de fondos", "command": ["find", "*", "-type", "f"], "manageable": False},
+    {"id": "cortetsu:battery-notification", "name": "Battery notification helper", "source": "modules/BatteryMonitor.qml",
+     "qmlId": None, "startupPhase": "conditional",
+     "condition": "Al cruzar el umbral de batería baja o crítica", "command": ["notify-send", "--app-name=Cortetsu", "*", "*"], "manageable": False},
+    {"id": "cortetsu:battery-hibernate", "name": "Critical battery hibernation", "source": "modules/BatteryMonitor.qml",
+     "qmlId": None, "startupPhase": "conditional",
+     "condition": "Cinco segundos después de alcanzar 3% en batería", "command": ["systemctl", "hibernate"], "manageable": False},
+    {"id": "cortetsu:spectrum", "name": "Cava visualizer", "source": "services/CortetsuSpectrum.qml",
+     "qmlId": None,
+     "startupPhase": "conditional", "condition": "CortetsuAudio se carga y cava está instalado",
+     "command": ["cava"], "manageable": False},
+    {"id": "cortetsu:nmcli-monitor", "name": "NetworkManager monitor", "source": "base/services/Nmcli.qml",
+     "qmlId": "monitorProc", "startupPhase": "on-demand",
+     "condition": "Al abrir una superficie de red", "command": ["nmcli", "monitor"], "manageable": False},
+    {"id": "cortetsu:nmcli-command", "name": "NetworkManager command helper", "source": "base/services/Nmcli.qml",
+     "qmlId": "proc", "startupPhase": "on-demand",
+     "condition": "Al consultar o cambiar una red", "command": [],
+     "commandSource": "cmdArgs", "commandDisplay": "nmcli · operación solicitada", "manageable": False},
+    {"id": "cortetsu:vpn-monitor", "name": "VPN interface monitor", "source": "base/services/VPN.qml",
+     "qmlId": "nmMonitor", "startupPhase": "on-demand",
+     "condition": "Al abrir VPN con un proveedor seleccionado", "command": ["nmcli", "monitor"], "manageable": False},
+    {"id": "cortetsu:vpn-status", "name": "VPN status probe", "source": "base/services/VPN.qml",
+     "qmlId": "statusProc", "startupPhase": "on-demand",
+     "condition": "Al consultar el proveedor VPN seleccionado", "command": [],
+     "commandSource": "root.active.statusCmd", "commandDisplay": "Comando de estado del proveedor VPN", "manageable": False},
+    {"id": "cortetsu:brightness-discovery", "name": "Backlight device discovery", "source": "services/Brightness.qml",
+     "qmlId": "discoverProcess", "startupPhase": "always-on",
+     "condition": "Consulta de dispositivos al cargar el servicio de brillo",
+     "command": ["brightnessctl", "-l", "-m"], "manageable": False},
+    {"id": "cortetsu:brightness-maximum", "name": "Backlight maximum lookup", "source": "services/Brightness.qml",
+     "qmlId": "maxProcess", "startupPhase": "conditional",
+     "condition": "Cuando se detecta un dispositivo de retroiluminación",
+     "command": ["cat", "/sys/class/backlight/*/max_brightness"], "manageable": False},
+    {"id": "cortetsu:nvibrant-query", "name": "NVIDIA vibrance query", "source": "services/Nvibrant.qml",
+     "qmlId": "readProcess", "startupPhase": "on-demand",
+     "condition": "Al abrir los controles de calibración de pantalla", "command": ["nvibrant"], "manageable": False},
+    {"id": "cortetsu:settings-network-query", "name": "Settings network query", "source": "services/CortetsuSettingsNetwork.qml",
+     "qmlId": "command", "startupPhase": "on-demand",
+     "condition": "Al abrir el panel de red de Ajustes", "command": [],
+     "commandSource": "root.pending.args", "commandDisplay": "nmcli · operación solicitada", "manageable": False},
+    {"id": "cortetsu:settings-active-network-query", "name": "Active network query", "source": "services/CortetsuSettingsNetwork.qml",
+     "qmlId": "activeCommand", "startupPhase": "on-demand",
+     "condition": "Al abrir el panel de red de Ajustes", "command": ["nmcli", "-t", "--escape", "yes", "-f", "NAME,TYPE,DEVICE", "connection", "show", "--active"], "manageable": False},
+    {"id": "cortetsu:cpu-temperature", "name": "CPU temperature probe", "source": "services/Cpu.qml",
+     "qmlId": "temperature", "startupPhase": "on-demand",
+     "condition": "Cuando Dashboard o el bloqueo consulta recursos",
+     "command": ["sh", "-c", "for f in /sys/class/thermal/thermal_zone*/temp; do [ -r \"$f\" ] && cat \"$f\" && break; done"], "manageable": False},
+    {"id": "cortetsu:gpu-probe", "name": "GPU telemetry probe", "source": "services/Gpu.qml",
+     "qmlId": "probe", "startupPhase": "on-demand",
+     "condition": "Cuando Dashboard consulta telemetría GPU",
+     "command": ["sh", "-c", "command -v nvidia-smi >/dev/null 2>&1 && nvidia-smi --query-gpu=name,utilization.gpu,temperature.gpu --format=csv,noheader,nounits"], "manageable": False},
+    {"id": "cortetsu:storage-probe", "name": "Storage usage probe", "source": "services/Storage.qml",
+     "qmlId": "probe", "startupPhase": "on-demand",
+     "condition": "Cuando Dashboard o el bloqueo consulta almacenamiento",
+     "command": ["sh", "-c", "df -kP -x tmpfs -x devtmpfs 2>/dev/null"], "manageable": False},
+    {"id": "cortetsu:network-usage-probe", "name": "Network usage probe", "source": "services/NetworkUsage.qml",
+     "qmlId": "probe", "startupPhase": "on-demand",
+     "condition": "Cuando Dashboard muestra tráfico de red",
+     "command": ["cat", "/proc/net/dev"], "manageable": False},
+    {"id": "cortetsu:recorder-status", "name": "Recorder status query", "source": "modules/CortetsuRecorder.qml",
+     "qmlId": "status", "startupPhase": "conditional",
+     "condition": "Mientras hay una grabación activa",
+     "command": ["cortetsu-record", "status"], "manageable": False},
+    {"id": "cortetsu:lock-keyboard-probe", "name": "Lock keyboard discovery", "source": "modules/lock/LockSurface.qml",
+     "qmlId": "keyboardProbe", "startupPhase": "on-demand",
+     "condition": "Al mostrar la pantalla de bloqueo",
+     "command": ["hyprctl", "-j", "devices"], "manageable": False},
+    {"id": "cortetsu:about-quickshell-version", "name": "Quickshell version check", "source": "base/modules/nexus/pages/AboutPage.qml",
+     "qmlId": None, "startupPhase": "on-demand", "condition": "Al abrir la página Acerca de",
+     "command": ["quickshell", "--version"], "manageable": False},
+    {"id": "cortetsu:about-cortetsu-version", "name": "Cortetsu version check", "source": "base/modules/nexus/pages/AboutPage.qml",
+     "qmlId": None, "startupPhase": "on-demand", "condition": "Al abrir la página Acerca de",
+     "command": ["cortetsu", "--version"], "manageable": False},
+    {"id": "cortetsu:launcher-scheme-list", "name": "Scheme list query", "source": "modules/launcher/services/Schemes.qml",
+     "qmlId": "getSchemes", "startupPhase": "on-demand", "condition": "Al abrir el selector de esquemas",
+     "command": ["cortetsu-scheme", "list"], "manageable": False},
+    {"id": "cortetsu:launcher-scheme-current", "name": "Current scheme query", "source": "modules/launcher/services/Schemes.qml",
+     "qmlId": "getCurrent", "startupPhase": "on-demand", "condition": "Al abrir el selector de esquemas",
+     "command": ["cortetsu-scheme", "get", "-nfv"], "manageable": False},
+    {"id": "cortetsu:calendar-sync", "name": "Calendar synchronization", "source": "modules/calendar/Content.qml",
+     "qmlId": "calendarSync", "startupPhase": "on-demand",
+     "condition": "Al abrir Calendario si hay una cuenta conectada", "command": ["cortetsu-calendar", "sync"], "manageable": False},
+    {"id": "cortetsu:display-presets", "name": "Display preset query", "source": "modules/display/DisplayPresets.qml",
+     "qmlId": "worker", "startupPhase": "on-demand",
+     "condition": "Al abrir el selector de distribuciones de pantalla", "command": ["cortetsu-display-presets"], "manageable": False},
+    {"id": "cortetsu:display-preview-status", "name": "Display preview status", "source": "modules/display/PreviewControls.qml",
+     "qmlId": "statusProbe", "startupPhase": "on-demand",
+     "condition": "Al abrir los controles de vista previa de pantalla", "command": ["cortetsu-display-transaction", "status"], "manageable": False},
+    {"id": "cortetsu:hardware-probe", "name": "Hardware telemetry probe", "source": "modules/hardware/Content.qml",
+     "qmlId": "probe", "startupPhase": "on-demand",
+     "condition": "Al abrir Hardware Center; se detiene al cerrarlo", "command": ["cortetsu-hardware-probe"], "manageable": False},
+    {"id": "cortetsu:hardware-power-probe", "name": "Hardware power probe", "source": "modules/hardware/PowerPage.qml",
+     "qmlId": "powerProbe", "startupPhase": "on-demand",
+     "condition": "Al abrir la página Energía de Hardware Center", "command": ["cortetsu-hardware-power"], "manageable": False},
+    {"id": "cortetsu:hardware-power-automation-status", "name": "Power automation status query", "source": "modules/hardware/PowerAutomationPage.qml",
+     "qmlId": "statusProbe", "startupPhase": "on-demand",
+     "condition": "Al abrir la página de automatización de energía", "command": ["cortetsu-power-auto-control", "status"], "manageable": False},
+    {"id": "cortetsu:hardware-keybind-list", "name": "Keybind inventory query", "source": "modules/hardware/KeybindsPage.qml",
+     "qmlId": "listProcess", "startupPhase": "on-demand",
+     "condition": "Al abrir la página de atajos", "command": ["cortetsu-keybinds", "list"], "manageable": False},
+    {"id": "cortetsu:hardware-energy-probe", "name": "Energy telemetry probe", "source": "modules/hardware/EnergyPage.qml",
+     "qmlId": "probe", "startupPhase": "on-demand",
+     "condition": "Al abrir la página Energía", "command": ["cortetsu-hardware-power"], "manageable": False},
+    {"id": "cortetsu:hardware-startup-scan", "name": "Startup inventory scan", "source": "modules/hardware/StartupPage.qml",
+     "qmlId": "scanProcess", "startupPhase": "on-demand",
+     "condition": "Al abrir Inicio de Hardware Center; sin sondeo al cerrarlo", "command": ["cortetsu-startup", "scan"], "manageable": False},
+    {"id": "cortetsu:display-calibration-control", "name": "Display calibration control", "source": "modules/settings/DisplayCalibration.qml",
+     "qmlId": "service", "startupPhase": "on-demand",
+     "condition": "Al abrir Calibración si la configuración lo solicita",
+     "command": ["systemctl", "--user", "*", "hyprsunset.service"], "manageable": False},
+    {"id": "cortetsu:session-sleep-monitor", "name": "Sleep/wake monitor", "source": "services/CortetsuSession.qml",
+     "qmlId": "monitor", "startupPhase": "on-demand", "condition": "Cuando se instancia CortetsuSession",
+     "command": ["dbus-monitor", "--system"], "manageable": False},
+]
+
+
+def normalize_unit_state(state: str) -> dict[str, object]:
+    """Keep systemd persistence, runtime scope, and manageability distinct."""
+    if state in PERSISTENT_UNIT_STATES:
+        category, label = "persistent", "Persistente"
+    elif state in RUNTIME_UNIT_STATES:
+        category, label = "runtime", "Temporal"
+    elif state in DISABLED_UNIT_STATES:
+        category, label = "disabled", "Deshabilitado"
+    else:
+        category, label = "special", "No administrable"
+    return {
+        "category": category,
+        "label": label,
+        "configured": category in {"persistent", "runtime"},
+        "modifiable": state in TOGGLEABLE_UNIT_STATES,
+        "persistent": category == "persistent",
+        "runtime": category == "runtime",
+    }
+
+
+def activation_reason(unit: str, values: dict[str, str], file_state: str) -> tuple[str, str]:
+    """Describe evidence, not inferred runtime causality."""
+    triggered_by = [value for value in values.get("TriggeredBy", "").split() if value]
+    if unit.endswith(".service") and triggered_by:
+        activator = next((name for suffix in (".socket", ".timer", ".path")
+                          for name in triggered_by if name.endswith(suffix)), None)
+        if activator:
+            kind = {".socket": "Puede activarse por socket", ".timer": "Programada por timer",
+                    ".path": "Puede activarse por path"}[Path(activator).suffix]
+            return f"{kind} {activator}; no se confirma que lo haya iniciado ahora.", "activator"
+    targets = [*values.get("WantedBy", "").split(), *values.get("RequiredBy", "").split()]
+    if targets and file_state in PERSISTENT_UNIT_STATES | RUNTIME_UNIT_STATES:
+        scope = "durante esta sesión" if file_state in RUNTIME_UNIT_STATES else ""
+        target = targets[0]
+        return f"Instalada para iniciarse con {target}" + (f" {scope}" if scope else ""), "target"
+    dependents = values.get("BoundBy", "").split()
+    if unit.endswith(".service") and dependents:
+        return (f"Puede iniciarse por dependencia de {dependents[0]}; "
+                "la causalidad de esta ejecución no está confirmada."), "dependency"
+    if values.get("ActiveState") == "active":
+        return "Activa; inicio manual o activador exacto no determinado.", "unknown"
+    return "Configurada mediante systemd --user. Activador exacto no determinado.", "unknown"
+
+
+def process_argv_matches(command: list[str], argv: list[str], executable_path: Path,
+                         running_executable_path: Path) -> bool:
+    if not command or not argv:
+        return False
+    executable = Path(command[0]).name
+    if Path(argv[0]).name == executable:
+        actual_path = Path(shutil.which(argv[0]) or argv[0]) if "/" not in argv[0] else Path(argv[0])
+        if (actual_path.resolve() != executable_path.resolve()
+                or running_executable_path.resolve() != executable_path.resolve()):
+            return False
+        actual_args = argv[1:]
+    elif (Path(argv[0]).name.startswith("python") and len(argv) > 1
+          and Path(argv[1]).name == executable
+          and Path(argv[1]).resolve() == executable_path.resolve()
+          and Path(shutil.which(argv[0]) or argv[0]).resolve() == running_executable_path.resolve()):
+        # A shebang script appears as python + script path in /proc/<pid>/cmdline.
+        actual_args = argv[2:]
+    else:
+        return False
+    return (len(actual_args) >= len(command[1:])
+            and all(fnmatch.fnmatchcase(actual, expected)
+                    for actual, expected in zip(actual_args, command[1:])))
+
+
+def process_is_running(command: list[str], proc_root: Path = Path("/proc"),
+                       unambiguous: bool = True, executable_path: Path | None = None) -> bool | None:
+    """Report state only for a unique Cortetsu executable command signature."""
+    if (not unambiguous or not command
+            or not Path(command[0]).name.startswith("cortetsu-")):
+        # Generic executables and duplicate Cortetsu commands cannot identify one producer.
+        return None
+    executable_path = executable_path or Path(shutil.which(command[0]) or command[0])
+    for proc in proc_root.glob("[0-9]*"):
+        if proc.name == str(os.getpid()):
+            continue
+        try:
+            argv = [part.decode(errors="replace") for part in (proc / "cmdline").read_bytes().split(b"\0") if part]
+            running_executable_path = (proc / "exe").resolve(strict=True)
+        except OSError:
+            continue
+        if process_argv_matches(command, argv, executable_path, running_executable_path):
+            return True
+    return False
+
+
+def cortetsu_source_root() -> Path:
+    candidates = [
+        Path(__file__).resolve().parents[1],
+        Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local/share")) / "cortetsu/repository/cortetsu",
+        config_home() / "quickshell/cortetsu/current",
+    ]
+    return next((path for path in candidates if (path / "modules").is_dir()), candidates[-1])
+
+
+def cortetsu_entries() -> list[dict]:
+    result = []
+    source_root = cortetsu_source_root()
+    executable_counts = Counter(
+        Path(component["command"][0]).name for component in CORTETSU_STARTUP
+        if component["command"] and Path(component["command"][0]).name.startswith("cortetsu-")
+    )
+    for component in CORTETSU_STARTUP:
+        source = source_root / component["source"]
+        command = component["command"]
+        executable = Path(command[0]).name if command else ""
+        result.append({
+            "id": component["id"], "name": component["name"], "icon": "deployed_code",
+            "description": component["condition"], "sourceType": "cortetsu",
+            "origin": str(source),
+            "command": component.get("commandDisplay", shlex.join(component["command"])),
+            "startupPhase": component["startupPhase"],
+            "startupState": component["startupPhase"],
+            "startupLabel": {"always-on": "Siempre activo", "conditional": "Condicional",
+                             "on-demand": "Bajo demanda"}[component["startupPhase"]],
+            "configured": component["startupPhase"] != "on-demand",
+            "running": process_is_running(
+                command, unambiguous=executable_counts[executable] == 1,
+                executable_path=Path(shutil.which(command[0]) or command[0]) if command else None,
+            )
+            if command else None,
+            "modifiable": False,
+            "reason": component["condition"],
+        })
+    return result
 
 
 def run(args: list[str], timeout: float = 4) -> subprocess.CompletedProcess[str] | None:
@@ -113,7 +372,7 @@ def systemd_entries(user: bool) -> list[dict]:
     snapshots: dict[str, dict[str, str]] = {}
     for offset in range(0, len(units), 80):
         names = [unit for unit, _ in units[offset:offset + 80]]
-        props = run(prefix + ["show", *names, "--property=Id,Description,ActiveState,UnitFileState,WantedBy,RequiredBy,Triggers,FragmentPath,ExecStart"])
+        props = run(prefix + ["show", *names, "--property=Id,Description,ActiveState,UnitFileState,WantedBy,RequiredBy,TriggeredBy,BoundBy,ConsistsOf,FragmentPath,ExecStart"])
         for block in (props.stdout if props else "").split("\n\n"):
             values = dict(part.split("=", 1) for part in block.splitlines() if "=" in part)
             if values.get("Id"):
@@ -122,13 +381,13 @@ def systemd_entries(user: bool) -> list[dict]:
     for unit, file_state in units:
         values = snapshots.get(unit, {})
         active = values.get("ActiveState", "unknown")
+        state = normalize_unit_state(file_state)
         source_type = "cortetsu" if user and unit.startswith("cortetsu-") else ("systemd-user" if user else "systemd-system")
-        modifiable = user and source_type == "systemd-user" and file_state in MANAGEABLE_UNIT_STATES
-        reason = f"systemd {'del usuario' if user else 'del sistema'} · {file_state} · {active}"
+        modifiable = user and source_type == "systemd-user" and bool(state["modifiable"])
+        reason, activation_type = activation_reason(unit, values, file_state) if user else (
+            "Configurada mediante systemd del sistema. Activador exacto no determinado.", "unknown")
         if unit == "cortetsu-shell.service":
-            reason = "Servicio principal de Cortetsu; esta página no permite desactivarlo"
-        elif source_type == "cortetsu":
-            reason = "Componente de Cortetsu; usa su control específico si está disponible"
+            reason += " · Servicio principal de Cortetsu; esta página no permite desactivarlo"
         result.append({
             "id": ("user-unit:" if user else "system-unit:") + unit,
             "name": values.get("Description") or unit,
@@ -138,10 +397,15 @@ def systemd_entries(user: bool) -> list[dict]:
             "origin": values.get("FragmentPath", unit),
             "command": systemd_command(values.get("ExecStart", "")),
             "startupPhase": "login" if user else "boot",
-            "configured": file_state in {"enabled", "enabled-runtime", "linked", "linked-runtime"},
+            "configured": state["configured"],
+            "startupState": state["category"],
+            "startupLabel": state["label"],
+            "persistent": state["persistent"],
+            "runtimeOnly": state["runtime"],
             "running": active == "active" if active in {"active", "inactive", "failed"} else None,
             "activeState": active,
             "unitState": file_state,
+            "activationType": activation_type,
             "target": ", ".join(filter(None, (values.get("WantedBy", "").split(" ") + values.get("RequiredBy", "").split(" ")))),
             "modifiable": modifiable,
             "reason": reason,
@@ -209,33 +473,7 @@ def scan() -> list[dict]:
                     "icon": "terminal", "description": "", "sourceType": "hyprland", "origin": f"{path}:{number}",
                     "command": command or line.strip(), "startupPhase": "shell", "configured": True, "running": None,
                     "modifiable": False, "reason": "Hyprland ejecuta esta entrada al iniciar la sesión"})
-    # Classify Cortetsu's own startup units and QML-owned processes for diagnosis.
-    source = Path(__file__).resolve().parents[1] / "modules"
-    if not source.is_dir():
-        runtime = config_home() / "quickshell/cortetsu/current/modules"
-        source = runtime if runtime.is_dir() else source
-    for path in source.rglob("*.qml"):
-        try:
-            lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
-        except OSError:
-            continue
-        for number, line in enumerate(lines):
-            if "running: true" not in line:
-                continue
-            block = "\n".join(lines[max(0, number - 5):number + 1])
-            values = [match.group(1) for match in re.finditer(r'"([^"\n]*)"', block)]
-            command_index = next((i for i, value in enumerate(values) if "/.local/bin/cortetsu" in value), -1)
-            command = ""
-            if command_index >= 0:
-                argv = [Path(values[command_index]).name] + values[command_index + 1:]
-                command = " ".join(shlex.quote(value) for value in argv)
-            if command and "cortetsu" in command:
-                loaded_with_shell = path.name == "BottomHub.qml"
-                entries.append({"id": f"cortetsu:{path}:{number + 1}", "name": Path(command.split()[0]).name,
-                    "icon": "deployed_code", "description": "Proceso administrado por Cortetsu", "sourceType": "cortetsu",
-                    "origin": f"{path}:{number + 1}", "command": command, "startupPhase": "shell" if loaded_with_shell else "on-demand",
-                    "configured": True, "running": None, "modifiable": False,
-                    "reason": "Cortetsu lo inicia al cargar Bottom Hub durante su sesión" if loaded_with_shell else "Cortetsu inicia el proceso al cargar este módulo"})
+    entries.extend(cortetsu_entries())
     unit_commands = user_unit_command_lookup(entries)
     parents = list(range(len(entries)))
 

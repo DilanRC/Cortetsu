@@ -229,6 +229,7 @@ Singleton {
         onLoadFailed: root.readActual(root.fallback)
     }
 
+    // startup inventory: cortetsu:wallpaper-scan
     Process {
         id: scan
         stdout: StdioCollector {

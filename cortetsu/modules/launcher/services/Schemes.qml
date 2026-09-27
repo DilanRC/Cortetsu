@@ -59,6 +59,7 @@ Searcher {
         Scheme {}
     }
 
+    // startup inventory: cortetsu:launcher-scheme-list
     Process {
         id: getSchemes
 
@@ -95,6 +96,7 @@ Searcher {
         }
     }
 
+    // startup inventory: cortetsu:launcher-scheme-current
     Process {
         id: getCurrent
 

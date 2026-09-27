@@ -41,6 +41,7 @@ Singleton {
     property string activeErrorOutput: ""
     property int initialStep: 0
 
+    // startup inventory: cortetsu:settings-network-query
     readonly property Process command: Process {
         id: command
         command: ["nmcli", ...root.pending.args]
@@ -65,6 +66,7 @@ Singleton {
         onExited: root.finishSecret(secretCommand.exitCode)
     }
 
+    // startup inventory: cortetsu:settings-active-network-query
     readonly property Process activeCommand: Process {
         id: activeCommand
         command: ["nmcli", "-t", "--escape", "yes", "-f", "NAME,TYPE,DEVICE", "connection", "show", "--active"]

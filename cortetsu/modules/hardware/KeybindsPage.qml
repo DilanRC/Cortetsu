@@ -174,6 +174,7 @@ FocusScope {
 
     Component.onCompleted: refresh()
 
+    // startup inventory: cortetsu:hardware-keybind-list
     Process {
         id: listProcess
         command: [root.helperPath, "list"]
