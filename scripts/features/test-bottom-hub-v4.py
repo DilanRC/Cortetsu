@@ -54,9 +54,11 @@ def main() -> None:
     require(HUB, "BottomHubResolver.desktopEntryForWindow(", "resolver compartido y comprobable")
     require(RESOLVER, "window.initialClass, window.class", "clase inicial y actual de la ventana")
     require(RESOLVER, "steam://rungameid/${steamAppId}", "asociación de juegos Steam por app id")
-    require(RESOLVER, "function groupKeyForWindow(window, entry, anonymousIndex, address)", "identidad estable de la ventana")
+    require(RESOLVER, "function groupKeyForWindow(window, entry, anonymousIndex, address, client)", "identidad estable de la ventana")
     require(RESOLVER, 'String(window.address ?? "").trim()', "dirección vacía tratada como identidad anónima")
-    require(RESOLVER, "window:${address || anonymousIndex}", "clave única de ventana anónima")
+    require(RESOLVER, "const anonymousWindowIds = new WeakMap()", "identidad temporal ligada a la vida de cada toplevel")
+    require(RESOLVER, 'return `window:anonymous:${identity}`', "clave anónima estable antes de reportar address")
+    require(RESOLVER, "window:${anonymousIndex}", "fallback de identidad para llamadas sin cliente")
     require(RESOLVER, "const executableMatches = entries.filter(candidate =>", "resolución por ejecutable desktop")
     if not (
         RESOLVER.index("const entry = byId(identity)")

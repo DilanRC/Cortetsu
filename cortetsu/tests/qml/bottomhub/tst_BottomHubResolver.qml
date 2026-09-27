@@ -237,8 +237,30 @@ TestCase {
         const groups = Resolver.groupWindows([first, second], () => null);
 
         compare(groups.size, 2);
-        verify(groups.has("window:0"));
-        verify(groups.has("window:1"));
+        const keys = Array.from(groups.values()).map(group => group.key);
+        verify(keys.every(key => key.startsWith("window:anonymous:")));
+        verify(keys[0] !== keys[1]);
+    }
+
+    function test_anonymous_window_identity_survives_reordering_until_address_arrives() {
+        const first = { lastIpcObject: {} };
+        const second = { lastIpcObject: {} };
+        const clients = [first, second];
+        const grouped = Resolver.groupWindows(clients, () => null);
+        const firstKey = Array.from(grouped.values()).find(group => group.windows[0] === first).key;
+        const secondKey = Array.from(grouped.values()).find(group => group.windows[0] === second).key;
+        verify(firstKey !== secondKey);
+
+        const reordered = Resolver.groupWindows([second, first], () => null);
+        compare(Array.from(reordered.values()).find(group => group.windows[0] === first).key, firstKey);
+        compare(Array.from(reordered.values()).find(group => group.windows[0] === second).key, secondKey);
+
+        first.lastIpcObject.address = "0xabc";
+        const reported = Resolver.groupWindows([first, second], () => null);
+        const reportedGroups = Array.from(reported.values());
+        compare(reported.size, 2);
+        verify(reported.has("window:0xabc"));
+        verify(reportedGroups.some(group => group.windows[0] === second && group.key === secondKey));
     }
 
     function test_resolved_partial_windows_do_not_shift_anonymous_keys() {
@@ -255,11 +277,14 @@ TestCase {
             id: "org.example.partial.desktop"
         };
         const resolveEntry = window => window === resolved ? entry : null;
+        const before = Resolver.groupWindows([first, second], resolveEntry);
         const groups = Resolver.groupWindows([first, resolved, second], resolveEntry);
 
-        verify(groups.has("window:0"));
+        const firstKey = Array.from(before.values()).find(group => group.windows[0] === first).key;
+        const secondKey = Array.from(before.values()).find(group => group.windows[0] === second).key;
+        verify(groups.has(firstKey));
+        verify(groups.has(secondKey));
         verify(groups.has(entry.id));
-        verify(groups.has("window:1"));
         compare(groups.size, 3);
     }
 }

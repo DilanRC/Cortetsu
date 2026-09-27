@@ -1,5 +1,8 @@
 .pragma library
 
+const anonymousWindowIds = new WeakMap();
+let nextAnonymousWindowId = 0;
+
 function normalizeIdentity(value) {
     return String(value ?? "")
         .toLowerCase()
@@ -71,7 +74,7 @@ function desktopEntryForWindow(window, entries, byId, isPinned) {
     return null;
 }
 
-function groupKeyForWindow(window, entry, anonymousIndex, address) {
+function groupKeyForWindow(window, entry, anonymousIndex, address, client) {
     const entryId = String(entry?.id ?? "").trim();
     if (entryId)
         return entryId;
@@ -81,7 +84,21 @@ function groupKeyForWindow(window, entry, anonymousIndex, address) {
     if (identity)
         return identity.toLowerCase();
 
-    return `window:${address || anonymousIndex}`;
+    const reportedAddress = String(address ?? "").trim();
+    if (reportedAddress)
+        return `window:${reportedAddress}`;
+
+    // Weak keys keep anonymous windows distinct until Hyprland reports their address.
+    if (client && (typeof client === "object" || typeof client === "function")) {
+        let identity = anonymousWindowIds.get(client);
+        if (identity === undefined) {
+            identity = ++nextAnonymousWindowId;
+            anonymousWindowIds.set(client, identity);
+        }
+        return `window:anonymous:${identity}`;
+    }
+
+    return `window:${anonymousIndex}`;
 }
 
 function groupWindows(clients, resolveEntry) {
@@ -94,7 +111,7 @@ function groupWindows(clients, resolveEntry) {
             || String(window.initialClass ?? "").trim();
         const address = String(window.address ?? "").trim();
         const entry = resolveEntry(client);
-        const key = groupKeyForWindow(window, entry, anonymousWindowIndex, address);
+        const key = groupKeyForWindow(window, entry, anonymousWindowIndex, address, client);
         if (!String(entry?.id ?? "").trim()
                 && !String(window.initialClass ?? "").trim()
                 && !String(window.class ?? "").trim()
