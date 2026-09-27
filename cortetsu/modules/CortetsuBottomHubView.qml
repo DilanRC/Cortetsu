@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell
 import "CortetsuDesign.js" as CortetsuDesign
 
 Item {
@@ -11,6 +12,14 @@ Item {
     required property var occupiedWorkspaceIds
     required property var dockItems
     required property var trayItems
+    readonly property var dockDelegateModel: ScriptModel {
+        values: root.dockItems
+        objectProp: "key"
+    }
+    readonly property var trayDelegateModel: ScriptModel {
+        values: root.trayItems
+        objectProp: "id"
+    }
     required property bool modeVisible
     required property bool appsVisible
     required property bool trayVisible
@@ -47,6 +56,8 @@ Item {
     signal appCycleRequested(string key, int direction)
     signal trayHoverRequested(string itemId, real centerX)
     signal trayActivateRequested(string itemId)
+    signal traySecondaryActivateRequested(string itemId)
+    signal trayScrollRequested(string itemId, int delta, bool horizontal)
     signal traySecondaryRequested(string itemId, real centerX)
     signal attachedControlRequested(string mode, real centerX)
     signal attachedControlEntered(string mode, real centerX)
@@ -123,6 +134,7 @@ Item {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.verticalCenter: parent.verticalCenter
         items: root.dockItems
+        delegateModel: root.dockDelegateModel
         maxWidth: root.appRailMaxWidth
         onActivateRequested: key => root.appActivateRequested(key)
         onTogglePinnedRequested: key => root.appTogglePinnedRequested(key)
@@ -138,11 +150,15 @@ Item {
         anchors.rightMargin: 6
         anchors.verticalCenter: parent.verticalCenter
         items: root.trayItems
+        delegateModel: root.trayDelegateModel
         onHoverRequested: (itemId, centerX) => root.trayHoverRequested(
             itemId,
             traySegment.x + centerX
         )
         onActivateRequested: itemId => root.trayActivateRequested(itemId)
+        onSecondaryActivateRequested: itemId => root.traySecondaryActivateRequested(itemId)
+        onScrollRequested: (itemId, delta, horizontal) =>
+            root.trayScrollRequested(itemId, delta, horizontal)
         onSecondaryRequested: (itemId, centerX) => root.traySecondaryRequested(
             itemId,
             traySegment.x + centerX

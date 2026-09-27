@@ -54,6 +54,7 @@ create_bind(
 -- Misc
 create_bind(vars.kbSession, hl.dsp.global("cortetsu:session"))
 create_bind(vars.kbShowSidebar, hl.dsp.global("cortetsu:sidebar"))
+create_bind(vars.kbFocusToast, hl.dsp.global("cortetsu:focusToast"))
 create_bind(vars.kbClearNotifs, hl.dsp.global("cortetsu:clearNotifs"), locked)
 create_bind(vars.kbShowPanels, hl.dsp.global("cortetsu:showall"))
 create_bind(vars.kbLock, hl.dsp.global("cortetsu:lock"))

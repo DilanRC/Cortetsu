@@ -71,6 +71,10 @@ Scope {
         }
     }
     CustomShortcut {
+        name: "focusToast"; description: "Enfocar la notificación más reciente"
+        onPressed: CortetsuToaster.requestFocusNewest()
+    }
+    CustomShortcut {
         name: "utilities"; description: "Alternar utilidades"
         onPressed: if (!root.hasFullscreen) root.toggleExclusive(CortetsuShellState.forActive(), "osd")
     }

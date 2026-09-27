@@ -58,7 +58,7 @@ ColumnLayout {
                 const index = Math.floor(((y - top - tray.padding * 2 + tray.spacing) / tray.layout.implicitHeight) * tray.items.count);
                 const trayItem = tray.items.itemAt(index);
                 if (trayItem) {
-                    popouts.currentName = `traymenu${index}`;
+                    popouts.currentName = `traymenu${trayItem.modelData.id}`;
                     popouts.currentCenter = Qt.binding(() => trayItem.mapToItem(root, 0, trayItem.implicitHeight / 2).y);
                     popouts.hasCurrent = true;
                 } else {

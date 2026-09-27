@@ -230,7 +230,6 @@ Item {
             implicitHeight: 44
             width: implicitWidth
             height: implicitHeight
-            focus: true
             activeFocusOnTab: true
 
             CortetsuSurface {

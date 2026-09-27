@@ -19,13 +19,17 @@ assert "function dismiss" in toaster
 assert "CortetsuToaster.toasts" in view
 assert "onDismissed: CortetsuToaster.dismiss" in view
 assert "visibleToasts" in view
-assert "toast: root.visibleToasts[index]" in view
+assert "required property var modelData" in view
+assert "toast: modelData" in view
+assert "CortetsuToaster.dismiss(modelData.id)" in view
 assert "width: implicitWidth" in view
 assert "height: implicitHeight" in view
 assert "implicitHeight: column.childrenRect.height" in view
 assert "z: 100" in view
-assert "onVisibleToastsChanged" in view
-assert "forceActiveFocus()" in view
+assert "focus: false" in view
+assert "onVisibleToastsChanged" not in view
+assert "function focusToast(id: int): bool" in view
+assert "item.forceActiveFocus(Qt.TabFocusReason)" in view
 assert "Keys.onEscapePressed" in view
 assert "CortetsuToaster.dismiss(root.visibleToasts[0].id)" in view
 assert "height: implicitHeight" in item
@@ -33,7 +37,8 @@ assert "focus: false" in item
 assert "pressed: toastMouse.pressed" in item
 assert "scale: 1" in item
 assert "running: !root.hovered && !root.activeFocus" in item
-assert "focus: index === 0" in view
+assert 'objectProp: "id"' in view
+assert "onPressed: root.forceActiveFocus()" in item
 assert "pomodoroNotification" in hub
 assert "property var consumed" in hub
 assert "CortetsuToaster.toast(event.title, event.message, \"timer\")" in hub
@@ -47,6 +52,16 @@ assert "toasts.implicitHeight" in bottom_hub
 assert "toasts.spacing" in bottom_hub
 assert "x: toasts.x" in bottom_hub
 assert "WlrLayershell.keyboardFocus" in bottom_hub
-assert "WlrKeyboardFocus.Exclusive" in bottom_hub
+assert "WlrKeyboardFocus.OnDemand" in bottom_hub
+assert "hubRoot.shown" in bottom_hub and "WlrKeyboardFocus.None" in bottom_hub
+assert "function onFocusRequested(id: int)" in bottom_hub
+assert "Qt.callLater(() => toasts.focusToast(id))" in bottom_hub
+assert "function requestFocusNewest(): void" in toaster
+assert 'name: "focusToast"' in (repo / "cortetsu/modules/Shortcuts.qml").read_text(encoding="utf-8")
+keybinds = (repo / "dotfiles/home/.config/hypr/hyprland/keybinds.lua").read_text(encoding="utf-8")
+variables = (repo / "dotfiles/home/.config/hypr/variables.lua").read_text(encoding="utf-8")
+assert 'kbFocusToast               = "SUPER + ALT + N"' in variables
+assert 'create_bind(vars.kbFocusToast, hl.dsp.global("cortetsu:focusToast"))' in keybinds
+assert "visible: hubRoot.shown || toasts.visibleToasts.length > 0" in bottom_hub
 assert 'import "../utilities/toasts" as Toasts' not in panels
 print("PASS: Cortetsu owns toast state, rendering, and event calls")

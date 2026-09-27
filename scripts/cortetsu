@@ -254,6 +254,19 @@ run_qml_test() {
     QT_QPA_PLATFORM=offscreen /usr/lib/qt6/bin/qmltestrunner -input "$ROOT/$relative"
 }
 
+run_quickshell_fixture() {
+    local relative="$1" marker="$2" output
+    require_repo
+    require_file "$ROOT/$relative"
+    printf '==> Quickshell QML fixture: %s\n' "$relative"
+    output="$(timeout 10s qs -p "$ROOT/$relative" --no-color 2>&1)" || {
+        printf '%s\n' "$output" >&2
+        fail "Quickshell fixture failed: $relative"
+    }
+    printf '%s\n' "$output"
+    [[ "$output" == *"$marker"* ]] || fail "Quickshell fixture did not report $marker"
+}
+
 legacy_processes_cmd() {
     require_repo
     require_file "$ROOT/core/migrate_legacy_processes.py"
@@ -453,6 +466,7 @@ test_cmd() {
     run_qml_test "cortetsu/tests/qml/focus"
     run_qml_test "cortetsu/modules/wallpaper/tests"
     run_qml_test "cortetsu/tests/qml/bottomhub"
+    run_quickshell_fixture "cortetsu/tests/qml/bottomhub/fixture_ScriptModelIdentity.qml" "SCRIPT_MODEL_IDENTITY_PASS"
     printf '\nCortetsu repository regressions passed.\n'
 }
 

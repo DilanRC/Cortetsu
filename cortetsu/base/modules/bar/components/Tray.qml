@@ -71,7 +71,8 @@ CortetsuSurface {
             id: items
 
             model: ScriptModel {
-                values: SystemTray.items.values.filter(i => !CortetsuConfig.hiddenTrayIcons.includes(i.id))
+                values: SystemTray.items.values.filter(i => i.status !== Status.Passive && !CortetsuConfig.hiddenTrayIcons.includes(i.id))
+                objectProp: "id"
             }
 
             TrayItem {}

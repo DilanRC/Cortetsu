@@ -29,6 +29,7 @@ Row {
 
         Item {
             id: workspaceDot
+            objectName: `workspace-${wsId}`
 
             required property int index
 
@@ -44,7 +45,6 @@ Row {
 
             width: active ? 18 : 8
             height: 28
-            focus: true
             activeFocusOnTab: true
 
             Behavior on width {

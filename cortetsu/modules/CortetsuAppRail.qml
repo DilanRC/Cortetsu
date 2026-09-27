@@ -10,6 +10,7 @@ Item {
 
     required property var items
     required property real maxWidth
+    property var delegateModel: items
 
     signal activateRequested(string key)
     signal togglePinnedRequested(string key)
@@ -39,18 +40,19 @@ Item {
             spacing: 2
 
             Repeater {
-                model: root.items
+                model: root.delegateModel
 
                 Item {
                     id: appItem
                     required property var modelData
+                    objectName: `dock-${modelData.key}`
+                    enabled: modelData.enabled ?? true
 
                     implicitWidth: 46
                     implicitHeight: 50
                     width: implicitWidth
                     height: implicitHeight
-                    focus: true
-                    activeFocusOnTab: true
+                    activeFocusOnTab: enabled
 
                     CortetsuSurface {
                         anchors.fill: parent

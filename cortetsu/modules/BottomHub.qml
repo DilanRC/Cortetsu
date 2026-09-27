@@ -10,6 +10,7 @@ import "../services"
 import "../utils"
 import "launcher/services"
 import "BottomHubResolver.js" as BottomHubResolver
+import "BottomHubTray.js" as BottomHubTray
 import "OverlayPolicy.js" as OverlayPolicy
 import "utilities/toasts" as Toasts
 
@@ -381,7 +382,6 @@ Scope {
                 ? qsTr("Batería %1%").arg(CortetsuPower.percent)
                 : qsTr("Perfil de energía")
 
-            property date now: new Date()
             property var pendingFocusClient: null
 
             function desktopEntryForClient(client): var {
@@ -445,12 +445,17 @@ Scope {
                 windowCount: item.windows.length
             }))
 
-            readonly property var trayViewItems: SystemTray.items.values
-                .filter(item => !CortetsuConfig.hiddenTrayIcons.includes(item.id))
+            readonly property var trayViewItems: BottomHubTray.visibleItems(
+                SystemTray.items.values,
+                CortetsuConfig.hiddenTrayIcons,
+                Status.Passive
+            )
                 .map(item => ({
                     id: item.id,
-                    title: item.id,
-                    iconSource: item.icon || Icons.getTrayIcon(item.id, item.icon)
+                    title: BottomHubTray.tooltipFor(item),
+                    iconSource: item.icon || Icons.getTrayIcon(item.id, item.icon),
+                    onlyMenu: item.onlyMenu,
+                    hasMenu: item.hasMenu
                 }))
 
             function dockItemForKey(key): var {
@@ -596,40 +601,44 @@ Scope {
 
             function showTrayMenu(itemId, centerX): void {
                 const item = trayItemForId(itemId);
-                if (!item)
-                    return;
-                const sourceIndex = SystemTray.items.values.indexOf(item);
-                if (sourceIndex < 0)
+                if (!item || BottomHubTray.contextAction(item) !== "menu")
                     return;
                 hubRoot.showAttachedControlFor(
                     modelData,
-                    `traymenu${sourceIndex}`,
+                    `traymenu${itemId}`,
                     hubMargin + centerX
                 );
             }
 
             function openTrayMenu(itemId, centerX): void {
                 const item = trayItemForId(itemId);
-                if (!item)
-                    return;
-                const sourceIndex = SystemTray.items.values.indexOf(item);
-                if (sourceIndex < 0)
+                if (!item || BottomHubTray.contextAction(item) !== "menu")
                     return;
                 hubRoot.openAttachedControlNow(
                     modelData,
-                    `traymenu${sourceIndex}`,
+                    `traymenu${itemId}`,
                     hubMargin + centerX
                 );
             }
 
-            function activateTrayItem(itemId, secondary = false): void {
+            function activateTrayItem(itemId): void {
                 const item = trayItemForId(itemId);
                 if (!item)
                     return;
-                if (secondary)
-                    item.secondaryActivate();
-                else
+                if (BottomHubTray.primaryAction(item) === "activate")
                     item.activate();
+            }
+
+            function activateTraySecondary(itemId): void {
+                const item = trayItemForId(itemId);
+                if (item)
+                    item.secondaryActivate();
+            }
+
+            function scrollTrayItem(itemId, delta, horizontal): void {
+                const item = trayItemForId(itemId);
+                if (item)
+                    item.scroll(delta, horizontal);
             }
 
             function toggleSession(): void {
@@ -691,22 +700,15 @@ Scope {
                 }
             }
 
-            Timer {
-                interval: 1000
-                repeat: true
-                running: true
-                onTriggered: win.now = new Date()
-            }
-
             screen: modelData
-            visible: hubRoot.shown
+            visible: hubRoot.shown || toasts.visibleToasts.length > 0
             color: "transparent"
 
             mask: Region {
                 Region {
                     x: 0
                     y: win.height - bottomHubView.height
-                    width: win.width
+                    width: hubRoot.shown ? win.width : 0
                     height: bottomHubView.height
                 }
                 Region {
@@ -718,9 +720,12 @@ Scope {
             }
 
             focusable: true
-            WlrLayershell.keyboardFocus: toasts.visibleToasts.length > 0
-                ? WlrKeyboardFocus.Exclusive
-                : WlrKeyboardFocus.OnDemand
+            // Keep toast-only surfaces mapped without asking the compositor for
+            // keyboard focus. Keyboard navigation remains available when the
+            // hub is explicitly shown.
+            WlrLayershell.keyboardFocus: hubRoot.shown
+                ? WlrKeyboardFocus.OnDemand
+                : WlrKeyboardFocus.None
 
             anchors.bottom: true
             margins.bottom: 2
@@ -738,6 +743,7 @@ Scope {
                 anchors.right: parent.right
                 anchors.bottom: parent.bottom
                 height: implicitHeight
+                visible: hubRoot.shown
 
                 launcherActive: win.screenState?.launcher ?? false
                 workspaceCount: win.workspaceCount
@@ -771,7 +777,7 @@ Scope {
                 recordingActive: CortetsuRecorder.running
                 dndActive: CortetsuNotifications.dnd
                 idleInhibited: CortetsuIdleInhibitor.enabled
-                now: win.now
+                now: Time.date
                 sessionActive: win.screenState?.session ?? false
 
                 onLauncherRequested: hubRoot.toggleLauncherFor(win.modelData)
@@ -786,6 +792,9 @@ Scope {
                 onAppCycleRequested: (key, direction) => win.cycleDockKey(key, direction)
                 onTrayHoverRequested: (itemId, centerX) => win.showTrayMenu(itemId, centerX)
                 onTrayActivateRequested: itemId => win.activateTrayItem(itemId)
+                onTraySecondaryActivateRequested: itemId => win.activateTraySecondary(itemId)
+                onTrayScrollRequested: (itemId, delta, horizontal) =>
+                    win.scrollTrayItem(itemId, delta, horizontal)
                 onTraySecondaryRequested: (itemId, centerX) => win.openTrayMenu(itemId, centerX)
                 onAttachedControlRequested: (mode, centerX) => hubRoot.showAttachedControlFor(
                     win.modelData,
@@ -826,6 +835,18 @@ Scope {
                 anchors.bottom: bottomHubView.top
                 anchors.margins: toasts.spacing
                 z: 100
+            }
+
+            Connections {
+                target: CortetsuToaster
+
+                function onFocusRequested(id: int): void {
+                    const screen = CortetsuShellState.forActive()?.modelData;
+                    if (!screen || screen !== win.modelData)
+                        return;
+                    hubRoot.setShown(true);
+                    Qt.callLater(() => toasts.focusToast(id));
+                }
             }
         }
     }

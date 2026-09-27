@@ -4,15 +4,19 @@ import QtQuick
 import "../components"
 import "CortetsuDesign.js" as CortetsuDesign
 import "CortetsuTypography.js" as CortetsuTypography
+import "BottomHubTray.js" as BottomHubTray
 
 Item {
     id: root
 
     required property var items
+    property var delegateModel: items
 
     signal hoverRequested(string itemId, real centerX)
     signal activateRequested(string itemId)
     signal secondaryRequested(string itemId, real centerX)
+    signal secondaryActivateRequested(string itemId)
+    signal scrollRequested(string itemId, int delta, bool horizontal)
 
     implicitWidth: trayRow.implicitWidth + CortetsuDesign.spacingStandard
     implicitHeight: 52
@@ -33,18 +37,27 @@ Item {
         spacing: 2
 
         Repeater {
-            model: root.items
+            model: root.delegateModel
 
             Item {
                 id: trayItem
                 required property var modelData
+                objectName: `tray-${modelData.id}`
+                enabled: modelData.enabled ?? true
 
                 implicitWidth: 34
                 implicitHeight: 40
                 width: implicitWidth
                 height: implicitHeight
-                focus: true
-                activeFocusOnTab: true
+                activeFocusOnTab: enabled
+
+                function activatePrimary(): void {
+                    const action = BottomHubTray.primaryAction(modelData);
+                    if (action === "activate")
+                        root.activateRequested(modelData.id);
+                    else if (action === "menu")
+                        root.secondaryRequested(modelData.id, x + width / 2);
+                }
 
                 CortetsuSurface {
                     anchors.fill: parent
@@ -76,27 +89,39 @@ Item {
                     id: trayMouse
                     anchors.fill: parent
                     hoverEnabled: true
-                    acceptedButtons: Qt.LeftButton | Qt.RightButton
+                    acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
                     cursorShape: Qt.PointingHandCursor
                     onPressed: trayItem.forceActiveFocus()
+                    onWheel: wheel => {
+                        const delta = wheel.angleDelta.y !== 0
+                            ? wheel.angleDelta.y
+                            : wheel.angleDelta.x;
+                        if (delta !== 0)
+                            root.scrollRequested(
+                                trayItem.modelData.id,
+                                delta,
+                                wheel.angleDelta.y === 0
+                            );
+                        wheel.accepted = true;
+                    }
                     onEntered: root.hoverRequested(
                         trayItem.modelData.id,
                         trayItem.x + trayItem.width / 2
                     )
                     onClicked: event => {
                         if (event.button === Qt.LeftButton)
-                            root.activateRequested(trayItem.modelData.id);
-                        else
-                            root.secondaryRequested(
-                                trayItem.modelData.id,
-                                trayItem.x + trayItem.width / 2
-                            );
+                            trayItem.activatePrimary();
+                        else if (event.button === Qt.RightButton) {
+                            if (BottomHubTray.contextAction(trayItem.modelData) === "menu")
+                                root.secondaryRequested(trayItem.modelData.id, trayItem.x + trayItem.width / 2);
+                        } else
+                            root.secondaryActivateRequested(trayItem.modelData.id);
                     }
                 }
 
-                Keys.onEnterPressed: root.activateRequested(trayItem.modelData.id)
-                Keys.onReturnPressed: root.activateRequested(trayItem.modelData.id)
-                Keys.onSpacePressed: root.activateRequested(trayItem.modelData.id)
+                Keys.onEnterPressed: trayItem.activatePrimary()
+                Keys.onReturnPressed: trayItem.activatePrimary()
+                Keys.onSpacePressed: trayItem.activatePrimary()
                 Keys.onMenuPressed: root.secondaryRequested(
                     trayItem.modelData.id,
                     trayItem.x + trayItem.width / 2

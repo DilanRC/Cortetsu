@@ -62,12 +62,13 @@ Item {
                                 (passwordPopout.item as CortetsuWifiPasswordPopup).network = (networkPopout.item as CortetsuNetworkPopup).passwordNetwork;
                             }
                         }
-                        // Also try after a short delay in case networkPopout.item wasn't ready
+                        // Defer to the next event loop turn in case networkPopout.item
+                        // has not finished updating yet.
                         Qt.callLater(() => {
                             if (passwordPopout.item && (networkPopout.item as CortetsuNetworkPopup)?.passwordNetwork) {
                                 (passwordPopout.item as CortetsuWifiPasswordPopup).network = (networkPopout.item as CortetsuNetworkPopup).passwordNetwork;
                             }
-                        }, 100);
+                        });
                     }
                 }
 
@@ -121,19 +122,29 @@ Item {
 
         Repeater {
             model: ScriptModel {
-                values: SystemTray.items.values.filter(i => !CortetsuConfig.hiddenTrayIcons.includes(i.id))
+                values: SystemTray.items.values.filter(i => i.status !== Status.Passive && !CortetsuConfig.hiddenTrayIcons.includes(i.id))
+                objectProp: "id"
             }
 
             Popout {
                 id: trayMenu
 
                 required property SystemTrayItem modelData
-                required property int index
                 readonly property var menuHandle: modelData?.menu ?? null
                 property bool menuReady: true
 
-                name: `traymenu${index}`
+                name: `traymenu${modelData.id}`
                 sourceComponent: menuHandle && menuReady ? trayMenuComp : null
+
+                Component.onDestruction: {
+                    if (shouldBeActive)
+                        root.popouts.close();
+                }
+
+                onMenuHandleChanged: {
+                    if (!menuHandle && shouldBeActive)
+                        root.popouts.close();
+                }
 
                 Timer {
                     id: menuReload

@@ -42,10 +42,15 @@ def main() -> None:
         "anchors.right: statusSegment.visible ? statusSegment.left : parent.right",
         "tray separado de sistema y adaptable al segmento oculto",
     )
-    require(HUB, "const sourceIndex = SystemTray.items.values.indexOf(item);", "indice SNI estable")
     require(HUB, "item.icon || Icons.getTrayIcon(item.id, item.icon)", "icono SNI prioritario")
     require(HUB, 'Icons.getAppIcon(item.entry?.icon || item.className, "image-missing")', "iconos de entradas desktop y clase")
     require(HUB, "function desktopEntryForClient(client): var", "asociación de ventanas con entradas desktop")
+    require(VIEW, "readonly property var dockDelegateModel: ScriptModel", "modelo persistente del dock")
+    require(VIEW, 'objectProp: "key"', "identidad de delegate del dock")
+    require(VIEW, "readonly property var trayDelegateModel: ScriptModel", "modelo persistente del tray")
+    require(VIEW, 'objectProp: "id"', "identidad de delegate del tray")
+    require(VIEW, "delegateModel: root.dockDelegateModel", "Repeater del dock conectado al modelo persistente")
+    require(VIEW, "delegateModel: root.trayDelegateModel", "Repeater del tray conectado al modelo persistente")
     require(HUB, "BottomHubResolver.desktopEntryForWindow(", "resolver compartido y comprobable")
     require(RESOLVER, "window.initialClass, window.class", "clase inicial y actual de la ventana")
     require(RESOLVER, "steam://rungameid/${steamAppId}", "asociación de juegos Steam por app id")
@@ -71,7 +76,8 @@ def main() -> None:
     require(TRAY_MENU, "enabled: modelData?.enabled ?? false", "el menú saca entradas deshabilitadas del foco")
     require(TRAY_MENU, "activeFocusOnTab: true", "el menú mantiene estable la cadena de tabulación")
     forbid(TRAY_MENU, "activeFocusOnTab: modelData?.enabled ?? false", "binding de tabulación variable en el menú DBus")
-    forbid(HUB, "`traymenu${trayItem.index}`", "índice filtrado incorrecto")
+    require(HUB, "`traymenu${itemId}`", "identidad estable del popup DBusMenu")
+    forbid(HUB, "sourceIndex", "identidad posicional del popup DBusMenu")
 
     require(MIGRATOR, "def qml_block(", "migración QML por bloque")
     require(MIGRATOR, 'qml_block(after, "Launcher.Wrapper", "launcher")', "launcher localizado por id")

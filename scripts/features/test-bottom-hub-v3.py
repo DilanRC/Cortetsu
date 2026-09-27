@@ -145,7 +145,7 @@ def main() -> None:
     require(bottom, "Icons.getBatteryIcon(CortetsuPower.value, batteryCharging)", "battery icon controller")
     require(bottom, "SystemTray.items.values", "system tray controller")
     require(bottom, "item.icon || Icons.getTrayIcon(item.id, item.icon)", "tray icon priority")
-    require(bottom, "`traymenu${sourceIndex}`", "native tray hover menu")
+    require(bottom, '`traymenu${itemId}`', "native tray menu with stable item identity")
     require(tray, "Image {", "first-party tray image")
     if "ColouredIcon" in tray or "Config.bar.tray.recolour" in tray:
         raise SystemExit("FAIL: tray view must not depend on Caelestia recolour primitives")
