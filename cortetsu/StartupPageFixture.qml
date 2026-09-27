@@ -16,7 +16,7 @@ ShellRoot {
         onTriggered: {
             page.entries = [
                 { id: "discord", name: "Discord", sourceType: "xdg-user", configured: true, command: "discord --start-minimized", origin: "/home/test/.config/autostart/discord.desktop", description: "" },
-                { id: "clock", name: "Clock", sourceType: "systemd-user", configured: false, command: "clockd", origin: "clock.service", description: "" },
+                { id: "clock", name: "Clock", sourceType: "systemd-user", configured: false, running: true, modifiable: true, command: "clockd", origin: "clock.service", description: "" },
                 { id: "network", name: "Network", sourceType: "systemd-system", configured: true, command: "", origin: "NetworkManager.service", description: "" }
             ];
             page.query = "discord --start";
@@ -39,7 +39,14 @@ ShellRoot {
                 Qt.quit();
                 return;
             }
-            console.log("STARTUP_PAGE_PASS search=1 source-filter=1 state-filter=1");
+            page.busy = false;
+            page.requestStop(page.entries[1]);
+            if (page.stopConfirmationId !== "clock") {
+                console.error("STARTUP_PAGE_FAIL stop-confirmation");
+                Qt.quit();
+                return;
+            }
+            console.log("STARTUP_PAGE_PASS search=1 source-filter=1 state-filter=1 stop-confirmation=1");
             Qt.quit();
         }
     }

@@ -40,8 +40,9 @@ not close it; only clicking outside the panel, `Esc`, the close button or
 Inicio scans when its page opens or when **Actualizar** is selected. It shows
 system services read only and keeps XDG global files untouched by writing a
 user override. User systemd toggles affect the next login; an active process is
-left running. Every successful toggle is re-scanned and recorded without
-copying command arguments into the history.
+left running. Active user services offer a separate **Detener ahora** action
+with explicit confirmation. Every successful action is re-scanned and recorded
+without copying command arguments into the history.
 
 Keybind changes are written only to the user's Caelestia files. Every change
 creates a snapshot under `~/.local/share/cortetsu/upstream/snapshots/keybinds/`.

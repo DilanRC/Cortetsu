@@ -22,6 +22,7 @@ Item {
     property string statusText: qsTr("Abre la página para inspeccionar el inicio automático.")
     property bool busy: false
     property string pendingActionError: ""
+    property string stopConfirmationId: ""
 
     property string helperPath: StandardPaths.writableLocation(StandardPaths.HomeLocation) + "/.local/bin/cortetsu-startup"
     readonly property var visibleEntries: entries.filter(entry => {
@@ -52,6 +53,22 @@ Item {
         requestedState = enabled ? "enable" : "disable";
         busy = true;
         statusText = qsTr("Aplicando y verificando el cambio…");
+        setProcess.running = true;
+    }
+
+    function requestStop(item): void {
+        if (busy || item?.sourceType !== "systemd-user" || !item?.modifiable || item?.running !== true)
+            return;
+        if (stopConfirmationId !== item.id) {
+            stopConfirmationId = item.id;
+            statusText = qsTr("Pulsa Confirmar detener para detener esta unidad ahora.");
+            return;
+        }
+        requestedId = String(item.id);
+        requestedState = "stop";
+        stopConfirmationId = "";
+        busy = true;
+        statusText = qsTr("Deteniendo y verificando la unidad…");
         setProcess.running = true;
     }
 
@@ -296,6 +313,7 @@ Item {
                         CortetsuText { width: parent.width; text: `${qsTr("Inicio")}: ${root.phaseLabel(root.selected?.startupPhase)}`; textSize: CortetsuTypography.labelSmallPx }
                         CortetsuText { width: parent.width; text: `${qsTr("Estado actual")}: ${root.selected?.activeState ?? (root.selected?.running === null ? qsTr("Desconocido") : root.selected?.running ? qsTr("Ejecutándose") : qsTr("Detenido"))}`; textSize: CortetsuTypography.labelSmallPx }
                         CortetsuText { width: parent.width; visible: !!root.selected?.unitState; text: `${qsTr("Estado systemd")}: ${root.selected?.unitState ?? "—"} · ${qsTr("Activación")}: ${root.selected?.target || "—"}`; textSize: CortetsuTypography.labelSmallPx; wrapMode: Text.WordWrap }
+                        CortetsuButton { visible: root.selected?.sourceType === "systemd-user" && root.selected?.modifiable && root.selected?.running === true; label: root.stopConfirmationId === root.selected?.id ? qsTr("Confirmar detener") : qsTr("Detener ahora"); disabled: root.busy; onClicked: root.requestStop(root.selected) }
                         CortetsuText { width: parent.width; visible: root.selected?.sourceType === "systemd-system"; text: qsTr("Servicios del sistema: sólo lectura"); textSize: CortetsuTypography.labelSmallPx; color: CortetsuDesign.colorWarning }
                         CortetsuText { width: parent.width; visible: root.selected?.duplicateCount > 1; text: qsTr("Inicio duplicado: revisa cada origen antes de cambiarlo."); textSize: CortetsuTypography.bodySmallPx; color: CortetsuDesign.colorWarning; wrapMode: Text.WordWrap }
                     }

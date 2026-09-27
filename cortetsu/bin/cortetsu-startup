@@ -236,17 +236,45 @@ def scan() -> list[dict]:
                     "origin": f"{path}:{number + 1}", "command": command, "startupPhase": "shell" if loaded_with_shell else "on-demand",
                     "configured": True, "running": None, "modifiable": False,
                     "reason": "Cortetsu lo inicia al cargar Bottom Hub durante su sesión" if loaded_with_shell else "Cortetsu inicia el proceso al cargar este módulo"})
-    counts: dict[str, int] = {}
-    for item in entries:
-        keys = duplicate_keys(item)
+    unit_commands = user_unit_command_lookup(entries)
+    parents = list(range(len(entries)))
+
+    def find(index: int) -> int:
+        if parents[index] != index:
+            parents[index] = find(parents[index])
+        return parents[index]
+
+    def union(left: int, right: int) -> None:
+        left_root, right_root = find(left), find(right)
+        if left_root != right_root:
+            parents[right_root] = left_root
+
+    owners: dict[str, int] = {}
+    for index, item in enumerate(entries):
+        keys = duplicate_keys(item, unit_commands)
         item["_duplicate_keys"] = keys
         for key in keys:
-            counts[key] = counts.get(key, 0) + 1
-    for item in entries:
+            if key in owners:
+                union(index, owners[key])
+            else:
+                owners[key] = index
+    counts: dict[int, int] = {}
+    for index, item in enumerate(entries):
+        if item["_duplicate_keys"]:
+            group = find(index)
+            counts[group] = counts.get(group, 0) + 1
+    for index, item in enumerate(entries):
         keys = item.pop("_duplicate_keys", [])
-        item["duplicateCount"] = max((counts[key] for key in keys), default=0)
+        item["duplicateCount"] = counts.get(find(index), 0) if keys else 0
         item.pop("_path", None); item.pop("_system", None); item.pop("_unit", None); item.pop("_user", None); item.pop("_exec_start", None); item.pop("_file_state", None)
     return entries
+
+
+def user_unit_command_lookup(entries: list[dict]) -> dict[str, list[str]]:
+    return {
+        item["_unit"]: [key for command in item.get("command", "").splitlines() if (key := command_key(command))]
+        for item in entries if item.get("_user") is True and item.get("_unit")
+    }
 
 
 def command_key(raw: str) -> str:
@@ -262,9 +290,11 @@ def command_key(raw: str) -> str:
     return "command:" + json.dumps(argv, ensure_ascii=False, separators=(",", ":"))
 
 
-def duplicate_keys(item: dict) -> list[str]:
+def duplicate_keys(item: dict, unit_commands: dict[str, list[str]] | None = None) -> list[str]:
     source = item.get("sourceType")
     if source in {"systemd-user", "cortetsu"} and item.get("_unit"):
+        if not item.get("configured"):
+            return []
         unit = item.get("_unit", "")
         keys = [f"unit:{unit}"] if unit and item.get("_file_state") != "alias" else []
         for command in item.get("command", "").splitlines():
@@ -273,6 +303,8 @@ def duplicate_keys(item: dict) -> list[str]:
                 keys.append(key)
         return list(dict.fromkeys(keys))
     if source not in {"xdg-user", "xdg-system", "hyprland", "cortetsu"}:
+        return []
+    if source.startswith("xdg-") and (not item.get("configured") or item.get("eligible") is False):
         return []
     raw = item.get("command", "")
     if source == "hyprland" and raw.startswith("hl.exec_cmd("):
@@ -283,7 +315,7 @@ def duplicate_keys(item: dict) -> list[str]:
         return []
     if argv and argv[0] == "systemctl" and "--user" in argv:
         unit = next((value for value in argv if UNIT_RE.fullmatch(value)), "")
-        return [f"unit:{unit}"] if unit else []
+        return ([f"unit:{unit}"] + (unit_commands or {}).get(unit, [])) if unit else []
     key = command_key(raw)
     return [key] if key else []
 
@@ -330,11 +362,25 @@ def set_hidden(path: Path, hidden: bool) -> None:
 
 
 def action(item_id: str, desired: str) -> dict:
-    if desired not in {"enable", "disable"}:
+    if desired not in {"enable", "disable", "stop"}:
         raise ValueError("acción inválida")
     found = next((item for item in scan() if item["id"] == item_id), None)
     if not found or not found.get("modifiable"):
         raise ValueError("esta entrada no se puede modificar")
+    if desired == "stop":
+        if not item_id.startswith("user-unit:") or not found.get("running"):
+            raise ValueError("sólo se pueden detener unidades de usuario activas")
+        unit = item_id[len("user-unit:"):]
+        if not UNIT_RE.fullmatch(unit):
+            raise ValueError("unidad inválida")
+        cp = run(["systemctl", "--user", "stop", unit])
+        if not cp or cp.returncode:
+            raise RuntimeError((cp.stderr.strip() if cp else "systemctl no disponible") or "systemctl falló")
+        updated = next((item for item in scan() if item["id"] == item_id), None)
+        if not updated or updated["running"] is not False:
+            raise RuntimeError("la verificación posterior no confirmó que la unidad se detuviera")
+        record_change(found["sourceType"], found["name"], "running", "stopped", "stop")
+        return {"ok": True, "entry": updated}
     if item_id.startswith("xdg:"):
         filename = item_id[4:]
         if Path(filename).name != filename or not filename.endswith(".desktop"):
@@ -364,13 +410,17 @@ def action(item_id: str, desired: str) -> dict:
     expected = desired == "enable"
     if not updated or updated["configured"] != expected:
         raise RuntimeError("la verificación posterior no confirmó el cambio")
+    record_change(found["sourceType"], found["name"], found["configured"], expected, desired)
+    return {"ok": True, "entry": updated}
+
+
+def record_change(source: str, name: str, old_state: bool | str, new_state: bool | str, action: str) -> None:
     state = Path(os.environ.get("XDG_STATE_HOME", Path.home() / ".local/state")) / "cortetsu/startup/changes.jsonl"
     state.parent.mkdir(parents=True, exist_ok=True)
     state.parent.chmod(0o700)
     descriptor = os.open(state, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600)
     with os.fdopen(descriptor, "a", encoding="utf-8") as stream:
-        stream.write(json.dumps({"timestamp": int(time.time()), "source": found["sourceType"], "item": found["name"], "oldState": found["configured"], "newState": expected}) + "\n")
-    return {"ok": True, "entry": updated}
+        stream.write(json.dumps({"timestamp": int(time.time()), "source": source, "item": name, "oldState": old_state, "newState": new_state, "action": action}) + "\n")
 
 
 def main(argv: list[str]) -> int:
@@ -380,7 +430,7 @@ def main(argv: list[str]) -> int:
         elif len(argv) == 3 and argv[0] == "set":
             print(json.dumps(action(argv[1], argv[2])))
         else:
-            print(json.dumps({"ok": False, "error": "uso: cortetsu-startup scan | set ID enable|disable"}))
+            print(json.dumps({"ok": False, "error": "uso: cortetsu-startup scan | set ID enable|disable|stop"}))
             return 2
     except (ValueError, RuntimeError, OSError) as error:
         print(json.dumps({"ok": False, "error": str(error)}))

@@ -2,6 +2,7 @@
 """Temporary-home checks for startup inventory and reversible toggles."""
 import importlib.machinery
 import importlib.util
+import json
 import os
 from pathlib import Path
 import tempfile
@@ -35,7 +36,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-startup-test-") as temp:
     put(user_config / "autostart/not.desktop", "[Desktop Entry]\nName=Not Hyprland\nExec=not\nNotShowIn=Hyprland;\n")
     put(system_config / "autostart/global.desktop", "[Desktop Entry]\nName=Global\nExec=global\nTryExec=/bin/sh\n")
     put(user_config / "autostart/global.desktop", "[Desktop Entry]\nName=Global disabled\nExec=global\nHidden=true\n")
-    put(user_config / "hypr/hyprland.lua", 'hl.on("hyprland.start", function()\n    hl.exec_cmd("user-app --background")\n    hl.exec_cmd("systemctl --user start work.service")\nend)\n')
+    put(user_config / "hypr/hyprland.lua", 'hl.on("hyprland.start", function()\n    hl.exec_cmd("user-app --background")\n    hl.exec_cmd("systemctl --user start enabled.service")\n    hl.exec_cmd("systemctl --user start work.service")\nend)\n')
     entries = {item["id"]: item for item in app.xdg_entries()}
     assert entries["xdg:user.desktop"]["configured"] is True
     assert entries["xdg:hidden.desktop"]["configured"] is False
@@ -44,6 +45,12 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-startup-test-") as temp:
     assert entries["xdg:not.desktop"]["eligible"] is False
     assert entries["xdg:global.desktop"]["sourceType"] == "xdg-user"
     assert entries["xdg:global.desktop"]["configured"] is False
+    assert app.duplicate_keys({"sourceType": "xdg-system", "configured": True, "eligible": False, "command": "user-app --background"}) == []
+    lookup = app.user_unit_command_lookup([
+        {"_unit": "audio.service", "_user": True, "command": "user-audio --start"},
+        {"_unit": "audio.service", "_user": False, "command": "system-audio --start"},
+    ])
+    assert lookup["audio.service"] == [app.command_key("user-audio --start")]
 
     # A systemctl shim isolates all unit operations from the host.
     fake_bin = base / "bin"
@@ -52,17 +59,39 @@ if [ "$1" = "--user" ]; then shift; fi
 case "$1" in
   list-unit-files) cat "$UNIT_STATE" ;;
   list-units) printf 'transient.service loaded active running Temporary\\n' ;;
-  show) shift; for unit in "$@"; do case "$unit" in work.service) printf 'Id=work.service\\nDescription=Worker\\nActiveState=active\\nUnitFileState=disabled\\nFragmentPath=/tmp/work.service\\nWantedBy=default.target\\nExecStart={ path=user-app ; argv[]=user-app --background ; ignore_errors=no ; }\\n\\n' ;; clock.timer) printf 'Id=clock.timer\\nDescription=Clock\\nActiveState=inactive\\nUnitFileState=static\\n\\n' ;; wait.socket) printf 'Id=wait.socket\\nDescription=Socket\\nActiveState=inactive\\nUnitFileState=disabled\\n\\n' ;; generated.service) printf 'Id=generated.service\\nDescription=Generated\\nActiveState=inactive\\nUnitFileState=generated\\n\\n' ;; alias.service) printf 'Id=alias.service\\nDescription=Alias\\nActiveState=inactive\\nUnitFileState=alias\\n\\n' ;; indirect.service) printf 'Id=indirect.service\\nDescription=Indirect\\nActiveState=inactive\\nUnitFileState=indirect\\n\\n' ;; transient.service) printf 'Id=transient.service\\nDescription=Transient\\nActiveState=active\\nUnitFileState=transient\\n\\n' ;; esac; done ;;
+  show)
+    shift
+    for unit in "$@"; do
+      case "$unit" in
+        work.service)
+          active=active
+          [ ! -f "$STOPPED" ] || active=inactive
+          printf 'Id=work.service\\nDescription=Worker\\nActiveState=%s\\nUnitFileState=disabled\\nFragmentPath=/tmp/work.service\\nWantedBy=default.target\\nExecStart={ path=user-app ; argv[]=user-app --background ; ignore_errors=no ; }\\n\\n' "$active"
+          ;;
+        enabled.service) printf 'Id=enabled.service\\nDescription=Enabled helper\\nActiveState=active\\nUnitFileState=enabled\\nExecStart={ path=user-app ; argv[]=user-app --background ; ignore_errors=no ; }\\n\\n' ;;
+        clock.timer) printf 'Id=clock.timer\\nDescription=Clock\\nActiveState=inactive\\nUnitFileState=static\\n\\n' ;;
+        wait.socket) printf 'Id=wait.socket\\nDescription=Socket\\nActiveState=inactive\\nUnitFileState=disabled\\n\\n' ;;
+        generated.service) printf 'Id=generated.service\\nDescription=Generated\\nActiveState=inactive\\nUnitFileState=generated\\n\\n' ;;
+        alias.service) printf 'Id=alias.service\\nDescription=Alias\\nActiveState=inactive\\nUnitFileState=alias\\n\\n' ;;
+        indirect.service) printf 'Id=indirect.service\\nDescription=Indirect\\nActiveState=inactive\\nUnitFileState=indirect\\n\\n' ;;
+        transient.service) printf 'Id=transient.service\\nDescription=Transient\\nActiveState=active\\nUnitFileState=transient\\n\\n' ;;
+      esac
+    done
+    ;;
   enable) sed -i 's/work.service disabled/work.service enabled/' "$UNIT_STATE" ;;
   disable) sed -i 's/work.service enabled/work.service disabled/' "$UNIT_STATE" ;;
+  stop) touch "$STOPPED" ;;
 esac
 """)
+
     (fake_bin / "systemctl").chmod(0o755)
     state = base / "units"
-    state.write_text("work.service disabled enabled\nclock.timer static -\nwait.socket disabled enabled\ngenerated.service generated -\nalias.service alias -\nindirect.service indirect -\n", encoding="utf-8")
+    state.write_text("work.service disabled enabled\nenabled.service enabled enabled\nclock.timer static -\nwait.socket disabled enabled\ngenerated.service generated -\nalias.service alias -\nindirect.service indirect -\n", encoding="utf-8")
     env_path = os.environ.get("PATH", "")
     os.environ["PATH"] = str(fake_bin) + os.pathsep + env_path
     os.environ["UNIT_STATE"] = str(state)
+    stopped = base / "stopped"
+    os.environ["STOPPED"] = str(stopped)
     outside = base / "outside.desktop"
     put(outside, "[Desktop Entry]\nName=Outside\nExec=outside\n")
     os.symlink(outside, user_config / "autostart/link.desktop")
@@ -93,14 +122,20 @@ esac
     scanned = {item["id"]: item for item in app.scan()}
     assert scanned["hyprland:" + str(home / ".config/hypr/hyprland.lua") + ":2"]["command"] == "user-app --background"
     assert scanned["hyprland:" + str(home / ".config/hypr/hyprland.lua") + ":2"]["modifiable"] is False
-    assert scanned["hyprland:" + str(home / ".config/hypr/hyprland.lua") + ":3"]["duplicateCount"] == 2
-    assert scanned["user-unit:work.service"]["duplicateCount"] == 3
-    assert scanned["xdg:user.desktop"]["duplicateCount"] == 3
+    assert scanned["hyprland:" + str(home / ".config/hypr/hyprland.lua") + ":3"]["duplicateCount"] == 5
+    assert scanned["hyprland:" + str(home / ".config/hypr/hyprland.lua") + ":4"]["duplicateCount"] == 5
+    assert scanned["user-unit:work.service"]["duplicateCount"] == 0
+    assert scanned["user-unit:enabled.service"]["duplicateCount"] == 5
+    assert scanned["xdg:user.desktop"]["duplicateCount"] == 5
     assert all(not item["modifiable"] for item in app.systemd_entries(False))
+    stopped_result = app.action("user-unit:work.service", "stop")
+    assert stopped_result["ok"] and stopped_result["entry"]["running"] is False
+    assert stopped_result["entry"]["configured"] is False
     app.action("user-unit:work.service", "enable")
     assert {item["id"]: item for item in app.systemd_entries(True)}["user-unit:work.service"]["configured"] is True
     app.action("user-unit:work.service", "disable")
     assert {item["id"]: item for item in app.systemd_entries(True)}["user-unit:work.service"]["configured"] is False
-    assert (home / ".local/state/cortetsu/startup/changes.jsonl").exists()
+    changes = [json.loads(line) for line in (home / ".local/state/cortetsu/startup/changes.jsonl").read_text().splitlines()]
+    assert any(change.get("action") == "stop" and change.get("oldState") == "running" and change.get("newState") == "stopped" for change in changes)
 
 print("PASS: XDG overrides and user systemd toggles use isolated fixtures")
