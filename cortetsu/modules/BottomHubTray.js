@@ -14,6 +14,11 @@ function visibleItems(items, hiddenIds, passiveStatus) {
     return items.filter(item => item.status !== passiveStatus && !hiddenIds.includes(item.id));
 }
 
+function visibleEntries(items, hiddenIds, passiveStatus) {
+    return TrayIdentity.entries(items)
+        .filter(({ item }) => item.status !== passiveStatus && !hiddenIds.includes(item.id));
+}
+
 function tooltipFor(item) {
     const title = [item.tooltipTitle, item.title, item.id]
         .map(value => String(value ?? "").trim())

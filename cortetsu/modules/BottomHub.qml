@@ -461,13 +461,13 @@ Scope {
                 windowCount: item.windows.length
             }))
 
-            readonly property var trayViewItems: BottomHubTray.visibleItems(
+            readonly property var trayViewItems: BottomHubTray.visibleEntries(
                 SystemTray.items.values,
                 CortetsuConfig.hiddenTrayIcons,
                 Status.Passive
             )
-                .map(item => ({
-                    key: BottomHubTray.instanceKey(item),
+                .map(({ key, item }) => ({
+                    key,
                     id: item.id,
                     needsAttention: item.status === Status.NeedsAttention,
                     title: BottomHubTray.tooltipFor(item),

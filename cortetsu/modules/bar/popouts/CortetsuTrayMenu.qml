@@ -202,6 +202,7 @@ CortetsuPopupSurface {
                 onItemRemoved: Qt.callLater(menu.restoreFocus)
 
                 CortetsuSurface {
+                    required property int index
                     required property QsMenuEntry modelData
                     readonly property bool separator: modelData?.isSeparator ?? false
                     onEnabledChanged: Qt.callLater(menu.restoreFocus)

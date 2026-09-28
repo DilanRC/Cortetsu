@@ -47,7 +47,7 @@ assert "implicitSize: 16" in source
 assert "modelData?.icon ?? \"\"" in source
 assert "modelData?.text ?? \"\"" in source
 assert "modelData?.hasChildren ?? false" in source
-assert "new WeakMap()" in identity and "function entries(items)" in identity
+assert "new WeakMap()" not in identity and "function entries(items)" in identity
 assert "TrayIdentity.instanceKey(item)" in bottom_hub
 assert "TrayIdentity.popupName(trayItem.modelData.key)" in base_bar
 assert "TrayIdentity.popupName(modelData.key)" in popouts
