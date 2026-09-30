@@ -87,7 +87,7 @@ QtObject {
     property bool useFuzzyVariants: true
     onUseFuzzyVariantsChanged: if (loaded) save()
     property bool smartScheme: true
-    property string wallpaperDirectory: "~/Pictures/Wallpapers"
+    property string wallpaperDirectory: "~/Imágenes/Wallpapers"
     property bool wallpaperEnabled: true
     property bool transparencyEnabled: false
     onTransparencyEnabledChanged: if (loaded) save()

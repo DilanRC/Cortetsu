@@ -130,7 +130,7 @@ hl.bind(
 
 hl.bind(
     "SUPER + Print",
-    hl.dsp.exec_cmd([[sh -c 'grimblast save area - | swappy -f -']])
+    hl.dsp.exec_cmd([[sh -c 'mkdir -p "$HOME/Imágenes/Screenshots"; grimblast save area - | swappy -f - -o "$HOME/Imágenes/Screenshots/swappy-$(date +%Y%m%d-%H%M%S-%N).png"']])
 )
 
 hl.bind(
@@ -141,7 +141,7 @@ hl.bind(
 hl.bind(
     "ALT + Print",
     hl.dsp.exec_cmd(
-        [[sh -c 'mkdir -p "$HOME/Imagenes/Screenshots"; grimblast save active "$HOME/Imagenes/Screenshots/$(date +%Y%m%d-%H%M%S).png"']]
+        [[sh -c 'mkdir -p "$HOME/Imágenes/Screenshots"; grimblast save active "$HOME/Imágenes/Screenshots/$(date +%Y%m%d-%H%M%S).png"']]
     )
 )
 

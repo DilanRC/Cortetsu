@@ -21,7 +21,7 @@ def xdg(name: str, fallback: Path) -> Path:
     return Path(os.environ.get(name, str(fallback)))
 
 STATE_DIR = xdg("XDG_STATE_HOME", HOME / ".local/state") / "cortetsu/record"
-VIDEOS_DIR = xdg("XDG_VIDEOS_DIR", HOME / "Videos")
+VIDEOS_DIR = xdg("XDG_VIDEOS_DIR", HOME / "Vídeos")
 RECORDINGS_DIR = xdg("CORTETSU_RECORDINGS_DIR", VIDEOS_DIR / "Recordings")
 STATE_PATH = STATE_DIR / "state.json"
 LOCK_PATH = STATE_DIR / "lock"
