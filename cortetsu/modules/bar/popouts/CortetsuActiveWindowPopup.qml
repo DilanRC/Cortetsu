@@ -46,7 +46,7 @@ Item {
             height: 220
             color: CortetsuDesign.colorSurfaceGlass
             radius: CortetsuDesign.radiusLarge
-            ScreencopyView { anchors.fill: parent; captureSource: CortetsuHypr.activeToplevel?.wayland ?? null; live: visible }
+            ScreencopyView { anchors.fill: parent; captureSource: visible ? (CortetsuHypr.activeToplevel?.wayland ?? null) : null; live: visible }
         }
     }
 }

@@ -208,9 +208,9 @@ Item {
             anchors.centerIn: parent
 
             captureSource:
-                root.client?.wayland ?? null // qmllint disable unresolved-type
+                root.overviewVisible ? (root.client?.wayland ?? null) : null // qmllint disable unresolved-type
 
-            live: root.overviewVisible
+            live: false
 
             constraintSize.width:
                 Math.min(
