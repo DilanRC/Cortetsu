@@ -31,10 +31,10 @@ Item {
         CortetsuIcon {
             animate: true
             text: {
-                if (!Bluetooth.defaultAdapter?.enabled) // qmllint disable unresolved-type
-                    return "bluetooth_disabled";
-                if (Bluetooth.devices.values.some(d => d.connected)) // qmllint disable unresolved-type
+                if (ConnectivityBluetooth.connectedCount > 0)
                     return "bluetooth_connected";
+                if (!ConnectivityBluetooth.enabled)
+                    return "bluetooth_disabled";
                 return "bluetooth";
             }
             color: root.colour
@@ -43,7 +43,7 @@ Item {
         // Connected bluetooth devices
         Repeater {
             model: ScriptModel {
-                values: Bluetooth.devices.values.filter(d => d.state !== BluetoothDeviceState.Disconnected) // qmllint disable unresolved-type
+                values: ConnectivityBluetooth.allDevices.filter(d => d.state !== BluetoothDeviceState.Disconnected) // qmllint disable unresolved-type
             }
 
             CortetsuIcon {

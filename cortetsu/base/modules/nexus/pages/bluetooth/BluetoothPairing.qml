@@ -12,18 +12,18 @@ import qs.modules.nexus.common
 
 PageBase {
     id: root
+    readonly property string scanOwner: "bluetooth-" + String(root)
 
-    readonly property BluetoothAdapter adapter: Bluetooth.defaultAdapter // qmllint disable unresolved-type
+    readonly property BluetoothAdapter adapter: ConnectivityBluetooth.adapter // qmllint disable unresolved-type
 
     function setScan(on: bool): void {
-        if (adapter?.enabled)
-            adapter.discovering = on;
+        ConnectivityBluetooth.setScanOwner(root.scanOwner, on);
     }
 
     title: qsTr("Pair new device")
     isSubPage: true
 
-    Component.onCompleted: setScan(true)
+    Component.onCompleted: setScan(visible)
     Component.onDestruction: setScan(false)
     onVisibleChanged: setScan(visible)
 
@@ -40,6 +40,21 @@ PageBase {
             }
 
             target: root.adapter
+        }
+
+        CortetsuText {
+            Layout.fillWidth: true
+            wrapMode: Text.WordWrap
+            text: ConnectivityBluetooth.operation.state === "failed" ? ConnectivityBluetooth.operation.lastError : ConnectivityBluetooth.authenticationNotice
+            color: CortetsuColours.palette.m3onSurfaceVariant
+            font: CortetsuTokens.font.body.small
+        }
+
+        RowButton {
+            visible: ConnectivityBluetooth.busy && ConnectivityBluetooth.operation.kind === "pair"
+            icon: "close"
+            text: qsTr("Cancel pairing")
+            onClicked: ConnectivityBluetooth.cancelPair()
         }
 
         ConnectedRect {
@@ -73,7 +88,7 @@ PageBase {
             list.anchors.top: scanIndicator.bottom
 
             model: ScriptModel {
-                values: Bluetooth.devices.values.filter(d => !d.bonded).sort((a, b) => (b.pairing - a.pairing) || a.name.localeCompare(b.name)) // qmllint disable unresolved-type
+                values: ConnectivityBluetooth.devices.filter(d => !d.bonded).sort((a, b) => (b.pairing - a.pairing) || a.name.localeCompare(b.name)) // qmllint disable unresolved-type
             }
 
             delegate: Item {
@@ -107,10 +122,10 @@ PageBase {
                     radius: CortetsuTokens.rounding.extraSmall
                     bottomLeftRadius: newDevice.index === deviceList?.list.count - 1 ? CortetsuTokens.rounding.extraLarge : radius
                     bottomRightRadius: newDevice.index === deviceList?.list.count - 1 ? CortetsuTokens.rounding.extraLarge : radius
-                    disabled: newDevice.modelData?.pairing ?? false
+                    disabled: ConnectivityBluetooth.busy || (newDevice.modelData?.pairing ?? false)
 
                     onClicked: {
-                        newDevice.modelData?.pair();
+                        ConnectivityBluetooth.pairDevice(newDevice.modelData);
                         newDevice.wasPairing = true;
                     }
                 }

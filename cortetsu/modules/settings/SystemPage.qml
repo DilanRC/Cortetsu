@@ -22,8 +22,8 @@ Item {
 
     readonly property var brightnessMonitor: Brightness.getMonitorForScreen(root.screen)
     readonly property real brightnessValue: brightnessMonitor?.brightness ?? -1
-    readonly property bool bluetoothEnabled: Bluetooth.defaultAdapter?.enabled ?? false
-    readonly property int bluetoothConnected: (Bluetooth.devices?.values ?? []).filter(device => device.connected).length
+    readonly property bool bluetoothEnabled: Connectivity.bluetooth.enabled
+    readonly property int bluetoothConnected: Connectivity.bluetooth.connectedCount
     readonly property int batteryPercent: CortetsuPower.percent
     readonly property bool batteryCharging: CortetsuPower.charging
     readonly property int volumePercent: Math.round(CortetsuAudio.volume * 100)
@@ -1114,216 +1114,24 @@ Item {
             }
         }
 
-        ColumnLayout {
+        Loader {
             Layout.fillWidth: true
+            Layout.preferredHeight: item?.implicitHeight ?? 0
+            active: visible && root.section === "network"
             visible: root.section === "network"
-            spacing: CortetsuDesign.spacingStandard
-
-            CortetsuSectionHeader {
-                Layout.fillWidth: true
-                title: qsTr("Estado de la red")
-                detail: qsTr("NetworkManager · operaciones y señal en vivo")
-            }
-
-            RowLayout {
-                Layout.fillWidth: true
-
-                CortetsuText {
-                    Layout.fillWidth: true
-                    text: CortetsuNetwork.wifiDevice
-                        ? qsTr("Wi‑Fi · %1 redes visibles").arg(CortetsuNetwork.wifiDevice.networks?.values?.length ?? 0)
-                        : qsTr("Wi‑Fi no disponible")
-                    textSize: CortetsuTypography.bodySmallPx
-                    color: CortetsuDesign.colorOnSurfaceVariant
-                }
-
-                CortetsuButton {
-                    compact: true
-                    icon: CortetsuNetwork.refreshing ? "sync" : "refresh"
-                    label: qsTr("Actualizar")
-                    disabled: !CortetsuNetwork.wifiDevice || CortetsuNetwork.refreshing
-                    onClicked: CortetsuNetwork.refresh()
-                }
-            }
-
-            PreferenceToggle {
-                title: CortetsuSettingsNetwork.wifiEnabled ? qsTr("Wi‑Fi activado") : qsTr("Wi‑Fi desactivado")
-                detail: CortetsuSettingsNetwork.state === "error"
-                    ? CortetsuSettingsNetwork.error
-                    : qsTr("Radio gestionada por NetworkManager")
-                icon: CortetsuSettingsNetwork.wifiEnabled ? "wifi" : "wifi_off"
-                checked: CortetsuSettingsNetwork.wifiEnabled
-                controlDisabled: CortetsuSettingsNetwork.busy
-                onChanged: enabled => CortetsuSettingsNetwork.setWifi(enabled)
-            }
-
-            StatusCard {
-                title: CortetsuSettingsNetwork.operation.length > 0
-                    ? CortetsuSettingsNetwork.operation
-                    : qsTr("NetworkManager")
-                value: CortetsuSettingsNetwork.state === "loading"
-                    ? qsTr("Aplicando…")
-                    : CortetsuSettingsNetwork.state === "error"
-                        ? qsTr("Error")
-                        : CortetsuSettingsNetwork.lastMessage.length > 0
-                            ? CortetsuSettingsNetwork.lastMessage
-                            : qsTr("Listo")
-                detail: CortetsuSettingsNetwork.error
-                icon: CortetsuSettingsNetwork.state === "error" ? "error"
-                    : CortetsuSettingsNetwork.state === "loading" ? "sync" : "check_circle"
-                activeState: CortetsuSettingsNetwork.state === "ready"
-                warningState: CortetsuSettingsNetwork.state === "error"
-            }
-
-            StatusCard {
-                title: qsTr("Conexión actual")
-                value: root.networkName
-                detail: root.networkDetail
-                icon: CortetsuNetwork.activeEthernet
-                    ? "cable"
-                    : CortetsuNetwork.connecting
-                        ? "sync"
-                        : CortetsuNetwork.active
-                            ? "wifi"
-                            : "wifi_off"
-                activeState: !!CortetsuNetwork.active || !!CortetsuNetwork.activeEthernet
-                warningState: !CortetsuNetwork.active && !CortetsuNetwork.activeEthernet && !CortetsuNetwork.connecting
-            }
-
-            Flow {
-                Layout.fillWidth: true
-                spacing: CortetsuDesign.spacingCompact
-
-                Repeater {
-                    model: (CortetsuNetwork.wifiDevice?.networks?.values ?? [])
-                        .slice().sort((a, b) => Number(b.connected) - Number(a.connected)
-                            || CortetsuNetwork.strengthPercent(b.signalStrength)
-                            - CortetsuNetwork.strengthPercent(a.signalStrength)).slice(0, 6)
-
-                    delegate: StatusCard {
-                        required property var modelData
-                        width: Math.max(220, (parent?.width ?? 440) / 2 - CortetsuDesign.spacingCompact / 2)
-                        title: modelData.name ?? qsTr("Red Wi‑Fi")
-                        value: modelData.connected
-                            ? qsTr("Conectada · %1%").arg(CortetsuNetwork.strengthPercent(modelData.signalStrength))
-                            : qsTr("Señal %1%").arg(CortetsuNetwork.strengthPercent(modelData.signalStrength))
-                        detail: modelData.secured ? qsTr("Red protegida") : qsTr("Red abierta")
-                        icon: Icons.getNetworkIcon(CortetsuNetwork.strengthPercent(modelData.signalStrength))
-                        activeState: modelData.connected
-                    }
-                }
-            }
-
-            ColumnLayout {
-                Layout.fillWidth: true
-                spacing: 0
-
-                CortetsuSectionHeader {
-                    Layout.fillWidth: true
-                    title: qsTr("Perfiles guardados")
-                    detail: qsTr("Autoconexión y desconexión sin salir de Ajustes")
-                }
-
-                Repeater {
-                    model: CortetsuSettingsNetwork.profiles.filter(profile => profile.type === "802-11-wireless")
-                    delegate: CortetsuListRow {
-                        required property var modelData
-                        Layout.fillWidth: true
-                        title: modelData.name
-                        subtitle: modelData.autoconnect ? qsTr("Autoconexión activa") : qsTr("Autoconexión desactivada")
-                        icon: "bookmark"
-                        selected: modelData.name === CortetsuSettingsNetwork.activeSsid
-                        onClicked: CortetsuSettingsNetwork.disconnect(modelData.name)
-                    }
-                }
-            }
-
-            CortetsuText {
-                Layout.fillWidth: true
-                text: qsTr("Selecciona una red guardada para desconectarla. Las operaciones de conexión segura, DNS e IPv4 se incorporarán en el detalle del perfil.")
-                textSize: CortetsuTypography.bodySmallPx
-                color: CortetsuDesign.colorOnSurfaceVariant
-                wrapMode: Text.WordWrap
+            sourceComponent: NetworkPage {
+                screen: root.screen
+                screenState: root.screenState
             }
         }
-
-        ColumnLayout {
+        Loader {
             Layout.fillWidth: true
+            Layout.preferredHeight: item?.implicitHeight ?? 0
+            active: visible && root.section === "bluetooth"
             visible: root.section === "bluetooth"
-            spacing: CortetsuDesign.spacingStandard
-
-            CortetsuSectionHeader {
-                Layout.fillWidth: true
-                title: qsTr("Bluetooth")
-                detail: qsTr("Estado nativo del adaptador")
-            }
-
-            DomainHero {
-                icon: root.bluetoothConnected > 0 ? "bluetooth_connected" : "bluetooth"
-                title: root.bluetoothEnabled ? qsTr("Bluetooth preparado") : qsTr("Bluetooth desactivado")
-                detail: qsTr("Dispositivos gestionados por BlueZ")
-                value: qsTr("%1 conectados").arg(root.bluetoothConnected)
-                meta: Bluetooth.defaultAdapter
-                    ? qsTr("%1 dispositivos conocidos").arg(Bluetooth.devices?.values?.length ?? 0)
-                    : qsTr("No hay adaptador disponible")
-                warningState: !Bluetooth.defaultAdapter || !root.bluetoothEnabled
-            }
-
-            StatusCard {
-                title: qsTr("Dispositivos")
-                value: root.bluetoothEnabled
-                    ? root.bluetoothConnected > 0
-                        ? qsTr("%1 conectados").arg(root.bluetoothConnected)
-                        : qsTr("Listo")
-                    : qsTr("Bluetooth apagado")
-                detail: root.bluetoothEnabled ? qsTr("Adaptador activado") : qsTr("Adaptador desactivado")
-                icon: root.bluetoothConnected > 0 ? "bluetooth_connected" : "bluetooth"
-                activeState: root.bluetoothEnabled
-            }
-
-            ColumnLayout {
-                Layout.fillWidth: true
-                visible: root.bluetoothEnabled
-                spacing: 0
-
-                CortetsuSectionHeader {
-                    Layout.fillWidth: true
-                    title: qsTr("Dispositivos conocidos")
-                    detail: qsTr("Selecciona un dispositivo para conectar o desconectar")
-                }
-
-                Repeater {
-                    model: Bluetooth.devices?.values ?? []
-                    delegate: CortetsuListRow {
-                        required property var modelData
-                        Layout.fillWidth: true
-                        title: modelData.name ?? qsTr("Dispositivo Bluetooth")
-                        subtitle: modelData.connected ? qsTr("Conectado · pulsa para desconectar") : qsTr("Disponible · pulsa para conectar")
-                        icon: modelData.connected ? "bluetooth_connected" : "bluetooth"
-                        selected: modelData.connected
-                        onClicked: modelData.connected = !modelData.connected
-                    }
-                }
-
-                CortetsuStateMessage {
-                    Layout.fillWidth: true
-                    visible: (Bluetooth.devices?.values ?? []).length === 0
-                    kind: "empty"
-                    title: qsTr("No hay dispositivos conocidos")
-                    detail: qsTr("Empareja un dispositivo desde tu herramienta Bluetooth del sistema para verlo aquí")
-                }
-            }
-
-            PreferenceToggle {
-                title: qsTr("Adaptador Bluetooth")
-                detail: qsTr("Activar o desactivar el adaptador predeterminado")
-                icon: "bluetooth"
-                checked: root.bluetoothEnabled
-                controlDisabled: Bluetooth.defaultAdapter === null
-                onChanged: checked => {
-                    if (Bluetooth.defaultAdapter)
-                        Bluetooth.defaultAdapter.enabled = checked;
-                }
+            sourceComponent: BluetoothPage {
+                screen: root.screen
+                screenState: root.screenState
             }
         }
 

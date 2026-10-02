@@ -53,14 +53,8 @@ hyprland = (ROOT / "dotfiles/home/.config/hypr/hyprland.lua").read_text(encoding
 assert "package.loaded[mod] = nil" in hyprland
 assert 'visible: root.controller.selectedId === "network"' in content
 assert "property bool showingProfiles" in network_page
-assert "CortetsuSettingsNetwork.setAutoconnect" in network_page
-assert "CortetsuSettingsNetwork.refreshAll()" in network_page
-assert "CortetsuSettingsNetwork.copyPassword" in network_page
 assert "Dirección IP" in network_page
 assert "Puerta de enlace" in network_page
-assert "CortetsuSettingsNetwork.activeDevice" in network_page
-assert "function networkIsActive" in network_page
-assert "function signalText" in network_page
 surface = (ROOT / "cortetsu/components/CortetsuSurface.qml").read_text(encoding="utf-8")
 assert "CortetsuConfig.transparencyEnabled" in surface
 assert "transparencyFactor" in surface
@@ -80,7 +74,7 @@ for marker in (
     "onMoved: nextValue => CortetsuAudio.setVolume(nextValue)",
     "CortetsuNotifications.dnd",
     "CortetsuNetwork.active",
-    "Bluetooth.defaultAdapter.enabled",
+    "Connectivity.bluetooth.enabled",
     "CortetsuPower",
     'setRetained(flag, true)',
     "CortetsuWallpapers.actualCurrent",
@@ -93,18 +87,21 @@ assert 'root.openRetained("displayManager")' in system
 assert 'root.openRetained("wallpaperManager")' in system
 assert "WallpaperController.open(root.screen)" in system
 assert "root.screenState.cortetsuState?.closeRetainedOverlaysExcept(flag)" in system
-assert "NetworkManager · operaciones y señal en vivo" in system
-assert "CortetsuSettingsNetwork.setWifi(enabled)" in system
-assert "CortetsuSettingsNetwork.disconnect(modelData.name)" in system
-assert "CortetsuNetwork.refresh()" in system
-assert "Dispositivos conocidos" in system
 assert "CortetsuAudio.setSourceVolume(nextValue)" in system
 assert "CortetsuAudio.setAudioSink(modelData)" in system
 assert "Nvibrant.setValue(value * 1024)" in calibration
-for marker in ("function connect(", "function forget(", "function setAutoconnect(", "NetworkManager rechazó la operación", "connection.autoconnect"):
-    assert marker in network_service, marker
-for marker in ("property var activeDetails", "function refreshAll(", "function refreshDetails(", "function copyPassword(", "IP4.ADDRESS", "IP4.GATEWAY", "IP4.DNS", "Quickshell.clipboardText"):
-    assert marker in network_service, marker
+# Connectivity is shared, reactive, and retains profile UUIDs through actions.
+assert "Connectivity.wifi" in network_page
+assert "root.wifi.setAutoconnect(root.selectedUuid, value)" in network_page
+assert "root.wifi.forgetProfile(root.selectedUuid)" in network_page
+assert "root.wifi.connectNetwork(selectedNetwork, password.text, selectedProfile)" not in network_page  # unqualified service access is prohibited
+assert "wifi.connectNetwork(selectedNetwork, password.text, profile)" in network_page
+assert "selectedProfile?.ssid === selectedNetwork.name" in network_page
+assert "readonly property var networks: ConnectivityWifi.networks" in network_service
+assert "Process" not in network_service
+assert "BluetoothPage {" in content
+assert "NetworkPage {" in content
+assert "password.clear()" in network_page
 assert "visible: Nvibrant.available || Nvibrant.error.length > 0" in calibration
 assert 'title: qsTr("Desplazamiento del volumen")' in system
 assert 'title: qsTr("Brightness scroll")' not in system
@@ -122,7 +119,7 @@ for marker in (
     "CortetsuNotifications.clear()",
     "CortetsuAudio.setStreamVolume",
     "CortetsuAudio.setAudioSource(modelData)",
-    "Bluetooth.devices?.values ?? []",
+    "Connectivity.bluetooth.connectedCount",
     "Hypr.monitors?.values ?? []",
     "SUPER + / · SUPER + SHIFT + 7",
 ):

@@ -22,8 +22,8 @@ Item {
 
     readonly property var brightnessMonitor: Brightness.getMonitorForScreen(root.screen)
     readonly property real brightnessValue: brightnessMonitor?.brightness ?? -1
-    readonly property bool bluetoothEnabled: Bluetooth.defaultAdapter?.enabled ?? false
-    readonly property int connectedBluetoothCount: (Bluetooth.devices?.values ?? []).filter(device => device.connected).length
+    readonly property bool bluetoothEnabled: Connectivity.bluetooth.enabled
+    readonly property int connectedBluetoothCount: Connectivity.bluetooth.connectedCount
     readonly property int volumePercent: Math.round(CortetsuAudio.volume * 100)
     readonly property real batteryValue: CortetsuPower.value
     readonly property bool batteryAvailable: CortetsuPower.available
@@ -162,9 +162,8 @@ Item {
                     : qsTr("Apagado")
                 icon: root.connectedBluetoothCount > 0 ? "bluetooth_connected" : "bluetooth"
                 highlighted: root.bluetoothEnabled
-                clickable: Bluetooth.defaultAdapter !== null
-                onActivated: if (Bluetooth.defaultAdapter)
-                    Bluetooth.defaultAdapter.enabled = !Bluetooth.defaultAdapter.enabled
+                clickable: !!Connectivity.bluetooth.adapter
+                onActivated: Connectivity.bluetooth.setEnabled(!Connectivity.bluetooth.enabled)
             }
 
             CortetsuActionTile {

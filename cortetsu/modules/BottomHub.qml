@@ -381,14 +381,12 @@ Scope {
                 : CortetsuNetwork.activeEthernet
                     ? qsTr("Ethernet conectado")
                     : CortetsuNetwork.active
-                        ? qsTr("%1 · señal %2%").arg(CortetsuNetwork.active.ssid).arg(Math.round(CortetsuNetwork.active.strength ?? 0))
+                        ? qsTr("%1 · señal %2% · %3").arg(CortetsuNetwork.active.ssid).arg(Math.round(CortetsuNetwork.active.strength ?? 0)).arg(Connectivity.internetLabel)
                         : qsTr("Red no disponible")
-            readonly property bool bluetoothActive: Bluetooth.devices.values.some(device => device.connected)
-            readonly property string bluetoothIcon: !Bluetooth.defaultAdapter?.enabled
-                ? "bluetooth_disabled"
-                : bluetoothActive
-                    ? "bluetooth_connected"
-                    : "bluetooth"
+            readonly property bool bluetoothActive: Connectivity.bluetooth.connectedCount > 0
+            readonly property string bluetoothIcon: bluetoothActive ? "bluetooth_connected"
+                : Connectivity.bluetooth.busy ? "sync"
+                : !Connectivity.bluetooth.enabled ? "bluetooth_disabled" : "bluetooth"
             readonly property bool batteryCharging: CortetsuPower.charging
             readonly property string batteryIcon: CortetsuPower.hasBattery
                 ? Icons.getBatteryIcon(CortetsuPower.value, batteryCharging)

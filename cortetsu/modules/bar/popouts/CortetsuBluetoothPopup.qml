@@ -10,15 +10,20 @@ import "../.."
 
 CortetsuPopupSurface {
     id: root
+    readonly property string scanOwner: "bluetooth-" + String(root)
 
     required property var popouts
     implicitWidth: 336
     implicitHeight: body.implicitHeight + CortetsuDesign.spacingComfortable * 2
 
-    readonly property bool adapterEnabled: Bluetooth.defaultAdapter?.enabled ?? false
-    readonly property var devices: [...Bluetooth.devices.values].sort((a, b) =>
+    readonly property bool adapterEnabled: ConnectivityBluetooth.enabled ?? false
+    readonly property var devices: [...ConnectivityBluetooth.devices].sort((a, b) =>
         (b.connected - a.connected) || (b.paired - a.paired) || a.name.localeCompare(b.name))
     readonly property int connectedCount: root.devices.filter(device => device.connected).length
+
+    Component.onCompleted: ConnectivityBluetooth.setScanOwner(root.scanOwner, visible)
+    onVisibleChanged: ConnectivityBluetooth.setScanOwner(root.scanOwner, visible)
+    Component.onDestruction: ConnectivityBluetooth.setScanOwner(root.scanOwner, false)
 
     ColumnLayout {
         id: body
@@ -97,10 +102,9 @@ CortetsuPopupSurface {
 
                 CortetsuToggle {
                     checked: root.adapterEnabled
-                    disabled: !Bluetooth.defaultAdapter
+                    disabled: !ConnectivityBluetooth.adapter || ConnectivityBluetooth.busy
                     onToggled: checked => {
-                        if (Bluetooth.defaultAdapter)
-                            Bluetooth.defaultAdapter.enabled = checked;
+                        ConnectivityBluetooth.setEnabled(checked);
                     }
                 }
             }
@@ -122,6 +126,14 @@ CortetsuPopupSurface {
             detail: qsTr("%1 disponibles").arg(root.devices.length)
         }
 
+        CortetsuStateMessage {
+            Layout.fillWidth: true
+            visible: ConnectivityBluetooth.operation.state === "failed"
+            kind: "error"
+            title: qsTr("La operación Bluetooth falló")
+            detail: ConnectivityBluetooth.operation.lastError
+        }
+
         ListView {
             Layout.fillWidth: true
             Layout.preferredHeight: Math.min(contentHeight, 5 * CortetsuDesign.rowHeight)
@@ -140,11 +152,12 @@ CortetsuPopupSurface {
                         ? qsTr("Vinculado · activa para conectar")
                         : qsTr("Disponible")
                 selected: modelData.connected
+                enabled: !ConnectivityBluetooth.busy
                 onClicked: {
                     if (modelData.connected)
-                        modelData.disconnect();
+                        ConnectivityBluetooth.disconnectDevice(modelData);
                     else
-                        modelData.connect();
+                        modelData.paired ? ConnectivityBluetooth.connectDevice(modelData) : ConnectivityBluetooth.pairDevice(modelData);
                 }
             }
         }

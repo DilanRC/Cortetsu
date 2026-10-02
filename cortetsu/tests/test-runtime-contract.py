@@ -94,7 +94,9 @@ assert 'cortetsu/wallpaper/path.txt' in wallpaper_service
 assert "caelestia" not in wallpaper_service.lower()
 nmcli = (repo / "cortetsu/base/services/Nmcli.qml").read_text(encoding="utf-8")
 stack_page = (repo / "cortetsu/base/modules/nexus/common/StackPage.qml").read_text(encoding="utf-8")
-assert 'name: "cortetsu.qml.services.nmcli"' in nmcli
+assert "Connectivity.wifi" in nmcli
+assert "Process" not in nmcli
+assert "connectionParamPassword" not in nmcli
 assert 'name: "cortetsu.nexus"' in stack_page
 assert 'name: "caelestia.qml.services.nmcli"' not in nmcli
 assert 'name: "caelestia.nexus"' not in stack_page

@@ -1,115 +1,16 @@
 pragma ComponentBehavior: Bound
-
 import QtQuick
-import QtQuick.Layouts
-import Quickshell
-import qs.components
-import qs.services
-import qs.utils
+import qs.modules.settings as Settings
 import qs.modules.nexus.common
 
 PageBase {
     id: root
-
-    title: qsTr("Saved networks")
+    title: qsTr("Conexiones")
     isSubPage: true
-
-    Component.onCompleted: Nmcli.loadSavedConnections(() => {})
-
-    ColumnLayout {
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.top: parent.top
+    Settings.NetworkPage {
         width: root.cappedWidth
-        spacing: CortetsuTokens.spacing.extraSmall / 2
-
-        ItemList {
-            id: savedList
-
-            showList: true
-            first: true
-            last: true
-            placeholderIcon: "wifi_find"
-            placeholderText: qsTr("No saved networks")
-
-            model: ScriptModel {
-                values: [...Nmcli.savedConnectionSsids].sort((a, b) => a.localeCompare(b))
-            }
-
-            delegate: CortetsuStateLayer {
-                id: saved
-
-                required property int index
-                required property var modelData
-                readonly property var ap: Nmcli.findNetwork(modelData)
-                readonly property bool isActive: !!Nmcli.active && Nmcli.active.ssid === modelData
-
-                anchors.left: savedList.list.contentItem.left
-                anchors.right: savedList.list.contentItem.right
-                implicitHeight: savedLayout.implicitHeight + savedLayout.anchors.margins * 2
-                radius: CortetsuTokens.rounding.extraSmall
-                topLeftRadius: index === 0 ? CortetsuTokens.rounding.extraLarge : radius
-                topRightRadius: index === 0 ? CortetsuTokens.rounding.extraLarge : radius
-                bottomLeftRadius: index === savedList?.list.count - 1 ? CortetsuTokens.rounding.extraLarge : radius
-                bottomRightRadius: index === savedList?.list.count - 1 ? CortetsuTokens.rounding.extraLarge : radius
-                anchors.fill: undefined
-
-                onClicked: {
-                    root.nState.selectedNetworkSsid = saved.modelData;
-                    root.nState.networkDetailsFromSaved = true;
-                    root.nState.openSubPage(3); // Shared network detail/edit sub-page
-                }
-
-                RowLayout {
-                    id: savedLayout
-
-                    anchors.fill: parent
-                    anchors.margins: CortetsuTokens.padding.large
-                    anchors.leftMargin: CortetsuTokens.padding.extraLarge
-                    anchors.rightMargin: CortetsuTokens.padding.extraLarge
-                    spacing: CortetsuTokens.spacing.medium
-
-                    CortetsuIcon {
-                        text: saved.ap ? Icons.getNetworkIcon(saved.ap.strength, !["", "none"].includes(Nmcli.savedSecurityFor(saved.modelData))) : "signal_wifi_off"
-                        color: saved.isActive ? CortetsuColours.palette.m3primary : CortetsuColours.palette.m3onSurfaceVariant
-                        fontStyle: CortetsuTokens.font.icon.medium
-                    }
-
-                    ColumnLayout {
-                        Layout.fillWidth: true
-                        spacing: 0
-
-                        CortetsuText {
-                            Layout.fillWidth: true
-                            text: saved.modelData
-                            font: CortetsuTokens.font.body.small
-                            elide: Text.ElideRight
-                        }
-
-                        CortetsuText {
-                            Layout.fillWidth: true
-                            text: {
-                                let security;
-                                if (saved.ap)
-                                    security = saved.ap.security || qsTr("Open");
-                                else
-                                    security = Nmcli.securityLabel(Nmcli.savedSecurityFor(saved.modelData)) || qsTr("Unknown");
-                                if (saved.isActive)
-                                    return qsTr("Connected • %1").arg(security);
-                                return security;
-                            }
-                            color: saved.isActive ? CortetsuColours.palette.m3primary : CortetsuColours.palette.m3outline
-                            font: CortetsuTokens.font.label.small
-                            elide: Text.ElideRight
-                        }
-                    }
-
-                    CortetsuIcon {
-                        text: "chevron_right"
-                        color: CortetsuColours.palette.m3onSurfaceVariant
-                        fontStyle: CortetsuTokens.font.icon.medium
-                    }
-                }
-            }
-        }
+        anchors.horizontalCenter: parent.horizontalCenter
+        screen: root.nState.screen
+        screenState: null
     }
 }

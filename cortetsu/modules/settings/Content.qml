@@ -299,26 +299,7 @@ Item {
                             }
                         }
 
-                        RowLayout {
-                            visible: root.controller.selectedId === "network"
-                            Layout.alignment: Qt.AlignRight
-                            spacing: CortetsuDesign.spacingCompact
 
-                            CortetsuToggle {
-                                checked: CortetsuSettingsNetwork.wifiEnabled
-                                disabled: CortetsuSettingsNetwork.busy
-                                onToggled: checked => CortetsuSettingsNetwork.setWifi(checked)
-                            }
-
-                            CortetsuButton {
-                                compact: true
-                                icon: "refresh"
-                                label: qsTr("Actualizar")
-                                tooltipText: qsTr("Buscar redes y volver a leer perfiles")
-                                disabled: CortetsuSettingsNetwork.busy
-                                onClicked: networkPage.refreshAll()
-                            }
-                        }
                     }
 
                         ColumnLayout {
@@ -718,19 +699,32 @@ Item {
                     SystemPage {
                         Layout.fillWidth: true
                         visible: root.controller.selectedId !== "appearance" && root.controller.selectedId !== "about"
-                            && root.controller.selectedId !== "network"
+                            && root.controller.selectedId !== "network" && root.controller.selectedId !== "bluetooth"
                         section: root.controller.selectedId
                         screen: root.screen
                         screenState: root.screenState
                     }
 
-                    NetworkPage {
-                        id: networkPage
+                    Loader {
                         Layout.fillWidth: true
-                        Layout.preferredHeight: implicitHeight
+                        Layout.preferredHeight: item?.implicitHeight ?? 0
+                        active: visible && root.controller.selectedId === "bluetooth"
+                        visible: root.controller.selectedId === "bluetooth"
+                        sourceComponent: BluetoothPage {
+                            screen: root.screen
+                            screenState: root.screenState
+                        }
+                    }
+
+                    Loader {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: item?.implicitHeight ?? 0
+                        active: visible && root.controller.selectedId === "network"
                         visible: root.controller.selectedId === "network"
-                        screen: root.screen
-                        screenState: root.screenState
+                        sourceComponent: NetworkPage {
+                            screen: root.screen
+                            screenState: root.screenState
+                        }
                     }
 
                     ColumnLayout {

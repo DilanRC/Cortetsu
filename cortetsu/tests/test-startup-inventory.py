@@ -355,7 +355,8 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-startup-test-") as temp:
     assert phases["cortetsu:pomodoro"] == "always-on"
     assert phases["cortetsu:spectrum"] == "conditional"
     assert phases["cortetsu:brightness-maximum"] == "conditional"
-    assert phases["cortetsu:nmcli-monitor"] == phases["cortetsu:vpn-monitor"] == "on-demand"
+    assert phases["cortetsu:connectivity-monitor"] == "always-on"
+    assert phases["cortetsu:connectivity-command"] == "conditional"
     assert phases["cortetsu:wallpaper-scan"] == "always-on"
     assert phases["cortetsu:battery-notification"] == phases["cortetsu:battery-hibernate"] == "conditional"
     assert phases["cortetsu:hardware-startup-scan"] == "on-demand"
@@ -369,10 +370,9 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-startup-test-") as temp:
     assert '"configured": component["startupPhase"] != "on-demand"' in SCRIPT.read_text(encoding="utf-8")
     assert {entry["id"] for entry in app.CORTETSU_STARTUP} == {
         "cortetsu:pomodoro", "cortetsu:wallpaper-scan", "cortetsu:battery-notification",
-        "cortetsu:battery-hibernate", "cortetsu:spectrum", "cortetsu:nmcli-monitor",
-        "cortetsu:nmcli-command", "cortetsu:vpn-monitor", "cortetsu:vpn-status",
+        "cortetsu:battery-hibernate", "cortetsu:spectrum", "cortetsu:connectivity-monitor",
+        "cortetsu:connectivity-command", "cortetsu:vpn-status",
         "cortetsu:brightness-discovery", "cortetsu:brightness-maximum", "cortetsu:nvibrant-query",
-        "cortetsu:settings-network-query", "cortetsu:settings-active-network-query",
         "cortetsu:cpu-temperature", "cortetsu:gpu-probe", "cortetsu:storage-probe",
         "cortetsu:network-usage-probe", "cortetsu:recorder-status", "cortetsu:lock-keyboard-probe",
         "cortetsu:about-quickshell-version", "cortetsu:about-cortetsu-version",

@@ -1,175 +1,25 @@
 pragma ComponentBehavior: Bound
-
 import QtQuick
 import QtQuick.Layouts
-import Quickshell
 import qs.components
-import qs.components.controls
 import qs.services
-import qs.utils
 import qs.modules.nexus
 
-ItemList {
+ColumnLayout {
     id: root
-
     required property NexusState nState
-    property int limit: 0 // 0 = show all
-    property bool enableFilter
-
-    signal networkSelected(ap: Nmcli.AccessPoint)
-
-    function networkFilter(ap: Nmcli.AccessPoint): bool {
-        return true;
-    }
-
-    showList: Nmcli.wifiEnabled
-    placeholderIcon: Nmcli.wifiEnabled ? "wifi_find" : "signal_wifi_off"
-    placeholderText: Nmcli.wifiEnabled ? qsTr("No networks found") : qsTr("Wi-Fi disabled")
-    extraHeight: Nmcli.scanning ? CortetsuTokens.rounding.extraSmall : 0 // Inline so it isn't affected by anim
-    list.anchors.top: scanningIndicator.bottom
-
-    model: ScriptModel {
-        values: {
-            const connecting = Nmcli.connectingSsid();
-            // Lower rank sorts higher in the list
-            const rank = n => n.active ? 0 : n.ssid === connecting ? 1 : Nmcli.hasSavedProfile(n.ssid) ? 2 : 3;
-            const sorted = [...Nmcli.networks].sort((a, b) => rank(a) - rank(b) || b.strength - a.strength);
-            if (root.limit > 0 && sorted.length > root.limit)
-                sorted.length = root.limit;
-            return root.enableFilter ? sorted.filter(root.networkFilter) : sorted;
-        }
-    }
-
-    delegate: CortetsuStateLayer {
-        id: network
-
-        required property int index
-        required property var modelData
-        property bool currentSelected
-        property real textOpacity: disabled ? 0.5 : 1
-
-        disabled: currentSelected || Nmcli.connectingSsid() === modelData.ssid
-
-        anchors.left: root.list.contentItem.left
-        anchors.right: root.list.contentItem.right
-        implicitHeight: networkLayout.implicitHeight + networkLayout.anchors.margins * 2
-        radius: CortetsuTokens.rounding.extraSmall
-        bottomLeftRadius: root?.last && index === root.list.count - 1 ? CortetsuTokens.rounding.extraLarge : radius
-        bottomRightRadius: root?.last && index === root.list.count - 1 ? CortetsuTokens.rounding.extraLarge : radius
-        anchors.fill: undefined
-
-        onClicked: {
-            if (!modelData.active) {
-                NetworkConnection.handleConnect(modelData);
-                currentSelected = true;
-                root.networkSelected(modelData);
-            } else {
-                // Active network: open its detail/settings sub-page.
-                root.nState.selectedNetworkSsid = modelData.ssid;
-                root.nState.networkDetailsFromSaved = false;
-                root.nState.openSubPage(3);
-            }
-        }
-
-        Behavior on textOpacity {
-            Anim {
-                type: Anim.DefaultEffects
-            }
-        }
-
-        Connections {
-            function onActiveChanged(): void {
-                if (network.modelData.active)
-                    network.currentSelected = false;
-            }
-
-            target: network.modelData
-        }
-
-        Connections {
-            function onNetworkSelected(ap: Nmcli.AccessPoint): void {
-                if (ap !== network.modelData)
-                    network.currentSelected = false;
-            }
-
-            target: root
-        }
-
-        RowLayout {
-            id: networkLayout
-
-            anchors.fill: parent
-            anchors.margins: CortetsuTokens.padding.large
-            anchors.leftMargin: CortetsuTokens.padding.extraLarge
-            anchors.rightMargin: CortetsuTokens.padding.extraLarge
-            spacing: CortetsuTokens.spacing.medium
-
-            CortetsuIcon {
-                text: Icons.getNetworkIcon(network.modelData.strength)
-                color: network.modelData.active ? CortetsuColours.palette.m3primary : CortetsuColours.palette.m3onSurfaceVariant
-                fontStyle: CortetsuTokens.font.icon.medium
-                opacity: network.textOpacity
-            }
-
-            ColumnLayout {
-                Layout.fillWidth: true
-                spacing: 0
-                opacity: network.textOpacity
-
-                CortetsuText {
-                    Layout.fillWidth: true
-                    text: network.modelData.ssid
-                    font: CortetsuTokens.font.body.small
-                    elide: Text.ElideRight
-                }
-
-                CortetsuText {
-                    Layout.fillWidth: true
-                    text: qsTr("Security: %1%2").arg(network.modelData.security).arg(network.modelData.active ? qsTr(" • Connected") : Nmcli.hasSavedProfile(network.modelData.ssid) ? qsTr(" • Saved") : "")
-                    color: CortetsuColours.palette.m3outline
-                    font: CortetsuTokens.font.label.small
-                    elide: Text.ElideRight
-                }
-            }
-
-            AnimLoader {
-                sourceComp: Nmcli.connectingSsid() === network.modelData.ssid ? loadingComp : iconComp
-
-                Component {
-                    id: iconComp
-
-                    CortetsuIcon {
-                        text: network.modelData.active ? "settings" : "lock"
-                        color: network.modelData.active ? CortetsuColours.palette.m3primary : CortetsuColours.palette.m3onSurfaceVariant
-                        fontStyle: CortetsuTokens.font.icon.medium
-                        opacity: network.textOpacity
-                    }
-                }
-
-                Component {
-                    id: loadingComp
-
-                    LoadingIndicator {
-                        implicitSize: Math.round(CortetsuTokens.font.icon.medium.pointSize * 1.3)
-                    }
-                }
-            }
-        }
-    }
-
-    StyledProgressBar {
-        id: scanningIndicator
-
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.margins: 1
-        implicitHeight: Nmcli.scanning ? CortetsuTokens.rounding.extraSmall : 0
-        indeterminate: true
-
-        Behavior on implicitHeight {
-            Anim {
-                type: Anim.DefaultEffects
-            }
+    property int limit: 0
+    property bool enableFilter: false
+    signal networkSelected(var network)
+    Repeater {
+        model: root.limit > 0 ? Connectivity.wifi.networks.slice(0, root.limit) : Connectivity.wifi.networks
+        delegate: CortetsuListRow {
+            required property var modelData
+            Layout.fillWidth: true
+            title: modelData.name
+            subtitle: modelData.connected ? Connectivity.internetLabel : modelData.known ? qsTr("Guardada") : qsTr("Disponible")
+            icon: "wifi"
+            onClicked: root.networkSelected(modelData)
         }
     }
 }

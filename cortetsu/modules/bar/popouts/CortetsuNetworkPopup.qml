@@ -19,6 +19,10 @@ CortetsuPopupSurface {
     readonly property var device: CortetsuNetwork.wifiDevice
     readonly property bool refreshing: CortetsuNetwork.refreshing
     readonly property bool wiredActive: !!CortetsuNetwork.activeEthernet
+    readonly property string scanOwner: "popup-wifi-" + String(root)
+    onVisibleChanged: Connectivity.wifi.setScanOwner(scanOwner, visible)
+    Component.onCompleted: Connectivity.wifi.setScanOwner(scanOwner, visible)
+    Component.onDestruction: Connectivity.wifi.setScanOwner(scanOwner, false)
     property var passwordNetwork: null
     readonly property var networks: (device?.networks?.values ?? []).slice().sort((a, b) => {
         if (a.connected !== b.connected) return b.connected - a.connected;
@@ -109,7 +113,7 @@ CortetsuPopupSurface {
 
                     CortetsuText {
                         width: parent.width
-                        text: CortetsuNetwork.connecting ? qsTr("Conectando…") : qsTr("Conectado")
+                        text: CortetsuNetwork.connecting ? qsTr("Conectando…") : Connectivity.internetLabel
                         textSize: CortetsuDesign.labelSmallPx
                         color: CortetsuDesign.colorOnSurfaceVariant
                     }
@@ -152,15 +156,19 @@ CortetsuPopupSurface {
                 width: ListView.view.width
                 icon: Icons.getNetworkIcon(CortetsuNetwork.strengthPercent(modelData.signalStrength))
                 title: modelData.name ?? qsTr("Red oculta")
-                subtitle: modelData.security === WifiSecurityType.None
+                subtitle: Connectivity.wifi.operationNetwork === modelData && ["failed", "auth-required"].includes(Connectivity.wifi.operation.state)
+                    ? Connectivity.wifi.operation.lastError
+                    : modelData.stateChanging ? qsTr("Conectando…")
+                    : modelData.security === WifiSecurityType.Open
                     ? qsTr("Red abierta")
                     : modelData.known
                         ? qsTr("Guardada · protegida")
                         : qsTr("Red protegida")
                 selected: false
                 onClicked: {
-                    if (modelData.known || modelData.security === WifiSecurityType.None) {
-                        modelData.connect();
+                    if ((modelData.known || modelData.security === WifiSecurityType.Open)
+                        && !(Connectivity.wifi.operationNetwork === modelData && Connectivity.wifi.operation.state === "auth-required")) {
+                        Connectivity.wifi.connectNetwork(modelData, "", null);
                     } else {
                         root.passwordNetwork = modelData;
                         root.popouts.currentName = "wirelesspassword";

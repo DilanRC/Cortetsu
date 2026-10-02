@@ -9,9 +9,11 @@ hub = (modules / "BottomHub.qml").read_text(encoding="utf-8")
 
 # Network status is DBus-driven via Quickshell's native NetworkManager binding:
 # no nmcli, no Process/Timer polling, no Caelestia dependency.
-assert "import Quickshell.Networking" in network
+backend = (repo / "cortetsu/services/ConnectivityWifi.qml").read_text(encoding="utf-8")
+assert "import Quickshell.Networking" in backend
+assert "ConnectivityWifi.active" in network
 for marker in ("activeEthernet", "strength", "ssid", "DeviceType", "ConnectionState", "connecting"):
-    assert marker in network, marker
+    assert marker in network + backend, marker
 for banned in ("nmcli", "Quickshell.Io", "Process {", "Timer {", "monitor", "GlobalConfig", "Caelestia"):
     assert banned not in network, banned
 

@@ -10,7 +10,7 @@ CortetsuSurface {
     id: root
     required property var popouts
     property var network: null
-    property bool connecting: false
+    readonly property bool connecting: Connectivity.wifi.operationNetwork === root.network && Connectivity.wifi.busy
     property string errorText: ""
 
     implicitWidth: 324
@@ -92,35 +92,18 @@ CortetsuSurface {
         }
     }
 
-    Timer {
-        id: timeout
-        interval: 8000
-        onTriggered: {
-            root.connecting = false;
-            root.errorText = qsTr("Se agotó el tiempo. Revisa la contraseña e inténtalo de nuevo.");
-        }
-    }
-
     Connections {
-        target: CortetsuNetwork
-        function onActiveChanged(): void {
-            if (root.connecting && CortetsuNetwork.active?.ssid === root.network?.name) {
-                timeout.stop();
-                root.connecting = false;
+        target: Connectivity.wifi
+        function onOperationChanged(): void {
+            if (Connectivity.wifi.operationNetwork !== root.network) return;
+            const op = Connectivity.wifi.operation;
+            if (op.state === "connected" && root.network?.connected) {
+                password.clear();
                 root.popouts.hasCurrent = false;
+            } else if (op.state === "failed") {
+                root.errorText = op.lastError;
+                password.forceActiveFocus();
             }
-        }
-    }
-
-    Connections {
-        target: root.network
-        function onConnectionFailed(_reason): void {
-            if (!root.connecting)
-                return;
-            timeout.stop();
-            root.connecting = false;
-            root.errorText = qsTr("No se pudo conectar. Revisa la contraseña.");
-            password.forceActiveFocus();
         }
     }
 
@@ -129,29 +112,22 @@ CortetsuSurface {
         function onCurrentNameChanged(): void {
             if (root.popouts.currentName === "wirelesspassword")
                 Qt.callLater(() => password.forceActiveFocus());
+            else password.clear();
         }
     }
 
+    onVisibleChanged: { if (!visible) password.clear(); }
     Keys.onEscapePressed: root.closeDialog()
 
     function connect(): void {
         if (!root.network || password.text.length === 0 || root.connecting)
             return;
         root.errorText = "";
-        root.connecting = true;
-        timeout.restart();
-        NetworkConnection.connectWithPassword(root.network, password.text, result => {
-            if (result?.success !== true) {
-                timeout.stop();
-                root.connecting = false;
-                root.errorText = qsTr("No se pudo conectar a esta red.");
-            }
-        });
+        Connectivity.wifi.connectNetwork(root.network, password.text, null);
+        password.clear();
     }
 
     function closeDialog(): void {
-        timeout.stop();
-        root.connecting = false;
         root.errorText = "";
         password.clear();
         root.popouts.currentName = "network";

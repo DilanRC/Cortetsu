@@ -20,7 +20,7 @@ for marker in (
     "CortetsuAudio.setVolume",
     "CortetsuNotifications.dnd",
     "Red no disponible",
-    "Bluetooth.defaultAdapter.enabled",
+    "Connectivity.bluetooth.setEnabled",
     "connectedBluetoothCount",
     "CortetsuPower",
     "batteryPercent",

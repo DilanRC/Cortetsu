@@ -707,14 +707,10 @@ Singleton {
 
     // ── Generic engine ──────────────────────────────────────────────────────
 
-    // startup inventory: cortetsu:vpn-monitor (on-demand network page)
-    Process {
-        id: nmMonitor
-
-        running: root.selectedProvider.length > 0
-        command: ["nmcli", "monitor"]
-        stdout: SplitParser {
-            onRead: statusCheckTimer.restart()
+    Connections {
+        target: ConnectivityWifi
+        function onBackendEvent() {
+            if (root.selectedProvider.length > 0) statusCheckTimer.restart();
         }
     }
 

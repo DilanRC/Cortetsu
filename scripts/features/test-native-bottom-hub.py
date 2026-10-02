@@ -100,7 +100,7 @@ def assert_controller(text: str) -> None:
         "Audio.incrementVolume()",
         "Audio.decrementVolume()",
         "CortetsuNetwork.activeEthernet",
-        "Bluetooth.devices.values",
+        "Connectivity.bluetooth.connectedCount",
         "CortetsuPower",
         "CortetsuRecorder.stop()",
         "CortetsuNotifications.dnd = !CortetsuNotifications.dnd",

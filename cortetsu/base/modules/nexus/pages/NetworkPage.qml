@@ -1,116 +1,20 @@
 pragma ComponentBehavior: Bound
-
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import qs.components
 import qs.components.controls
-import qs.modules
 import qs.services
+import qs.modules.settings as Settings
 import qs.modules.nexus.common
 
 PageBase {
     id: root
-
-    title: qsTr("Network")
-
+    title: qsTr("Conexiones")
     ColumnLayout {
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.top: parent.top
         width: root.cappedWidth
-        spacing: CortetsuTokens.spacing.extraSmall / 2
-
-        Timer {
-            running: root.visible && Nmcli.wifiEnabled
-            repeat: true
-            triggeredOnStart: true
-            interval: CortetsuConfig.nexusNetworkRescanInterval
-            onTriggered: Nmcli.rescanWifi()
-        }
-
-        Timer {
-            id: wifiScanDelay
-
-            interval: 100
-            onTriggered: Nmcli.rescanWifi()
-        }
-
-        Connections {
-            function onWifiEnabledChanged(): void {
-                if (Nmcli.wifiEnabled)
-                    wifiScanDelay.start();
-            }
-
-            target: Nmcli
-        }
-
-        Loader {
-            Layout.fillWidth: true
-            active: Nmcli.hasAvailableEthernet
-            visible: active
-            asynchronous: true
-
-            sourceComponent: EthernetSection {
-                nState: root.nState
-                cappedWidth: root.cappedWidth
-            }
-        }
-
-        ToggleRow {
-            Layout.topMargin: Nmcli.hasAvailableEthernet ? CortetsuTokens.spacing.large : 0
-            first: true
-            text: qsTr("Wi-Fi")
-            font: CortetsuTokens.font.body.medium
-            horizontalPadding: CortetsuTokens.padding.largeIncreased
-            checked: Nmcli.wifiEnabled
-            onToggled: Nmcli.enableWifi(checked)
-        }
-
-        NetworkList {
-            Layout.bottomMargin: Nmcli.wifiEnabled && Nmcli.networks.length > CortetsuConfig.nexusMaxNetworksShown ? 0 : -parent.spacing
-            nState: root.nState
-            limit: CortetsuConfig.nexusMaxNetworksShown
-
-            Behavior on Layout.bottomMargin {
-                Anim {
-                    type: Anim.DefaultEffects
-                }
-            }
-        }
-
-        // All networks button, only when > max networks
-        RowButton {
-            Layout.preferredHeight: Nmcli.wifiEnabled && Nmcli.networks.length > CortetsuConfig.nexusMaxNetworksShown ? implicitHeight : 0
-            clip: true
-
-            icon: "expand_content"
-            text: qsTr("Show all networks (%1)").arg(Nmcli.networks.length)
-            trailingIcon: "chevron_right"
-            onClicked: root.nState.openSubPage(5) // All networks sub-page
-
-            Behavior on Layout.preferredHeight {
-                Anim {
-                    type: Anim.DefaultEffects
-                }
-            }
-        }
-
-        // Saved networks button
-        RowButton {
-            icon: "bookmark"
-            text: qsTr("Saved networks")
-            trailingIcon: "chevron_right"
-            onClicked: root.nState.openSubPage(6) // Saved networks sub-page
-        }
-
-        RowButton {
-            last: true
-            icon: "add"
-            text: qsTr("Add network")
-            disabled: !Nmcli.wifiEnabled
-            onClicked: root.nState.openSubPage(2) // Add network sub-page
-        }
-
+        anchors.horizontalCenter: parent.horizontalCenter
+        Settings.NetworkPage { Layout.fillWidth: true; screen: root.nState.screen; screenState: null; showVpn: false }
         // ---- VPN -------------------------------------------------------------
         ToggleRow {
             Layout.topMargin: CortetsuTokens.spacing.large
@@ -119,22 +23,12 @@ PageBase {
             text: qsTr("VPN")
             font: CortetsuTokens.font.body.medium
             horizontalPadding: CortetsuTokens.padding.largeIncreased
-            checked: VPN.connected
+            checked: Connectivity.vpn.connected
             // Connectable as long as there's a provider and we're not mid-switch.
-            disabled: VPN.connecting || VPN.disconnecting || VPN.providers.length === 0
-            onToggled: VPN.toggle()
+            disabled: Connectivity.vpn.connecting || Connectivity.vpn.disconnecting || Connectivity.vpn.providers.length === 0
+            onToggled: Connectivity.vpn.toggle()
 
-            Timer {
-                running: root.visible
-                repeat: true
-                triggeredOnStart: true
-                interval: 5000
-                onTriggered: {
-                    VPN.checkStatus();
-                    if (VPN.connected)
-                        VPN.refreshStats();
-                }
-            }
+
         }
 
         ItemList {
@@ -145,15 +39,15 @@ PageBase {
             placeholderText: qsTr("No VPN providers configured")
 
             model: ScriptModel {
-                values: [...VPN.providers]
+                values: [...Connectivity.vpn.providers]
             }
 
             delegate: Item {
                 id: provider
 
                 required property var modelData // QML types are annoying (causes null errors on destruction if typed correctly)
-                readonly property bool isSelected: modelData.providerId === VPN.selectedProvider
-                readonly property bool isConnected: isSelected && VPN.connected
+                readonly property bool isSelected: modelData.providerId === Connectivity.vpn.selectedProvider
+                readonly property bool isConnected: isSelected && Connectivity.vpn.connected
 
                 anchors.left: providerList.list.contentItem.left
                 anchors.right: providerList.list.contentItem.right
@@ -164,7 +58,7 @@ PageBase {
                     radius: CortetsuTokens.rounding.extraSmall
                     onClicked: {
                         if (!provider.isSelected)
-                            VPN.setActiveProvider(provider.modelData.index);
+                            Connectivity.vpn.setActiveProvider(provider.modelData.index);
                     }
                 }
 
@@ -211,17 +105,17 @@ PageBase {
                             text: {
                                 if (!provider.isSelected)
                                     return qsTr("Tap to select");
-                                if (VPN.connecting)
+                                if (Connectivity.vpn.connecting)
                                     return qsTr("Connecting...");
-                                if (VPN.disconnecting)
+                                if (Connectivity.vpn.disconnecting)
                                     return qsTr("Disconnecting...");
-                                switch (VPN.status.state) {
+                                switch (Connectivity.vpn.status.state) {
                                 case "connected":
                                     return qsTr("Connected");
                                 case "needs-auth":
-                                    return VPN.status.reason || qsTr("Authentication required");
+                                    return Connectivity.vpn.status.reason || qsTr("Authentication required");
                                 case "error":
-                                    return VPN.status.reason || qsTr("An error occurred");
+                                    return Connectivity.vpn.status.reason || qsTr("An error occurred");
                                 default:
                                     return qsTr("Selected");
                                 }
@@ -229,7 +123,7 @@ PageBase {
                             color: {
                                 if (!provider.isSelected)
                                     return CortetsuColours.palette.m3onSurfaceVariant;
-                                switch (VPN.status.state) {
+                                switch (Connectivity.vpn.status.state) {
                                 case "connected":
                                     return CortetsuColours.palette.m3primary;
                                 case "needs-auth":
@@ -308,11 +202,11 @@ PageBase {
                                         implicitWidth: Math.round(CortetsuTokens.font.body.small.pointSize * 0.7)
                                         implicitHeight: implicitWidth
                                         radius: CortetsuTokens.rounding.full
-                                        color: VPN.pingMs <= 80 ? CortetsuColours.palette.m3primary : VPN.pingMs <= 150 ? CortetsuColours.palette.m3tertiary : CortetsuColours.palette.m3error
+                                        color: Connectivity.vpn.pingMs <= 80 ? CortetsuColours.palette.m3primary : Connectivity.vpn.pingMs <= 150 ? CortetsuColours.palette.m3tertiary : CortetsuColours.palette.m3error
                                     }
 
                                     CortetsuText {
-                                        text: qsTr("%1 ms").arg(VPN.pingMs)
+                                        text: qsTr("%1 ms").arg(Connectivity.vpn.pingMs)
                                         color: CortetsuColours.palette.m3outline
                                         font: CortetsuTokens.font.label.small
                                         elide: Text.ElideRight

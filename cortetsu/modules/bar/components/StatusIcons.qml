@@ -1,7 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import Quickshell.Bluetooth
 import "../.."
 import "../../../services"
 import "../../CortetsuDesign.js" as CortetsuDesign
@@ -47,7 +46,7 @@ Rectangle {
                         if (modelData === "network")
                             return CortetsuNetwork.activeEthernet ? "󰈀" : (CortetsuNetwork.active ? "󰖩" : "󰖪");
                         if (modelData === "bluetooth")
-                            return !Bluetooth.defaultAdapter?.enabled ? "󰂲" : (Bluetooth.devices.values.some(d => d.connected) ? "󰂱" : "󰂯");
+                            return Connectivity.bluetooth.connectedCount > 0 ? "󰂱" : (Connectivity.bluetooth.enabled ? "󰂯" : "󰂲");
                         if (!CortetsuPower.hasBattery)
                             return "󰁹";
                         return CortetsuPower.value > 0.2 ? "󰁹" : "󰂃";
