@@ -2,10 +2,10 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
-import "../../components"
-import ".."
-import "../CortetsuDesign.js" as CortetsuDesign
-import "../CortetsuTypography.js" as CortetsuTypography
+import "../../../components"
+import "../.."
+import "../../CortetsuDesign.js" as CortetsuDesign
+import "../../CortetsuTypography.js" as CortetsuTypography
 
 CortetsuSurface {
     id: status

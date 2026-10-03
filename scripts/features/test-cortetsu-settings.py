@@ -115,7 +115,7 @@ assert 'onMoved: nextValue => CortetsuAudio.setVolume(nextValue)' in system
 assert 'onMoved: nextValue => root.page.brightnessMonitor?.setBrightness(nextValue)' in system
 assert 'onMoved: CortetsuAudio.setVolume(value)' not in system
 assert 'onMoved: root.page.brightnessMonitor?.setBrightness(value)' not in system
-assert (settings / "DomainHero.qml").is_file()
+assert (settings / "sections/DomainHero.qml").is_file()
 for marker in (
     "DomainHero {",
     "CortetsuConfig.dashboard.performance.showCpu",

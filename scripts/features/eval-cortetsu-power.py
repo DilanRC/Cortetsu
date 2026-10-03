@@ -2,13 +2,14 @@
 """Deterministic eval for honest, consistent power state presentation."""
 from pathlib import Path
 
+from settings_sources import system_page_text
 
 ROOT = Path(__file__).resolve().parents[2]
 service = (ROOT / "cortetsu/services/CortetsuPower.qml").read_text(encoding="utf-8")
 qsd = (ROOT / "cortetsu/modules/osd/FullContent.qml").read_text(encoding="utf-8")
 hub = (ROOT / "cortetsu/modules/BottomHub.qml").read_text(encoding="utf-8")
 dashboard = (ROOT / "cortetsu/modules/dashboard/Dash.qml").read_text(encoding="utf-8")
-settings = (ROOT / "cortetsu/modules/settings/SystemPage.qml").read_text(encoding="utf-8")
+settings = system_page_text()
 lock = (ROOT / "cortetsu/modules/lock/LockSurface.qml").read_text(encoding="utf-8")
 popup = (ROOT / "cortetsu/modules/bar/popouts/CortetsuBatteryPopup.qml").read_text(encoding="utf-8")
 monitor = (ROOT / "cortetsu/modules/BatteryMonitor.qml").read_text(encoding="utf-8")

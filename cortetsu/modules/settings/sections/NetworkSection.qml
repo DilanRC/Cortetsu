@@ -2,12 +2,10 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
-import Quickshell
 import "../../../components"
 import "../.."
 import "../../../services"
 import "../../../utils"
-import ".."
 import "../../CortetsuDesign.js" as CortetsuDesign
 import "../../CortetsuTypography.js" as CortetsuTypography
 

@@ -2,11 +2,9 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
-import Quickshell
 import "../../../components"
 import "../.."
 import "../../../services"
-import ".."
 import "../../CortetsuDesign.js" as CortetsuDesign
 
 ColumnLayout {

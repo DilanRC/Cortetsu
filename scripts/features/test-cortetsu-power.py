@@ -2,6 +2,7 @@
 """Gate contract for the shared first-party power capability."""
 from pathlib import Path
 
+from settings_sources import system_page_text
 
 ROOT = Path(__file__).resolve().parents[2]
 service = ROOT / "cortetsu/services/CortetsuPower.qml"
@@ -35,7 +36,7 @@ for marker in (
     assert marker in source, marker
 
 for path in consumers:
-    text = path.read_text(encoding="utf-8")
+    text = system_page_text() if path.name == "SystemPage.qml" else path.read_text(encoding="utf-8")
     assert "CortetsuPower" in text, path
     assert "UPower.displayDevice.percentage" not in text, path
     assert "UPowerDeviceState" not in text, path

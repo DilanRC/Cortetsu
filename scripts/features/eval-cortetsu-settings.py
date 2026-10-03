@@ -53,7 +53,7 @@ assert "activeFocusOnTab" in choice_card and "Keys.onSpacePressed" in choice_car
 assert "property var swatches" in choice_card
 assert "component AppearanceToggle" in content
 assert "Esquema activo" in content
-assert (ROOT / "cortetsu/modules/settings/DomainHero.qml").is_file() and "DomainHero {" in system
+assert (ROOT / "cortetsu/modules/settings/sections/DomainHero.qml").is_file() and "DomainHero {" in system
 for marker in (
     "CortetsuConfig.dashboard.performance.showCpu",
     "CortetsuConfig.bar.scrollActions.workspaces",
