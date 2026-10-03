@@ -30,24 +30,30 @@ uses the same native surface as Launcher, Overview and Clipboard.
 ## Pages
 
 1. **Resumen** — the verdict first, then the machine. See "Summary page" below.
-2. **Performance** — rolling CPU/RAM/network/NVMe/GPU graphs with visible scales and min/average/max. CPU cycles Total → Core 0 → Core 1…; RAM toggles cache/swap history.
-3. **Processes** — live table, multi-term filtering, CPU/RAM/PID sorting, `123 / %`, list freeze, detail view and Pause/Resume, Interrupt, Terminate and Force kill controls. Search operates on every readable process from `/proc`, including sleeping/low-CPU processes rather than only the most active rows.
-4. **Sensors** — per-core CPU load, CPU/GPU thermals and power, fan RPM and battery sensor data.
-5. **I/O** — root filesystem and physical block-device throughput, IOPS and totals plus network rates/totals, IPv4, MAC and Wi-Fi metadata.
-6. **Power** — manual Power Profiles switching plus CPU driver/governor/EPP/platform profile, AC/battery state, AMD runtime power state and NVIDIA P-state/clocks/power.
-7. **Auto** — optional AC/battery/low-battery profile rules with verified actions and a small persistent event history. Automation remains disabled until explicitly enabled.
-8. **Energy** — rolling battery/CPU/AMD/NVIDIA power histories, battery energy/health and estimated remaining/charge time when the kernel exposes enough data.
-9. **Keybinds** — installed-app search, automatic launcher metadata, real application icons, direct reassignment and confirmed deletion with automatic snapshots.
-10. **Inicio** — inventory of XDG autostart, user/system systemd units, Hyprland Lua startup callbacks and Cortetsu-owned processes. XDG user entries and manageable user units can be disabled for future logins; system units and source-owned entries are read only.
+2. **Rendimiento** — CPU, memory, network, disk and one graph per GPU, each with its scale and min/average/max. The newest sample sits at the right edge and a short history starts there instead of being stretched. CPU cycles Total → Núcleo 0 → Núcleo 1…; memory toggles cache/swap.
+3. **Procesos** — sortable table (CPU, memory, PID, name) over every readable process, multi-term search, list freeze, `Up`/`Down`/`PageUp`/`PageDown` selection and a detail panel with Pausar/Reanudar, Interrumpir, Terminar and Forzar cierre. Forzar cierre needs a second press within four seconds.
+4. **Sensores** — temperatures against their limits, load per core, fan RPM and battery readings. A sensor the machine does not expose says so instead of showing zero.
+5. **E/S** — root filesystem, block devices with throughput, IOPS and totals, and the network interface with rates, totals, IPv4, MAC and Wi-Fi data.
+6. **Energía** — Power Profiles choice (three options, the active one marked), CPU driver/governor/EPP/platform profile, AC and battery state, and one panel per GPU.
+7. **Automatización** — optional AC/battery/low-battery profile rules, the low-battery threshold, current state and the last five events. Disabled until explicitly enabled.
+8. **Consumo** — battery/CPU/GPU power figures and their histories, battery energy and health, and the estimated remaining or charge time when the kernel exposes enough data.
+9. **Atajos** — installed-app search, launcher metadata, application icons, direct reassignment and confirmed deletion with automatic snapshots.
+10. **Arranque** — inventory of XDG autostart, user/system systemd units, Hyprland Lua startup callbacks and Cortetsu-owned processes, filtered by source and state chips. XDG user entries and manageable user units can be disabled for future logins; system units and source-owned entries are read only.
 
-Keyboard: `1`–`9` switches current pages, `0` opens Inicio, `R` refreshes main telemetry and `Esc` closes.
+Every page is built from the same three pieces: `Panel.qml` (the glass
+surface), `FactRow.qml` (label and value, "No disponible" when the value is
+empty) and `HistoryGraph.qml`. Values go through `Format.js`, so an unknown
+reading never renders as `0` or `NaN`. Lists that follow a reading use an
+index or a keyed `ScriptModel`, so rows update in place.
+
+Keyboard: `1`–`9` switches current pages, `0` opens Arranque, `R` refreshes main telemetry and `Esc` closes.
 `Tab` walks the header buttons, the tabs and then every block of the page in
 reading order; `Enter`, `Return` or `Space` activates the focused one.
 There is also an explicit close button. Clicking empty space inside the panel does
 not close it; only clicking outside the panel, `Esc`, the close button or
 `Super+H` closes/toggles it.
 
-Inicio scans when its page opens or when **Actualizar** is selected. It shows
+Arranque scans when its page opens or when **Actualizar** is selected. It shows
 system services read only and keeps XDG global files untouched by writing a
 user override. User systemd toggles affect the next login; an active process is
 left running. Active user services offer a separate **Detener ahora** action
@@ -64,7 +70,7 @@ execution state. On-demand queries stay labeled as on-demand and are excluded
 from autostart counts.
 `enabled` is persistent and `enabled-runtime` is temporary. `linked` and
 `linked-runtime` only make a unit available through a symlink; they do not
-enable automatic start, so Inicio labels them as linked and groups them with
+enable automatic start, so Arranque labels them as linked and groups them with
 special, non-toggleable states. `static`, `indirect`, `generated`, `transient`
 and `alias` are also non-toggleable. Target relationships are shown as
 installation configuration only for `enabled` or `enabled-runtime` units.
