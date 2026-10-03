@@ -46,12 +46,13 @@ ShellRoot {
     property int checks: 0
     function verify(value, reason) { if (!value) { console.log("BT_FAIL", reason); return; } checks++; }
     Component.onCompleted: {
-        verify(backend.connectDevice(backend.fakeDevice), "dispatch");
+        verify(backend.pairDevice(backend.fakeDevice), "dispatch");
         verify(backend.busy, "must wait for state");
         verify(!backend.connectDevice(backend.fakeDevice), "single flight");
-        backend.fakeDevice.connected = true;
+        backend.fakeDevice.paired = true;
         backend.checkCompletion();
-        verify(backend.operation.state === "succeeded", "confirmed connection");
+        verify(backend.operation.state === "succeeded", "confirmed pairing");
+        backend.fakeDevice.paired = false;
         backend.setScanOwner("a", true);
         backend.setScanOwner("b", true);
         backend.setScanOwner("a", false);
@@ -91,17 +92,52 @@ ShellRoot {
     } }
 }
 '''
-with tempfile.TemporaryDirectory(prefix='cortetsu-bt-test-') as folder:
-    folder = Path(folder)
-    (folder / 'ConnectivityBluetooth.qml').write_text(source)
-    (folder / 'BluetoothPolicy.js').write_text((repo / 'cortetsu/services/BluetoothPolicy.js').read_text())
-    (folder / 'shell.qml').write_text(qml)
-    result = subprocess.run(['quickshell', '-p', str(folder / 'shell.qml')], env={**os.environ, 'QT_QPA_PLATFORM': 'offscreen'}, capture_output=True, text=True, timeout=5)
-    output = result.stdout + result.stderr
-    print(output)
-    assert result.returncode == 0 and 'BT_RUNTIME_PASS 18' in output, 'QML runtime lifecycle failed'
-    assert 'BT_FAIL' not in output and 'Binding loop' not in output
-    assert 'TypeError' not in output and 'ReferenceError' not in output and ' ERROR:' not in output
+fake_busctl = """#!/usr/bin/env python3
+import os, sys, time
+from pathlib import Path
+state = Path(__file__).with_name("power")
+calls = Path(__file__).with_name("calls")
+args = sys.argv[1:]
+with calls.open("a") as log: log.write(" ".join(args) + "\\n")
+lines = calls.read_text().splitlines()
+on = state.read_text() == "on"
+if "set-property" in args:
+    state.write_text("on" if args[-1] == "true" else "off")
+elif args[-1] == "Connect":
+    if os.environ.get("BT_FAKE_CONNECT") == "hang": time.sleep(3)
+    # BlueZ refuses the first attempt and accepts the next one.
+    elif sum(line.endswith(" Connect") for line in lines) == 1: sys.exit("Call failed: Host is down")
+elif args[-1] == "PowerState":
+    # The first read lands while BlueZ is still powering the adapter up.
+    print('s "off-enabling"' if len(lines) == 1 else 's "on"' if on else 's "off"')
+elif args[-1] == "WakeAllowed":
+    sys.exit("Unknown property")
+elif args[-1] == "Powered":
+    print("b true" if on else "b false")
+"""
+
+def scenario(qml, backend=source, **extra):
+    """Run one shell against the backend with a fake busctl; return its output, the busctl calls and the final power."""
+    with tempfile.TemporaryDirectory(prefix='cortetsu-bt-test-') as folder:
+        folder = Path(folder)
+        (folder / 'ConnectivityBluetooth.qml').write_text(backend)
+        (folder / 'BluetoothPolicy.js').write_text((repo / 'cortetsu/services/BluetoothPolicy.js').read_text())
+        (folder / 'shell.qml').write_text(qml)
+        (folder / 'bin').mkdir()
+        (folder / 'bin/busctl').write_text(fake_busctl)
+        (folder / 'bin/busctl').chmod(0o700)
+        (folder / 'bin/power').write_text('on')
+        (folder / 'bin/calls').write_text('')
+        env = {**os.environ, 'QT_QPA_PLATFORM': 'offscreen', 'PATH': f"{folder / 'bin'}:{os.environ['PATH']}", **extra}
+        result = subprocess.run(['quickshell', '-p', str(folder / 'shell.qml')], env=env, capture_output=True, text=True, timeout=10)
+        output = result.stdout + result.stderr
+        print(output)
+        assert result.returncode == 0 and 'BT_FAIL' not in output and 'Binding loop' not in output
+        assert 'TypeError' not in output and 'ReferenceError' not in output and ' ERROR:' not in output
+        return output, (folder / 'bin/calls').read_text(), (folder / 'bin/power').read_text()
+
+output, _, _ = scenario(qml, BT_FAKE_CONNECT='hang')
+assert 'BT_RUNTIME_PASS 18' in output, 'QML runtime lifecycle failed'
 
 # Stale native power after an adapter re-registration: BlueZ is the authority for reads and writes.
 stale_qml = """import QtQuick
@@ -135,41 +171,37 @@ ShellRoot {
     } }
 }
 """
-fake_busctl = """#!/usr/bin/env python3
-import sys
-from pathlib import Path
-state = Path(__file__).with_name("power")
-calls = Path(__file__).with_name("calls")
-args = sys.argv[1:]
-with calls.open("a") as log: log.write(" ".join(args) + "\\n")
-count = len(calls.read_text().splitlines())
-on = state.read_text() == "on"
-if "set-property" in args:
-    state.write_text("on" if args[-1] == "true" else "off")
-elif args[-1] == "PowerState":
-    # The first read lands while BlueZ is still powering the adapter up.
-    print('s "off-enabling"' if count == 1 else 's "on"' if on else 's "off"')
-elif args[-1] == "WakeAllowed":
-    sys.exit("Unknown property")
-elif args[-1] == "Powered":
-    print("b true" if on else "b false")
+output, calls, power = scenario(stale_qml)
+assert 'BT_STALE_PASS 9' in output, 'stale native power was not reconciled'
+assert 'set-property org.bluez /test/adapter org.bluez.Adapter1 Powered b false' in calls
+assert power == 'off'
+
+# Connect is confirmed by BlueZ's reply to Connect, never by the link coming up.
+connect_qml = """import QtQuick
+import Quickshell
+import "."
+ShellRoot {
+    property var backend: ConnectivityBluetooth
+    property int checks: 0
+    function verify(value, reason) { if (!value) { console.log("BT_FAIL", reason); return; } checks++; }
+    Component.onCompleted: {
+        verify(backend.connectDevice(backend.fakeDevice), "connect dispatches");
+        backend.fakeDevice.connected = true;
+        backend.checkCompletion();
+        verify(backend.busy, "a link that is up does not confirm the connection");
+    }
+    Timer { interval: 500; running: true; onTriggered: {
+        verify(backend.operation.state === "failed" && backend.operation.lastErrorCode === "connect-failed", "a refusal from BlueZ fails the connection");
+        verify(backend.operation.lastError.includes("Host is down") && !backend.operation.lastError.includes("exit="), "the failure carries BlueZ's reason");
+        verify(backend.connectDevice(backend.fakeDevice), "retry dispatches");
+    } }
+    Timer { interval: 1000; running: true; onTriggered: {
+        verify(backend.operation.state === "succeeded", "BlueZ's reply confirms the connection");
+        console.log("BT_CONNECT_PASS", checks);
+        Qt.quit();
+    } }
+}
 """
-with tempfile.TemporaryDirectory(prefix='cortetsu-bt-stale-') as folder:
-    folder = Path(folder)
-    (folder / 'ConnectivityBluetooth.qml').write_text(source)
-    (folder / 'BluetoothPolicy.js').write_text((repo / 'cortetsu/services/BluetoothPolicy.js').read_text())
-    (folder / 'shell.qml').write_text(stale_qml)
-    (folder / 'bin').mkdir()
-    (folder / 'bin/busctl').write_text(fake_busctl)
-    (folder / 'bin/busctl').chmod(0o700)
-    (folder / 'bin/power').write_text('on')
-    (folder / 'bin/calls').write_text('')
-    env = {**os.environ, 'QT_QPA_PLATFORM': 'offscreen', 'PATH': f"{folder / 'bin'}:{os.environ['PATH']}"}
-    result = subprocess.run(['quickshell', '-p', str(folder / 'shell.qml')], env=env, capture_output=True, text=True, timeout=10)
-    output = result.stdout + result.stderr
-    print(output)
-    calls = (folder / 'bin/calls').read_text()
-    assert result.returncode == 0 and 'BT_STALE_PASS 9' in output, 'stale native power was not reconciled'
-    assert 'BT_FAIL' not in output and 'TypeError' not in output and 'ReferenceError' not in output
-    assert 'set-property org.bluez /test/adapter org.bluez.Adapter1 Powered b false' in calls
-    assert (folder / 'bin/power').read_text() == 'off'
+output, calls, _ = scenario(connect_qml, source.replace('deadline.interval = 100;', 'deadline.interval = 3000;'))
+assert 'BT_CONNECT_PASS 6' in output, 'connect was not confirmed by the BlueZ reply'
+assert calls.count('call org.bluez /test/device org.bluez.Device1 Connect') == 2

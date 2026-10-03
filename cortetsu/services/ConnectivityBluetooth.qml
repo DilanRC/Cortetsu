@@ -97,6 +97,7 @@ Singleton {
         deadline.stop();
         verificationTick.stop();
         verification.running = false;
+        connectCall.running = false;
         operation = Object.assign({}, operation, {state: status, lastErrorCode: code ?? "",
             lastError: message ?? "", retryable: status === "failed"});
         operationTarget = null;
@@ -112,7 +113,7 @@ Singleton {
             finish("failed", "target-removed", qsTr("El dispositivo ya no está disponible."));
             return;
         }
-        if (["power", "trusted", "blocked", "discoverable", "pairable", "wake"].indexOf(operation.kind) !== -1) return;
+        if (["power", "trusted", "blocked", "discoverable", "pairable", "wake", "connect"].indexOf(operation.kind) !== -1) return;
         const result = Policy.completion(operation.kind, operationTarget, operationExpected, members);
         if (result === "removed") finish("failed", "target-removed", qsTr("El dispositivo ya no está disponible en el adaptador seleccionado."));
         else if (result) finish("succeeded");
@@ -153,7 +154,12 @@ Singleton {
             else if (kind === "wake") target.wakeAllowed = expected;
             else if (kind === "trusted") target.trusted = expected;
             else if (kind === "blocked") target.blocked = expected;
-            else if (kind === "connect") target.connect();
+            else if (kind === "connect") {
+                // BlueZ answers Connect once the profiles are up; the native connected flag turns true with the bare link.
+                connectCall.operationId = operation.id;
+                connectCall.command = ["sh", "-c", 'busctl --system --timeout=18 call org.bluez "$1" org.bluez.Device1 Connect 2>&1; echo "exit=$?"', "sh", target.dbusPath];
+                connectCall.running = true;
+            }
             else if (kind === "disconnect") target.disconnect();
             else if (kind === "pair") {
                 // BlueZ does not store the link key while the adapter is not pairable, so the pairing would be lost on disconnect.
@@ -295,6 +301,18 @@ Singleton {
         }
     }
     Process { id: powerWrite }
+    Process {
+        id: connectCall
+        property int operationId: 0
+        stdout: StdioCollector {
+            onStreamFinished: {
+                if (!root.busy || connectCall.operationId !== root.operation.id) return;
+                const lines = text.trim().split("\n");
+                if (lines.pop() === "exit=0") root.finish("succeeded");
+                else root.finish("failed", "connect-failed", qsTr("No se pudo conectar: %1").arg(lines.join(" ").replace(/^Call failed: /, "") || qsTr("BlueZ rechazó la conexión")));
+            }
+        }
+    }
     Component.onCompleted: reconcilePower()
     Timer {
         id: deadline

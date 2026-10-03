@@ -69,7 +69,7 @@ PASS_CONTROLLED significa fixture de política/backend o interacción QML aislad
 - `test-connectivity-wifi-policy.cjs`: escapes, whitespace, identidad de perfil/AP, confirmación UUID, errores y configuración IPv4.
 - `test-connectivity-wifi-runtime.py`: backend QML real con nmcli falso aislado; inventario/olvido/autoconnect/IP, varios BSSID y contraseña por stdin. No toca perfiles del usuario.
 - `test-connectivity-bluetooth.mjs`: 16 comprobaciones de política.
-- `test-connectivity-bluetooth-runtime.py`: 18 comprobaciones del backend con objetos nativos falsos: confirmación, single-flight, dueños de scan, emparejado con adaptador no emparejable, cancel, plazos, desaparición de adaptador y conservación de trust confirmado. Otras 9 con un `busctl` falso cubren la potencia obsoleta y el wake no admitido.
+- `test-connectivity-bluetooth-runtime.py`: 18 comprobaciones del backend con objetos nativos falsos: confirmación, single-flight, dueños de scan, emparejado con adaptador no emparejable, cancel, plazos, desaparición de adaptador y conservación de trust confirmado. Otras 9 con un `busctl` falso cubren la potencia obsoleta y el wake no admitido, y 6 más la conexión confirmada por la respuesta de BlueZ.
 - `test-connectivity-ui-wayland.py`: opt-in visible, controles originales mouse/Tab/Enter/identidad/lifetime/scans, contra runtime construido. No conecta/desconecta dispositivos. Requiere una red ya conectada y perfiles existentes.
 
 Las suites aisladas de backend y credenciales están integradas en build-runtime. La suite visible es opt-in para no abrir ventanas ni hacer discovery automáticamente en cualquier construcción.
@@ -149,6 +149,22 @@ Mismo arnés, con ZON (auriculares, conectados) y Gamepad, ambos en modo de empa
 
 Causa del emparejado no persistente: el adaptador estaba con `Pairable=false`, que en BlueZ es el ajuste «bondable» del controlador. Sin él la clave de enlace no se guarda. `bluetoothctl` con agente dio el mismo resultado en ese estado, así que no dependía del agente ni del dispositivo. `ConnectivityBluetooth.qml` activa ahora `pairable` en el adaptador antes de emparejar. El interruptor «Pairable» de Ajustes sigue disponible, y quien lo apague lo verá encendido otra vez tras emparejar algo.
 
-Limitaciones que quedan: `connectDevice` da éxito en cuanto BlueZ informa `Connected=true`, y eso ocurre ya con el enlace que crea el emparejado; si los perfiles no llegan a conectarse el enlace cae segundos después y la operación ya figura como correcta. Se reprodujo con el Gamepad en modo de emparejamiento y el vínculo anterior aún guardado en el equipo: `connectDevice` terminó `succeeded` a los 0.6 s mientras BlueZ registraba `Permission denied (13)` en el perfil de entrada, y cuatro segundos después estaba desconectado. El interruptor de wake se muestra también en dispositivos que no lo admiten, porque la API nativa no indica si la propiedad existe. Pairing rechazado y con PIN siguen pendientes.
+Limitaciones que quedan: El interruptor de wake se muestra también en dispositivos que no lo admiten, porque la API nativa no indica si la propiedad existe. Pairing rechazado y con PIN siguen pendientes.
 
 Gamepad, generación `20261003-004843-620903` instalada: tras olvidarlo y emparejarlo otra vez (`Bonded=true` en 1.2 s) y devolverle la confianza, `connectDevice` lo conectó; el kernel registró el dispositivo de entrada HID y el enlace seguía activo 20 s después.
+
+### Conexión confirmada por BlueZ, 2026-10-03
+
+Fallo: `connectDevice` daba éxito en cuanto el objeto nativo informaba `connected=true`, y eso ocurre ya con el enlace de radio. Se reprodujo con el Gamepad en modo de emparejamiento y su vínculo anterior aún guardado en el equipo: la operación terminó `succeeded` a los 0.6 s mientras BlueZ registraba `Permission denied (13)` en el perfil de entrada, y cuatro segundos después estaba desconectado.
+
+Corrección: el backend llama a `Device1.Connect` por `busctl` y usa su respuesta. BlueZ solo responde con éxito cuando conectan los perfiles, y si falla da su motivo, que se muestra tal cual. Validado con el backend del commit que acompaña a esta sección, cargado en el arnés antes de instalarlo como generación `20261003-005853-636995`:
+
+| Caso | Resultado observado |
+|---|---|
+| ZON, desconectar y conectar | `succeeded` a los 4.2 s; seguía conectado 10 s después, con salida de audio |
+| Gamepad, ya conectado | `succeeded` inmediato |
+| Gamepad, conectar tras desconectarlo (se apaga al perder el host) | `failed`, `connect-failed`, «No se pudo conectar: br-connection-create-socket» a los 5.3 s; antes este caso esperaba 20 s hasta `timeout` |
+| ZON bloqueado | `failed`, «No se pudo conectar: Connection timed out» a los 18 s; al desbloquear, la conexión se confirmó en 3.7 s |
+| ZON, conectar estando ya conectado | `failed`, «No se pudo conectar: br-connection-busy». BlueZ tenía otra conexión en curso para ese dispositivo y rechazó la segunda; el dispositivo siguió conectado. No se investigó qué la mantenía en curso |
+
+Los motivos son los textos de BlueZ, sin traducir. El Gamepad quedó emparejado, con vínculo y de confianza, apagado tras la prueba de desconexión.
