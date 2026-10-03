@@ -18,13 +18,13 @@ assert "This section is connected in stages" not in content
 assert "SystemPage" in content
 assert "NetworkManager · operaciones y señal en vivo" in system
 assert "CortetsuSettingsNetwork.setWifi(enabled)" in system
-assert "CortetsuSettingsNetwork.disconnect(modelData.name)" in system
+assert "Connectivity.wifi.disconnectNetwork(network)" in system
 assert "CortetsuNetwork.refresh()" in system
 assert "CortetsuAudio.setSourceVolume(nextValue)" in system
 assert "CortetsuAudio.setAudioSink(modelData)" in system
 assert "Nvibrant.setValue(value * 1024)" in calibration
 assert "function refreshNetworks()" in network_service
-assert "function connect(" in network_service
+assert "function connectNetwork(network, password, profile)" in network_service
 assert "function forget(" in network_service
 assert "function refreshAll(" in network_service
 assert "function refreshDetails(" in network_service
@@ -35,7 +35,7 @@ assert "Dirección IP" in (ROOT / "cortetsu/modules/settings/NetworkPage.qml").r
 assert "Brightness.getMonitorForScreen(root.screen)" in system
 assert "onMoved: nextValue => CortetsuAudio.setVolume(nextValue)" in system
 assert "onMoved: nextValue => root.brightnessMonitor?.setBrightness(nextValue)" in system
-assert "Bluetooth.defaultAdapter.enabled" in system
+assert "Connectivity.bluetooth.enabled" in system
 assert "CortetsuPower" in system
 assert "Icons.getBatteryIcon" in system
 assert "CortetsuWallpapers.applyStatus" in system

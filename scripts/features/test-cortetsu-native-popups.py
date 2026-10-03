@@ -32,8 +32,19 @@ assert "fillColor: root.critical" in battery
 assert "UPower.onBattery" not in battery
 
 password = (popouts / "CortetsuWifiPasswordPopup.qml").read_text(encoding="utf-8")
-for token in ("TextField", "Keys.onEscapePressed", "NetworkConnection.connectWithPassword", "8000", "errorText", "forceActiveFocus"):
+for token in (
+    "TextField",
+    "Keys.onEscapePressed",
+    "Connectivity.wifi.connectNetwork(root.network, password.text, null)",
+    'op.state === "failed"',
+    "root.errorText = op.lastError",
+    "forceActiveFocus",
+):
     assert token in password, token
+# The popup no longer owns a timer: the shared Wi-Fi service bounds the operation.
+assert "Timer" not in password
+wifi_service = (ROOT / "cortetsu/services/ConnectivityWifi.qml").read_text(encoding="utf-8")
+assert "id: deadline" in wifi_service and 'root.fail("timeout"' in wifi_service
 
 assert "sourceComponent: CortetsuNetworkPopup" in content
 assert "sourceComponent: CortetsuAudioPopup" in content
@@ -41,14 +52,17 @@ assert "sourceComponent: CortetsuBluetoothPopup" in content
 assert "sourceComponent: CortetsuWifiPasswordPopup" in content
 network = (popouts / "CortetsuNetworkPopup.qml").read_text(encoding="utf-8")
 assert "activeEthernet" in network and ': "lan"' in network
-assert 'qsTr("Ethernet")' in network and 'qsTr("Conectado")' in network
+assert 'qsTr("Ethernet")' in network and "Connectivity.internetLabel" in network
 assert "Red no disponible" in network
 assert "CortetsuNetwork.refresh()" in network
 assert 'tooltipText: qsTr("Actualizar redes")' in network
 assert "readonly property bool refreshing: CortetsuNetwork.refreshing" in network
 network_service = (ROOT / "cortetsu/modules/CortetsuNetwork.qml").read_text(encoding="utf-8")
-assert "function refresh(): void" in network_service
-assert "scannerEnabled = false" in network_service and "scannerEnabled = true" in network_service
+assert "function refresh() { ConnectivityWifi.refresh(); }" in network_service
+assert "readonly property bool refreshing: ConnectivityWifi.scanning" in network_service
+assert "scannerEnabled" not in network_service
+for token in ('setScanOwner("explicit-refresh", true)', 'setScanOwner("explicit-refresh", false)', "device.scannerEnabled = scanning"):
+    assert token in wifi_service, token
 assert "Timer {" not in network_service
 assert "function closeAllPopouts(): void" in hub
 assert "closeAllPopouts();" in hub

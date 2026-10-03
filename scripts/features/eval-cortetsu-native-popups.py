@@ -29,7 +29,7 @@ assert content_window.count("panels.popouts.close();") >= 3
 assert (ROOT / "cortetsu/base/modules/bar/popouts/Content.qml").is_file()
 password = (popouts / "CortetsuWifiPasswordPopup.qml").read_text(encoding="utf-8")
 assert password.count("CortetsuButton") >= 2
-assert "NetworkConnection.connectWithPassword" in password
+assert "Connectivity.wifi.connectNetwork(root.network, password.text, null)" in password
 tray = (popouts / "CortetsuTrayMenu.qml").read_text(encoding="utf-8")
 assert all(token in tray for token in ("activeFocusOnTab", "Qt.Key_Right", "Qt.Key_Left", "Qt.Key_Escape", "focused: activeFocus", "outlined: activeFocus"))
 assert "CortetsuPopupSurface" in tray

@@ -13,7 +13,7 @@ assert 'icon: CortetsuAudio.muted ? "volume_off" : "volume_up"' in content
 assert 'warning: false' in content
 assert 'color: CortetsuAudio.muted ? CortetsuDesign.colorOnSurfaceVariant : CortetsuDesign.colorPrimary' in content
 assert "disabled: value < 0" in content
-assert "Bluetooth.defaultAdapter.enabled" in content
+assert "Connectivity.bluetooth.setEnabled(!Connectivity.bluetooth.enabled)" in content
 assert "CortetsuPower" in content
 assert "onMoved: nextValue => root.brightnessMonitor?.setBrightness(nextValue)" in content
 assert "onMoved: nextValue => CortetsuAudio.setVolume(nextValue)" in content
