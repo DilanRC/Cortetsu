@@ -25,8 +25,10 @@ ColumnLayout {
         title: qsTr("Entrada configurada")
         detail: qsTr("Preferencias de teclado y avisos del shell")
         value: CortetsuConfig.vimKeybinds ? qsTr("Vim activo") : qsTr("Vim desactivado")
-        meta: qsTr("Distribución %1").arg(Hypr.kbLayoutFull)
-        warningState: Hypr.kbLayout === "??"
+        meta: Hypr.keyboardKnown
+            ? qsTr("Distribución %1").arg(Hypr.kbLayoutFull || Hypr.kbLayout)
+            : qsTr("Distribución no disponible")
+        warningState: !Hypr.keyboardKnown
     }
 
     PreferenceToggle {

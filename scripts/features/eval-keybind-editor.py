@@ -15,7 +15,7 @@ criteria = {
     "snapshot before edit": "snapshot = backup()",
     "reload verification": '["hyprctl", "binds", "-j"]',
     "automatic rollback": "shutil.copy2(snapshot / OVERRIDES.name, OVERRIDES)",
-    "delete with confirmation": "Press delete again to confirm",
+    "delete with confirmation": "if (pendingDeleteId !== identifier)",
     "delete backend": 'sub.add_parser("delete")',
     "desktop entry resolution": "DesktopEntries.heuristicLookup(executable)",
     "desktop id fallback": "id.endsWith(`.${query}`)",

@@ -18,11 +18,12 @@ Singleton {
     readonly property var focusedWorkspace: CortetsuHypr.focusedWorkspace
     readonly property var focusedMonitor: CortetsuHypr.focusedMonitor
     readonly property int activeWsId: CortetsuHypr.activeWsId
-    readonly property bool capsLock: false
-    readonly property bool numLock: false
+    readonly property bool keyboardKnown: CortetsuHypr.keyboardKnown
+    readonly property bool capsLock: CortetsuHypr.capsLock
+    readonly property bool numLock: CortetsuHypr.numLock
     readonly property string defaultKbLayout: "??"
-    readonly property string kbLayoutFull: "Unknown"
-    readonly property string kbLayout: "??"
+    readonly property string kbLayoutFull: CortetsuHypr.kbLayoutFull
+    readonly property string kbLayout: CortetsuHypr.kbLayout
     readonly property var options: ({})
     readonly property var extras: QtObject {
         function batchMessage(messages): void {

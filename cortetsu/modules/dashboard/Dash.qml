@@ -43,7 +43,10 @@ Item {
     // not keep rendering or subscribing to their live provider.
     readonly property bool showWeather: CortetsuConfig.dashboard.showWeather
     readonly property bool showMedia: CortetsuConfig.dashboard.showMedia
-    readonly property bool showPerformance: CortetsuConfig.dashboard.showPerformance
+    // The system rail exists only while the Dashboard is open, so its
+    // telemetry services stop sampling when it closes.
+    readonly property bool open: screenState?.dashboard ?? false
+    readonly property bool showPerformance: open && CortetsuConfig.dashboard.showPerformance
     readonly property bool showCpu: showPerformance && CortetsuConfig.dashboard.performance.showCpu
     readonly property bool showGpu: showPerformance && CortetsuConfig.dashboard.performance.showGpu
     readonly property bool showMemory: showPerformance && CortetsuConfig.dashboard.performance.showMemory
@@ -373,6 +376,8 @@ Item {
     Component {
         id: cpuSummary
         CortetsuListRow {
+            Component.onCompleted: Cpu.consumers += 1
+            Component.onDestruction: Cpu.consumers -= 1
             icon: "memory"
             title: qsTr("CPU %1%").arg(Math.round(Cpu.percentage * 100))
             subtitle: qsTr("%1°C").arg(Math.round(Cpu.temperature))
@@ -383,6 +388,8 @@ Item {
     Component {
         id: gpuSummary
         CortetsuListRow {
+            Component.onCompleted: Gpu.consumers += 1
+            Component.onDestruction: Gpu.consumers -= 1
             icon: "developer_board"
             title: Gpu.name || qsTr("GPU %1%").arg(Math.round(Gpu.percentage * 100))
             subtitle: Gpu.name ? qsTr("%1% · %2°C").arg(Math.round(Gpu.percentage * 100)).arg(Math.round(Gpu.temperature)) : qsTr("No disponible")
@@ -393,6 +400,8 @@ Item {
     Component {
         id: memorySummary
         CortetsuListRow {
+            Component.onCompleted: Memory.consumers += 1
+            Component.onDestruction: Memory.consumers -= 1
             icon: "data_usage"
             title: qsTr("Memoria %1%").arg(Math.round(Memory.percentage * 100))
             subtitle: qsTr("%1 GB used").arg((Memory.used / 1048576).toFixed(1))
@@ -403,6 +412,8 @@ Item {
     Component {
         id: storageSummary
         CortetsuListRow {
+            Component.onCompleted: Storage.consumers += 1
+            Component.onDestruction: Storage.consumers -= 1
             icon: "storage"
             title: qsTr("Almacenamiento %1%").arg(Math.round(Storage.percentage * 100))
             subtitle: Storage.primaryDisk?.mount ?? qsTr("Primary volume")

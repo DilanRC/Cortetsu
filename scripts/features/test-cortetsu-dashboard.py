@@ -48,7 +48,7 @@ assert "Icons.getBatteryIcon" in dash
 for marker in (
     "readonly property bool showWeather: CortetsuConfig.dashboard.showWeather",
     "readonly property bool showMedia: CortetsuConfig.dashboard.showMedia",
-    "readonly property bool showPerformance: CortetsuConfig.dashboard.showPerformance",
+    "readonly property bool showPerformance: open && CortetsuConfig.dashboard.showPerformance",
     "readonly property bool showCpu: showPerformance && CortetsuConfig.dashboard.performance.showCpu",
     "readonly property bool showGpu: showPerformance && CortetsuConfig.dashboard.performance.showGpu",
     "readonly property bool showMemory: showPerformance && CortetsuConfig.dashboard.performance.showMemory",

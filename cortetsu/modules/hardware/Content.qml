@@ -152,9 +152,9 @@ FocusScope {
                     root.snapshot = parsed;
                     root.recordHistory(parsed);
                     root.sampleCount += 1;
-                    root.statusText = qsTr("Live");
+                    root.statusText = qsTr("En vivo");
                 } catch (error) {
-                    root.statusText = qsTr("Probe unavailable");
+                    root.statusText = qsTr("Sonda no disponible");
                     console.warn(`Hardware Center: invalid probe JSON: ${error}`);
                 }
             }
@@ -307,16 +307,16 @@ FocusScope {
                     Repeater {
                         id: tabRepeater
                         model: [
-                            { label: qsTr("Overview"), icon: "dashboard" },
-                            { label: qsTr("Performance"), icon: "monitoring" },
+                            { label: qsTr("Resumen"), icon: "dashboard" },
+                            { label: qsTr("Rendimiento"), icon: "monitoring" },
                             { label: qsTr("Procesos"), icon: "account_tree" },
-                            { label: qsTr("Sensors"), icon: "device_thermostat" },
-                            { label: qsTr("I/O"), icon: "lan" },
+                            { label: qsTr("Sensores"), icon: "device_thermostat" },
+                            { label: qsTr("E/S"), icon: "lan" },
                             { label: qsTr("Energía"), icon: "bolt" },
-                            { label: qsTr("Automático"), icon: "auto_mode" },
-                            { label: qsTr("Energy"), icon: "electric_bolt" },
-                            { label: qsTr("Keys"), icon: "keyboard" },
-                            { label: qsTr("Inicio"), icon: "play_circle" }
+                            { label: qsTr("Automatización"), icon: "auto_mode" },
+                            { label: qsTr("Consumo"), icon: "electric_bolt" },
+                            { label: qsTr("Atajos"), icon: "keyboard" },
+                            { label: qsTr("Arranque"), icon: "play_circle" }
                         ]
 
                         delegate: Item {

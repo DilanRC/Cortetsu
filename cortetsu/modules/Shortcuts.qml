@@ -27,12 +27,11 @@ Scope {
             if (root.hasFullscreen) return;
             const state = CortetsuShellState.forActive();
             if (!state) return;
-            const open = !(state.launcher || state.dashboard || state.osd || state.utilities || state.settings);
+            const open = !(state.launcher || state.dashboard || state.osd || state.utilities);
             state.launcher = open && CortetsuConfig.launcher.enabled;
             state.dashboard = open && CortetsuConfig.dashboard.enabled && CortetsuConfig.dashboard.showDashboard;
             state.osd = open;
             state.utilities = false;
-            state.settings = open;
         }
     }
     CustomShortcut {

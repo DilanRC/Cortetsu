@@ -22,6 +22,7 @@ FocusScope {
     property string pendingDeleteId: ""
     property string statusText: qsTr("Cargando atajos…")
     property bool busy: false
+    property bool statusFailed: false
 
     readonly property string helperPath:
         StandardPaths.writableLocation(StandardPaths.HomeLocation) +
@@ -71,7 +72,7 @@ FocusScope {
     function requestDelete(identifier): void {
         if (pendingDeleteId !== identifier) {
             pendingDeleteId = identifier;
-            statusText = qsTr("Press delete again to confirm");
+            statusText = qsTr("Pulsa eliminar otra vez para confirmar");
             deleteReset.restart();
             return;
         }
@@ -85,7 +86,8 @@ FocusScope {
     function beginCapture(identifier, isNewApp): void {
         captureId = identifier;
         captureNewApp = isNewApp;
-        statusText = qsTr("Press the new key combination · Esc cancels");
+        statusFailed = false;
+        statusText = qsTr("Escuchando. Pulsa la combinación · Esc cancela");
         forceActiveFocus();
     }
 
@@ -184,9 +186,11 @@ FocusScope {
                 try {
                     const result = JSON.parse(text.trim());
                     root.bindings = result.bindings ?? [];
-                    root.statusText = qsTr("%1 shortcuts loaded").arg(root.bindings.length);
+                    root.statusFailed = false;
+                    root.statusText = qsTr("%1 atajos cargados").arg(root.bindings.length);
                 } catch (error) {
-                    root.statusText = qsTr("Could not read shortcuts");
+                    root.statusFailed = true;
+                    root.statusText = qsTr("No se pudieron leer los atajos");
                 }
             }
         }
@@ -200,13 +204,15 @@ FocusScope {
                 root.busy = false;
                 try {
                     const result = JSON.parse(text.trim());
+                    root.statusFailed = !result.ok;
                     root.statusText = result.ok
                         ? qsTr("Guardado · %1").arg(result.chord)
                         : result.error;
                     if (result.ok)
                         root.refresh();
                 } catch (error) {
-                    root.statusText = qsTr("The shortcut could not be saved");
+                    root.statusFailed = true;
+                    root.statusText = qsTr("No se pudo guardar el atajo");
                 }
             }
         }
@@ -220,13 +226,15 @@ FocusScope {
                 root.busy = false;
                 try {
                     const result = JSON.parse(text.trim());
+                    root.statusFailed = !result.ok;
                     root.statusText = result.ok
                         ? qsTr("Eliminado · %1").arg(result.deleted)
                         : result.error;
                     if (result.ok)
                         root.refresh();
                 } catch (error) {
-                    root.statusText = qsTr("The shortcut could not be deleted");
+                    root.statusFailed = true;
+                    root.statusText = qsTr("No se pudo eliminar el atajo");
                 }
             }
         }
@@ -443,7 +451,7 @@ FocusScope {
 
                     CortetsuText {
                         text: root.statusText
-                        color: root.statusText.includes("already") || root.statusText.includes("could not")
+                        color: root.statusFailed
                             ? CortetsuDesign.colorVermillion
                             : CortetsuDesign.colorOutline
                         textSize: CortetsuTypography.labelSmallPx

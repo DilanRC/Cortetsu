@@ -7,6 +7,9 @@ import Quickshell.Io
 Singleton {
     id: root
 
+    // Sampling runs only while a visible view holds a reference.
+    property int consumers: 0
+
     property string name: "CPU"
     property real percentage: 0
     property real temperature: 0
@@ -58,7 +61,8 @@ Singleton {
     }
 
     Timer {
-        running: true
+        running: root.consumers > 0
+        triggeredOnStart: true
         repeat: true
         interval: 2000
         onTriggered: {

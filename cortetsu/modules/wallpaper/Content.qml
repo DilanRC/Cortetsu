@@ -224,6 +224,8 @@ FocusScope {
     }
 
     function openManager(): void {
+        // The catalog is read on demand; there is no background rescan.
+        CortetsuWallpapers.reload();
         presentationReady = false;
         resync();
         Qt.callLater(updatePresentationReady);
