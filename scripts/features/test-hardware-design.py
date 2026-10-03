@@ -6,13 +6,12 @@ hardware = repo / "cortetsu/modules/hardware"
 tab = (repo / "cortetsu/components/CortetsuTab.qml").read_text()
 legacy = ("Caelestia", "qs.components", "Colours.", "Tokens.", "StyledRect", "StyledText", "MaterialIcon")
 
-for path in sorted(hardware.glob("*.qml")):
+for path in sorted(hardware.rglob("*.qml")):
     text = path.read_text()
     for symbol in legacy:
         assert symbol not in text, f"{path.name}: {symbol}"
     assert not re.search(r"(?<!Cortetsu)StateLayer\b", text), path.name
 
-assert "CortetsuStateLayer" in (hardware / "Content.qml").read_text()
 assert 'import "../../components"' in (hardware / "Content.qml").read_text()
 assert "delegate: Item" in (hardware / "Content.qml").read_text()
 assert "id: tabDelegate" in (hardware / "Content.qml").read_text()

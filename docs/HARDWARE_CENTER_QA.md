@@ -18,11 +18,16 @@ Expected: validator `status: OK`, live QML hashes `MATCH`, no Hardware Center QM
 - Keys `1` through `8` select the matching page.
 - Active Caelestia scheme recolours every page without hardcoded accents.
 
-### 1 Overview
+### 1 Resumen
 
-- CPU `% / GHz` toggle works.
-- RAM defaults to GiB and toggles to `%`.
-- CPU/RAM/storage/GPU/battery/network/cooling values update.
+- The verdict strip reads "Todo en orden" on an idle machine and shows the time of the reading.
+- Under load (`stress-ng --cpu 0 --timeout 120`), CPU usage and its history move every 1.5 s without the page flickering.
+- A flagged item appears as a row in the strip and opens its page on click or `Enter`.
+- Every block shows its destination on hover and on `Tab` focus, and opens it.
+- `Tab` goes header, tabs, then blocks top to bottom and left to right; `Shift+Tab` goes back.
+- With the probe renamed (`mv ~/.local/bin/cortetsu-hardware-probe{,.off}`) and the panel reopened after a shell restart: error state with Reintentar. Renamed while open: "Lecturas detenidas", last reading dimmed. Restoring the file and pressing Reintentar recovers.
+- On battery below 20 %: the battery row appears and opens Energía.
+- Both monitors, and scale 1 and 1.25: nothing overlaps or is cut.
 
 ### 2 Performance
 

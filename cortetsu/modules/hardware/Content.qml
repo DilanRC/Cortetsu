@@ -5,9 +5,9 @@ import ".."
 import "../../theme"
 import "../CortetsuTypography.js" as CortetsuTypography
 import "Navigation.js" as HardwareNavigation
-import QtCore
+import "Format.js" as Format
 import Quickshell
-import Quickshell.Io
+import Quickshell.Services.UPower
 import "../../components"
 
 FocusScope {
@@ -17,85 +17,45 @@ FocusScope {
     required property var screenState
     required property bool hardwareVisible
 
-    property var snapshot: ({})
-    property string statusText: qsTr("Esperando la primera lectura…")
-    property int sampleCount: 0
     property int currentPage: 0
 
-    property var cpuHistory: []
-    property var cpuCoreHistories: []
-    property var memoryUsedHistory: []
-    property var memoryCacheHistory: []
-    property var swapUsedHistory: []
-    property var networkRxHistory: []
-    property var networkTxHistory: []
-    property var diskReadHistory: []
-    property var diskWriteHistory: []
-    property var gpu0History: []
-    property var gpu1History: []
-
-    readonly property string probePath:
-        StandardPaths.writableLocation(StandardPaths.HomeLocation) +
-        "/.local/bin/cortetsu-hardware-probe"
-
-    readonly property var processes: snapshot?.processes ?? []
-
-    function number(value, digits = 1): string {
-        if (value === null || value === undefined || isNaN(Number(value)))
-            return "—";
-        return Number(value).toFixed(digits);
+    readonly property var pageTabs: [
+        { label: qsTr("Resumen"), icon: "dashboard" },
+        { label: qsTr("Rendimiento"), icon: "monitoring" },
+        { label: qsTr("Procesos"), icon: "account_tree" },
+        { label: qsTr("Sensores"), icon: "device_thermostat" },
+        { label: qsTr("E/S"), icon: "lan" },
+        { label: qsTr("Energía"), icon: "bolt" },
+        { label: qsTr("Automatización"), icon: "auto_mode" },
+        { label: qsTr("Consumo"), icon: "electric_bolt" },
+        { label: qsTr("Atajos"), icon: "keyboard" },
+        { label: qsTr("Arranque"), icon: "play_circle" }
+    ]
+    // The summary names its destinations with the tab labels themselves.
+    readonly property var pageLabels: {
+        const labels = {};
+        for (const target in HardwareNavigation.pages)
+            labels[target] = root.pageTabs[HardwareNavigation.pages[target]].label;
+        return labels;
     }
 
-    function uptimeText(seconds): string {
-        const total = Math.max(0, Number(seconds ?? 0));
-        const days = Math.floor(total / 86400);
-        const hours = Math.floor((total % 86400) / 3600);
-        const mins = Math.floor((total % 3600) / 60);
-        if (days > 0)
-            return `${days}d ${hours}h ${mins}m`;
-        if (hours > 0)
-            return `${hours}h ${mins}m`;
-        return `${mins}m`;
-    }
-
-    function pushHistory(source, value): var {
-        const next = Array.from(source ?? []);
-        next.push(Number(value ?? 0));
-        return next.slice(-72);
-    }
-
-    function recordHistory(parsed): void {
-        root.cpuHistory = pushHistory(root.cpuHistory, parsed?.cpu?.usage);
-
-        const coreValues = parsed?.cpu?.per_core ?? [];
-        const coreHistories = Array.from(root.cpuCoreHistories ?? []);
-        while (coreHistories.length < coreValues.length)
-            coreHistories.push([]);
-        for (let i = 0; i < coreValues.length; ++i)
-            coreHistories[i] = pushHistory(coreHistories[i], coreValues[i]);
-        root.cpuCoreHistories = coreHistories;
-
-        root.memoryUsedHistory = pushHistory(root.memoryUsedHistory, parsed?.memory?.used_gb);
-        root.memoryCacheHistory = pushHistory(root.memoryCacheHistory, parsed?.memory?.cache_gb);
-        root.swapUsedHistory = pushHistory(root.swapUsedHistory, parsed?.memory?.swap_used_gb);
-        root.networkRxHistory = pushHistory(root.networkRxHistory, parsed?.network?.rx_mbps);
-        root.networkTxHistory = pushHistory(root.networkTxHistory, parsed?.network?.tx_mbps);
-        root.diskReadHistory = pushHistory(root.diskReadHistory, parsed?.disk_io?.read_mib_s);
-        root.diskWriteHistory = pushHistory(root.diskWriteHistory, parsed?.disk_io?.write_mib_s);
-        root.gpu0History = pushHistory(root.gpu0History, parsed?.gpus?.[0]?.usage);
-        root.gpu1History = pushHistory(root.gpu1History, parsed?.gpus?.[1]?.usage);
-    }
+    readonly property alias telemetry: telemetry
+    readonly property string statusText: telemetry.status === "live"
+        ? qsTr("Lectura de las %1").arg(Format.clock(telemetry.sampleTime, CortetsuConfig.useTwelveHourClock))
+        : telemetry.status === "stale"
+            ? qsTr("Lecturas detenidas")
+            : telemetry.status === "error" ? qsTr("Sonda no disponible") : qsTr("Leyendo…")
+    readonly property string powerProfile: PowerProfiles.profile === PowerProfile.PowerSaver
+        ? "power-saver"
+        : PowerProfiles.profile === PowerProfile.Performance ? "performance" : "balanced"
 
     function refresh(): void {
-        if (!root.hardwareVisible || probe.running)
-            return;
-        root.statusText = qsTr("Actualizando…");
-        probe.running = true;
+        telemetry.refresh();
     }
 
+    // The telemetry timer takes a reading as soon as the panel is visible.
     function openHardware(): void {
         forceActiveFocus();
-        refresh();
     }
 
     function closeHardware(): void {
@@ -132,33 +92,10 @@ FocusScope {
 
     onCurrentPageChanged: Qt.callLater(() => root.revealPageTab(root.currentPage))
 
-    Timer {
-        interval: 1500
-        repeat: true
-        running: root.hardwareVisible
-        triggeredOnStart: true
-        onTriggered: root.refresh()
-    }
-
-    // startup inventory: cortetsu:hardware-probe
-    Process {
-        id: probe
-        command: [root.probePath]
-
-        stdout: StdioCollector {
-            onStreamFinished: {
-                try {
-                    const parsed = JSON.parse(text.trim());
-                    root.snapshot = parsed;
-                    root.recordHistory(parsed);
-                    root.sampleCount += 1;
-                    root.statusText = qsTr("En vivo");
-                } catch (error) {
-                    root.statusText = qsTr("Sonda no disponible");
-                    console.warn(`Hardware Center: invalid probe JSON: ${error}`);
-                }
-            }
-        }
+    HardwareTelemetry {
+        id: telemetry
+        active: root.hardwareVisible
+        fullProcessList: root.currentPage === HardwareNavigation.pages.processes
     }
 
     MouseArea {
@@ -223,7 +160,11 @@ FocusScope {
 
                     CortetsuText {
                         width: parent.width
-                        text: `${root.snapshot?.host ?? "Cortetsu"} · ${root.snapshot?.kernel ?? ""} · ${root.uptimeText(root.snapshot?.uptime_sec)}`
+                        text: Format.join([
+                            telemetry.snapshot?.host ?? "",
+                            telemetry.snapshot?.kernel ?? "",
+                            Format.duration(telemetry.snapshot?.uptime_sec) ? qsTr("encendido %1").arg(Format.duration(telemetry.snapshot.uptime_sec)) : ""
+                        ])
                         color: CortetsuDesign.colorOnSurfaceVariant
                         textSize: CortetsuTypography.labelSmallPx
                         elide: Text.ElideRight
@@ -234,60 +175,32 @@ FocusScope {
                     id: status
                     anchors.verticalCenter: parent.verticalCenter
                     text: root.statusText
-                    color: probe.running ? CortetsuDesign.colorPrimary : CortetsuDesign.colorOnSurfaceVariant
+                    color: telemetry.status === "stale" || telemetry.status === "error"
+                        ? CortetsuDesign.colorWarning
+                        : CortetsuDesign.colorOnSurfaceVariant
                     textSize: CortetsuTypography.labelSmallPx
                 }
 
-                Item {
+                CortetsuButton {
                     id: refreshButton
+                    objectName: "hardwareRefresh"
                     anchors.verticalCenter: parent.verticalCenter
-                    width: 38
-                    height: 38
-
-                    CortetsuSurface {
-                        anchors.fill: parent
-                        radiusValue: CortetsuDesign.radiusPill
-                        baseColor: refreshLayer.containsMouse ? CortetsuDesign.colorSurfaceGlassStrong : "transparent"
-                        outlined: false
-                    }
-                    CortetsuStateLayer {
-                        id: refreshLayer
-                        anchors.fill: parent
-                        radius: CortetsuDesign.radiusPill
-                        onClicked: root.refresh()
-                    }
-                    CortetsuIcon {
-                        anchors.centerIn: parent
-                        text: probe.running ? "progress_activity" : "refresh"
-                        color: CortetsuDesign.colorOnSurfaceVariant
-                        iconSize: CortetsuTypography.iconMediumPx
-                    }
+                    compact: true
+                    icon: "refresh"
+                    tooltipText: qsTr("Actualizar (R)")
+                    Accessible.name: qsTr("Actualizar")
+                    onClicked: root.refresh()
                 }
 
-                Item {
+                CortetsuButton {
                     id: closeButton
+                    objectName: "hardwareClose"
                     anchors.verticalCenter: parent.verticalCenter
-                    width: 38
-                    height: 38
-
-                    CortetsuSurface {
-                        anchors.fill: parent
-                        radiusValue: CortetsuDesign.radiusPill
-                        baseColor: closeLayer.containsMouse ? CortetsuDesign.colorSurfaceGlassStrong : "transparent"
-                        outlined: false
-                    }
-                    CortetsuStateLayer {
-                        id: closeLayer
-                        anchors.fill: parent
-                        radius: CortetsuDesign.radiusPill
-                        onClicked: root.closeHardware()
-                    }
-                    CortetsuIcon {
-                        anchors.centerIn: parent
-                        text: "close"
-                        color: CortetsuDesign.colorOnSurfaceVariant
-                        iconSize: CortetsuTypography.iconMediumPx
-                    }
+                    compact: true
+                    icon: "close"
+                    tooltipText: qsTr("Cerrar (Esc)")
+                    Accessible.name: qsTr("Cerrar")
+                    onClicked: root.closeHardware()
                 }
             }
 
@@ -306,18 +219,7 @@ FocusScope {
 
                     Repeater {
                         id: tabRepeater
-                        model: [
-                            { label: qsTr("Resumen"), icon: "dashboard" },
-                            { label: qsTr("Rendimiento"), icon: "monitoring" },
-                            { label: qsTr("Procesos"), icon: "account_tree" },
-                            { label: qsTr("Sensores"), icon: "device_thermostat" },
-                            { label: qsTr("E/S"), icon: "lan" },
-                            { label: qsTr("Energía"), icon: "bolt" },
-                            { label: qsTr("Automatización"), icon: "auto_mode" },
-                            { label: qsTr("Consumo"), icon: "electric_bolt" },
-                            { label: qsTr("Atajos"), icon: "keyboard" },
-                            { label: qsTr("Arranque"), icon: "play_circle" }
-                        ]
+                        model: root.pageTabs
 
                         delegate: Item {
                             id: tabDelegate
@@ -371,37 +273,48 @@ FocusScope {
 
     Component {
         id: overviewComponent
-        OverviewPage { snapshot: root.snapshot }
+        OverviewPage {
+            snapshot: telemetry.snapshot
+            status: telemetry.status
+            sampleTime: telemetry.sampleTime
+            cpuHistory: telemetry.cpuHistory
+            historyLength: telemetry.historyLength
+            historySeconds: telemetry.historySeconds
+            powerProfile: root.powerProfile
+            pageLabels: root.pageLabels
+            onPageRequested: target => root.currentPage = HardwareNavigation.pages[target]
+            onRetryRequested: telemetry.refresh()
+        }
     }
 
     Component {
         id: performanceComponent
         PerformancePage {
-            snapshot: root.snapshot
-            cpuHistory: root.cpuHistory
-            cpuCoreHistories: root.cpuCoreHistories
-            memoryUsedHistory: root.memoryUsedHistory
-            memoryCacheHistory: root.memoryCacheHistory
-            swapUsedHistory: root.swapUsedHistory
-            networkRxHistory: root.networkRxHistory
-            networkTxHistory: root.networkTxHistory
-            diskReadHistory: root.diskReadHistory
-            diskWriteHistory: root.diskWriteHistory
-            gpu0History: root.gpu0History
-            gpu1History: root.gpu1History
+            snapshot: telemetry.snapshot
+            cpuHistory: telemetry.cpuHistory
+            cpuCoreHistories: telemetry.cpuCoreHistories
+            memoryUsedHistory: telemetry.memoryUsedHistory
+            memoryCacheHistory: telemetry.memoryCacheHistory
+            swapUsedHistory: telemetry.swapUsedHistory
+            networkRxHistory: telemetry.networkRxHistory
+            networkTxHistory: telemetry.networkTxHistory
+            diskReadHistory: telemetry.diskReadHistory
+            diskWriteHistory: telemetry.diskWriteHistory
+            gpu0History: telemetry.gpu0History
+            gpu1History: telemetry.gpu1History
         }
     }
 
     Component {
         id: processesComponent
         ProcessesPage {
-            processes: root.processes
-            memoryTotalGb: Number(root.snapshot?.memory?.total_gb ?? 0)
+            processes: telemetry.snapshot?.processes ?? []
+            memoryTotalGb: Number(telemetry.snapshot?.memory?.total_gb ?? 0)
         }
     }
 
-    Component { id: sensorsComponent; SensorsPage { snapshot: root.snapshot } }
-    Component { id: ioComponent; IOPage { snapshot: root.snapshot } }
+    Component { id: sensorsComponent; SensorsPage { snapshot: telemetry.snapshot } }
+    Component { id: ioComponent; IOPage { snapshot: telemetry.snapshot } }
     Component { id: powerComponent; PowerPage {} }
     Component { id: automationComponent; PowerAutomationPage {} }
     Component { id: energyComponent; EnergyPage {} }

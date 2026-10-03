@@ -11,17 +11,25 @@ uses the same native surface as Launcher, Overview and Clipboard.
 ## Resource model
 
 - `HardwareController.qml` is always loaded and only tracks open/close state.
-- `hardware/Wrapper.qml` owns a `Loader` whose `active` state follows the panel.
-- Main telemetry, graphs and page QML exist only while Hardware Center is open.
-- Main telemetry refreshes every 1500 ms while open.
+- `hardware/Wrapper.qml` keeps `Content.qml` loaded on each screen. The page
+  shown is created on demand and destroyed when another tab is selected.
+- `hardware/HardwareTelemetry.qml` is the only source of main telemetry. It owns
+  the probe process, its timer, the reading and the histories; pages bind to it
+  and start nothing themselves.
+- Main telemetry samples every 1500 ms while the panel is visible and not at all
+  while it is closed. The last reading and its histories are kept for reopening.
+- A sample carries the five most active processes. Only the Processes page asks
+  for the whole table, which is about 98 % of a full sample (125 KB against 4 KB).
+- `status` is `loading`, `live`, `stale` (a run failed, an older reading is still
+  shown) or `error` (no run has produced a reading). A run that outlives four
+  intervals is ended and reported as a failure.
 - Power and Energy pages use an on-demand power helper only while those pages exist.
-- Closing Hardware Center destroys the polling/UI tree.
 - Automatic AC/battery switching is separate and **disabled by default**. It
   starts `cortetsu-power-auto.service` only after explicit user opt-in on page 7.
 
 ## Pages
 
-1. **Overview** — CPU, RAM, root storage, AMD/NVIDIA GPUs, battery/network and cooling. CPU can switch `% / GHz`; memory defaults to GiB and can switch `GiB / %`.
+1. **Resumen** — the verdict first, then the machine. See "Summary page" below.
 2. **Performance** — rolling CPU/RAM/network/NVMe/GPU graphs with visible scales and min/average/max. CPU cycles Total → Core 0 → Core 1…; RAM toggles cache/swap history.
 3. **Processes** — live table, multi-term filtering, CPU/RAM/PID sorting, `123 / %`, list freeze, detail view and Pause/Resume, Interrupt, Terminate and Force kill controls. Search operates on every readable process from `/proc`, including sleeping/low-CPU processes rather than only the most active rows.
 4. **Sensors** — per-core CPU load, CPU/GPU thermals and power, fan RPM and battery sensor data.
@@ -33,6 +41,8 @@ uses the same native surface as Launcher, Overview and Clipboard.
 10. **Inicio** — inventory of XDG autostart, user/system systemd units, Hyprland Lua startup callbacks and Cortetsu-owned processes. XDG user entries and manageable user units can be disabled for future logins; system units and source-owned entries are read only.
 
 Keyboard: `1`–`9` switches current pages, `0` opens Inicio, `R` refreshes main telemetry and `Esc` closes.
+`Tab` walks the header buttons, the tabs and then every block of the page in
+reading order; `Enter`, `Return` or `Space` activates the focused one.
 There is also an explicit close button. Clicking empty space inside the panel does
 not close it; only clicking outside the panel, `Esc`, the close button or
 `Super+H` closes/toggles it.
@@ -72,9 +82,50 @@ creates a snapshot under `~/.local/share/cortetsu/upstream/snapshots/keybinds/`.
 If Hyprland rejects the reload or the new combination is missing, the helper
 restores the previous files automatically.
 
+## Summary page
+
+It answers four questions in this order: is everything fine, how is the machine
+now, does anything need attention, and where to go to act on it.
+
+1. **Verdict.** `Health.js` evaluates the reading against fixed limits and
+   returns a level and a list of issues. Each issue names the metric, its value
+   and the page that explains it; the page owns the wording. The strip reads
+   "Todo en orden" when nothing is flagged, and otherwise lists each issue as a
+   row that opens its page. A reading that stopped updating is announced there
+   with a retry.
+2. **Load.** CPU usage with temperature, frequency, load average and the last
+   two minutes of history, then one row per detected GPU.
+3. **Capacity.** Memory and root disk as levels: how full, how much, what is left.
+4. **Busiest processes.** Up to five, with CPU and resident memory.
+5. **Context.** Power profile and battery, active network and its rates, fan speeds.
+
+Every block opens the page that explains it. The destination is named on hover
+and on keyboard focus.
+
+Limits, as `[warning, critical]`:
+
+| Metric | Limit | Opens |
+| --- | --- | --- |
+| CPU temperature | 90 / 97 °C | Sensores |
+| GPU temperature, per GPU | 85 / 92 °C | Sensores |
+| Memory in use | 90 / 96 % | Procesos |
+| Root disk in use | 90 / 96 % | E/S |
+| Battery while discharging | 20 / 10 % | Energía |
+
+They sit above what this laptop reaches under ordinary load. A missing sensor is
+never an issue, and a missing reading is never drawn as zero: the figure is left
+out and the rest of the line closes up.
+
+Updates are incremental. A new reading changes bound properties; the page, the
+GPU rows and the process rows are not rebuilt. Issue rows are created only when
+the number of issues changes.
+
+States: first reading (loading), no reading (error with retry), stale (last
+reading dimmed, retry in the verdict strip) and live.
+
 ## Telemetry
 
-`~/.local/bin/cortetsu-hardware-probe` provides:
+`~/.local/bin/cortetsu-hardware-probe [--top-processes N]` provides:
 
 - CPU total/per-core usage, average frequency, package temperature and governor.
 - RAM used/available/cache/buffers plus swap.
@@ -85,7 +136,7 @@ restores the previous files automatically.
 - Battery percentage/status/power.
 - Active network interface, RX/TX rates/totals, IPv4/MAC and Wi-Fi SSID/signal/link bitrate when available.
 - Exposed fan RPM values.
-- All readable `/proc` processes with instantaneous CPU deltas, RAM, user, state, threads, parent PID, elapsed time and command line. The UI performs filtering/sorting locally so PID/name/command searches can find idle processes too.
+- All readable `/proc` processes with instantaneous CPU deltas, RAM, user, state, threads, parent PID, elapsed time and command line. The UI performs filtering/sorting locally so PID/name/command searches can find idle processes too. With `--top-processes N` only the N most active are emitted; every process is still scanned so the next sample has correct deltas. `process_count` always reports the number scanned.
 - Host, kernel, uptime and load average.
 
 `~/.local/bin/cortetsu-hardware-power` provides:
@@ -143,8 +194,9 @@ Reference: https://github.com/aristocratos/btop
 
 ## Theme
 
-The UI uses `Colours.palette.*`, `Colours.tPalette.*` where appropriate and
-`Tokens.*`; no independent accent palette is maintained.
+The UI reads `CortetsuDesign.*` tokens and `CortetsuTypography.js` sizes, so it
+follows the active scheme without a reload. No independent accent palette is
+maintained.
 
 ## Install / update
 
@@ -174,6 +226,13 @@ Repository + helper validation:
 
 ```fish
 python3 scripts/features/validate-hardware-center.py
+```
+
+Summary page behaviour, with a scripted probe and no access to this machine's
+readings (set `CORTETSU_RENDER_DIR` to keep a PNG of each state):
+
+```fish
+python3 scripts/features/test-cortetsu-hardware-home-runtime.py
 ```
 
 Live installation, hashes, probes, IPC, systemd and QML log check:

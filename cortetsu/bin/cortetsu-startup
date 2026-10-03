@@ -122,7 +122,7 @@ CORTETSU_STARTUP = [
     {"id": "cortetsu:display-preview-status", "name": "Display preview status", "source": "modules/display/PreviewControls.qml",
      "qmlId": "statusProbe", "startupPhase": "on-demand",
      "condition": "Al abrir los controles de vista previa de pantalla", "command": ["cortetsu-display-transaction", "status"], "manageable": False},
-    {"id": "cortetsu:hardware-probe", "name": "Hardware telemetry probe", "source": "modules/hardware/Content.qml",
+    {"id": "cortetsu:hardware-probe", "name": "Hardware telemetry probe", "source": "modules/hardware/HardwareTelemetry.qml",
      "qmlId": "probe", "startupPhase": "on-demand",
      "condition": "Al abrir Hardware Center; se detiene al cerrarlo", "command": ["cortetsu-hardware-probe"], "manageable": False},
     {"id": "cortetsu:hardware-power-probe", "name": "Hardware power probe", "source": "modules/hardware/PowerPage.qml",

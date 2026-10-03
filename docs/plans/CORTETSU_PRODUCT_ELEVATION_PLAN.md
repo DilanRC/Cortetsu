@@ -23,6 +23,8 @@ Actualizado el 2026-10-03, rama `elevation/phase-1-behaviour`.
 | H-15, H-18, H-34 | Hecho | suite |
 | H-19 Wallpaper Orbital | Hecho salvo miniaturas en disco y resolución | `test-cortetsu-wallpaper-orbital-runtime.py` (26 + 3 comprobaciones sobre el QML real), `tst_Orbit.qml`, renders de los seis estados en weston sin pantalla |
 | H-33 Octágono repetido | Hecho | `OctagonFrame.qml`, un solo `ShapePath` |
+| H-17 Resumen de Hardware | Hecho | `test-cortetsu-hardware-home-runtime.py` (38 comprobaciones sobre el `Content.qml` real con sonda guionizada), `tst_HardwareHealth.qml`, `tst_NavBlock.qml`, renders de los seis estados |
+| H-08 Dos fuentes de telemetría | Parcial | dentro de Hardware hay una (`HardwareTelemetry.qml`) y la muestra baja de 125 KB a 4 KB fuera de Procesos (`test-hardware-probe.py`); el Dashboard sigue con sus servicios |
 | H-16, H-20, H-23 | Parcial | pestañas de Hardware y textos de atajos en español; encabezado vacío y "familias" corregidos |
 | H-35 | Parcial | `eval-ascension-runtime.py` usa el dispatcher Lua y cierra su popout; la prueba de Bluetooth sigue sensible a carga |
 
@@ -44,6 +46,28 @@ vista. La pantalla de bloqueo de esta fase no está empezada.
 Verificación visual: `weston --backend=headless --renderer=gl` más
 `CORTETSU_TEST_QPA=wayland` dibuja las imágenes enmascaradas sin abrir nada en
 el escritorio; la plataforma `offscreen` de Qt no tiene efectos de sombreado.
+
+Resumen de Hardware (fase 6, solo la página principal): franja de veredicto
+con cada aviso enlazado a su página, carga (CPU con dos minutos de historial y
+una fila por GPU), capacidad (memoria y disco), procesos con más consumo y una
+línea de contexto. Estados cargando, error con Reintentar, lecturas detenidas y
+en vivo. La salud sale de `Health.js`, un módulo puro con umbrales fijos. Una
+lectura nueva no recrea la página ni sus filas. Se retiran los conmutadores
+`% / GHz` y `GiB / %`: las dos unidades se muestran a la vez. El resto de la
+fase 6 (cinco pestañas, Dashboard, ajustes rápidos, confirmación de `KILL`)
+sigue pendiente.
+
+Hallazgos nuevos de esa ronda, sin corregir:
+
+| ID | Tipo | Hallazgo | Evidencia |
+| --- | --- | --- | --- |
+| H-37 | D | Con los tokens de `ui.toml`, `colorPrimary` (`#334E68`) como relleno de barra da 1,92:1 sobre el bloque, por debajo del 3:1 de contraste no textual. Con el esquema activo da 9,73:1. Afecta a `CortetsuProgressBar` y `HistoryGraph` en todas las superficies. Propuesta: un token de medidor que no dependa del índigo por defecto | cálculo WCAG sobre `CortetsuDesignDefaults.js` y `scheme.json`. V |
+| H-38 | A | La sonda lanza `lspci` (10 ms) y `findmnt` (2 ms) en cada muestra para datos que no cambian. Propuesta: guardarlos en el archivo de estado que ya usa | `bin/cortetsu-hardware-probe:217,449`. V |
+| H-39 | A | Con Hardware abierto, la sonda llama a `nvidia-smi` cada 1,5 s. Si la GPU dedicada está en `suspended`, la consulta la despierta. Propuesta: leer `power/runtime_status` antes y devolver un estado "en reposo" sin lanzar el proceso. Hoy está `active` por el HDMI | `bin/cortetsu-hardware-probe:510`; `/sys/bus/pci/devices/0000:01:00.0/power/runtime_status`. V |
+| H-40 | U | Hardware reabre en la última pestaña usada, no en Resumen. Quien cerró en Procesos no ve el veredicto al volver a pulsar `SUPER+H`. Es una decisión de producto, no un fallo | `hardware/Content.qml` (`currentPage` no se reinicia). K |
+| H-41 | A | Cambiar de pestaña destruye la página y crea la siguiente (`Loader.sourceComponent`). Los historiales sobreviven porque viven en la telemetría, pero las barras vuelven a animarse desde cero | `hardware/Content.qml`. V en los renders |
+| H-42 | U | Un bloque del Resumen abre la página correcta, pero no la métrica: la fila de la segunda GPU abre Rendimiento sin seleccionar esa gráfica | `hardware/OverviewPage.qml`, `PerformancePage.qml`. K |
+| H-43 | A | `PowerProfiles` de Quickshell no dice si `power-profiles-daemon` responde. Sin el demonio, el Resumen y el popout de batería mostrarían "Equilibrado". El paquete es dependencia declarada en `packages/arch.toml`, así que `cortetsu doctor` lo cubre | `/usr/lib/qt6/qml/Quickshell/Services/UPower/*.qmltypes`. K |
 
 Pendiente de H-05: las combinaciones con `SUPER` que ya tienen acción siguen
 sin llegar al editor. La tarjeta lo dice. La solución es un submapa vacío
