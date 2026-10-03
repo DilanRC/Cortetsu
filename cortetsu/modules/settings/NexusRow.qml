@@ -91,11 +91,11 @@ Item {
         horizontalAlignment: Text.AlignRight
         text: root.value
         textSize: CortetsuTypography.labelSmallPx
-        color: root.alerting
-            ? CortetsuDesign.colorVermillion
-            : root.selected
-                ? Qt.alpha(CortetsuDesign.colorOnPrimaryContainer, 0.76)
-                : CortetsuDesign.colorOnSurfaceVariant
+        // Full strength on the selected fill: dimmed text there falls under
+        // 4.5:1 on schemes with a light container. The dot carries the alert.
+        color: root.selected
+            ? CortetsuDesign.colorOnPrimaryContainer
+            : root.alerting ? CortetsuDesign.colorVermillion : CortetsuDesign.colorOnSurfaceVariant
         elide: Text.ElideRight
     }
 

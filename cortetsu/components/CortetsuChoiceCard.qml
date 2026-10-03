@@ -81,7 +81,7 @@ Item {
             text: root.subtitle
             textSize: CortetsuTypography.labelSmallPx
             color: root.selected
-                ? Qt.alpha(CortetsuDesign.colorOnPrimaryContainer, 0.76)
+                ? CortetsuDesign.colorOnPrimaryContainer
                 : CortetsuDesign.colorOnSurfaceVariant
             elide: Text.ElideRight
         }

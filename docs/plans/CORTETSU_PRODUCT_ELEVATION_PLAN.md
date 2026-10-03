@@ -111,8 +111,11 @@ Hallazgos nuevos de esta ronda:
 | H-52 | U | El editor de atajos sigue en Hardware. Ajustes lista los atajos reales, de solo lectura, con filtro, y enlaza a Hardware, pero no puede abrirlo en la página Teclas porque `HardwareController` no admite página destino | Pendiente: mover el editor (fase 5) |
 | H-53 | D | El relleno de `CortetsuSlider` usa `colorPrimary`, con el mismo contraste bajo de H-37 sobre el esquema de `ui.toml`. El valor se lee por el tirador y por la cifra | Pendiente con H-37 |
 | H-54 | A | `hyprctl reload config-only` sigue releyendo toda la configuración Lua para siete colores. Un `hyprctl eval` dirigido evitaría la relectura | Pendiente de validar en Hyprland 0.56 |
-| H-55 | A | En reposo, el proceso `qs` consume alrededor de un 15 % de un núcleo sin ninguna superficie abierta (45 ticks en 3 s, medido el 2026-10-03) | Sin investigar; no es de Ajustes |
+| H-55 | A | En reposo, el proceso `qs` consume alrededor de un 15 % de un núcleo sin ninguna superficie abierta (45 ticks en 3 s, medido el 2026-10-03) | Sin investigar; no es de Ajustes. Tras `cortetsu shell reload` del 2026-10-03 midió 0 % a 0,5 %: el consumo crece con el tiempo de sesión (62 000 s) o depende de un estado concreto |
 | H-56 | A | `CortetsuConfig` no observa `preferences.json`: un cambio hecho a mano con el shell en marcha no se refleja y se pierde en el siguiente guardado | Decisión previa documentada en el archivo; queda para la fase 3 |
+| H-57 | D | El texto de error en bermellón (`#D64B32`) queda en 3,83:1 sobre la superficie base y 3,45:1 sobre `ayu mirage`, por debajo de 4,5:1 para texto pequeño. Es un token de identidad generado desde `ui.toml` | Decisión de identidad pendiente; el error siempre lleva texto y posición, no solo color |
+| H-58 | F | El texto secundario sobre una fila seleccionada se atenuaba al 72-76 %: 6,22:1 en el esquema base y 3,60:1 en `ayu mirage` (mismo patrón que H-37) | Hecho: Nexus, lista de redes, `CortetsuChoiceCard` y `CortetsuListRow` usan `colorOnPrimaryContainer` sin atenuar (4,97:1 en `ayu mirage`) |
+| H-59 | F | `modules/hardware/PowerAutomationPage.qml:346` registra `TypeError: Cannot read property 'width' of null` al cerrarse (visto en el journal del 2026-10-03 14:39) | Pendiente; es de Hardware, no de Ajustes |
 
 Pendiente de H-05: las combinaciones con `SUPER` que ya tienen acción siguen
 sin llegar al editor. La tarjeta lo dice. La solución es un submapa vacío

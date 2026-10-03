@@ -190,7 +190,7 @@ Item {
                                     .arg(root.page.securityLabel(networkDelegate.modelData))
                             textSize: CortetsuTypography.labelSmallPx
                             color: index === root.page.selectedIndex
-                                ? Qt.alpha(CortetsuDesign.colorOnPrimaryContainer, 0.76)
+                                ? CortetsuDesign.colorOnPrimaryContainer
                                 : CortetsuDesign.colorOnSurfaceVariant
                             elide: Text.ElideRight
                         }
