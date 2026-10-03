@@ -180,7 +180,7 @@ QtObject {
     property bool idleInhibitWhenAudio: true
     property bool idleInhibitWhenCharging: false
     property bool idleLockBeforeSleep: true
-    property list<var> idleTimeouts: [{ enabled: true, timeout: 900000, respectInhibitors: true, idleAction: "lock", returnAction: "unlock" }]
+    property list<var> idleTimeouts: [{ enabled: true, timeout: 900000, respectInhibitors: true, idleAction: "lock" }]
     property bool loaded: false
     property bool writing: false
     property bool saveQueued: false
@@ -558,7 +558,14 @@ QtObject {
             if (typeof data.idleLockBeforeSleep === "boolean")
                 idleLockBeforeSleep = data.idleLockBeforeSleep;
             if (Array.isArray(data.idleTimeouts))
-                idleTimeouts = data.idleTimeouts.filter(value => value && typeof value === "object");
+                idleTimeouts = data.idleTimeouts.filter(value => value && typeof value === "object").map(value => {
+                    // Saved preferences may still carry the removed "unlock" return action.
+                    if (value.returnAction !== "unlock")
+                        return value;
+                    const migrated = Object.assign({}, value);
+                    delete migrated.returnAction;
+                    return migrated;
+                });
         } catch (_) {}
         loaded = true;
     }

@@ -17,7 +17,6 @@ Scope {
 
     WlSessionLock {
         id: sessionLock
-        signal unlock
         LockSurface { lock: sessionLock; pam: pam }
     }
 
@@ -31,12 +30,10 @@ Scope {
     }
 
     CustomShortcut { name: "lock"; description: "Lock the current session"; onPressed: sessionLock.locked = true }
-    CustomShortcut { name: "unlock"; description: "Unlock the current session"; onPressed: sessionLock.unlock() }
 
     IpcHandler {
         target: "lock"
         function lock(): void { root.requestLock() }
-        function unlock(): void { sessionLock.unlock() }
         function isLocked(): bool { return sessionLock.locked }
     }
 }

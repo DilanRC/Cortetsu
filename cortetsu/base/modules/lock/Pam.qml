@@ -81,7 +81,7 @@ Scope {
         successPending = false;
         fprint.abort();
         howdy.abort();
-        // `unlock` is unauthenticated (shortcut, IPC, idle); only this path may drop the lock.
+        // Only this path may drop the lock.
         root.lock.locked = false;
     }
 
@@ -178,13 +178,6 @@ Scope {
                 root.lockMessage = "";
                 root.successPending = false;
             }
-        }
-
-        function onUnlock(): void {
-            root.successPending = false;
-            fprint.abort();
-            howdy.abort();
-            passwd.abort();
         }
 
         target: root.lock

@@ -16,8 +16,6 @@ Scope {
     function handleIdleAction(action: var): void {
         if (action === "lock")
             root.lock.locked = true;
-        else if (action === "unlock")
-            root.lock.unlock();
         else if (typeof action === "string")
             CortetsuHypr.dispatch(action);
         else if (Array.isArray(action))

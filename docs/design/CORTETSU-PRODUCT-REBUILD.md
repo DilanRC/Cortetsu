@@ -138,11 +138,13 @@ screen capture with controlled dimming, Cortetsu mark, clock/date, password
 echo, failure feedback, battery/network status, and a restrained keyboard hint.
 The mark is Human while the surface waits, Awakening while password, fingerprint,
 or face authentication is active, and Ascended only after PAM reports a real
-success. PAM emits that success separately from the generic session unlock; the
-mark gets one standard motion interval before the lock releases. Failed, error,
-maximum-tries, shortcut, and IPC paths never select Ascended. The real lock
-shortcut and IPC are unchanged. The lock action was not triggered during
-development to avoid interrupting the active session.
+success. The mark gets one standard motion interval before the lock releases.
+Failed, error, and maximum-tries results never select Ascended.
+
+PAM success is the only way out of the lock. The `cortetsu:lock` shortcut and
+the `lock` IPC target expose `lock` and `isLocked`; there is no `unlock`
+shortcut, IPC function, or idle return action. Saved preferences that still
+carry `returnAction: "unlock"` drop it on load.
 
 ## Launcher and system feedback
 

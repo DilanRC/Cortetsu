@@ -33,7 +33,6 @@ ShellRoot {
 
     WlSessionLock {
         id: sessionLock
-        signal unlock
         WlSessionLockSurface { color: "black" }
     }
 
@@ -49,7 +48,6 @@ ShellRoot {
         function lock(): void { sessionLock.locked = true }
         function submit(): void { pam.passwd.start() }
         function release(): void { pam.releaseAfterSuccess() }
-        function signalUnlock(): void { sessionLock.unlock() }
         function state(): string {
             return JSON.stringify({
                 locked: sessionLock.locked,
@@ -181,11 +179,10 @@ def scenario_permit(shell: Shell) -> None:
     shell.call("lock")
     shell.until("bloqueo seguro", locked=True, secure=True)
 
-    shell.call("signalUnlock")
     shell.call("release")
     time.sleep(0.5)
     state = shell.state()
-    assert state["locked"], "una ruta sin autenticar liberó el bloqueo"
+    assert state["locked"], "release sin éxito PAM liberó el bloqueo"
 
     for cycle in (1, 2):
         shell.call("submit")
@@ -248,7 +245,7 @@ def main() -> int:
             except subprocess.TimeoutExpired:
                 compositor.kill()
 
-    print("PASS: el bloqueo solo se libera tras autenticación PAM válida, sobrevive a rechazos y a rutas sin autenticar")
+    print("PASS: el bloqueo solo se libera tras autenticación PAM válida, sobrevive a rechazos y a release sin éxito previo")
     return 0
 
 

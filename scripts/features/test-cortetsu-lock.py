@@ -6,7 +6,7 @@ surface = (ROOT / "cortetsu/modules/lock/LockSurface.qml").read_text(encoding="u
 pam = (ROOT / "cortetsu/base/modules/lock/Pam.qml").read_text(encoding="utf-8")
 shell = (ROOT / "cortetsu/shell.qml").read_text(encoding="utf-8")
 
-for marker in ("WlSessionLock", "Pam", 'target: "lock"', "sessionLock.unlock", "lockReady", "requestLock"):
+for marker in ("WlSessionLock", "Pam", 'target: "lock"', "lockReady", "requestLock"):
     assert marker in lock, marker
 
 for marker in (
@@ -61,5 +61,13 @@ assert pam.count("locked = false") == 1
 idle = (ROOT / "cortetsu/modules/IdleMonitors.qml").read_text(encoding="utf-8")
 for name, source in (("Lock.qml", lock), ("LockSurface.qml", surface), ("IdleMonitors.qml", idle)):
     assert "locked = false" not in source, name
+# No unauthenticated unlock route: shortcut, IPC, signal or idle return action.
+config = (ROOT / "cortetsu/modules/CortetsuConfig.qml").read_text(encoding="utf-8")
+for name, source in (("Lock.qml", lock), ("LockSurface.qml", surface), ("IdleMonitors.qml", idle), ("Pam.qml", pam)):
+    assert "unlock()" not in source and "onUnlock" not in source and '"unlock"' not in source, name
+assert 'returnAction: "unlock"' not in config
+assert 'value.returnAction !== "unlock"' in config and "delete migrated.returnAction" in config
+for shadowed in ("Lock.qml", "LockSurface.qml"):
+    assert not (ROOT / "cortetsu/base/modules/lock" / shadowed).exists(), shadowed
 
 print("PASS: Lock keeps PAM/session-lock semantics and surfaces live Cortetsu user, keyboard, power and network context")
