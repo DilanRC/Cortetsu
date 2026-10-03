@@ -81,30 +81,35 @@ Item {
             : qsTr("%1 RPM").arg(root.fans.map(fan => fan.rpm).join(" · "));
     }
 
-    Column {
+    // Exists only without a reading: its loading icon spins for as long as
+    // the item does, visible or not.
+    Loader {
         anchors.centerIn: parent
-        visible: !root.hasReading
-        spacing: CortetsuDesign.spacingComfortable
+        active: !root.hasReading
 
-        CortetsuStateMessage {
-            objectName: "overviewState"
-            anchors.horizontalCenter: parent.horizontalCenter
-            width: 360
-            kind: root.status === "error" ? "error" : "loading"
-            title: root.status === "error" ? qsTr("No se pudo leer el equipo") : qsTr("Leyendo el equipo…")
-            detail: root.status === "error"
-                ? qsTr("La sonda de hardware no devolvió datos. Las demás páginas que dependen de ella tampoco tendrán lecturas.")
-                : ""
-        }
+        sourceComponent: Column {
+            spacing: CortetsuDesign.spacingComfortable
 
-        CortetsuButton {
-            objectName: "overviewRetry"
-            anchors.horizontalCenter: parent.horizontalCenter
-            visible: root.status === "error"
-            disabled: root.status !== "error"
-            icon: "refresh"
-            label: qsTr("Reintentar")
-            onClicked: root.retryRequested()
+            CortetsuStateMessage {
+                objectName: "overviewState"
+                anchors.horizontalCenter: parent.horizontalCenter
+                width: 360
+                kind: root.status === "error" ? "error" : "loading"
+                title: root.status === "error" ? qsTr("No se pudo leer el equipo") : qsTr("Leyendo el equipo…")
+                detail: root.status === "error"
+                    ? qsTr("La sonda de hardware no devolvió datos. Las demás páginas que dependen de ella tampoco tendrán lecturas.")
+                    : ""
+            }
+
+            CortetsuButton {
+                objectName: "overviewRetry"
+                anchors.horizontalCenter: parent.horizontalCenter
+                visible: root.status === "error"
+                disabled: root.status !== "error"
+                icon: "refresh"
+                label: qsTr("Reintentar")
+                onClicked: root.retryRequested()
+            }
         }
     }
 

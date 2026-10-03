@@ -135,7 +135,7 @@ ShellRoot {
             verify(find(content, "gpuRows").count === 2, "one row per detected GPU");
             verify(find(content, "processBlock").visibleRows === 5, "the busiest processes are listed");
             verify(find(content, "healthIssues").count === 0, "nothing is flagged");
-            verify(find(content, "overviewState").visible === false, "the reading replaces the loading state");
+            verify(find(content, "overviewState") === null, "the reading replaces the loading state");
             kept = {
                 gpu: find(content, "gpuRows").itemAt(0),
                 process: find(content, "processRows").itemAt(0),
@@ -237,7 +237,7 @@ ShellRoot {
         }],
         [() => telemetry.status === "live", () => {
             verify(text("cpuUsage") === "32 %", "the retry reaches a reading");
-            verify(!find(content, "overviewRetry").visible, "the error state is gone");
+            verify(find(content, "overviewRetry") === null, "the error state is gone");
         }]
     ]
 
