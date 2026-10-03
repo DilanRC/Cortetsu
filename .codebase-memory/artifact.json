@@ -1,0 +1,11 @@
+{
+    "schema_version": 2,
+    "commit": "344a6e690406d7074fefac785f2bcb6e5cc207d1",
+    "indexed_at": "2026-10-02T05:56:16Z",
+    "project": "Cortetsu",
+    "nodes": 6484,
+    "edges": 21346,
+    "original_size": 18546688,
+    "compressed_size": 4082838,
+    "compression_level": 3
+}
