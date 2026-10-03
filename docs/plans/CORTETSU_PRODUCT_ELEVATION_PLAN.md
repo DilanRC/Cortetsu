@@ -6,6 +6,44 @@ Estado: plan. Ninguna fase está implementada.
 Este documento sustituye a una auditoría nueva antes de cada fase. Cada hallazgo
 cita archivo y línea, y dice si se verificó en ejecución o se dedujo del código.
 
+## 0. Estado de ejecución
+
+Actualizado el 2026-10-03, rama `elevation/phase-1-behaviour`.
+
+| Hallazgo | Estado | Verificación |
+| --- | --- | --- |
+| H-01 Sesión | Hecho | `test-cortetsu-session-runtime.py`; falla contra el código anterior |
+| H-02 Recarga al cambiar esquema | Hecho | `test-cortetsu-theme-reactive-runtime.py`: sin recarga, sin recrear componentes, generación intacta |
+| H-03 Dos mundos de color | Hecho | misma prueba; 143 archivos migrados al singleton `theme/CortetsuDesign.qml` |
+| H-04 Orbital pierde la selección | Hecho | `test-cortetsu-wallpaper-catalog-runtime.py`; falla contra el código anterior |
+| H-05 Grabación de atajos | Hecho salvo el submapa | `tst_KeyCapture.qml`, `test-cortetsu-keybind-capture-runtime.py`, render fuera de pantalla revisado |
+| H-06 Estado de teclado | Hecho | `test-cortetsu-keyboard-state-runtime.py` |
+| H-07 Telemetría permanente | Hecho para el Dashboard | en reposo, 0 `nvidia-smi` en 15 s (antes 7 en 20 s) |
+| H-12 Popouts y exclusividad | Hecho | IPC en vivo: abrir, alternar, cerrar y cierre al abrir el portapapeles |
+| H-15, H-18, H-34 | Hecho | suite |
+| H-16, H-20, H-23 | Parcial | pestañas de Hardware y textos de atajos en español; encabezado vacío y "familias" corregidos |
+| H-35 | Parcial | `eval-ascension-runtime.py` usa el dispatcher Lua y cierra su popout; la prueba de Bluetooth sigue sensible a carga |
+
+Hallazgo nuevo durante la fase 2 (**H-36, C, corregido**): `CortetsuColours` leía
+`text()` en `onFileChanged` sin llamar a `reload()`, así que el contenido era
+el de la primera carga y ningún cambio de `scheme.json` llegaba a la interfaz.
+El mismo patrón está en `CortetsuWallpapers.qml`, `CortetsuNotifications.qml`,
+`CortetsuRecorder.qml`, `services/Notifs.qml` y `dashboard/Today.qml`; queda
+por comprobar uno a uno en la fase 3.
+
+Pendiente de H-05: las combinaciones con `SUPER` que ya tienen acción siguen
+sin llegar al editor. La tarjeta lo dice. La solución es un submapa vacío
+(`hl.define_submap` y `hl.dsp.submap` existen en los stubs de 0.56), que exige
+tocar la configuración de Hyprland y recargarla.
+
+Cambio visible de la fase 2: las superficies propias siguen ahora el esquema
+activo, incluido el dinámico del fondo. Antes se quedaban en los colores de
+`ui.toml`.
+
+Verificación visual: a partir de ahora se renderiza fuera de pantalla
+(`QT_QPA_PLATFORM=offscreen` y `grabToImage`) con datos de prueba, sin abrir
+superficies en el escritorio real.
+
 ## 1. Entorno real contra el que se diseña
 
 | Componente | Versión instalada |

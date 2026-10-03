@@ -9,6 +9,7 @@ import QtCore
 import Quickshell
 import Quickshell.Io
 import Quickshell.Widgets
+import "KeyCapture.js" as KeyCapture
 
 FocusScope {
     id: root
@@ -23,6 +24,17 @@ FocusScope {
     property string statusText: qsTr("Cargando atajos…")
     property bool busy: false
     property bool statusFailed: false
+
+    // Capture state. `capturing` is the only source of truth for "the editor
+    // is recording the keyboard"; the overlay just presents it.
+    readonly property bool capturing: captureId.length > 0 || captureNewApp
+    property string captureLabel: ""
+    property string captureCurrentChord: ""
+    property var heldModifiers: []
+    property string captureMessage: ""
+    property bool captureFailed: false
+    property real captureRemaining: 1
+    readonly property int captureTimeoutMs: 10000
 
     readonly property string helperPath:
         StandardPaths.writableLocation(StandardPaths.HomeLocation) +
@@ -83,63 +95,37 @@ FocusScope {
         deleteProcess.running = true;
     }
 
-    function beginCapture(identifier, isNewApp): void {
+    function beginCapture(identifier, isNewApp, label, currentChord): void {
         captureId = identifier;
         captureNewApp = isNewApp;
+        captureLabel = label ?? "";
+        captureCurrentChord = currentChord ?? "";
+        heldModifiers = [];
+        captureMessage = "";
+        captureFailed = false;
         statusFailed = false;
         statusText = qsTr("Escuchando. Pulsa la combinación · Esc cancela");
+        captureCountdown.restart();
         forceActiveFocus();
     }
 
-    function keyName(event): string {
-        if (event.key >= Qt.Key_A && event.key <= Qt.Key_Z)
-            return String.fromCharCode(event.key);
-        if (event.key >= Qt.Key_0 && event.key <= Qt.Key_9)
-            return String.fromCharCode(event.key);
-
-        const names = {};
-        names[Qt.Key_Space] = "Space";
-        names[Qt.Key_Return] = "Return";
-        names[Qt.Key_Enter] = "Return";
-        names[Qt.Key_Tab] = "Tab";
-        names[Qt.Key_Backspace] = "Backspace";
-        names[Qt.Key_Delete] = "Delete";
-        names[Qt.Key_Left] = "Left";
-        names[Qt.Key_Right] = "Right";
-        names[Qt.Key_Up] = "Up";
-        names[Qt.Key_Down] = "Down";
-        names[Qt.Key_PageUp] = "Page_Up";
-        names[Qt.Key_PageDown] = "Page_Down";
-        names[Qt.Key_Home] = "Home";
-        names[Qt.Key_End] = "End";
-        names[Qt.Key_Comma] = "Comma";
-        names[Qt.Key_Period] = "Period";
-        names[Qt.Key_Slash] = "Slash";
-        names[Qt.Key_Backslash] = "Backslash";
-        names[Qt.Key_Minus] = "Minus";
-        names[Qt.Key_Equal] = "Equal";
-        return names[event.key] ?? "";
-    }
-
-    function chordFor(event): string {
-        const parts = [];
-        if (event.modifiers & Qt.ControlModifier)
-            parts.push("CTRL");
-        if (event.modifiers & Qt.AltModifier)
-            parts.push("ALT");
-        if (event.modifiers & Qt.ShiftModifier)
-            parts.push("SHIFT");
-        if (event.modifiers & Qt.MetaModifier)
-            parts.push("SUPER");
-        const key = keyName(event);
-        if (!key)
-            return "";
-        parts.push(key);
-        return parts.join(" + ");
+    function endCapture(status: string): void {
+        captureCountdown.stop();
+        captureId = "";
+        captureNewApp = false;
+        heldModifiers = [];
+        captureMessage = "";
+        captureFailed = false;
+        captureRemaining = 1;
+        if (status.length > 0)
+            statusText = status;
     }
 
     function saveChord(chord): void {
         busy = true;
+        captureCountdown.stop();
+        captureMessage = chord;
+        captureFailed = false;
         if (captureNewApp) {
             saveProcess.command = [
                 helperPath,
@@ -152,26 +138,65 @@ FocusScope {
         } else {
             saveProcess.command = [helperPath, "set", captureId, chord];
         }
-        captureId = "";
-        captureNewApp = false;
         saveProcess.running = true;
     }
 
+    function captureProblem(message: string): void {
+        captureMessage = message;
+        captureFailed = true;
+        captureCountdown.restart();
+    }
+
+    // While listening every key belongs to the editor: Escape must not close
+    // the surface and digits must not switch tabs.
+    Keys.onShortcutOverride: event => event.accepted = root.capturing
+
     Keys.onPressed: event => {
-        if (!captureId && !captureNewApp)
+        if (!root.capturing)
             return;
-        if (event.key === Qt.Key_Escape) {
-            captureId = "";
-            captureNewApp = false;
-            statusText = qsTr("Cambio de atajo cancelado");
-            event.accepted = true;
+        event.accepted = true;
+        root.captureKey(event.key, event.modifiers);
+    }
+
+    function captureKey(key: int, modifiers: int): void {
+        if (!root.capturing || root.busy)
+            return;
+        if (key === Qt.Key_Escape) {
+            root.endCapture(qsTr("Cambio de atajo cancelado"));
             return;
         }
-        const chord = chordFor(event);
-        if (!chord)
+        const result = KeyCapture.resolve(key, modifiers);
+        root.heldModifiers = result.held;
+        if (result.kind === "modifier") {
+            root.captureFailed = false;
+            root.captureMessage = "";
+        } else if (result.kind === "unsupported") {
+            root.captureProblem(qsTr("Esa tecla no se puede asignar desde aquí. Prueba con otra."));
+        } else if (result.kind === "bare") {
+            root.captureProblem(qsTr("Añade un modificador: Ctrl, Alt, Shift o Super."));
+        } else {
+            root.saveChord(result.chord);
+        }
+    }
+
+    Keys.onReleased: event => {
+        if (!root.capturing)
             return;
-        saveChord(chord);
         event.accepted = true;
+        if (KeyCapture.isModifierKey(event.key)) {
+            const released = KeyCapture.modifiers(event.modifiers);
+            root.heldModifiers = root.heldModifiers.filter(name => released.indexOf(name) >= 0);
+        }
+    }
+
+    NumberAnimation {
+        id: captureCountdown
+        target: root
+        property: "captureRemaining"
+        from: 1
+        to: 0
+        duration: root.captureTimeoutMs
+        onFinished: root.endCapture(qsTr("Tiempo agotado: no se cambió el atajo"))
     }
 
     Component.onCompleted: refresh()
@@ -205,14 +230,18 @@ FocusScope {
                 try {
                     const result = JSON.parse(text.trim());
                     root.statusFailed = !result.ok;
-                    root.statusText = result.ok
-                        ? qsTr("Guardado · %1").arg(result.chord)
-                        : result.error;
-                    if (result.ok)
+                    if (result.ok) {
+                        root.endCapture(qsTr("Guardado · %1").arg(result.chord));
                         root.refresh();
+                    } else {
+                        // Stay in the listening state so another combination
+                        // can be tried without reopening the editor.
+                        root.statusText = result.error;
+                        root.captureProblem(result.error);
+                    }
                 } catch (error) {
                     root.statusFailed = true;
-                    root.statusText = qsTr("No se pudo guardar el atajo");
+                    root.endCapture(qsTr("No se pudo guardar el atajo"));
                 }
             }
         }
@@ -265,7 +294,7 @@ FocusScope {
 
                 CortetsuText {
                     Layout.fillWidth: true
-                    text: qsTr("Create app shortcut")
+                    text: qsTr("Crear atajo de aplicación")
                     color: CortetsuDesign.colorOnSurface
                     textSize: CortetsuTypography.titleMediumPx
                 }
@@ -305,7 +334,7 @@ FocusScope {
                         anchors.leftMargin: 42
                         anchors.verticalCenter: parent.verticalCenter
                         visible: appSearch.text.length === 0
-                        text: qsTr("Search installed applications")
+                        text: qsTr("Buscar aplicaciones instaladas")
                         color: CortetsuDesign.colorOutline
                         textSize: CortetsuTypography.bodyPx
                     }
@@ -407,13 +436,13 @@ FocusScope {
                                 CortetsuStateLayer {
                                     radius: parent.radius
                                     enabled: !root.busy
-                                    onClicked: root.beginCapture("", true)
+                                    onClicked: root.beginCapture("", true, root.selectedApp?.name ?? "", "")
                                 }
 
                                 CortetsuText {
                                     id: shortcutText
                                     anchors.centerIn: parent
-                                    text: root.captureNewApp ? qsTr("Press keys…") : qsTr("Set shortcut")
+                                    text: root.captureNewApp ? qsTr("Escuchando…") : qsTr("Asignar atajo")
                                     color: CortetsuDesign.colorOnSecondaryContainer
                                     textSize: CortetsuTypography.labelMediumPx
                                 }
@@ -555,13 +584,13 @@ FocusScope {
                                 CortetsuStateLayer {
                                     radius: parent.radius
                                     enabled: !root.busy
-                                    onClicked: root.beginCapture(parent.parent.parent.modelData.id, false)
+                                    onClicked: root.beginCapture(bindingRow.modelData.id, false, bindingRow.appEntry?.name ?? bindingRow.modelData.appName ?? bindingRow.modelData.label, bindingRow.modelData.chord)
                                 }
 
                                 CortetsuText {
                                     id: chordLabel
                                     anchors.centerIn: parent
-                                    text: root.captureId === modelData.id ? qsTr("Press keys…") : modelData.chord
+                                    text: root.captureId === modelData.id ? qsTr("Escuchando…") : modelData.chord
                                     color: CortetsuDesign.colorOnSecondaryContainer
                                     textSize: CortetsuTypography.labelMediumPx
                                 }
@@ -595,5 +624,19 @@ FocusScope {
                 }
             }
         }
+    }
+
+    KeyCaptureOverlay {
+        anchors.fill: parent
+        z: 10
+        active: root.capturing
+        actionLabel: root.captureLabel
+        currentChord: root.captureCurrentChord
+        heldModifiers: root.heldModifiers
+        message: root.captureMessage
+        failed: root.captureFailed
+        saving: root.busy && root.capturing
+        remaining: root.captureRemaining
+        onCancelRequested: root.endCapture(qsTr("Cambio de atajo cancelado"))
     }
 }
