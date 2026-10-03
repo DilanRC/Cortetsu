@@ -93,6 +93,7 @@ Column {
             return;
 
         pendingAction = "";
+        failedAction = "";
         confirmTimer.stop();
 
         if (action.lockOnly) {
