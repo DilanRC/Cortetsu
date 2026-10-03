@@ -69,5 +69,11 @@ jobs:
           python3 scripts/features/test-cortetsu-quality.py
           python3 scripts/features/test-native-bottom-hub.py
           python3 scripts/features/test-native-theme.py
+      # Quickshell's network module probes the system bus at startup and logs
+      # a warning without one; the connectivity fixtures reject warnings.
+      - name: Start a system D-Bus
+        run: |
+          mkdir -p /run/dbus
+          dbus-daemon --system --fork
       - name: Build two isolated generations and roll back
         run: python3 scripts/features/test-cortetsu-build.py
