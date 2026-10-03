@@ -6,7 +6,7 @@ import "../components"
 import "../services"
 import "."
 import "settings"
-import "CortetsuDesign.js" as CortetsuDesign
+import "../theme"
 
 // Settings is a normal desktop window. FloatingWindow gives it real compositor
 // state: it can be moved, tiled, resized and fullscreened.

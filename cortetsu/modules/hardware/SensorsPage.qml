@@ -1,10 +1,15 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import ".."
-import "../CortetsuDesign.js" as CortetsuDesign
+import "../../components"
+import "../../theme"
 import "../CortetsuTypography.js" as CortetsuTypography
+import "summary"
+import "Format.js" as Format
+import "Health.js" as Health
 
+// Heat and cooling: each temperature against its limit, the load per core
+// that produces it, and the fans that remove it.
 Item {
     id: root
 
@@ -14,133 +19,138 @@ Item {
     readonly property var gpus: snapshot?.gpus ?? []
     readonly property var fans: snapshot?.fans ?? []
     readonly property var battery: snapshot?.battery ?? ({})
+    readonly property var cores: cpu?.per_core ?? []
+    readonly property var health: Health.evaluate(snapshot)
 
-    function number(value, digits = 1): string {
-        if (value === null || value === undefined || isNaN(Number(value)))
-            return "—";
-        return Number(value).toFixed(digits);
-    }
-
-    function gpuAt(index): var {
-        return index >= 0 && index < gpus.length ? gpus[index] : ({});
+    function severityOf(id): string {
+        for (const issue of root.health.issues) {
+            if (issue.id === id)
+                return issue.severity;
+        }
+        return "";
     }
 
     Row {
         anchors.fill: parent
-        spacing: 12
+        spacing: CortetsuDesign.spacingStandard
 
-        Rectangle {
-            id: coresCard
-            width: parent.width * 0.56
-            height: parent.height
-            radius: CortetsuDesign.radiusLarge
-            color: CortetsuDesign.colorSurface
-            border.width: 1
-            border.color: CortetsuDesign.colorOutlineVariant
+        Column {
+            id: left
+            width: Math.round((parent.width - parent.spacing) * 0.6)
+            spacing: CortetsuDesign.spacingStandard
 
-            Column {
-                anchors.fill: parent
-                anchors.margins: 18
-                spacing: 14
+            Panel {
+                width: parent.width
+                height: thermals.implicitHeight + padding * 2
 
-                Row {
+                Column {
+                    id: thermals
                     width: parent.width
+                    spacing: CortetsuDesign.spacingStandard
 
-                    Column {
-                        width: parent.width * 0.68
-                        spacing: 2
-
-                        CortetsuText {
-                            text: qsTr("Núcleos de CPU")
-                            color: CortetsuDesign.colorOnSurface
-                            textSize: CortetsuTypography.titleMediumPx
-                        }
-
-                        CortetsuText {
-                            width: parent.width
-                            text: root.cpu?.model ?? "CPU"
-                            color: CortetsuDesign.colorOutline
-                            textSize: CortetsuTypography.labelSmallPx
-                            elide: Text.ElideRight
-                        }
+                    SummaryLabel {
+                        icon: "device_thermostat"
+                        text: qsTr("Temperaturas")
                     }
 
-                    Column {
-                        width: parent.width * 0.32
-                        spacing: 2
+                    Thermal {
+                        width: parent.width
+                        name: qsTr("CPU")
+                        detail: root.cpu?.model ?? ""
+                        celsius: root.cpu?.temp_c
+                        limits: Health.limits.cpuTempC
+                        severity: root.severityOf("cpu-temp")
+                    }
 
-                        CortetsuText {
-                            width: parent.width
-                            text: `${root.number(root.cpu?.temp_c, 1)} °C`
-                            color: CortetsuDesign.colorPrimary
-                            textSize: CortetsuTypography.titleMediumPx
-                            horizontalAlignment: Text.AlignRight
-                        }
+                    Repeater {
+                        model: root.gpus.length
 
-                        CortetsuText {
-                            width: parent.width
-                            text: `${root.number(root.cpu?.freq_mhz, 0)} MHz`
-                            color: CortetsuDesign.colorOnSurfaceVariant
-                            textSize: CortetsuTypography.labelSmallPx
-                            horizontalAlignment: Text.AlignRight
+                        delegate: Thermal {
+                            required property int index
+                            readonly property var gpu: root.gpus[index] ?? ({})
+
+                            width: thermals.width
+                            name: gpu.vendor ? qsTr("GPU %1").arg(gpu.vendor) : qsTr("GPU")
+                            detail: Format.watts(gpu.power_w)
+                            celsius: gpu.temp_c
+                            limits: Health.limits.gpuTempC
+                            severity: root.severityOf(`gpu-temp-${index}`)
                         }
                     }
                 }
+            }
 
-                Grid {
-                    id: coreGrid
+            Panel {
+                width: parent.width
+                height: coreColumn.implicitHeight + padding * 2
+
+                Column {
+                    id: coreColumn
                     width: parent.width
-                    columns: 3
-                    columnSpacing: 10
-                    rowSpacing: 10
+                    spacing: CortetsuDesign.spacingStandard
 
-                    Repeater {
-                        model: root.cpu?.per_core ?? []
+                    SummaryLabel {
+                        icon: "memory"
+                        text: qsTr("Carga por núcleo")
+                        detail: Format.join([
+                            Format.percent(root.cpu?.usage) ? qsTr("total %1").arg(Format.percent(root.cpu.usage)) : "",
+                            Format.gigahertz(root.cpu?.freq_mhz)
+                        ])
+                    }
 
-                        delegate: Rectangle {
-                            required property var modelData
-                            required property int index
-                            width: (coreGrid.width - coreGrid.columnSpacing * 2) / 3
-                            height: 74
-                            radius: CortetsuDesign.radiusMedium
-                            color: CortetsuDesign.colorSurfaceHigh
+                    CortetsuText {
+                        visible: root.cores.length === 0
+                        text: qsTr("La lectura no incluye datos por núcleo")
+                        color: CortetsuDesign.colorOnSurfaceVariant
+                        textSize: CortetsuTypography.bodySmallPx
+                    }
 
-                            Column {
-                                anchors.fill: parent
-                                anchors.margins: 10
-                                spacing: 7
+                    Grid {
+                        id: coreGrid
+                        width: parent.width
+                        columns: 3
+                        columnSpacing: CortetsuDesign.spacingSpacious
+                        rowSpacing: CortetsuDesign.spacingCompact
 
-                                Row {
-                                    width: parent.width
+                        Repeater {
+                            // Index-based: one cell per core, updated in place.
+                            model: root.cores.length
 
-                                    CortetsuText {
-                                        width: parent.width * 0.55
-                                        text: `CPU ${index}`
-                                        color: CortetsuDesign.colorOnSurfaceVariant
-                                        textSize: CortetsuTypography.labelSmallPx
-                                    }
+                            delegate: Item {
+                                id: core
+                                required property int index
+                                readonly property var usage: root.cores[core.index]
 
-                                    CortetsuText {
-                                        width: parent.width * 0.45
-                                        text: `${Number(modelData ?? 0).toFixed(0)}%`
-                                        color: CortetsuDesign.colorOnSurface
-                                        textSize: CortetsuTypography.labelMediumPx
-                                        horizontalAlignment: Text.AlignRight
-                                    }
+                                width: (coreGrid.width - coreGrid.columnSpacing * 2) / 3
+                                height: 24
+
+                                CortetsuText {
+                                    id: coreName
+                                    anchors.left: parent.left
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    width: 22
+                                    text: core.index
+                                    color: CortetsuDesign.colorOnSurfaceVariant
+                                    textSize: CortetsuTypography.labelMediumPx
                                 }
 
-                                Rectangle {
-                                    width: parent.width
-                                    height: 8
-                                    radius: 999
-                                    color: CortetsuDesign.colorSurfaceHigh
+                                CortetsuProgressBar {
+                                    anchors.left: coreName.right
+                                    anchors.right: coreValue.left
+                                    anchors.rightMargin: CortetsuDesign.spacingCompact
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    value: Format.fraction(core.usage)
+                                    barHeight: 6
+                                }
 
-                                    Rectangle {
-                                        width: parent.width * Math.max(0, Math.min(1, Number(modelData ?? 0) / 100))
-                                        height: parent.height
-                                        radius: parent.radius
-                                        color: CortetsuDesign.colorPrimary
-                                    }
+                                CortetsuText {
+                                    id: coreValue
+                                    anchors.right: parent.right
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    width: 42
+                                    horizontalAlignment: Text.AlignRight
+                                    text: Format.percent(core.usage)
+                                    textSize: CortetsuTypography.labelMediumPx
                                 }
                             }
                         }
@@ -150,161 +160,159 @@ Item {
         }
 
         Column {
-            width: parent.width - coresCard.width - 12
-            height: parent.height
-            spacing: 12
+            width: parent.width - left.width - parent.spacing
+            spacing: CortetsuDesign.spacingStandard
 
-            Rectangle {
+            Panel {
                 width: parent.width
-                height: (parent.height - 24) / 3
-                radius: CortetsuDesign.radiusLarge
-                color: CortetsuDesign.colorSurface
-                border.width: 1
-                border.color: CortetsuDesign.colorOutlineVariant
+                height: fanColumn.implicitHeight + padding * 2
 
                 Column {
-                    anchors.fill: parent
-                    anchors.margins: 16
-                    spacing: 9
+                    id: fanColumn
+                    width: parent.width
+                    spacing: CortetsuDesign.spacingUnit
 
-                    CortetsuText {
-                        text: qsTr("Refrigeración")
-                        color: CortetsuDesign.colorOnSurface
-                        textSize: CortetsuTypography.titleSmallPx
+                    SummaryLabel {
+                        icon: "mode_fan"
+                        text: qsTr("Ventiladores")
                     }
 
-                    Repeater {
-                        model: root.fans
-
-                        delegate: Row {
-                            required property var modelData
-                            width: parent.width
-                            height: 23
-
-                            CortetsuText {
-                                width: parent.width * 0.66
-                                text: modelData?.name ?? qsTr("Fan")
-                                color: CortetsuDesign.colorOnSurfaceVariant
-                                textSize: CortetsuTypography.labelSmallPx
-                                elide: Text.ElideRight
-                            }
-
-                            CortetsuText {
-                                width: parent.width * 0.34
-                                text: `${modelData?.rpm ?? "—"} RPM`
-                                color: CortetsuDesign.colorPrimary
-                                textSize: CortetsuTypography.labelMediumPx
-                                horizontalAlignment: Text.AlignRight
-                            }
-                        }
-                    }
+                    Item { width: 1; height: CortetsuDesign.spacingUnit }
 
                     CortetsuText {
                         visible: root.fans.length === 0
-                        text: qsTr("hwmon no expone datos de ventiladores")
-                        color: CortetsuDesign.colorOutline
+                        width: parent.width
+                        wrapMode: Text.WordWrap
+                        text: qsTr("El kernel no expone ningún ventilador en este equipo.")
+                        color: CortetsuDesign.colorOnSurfaceVariant
                         textSize: CortetsuTypography.bodySmallPx
-                    }
-                }
-            }
-
-            Rectangle {
-                width: parent.width
-                height: (parent.height - 24) / 3
-                radius: CortetsuDesign.radiusLarge
-                color: CortetsuDesign.colorSurface
-                border.width: 1
-                border.color: CortetsuDesign.colorOutlineVariant
-
-                Column {
-                    anchors.fill: parent
-                    anchors.margins: 16
-                    spacing: 7
-
-                    CortetsuText {
-                        text: qsTr("Thermals & power")
-                        color: CortetsuDesign.colorOnSurface
-                        textSize: CortetsuTypography.titleSmallPx
                     }
 
                     Repeater {
-                        model: [
-                            { label: qsTr("CPU"), value: `${root.number(root.cpu?.temp_c, 1)} °C` },
-                            { label: root.gpuAt(0)?.vendor ?? qsTr("GPU 1"), value: `${root.number(root.gpuAt(0)?.temp_c, 1)} °C · ${root.number(root.gpuAt(0)?.power_w, 1)} W` },
-                            { label: root.gpuAt(1)?.vendor ?? qsTr("GPU 2"), value: `${root.number(root.gpuAt(1)?.temp_c, 1)} °C · ${root.number(root.gpuAt(1)?.power_w, 1)} W` }
-                        ]
+                        model: root.fans.length
 
-                        delegate: Row {
-                            required property var modelData
-                            width: parent.width
-                            height: 24
+                        delegate: FactRow {
+                            required property int index
+                            readonly property var fan: root.fans[index] ?? ({})
 
-                            CortetsuText {
-                                width: parent.width * 0.38
-                                text: modelData.label
-                                color: CortetsuDesign.colorOutline
-                                textSize: CortetsuTypography.labelSmallPx
-                            }
-
-                            CortetsuText {
-                                width: parent.width * 0.62
-                                text: modelData.value
-                                color: CortetsuDesign.colorOnSurfaceVariant
-                                textSize: CortetsuTypography.labelMediumPx
-                                horizontalAlignment: Text.AlignRight
-                                elide: Text.ElideLeft
-                            }
+                            width: fanColumn.width
+                            label: fan.name ?? ""
+                            value: Format.known(fan.rpm) ? qsTr("%1 RPM").arg(fan.rpm) : ""
+                            emphasized: true
                         }
                     }
                 }
             }
 
-            Rectangle {
+            Panel {
                 width: parent.width
-                height: (parent.height - 24) / 3
-                radius: CortetsuDesign.radiusLarge
-                color: CortetsuDesign.colorSurface
-                border.width: 1
-                border.color: CortetsuDesign.colorOutlineVariant
+                height: batteryColumn.implicitHeight + padding * 2
 
                 Column {
-                    anchors.fill: parent
-                    anchors.margins: 16
-                    spacing: 8
+                    id: batteryColumn
+                    width: parent.width
+                    spacing: CortetsuDesign.spacingUnit
 
-                    CortetsuText {
+                    SummaryLabel {
+                        icon: "battery_full"
                         text: qsTr("Batería")
-                        color: CortetsuDesign.colorOnSurface
-                        textSize: CortetsuTypography.titleSmallPx
                     }
 
-                    CortetsuText {
-                        text: root.battery?.present
-                            ? `${root.number(root.battery?.percent, 0)}% · ${root.battery?.status ?? "—"}`
-                            : qsTr("No se detectó batería")
-                        color: CortetsuDesign.colorPrimary
-                        textSize: CortetsuTypography.titleMediumPx
-                    }
+                    Item { width: 1; height: CortetsuDesign.spacingUnit }
 
                     CortetsuText {
-                        text: root.battery?.present
-                            ? `${qsTr("Consumo actual")}: ${root.number(root.battery?.power_w, 1)} W`
-                            : ""
+                        visible: !root.battery?.present
+                        text: qsTr("Este equipo no tiene batería")
                         color: CortetsuDesign.colorOnSurfaceVariant
-                        textSize: CortetsuTypography.labelMediumPx
+                        textSize: CortetsuTypography.bodySmallPx
                     }
 
-                    CortetsuText {
-                        text: root.battery?.present
-                            ? qsTr("Los valores de batería y ventiladores provienen directamente de las interfaces power_supply y hwmon del kernel.")
-                            : qsTr("Sensor data is read only while Hardware Center is open.")
-                        color: CortetsuDesign.colorOutline
-                        textSize: CortetsuTypography.labelSmallPx
-                        wrapMode: Text.WordWrap
+                    FactRow {
+                        visible: !!root.battery?.present
                         width: parent.width
+                        label: qsTr("Carga")
+                        value: Format.percent(root.battery?.percent)
+                        emphasized: true
+                    }
+
+                    FactRow {
+                        visible: !!root.battery?.present
+                        width: parent.width
+                        label: qsTr("Estado")
+                        value: ({
+                            "Charging": qsTr("Cargando"),
+                            "Discharging": qsTr("En uso"),
+                            "Full": qsTr("Cargada"),
+                            "Not charging": qsTr("Conectada, sin cargar")
+                        })[root.battery?.status] ?? ""
+                    }
+
+                    FactRow {
+                        visible: !!root.battery?.present
+                        width: parent.width
+                        label: qsTr("Flujo")
+                        value: Format.watts(root.battery?.power_w)
                     }
                 }
             }
+        }
+    }
+
+    // A temperature read against the limits that flag it on the summary.
+    component Thermal: Item {
+        id: thermal
+
+        property string name: ""
+        property string detail: ""
+        property var celsius: null
+        property var limits: [90, 97]
+        property string severity: ""
+
+        height: 44
+
+        CortetsuText {
+            id: thermalName
+            anchors.left: parent.left
+            anchors.top: parent.top
+            text: thermal.name
+            textSize: CortetsuTypography.bodyPx
+            font.weight: Font.DemiBold
+        }
+
+        CortetsuText {
+            anchors.left: thermalName.right
+            anchors.leftMargin: CortetsuDesign.spacingCompact
+            anchors.right: reading.left
+            anchors.rightMargin: CortetsuDesign.spacingStandard
+            anchors.baseline: thermalName.baseline
+            text: thermal.detail
+            color: CortetsuDesign.colorOnSurfaceVariant
+            textSize: CortetsuTypography.labelMediumPx
+            elide: Text.ElideRight
+        }
+
+        SummaryFacts {
+            id: reading
+            anchors.right: parent.right
+            anchors.baseline: thermalName.baseline
+            lead: Format.celsius(thermal.celsius) || qsTr("Sin sensor")
+            rest: Format.known(thermal.celsius) ? qsTr("aviso a %1 °C").arg(thermal.limits[0]) : ""
+            severity: thermal.severity
+            textSize: CortetsuTypography.bodyPx
+        }
+
+        CortetsuProgressBar {
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            anchors.bottomMargin: 6
+            // The track ends at the critical limit, so the fill shows how much
+            // margin is left.
+            value: Format.known(thermal.celsius) ? Math.min(1, Number(thermal.celsius) / thermal.limits[1]) : -1
+            fillColor: thermal.severity === "critical"
+                ? CortetsuDesign.colorVermillion
+                : thermal.severity === "warning" ? CortetsuDesign.colorWarning : CortetsuDesign.colorPrimary
+            barHeight: 6
         }
     }
 }

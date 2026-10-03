@@ -18,6 +18,8 @@ ShellRoot {
     // Keep the wallpaper lifecycle controller alive with the shell so its
     // monitor-aware IPC contract is available before the first visual open.
     readonly property var wallpaperController: WallpaperController
+    // Owns the active scheme and feeds it to the design tokens from startup.
+    readonly property var colours: CortetsuColours
     Binding { target: ShellState; property: "shellRoot"; value: root }
     ShellLifecycle {}
     ServiceLoader {}

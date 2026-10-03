@@ -6,7 +6,7 @@ import "../../../utils"
 import ".."
 import "../.."
 import "../../../components"
-import "../../CortetsuDesign.js" as CortetsuDesign
+import "../../../theme"
 
 Item {
     id: root

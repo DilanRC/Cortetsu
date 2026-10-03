@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
-import "../modules/CortetsuDesign.js" as CortetsuDesign
+import "../theme"
 import "../modules/CortetsuTypography.js" as CortetsuTypography
 
 Item {

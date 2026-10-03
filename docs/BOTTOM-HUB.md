@@ -27,7 +27,7 @@ No existe un camino soportado que escriba directamente en `/etc/xdg/quickshell/c
 - `CortetsuSurface.qml`: superficie visual base.
 - `CortetsuIcon.qml`: iconografía first-party.
 - `CortetsuText.qml`: texto first-party.
-- `CortetsuDesign.js`: color, espaciado, radio y motion.
+- `theme/CortetsuDesign.qml`: color, espaciado, radio y motion.
 - `CortetsuTypography.js`: tipografía e icon font.
 
 Las vistas no pueden depender de `Hypr`, `SystemTray`, `Audio`, `Nmcli`, `Bluetooth`, `UPower`, `Notifs`, `Recorder`, `DesktopEntries`, `GlobalConfig`, `Apps`, `Wallpapers`, `qs.services`, `Caelestia.Config`, `Colours`, `Tokens`, `StyledRect`, `StyledText`, `MaterialIcon` o `ColouredIcon`. El gate `scripts/features/test-native-bottom-hub.py` hace cumplir esta frontera.

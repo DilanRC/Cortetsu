@@ -216,19 +216,32 @@ content pages.
 
 ## Wallpaper orbital selector
 
-The Wallpaper Manager uses a stable orbital model during selection. `windowIndex`
-is the last settled center, while `currentIndex` may update immediately so the
-central preview and its applied/selected state respond without waiting for the
-wallpaper backend. The satellite model remains anchored to `windowIndex` until
-the configured Wall Utility OutCubic phase animation completes, so the clicked wallpaper stays
-visible while the orbit rotates. `orbitPhase` accumulates between selections;
-it is reset only by a catalog/category resync, not after every move.
+The Wallpaper Orbital has three bands: a header with search and categories
+with their counts, a stage that shows the candidate at 16:9 with the applied
+wallpaper beside it for comparison, and the wheel turning under the stage.
+`Tab` swaps the stage and wheel for a scrolling grid of the whole category.
 
-Satellite depth is derived from the animated angle and controls position, scale,
-opacity, and z-order. The center preview now exposes `Selected`, `Previewing`,
-or `Applied`, with an Indigo focus outline and a distinct healthy secondary
-state for an applied wallpaper. Left/Right and Up/Down remain keyboard-first;
-Enter/Space apply and Escape closes the surface.
+`windowIndex` is the last settled centre, while `currentIndex` updates at once
+so the stage and its state respond without waiting for the wallpaper backend.
+The arc model stays anchored to `windowIndex` until the Wall Utility OutCubic
+turn completes, so the wallpaper being selected travels to the centre.
+`orbitPhase` is the turn in slots; it returns to zero in the same handler that
+re-anchors the model. A collection that fits in the arc is a strip with real
+ends; a larger one wraps. A jump past the visible arc re-anchors and fades in
+instead of sliding.
+
+Depth is derived from the animated angle and controls position, scale, opacity
+and z-order. The stage names `Seleccionado`, `Vista previa`, `Actual`,
+`Aplicando` or `No se pudo aplicar`; a failure belongs to the wallpaper that
+failed and offers `Reintentar`. Keyboard: Left/Right move, Up/Down change
+category (rows in the grid, where Shift+Up/Down changes category), Home/End,
+Page Up/Down jump a window, `/` searches, `R` applies a random wallpaper,
+Enter/Space apply and Escape closes. A click outside closes and, when a preview
+was showing, says that it was discarded.
+
+The selection survives a rescan and a failed apply, and follows the applied
+wallpaper when that changes. An empty folder, a search without matches and a
+library still being read are explicit states.
 
 Wallpaper application is one shared transaction owned by
 `CortetsuWallpapers`. Its ephemeral `applyStatus` is `idle`, `applying`,

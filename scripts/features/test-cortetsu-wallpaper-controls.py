@@ -12,7 +12,7 @@ for marker in (
     'label: qsTr("Cancelar")',
     'icon: "shuffle"',
     'label: qsTr("Aleatorio")',
-    'root.applying ? qsTr("Aplicando") : qsTr("Aplicar")',
+    'root.applying ? qsTr("Aplicando") : root.currentFailed ? qsTr("Reintentar") : qsTr("Aplicar")',
     "active: true",
     "onClicked: root.apply()",
 ):

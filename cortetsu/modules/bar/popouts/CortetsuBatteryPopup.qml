@@ -4,7 +4,7 @@ import QtQuick
 import Quickshell.Services.UPower
 import "../../../components"
 import "../../../services"
-import "../../CortetsuDesign.js" as CortetsuDesign
+import "../../../theme"
 import "../../../utils"
 
 CortetsuPopupSurface {

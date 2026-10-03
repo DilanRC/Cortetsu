@@ -1,15 +1,14 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import QtQuick.Shapes
-import QtQuick.Effects
 import Quickshell
 import ".."
 import "../settings"
 import "../../services"
 import "../../components"
-import "../CortetsuDesign.js" as CortetsuDesign
+import "../../theme"
 import "../CortetsuTypography.js" as CortetsuTypography
+import "../CortetsuWallpaperSearch.js" as WallpaperSearch
 import "OrbitModel.js" as Orbit
 
 FocusScope {
@@ -17,14 +16,18 @@ FocusScope {
 
     required property var screen
     required property var screenState
-    property var entries: CortetsuWallpapers.list ? Array.from(CortetsuWallpapers.list) : []
-    property var filteredEntries: Orbit.filtered(entries, selectedCategory, categoryFor)
-    property var categoryNames: Orbit.categories(entries, categoryFor)
+    property var entries: []
+    property var filteredEntries: []
+    property var categoryCounts: [{ name: "ALL", count: 0 }]
     property string selectedCategory: "ALL"
+    property string query: ""
+    property bool gridMode: false
     property int currentIndex: -1
     property int windowIndex: -1
     property int queuedDirection: 0
     property bool animating: false
+    // Turn of the wheel, in slots, while a move animates. It returns to zero
+    // in the same handler that re-anchors the model, so nothing jumps.
     property real orbitPhase: 0
     property real wheelAccumulator: 0
     property string pendingPreviewPath: ""
@@ -39,26 +42,33 @@ FocusScope {
     readonly property bool applyFailed: CortetsuWallpapers.applyFailed
     readonly property string applyStatus: CortetsuWallpapers.applyStatus
     property bool cosmicPulse: false
-    readonly property int visibleLimit: Math.max(1, Math.min(12, Math.floor((width - 104) / 102)))
-    // Keep the orbit model anchored to the last settled selection while a
-    // transition is running.  The newly selected wallpaper stays visible as
-    // a satellite until the rotation has completed, instead of disappearing
-    // when currentIndex changes.
-    readonly property var orbitEntries: Orbit.satellites(filteredEntries, windowIndex, windowIndex, visibleLimit)
+    // Satellites on each side of the selected one. One more per side stays in
+    // the model, invisible, so a turn has something to bring in.
+    readonly property int arcHalf: Orbit.clamp(Math.floor(panel.width / 236), 2, 7)
+    readonly property real arcSpan: Math.PI * 0.39
+    readonly property int visibleLimit: arcHalf * 2 + 1
+    // The arc stays anchored to the last settled selection while a turn is
+    // running, so the wallpaper being selected travels to the centre instead
+    // of the model changing under it.
+    readonly property var orbitEntries: Orbit.arc(filteredEntries, windowIndex, arcHalf + 1)
     readonly property var prefetchEntries: Orbit.prefetch(filteredEntries, currentIndex, visibleLimit + 6)
     readonly property var currentEntry: currentIndex >= 0 ? filteredEntries[currentIndex] : null
     readonly property string currentPath: currentEntry?.path ?? ""
     readonly property bool currentIsApplied: !!currentPath && currentPath === CortetsuWallpapers.actualCurrent
+    // A failure belongs to the wallpaper that failed, not to whichever is selected.
+    readonly property bool currentFailed: applyFailed && currentPath === CortetsuWallpapers.applyStatusPath
+    readonly property bool libraryEmpty: entries.length === 0
+    readonly property bool noResults: !libraryEmpty && filteredEntries.length === 0
     readonly property string currentStateLabel: applyStatus === "applying"
         ? qsTr("Aplicando")
-        : applyStatus === "failed"
+        : currentFailed
             ? qsTr("No se pudo aplicar")
             : currentIsApplied
-                ? qsTr("Applied")
-                : (previewActive ? qsTr("Previsualizando") : qsTr("Seleccionado"))
+                ? qsTr("Actual")
+                : (previewActive ? qsTr("Vista previa") : qsTr("Seleccionado"))
     readonly property string markPhase: cosmicPulse
         ? "Cosmic"
-        : applyStatus === "applying" || animating
+        : applyStatus === "applying" || animating || (libraryEmpty && CortetsuWallpapers.scanning)
             ? "Awakening"
             : applyStatus === "failed"
                 ? (currentIsApplied ? "Ascended" : "Human")
@@ -80,11 +90,19 @@ FocusScope {
     }
 
     function updatePresentationReady(): void {
-        if (!presentationReady && (heroImage.status === Image.Ready || heroImage.status === Image.Error) && essentialReady())
+        if (!presentationReady && (!currentPath || hero.status === Image.Ready || hero.status === Image.Error) && essentialReady())
             presentationReady = true;
     }
 
-    function categoryFor(entry): string { return CortetsuWallpapers.getCategoryFor(entry) || qsTr("Unsorted"); }
+    readonly property string uncategorised: qsTr("Sin categoría")
+
+    function categoryFor(entry): string { return CortetsuWallpapers.getCategoryFor(entry) || uncategorised; }
+
+    function categoryLabel(name: string): string { return name === "ALL" ? qsTr("Todos") : name; }
+
+    function matchesQuery(entry): bool {
+        return WallpaperSearch.matches(`${entry.name ?? ""} ${entry.relativePath ?? entry.path}`, query, CortetsuConfig.useFuzzyWallpapers);
+    }
 
     function cancelPreview(): void {
         previewTimer.stop();
@@ -105,19 +123,36 @@ FocusScope {
             heroCrossfade.restart();
     }
 
-    function resync(): void {
-        cancelPreview();
-        entries = CortetsuWallpapers.list ? Array.from(CortetsuWallpapers.list) : [];
-        categoryNames = Orbit.categories(entries, categoryFor);
-        if (!categoryNames.includes(selectedCategory))
-            selectedCategory = "ALL";
-        filteredEntries = Orbit.filtered(entries, selectedCategory, categoryFor);
-        const actual = Orbit.resolveCurrentIndex(filteredEntries, CortetsuWallpapers.actualCurrent);
-        currentIndex = Orbit.normalize(actual >= 0 ? actual : 0, filteredEntries.length);
-        windowIndex = currentIndex;
+    // Settle on an entry without animating: used whenever the visible set
+    // itself changes (catalog, category, search).
+    function settle(index: int): void {
         queuedDirection = 0;
+        orbitMotion.stop();
+        animating = false;
+        currentIndex = index;
+        windowIndex = index;
         orbitPhase = 0;
         updateHero();
+    }
+
+    // Rebuild the visible set. The selection stays on `preferredPath` when it
+    // survives the filter, then on the applied wallpaper, then on the first.
+    function refilter(preferredPath: string): void {
+        const scoped = Orbit.filtered(entries, selectedCategory, categoryFor);
+        filteredEntries = query.trim() ? scoped.filter(matchesQuery) : scoped;
+        let index = Orbit.resolveCurrentIndex(filteredEntries, preferredPath);
+        if (index < 0)
+            index = Orbit.resolveCurrentIndex(filteredEntries, CortetsuWallpapers.actualCurrent);
+        settle(Orbit.normalize(index >= 0 ? index : 0, filteredEntries.length));
+    }
+
+    function resync(preferredPath: string): void {
+        cancelPreview();
+        entries = CortetsuWallpapers.list ? Array.from(CortetsuWallpapers.list) : [];
+        categoryCounts = Orbit.categoryCounts(entries, categoryFor, uncategorised);
+        if (!categoryCounts.some(category => category.name === selectedCategory))
+            selectedCategory = "ALL";
+        refilter(preferredPath);
     }
 
     function queuePreview(): void {
@@ -126,13 +161,13 @@ FocusScope {
             previewTimer.restart();
     }
 
-    function requestMove(direction): void {
+    function requestMove(direction: int): void {
         if (filteredEntries.length < 2)
             return;
         requestTarget(Orbit.move(currentIndex, direction, filteredEntries.length), direction);
     }
 
-    function requestTarget(target, replacementDirection): void {
+    function requestTarget(target: int, replacementDirection: int): void {
         cancelPreview();
         if (animating) {
             queuedDirection = replacementDirection;
@@ -141,46 +176,59 @@ FocusScope {
         animateTo(target);
     }
 
-    function consumeWheel(angleDelta, pixelDelta): void {
+    function consumeWheel(angleDelta: real, pixelDelta: real): void {
         const intent = Orbit.wheelIntent(wheelAccumulator, angleDelta, pixelDelta);
         wheelAccumulator = intent.accumulator;
         if (intent.direction)
             requestMove(intent.direction);
     }
 
-    function animateTo(target): void {
+    function animateTo(target: int): void {
         const count = filteredEntries.length;
         if (!count || target === currentIndex || animating)
             return;
-        const steps = Orbit.shortestSteps(currentIndex, target, count);
+        const steps = Orbit.arcSteps(currentIndex, target, count, arcHalf + 1);
         if (!steps)
             return;
-        animating = true;
         currentIndex = target;
         updateHero();
         queuePreview();
-        // Accumulate the phase. Resetting it after every move caused the
-        // model reorder to snap back to its initial geometry.
-        orbitMotion.to = orbitPhase - steps * Orbit.angularStep(Math.max(2, orbitEntries.length + 1));
+        // A jump past the visible arc has nothing to slide: re-anchor and
+        // let the arc fade in at its new position.
+        if (gridMode || Math.abs(steps) > arcHalf) {
+            windowIndex = target;
+            arcFade.restart();
+            return;
+        }
+        animating = true;
+        orbitMotion.to = steps;
         orbitMotion.restart();
     }
 
-    function selectSatellite(target): void {
-        const direction = Orbit.shortestSteps(currentIndex, target, filteredEntries.length);
-        if (direction)
-            requestTarget(target, Math.sign(direction));
+    function select(target: int): void {
+        if (target === currentIndex || target < 0 || target >= filteredEntries.length)
+            return;
+        requestTarget(target, Math.sign(Orbit.arcSteps(currentIndex, target, filteredEntries.length, arcHalf + 1)));
     }
 
-    function selectCategory(category): void {
+    function selectCategory(category: string): void {
+        if (category === selectedCategory)
+            return;
+        const keep = currentPath;
         cancelPreview();
         selectedCategory = category;
-        filteredEntries = Orbit.filtered(entries, category, categoryFor);
-        const actual = Orbit.resolveCurrentIndex(filteredEntries, CortetsuWallpapers.actualCurrent);
-        currentIndex = Orbit.normalize(actual >= 0 ? actual : 0, filteredEntries.length);
-        windowIndex = currentIndex;
-        queuedDirection = 0;
-        orbitPhase = 0;
-        updateHero();
+        refilter(keep);
+    }
+
+    function cycleCategory(direction: int): void {
+        const position = categoryCounts.findIndex(category => category.name === selectedCategory);
+        selectCategory(categoryCounts[Orbit.normalize(position + direction, categoryCounts.length)].name);
+    }
+
+    function toggleGrid(): void {
+        gridMode = !gridMode;
+        if (gridMode)
+            Qt.callLater(() => grid.positionViewAtIndex(root.currentIndex, GridView.Contain));
     }
 
     function apply(): void {
@@ -212,6 +260,14 @@ FocusScope {
         screenState.cortetsuState?.setRetained("wallpaperManager", false);
     }
 
+    // A click outside the panel. Nothing was applied, so say what happened
+    // to the wallpaper the desktop was showing.
+    function dismiss(): void {
+        if (previewActive)
+            CortetsuToaster.toast(qsTr("Vista previa descartada"), qsTr("El fondo anterior sigue aplicado"), "wallpaper");
+        cancel();
+    }
+
     function random(): void {
         if (applying)
             return;
@@ -223,11 +279,21 @@ FocusScope {
             CortetsuWallpapers.previewColourLock = false;
     }
 
+    function openFolder(): void {
+        Quickshell.execDetached(["xdg-open", CortetsuWallpapers.wallsdir]);
+        cancel();
+    }
+
     function openManager(): void {
+        // The catalog is read on demand; there is no background rescan.
+        CortetsuWallpapers.reload();
         presentationReady = false;
-        resync();
+        gridMode = false;
+        query = "";
+        searchBar.clear();
+        resync(CortetsuWallpapers.actualCurrent);
         Qt.callLater(updatePresentationReady);
-        forceActiveFocus();
+        keyTarget.forceActiveFocus();
     }
 
     function closeManager(): void { cancel(); }
@@ -242,6 +308,11 @@ FocusScope {
     }
 
     onCurrentPathChanged: updateHero()
+    onQueryChanged: {
+        const keep = currentPath;
+        cancelPreview();
+        refilter(keep);
+    }
     Component.onDestruction: {
         cosmicPulseTimer.stop();
         cancelPreview();
@@ -282,6 +353,7 @@ FocusScope {
         easing.type: Easing.OutCubic
         onStopped: {
             root.windowIndex = root.currentIndex;
+            root.orbitPhase = 0;
             root.animating = false;
             if (root.queuedDirection) {
                 const direction = root.queuedDirection;
@@ -289,6 +361,16 @@ FocusScope {
                 root.requestMove(direction);
             }
         }
+    }
+
+    NumberAnimation {
+        id: arcFade
+        target: arcRegion
+        property: "opacity"
+        from: 0.2
+        to: 1
+        duration: CortetsuDesign.wallUtilityCrossfadeMotionMs
+        easing.type: Easing.OutCubic
     }
 
     ParallelAnimation {
@@ -300,26 +382,41 @@ FocusScope {
 
     Connections {
         target: CortetsuWallpapers
-        function onActualCurrentChanged(): void {
-            root.resync();
-        }
+        // The applied wallpaper changed: follow it.
+        function onActualCurrentChanged(): void { root.resync(CortetsuWallpapers.actualCurrent); }
         function onWallpaperApplySucceeded(path: string, generation: int): void {
             root.cosmicPulse = true;
             cosmicPulseTimer.restart();
-            root.resync();
+            root.resync(CortetsuWallpapers.actualCurrent);
         }
-        function onWallpaperApplyFailed(path: string, generation: int): void { root.resync(); }
-        function onListChanged(): void { root.resync(); }
+        // The candidate stays selected so Reintentar has something to retry.
+        function onWallpaperApplyFailed(path: string, generation: int): void { root.resync(root.currentPath); }
+        function onListChanged(): void { root.resync(root.currentPath); }
     }
 
     Keys.onPressed: event => {
-        if (event.key === Qt.Key_Left) { requestMove(-1); event.accepted = true; }
-        else if (event.key === Qt.Key_Right) { requestMove(1); event.accepted = true; }
-        else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) { apply(); event.accepted = true; }
-        else if (event.key === Qt.Key_Escape) { cancel(); event.accepted = true; }
+        const count = filteredEntries.length;
+        const shift = event.modifiers & Qt.ShiftModifier;
+        event.accepted = true;
+        if (event.key === Qt.Key_Left) requestMove(-1);
+        else if (event.key === Qt.Key_Right) requestMove(1);
+        else if (event.key === Qt.Key_Up && gridMode && !shift) select(currentIndex - grid.columns);
+        else if (event.key === Qt.Key_Down && gridMode && !shift) select(currentIndex + grid.columns);
+        else if (event.key === Qt.Key_Up) cycleCategory(-1);
+        else if (event.key === Qt.Key_Down) cycleCategory(1);
+        else if (event.key === Qt.Key_Home) select(0);
+        else if (event.key === Qt.Key_End) select(count - 1);
+        else if (event.key === Qt.Key_PageUp) select(Math.max(0, currentIndex - visibleLimit));
+        else if (event.key === Qt.Key_PageDown) select(Math.min(count - 1, currentIndex + visibleLimit));
+        else if (event.key === Qt.Key_Tab) toggleGrid();
+        else if (event.key === Qt.Key_Slash) searchBar.forceActiveFocus();
+        else if (event.key === Qt.Key_R) random();
+        else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) apply();
+        else if (event.key === Qt.Key_Escape) cancel();
+        else event.accepted = false;
     }
 
-    MouseArea { anchors.fill: parent; z: 0; onClicked: root.cancel() }
+    MouseArea { anchors.fill: parent; z: 0; onClicked: root.dismiss() }
 
     Repeater {
         id: prefetchRepeater
@@ -331,19 +428,43 @@ FocusScope {
             opacity: 0
             source: modelData.path
             asynchronous: true
-            sourceSize.width: 128
-            sourceSize.height: 128
+            sourceSize.width: 256
+            sourceSize.height: 256
             cache: true
             onStatusChanged: root.updatePresentationReady()
         }
     }
 
-    Item {
-        id: panel
+    Rectangle {
+        id: panelSurface
         z: 1
         anchors.centerIn: parent
-        width: Math.min(parent.width - 48, 900)
-        height: Math.min(parent.height - 48, 680)
+        width: Math.min(parent.width - 48, 1040)
+        height: Math.min(parent.height - 48, 760)
+        radius: CortetsuDesign.wallUtilitySurfaceRadius
+        color: Qt.alpha(CortetsuDesign.colorSurface, 0.84)
+        border.width: 1
+        border.color: Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.55)
+
+        // Clicks and wheel turns inside the panel never reach the dismiss area.
+        MouseArea {
+            anchors.fill: parent
+            onClicked: keyTarget.forceActiveFocus()
+            onWheel: event => {
+                if (!root.gridMode)
+                    root.consumeWheel(event.angleDelta.y, event.pixelDelta.y);
+                event.accepted = true;
+            }
+        }
+    }
+
+    Item {
+        id: panel
+        z: 2
+        anchors.fill: panelSurface
+        anchors.margins: CortetsuDesign.spacingComfortable
+
+        Item { id: keyTarget; focus: true }
 
         Item {
             id: header
@@ -366,19 +487,62 @@ FocusScope {
             Column {
                 anchors.left: headerLogo.right
                 anchors.leftMargin: CortetsuDesign.spacingStandard
+                anchors.right: searchBar.left
+                anchors.rightMargin: CortetsuDesign.spacingStandard
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: 1
 
                 CortetsuText {
-                    text: qsTr("Wallpaper Forge")
+                    text: qsTr("Wallpaper Orbital")
                     textSize: CortetsuTypography.titleMediumPx
                     font.weight: Font.DemiBold
                 }
                 CortetsuText {
-                    text: qsTr("Wallpaper-aware desktop surface")
+                    width: parent.width
+                    elide: Text.ElideMiddle
+                    text: root.libraryEmpty
+                        ? (CortetsuWallpapers.scanning ? qsTr("Leyendo la biblioteca") : qsTr("Biblioteca vacía"))
+                        : root.filteredEntries.length === root.entries.length
+                            ? qsTr("%1 fondos").arg(root.entries.length)
+                            : qsTr("%1 de %2 fondos").arg(root.filteredEntries.length).arg(root.entries.length)
                     textSize: CortetsuTypography.labelSmallPx
                     color: CortetsuDesign.colorOnSurfaceVariant
                 }
+            }
+
+            CortetsuSearchBar {
+                id: searchBar
+                anchors.right: gridButton.left
+                anchors.rightMargin: CortetsuDesign.spacingStandard
+                anchors.verticalCenter: parent.verticalCenter
+                width: Math.min(280, header.width * 0.3)
+                compact: true
+                enabled: !root.libraryEmpty
+                placeholderText: qsTr("Buscar fondo")
+                onTextChanged: root.query = text
+                Keys.onPressed: event => {
+                    if (event.key === Qt.Key_Escape && text.length > 0) {
+                        clear();
+                        event.accepted = true;
+                    } else if (event.key === Qt.Key_Escape || event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Tab) {
+                        keyTarget.forceActiveFocus();
+                        event.accepted = true;
+                    }
+                }
+            }
+
+            CortetsuButton {
+                id: gridButton
+                anchors.right: settingsButton.left
+                anchors.rightMargin: CortetsuDesign.spacingCompact
+                anchors.verticalCenter: parent.verticalCenter
+                compact: true
+                icon: root.gridMode ? "orbit" : "grid_view"
+                label: ""
+                active: root.gridMode
+                disabled: root.libraryEmpty
+                tooltipText: root.gridMode ? qsTr("Volver a la órbita") : qsTr("Ver la rejilla completa")
+                onClicked: root.toggleGrid()
             }
 
             CortetsuButton {
@@ -389,7 +553,7 @@ FocusScope {
                 compact: true
                 icon: "tune"
                 label: ""
-                tooltipText: qsTr("Return to Wallpaper settings")
+                tooltipText: qsTr("Ajustes de fondo")
                 onClicked: root.returnToSettings()
             }
 
@@ -405,25 +569,14 @@ FocusScope {
             }
         }
 
-        Rectangle {
-            anchors.fill: categoryStrip
-            anchors.leftMargin: -8
-            anchors.rightMargin: -8
-            anchors.topMargin: -8
-            anchors.bottomMargin: -4
-            radius: CortetsuDesign.radiusLarge
-            color: Qt.alpha(CortetsuDesign.colorSurfaceHigh, 0.68)
-            border.width: 1
-            border.color: Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.55)
-        }
-
         Flickable {
             id: categoryStrip
             anchors.top: header.bottom
-            anchors.topMargin: CortetsuDesign.spacingCompact
-            anchors.horizontalCenter: parent.horizontalCenter
-            width: Math.min(categoryRow.width, parent.width - 40)
+            anchors.topMargin: CortetsuDesign.spacingStandard
+            anchors.left: parent.left
+            anchors.right: parent.right
             height: 36
+            visible: !root.libraryEmpty
             contentWidth: categoryRow.width
             contentHeight: height
             clip: true
@@ -433,282 +586,246 @@ FocusScope {
                 id: categoryRow
                 spacing: CortetsuDesign.wallUtilityCategoryGap
                 Repeater {
-                    model: root.categoryNames
+                    model: root.categoryCounts
                     delegate: CortetsuButton {
-                        required property string modelData
+                        required property var modelData
                         compact: true
-                        label: modelData
-                        active: root.selectedCategory === modelData
-                        onClicked: root.selectCategory(modelData)
+                        label: qsTr("%1  %2").arg(root.categoryLabel(modelData.name)).arg(modelData.count)
+                        active: root.selectedCategory === modelData.name
+                        onClicked: root.selectCategory(modelData.name)
                     }
                 }
             }
         }
 
         Item {
-            id: orbitRegion
+            id: body
             anchors.top: categoryStrip.bottom
             anchors.topMargin: CortetsuDesign.wallUtilityOrbitTopGap
-            anchors.bottom: footerSurface.top
+            anchors.bottom: footer.top
             anchors.bottomMargin: CortetsuDesign.wallUtilityOrbitBottomGap
             anchors.left: parent.left
             anchors.right: parent.right
 
-            MouseArea {
-                anchors.fill: parent
-                onWheel: event => {
-                    root.consumeWheel(event.angleDelta.y, event.pixelDelta.y);
-                    event.accepted = true;
-                }
-            }
+            // Library states that leave nothing to browse.
+            Column {
+                anchors.centerIn: parent
+                width: Math.min(parent.width - 48, 520)
+                spacing: CortetsuDesign.spacingStandard
+                visible: root.libraryEmpty || root.noResults
 
-            Shape {
-                id: heroMask
-                z: 1
-                anchors.centerIn: hero
-                width: hero.width
-                height: hero.height
-                layer.enabled: true
-                visible: true
-                ShapePath {
-                    fillColor: CortetsuDesign.colorSurface
-                    startX: heroMask.width * 0.28; startY: 0
-                    PathLine { x: heroMask.width * 0.72; y: 0 }
-                    PathLine { x: heroMask.width; y: heroMask.height * 0.28 }
-                    PathLine { x: heroMask.width; y: heroMask.height * 0.72 }
-                    PathLine { x: heroMask.width * 0.72; y: heroMask.height }
-                    PathLine { x: heroMask.width * 0.28; y: heroMask.height }
-                    PathLine { x: 0; y: heroMask.height * 0.72 }
-                    PathLine { x: 0; y: heroMask.height * 0.28 }
-                    PathLine { x: heroMask.width * 0.28; y: 0 }
+                CortetsuIcon {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: root.noResults ? "search_off" : CortetsuWallpapers.scanning ? "hourglass_top" : "wallpaper"
+                    iconSize: CortetsuTypography.iconExtraLargePx
+                    color: CortetsuDesign.colorOnSurfaceVariant
+                }
+                CortetsuText {
+                    width: parent.width
+                    horizontalAlignment: Text.AlignHCenter
+                    wrapMode: Text.Wrap
+                    text: root.noResults
+                        ? (root.query.trim() ? qsTr("Sin resultados para «%1»").arg(root.query.trim()) : qsTr("Esta categoría está vacía"))
+                        : CortetsuWallpapers.scanning
+                            ? qsTr("Leyendo la biblioteca")
+                            : qsTr("No hay fondos en esta carpeta")
+                    textSize: CortetsuTypography.titleSmallPx
+                }
+                CortetsuText {
+                    width: parent.width
+                    horizontalAlignment: Text.AlignHCenter
+                    wrapMode: Text.WrapAnywhere
+                    visible: root.libraryEmpty
+                    text: CortetsuWallpapers.wallsdir
+                    color: CortetsuDesign.colorOnSurfaceVariant
+                    textSize: CortetsuTypography.labelMediumPx
+                }
+                CortetsuButton {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    visible: root.noResults || !CortetsuWallpapers.scanning
+                    compact: true
+                    icon: root.noResults ? "backspace" : "folder_open"
+                    label: root.noResults ? qsTr("Quitar filtros") : qsTr("Abrir carpeta")
+                    onClicked: {
+                        if (!root.noResults) {
+                            root.openFolder();
+                            return;
+                        }
+                        searchBar.clear();
+                        root.selectCategory("ALL");
+                        keyTarget.forceActiveFocus();
+                    }
                 }
             }
 
             Item {
-                id: hero
-                z: 3
-                anchors.centerIn: parent
-                width: Math.min(parent.width * 0.38, 330)
-                height: Math.min(parent.height * 0.76, 340)
+                id: stageRegion
+                anchors.top: parent.top
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.bottom: arcRegion.top
+                anchors.bottomMargin: CortetsuDesign.spacingStandard
+                visible: !root.gridMode && !!root.currentPath
 
-                Image {
-                    anchors.fill: parent
-                    source: root.outgoingHeroPath
-                    opacity: root.oldHeroOpacity
-                    asynchronous: true
-                    sourceSize.width: 640
-                    sourceSize.height: 640
-                    fillMode: Image.PreserveAspectCrop
-                    cache: true
-                    mipmap: true
-                    retainWhileLoading: true
-                    layer.enabled: true
-                    layer.effect: CortetsuMask { maskSource: heroMask }
-                }
-                Image {
-                    id: heroImage
-                    anchors.fill: parent
+                WallpaperStage {
+                    id: hero
+                    anchors.centerIn: parent
+                    width: Math.min(parent.width, parent.height * 16 / 9)
+                    height: width * 9 / 16
                     source: root.heroPath
-                    opacity: root.newHeroOpacity
-                    asynchronous: true
-                    sourceSize.width: 640
-                    sourceSize.height: 640
-                    fillMode: Image.PreserveAspectCrop
-                    cache: true
-                    mipmap: true
-                    retainWhileLoading: true
-                    layer.enabled: true
-                    layer.effect: CortetsuMask { maskSource: heroMask }
+                    outgoingSource: root.outgoingHeroPath
+                    sourceOpacity: root.newHeroOpacity
+                    outgoingOpacity: root.oldHeroOpacity
+                    appliedSource: root.currentIsApplied ? "" : CortetsuWallpapers.actualCurrent
+                    applied: root.currentIsApplied
+                    failed: root.currentFailed
+                    title: Orbit.basename(root.currentPath)
+                    stateLabel: root.currentStateLabel
+                    detail: root.currentEntry
+                        ? qsTr("%1  ·  %2 de %3").arg(root.categoryFor(root.currentEntry)).arg(root.currentIndex + 1).arg(root.filteredEntries.length)
+                        : ""
+                    errorText: root.currentFailed ? CortetsuWallpapers.applyError : ""
                     onStatusChanged: root.updatePresentationReady()
-                    CortetsuIcon {
-                        anchors.centerIn: parent
-                        visible: parent.status === Image.Error
-                        text: "broken_image"
-                        color: CortetsuDesign.colorOnSurfaceVariant
-                        iconSize: CortetsuTypography.iconExtraLargePx
-                    }
                 }
+            }
 
-                Shape {
-                    id: heroOutline
-                    anchors.fill: parent
-                    z: 4
-                    ShapePath {
-                        fillColor: "transparent"
-                        strokeColor: root.currentIsApplied ? CortetsuDesign.colorSecondary : CortetsuDesign.colorPrimary
-                        strokeWidth: 2
-                        startX: heroOutline.width * 0.28; startY: 0
-                        PathLine { x: heroOutline.width * 0.72; y: 0 }
-                        PathLine { x: heroOutline.width; y: heroOutline.height * 0.28 }
-                        PathLine { x: heroOutline.width; y: heroOutline.height * 0.72 }
-                        PathLine { x: heroOutline.width * 0.72; y: heroOutline.height }
-                        PathLine { x: heroOutline.width * 0.28; y: heroOutline.height }
-                        PathLine { x: 0; y: heroOutline.height * 0.72 }
-                        PathLine { x: 0; y: heroOutline.height * 0.28 }
-                        PathLine { x: heroOutline.width * 0.28; y: 0 }
-                    }
-                }
+            // The wheel turns under the stage: the selected wallpaper sits at
+            // the top and its neighbours fall away along the rim.
+            Item {
+                id: arcRegion
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.bottom: parent.bottom
+                readonly property real tileWidth: Orbit.clamp(width / root.visibleLimit, 92, 132)
+                readonly property real tileHeight: tileWidth * 9 / 16
+                readonly property real radiusX: (width - tileWidth * 0.6) / 2 / Math.sin(root.arcSpan)
+                readonly property real radiusY: 64
+                height: tileHeight * 1.16 + radiusY * 0.5
+                visible: !root.gridMode && !!root.currentPath
 
-                CortetsuSurface {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    anchors.bottom: parent.bottom
-                    anchors.bottomMargin: 12
-                    implicitWidth: heroStateText.implicitWidth + 24
-                    implicitHeight: 30
-                    radiusValue: CortetsuDesign.radiusSmall
-                    baseColor: root.currentIsApplied
-                        ? Qt.alpha(CortetsuDesign.colorSecondaryContainer, 0.92)
-                        : Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.92)
-                    outlined: true
-                    outlineColor: root.currentIsApplied
-                        ? Qt.alpha(CortetsuDesign.colorSecondary, 0.72)
-                        : Qt.alpha(CortetsuDesign.colorPrimary, 0.72)
-                    CortetsuText {
-                        id: heroStateText
-                        anchors.centerIn: parent
-                        text: root.currentStateLabel
-                        textSize: CortetsuTypography.labelSmallPx
-                        color: root.currentIsApplied
-                            ? CortetsuDesign.colorOnSecondaryContainer
-                            : CortetsuDesign.colorOnPrimaryContainer
+                Repeater {
+                    model: root.orbitEntries
+                    delegate: Item {
+                        id: satellite
+                        required property var modelData
+                        readonly property real slot: modelData.offset - root.orbitPhase
+                        readonly property real angle: Orbit.arcAngle(modelData.offset, root.orbitPhase, root.arcHalf + 1, root.arcSpan)
+                        readonly property real depth: Orbit.arcDepth(angle, root.arcSpan)
+                        readonly property bool hovered: satelliteMouse.containsMouse
+                        readonly property real visualScale: 0.52 + depth * 0.48 + Math.max(0, 1 - Math.abs(slot)) * 0.1 + (hovered ? 0.04 : 0)
+                        width: arcRegion.tileWidth
+                        height: arcRegion.tileHeight
+                        // The hitbox keeps its size; the visual layer carries
+                        // the depth through scale, opacity and stacking.
+                        scale: 1
+                        visible: depth > 0
+                        z: 2 + Math.round(depth * 8)
+                        x: arcRegion.width / 2 + Math.cos(angle) * arcRegion.radiusX - width / 2
+                        y: arcRegion.tileHeight * 0.08 + arcRegion.radiusY + Math.sin(angle) * arcRegion.radiusY
+
+                        WallpaperTile {
+                            anchors.fill: parent
+                            scale: satellite.visualScale
+                            opacity: satellite.hovered ? 1 : Math.min(1, satellite.depth * 4) * (0.34 + satellite.depth * 0.66)
+                            source: satellite.modelData.entry.path
+                            selected: satellite.modelData.index === root.currentIndex
+                            applied: satellite.modelData.entry.path === CortetsuWallpapers.actualCurrent
+                            hovered: satellite.hovered
+                        }
+                        MouseArea {
+                            id: satelliteMouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                keyTarget.forceActiveFocus();
+                                root.select(satellite.modelData.index);
+                            }
+                        }
                     }
                 }
             }
 
-            Repeater {
-                model: root.orbitEntries
+            GridView {
+                id: grid
+                readonly property int columns: Math.max(1, Math.floor(width / 196))
+                anchors.fill: parent
+                visible: root.gridMode && !!root.currentPath
+                clip: true
+                cellWidth: width / columns
+                cellHeight: cellWidth * 9 / 16
+                model: visible ? root.filteredEntries : []
+                currentIndex: root.currentIndex
+                boundsBehavior: Flickable.StopAtBounds
+                keyNavigationEnabled: false
+                highlightFollowsCurrentItem: false
+                onCurrentIndexChanged: positionViewAtIndex(currentIndex, GridView.Contain)
+
                 delegate: Item {
-                    id: satellite
+                    id: cell
                     required property var modelData
                     required property int index
-                    readonly property real angle: Orbit.satelliteAngle(index, root.orbitEntries.length, root.orbitPhase)
-                    readonly property real depth: (Math.sin(angle) + 1) / 2
-                    readonly property real radiusX: Math.min(orbitRegion.width * 0.42, 265)
-                    readonly property real radiusY: Math.min(orbitRegion.height * 0.52, 195)
-                    readonly property bool hovered: satelliteMouse.containsMouse
-                    width: 78
-                    height: 78
-                    readonly property real visualScale: hovered ? 0.94 + depth * 0.24 : 0.78 + depth * 0.28
-                    // The satellite keeps a fixed hitbox while its visual
-                    // layer communicates orbital depth through scale.
-                    scale: 1
-                    opacity: 1
-                    z: 2 + Math.round(depth * 8)
-                    x: orbitRegion.width / 2 + Math.cos(angle) * radiusX - width / 2
-                    y: orbitRegion.height / 2 + Math.sin(angle) * radiusY - height / 2
+                    width: grid.cellWidth
+                    height: grid.cellHeight
 
-                    Item {
-                        id: satelliteVisual
+                    WallpaperTile {
                         anchors.fill: parent
-                        scale: satellite.visualScale
-                        opacity: satellite.hovered ? 1 : 0.28 + satellite.depth * 0.72
-
-                        Shape {
-                            id: satelliteMask
-                            z: 1
-                            anchors.fill: parent
-                            layer.enabled: true
-                            visible: true
-                            ShapePath {
-                                fillColor: CortetsuDesign.colorSurface
-                                startX: satelliteMask.width * 0.28; startY: 0
-                                PathLine { x: satelliteMask.width * 0.72; y: 0 }
-                                PathLine { x: satelliteMask.width; y: satelliteMask.height * 0.28 }
-                                PathLine { x: satelliteMask.width; y: satelliteMask.height * 0.72 }
-                                PathLine { x: satelliteMask.width * 0.72; y: satelliteMask.height }
-                                PathLine { x: satelliteMask.width * 0.28; y: satelliteMask.height }
-                                PathLine { x: 0; y: satelliteMask.height * 0.72 }
-                                PathLine { x: 0; y: satelliteMask.height * 0.28 }
-                                PathLine { x: satelliteMask.width * 0.28; y: 0 }
-                            }
-                        }
-                        Image {
-                            z: 2
-                            anchors.fill: parent
-                            source: satellite.modelData.entry.path
-                            asynchronous: true
-                            sourceSize.width: 128
-                            sourceSize.height: 128
-                            fillMode: Image.PreserveAspectCrop
-                            cache: true
-                            mipmap: true
-                            retainWhileLoading: true
-                            layer.enabled: true
-                            layer.effect: CortetsuMask { maskSource: satelliteMask }
-                        }
-                        Shape {
-                            id: satelliteOutline
-                            anchors.fill: parent
-                            z: 3
-                            ShapePath {
-                                fillColor: "transparent"
-                                strokeColor: satellite.hovered ? CortetsuDesign.colorPrimary : Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.72)
-                                strokeWidth: satellite.hovered ? 1.5 : 1
-                                startX: satelliteOutline.width * 0.28; startY: 0
-                                PathLine { x: satelliteOutline.width * 0.72; y: 0 }
-                                PathLine { x: satelliteOutline.width; y: satelliteOutline.height * 0.28 }
-                                PathLine { x: satelliteOutline.width; y: satelliteOutline.height * 0.72 }
-                                PathLine { x: satelliteOutline.width * 0.72; y: satelliteOutline.height }
-                                PathLine { x: satelliteOutline.width * 0.28; y: satelliteOutline.height }
-                                PathLine { x: 0; y: satelliteOutline.height * 0.72 }
-                                PathLine { x: 0; y: satelliteOutline.height * 0.28 }
-                                PathLine { x: satelliteOutline.width * 0.28; y: 0 }
-                            }
-                        }
+                        anchors.margins: 5
+                        source: cell.modelData.path
+                        selected: cell.index === root.currentIndex
+                        applied: cell.modelData.path === CortetsuWallpapers.actualCurrent
+                        hovered: cellMouse.containsMouse
                     }
                     MouseArea {
-                        id: satelliteMouse
-                        z: 5
+                        id: cellMouse
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
-                        onClicked: root.selectSatellite(satellite.modelData.index)
+                        onClicked: {
+                            keyTarget.forceActiveFocus();
+                            root.select(cell.index);
+                        }
+                        onDoubleClicked: root.apply()
                     }
                 }
             }
         }
 
-        Rectangle {
-            id: footerSurface
-            anchors.horizontalCenter: parent.horizontalCenter
-            anchors.bottom: parent.bottom
-            anchors.bottomMargin: 12
-            width: Math.min(500, parent.width - 40)
-            height: footer.height + 24
-            radius: CortetsuDesign.wallUtilitySurfaceRadius
-            color: Qt.alpha(CortetsuDesign.colorSurfaceHigh, 0.68)
-            border.width: 1
-            border.color: Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.55)
-        }
-
-        Column {
+        Item {
             id: footer
+            anchors.left: parent.left
+            anchors.right: parent.right
             anchors.bottom: parent.bottom
-            anchors.bottomMargin: 24
-            anchors.horizontalCenter: parent.horizontalCenter
-            spacing: CortetsuDesign.wallUtilityFooterGap
+            height: 36
 
             CortetsuText {
-                width: Math.min(440, panel.width - 48)
-                text: root.currentPath ? root.currentPath.split("/").pop() : qsTr("No se encontraron fondos legibles")
-                horizontalAlignment: Text.AlignHCenter
-                elide: Text.ElideMiddle
-                color: CortetsuDesign.colorOnSurface
-                textSize: CortetsuTypography.titleSmallPx
-            }
-            CortetsuText {
-                width: Math.min(440, panel.width - 48)
-                text: root.currentEntry ? qsTr("%1  ·  %2  ·  %3/%4").arg(root.currentPath === CortetsuWallpapers.actualCurrent ? qsTr("Actual") : qsTr("Vista previa")).arg(root.categoryFor(root.currentEntry)).arg(root.currentIndex + 1).arg(root.filteredEntries.length) : qsTr("Añade imágenes al directorio nativo de fondos")
-                horizontalAlignment: Text.AlignHCenter
+                anchors.left: parent.left
+                anchors.right: actions.left
+                anchors.rightMargin: CortetsuDesign.spacingStandard
+                anchors.verticalCenter: parent.verticalCenter
+                elide: Text.ElideRight
+                text: root.gridMode
+                    ? qsTr("Flechas mover  ·  Mayús+↑↓ categoría  ·  / buscar  ·  Tab órbita  ·  Enter aplicar  ·  R aleatorio  ·  Esc cerrar")
+                    : qsTr("← → mover  ·  ↑ ↓ categoría  ·  / buscar  ·  Tab rejilla  ·  Enter aplicar  ·  R aleatorio  ·  Esc cerrar")
+                textSize: CortetsuTypography.labelSmallPx
                 color: CortetsuDesign.colorOnSurfaceVariant
-                textSize: CortetsuTypography.labelMediumPx
             }
+
             Row {
-                anchors.horizontalCenter: parent.horizontalCenter
-                spacing: 8
+                id: actions
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                spacing: CortetsuDesign.wallUtilityFooterGap
                 CortetsuButton { compact: true; label: qsTr("Cancelar"); onClicked: root.cancel() }
-                CortetsuButton { compact: true; icon: "shuffle"; label: qsTr("Aleatorio"); disabled: root.applying; onClicked: root.random() }
-                CortetsuButton { compact: true; label: root.applying ? qsTr("Aplicando") : qsTr("Aplicar"); active: true; disabled: root.applying; onClicked: root.apply() }
+                CortetsuButton { compact: true; icon: "shuffle"; label: qsTr("Aleatorio"); disabled: root.applying || root.libraryEmpty; onClicked: root.random() }
+                CortetsuButton {
+                    compact: true
+                    icon: root.currentFailed ? "refresh" : ""
+                    label: root.applying ? qsTr("Aplicando") : root.currentFailed ? qsTr("Reintentar") : qsTr("Aplicar")
+                    active: true
+                    disabled: root.applying || !root.currentPath
+                    onClicked: root.apply()
+                }
             }
         }
     }

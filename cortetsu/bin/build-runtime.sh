@@ -62,6 +62,8 @@ mkdir -p "$STAGING/utils"
 cp -a "$REPO/cortetsu/utils/." "$STAGING/utils/"
 mkdir -p "$STAGING/services"
 cp -a "$REPO/cortetsu/services/." "$STAGING/services/"
+mkdir -p "$STAGING/theme"
+cp -a "$REPO/cortetsu/theme/." "$STAGING/theme/"
 mkdir -p "$STAGING/assets/branding"
 cp -a "$REPO/cortetsu/assets/branding/." "$STAGING/assets/branding/"
 # Cortetsu JS imports retain their source-tree ../base path after the base
@@ -295,32 +297,8 @@ fi
 atomic_link "$FINAL" "$RUNTIME_ROOT/current"
 [[ -f "$RUNTIME_ROOT/current/shell.qml" ]] || fail "la promoción no produjo un runtime válido"
 
-# A build promotes a fresh generation, so replay the persisted scheme after
-# promotion.  This keeps the generated design file immutable during the build
-# while preserving the user's selected palette across generations.
-scheme_state="${XDG_STATE_HOME:-$HOME/.local/state}/cortetsu/scheme.json"
-if [[ -f "$scheme_state" ]]; then
-    readarray -t scheme_selection < <(python3 - "$scheme_state" <<'PY'
-import json
-import sys
-from pathlib import Path
-
-try:
-    value = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
-except (OSError, json.JSONDecodeError):
-    value = {}
-if isinstance(value, dict) and isinstance(value.get("name"), str) and isinstance(value.get("flavour"), str):
-    print(value["name"])
-    print(value["flavour"])
-PY
-    )
-    if [[ "${#scheme_selection[@]}" -eq 2 && "${scheme_selection[0]}" != "dynamic" ]]; then
-        CORTETSU_RUNTIME_ROOT="$RUNTIME_ROOT" CORTETSU_SKIP_RELOAD=1 \
-            python3 "$REPO/cortetsu/bin/cortetsu-scheme" set -n \
-            "${scheme_selection[0]}" "${scheme_selection[1]}" >/dev/null \
-            || printf 'WARN: no se pudo reaplicar el esquema persistido tras la promoción\n' >&2
-    fi
-fi
+# The persisted scheme needs no replay: design tokens read scheme.json at
+# runtime, so a new generation already shows the selected palette.
 trap - EXIT
 printf 'PROMOTED current=%s\n' "$(readlink -f "$RUNTIME_ROOT/current")"
 printf 'PREVIOUS previous=%s\n' "$(readlink -f "$RUNTIME_ROOT/previous" 2>/dev/null || true)"

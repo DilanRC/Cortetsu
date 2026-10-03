@@ -15,7 +15,7 @@ runtime = args.runtime.resolve()
 assert (runtime / 'shell.qml').is_file()
 with tempfile.TemporaryDirectory(prefix='cortetsu-connectivity-ui-') as temporary:
     folder = Path(temporary)
-    for name in ('modules', 'components', 'services', 'utils', 'assets', 'base'):
+    for name in ('modules', 'components', 'services', 'utils', 'assets', 'base', 'theme'):
         if (runtime / name).exists():
             (folder / name).symlink_to(runtime / name, target_is_directory=True)
     (folder / 'shell.qml').write_text('''import QtQuick

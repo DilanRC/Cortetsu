@@ -1,7 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import "../modules/CortetsuDesign.js" as CortetsuDesign
+import "../theme"
 import "../modules/CortetsuTypography.js" as CortetsuTypography
 
 Item {
@@ -24,6 +24,7 @@ Item {
     enabled: !root.disabled
     activeFocusOnTab: true
     implicitHeight: 40
+    implicitWidth: content.implicitWidth + CortetsuDesign.spacingStandard * 2
     opacity: root.disabled ? 0.46 : 1
 
     CortetsuSurface {
@@ -50,10 +51,12 @@ Item {
     }
 
     Row {
+        id: content
         anchors.centerIn: parent
-        spacing: 5
+        spacing: 6
 
         CortetsuIcon {
+            anchors.verticalCenter: parent.verticalCenter
             visible: root.icon.length > 0
             text: root.icon
             color: root.selected
@@ -63,6 +66,7 @@ Item {
         }
 
         CortetsuText {
+            anchors.verticalCenter: parent.verticalCenter
             text: root.label
             color: root.selected
                 ? CortetsuDesign.colorOnPrimaryContainer

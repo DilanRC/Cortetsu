@@ -5,7 +5,7 @@ import QtQuick.Controls
 import Quickshell
 import Quickshell.Widgets
 import "../../../components"
-import "../../CortetsuDesign.js" as CortetsuDesign
+import "../../../theme"
 import "../../BottomHubTray.js" as BottomHubTray
 
 CortetsuPopupSurface {

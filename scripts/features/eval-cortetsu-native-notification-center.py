@@ -18,7 +18,7 @@ assert "focus: index === 0" in source
 assert "readonly property bool closed: !hasModelData || modelData.closed" in notification
 assert "Component.onDestruction: {" in notification
 assert "root.modelData.unlock(root);" in notification
-assert 'import "../CortetsuDesign.js" as CortetsuDesign' in notification
+assert 'import "../../theme"' in notification
 assert 'import "../CortetsuTypography.js" as CortetsuTypography' in notification
 assert "modelData.appName" in notification and "modelData.image" in notification
 assert "readonly property bool urgent: urgency >= 2" in notification

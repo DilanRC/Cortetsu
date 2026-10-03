@@ -2,13 +2,16 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import ".."
-import "../CortetsuDesign.js" as CortetsuDesign
+import "../../components"
+import "../../theme"
+import "summary"
 import "../CortetsuTypography.js" as CortetsuTypography
 import QtQuick.Layouts
 import QtCore
 import Quickshell
 import Quickshell.Io
 import Quickshell.Widgets
+import "KeyCapture.js" as KeyCapture
 
 FocusScope {
     id: root
@@ -22,6 +25,18 @@ FocusScope {
     property string pendingDeleteId: ""
     property string statusText: qsTr("Cargando atajos…")
     property bool busy: false
+    property bool statusFailed: false
+
+    // Capture state. `capturing` is the only source of truth for "the editor
+    // is recording the keyboard"; the overlay just presents it.
+    readonly property bool capturing: captureId.length > 0 || captureNewApp
+    property string captureLabel: ""
+    property string captureCurrentChord: ""
+    property var heldModifiers: []
+    property string captureMessage: ""
+    property bool captureFailed: false
+    property real captureRemaining: 1
+    readonly property int captureTimeoutMs: 10000
 
     readonly property string helperPath:
         StandardPaths.writableLocation(StandardPaths.HomeLocation) +
@@ -71,7 +86,7 @@ FocusScope {
     function requestDelete(identifier): void {
         if (pendingDeleteId !== identifier) {
             pendingDeleteId = identifier;
-            statusText = qsTr("Press delete again to confirm");
+            statusText = qsTr("Pulsa eliminar otra vez para confirmar");
             deleteReset.restart();
             return;
         }
@@ -82,62 +97,37 @@ FocusScope {
         deleteProcess.running = true;
     }
 
-    function beginCapture(identifier, isNewApp): void {
+    function beginCapture(identifier, isNewApp, label, currentChord): void {
         captureId = identifier;
         captureNewApp = isNewApp;
-        statusText = qsTr("Press the new key combination · Esc cancels");
+        captureLabel = label ?? "";
+        captureCurrentChord = currentChord ?? "";
+        heldModifiers = [];
+        captureMessage = "";
+        captureFailed = false;
+        statusFailed = false;
+        statusText = qsTr("Escuchando. Pulsa la combinación · Esc cancela");
+        captureCountdown.restart();
         forceActiveFocus();
     }
 
-    function keyName(event): string {
-        if (event.key >= Qt.Key_A && event.key <= Qt.Key_Z)
-            return String.fromCharCode(event.key);
-        if (event.key >= Qt.Key_0 && event.key <= Qt.Key_9)
-            return String.fromCharCode(event.key);
-
-        const names = {};
-        names[Qt.Key_Space] = "Space";
-        names[Qt.Key_Return] = "Return";
-        names[Qt.Key_Enter] = "Return";
-        names[Qt.Key_Tab] = "Tab";
-        names[Qt.Key_Backspace] = "Backspace";
-        names[Qt.Key_Delete] = "Delete";
-        names[Qt.Key_Left] = "Left";
-        names[Qt.Key_Right] = "Right";
-        names[Qt.Key_Up] = "Up";
-        names[Qt.Key_Down] = "Down";
-        names[Qt.Key_PageUp] = "Page_Up";
-        names[Qt.Key_PageDown] = "Page_Down";
-        names[Qt.Key_Home] = "Home";
-        names[Qt.Key_End] = "End";
-        names[Qt.Key_Comma] = "Comma";
-        names[Qt.Key_Period] = "Period";
-        names[Qt.Key_Slash] = "Slash";
-        names[Qt.Key_Backslash] = "Backslash";
-        names[Qt.Key_Minus] = "Minus";
-        names[Qt.Key_Equal] = "Equal";
-        return names[event.key] ?? "";
-    }
-
-    function chordFor(event): string {
-        const parts = [];
-        if (event.modifiers & Qt.ControlModifier)
-            parts.push("CTRL");
-        if (event.modifiers & Qt.AltModifier)
-            parts.push("ALT");
-        if (event.modifiers & Qt.ShiftModifier)
-            parts.push("SHIFT");
-        if (event.modifiers & Qt.MetaModifier)
-            parts.push("SUPER");
-        const key = keyName(event);
-        if (!key)
-            return "";
-        parts.push(key);
-        return parts.join(" + ");
+    function endCapture(status: string): void {
+        captureCountdown.stop();
+        captureId = "";
+        captureNewApp = false;
+        heldModifiers = [];
+        captureMessage = "";
+        captureFailed = false;
+        captureRemaining = 1;
+        if (status.length > 0)
+            statusText = status;
     }
 
     function saveChord(chord): void {
         busy = true;
+        captureCountdown.stop();
+        captureMessage = chord;
+        captureFailed = false;
         if (captureNewApp) {
             saveProcess.command = [
                 helperPath,
@@ -150,26 +140,65 @@ FocusScope {
         } else {
             saveProcess.command = [helperPath, "set", captureId, chord];
         }
-        captureId = "";
-        captureNewApp = false;
         saveProcess.running = true;
     }
 
+    function captureProblem(message: string): void {
+        captureMessage = message;
+        captureFailed = true;
+        captureCountdown.restart();
+    }
+
+    // While listening every key belongs to the editor: Escape must not close
+    // the surface and digits must not switch tabs.
+    Keys.onShortcutOverride: event => event.accepted = root.capturing
+
     Keys.onPressed: event => {
-        if (!captureId && !captureNewApp)
+        if (!root.capturing)
             return;
-        if (event.key === Qt.Key_Escape) {
-            captureId = "";
-            captureNewApp = false;
-            statusText = qsTr("Cambio de atajo cancelado");
-            event.accepted = true;
+        event.accepted = true;
+        root.captureKey(event.key, event.modifiers);
+    }
+
+    function captureKey(key: int, modifiers: int): void {
+        if (!root.capturing || root.busy)
+            return;
+        if (key === Qt.Key_Escape) {
+            root.endCapture(qsTr("Cambio de atajo cancelado"));
             return;
         }
-        const chord = chordFor(event);
-        if (!chord)
+        const result = KeyCapture.resolve(key, modifiers);
+        root.heldModifiers = result.held;
+        if (result.kind === "modifier") {
+            root.captureFailed = false;
+            root.captureMessage = "";
+        } else if (result.kind === "unsupported") {
+            root.captureProblem(qsTr("Esa tecla no se puede asignar desde aquí. Prueba con otra."));
+        } else if (result.kind === "bare") {
+            root.captureProblem(qsTr("Añade un modificador: Ctrl, Alt, Shift o Super."));
+        } else {
+            root.saveChord(result.chord);
+        }
+    }
+
+    Keys.onReleased: event => {
+        if (!root.capturing)
             return;
-        saveChord(chord);
         event.accepted = true;
+        if (KeyCapture.isModifierKey(event.key)) {
+            const released = KeyCapture.modifiers(event.modifiers);
+            root.heldModifiers = root.heldModifiers.filter(name => released.indexOf(name) >= 0);
+        }
+    }
+
+    NumberAnimation {
+        id: captureCountdown
+        target: root
+        property: "captureRemaining"
+        from: 1
+        to: 0
+        duration: root.captureTimeoutMs
+        onFinished: root.endCapture(qsTr("Tiempo agotado: no se cambió el atajo"))
     }
 
     Component.onCompleted: refresh()
@@ -184,9 +213,11 @@ FocusScope {
                 try {
                     const result = JSON.parse(text.trim());
                     root.bindings = result.bindings ?? [];
-                    root.statusText = qsTr("%1 shortcuts loaded").arg(root.bindings.length);
+                    root.statusFailed = false;
+                    root.statusText = qsTr("%1 atajos cargados").arg(root.bindings.length);
                 } catch (error) {
-                    root.statusText = qsTr("Could not read shortcuts");
+                    root.statusFailed = true;
+                    root.statusText = qsTr("No se pudieron leer los atajos");
                 }
             }
         }
@@ -200,13 +231,19 @@ FocusScope {
                 root.busy = false;
                 try {
                     const result = JSON.parse(text.trim());
-                    root.statusText = result.ok
-                        ? qsTr("Guardado · %1").arg(result.chord)
-                        : result.error;
-                    if (result.ok)
+                    root.statusFailed = !result.ok;
+                    if (result.ok) {
+                        root.endCapture(qsTr("Guardado · %1").arg(result.chord));
                         root.refresh();
+                    } else {
+                        // Stay in the listening state so another combination
+                        // can be tried without reopening the editor.
+                        root.statusText = result.error;
+                        root.captureProblem(result.error);
+                    }
                 } catch (error) {
-                    root.statusText = qsTr("The shortcut could not be saved");
+                    root.statusFailed = true;
+                    root.endCapture(qsTr("No se pudo guardar el atajo"));
                 }
             }
         }
@@ -220,13 +257,15 @@ FocusScope {
                 root.busy = false;
                 try {
                     const result = JSON.parse(text.trim());
+                    root.statusFailed = !result.ok;
                     root.statusText = result.ok
                         ? qsTr("Eliminado · %1").arg(result.deleted)
                         : result.error;
                     if (result.ok)
                         root.refresh();
                 } catch (error) {
-                    root.statusText = qsTr("The shortcut could not be deleted");
+                    root.statusFailed = true;
+                    root.statusText = qsTr("No se pudo eliminar el atajo");
                 }
             }
         }
@@ -238,354 +277,269 @@ FocusScope {
         onTriggered: root.pendingDeleteId = ""
     }
 
-    RowLayout {
+    Row {
         anchors.fill: parent
-        spacing: 14
+        spacing: CortetsuDesign.spacingStandard
 
-        Rectangle {
-            Layout.preferredWidth: Math.min(390, root.width * 0.34)
-            Layout.fillHeight: true
-            radius: CortetsuDesign.radiusLarge
-            color: CortetsuDesign.colorSurface
-            border.width: 1
-            border.color: CortetsuDesign.colorOutlineVariant
+        Panel {
+            id: creator
+            width: Math.min(390, Math.round(root.width * 0.34))
+            height: parent.height
 
-            ColumnLayout {
+            Column {
                 anchors.fill: parent
-                anchors.margins: 16
-                spacing: 10
+                spacing: CortetsuDesign.spacingStandard
 
-                CortetsuText {
-                    Layout.fillWidth: true
-                    text: qsTr("Create app shortcut")
-                    color: CortetsuDesign.colorOnSurface
-                    textSize: CortetsuTypography.titleMediumPx
+                SummaryLabel {
+                    icon: "add_circle"
+                    text: qsTr("Atajo para una aplicación")
+                    anchors.rightMargin: 0
                 }
 
-                Rectangle {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 44
-                    radius: CortetsuDesign.radiusMedium
-                    color: CortetsuDesign.colorSurfaceHigh
-                    border.width: appSearch.activeFocus ? 1 : 0
-                    border.color: CortetsuDesign.colorPrimary
+                CortetsuSearchBar {
+                    id: appSearch
+                    width: parent.width
+                    compact: true
+                    placeholderText: qsTr("Buscar aplicaciones instaladas")
+                    text: root.appFilter
+                    onTextChanged: root.appFilter = text
+                }
 
-                    CortetsuIcon {
-                        anchors.left: parent.left
-                        anchors.leftMargin: 12
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: "search"
-                        color: CortetsuDesign.colorOnSurfaceVariant
-                        iconSize: CortetsuTypography.iconMediumPx
-                    }
-
-                    TextInput {
-                        id: appSearch
-                        anchors.fill: parent
-                        anchors.leftMargin: 42
-                        anchors.rightMargin: 10
-                        verticalAlignment: TextInput.AlignVCenter
-                        color: CortetsuDesign.colorOnSurface
-                        selectionColor: CortetsuDesign.colorPrimary
-                        font.pixelSize: 15
-                        text: root.appFilter
-                        onTextChanged: root.appFilter = text
-                    }
-
-                    CortetsuText {
-                        anchors.left: parent.left
-                        anchors.leftMargin: 42
-                        anchors.verticalCenter: parent.verticalCenter
-                        visible: appSearch.text.length === 0
-                        text: qsTr("Search installed applications")
-                        color: CortetsuDesign.colorOutline
-                        textSize: CortetsuTypography.bodyPx
-                    }
+                CortetsuText {
+                    visible: root.filteredApps.length === 0 && !root.selectedApp
+                    width: parent.width
+                    wrapMode: Text.WordWrap
+                    text: root.appFilter.length > 0
+                        ? qsTr("Ninguna aplicación instalada coincide.")
+                        : qsTr("Escribe el nombre de una aplicación para asignarle una combinación de teclas.")
+                    color: CortetsuDesign.colorOnSurfaceVariant
+                    textSize: CortetsuTypography.bodySmallPx
                 }
 
                 ListView {
                     id: appResults
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: Math.min(contentHeight, 296)
+                    width: parent.width
+                    height: Math.min(contentHeight, 296)
                     visible: root.filteredApps.length > 0
                     model: root.filteredApps
-                    spacing: 4
+                    spacing: CortetsuDesign.spacingUnit
                     clip: true
+                    boundsBehavior: Flickable.StopAtBounds
 
-                    delegate: Rectangle {
+                    delegate: CortetsuListRow {
+                        id: appRow
                         required property DesktopEntry modelData
+
                         width: appResults.width
-                        height: 48
-                        radius: CortetsuDesign.radiusSmall
-                        color: root.selectedApp?.id === modelData.id
-                            ? CortetsuDesign.colorSecondaryContainer
-                            : "transparent"
-
-                        CortetsuStateLayer {
-                            radius: parent.radius
-                            onClicked: {
-                                root.selectedApp = parent.modelData;
-                                root.appFilter = parent.modelData.name;
-                            }
-                        }
-
-                        RowLayout {
-                            anchors.fill: parent
-                            anchors.leftMargin: 8
-                            anchors.rightMargin: 8
-                            spacing: 10
-
-                            IconImage {
-                                implicitSize: 30
-                                source: Quickshell.iconPath(parent.parent.modelData.icon, "image-missing")
-                            }
-
-                            CortetsuText {
-                                Layout.fillWidth: true
-                                text: parent.parent.modelData.name
-                                color: CortetsuDesign.colorOnSurface
-                                textSize: CortetsuTypography.bodyPx
-                                elide: Text.ElideRight
-                            }
+                        compact: true
+                        title: appRow.modelData.name
+                        selected: root.selectedApp?.id === appRow.modelData.id
+                        onClicked: {
+                            root.selectedApp = appRow.modelData;
+                            root.appFilter = appRow.modelData.name;
                         }
                     }
                 }
 
-                Rectangle {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: root.selectedApp ? 106 : 0
-                    visible: root.selectedApp
-                    radius: CortetsuDesign.radiusMedium
-                    color: CortetsuDesign.colorSurfaceHigh
+                Item {
+                    visible: !!root.selectedApp
+                    width: parent.width
+                    height: 64
 
-                    RowLayout {
-                        anchors.fill: parent
-                        anchors.margins: 12
-                        spacing: 12
+                    IconImage {
+                        id: chosenIcon
+                        anchors.left: parent.left
+                        anchors.verticalCenter: parent.verticalCenter
+                        implicitSize: 44
+                        source: Quickshell.iconPath(root.selectedApp?.icon ?? "", true)
+                    }
 
-                        IconImage {
-                            implicitSize: 52
-                            source: Quickshell.iconPath(root.selectedApp?.icon, "image-missing")
+                    Column {
+                        anchors.left: chosenIcon.right
+                        anchors.leftMargin: CortetsuDesign.spacingStandard
+                        anchors.right: parent.right
+                        anchors.verticalCenter: parent.verticalCenter
+                        spacing: 2
+
+                        CortetsuText {
+                            width: parent.width
+                            text: root.selectedApp?.name ?? ""
+                            textSize: CortetsuTypography.bodyLargePx
+                            font.weight: Font.DemiBold
+                            elide: Text.ElideRight
                         }
 
-                        ColumnLayout {
-                            Layout.fillWidth: true
-                            spacing: 2
-
-                            CortetsuText {
-                                Layout.fillWidth: true
-                                text: root.selectedApp?.name ?? ""
-                                color: CortetsuDesign.colorOnSurface
-                                textSize: CortetsuTypography.titleSmallPx
-                                elide: Text.ElideRight
-                            }
-
-                            CortetsuText {
-                                Layout.fillWidth: true
-                                text: root.selectedApp?.execString ?? ""
-                                color: CortetsuDesign.colorOutline
-                                textSize: CortetsuTypography.labelSmallPx
-                                elide: Text.ElideMiddle
-                            }
-
-                            Rectangle {
-                                Layout.preferredWidth: shortcutText.implicitWidth + 24
-                                Layout.preferredHeight: 34
-                                radius: CortetsuDesign.radiusSmall
-                                color: root.captureNewApp
-                                    ? CortetsuDesign.colorPrimaryContainer
-                                    : CortetsuDesign.colorSecondaryContainer
-
-                                CortetsuStateLayer {
-                                    radius: parent.radius
-                                    enabled: !root.busy
-                                    onClicked: root.beginCapture("", true)
-                                }
-
-                                CortetsuText {
-                                    id: shortcutText
-                                    anchors.centerIn: parent
-                                    text: root.captureNewApp ? qsTr("Press keys…") : qsTr("Set shortcut")
-                                    color: CortetsuDesign.colorOnSecondaryContainer
-                                    textSize: CortetsuTypography.labelMediumPx
-                                }
-                            }
+                        CortetsuText {
+                            width: parent.width
+                            text: root.selectedApp ? root.selectedApp.execString : ""
+                            color: CortetsuDesign.colorOnSurfaceVariant
+                            textSize: CortetsuTypography.labelSmallPx
+                            elide: Text.ElideMiddle
                         }
                     }
                 }
 
-                Item { Layout.fillHeight: true }
+                CortetsuButton {
+                    visible: !!root.selectedApp
+                    disabled: root.busy || !root.selectedApp
+                    active: root.captureNewApp
+                    icon: "keyboard"
+                    label: root.captureNewApp ? qsTr("Escuchando…") : qsTr("Grabar combinación")
+                    onClicked: root.beginCapture("", true, root.selectedApp?.name ?? "", "")
+                }
             }
         }
 
-        Rectangle {
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            radius: CortetsuDesign.radiusLarge
-            color: CortetsuDesign.colorSurface
-            border.width: 1
-            border.color: CortetsuDesign.colorOutlineVariant
+        Panel {
+            width: parent.width - creator.width - parent.spacing
+            height: parent.height
 
-            ColumnLayout {
-                anchors.fill: parent
-                anchors.margins: 16
-                spacing: 10
+            SummaryLabel {
+                id: listLabel
+                icon: "keyboard"
+                text: qsTr("Atajos")
+                detail: root.statusText
+                anchors.rightMargin: 0
+            }
 
-                RowLayout {
-                    Layout.fillWidth: true
+            CortetsuSearchBar {
+                id: bindingSearch
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.top: listLabel.bottom
+                anchors.topMargin: CortetsuDesign.spacingStandard
+                compact: true
+                placeholderText: qsTr("Filtrar por acción, aplicación o combinación")
+                onTextChanged: root.bindingFilter = text
+            }
 
-                    CortetsuText {
-                        Layout.fillWidth: true
-                        text: qsTr("Todos los atajos")
-                        color: CortetsuDesign.colorOnSurface
-                        textSize: CortetsuTypography.titleMediumPx
-                    }
+            ListView {
+                id: bindingList
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.top: bindingSearch.bottom
+                anchors.topMargin: CortetsuDesign.spacingStandard
+                anchors.bottom: parent.bottom
+                model: root.filteredBindings
+                spacing: CortetsuDesign.spacingUnit
+                clip: true
+                boundsBehavior: Flickable.StopAtBounds
 
-                    CortetsuText {
-                        text: root.statusText
-                        color: root.statusText.includes("already") || root.statusText.includes("could not")
-                            ? CortetsuDesign.colorVermillion
-                            : CortetsuDesign.colorOutline
-                        textSize: CortetsuTypography.labelSmallPx
-                        elide: Text.ElideRight
-                    }
+                CortetsuStateMessage {
+                    anchors.centerIn: parent
+                    visible: root.filteredBindings.length === 0
+                    width: 320
+                    kind: root.statusFailed ? "error" : root.busy ? "loading" : "empty"
+                    icon: root.statusFailed ? "error_outline" : "search_off"
+                    title: root.statusFailed ? qsTr("No se pudieron leer los atajos") : qsTr("Ningún atajo coincide")
+                    detail: root.statusFailed ? root.statusText : ""
                 }
 
-                Rectangle {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 42
-                    radius: CortetsuDesign.radiusMedium
-                    color: CortetsuDesign.colorSurfaceHigh
+                delegate: Item {
+                    id: bindingRow
+                    required property var modelData
+                    readonly property var appEntry: root.appForBinding(modelData)
+                    readonly property string appIcon: bindingRow.appEntry !== null ? Quickshell.iconPath(bindingRow.appEntry.icon, true) : ""
+                    readonly property string title: bindingRow.appEntry?.name ?? bindingRow.modelData.appName ?? bindingRow.modelData.label
+                    readonly property bool deleting: root.pendingDeleteId === bindingRow.modelData.id
+
+                    width: bindingList.width
+                    height: 48
+
+                    CortetsuSurface {
+                        anchors.fill: parent
+                        radiusValue: CortetsuDesign.radiusMedium
+                        outlined: false
+                        baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlassStrong, 0.6)
+                    }
+
+                    IconImage {
+                        id: bindingIcon
+                        anchors.left: parent.left
+                        anchors.leftMargin: CortetsuDesign.spacingStandard
+                        anchors.verticalCenter: parent.verticalCenter
+                        visible: bindingRow.appIcon.length > 0
+                        implicitSize: 26
+                        source: bindingRow.appIcon
+                    }
 
                     CortetsuIcon {
-                        anchors.left: parent.left
-                        anchors.leftMargin: 12
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: "filter_list"
-                        color: CortetsuDesign.colorOnSurfaceVariant
+                        anchors.centerIn: bindingIcon
+                        visible: bindingRow.appIcon.length === 0
+                        text: bindingRow.modelData.command ? "terminal" : "keyboard"
+                        color: CortetsuDesign.colorOnSurfaceMuted
                         iconSize: CortetsuTypography.iconMediumPx
                     }
 
-                    TextInput {
-                        anchors.fill: parent
-                        anchors.leftMargin: 42
-                        anchors.rightMargin: 10
-                        verticalAlignment: TextInput.AlignVCenter
-                        color: CortetsuDesign.colorOnSurface
-                        selectionColor: CortetsuDesign.colorPrimary
-                        font.pixelSize: 15
-                        onTextChanged: root.bindingFilter = text
-                    }
-                }
+                    Column {
+                        anchors.left: parent.left
+                        anchors.leftMargin: 26 + CortetsuDesign.spacingStandard * 2
+                        anchors.right: chord.left
+                        anchors.rightMargin: CortetsuDesign.spacingStandard
+                        anchors.verticalCenter: parent.verticalCenter
+                        spacing: 1
 
-                ListView {
-                    id: bindingList
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    model: root.filteredBindings
-                    spacing: 5
-                    clip: true
-
-                    delegate: Rectangle {
-                        id: bindingRow
-                        required property var modelData
-                        readonly property var appEntry: root.appForBinding(modelData)
-                        width: bindingList.width
-                        height: 48
-                        radius: CortetsuDesign.radiusSmall
-                        color: CortetsuDesign.colorSurfaceHigh
-
-                        RowLayout {
-                            anchors.fill: parent
-                            anchors.leftMargin: 12
-                            anchors.rightMargin: 8
-                            spacing: 10
-
-                            IconImage {
-                                visible: bindingRow.appEntry !== null
-                                implicitSize: 26
-                                source: visible
-                                    ? Quickshell.iconPath(bindingRow.appEntry.icon, "image-missing")
-                                    : ""
-                            }
-
-                            CortetsuIcon {
-                                visible: bindingRow.appEntry === null
-                                text: modelData.command ? "terminal" : "keyboard"
-                                color: CortetsuDesign.colorSecondary
-                                iconSize: CortetsuTypography.iconMediumPx
-                            }
-
-                            ColumnLayout {
-                                Layout.fillWidth: true
-                                spacing: 0
-
-                                CortetsuText {
-                                    Layout.fillWidth: true
-                                    text: bindingRow.appEntry?.name ?? modelData.appName ?? modelData.label
-                                    color: CortetsuDesign.colorOnSurface
-                                    textSize: CortetsuTypography.bodyPx
-                                    elide: Text.ElideRight
-                                }
-
-                                CortetsuText {
-                                    text: modelData.description
-                                    color: CortetsuDesign.colorOutline
-                                    textSize: CortetsuTypography.labelSmallPx
-                                    elide: Text.ElideMiddle
-                                }
-                            }
-
-                            Rectangle {
-                                Layout.preferredWidth: Math.max(118, chordLabel.implicitWidth + 24)
-                                Layout.preferredHeight: 34
-                                radius: CortetsuDesign.radiusSmall
-                                color: root.captureId === modelData.id
-                                    ? CortetsuDesign.colorPrimaryContainer
-                                    : CortetsuDesign.colorSecondaryContainer
-
-                                CortetsuStateLayer {
-                                    radius: parent.radius
-                                    enabled: !root.busy
-                                    onClicked: root.beginCapture(parent.parent.parent.modelData.id, false)
-                                }
-
-                                CortetsuText {
-                                    id: chordLabel
-                                    anchors.centerIn: parent
-                                    text: root.captureId === modelData.id ? qsTr("Press keys…") : modelData.chord
-                                    color: CortetsuDesign.colorOnSecondaryContainer
-                                    textSize: CortetsuTypography.labelMediumPx
-                                }
-                            }
-
-                            Rectangle {
-                                Layout.preferredWidth: 34
-                                Layout.preferredHeight: 34
-                                radius: CortetsuDesign.radiusSmall
-                                color: root.pendingDeleteId === modelData.id
-                                    ? Qt.darker(CortetsuDesign.colorVermillion, 1.5)
-                                    : "transparent"
-
-                                CortetsuStateLayer {
-                                    radius: parent.radius
-                                    enabled: !root.busy
-                                    onClicked: root.requestDelete(bindingRow.modelData.id)
-                                }
-
-                                CortetsuIcon {
-                                    anchors.centerIn: parent
-                                    text: "delete"
-                                    color: root.pendingDeleteId === bindingRow.modelData.id
-                                        ? CortetsuDesign.colorOnSurface
-                                        : CortetsuDesign.colorOnSurfaceVariant
-                                    iconSize: CortetsuTypography.iconMediumPx
-                                }
-                            }
+                        CortetsuText {
+                            width: parent.width
+                            text: bindingRow.title
+                            textSize: CortetsuTypography.bodyPx
+                            elide: Text.ElideRight
                         }
+
+                        CortetsuText {
+                            width: parent.width
+                            // A description that only repeats the title adds nothing.
+                            visible: text.length > 0 && text !== bindingRow.title
+                            text: bindingRow.modelData.description ?? ""
+                            color: CortetsuDesign.colorOnSurfaceVariant
+                            textSize: CortetsuTypography.labelSmallPx
+                            elide: Text.ElideMiddle
+                        }
+                    }
+
+                    CortetsuButton {
+                        id: chord
+                        anchors.right: remove.left
+                        anchors.rightMargin: CortetsuDesign.spacingCompact
+                        anchors.verticalCenter: parent.verticalCenter
+                        compact: true
+                        disabled: root.busy
+                        active: root.captureId === bindingRow.modelData.id
+                        label: root.captureId === bindingRow.modelData.id ? qsTr("Escuchando…") : bindingRow.modelData.chord
+                        tooltipText: qsTr("Cambiar la combinación")
+                        onClicked: root.beginCapture(bindingRow.modelData.id, false, bindingRow.title, bindingRow.modelData.chord)
+                    }
+
+                    CortetsuButton {
+                        id: remove
+                        anchors.right: parent.right
+                        anchors.rightMargin: CortetsuDesign.spacingCompact
+                        anchors.verticalCenter: parent.verticalCenter
+                        compact: true
+                        disabled: root.busy
+                        danger: bindingRow.deleting
+                        icon: "delete"
+                        label: bindingRow.deleting ? qsTr("Confirmar") : ""
+                        tooltipText: qsTr("Eliminar el atajo")
+                        Accessible.name: qsTr("Eliminar el atajo de %1").arg(bindingRow.title)
+                        onClicked: root.requestDelete(bindingRow.modelData.id)
                     }
                 }
             }
         }
+    }
+
+    KeyCaptureOverlay {
+        anchors.fill: parent
+        z: 10
+        active: root.capturing
+        actionLabel: root.captureLabel
+        currentChord: root.captureCurrentChord
+        heldModifiers: root.heldModifiers
+        message: root.captureMessage
+        failed: root.captureFailed
+        saving: root.busy && root.capturing
+        remaining: root.captureRemaining
+        onCancelRequested: root.endCapture(qsTr("Cambio de atajo cancelado"))
     }
 }

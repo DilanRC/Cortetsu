@@ -9,7 +9,7 @@ import "../../services"
 import ".."
 import "../launcher/services"
 import "../CortetsuSearchBar.qml"
-import "../CortetsuDesign.js" as CortetsuDesign
+import "../../theme"
 import "../CortetsuTypography.js" as CortetsuTypography
 
 Item {
@@ -381,7 +381,7 @@ Item {
                                 }
 
                                 CortetsuText {
-                                    text: qsTr("%1 familias").arg(Schemes.catalogCount)
+                                    text: qsTr("%1 esquemas").arg(Schemes.catalogCount)
                                     textSize: CortetsuTypography.bodySmallPx
                                     color: CortetsuDesign.colorOnSurfaceVariant
                                 }
@@ -580,12 +580,6 @@ Item {
                                     onClicked: Schemes.apply(schemeCard.schemeData.name, schemeCard.schemeData.flavour)
                                 }
                             }
-                        }
-
-                        CortetsuSectionHeader {
-                            Layout.fillWidth: true
-                            title: qsTr("Apariencia del shell")
-                            detail: qsTr("Preferencias persistentes y calibración disponible del sistema")
                         }
 
                         CortetsuSectionHeader {

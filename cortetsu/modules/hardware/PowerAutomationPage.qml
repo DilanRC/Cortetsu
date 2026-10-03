@@ -2,8 +2,11 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import ".."
-import "../CortetsuDesign.js" as CortetsuDesign
+import "../../components"
+import "../../theme"
 import "../CortetsuTypography.js" as CortetsuTypography
+import "summary"
+import "Format.js" as Format
 import QtCore
 import Quickshell.Io
 
@@ -25,29 +28,31 @@ Item {
     readonly property var events: automation?.events ?? []
 
     function profileLabel(name): string {
-        if (name === "power-saver") return qsTr("Power saver");
-        if (name === "performance") return qsTr("Performance");
-        if (name === "balanced") return qsTr("Equilibrado");
-        return qsTr("Desconocido");
+        const labels = { "power-saver": qsTr("Ahorro"), "balanced": qsTr("Equilibrado"), "performance": qsTr("Rendimiento") };
+        return labels[name] ?? "";
     }
 
-    function profileIcon(name): string {
-        if (name === "power-saver") return "eco";
-        if (name === "performance") return "speed";
-        return "balance";
+    // The watcher reports why it chose a profile in its own words.
+    function reasonLabel(reason): string {
+        const text = String(reason ?? "");
+        const known = {
+            "AC connected": qsTr("Conectado a la corriente"),
+            "on battery": qsTr("En batería"),
+            "automation disabled": qsTr("Automatización desactivada")
+        };
+        if (known[text])
+            return known[text];
+        return text.startsWith("battery") ? qsTr("Batería baja") : text;
     }
 
     function sourceLabel(event): string {
-        if (event?.source === "ac") return qsTr("Corriente alterna");
+        if (event?.source === "ac") return qsTr("Corriente");
         if (event?.source === "battery") return qsTr("Batería");
-        return "—";
+        return "";
     }
 
     function timeText(timestamp): string {
-        if (!timestamp)
-            return "—";
-        const d = new Date(Number(timestamp) * 1000);
-        return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}:${String(d.getSeconds()).padStart(2, "0")}`;
+        return timestamp ? Format.clock(new Date(Number(timestamp) * 1000), CortetsuConfig.useTwelveHourClock) : "";
     }
 
     function refresh(): void {
@@ -148,573 +153,351 @@ Item {
         onTriggered: root.refresh()
     }
 
+    readonly property bool enabledNow: root.config?.enabled === true
+    readonly property bool lowEnabled: root.config?.low_battery_enabled === true
+    readonly property int lowThreshold: Number(root.config?.low_battery_threshold ?? 25)
+    readonly property var recentEvents: Array.from(root.events ?? []).slice(0, 5)
+
     Column {
         anchors.fill: parent
-        spacing: 12
+        spacing: CortetsuDesign.spacingStandard
 
-        Rectangle {
+        Panel {
             width: parent.width
-            height: 126
-            radius: CortetsuDesign.radiusLarge
-            color: CortetsuDesign.colorSurface
-            border.width: 1
-            border.color: CortetsuDesign.colorOutlineVariant
+            height: 76
+
+            SummaryLabel {
+                id: title
+                icon: "auto_mode"
+                text: qsTr("Cambio automático de perfil")
+                anchors.rightMargin: 180
+            }
+
+            CortetsuText {
+                anchors.left: parent.left
+                anchors.right: switchRow.left
+                anchors.rightMargin: CortetsuDesign.spacingStandard
+                anchors.bottom: parent.bottom
+                text: root.statusText
+                color: CortetsuDesign.colorOnSurfaceVariant
+                textSize: CortetsuTypography.bodySmallPx
+                elide: Text.ElideRight
+            }
 
             Row {
-                anchors.fill: parent
-                anchors.margins: 16
-                spacing: 18
+                id: switchRow
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                spacing: CortetsuDesign.spacingStandard
 
-                Rectangle {
-                    width: 52
-                    height: 52
+                CortetsuText {
                     anchors.verticalCenter: parent.verticalCenter
-                    radius: CortetsuDesign.radiusLarge
-                    color: config?.enabled
-                        ? CortetsuDesign.colorPrimaryContainer
-                        : CortetsuDesign.colorSurfaceHigh
-
-                    CortetsuIcon {
-                        anchors.centerIn: parent
-                        text: root.actionBusy ? "progress_activity" : "auto_mode"
-                        color: config?.enabled
-                            ? CortetsuDesign.colorOnPrimaryContainer
-                            : CortetsuDesign.colorOnSurfaceVariant
-                        iconSize: CortetsuTypography.iconExtraLargePx
-                    }
+                    text: root.enabledNow ? qsTr("Activado") : qsTr("Desactivado")
+                    color: CortetsuDesign.colorOnSurfaceMuted
+                    textSize: CortetsuTypography.bodyPx
                 }
 
-                Column {
-                    width: parent.width - 52 - toggleButton.width - 54
+                CortetsuToggle {
+                    objectName: "automationToggle"
                     anchors.verticalCenter: parent.verticalCenter
-                    spacing: 3
+                    checked: root.enabledNow
+                    disabled: root.actionBusy
+                    Accessible.name: qsTr("Cambio automático de perfil")
+                    onToggled: root.runControl(
+                        ["set-enabled", root.enabledNow ? "false" : "true"],
+                        root.enabledNow ? qsTr("Deteniendo la automatización…") : qsTr("Iniciando la automatización…"))
+                }
+            }
+        }
 
-                    CortetsuText {
-                        text: qsTr("Perfiles de energía automáticos")
-                        color: CortetsuDesign.colorOnSurface
-                        textSize: CortetsuTypography.titleMediumPx
+        Panel {
+            width: parent.width
+            height: rules.implicitHeight + padding * 2
+
+            Column {
+                id: rules
+                width: parent.width
+                spacing: CortetsuDesign.spacingStandard
+
+                SummaryLabel {
+                    icon: "rule"
+                    text: qsTr("Reglas")
+                    detail: qsTr("Qué perfil se aplica en cada situación")
+                    anchors.rightMargin: 0
+                }
+
+                Rule {
+                    width: parent.width
+                    icon: "power"
+                    title: qsTr("Con corriente")
+                    detail: qsTr("Cargador conectado")
+                    slot: "ac"
+                    value: root.config?.ac_profile ?? ""
+                }
+
+                Rule {
+                    width: parent.width
+                    icon: "battery_full"
+                    title: qsTr("Con batería")
+                    detail: qsTr("Por encima del umbral de batería baja")
+                    slot: "battery"
+                    value: root.config?.battery_profile ?? ""
+                }
+
+                Rule {
+                    id: lowRule
+                    width: parent.width
+                    icon: "battery_alert"
+                    title: qsTr("Batería baja")
+                    detail: root.lowEnabled ? qsTr("Por debajo del %1 %").arg(root.lowThreshold) : qsTr("Regla desactivada")
+                    slot: "low"
+                    value: root.config?.low_battery_profile ?? ""
+                    dimmed: !root.lowEnabled
+                }
+
+                Row {
+                    x: lowRule.choicesX
+                    spacing: CortetsuDesign.spacingStandard
+
+                    CortetsuToggle {
+                        anchors.verticalCenter: parent.verticalCenter
+                        checked: root.lowEnabled
+                        disabled: root.actionBusy
+                        Accessible.name: qsTr("Regla de batería baja")
+                        onToggled: root.runControl(
+                            ["set-low-enabled", root.lowEnabled ? "false" : "true"],
+                            qsTr("Actualizando regla de batería baja…"))
                     }
 
                     CortetsuText {
-                        width: parent.width
-                        text: qsTr("Reglas de corriente alterna, batería y batería baja. Desactivado significa que no hay monitor en segundo plano.")
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: qsTr("Umbral")
                         color: CortetsuDesign.colorOnSurfaceVariant
                         textSize: CortetsuTypography.bodySmallPx
-                        wrapMode: Text.WordWrap
+                    }
+
+                    CortetsuButton {
+                        compact: true
+                        icon: "remove"
+                        disabled: root.actionBusy || root.lowThreshold <= 5
+                        tooltipText: qsTr("Bajar el umbral 5 puntos")
+                        Accessible.name: qsTr("Bajar el umbral")
+                        onClicked: root.threshold(-5)
                     }
 
                     CortetsuText {
-                        width: parent.width
-                        text: root.statusText
-                        color: service?.active ? CortetsuDesign.colorPrimary : CortetsuDesign.colorOutline
-                        textSize: CortetsuTypography.labelSmallPx
-                        elide: Text.ElideRight
-                    }
-                }
-
-                Rectangle {
-                    id: toggleButton
-                    width: 142
-                    height: 48
-                    anchors.verticalCenter: parent.verticalCenter
-                    radius: CortetsuDesign.radiusMedium
-                    color: config?.enabled
-                        ? CortetsuDesign.colorSecondaryContainer
-                        : CortetsuDesign.colorSurfaceHigh
-                    border.width: config?.enabled ? 1 : 0
-                    border.color: CortetsuDesign.colorPrimary
-                    opacity: root.actionBusy ? 0.55 : 1
-
-                    CortetsuStateLayer {
-                        radius: parent.radius
-                        enabled: !root.actionBusy
-                        onClicked: root.runControl(
-                            ["set-enabled", config?.enabled ? "false" : "true"],
-                            config?.enabled ? qsTr("Stopping automation…") : qsTr("Starting automation…")
-                        )
+                        anchors.verticalCenter: parent.verticalCenter
+                        width: 44
+                        horizontalAlignment: Text.AlignHCenter
+                        text: `${root.lowThreshold} %`
+                        textSize: CortetsuTypography.bodyLargePx
+                        font.weight: Font.DemiBold
                     }
 
-                    Row {
-                        anchors.centerIn: parent
-                        spacing: 7
-                        CortetsuIcon {
-                            text: config?.enabled ? "toggle_on" : "toggle_off"
-                            color: config?.enabled
-                                ? CortetsuDesign.colorOnSecondaryContainer
-                                : CortetsuDesign.colorOnSurfaceVariant
-                            iconSize: CortetsuTypography.iconMediumPx
-                        }
-                        CortetsuText {
-                            text: config?.enabled ? qsTr("Enabled") : qsTr("Disabled")
-                            color: config?.enabled
-                                ? CortetsuDesign.colorOnSecondaryContainer
-                                : CortetsuDesign.colorOnSurfaceVariant
-                            textSize: CortetsuTypography.labelMediumPx
-                        }
+                    CortetsuButton {
+                        compact: true
+                        icon: "add"
+                        disabled: root.actionBusy || root.lowThreshold >= 80
+                        tooltipText: qsTr("Subir el umbral 5 puntos")
+                        Accessible.name: qsTr("Subir el umbral")
+                        onClicked: root.threshold(5)
                     }
                 }
             }
         }
 
-        Grid {
-            id: scenarioGrid
+        Panel {
             width: parent.width
-            height: 192
-            columns: 2
-            columnSpacing: 12
+            height: parent.height - y
+
+            SummaryLabel {
+                id: stateLabel
+                icon: "history"
+                text: qsTr("Estado")
+                detail: root.service?.active ? qsTr("Servicio en ejecución") : qsTr("Servicio detenido")
+                anchors.rightMargin: actions.width + CortetsuDesign.spacingStandard
+            }
+
+            Row {
+                id: actions
+                anchors.right: parent.right
+                anchors.top: parent.top
+                anchors.topMargin: -4
+                spacing: CortetsuDesign.spacingCompact
+
+                CortetsuButton {
+                    compact: true
+                    icon: "play_arrow"
+                    label: qsTr("Aplicar la regla ahora")
+                    disabled: root.actionBusy
+                    tooltipText: qsTr("Funciona con la automatización desactivada y no la activa")
+                    onClicked: root.runControl(["apply-now"], qsTr("Aplicando la regla actual una vez…"))
+                }
+
+                CortetsuButton {
+                    compact: true
+                    icon: "restart_alt"
+                    label: qsTr("Restaurar reglas")
+                    disabled: root.actionBusy
+                    onClicked: root.runControl(["reset-defaults"], qsTr("Restaurando reglas predeterminadas…"))
+                }
+
+                CortetsuButton {
+                    compact: true
+                    icon: "delete_sweep"
+                    label: qsTr("Borrar historial")
+                    disabled: root.actionBusy || root.events.length === 0
+                    onClicked: root.runControl(["clear-events"], qsTr("Borrando historial de eventos…"))
+                }
+            }
+
+            Row {
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.top: stateLabel.bottom
+                anchors.topMargin: CortetsuDesign.spacingStandard
+                spacing: CortetsuDesign.spacingSpacious
+
+                Column {
+                    id: facts
+                    width: Math.round((parent.width - parent.spacing) * 0.4)
+
+                    FactRow { width: parent.width; label: qsTr("Perfil actual"); value: root.profileLabel(root.last?.profile ?? ""); emphasized: true }
+                    FactRow { width: parent.width; label: qsTr("Perfil que pide la regla"); value: root.profileLabel(root.last?.desired_profile ?? "") }
+                    FactRow { width: parent.width; label: qsTr("Motivo"); value: root.reasonLabel(root.last?.reason) }
+                    FactRow { width: parent.width; label: qsTr("Batería en ese momento"); value: Format.percent(root.last?.battery_percent) }
+                }
+
+                Column {
+                    id: history
+                    width: parent.width - facts.width - parent.spacing
+
+                    CortetsuText {
+                        height: 28
+                        verticalAlignment: Text.AlignVCenter
+                        text: root.recentEvents.length > 0 ? qsTr("Últimos cambios") : qsTr("Todavía no hay cambios automáticos registrados")
+                        color: CortetsuDesign.colorOnSurfaceVariant
+                        textSize: CortetsuTypography.bodySmallPx
+                    }
+
+                    Repeater {
+                        model: root.recentEvents.length
+
+                        delegate: Item {
+                            id: entry
+                            required property int index
+                            readonly property var event: root.recentEvents[entry.index] ?? ({})
+                            readonly property bool failed: entry.event.ok === false
+
+                            width: history.width
+                            height: 28
+
+                            CortetsuText {
+                                id: when
+                                anchors.left: parent.left
+                                anchors.verticalCenter: parent.verticalCenter
+                                width: 84
+                                text: root.timeText(entry.event.timestamp)
+                                color: CortetsuDesign.colorOnSurfaceVariant
+                                textSize: CortetsuTypography.bodySmallPx
+                            }
+
+                            SeverityIcon {
+                                id: failure
+                                anchors.left: when.right
+                                anchors.verticalCenter: parent.verticalCenter
+                                severity: entry.failed ? "critical" : ""
+                                iconSize: CortetsuTypography.iconSmallPx
+                                rightPadding: 4
+                            }
+
+                            CortetsuText {
+                                anchors.left: failure.visible ? failure.right : when.right
+                                anchors.right: parent.right
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: Format.join([
+                                    root.profileLabel(entry.event.profile ?? entry.event.desired_profile ?? ""),
+                                    entry.failed
+                                        ? (entry.event.error ?? qsTr("No se pudo aplicar"))
+                                        : (root.reasonLabel(entry.event.reason) || root.sourceLabel(entry.event))
+                                ])
+                                textSize: CortetsuTypography.bodySmallPx
+                                elide: Text.ElideRight
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // A situation and the profile assigned to it.
+    component Rule: Item {
+        id: rule
+
+        property string icon: ""
+        property string title: ""
+        property string detail: ""
+        property string slot: ""
+        property string value: ""
+        property bool dimmed: false
+        readonly property real choicesX: Math.round(rule.width * 0.3)
+
+        height: 52
+
+        CortetsuIcon {
+            id: ruleIcon
+            anchors.left: parent.left
+            anchors.verticalCenter: parent.verticalCenter
+            text: rule.icon
+            color: CortetsuDesign.colorOnSurfaceMuted
+            iconSize: CortetsuTypography.iconMediumPx
+        }
+
+        Column {
+            anchors.left: ruleIcon.right
+            anchors.leftMargin: CortetsuDesign.spacingStandard
+            anchors.verticalCenter: parent.verticalCenter
+            width: rule.choicesX - ruleIcon.width - CortetsuDesign.spacingStandard * 2
+            spacing: 1
+
+            CortetsuText {
+                width: parent.width
+                text: rule.title
+                textSize: CortetsuTypography.bodyPx
+                font.weight: Font.DemiBold
+                elide: Text.ElideRight
+            }
+
+            CortetsuText {
+                width: parent.width
+                text: rule.detail
+                color: CortetsuDesign.colorOnSurfaceVariant
+                textSize: CortetsuTypography.labelSmallPx
+                elide: Text.ElideRight
+            }
+        }
+
+        Row {
+            id: ruleChoices
+            x: rule.choicesX
+            width: rule.width - rule.choicesX
+            height: parent.height
+            spacing: CortetsuDesign.spacingStandard
+            opacity: rule.dimmed ? 0.55 : 1
 
             Repeater {
-                model: [
-                    {
-                        title: qsTr("On AC power"),
-                        subtitle: qsTr("External power source online"),
-                        icon: "power",
-                        slot: "ac",
-                        value: config?.ac_profile ?? "performance"
-                    },
-                    {
-                        title: qsTr("On battery"),
-                        subtitle: qsTr("Normal battery rule above the low threshold"),
-                        icon: "battery_5_bar",
-                        slot: "battery",
-                        value: config?.battery_profile ?? "balanced"
-                    }
-                ]
+                model: ["power-saver", "balanced", "performance"]
 
-                delegate: Rectangle {
-                    id: scenarioCard
-                    required property var modelData
-                    width: (scenarioGrid.width - 12) / 2
-                    height: scenarioGrid.height
-                    radius: CortetsuDesign.radiusLarge
-                    color: CortetsuDesign.colorSurface
-                    border.width: 1
-                    border.color: CortetsuDesign.colorOutlineVariant
+                delegate: ProfileChoice {
+                    required property string modelData
 
-                    Column {
-                        anchors.fill: parent
-                        anchors.margins: 16
-                        spacing: 11
-
-                        Row {
-                            width: parent.width
-                            spacing: 10
-
-                            Rectangle {
-                                width: 42
-                                height: 42
-                                radius: CortetsuDesign.radiusMedium
-                                color: CortetsuDesign.colorSecondaryContainer
-                                CortetsuIcon {
-                                    anchors.centerIn: parent
-                                    text: scenarioCard.modelData.icon
-                                    color: CortetsuDesign.colorOnSecondaryContainer
-                                    iconSize: CortetsuTypography.iconLargePx
-                                }
-                            }
-
-                            Column {
-                                width: parent.width - 52
-                                anchors.verticalCenter: parent.verticalCenter
-                                spacing: 1
-                                CortetsuText {
-                                    text: scenarioCard.modelData.title
-                                    color: CortetsuDesign.colorOnSurface
-                                    textSize: CortetsuTypography.titleSmallPx
-                                }
-                                CortetsuText {
-                                    width: parent.width
-                                    text: scenarioCard.modelData.subtitle
-                                    color: CortetsuDesign.colorOutline
-                                    textSize: CortetsuTypography.labelSmallPx
-                                    elide: Text.ElideRight
-                                }
-                            }
-                        }
-
-                        Row {
-                            width: parent.width
-                            spacing: 8
-
-                            Repeater {
-                                model: ["power-saver", "balanced", "performance"]
-
-                                delegate: Rectangle {
-                                    id: profileChoice
-                                    required property string modelData
-                                    readonly property bool active: modelData === scenarioCard.modelData.value
-                                    width: (parent.width - 16) / 3
-                                    height: 78
-                                    radius: CortetsuDesign.radiusMedium
-                                    color: active
-                                        ? CortetsuDesign.colorSecondaryContainer
-                                        : CortetsuDesign.colorSurfaceHigh
-                                    border.width: active ? 1 : 0
-                                    border.color: CortetsuDesign.colorPrimary
-
-                                    CortetsuStateLayer {
-                                        radius: parent.radius
-                                        enabled: !root.actionBusy
-                                        onClicked: root.setProfile(scenarioCard.modelData.slot, profileChoice.modelData)
-                                    }
-
-                                    Column {
-                                        anchors.centerIn: parent
-                                        spacing: 5
-                                        CortetsuIcon {
-                                            anchors.horizontalCenter: parent.horizontalCenter
-                                            text: root.profileIcon(profileChoice.modelData)
-                                            color: profileChoice.active
-                                                ? CortetsuDesign.colorOnSecondaryContainer
-                                                : CortetsuDesign.colorOnSurfaceVariant
-                                            iconSize: CortetsuTypography.iconMediumPx
-                                        }
-                                        CortetsuText {
-                                            anchors.horizontalCenter: parent.horizontalCenter
-                                            text: root.profileLabel(profileChoice.modelData)
-                                            color: profileChoice.active
-                                                ? CortetsuDesign.colorOnSecondaryContainer
-                                                : CortetsuDesign.colorOnSurfaceVariant
-                                            textSize: CortetsuTypography.labelSmallPx
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        Grid {
-            width: parent.width
-            height: parent.height - 342
-            columns: 2
-            columnSpacing: 12
-
-            Rectangle {
-                width: (parent.width - 12) / 2
-                height: parent.height
-                radius: CortetsuDesign.radiusLarge
-                color: CortetsuDesign.colorSurface
-                border.width: 1
-                border.color: CortetsuDesign.colorOutlineVariant
-
-                Column {
-                    anchors.fill: parent
-                    anchors.margins: 16
-                    spacing: 11
-
-                    Row {
-                        width: parent.width
-
-                        Column {
-                            width: parent.width - lowToggle.width - 12
-                            spacing: 2
-                            CortetsuText {
-                                text: qsTr("Low battery override")
-                                color: CortetsuDesign.colorOnSurface
-                                textSize: CortetsuTypography.titleSmallPx
-                            }
-                            CortetsuText {
-                                width: parent.width
-                                text: qsTr("A separate profile can take over below the selected threshold.")
-                                color: CortetsuDesign.colorOutline
-                                textSize: CortetsuTypography.labelSmallPx
-                                wrapMode: Text.WordWrap
-                            }
-                        }
-
-                        Rectangle {
-                            id: lowToggle
-                            width: 90
-                            height: 38
-                            radius: CortetsuDesign.radiusMedium
-                            color: config?.low_battery_enabled
-                                ? CortetsuDesign.colorSecondaryContainer
-                                : CortetsuDesign.colorSurfaceHigh
-                            CortetsuStateLayer {
-                                radius: parent.radius
-                                enabled: !root.actionBusy
-                                onClicked: root.runControl(
-                                    ["set-low-enabled", config?.low_battery_enabled ? "false" : "true"],
-                                    qsTr("Actualizando regla de batería baja…")
-                                )
-                            }
-                            CortetsuText {
-                                anchors.centerIn: parent
-                                text: config?.low_battery_enabled ? qsTr("Enabled") : qsTr("Off")
-                                color: config?.low_battery_enabled
-                                    ? CortetsuDesign.colorOnSecondaryContainer
-                                    : CortetsuDesign.colorOnSurfaceVariant
-                                textSize: CortetsuTypography.labelSmallPx
-                            }
-                        }
-                    }
-
-                    Row {
-                        width: parent.width
-                        height: 46
-                        spacing: 8
-
-                        Rectangle {
-                            width: 46
-                            height: 46
-                            radius: CortetsuDesign.radiusMedium
-                            color: CortetsuDesign.colorSurfaceHigh
-                            CortetsuStateLayer { radius: parent.radius; enabled: !root.actionBusy; onClicked: root.threshold(-5) }
-                            CortetsuIcon { anchors.centerIn: parent; text: "remove"; color: CortetsuDesign.colorOnSurfaceVariant }
-                        }
-                        Column {
-                            width: parent.width - 108
-                            anchors.verticalCenter: parent.verticalCenter
-                            CortetsuText {
-                                width: parent.width
-                                text: `${Number(config?.low_battery_threshold ?? 25)}%`
-                                color: CortetsuDesign.colorPrimary
-                                textSize: CortetsuTypography.titleMediumPx
-                                horizontalAlignment: Text.AlignHCenter
-                            }
-                            CortetsuText {
-                                width: parent.width
-                                text: qsTr("low-battery threshold")
-                                color: CortetsuDesign.colorOutline
-                                textSize: CortetsuTypography.labelSmallPx
-                                horizontalAlignment: Text.AlignHCenter
-                            }
-                        }
-                        Rectangle {
-                            width: 46
-                            height: 46
-                            radius: CortetsuDesign.radiusMedium
-                            color: CortetsuDesign.colorSurfaceHigh
-                            CortetsuStateLayer { radius: parent.radius; enabled: !root.actionBusy; onClicked: root.threshold(5) }
-                            CortetsuIcon { anchors.centerIn: parent; text: "add"; color: CortetsuDesign.colorOnSurfaceVariant }
-                        }
-                    }
-
-                    Row {
-                        width: parent.width
-                        spacing: 8
-                        Repeater {
-                            model: ["power-saver", "balanced", "performance"]
-                            delegate: Rectangle {
-                                id: lowChoice
-                                required property string modelData
-                                readonly property bool active: modelData === (config?.low_battery_profile ?? "power-saver")
-                                width: (parent.width - 16) / 3
-                                height: 54
-                                radius: CortetsuDesign.radiusMedium
-                                color: active ? CortetsuDesign.colorSecondaryContainer : CortetsuDesign.colorSurfaceHigh
-                                CortetsuStateLayer {
-                                    radius: parent.radius
-                                    enabled: !root.actionBusy
-                                    onClicked: root.setProfile("low", lowChoice.modelData)
-                                }
-                                CortetsuText {
-                                    anchors.centerIn: parent
-                                    text: root.profileLabel(lowChoice.modelData)
-                                    color: lowChoice.active
-                                        ? CortetsuDesign.colorOnSecondaryContainer
-                                        : CortetsuDesign.colorOnSurfaceVariant
-                                    textSize: CortetsuTypography.labelSmallPx
-                                }
-                            }
-                        }
-                    }
-
-                    Rectangle {
-                        width: parent.width
-                        height: 42
-                        radius: CortetsuDesign.radiusMedium
-                        color: CortetsuDesign.colorPrimaryContainer
-                        CortetsuStateLayer {
-                            radius: parent.radius
-                            enabled: !root.actionBusy
-                            onClicked: root.runControl(["apply-now"], qsTr("Aplicando la regla actual una vez…"))
-                        }
-                        Row {
-                            anchors.centerIn: parent
-                            spacing: 7
-                            CortetsuIcon {
-                                text: "play_arrow"
-                                color: CortetsuDesign.colorOnPrimaryContainer
-                                iconSize: CortetsuTypography.iconSmallPx
-                            }
-                            CortetsuText {
-                                text: qsTr("Apply current rule once")
-                                color: CortetsuDesign.colorOnPrimaryContainer
-                                textSize: CortetsuTypography.labelMediumPx
-                            }
-                        }
-                    }
-
-                    CortetsuText {
-                        width: parent.width
-                        text: qsTr("Aplicar una vez funciona aunque la automatización esté desactivada; no activa el monitor.")
-                        color: CortetsuDesign.colorOutline
-                        textSize: CortetsuTypography.labelSmallPx
-                        wrapMode: Text.WordWrap
-                    }
-                }
-            }
-
-            Rectangle {
-                width: (parent.width - 12) / 2
-                height: parent.height
-                radius: CortetsuDesign.radiusLarge
-                color: CortetsuDesign.colorSurface
-                border.width: 1
-                border.color: CortetsuDesign.colorOutlineVariant
-
-                Column {
-                    anchors.fill: parent
-                    anchors.margins: 16
-                    spacing: 8
-
-                    Row {
-                        width: parent.width
-
-                        CortetsuText {
-                            width: parent.width - eventActions.width - 10
-                        text: qsTr("Estado y eventos de automatización")
-                            color: CortetsuDesign.colorOnSurface
-                            textSize: CortetsuTypography.titleSmallPx
-                        }
-
-                        Row {
-                            id: eventActions
-                            spacing: 6
-
-                            Rectangle {
-                                width: 76
-                                height: 32
-                                radius: CortetsuDesign.radiusSmall
-                                color: CortetsuDesign.colorSurfaceHigh
-                                CortetsuStateLayer {
-                                    radius: parent.radius
-                                    enabled: !root.actionBusy
-                                    onClicked: root.runControl(["reset-defaults"], qsTr("Restaurando reglas predeterminadas…"))
-                                }
-                                CortetsuText {
-                                    anchors.centerIn: parent
-                                    text: qsTr("Predeterminadas")
-                                    color: CortetsuDesign.colorOnSurfaceVariant
-                                    textSize: CortetsuTypography.labelSmallPx
-                                }
-                            }
-
-                            Rectangle {
-                                width: 68
-                                height: 32
-                                radius: CortetsuDesign.radiusSmall
-                                color: CortetsuDesign.colorSurfaceHigh
-                                CortetsuStateLayer {
-                                    radius: parent.radius
-                                    enabled: !root.actionBusy
-                                    onClicked: root.runControl(["clear-events"], qsTr("Borrando historial de eventos…"))
-                                }
-                                CortetsuText {
-                                    anchors.centerIn: parent
-                                    text: qsTr("Limpiar")
-                                    color: CortetsuDesign.colorOnSurfaceVariant
-                                    textSize: CortetsuTypography.labelSmallPx
-                                }
-                            }
-                        }
-                    }
-
-                    Repeater {
-                        model: [
-                            { label: qsTr("Servicio"), value: service?.active ? qsTr("Activo") : qsTr("Detenido") },
-                            { label: qsTr("Actual / deseado"), value: `${root.profileLabel(last?.profile ?? "")} → ${root.profileLabel(last?.desired_profile ?? "")}` },
-                            { label: qsTr("Motivo"), value: last?.reason ?? qsTr("Aún no hay cambios automáticos") },
-                            { label: qsTr("Batería"), value: last?.battery_percent !== undefined && last?.battery_percent !== null ? `${last.battery_percent}%` : "—" }
-                        ]
-
-                        delegate: Row {
-                            required property var modelData
-                            width: parent.width
-                            height: 22
-                            CortetsuText {
-                                width: parent.width * 0.38
-                                text: modelData.label
-                                color: CortetsuDesign.colorOutline
-                                textSize: CortetsuTypography.labelSmallPx
-                            }
-                            CortetsuText {
-                                width: parent.width * 0.62
-                                text: modelData.value
-                                color: CortetsuDesign.colorOnSurfaceVariant
-                                textSize: CortetsuTypography.labelSmallPx
-                                horizontalAlignment: Text.AlignRight
-                                elide: Text.ElideLeft
-                            }
-                        }
-                    }
-
-                    CortetsuText {
-                        text: qsTr("Recent profile events")
-                        color: CortetsuDesign.colorOnSurfaceVariant
-                        textSize: CortetsuTypography.labelMediumPx
-                    }
-
-                    Repeater {
-                        model: Array.from(root.events ?? []).slice(0, 5)
-
-                        delegate: Rectangle {
-                            required property var modelData
-                            width: parent.width
-                            height: 34
-                            radius: CortetsuDesign.radiusSmall
-                            color: CortetsuDesign.colorSurfaceHigh
-
-                            Row {
-                                anchors.fill: parent
-                                anchors.leftMargin: 9
-                                anchors.rightMargin: 9
-
-                                CortetsuText {
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    width: parent.width * 0.18
-                                    text: root.timeText(modelData?.timestamp)
-                                    color: CortetsuDesign.colorOutline
-                                    textSize: CortetsuTypography.labelSmallPx
-                                }
-                                CortetsuText {
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    width: parent.width * 0.17
-                                    text: root.sourceLabel(modelData)
-                                    color: CortetsuDesign.colorOnSurfaceVariant
-                                    textSize: CortetsuTypography.labelSmallPx
-                                }
-                                CortetsuText {
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    width: parent.width * 0.29
-                                    text: root.profileLabel(modelData?.profile ?? modelData?.desired_profile ?? "")
-                                    color: modelData?.ok === false ? CortetsuDesign.colorVermillion : CortetsuDesign.colorPrimary
-                                    textSize: CortetsuTypography.labelSmallPx
-                                    elide: Text.ElideRight
-                                }
-                                CortetsuText {
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    width: parent.width * 0.36
-                                    text: modelData?.reason ?? modelData?.error ?? "—"
-                                    color: CortetsuDesign.colorOnSurfaceVariant
-                                    textSize: CortetsuTypography.labelSmallPx
-                                    horizontalAlignment: Text.AlignRight
-                                    elide: Text.ElideLeft
-                                }
-                            }
-                        }
-                    }
-
-                    CortetsuText {
-                        visible: root.events.length === 0
-                        text: qsTr("Aún no se han registrado eventos automáticos de perfiles.")
-                        color: CortetsuDesign.colorOutline
-                        textSize: CortetsuTypography.bodySmallPx
-                    }
+                    width: (ruleChoices.width - ruleChoices.spacing * 2) / 3
+                    height: ruleChoices.height
+                    profile: modelData
+                    selected: rule.value === modelData
+                    disabled: root.actionBusy
+                    onChosen: root.setProfile(rule.slot, modelData)
                 }
             }
         }

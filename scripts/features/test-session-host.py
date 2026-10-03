@@ -16,10 +16,12 @@ for marker in (
     '["systemctl", "hibernate"]',
     '["systemctl", "reboot"]',
     '["systemctl", "poweroff"]',
-    '["hyprctl", "dispatch", "exit"]',
-    '["hyprctl", "dispatch", "global", "cortetsu:lock"]',
 ):
     assert marker in content, marker
+
+# Hyprland's Lua config rejects `hyprctl dispatch <name> <args>`, so neither
+# action may shell out to it. test-cortetsu-session-runtime.py covers behaviour.
+assert '"hyprctl"' not in content
 
 # Confirmations are keyed by stable action ids. The previous implementation
 # accidentally passed modelData.command into run() and then attempted

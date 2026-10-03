@@ -2,8 +2,11 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import ".."
-import "../CortetsuDesign.js" as CortetsuDesign
+import "../../components"
+import "../../theme"
 import "../CortetsuTypography.js" as CortetsuTypography
+import "summary"
+import "Format.js" as Format
 import Quickshell
 
 Item {
@@ -20,6 +23,19 @@ Item {
     property var frozenProcesses: []
     property int selectedPid: -1
     property string actionStatus: ""
+    // A forced close needs a second press within a few seconds.
+    property bool killArmed: false
+
+    readonly property bool hasSelection: Number(selectedProcess?.pid ?? -1) > 1
+    readonly property var stateLabels: ({
+        "R": qsTr("En ejecución"),
+        "S": qsTr("En espera"),
+        "D": qsTr("Esperando al disco"),
+        "I": qsTr("Inactivo"),
+        "T": qsTr("Detenido"),
+        "t": qsTr("Detenido por depurador"),
+        "Z": qsTr("Zombi")
+    })
 
     readonly property var sourceProcesses: paused ? frozenProcesses : processes
     readonly property var visibleProcesses: buildProcesses(sourceProcesses)
@@ -81,7 +97,35 @@ Item {
         if (pid <= 1)
             return;
         Quickshell.execDetached(["kill", `-${signal}`, String(pid)]);
-        actionStatus = `${signal} → PID ${pid}`;
+        actionStatus = qsTr("Señal %1 enviada al proceso %2").arg(signal).arg(pid);
+    }
+
+    function forceClose(): void {
+        if (!root.killArmed) {
+            root.killArmed = true;
+            disarm.restart();
+            return;
+        }
+        root.killArmed = false;
+        sendSignal("KILL");
+    }
+
+    function moveSelection(delta): void {
+        const list = root.visibleProcesses;
+        if (list.length === 0)
+            return;
+        const at = list.findIndex(p => Number(p?.pid) === root.selectedPid);
+        const next = Math.max(0, Math.min(list.length - 1, (at < 0 ? 0 : at) + delta));
+        root.selectedPid = Number(list[next].pid);
+        processList.positionViewAtIndex(next, ListView.Contain);
+    }
+
+    onSelectedPidChanged: root.killArmed = false
+
+    Timer {
+        id: disarm
+        interval: 4000
+        onTriggered: root.killArmed = false
     }
 
     function toggleSelectedPause(): void {
@@ -90,7 +134,7 @@ Item {
 
     function cpuText(proc): string {
         const usage = Number(proc?.cpu ?? 0);
-        return numericMode ? `${(usage / 100).toFixed(2)} core` : `${usage.toFixed(1)}%`;
+        return numericMode ? (usage / 100).toFixed(2) : `${usage.toFixed(1)} %`;
     }
 
     function ramGiB(proc): real {
@@ -100,7 +144,7 @@ Item {
     function ramText(proc): string {
         const pct = Number(proc?.mem ?? 0);
         if (!numericMode)
-            return `${pct.toFixed(1)}%`;
+            return `${pct.toFixed(1)} %`;
         const gib = ramGiB(proc);
         return gib < 1 ? `${Math.round(gib * 1024)} MiB` : `${gib.toFixed(2)} GiB`;
     }
@@ -116,524 +160,323 @@ Item {
 
     Row {
         anchors.fill: parent
-        spacing: 12
+        spacing: CortetsuDesign.spacingStandard
 
-        Rectangle {
+        Panel {
             id: listCard
-            width: parent.width * 0.66
+            width: Math.round((parent.width - parent.spacing) * 0.66)
             height: parent.height
-            radius: CortetsuDesign.radiusLarge
-            color: CortetsuDesign.colorSurface
-            border.width: 1
-            border.color: CortetsuDesign.colorOutlineVariant
 
-            Column {
-                anchors.fill: parent
-                anchors.margins: 14
-                spacing: 10
-
-                Row {
-                    width: parent.width
-                    height: 42
-                    spacing: 9
-
-                    Rectangle {
-                        width: parent.width - sortControls.width - pauseButton.width - unitsButton.width - 27
-                        height: 42
-                        radius: CortetsuDesign.radiusMedium
-                        color: CortetsuDesign.colorSurfaceHigh
-                        border.width: searchInput.activeFocus ? 1 : 0
-                        border.color: CortetsuDesign.colorPrimary
-
-                        CortetsuIcon {
-                            anchors.left: parent.left
-                            anchors.leftMargin: 12
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: "search"
-                            color: CortetsuDesign.colorOnSurfaceVariant
-                            iconSize: CortetsuTypography.iconMediumPx
-                        }
-
-                        CortetsuText {
-                            anchors.left: parent.left
-                            anchors.leftMargin: 42
-                            anchors.verticalCenter: parent.verticalCenter
-                            visible: searchInput.text.length === 0
-                        text: qsTr("Filtrar procesos…")
-                            color: CortetsuDesign.colorOutline
-                            textSize: CortetsuTypography.bodyPx
-                        }
-
-                        TextInput {
-                            id: searchInput
-                            anchors.left: parent.left
-                            anchors.right: parent.right
-                            anchors.leftMargin: 42
-                            anchors.rightMargin: 10
-                            anchors.verticalCenter: parent.verticalCenter
-                            height: parent.height
-                            verticalAlignment: TextInput.AlignVCenter
-                            color: CortetsuDesign.colorOnSurface
-                            selectionColor: CortetsuDesign.colorPrimary
-                            selectedTextColor: CortetsuDesign.colorOnPrimary
-                            font.pixelSize: 15
-                            text: root.filterText
-                            onTextChanged: root.filterText = text
-                        }
-                    }
-
-                    Row {
-                        id: sortControls
-                        spacing: 5
-
-                        Repeater {
-                            model: [
-                                { label: "CPU", key: "cpu" },
-                                { label: "RAM", key: "mem" },
-                                { label: "PID", key: "pid" }
-                            ]
-
-                            delegate: Rectangle {
-                                required property var modelData
-                                width: 54
-                                height: 42
-                                radius: CortetsuDesign.radiusMedium
-                                color: root.sortKey === modelData.key
-                                    ? CortetsuDesign.colorSecondaryContainer
-                                    : CortetsuDesign.colorSurfaceHigh
-
-                                CortetsuStateLayer {
-                                    radius: parent.radius
-                                    onClicked: root.setSort(modelData.key)
-                                }
-
-                                CortetsuText {
-                                    anchors.centerIn: parent
-                                    text: `${modelData.label}${root.sortKey === modelData.key ? (root.sortDescending ? " ↓" : " ↑") : ""}`
-                                    color: root.sortKey === modelData.key
-                                        ? CortetsuDesign.colorOnSecondaryContainer
-                                        : CortetsuDesign.colorOnSurfaceVariant
-                                    textSize: CortetsuTypography.labelSmallPx
-                                }
-                            }
-                        }
-                    }
-
-                    Rectangle {
-                        id: unitsButton
-                        width: 48
-                        height: 42
-                        radius: CortetsuDesign.radiusMedium
-                        color: root.numericMode
-                            ? CortetsuDesign.colorSecondaryContainer
-                            : CortetsuDesign.colorSurfaceHigh
-
-                        CortetsuStateLayer {
-                            radius: parent.radius
-                            onClicked: root.numericMode = !root.numericMode
-                        }
-
-                        CortetsuText {
-                            anchors.centerIn: parent
-                            text: root.numericMode ? "123" : "%"
-                            color: root.numericMode
-                                ? CortetsuDesign.colorOnSecondaryContainer
-                                : CortetsuDesign.colorOnSurfaceVariant
-                            textSize: CortetsuTypography.labelMediumPx
-                        }
-                    }
-
-                    Rectangle {
-                        id: pauseButton
-                        width: 44
-                        height: 42
-                        radius: CortetsuDesign.radiusMedium
-                        color: root.paused
-                            ? CortetsuDesign.colorSecondaryContainer
-                            : CortetsuDesign.colorSurfaceHigh
-
-                        CortetsuStateLayer {
-                            radius: parent.radius
-                            onClicked: root.togglePause()
-                        }
-
-                        CortetsuIcon {
-                            anchors.centerIn: parent
-                            text: root.paused ? "play_arrow" : "pause"
-                            color: root.paused
-                                ? CortetsuDesign.colorOnSurface
-                                : CortetsuDesign.colorOnSurfaceVariant
-                        }
-                    }
-                }
-
-                Row {
-                    width: parent.width
-                    height: 26
-
-                    CortetsuText {
-                        width: parent.width * 0.43
-                        text: qsTr("Proceso")
-                        color: CortetsuDesign.colorOutline
-                        textSize: CortetsuTypography.labelSmallPx
-                    }
-                    CortetsuText {
-                        width: parent.width * 0.17
-                        text: qsTr("Usuario")
-                        color: CortetsuDesign.colorOutline
-                        textSize: CortetsuTypography.labelSmallPx
-                    }
-                    CortetsuText {
-                        width: parent.width * 0.12
-                        text: qsTr("PID")
-                        color: CortetsuDesign.colorOutline
-                        textSize: CortetsuTypography.labelSmallPx
-                        horizontalAlignment: Text.AlignRight
-                    }
-                    CortetsuText {
-                        width: parent.width * 0.14
-                        text: root.numericMode ? qsTr("Núcleos de CPU") : qsTr("CPU %")
-                        color: CortetsuDesign.colorOutline
-                        textSize: CortetsuTypography.labelSmallPx
-                        horizontalAlignment: Text.AlignRight
-                    }
-                    CortetsuText {
-                        width: parent.width * 0.14
-                        text: root.numericMode ? qsTr("RAM") : qsTr("RAM %")
-                        color: CortetsuDesign.colorOutline
-                        textSize: CortetsuTypography.labelSmallPx
-                        horizontalAlignment: Text.AlignRight
-                    }
-                }
-
-                ListView {
-                    id: processList
-                    width: parent.width
-                    height: parent.height - 88
-                    clip: true
-                    spacing: 3
-                    boundsBehavior: Flickable.StopAtBounds
-                    model: root.visibleProcesses
-
-                    delegate: Rectangle {
-                        id: processRow
-                        required property var modelData
-                        required property int index
-                        width: processList.width
-                        height: 36
-                        radius: CortetsuDesign.radiusSmall
-                        color: Number(modelData?.pid) === root.selectedPid
-                            ? CortetsuDesign.colorSecondaryContainer
-                            : (index % 2 === 0
-                                ? CortetsuDesign.colorSurface
-                                : CortetsuDesign.colorSurface)
-
-                        CortetsuStateLayer {
-                            radius: parent.radius
-                            onClicked: root.selectedPid = Number(processRow.modelData?.pid ?? -1)
-                        }
-
-                        Row {
-                            anchors.fill: parent
-                            anchors.leftMargin: 9
-                            anchors.rightMargin: 9
-
-                            CortetsuText {
-                                anchors.verticalCenter: parent.verticalCenter
-                                width: parent.width * 0.43
-                                text: processRow.modelData?.name ?? "—"
-                                color: CortetsuDesign.colorOnSurface
-                                textSize: CortetsuTypography.bodySmallPx
-                                elide: Text.ElideRight
-                            }
-                            CortetsuText {
-                                anchors.verticalCenter: parent.verticalCenter
-                                width: parent.width * 0.17
-                                text: processRow.modelData?.user ?? "—"
-                                color: CortetsuDesign.colorOnSurfaceVariant
-                                textSize: CortetsuTypography.labelSmallPx
-                                elide: Text.ElideRight
-                            }
-                            CortetsuText {
-                                anchors.verticalCenter: parent.verticalCenter
-                                width: parent.width * 0.12
-                                text: String(processRow.modelData?.pid ?? "—")
-                                color: CortetsuDesign.colorOutline
-                                textSize: CortetsuTypography.labelSmallPx
-                                horizontalAlignment: Text.AlignRight
-                            }
-                            CortetsuText {
-                                anchors.verticalCenter: parent.verticalCenter
-                                width: parent.width * 0.14
-                                text: root.cpuText(processRow.modelData)
-                                color: Number(processRow.modelData?.cpu ?? 0) >= 50
-                                    ? CortetsuDesign.colorPrimary
-                                    : CortetsuDesign.colorOnSurfaceVariant
-                                textSize: CortetsuTypography.labelSmallPx
-                                horizontalAlignment: Text.AlignRight
-                                elide: Text.ElideLeft
-                            }
-                            CortetsuText {
-                                anchors.verticalCenter: parent.verticalCenter
-                                width: parent.width * 0.14
-                                text: root.ramText(processRow.modelData)
-                                color: CortetsuDesign.colorOnSurfaceVariant
-                                textSize: CortetsuTypography.labelSmallPx
-                                horizontalAlignment: Text.AlignRight
-                                elide: Text.ElideLeft
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        Rectangle {
-            id: details
-            width: parent.width - listCard.width - 12
-            height: parent.height
-            radius: CortetsuDesign.radiusLarge
-            color: CortetsuDesign.colorSurface
-            border.width: 1
-            border.color: CortetsuDesign.colorOutlineVariant
-
-            Column {
-                id: detailsBody
+            Row {
+                id: toolbar
                 anchors.left: parent.left
                 anchors.right: parent.right
                 anchors.top: parent.top
-                anchors.bottom: actionArea.top
-                anchors.margins: 18
-                anchors.bottomMargin: 12
-                spacing: 12
+                height: 38
+                spacing: CortetsuDesign.spacingCompact
 
-                Row {
-                    width: parent.width
-                    spacing: 10
-
-                    Rectangle {
-                        width: 44
-                        height: 44
-                        radius: CortetsuDesign.radiusMedium
-                        color: CortetsuDesign.colorPrimaryContainer
-
-                        CortetsuIcon {
-                            anchors.centerIn: parent
-                            text: "terminal"
-                            color: CortetsuDesign.colorOnPrimaryContainer
-                            iconSize: CortetsuTypography.iconLargePx
-                        }
-                    }
-
-                    Column {
-                        width: parent.width - 54
-                        spacing: 1
-
-                        CortetsuText {
-                            width: parent.width
-                            text: root.selectedProcess?.name ?? qsTr("No hay proceso seleccionado")
-                            color: CortetsuDesign.colorOnSurface
-                            textSize: CortetsuTypography.titleMediumPx
-                            elide: Text.ElideRight
-                        }
-
-                        CortetsuText {
-                            width: parent.width
-                            text: root.selectedProcess?.pid
-                                ? `PID ${root.selectedProcess.pid} · ${root.selectedProcess?.user ?? "—"}`
-                                : ""
-                            color: CortetsuDesign.colorOnSurfaceVariant
-                            textSize: CortetsuTypography.labelMediumPx
-                        }
-                    }
+                CortetsuSearchBar {
+                    id: search
+                    objectName: "processSearch"
+                    width: parent.width - units.width - freeze.width - parent.spacing * 2
+                    compact: true
+                    placeholderText: qsTr("Filtrar por nombre, usuario, comando o PID")
+                    text: root.filterText
+                    onTextChanged: root.filterText = text
                 }
 
-                Rectangle {
-                    width: parent.width
-                    height: 104
-                    radius: CortetsuDesign.radiusMedium
-                    color: CortetsuDesign.colorSurfaceHigh
+                CortetsuButton {
+                    id: units
+                    compact: true
+                    height: parent.height
+                    icon: "swap_horiz"
+                    label: root.numericMode ? qsTr("Núcleos y MiB") : qsTr("Porcentaje")
+                    tooltipText: qsTr("Cambiar entre cantidades y porcentaje")
+                    onClicked: root.numericMode = !root.numericMode
+                }
 
-                    CortetsuText {
+                CortetsuButton {
+                    id: freeze
+                    compact: true
+                    height: parent.height
+                    active: root.paused
+                    icon: root.paused ? "play_arrow" : "pause"
+                    label: root.paused ? qsTr("Reanudar lista") : qsTr("Congelar lista")
+                    tooltipText: qsTr("Detiene la actualización de la lista, no los procesos")
+                    onClicked: root.togglePause()
+                }
+            }
+
+            Item {
+                id: columns
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.top: toolbar.bottom
+                anchors.topMargin: CortetsuDesign.spacingCompact
+                anchors.leftMargin: CortetsuDesign.spacingCompact
+                anchors.rightMargin: CortetsuDesign.spacingCompact
+                height: 28
+
+                ColumnHeader { x: 0; width: parent.width * 0.42; label: qsTr("Proceso"); key: "name" }
+                ColumnHeader { x: parent.width * 0.42; width: parent.width * 0.16; label: qsTr("Usuario"); key: "user" }
+                ColumnHeader { x: parent.width * 0.58; width: parent.width * 0.12; label: qsTr("PID"); key: "pid"; alignRight: true }
+                ColumnHeader { x: parent.width * 0.70; width: parent.width * 0.15; label: root.numericMode ? qsTr("Núcleos") : qsTr("CPU"); key: "cpu"; alignRight: true }
+                ColumnHeader { x: parent.width * 0.85; width: parent.width * 0.15; label: qsTr("Memoria"); key: "mem"; alignRight: true }
+            }
+
+            ListView {
+                id: processList
+                objectName: "processList"
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.top: columns.bottom
+                anchors.bottom: parent.bottom
+                clip: true
+                boundsBehavior: Flickable.StopAtBounds
+                activeFocusOnTab: true
+                // Rows are matched by PID, so a new reading moves and updates
+                // them in place and the scroll position stays where it was.
+                model: ScriptModel {
+                    values: root.visibleProcesses
+                    objectProp: "pid"
+                }
+
+                Keys.onUpPressed: root.moveSelection(-1)
+                Keys.onDownPressed: root.moveSelection(1)
+                Keys.onPressed: event => {
+                    if (event.key === Qt.Key_PageUp) { root.moveSelection(-10); event.accepted = true; }
+                    else if (event.key === Qt.Key_PageDown) { root.moveSelection(10); event.accepted = true; }
+                }
+
+                delegate: Item {
+                    id: processRow
+                    required property var modelData
+                    readonly property bool selected: Number(processRow.modelData?.pid) === root.selectedPid
+
+                    width: processList.width
+                    height: 32
+
+                    CortetsuSurface {
                         anchors.fill: parent
-                        anchors.margins: 12
-                        text: root.selectedProcess?.command ?? qsTr("Selecciona un proceso para inspeccionar su línea de comandos.")
-                        color: CortetsuDesign.colorOnSurfaceVariant
-                        textSize: CortetsuTypography.bodySmallPx
-                        wrapMode: Text.WrapAnywhere
-                        elide: Text.ElideRight
-                        maximumLineCount: 5
+                        radiusValue: CortetsuDesign.radiusSmall
+                        outlined: false
+                        active: processRow.selected
+                        hovered: rowMouse.containsMouse
+                        focused: processRow.selected && processList.activeFocus
+                        baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0)
+                        hoverColor: CortetsuDesign.colorSurfaceGlassStrong
+                        activeColor: Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.76)
+                        outlineColor: Qt.alpha(CortetsuDesign.colorWashi, 0.86)
+                    }
+
+                    MouseArea {
+                        id: rowMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        onClicked: {
+                            processList.forceActiveFocus();
+                            root.selectedPid = Number(processRow.modelData?.pid ?? -1);
+                        }
+                    }
+
+                    Item {
+                        anchors.fill: parent
+                        anchors.leftMargin: CortetsuDesign.spacingCompact
+                        anchors.rightMargin: CortetsuDesign.spacingCompact
+
+                        Cell { x: 0; width: parent.width * 0.42; text: processRow.modelData?.name ?? ""; strong: true }
+                        Cell { x: parent.width * 0.42; width: parent.width * 0.16; text: processRow.modelData?.user ?? "" }
+                        Cell { x: parent.width * 0.58; width: parent.width * 0.12; text: String(processRow.modelData?.pid ?? ""); alignRight: true }
+                        Cell { x: parent.width * 0.70; width: parent.width * 0.15; text: root.cpuText(processRow.modelData); alignRight: true; strong: Number(processRow.modelData?.cpu ?? 0) >= 50 }
+                        Cell { x: parent.width * 0.85; width: parent.width * 0.15; text: root.ramText(processRow.modelData); alignRight: true }
                     }
                 }
+            }
 
-                Repeater {
-                    model: [
-                        { label: qsTr("CPU"), value: root.cpuText(root.selectedProcess) },
-                        { label: qsTr("Memoria"), value: root.ramText(root.selectedProcess) },
-                        { label: qsTr("Estado"), value: root.selectedProcess?.state ?? "—" },
-                        { label: qsTr("Hilos"), value: String(root.selectedProcess?.threads ?? "—") },
-                        { label: qsTr("PID padre"), value: String(root.selectedProcess?.ppid ?? "—") },
-                        { label: qsTr("Tiempo transcurrido"), value: root.selectedProcess?.elapsed_sec !== undefined ? `${Math.floor(Number(root.selectedProcess.elapsed_sec) / 60)}m` : "—" }
-                    ]
+            CortetsuStateMessage {
+                anchors.centerIn: processList
+                visible: root.visibleProcesses.length === 0
+                width: 320
+                kind: "empty"
+                icon: root.filterText.length > 0 ? "search_off" : "hourglass_empty"
+                title: root.filterText.length > 0 ? qsTr("Ningún proceso coincide") : qsTr("Leyendo procesos…")
+                detail: root.filterText.length > 0 ? qsTr("Prueba con menos términos o con el PID.") : ""
+            }
+        }
 
-                    delegate: Row {
-                        required property var modelData
-                        width: parent.width
-                        height: 23
+        Panel {
+            width: parent.width - listCard.width - parent.spacing
+            height: parent.height
 
-                        CortetsuText {
-                            width: parent.width * 0.46
-                            text: modelData.label
-                            color: CortetsuDesign.colorOutline
-                            textSize: CortetsuTypography.labelSmallPx
-                        }
+            Column {
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.top: parent.top
+                spacing: CortetsuDesign.spacingCompact
 
-                        CortetsuText {
-                            width: parent.width * 0.54
-                            text: modelData.value
-                            color: CortetsuDesign.colorOnSurfaceVariant
-                            textSize: CortetsuTypography.labelSmallPx
-                            horizontalAlignment: Text.AlignRight
-                            elide: Text.ElideLeft
-                        }
-                    }
+                SummaryLabel {
+                    icon: "terminal"
+                    text: root.hasSelection ? (root.selectedProcess.name ?? "") : qsTr("Sin selección")
+                    detail: root.hasSelection ? qsTr("PID %1 · %2").arg(root.selectedProcess.pid).arg(root.selectedProcess.user ?? "") : ""
+                    anchors.rightMargin: 0
+                }
+
+                CortetsuText {
+                    width: parent.width
+                    text: root.hasSelection
+                        ? (root.selectedProcess.command ?? "")
+                        : qsTr("Elige un proceso de la lista para ver su comando y actuar sobre él.")
+                    color: CortetsuDesign.colorOnSurfaceVariant
+                    textSize: CortetsuTypography.bodySmallPx
+                    wrapMode: Text.WrapAnywhere
+                    elide: Text.ElideRight
+                    maximumLineCount: 5
+                }
+
+                Item { width: 1; height: CortetsuDesign.spacingUnit }
+
+                Column {
+                    visible: root.hasSelection
+                    width: parent.width
+
+                    FactRow { width: parent.width; label: root.numericMode ? qsTr("Núcleos en uso") : qsTr("CPU"); value: root.cpuText(root.selectedProcess); emphasized: true }
+                    FactRow { width: parent.width; label: qsTr("Memoria"); value: root.ramText(root.selectedProcess); emphasized: true }
+                    FactRow { width: parent.width; label: qsTr("Estado"); value: root.stateLabels[root.selectedProcess?.state] ?? String(root.selectedProcess?.state ?? "") }
+                    FactRow { width: parent.width; label: qsTr("Hilos"); value: Format.fixed(root.selectedProcess?.threads, 0) }
+                    FactRow { width: parent.width; label: qsTr("Proceso padre"); value: Format.fixed(root.selectedProcess?.ppid, 0) }
+                    FactRow { width: parent.width; label: qsTr("Tiempo activo"); value: Format.duration(root.selectedProcess?.elapsed_sec) }
                 }
             }
 
             Column {
-                id: actionArea
                 anchors.left: parent.left
                 anchors.right: parent.right
                 anchors.bottom: parent.bottom
-                anchors.leftMargin: 18
-                anchors.rightMargin: 18
-                anchors.bottomMargin: 18
-                spacing: 8
+                spacing: CortetsuDesign.spacingCompact
 
                 CortetsuText {
                     width: parent.width
-                    visible: root.actionStatus.length > 0
-                    text: root.actionStatus
-                    color: CortetsuDesign.colorPrimary
+                    text: root.killArmed
+                        ? qsTr("Pulsa otra vez para forzar el cierre. Se pierden los datos sin guardar.")
+                        : root.actionStatus
+                    visible: text.length > 0
+                    color: CortetsuDesign.colorOnSurfaceMuted
                     textSize: CortetsuTypography.labelSmallPx
-                    elide: Text.ElideRight
+                    wrapMode: Text.WordWrap
                 }
 
                 Grid {
+                    id: actions
                     width: parent.width
                     columns: 2
-                    columnSpacing: 8
-                    rowSpacing: 8
+                    columnSpacing: CortetsuDesign.spacingCompact
+                    rowSpacing: CortetsuDesign.spacingCompact
 
-                    Rectangle {
-                        width: (parent.width - 8) / 2
-                        height: 40
-                        radius: CortetsuDesign.radiusMedium
-                        color: CortetsuDesign.colorSecondaryContainer
+                    readonly property real cell: (width - columnSpacing) / 2
 
-                        CortetsuStateLayer {
-                            radius: parent.radius
-                            onClicked: root.toggleSelectedPause()
-                        }
-
-                        Row {
-                            anchors.centerIn: parent
-                            spacing: 6
-                            CortetsuIcon {
-                                text: root.selectedStopped ? "play_arrow" : "pause"
-                                color: CortetsuDesign.colorOnSecondaryContainer
-                                iconSize: CortetsuTypography.iconSmallPx
-                            }
-                            CortetsuText {
-                                text: root.selectedStopped ? qsTr("Reanudar") : qsTr("Pausar")
-                                color: CortetsuDesign.colorOnSecondaryContainer
-                                textSize: CortetsuTypography.labelMediumPx
-                            }
-                        }
+                    CortetsuButton {
+                        width: actions.cell
+                        disabled: !root.hasSelection
+                        icon: root.selectedStopped ? "play_arrow" : "pause"
+                        label: root.selectedStopped ? qsTr("Reanudar") : qsTr("Pausar")
+                        onClicked: root.toggleSelectedPause()
                     }
 
-                    Rectangle {
-                        width: (parent.width - 8) / 2
-                        height: 40
-                        radius: CortetsuDesign.radiusMedium
-                        color: CortetsuDesign.colorSurfaceHigh
-
-                        CortetsuStateLayer {
-                            radius: parent.radius
-                            onClicked: root.sendSignal("INT")
-                        }
-
-                        Row {
-                            anchors.centerIn: parent
-                            spacing: 6
-                            CortetsuIcon {
-                                text: "cancel"
-                                color: CortetsuDesign.colorOnSurfaceVariant
-                                iconSize: CortetsuTypography.iconSmallPx
-                            }
-                            CortetsuText {
-                                text: qsTr("Interrumpir")
-                                color: CortetsuDesign.colorOnSurfaceVariant
-                                textSize: CortetsuTypography.labelMediumPx
-                            }
-                        }
+                    CortetsuButton {
+                        width: actions.cell
+                        disabled: !root.hasSelection
+                        icon: "cancel"
+                        label: qsTr("Interrumpir")
+                        tooltipText: qsTr("Envía SIGINT, como Ctrl+C")
+                        onClicked: root.sendSignal("INT")
                     }
 
-                    Rectangle {
-                        width: (parent.width - 8) / 2
-                        height: 40
-                        radius: CortetsuDesign.radiusMedium
-                        color: CortetsuDesign.colorSecondaryContainer
-
-                        CortetsuStateLayer {
-                            radius: parent.radius
-                            onClicked: root.sendSignal("TERM")
-                        }
-
-                        Row {
-                            anchors.centerIn: parent
-                            spacing: 6
-                            CortetsuIcon {
-                                text: "power_settings_new"
-                                color: CortetsuDesign.colorOnSurface
-                                iconSize: CortetsuTypography.iconSmallPx
-                            }
-                            CortetsuText {
-                                text: qsTr("Terminar")
-                                color: CortetsuDesign.colorOnSurface
-                                textSize: CortetsuTypography.labelMediumPx
-                            }
-                        }
+                    CortetsuButton {
+                        width: actions.cell
+                        disabled: !root.hasSelection
+                        icon: "power_settings_new"
+                        label: qsTr("Terminar")
+                        tooltipText: qsTr("Envía SIGTERM: el proceso puede cerrar con orden")
+                        onClicked: root.sendSignal("TERM")
                     }
 
-                    Rectangle {
-                        width: (parent.width - 8) / 2
-                        height: 40
-                        radius: CortetsuDesign.radiusMedium
-                        color: Qt.darker(CortetsuDesign.colorVermillion, 1.5)
-
-                        CortetsuStateLayer {
-                            radius: parent.radius
-                            onClicked: root.sendSignal("KILL")
-                        }
-
-                        Row {
-                            anchors.centerIn: parent
-                            spacing: 6
-                            CortetsuIcon {
-                                text: "dangerous"
-                                color: CortetsuDesign.colorOnSurface
-                                iconSize: CortetsuTypography.iconSmallPx
-                            }
-                            CortetsuText {
-                                text: qsTr("Forzar cierre")
-                                color: CortetsuDesign.colorOnSurface
-                                textSize: CortetsuTypography.labelMediumPx
-                            }
-                        }
+                    CortetsuButton {
+                        objectName: "forceClose"
+                        width: actions.cell
+                        disabled: !root.hasSelection
+                        danger: true
+                        icon: "dangerous"
+                        label: root.killArmed ? qsTr("Confirmar") : qsTr("Forzar cierre")
+                        tooltipText: qsTr("Envía SIGKILL: cierre inmediato")
+                        onClicked: root.forceClose()
                     }
                 }
             }
         }
+    }
+
+    // A column title that sorts by its column.
+    component ColumnHeader: Item {
+        id: columnHeader
+
+        property string label: ""
+        property string key: ""
+        property bool alignRight: false
+        readonly property bool current: root.sortKey === columnHeader.key
+
+        height: parent.height
+        activeFocusOnTab: true
+        Accessible.role: Accessible.Button
+        Accessible.name: qsTr("Ordenar por %1").arg(columnHeader.label)
+        Accessible.onPressAction: root.setSort(columnHeader.key)
+
+        Row {
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.left: columnHeader.alignRight ? undefined : parent.left
+            anchors.right: columnHeader.alignRight ? parent.right : undefined
+            spacing: 2
+
+            CortetsuText {
+                anchors.verticalCenter: parent.verticalCenter
+                text: columnHeader.label
+                color: columnHeader.current || columnHeader.activeFocus || headerMouse.containsMouse
+                    ? CortetsuDesign.colorOnSurface
+                    : CortetsuDesign.colorOnSurfaceVariant
+                textSize: CortetsuTypography.labelMediumPx
+                font.weight: columnHeader.current ? Font.DemiBold : Font.Normal
+                font.underline: columnHeader.activeFocus
+            }
+
+            CortetsuIcon {
+                anchors.verticalCenter: parent.verticalCenter
+                visible: columnHeader.current
+                text: root.sortDescending ? "arrow_downward" : "arrow_upward"
+                color: CortetsuDesign.colorOnSurface
+                iconSize: 14
+            }
+        }
+
+        MouseArea {
+            id: headerMouse
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onClicked: root.setSort(columnHeader.key)
+        }
+
+        Keys.onEnterPressed: root.setSort(columnHeader.key)
+        Keys.onReturnPressed: root.setSort(columnHeader.key)
+        Keys.onSpacePressed: root.setSort(columnHeader.key)
+    }
+
+    component Cell: CortetsuText {
+        property bool alignRight: false
+        property bool strong: false
+
+        anchors.verticalCenter: parent.verticalCenter
+        color: strong ? CortetsuDesign.colorOnSurface : CortetsuDesign.colorOnSurfaceMuted
+        textSize: CortetsuTypography.bodySmallPx
+        horizontalAlignment: alignRight ? Text.AlignRight : Text.AlignLeft
+        elide: Text.ElideRight
     }
 }

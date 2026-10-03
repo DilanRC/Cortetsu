@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import argparse
 import json
 import os
 import pwd
@@ -643,7 +644,20 @@ def process_snapshot(previous: dict, now: float, uptime: float, total_mem: int) 
     )
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Print one hardware telemetry sample as JSON.")
+    parser.add_argument(
+        "--top-processes",
+        type=int,
+        default=0,
+        metavar="N",
+        help="emit only the N most active processes; 0 emits every readable process",
+    )
+    return parser.parse_args()
+
+
 def main() -> None:
+    args = parse_args()
     previous = load_state()
     now = time.monotonic()
 
@@ -681,7 +695,10 @@ def main() -> None:
         "network": network,
         "gpus": amd_gpu_snapshot() + nvidia_gpu_snapshot(),
         "fans": fans_snapshot(),
-        "processes": processes,
+        # Every process is still scanned so CPU deltas stay correct for the
+        # next sample; only the emitted list is trimmed.
+        "processes": processes[: args.top_processes] if args.top_processes > 0 else processes,
+        "process_count": len(processes),
     }
     print(json.dumps(payload, separators=(",", ":")))
 

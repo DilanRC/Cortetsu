@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Controls
-import "../modules/CortetsuDesign.js" as CortetsuDesign
+import "../theme"
 import "../modules/CortetsuTypography.js" as CortetsuTypography
 
 ToolTip {

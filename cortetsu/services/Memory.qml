@@ -7,6 +7,9 @@ import Quickshell.Io
 Singleton {
     id: root
 
+    // Sampling runs only while a visible view holds a reference.
+    property int consumers: 0
+
     property real used: 0
     property real total: 0
     readonly property real percentage: total > 0 ? used / total : 0
@@ -27,7 +30,8 @@ Singleton {
     }
 
     Timer {
-        running: true
+        running: root.consumers > 0
+        triggeredOnStart: true
         repeat: true
         interval: 2000
         onTriggered: meminfo.reload()

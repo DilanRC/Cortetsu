@@ -3,7 +3,7 @@ import QtQuick.Layouts
 import QtQuick.Controls
 import "../../../components"
 import "../../../services"
-import "../../CortetsuDesign.js" as CortetsuDesign
+import "../../../theme"
 import "../.."
 
 CortetsuSurface {

@@ -2,7 +2,7 @@ from pathlib import Path
 import re
 
 ROOT = Path(__file__).resolve().parents[2]
-design = (ROOT / "cortetsu/modules/CortetsuDesign.js").read_text(encoding="utf-8")
+design = (ROOT / "cortetsu/theme/CortetsuDesignDefaults.js").read_text(encoding="utf-8")
 brand = ROOT / "cortetsu/assets/branding/cortetsu-mark-ascended.svg"
 doc = ROOT / "docs/design/CORTETSU-PRODUCT-REBUILD.md"
 

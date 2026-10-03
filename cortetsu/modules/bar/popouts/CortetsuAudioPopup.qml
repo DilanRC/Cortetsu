@@ -3,7 +3,7 @@ import QtQuick.Layouts
 import "../../../services"
 import "../../../utils"
 import "../../../components"
-import "../../CortetsuDesign.js" as CortetsuDesign
+import "../../../theme"
 import "../.."
 
 CortetsuPopupSurface {

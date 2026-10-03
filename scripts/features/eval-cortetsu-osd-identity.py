@@ -9,5 +9,5 @@ assert "implicitWidth: 520" in content
 assert "CortetsuActionTile" in qsd
 assert "CortetsuSlider" in qsd
 assert "CortetsuPower" in qsd
-assert "Behavior on width" in progress
+assert "Behavior on shownValue" in progress
 print("PASS: OSD exposes the complete large system-control surface")

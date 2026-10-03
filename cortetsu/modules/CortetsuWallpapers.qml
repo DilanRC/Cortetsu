@@ -5,7 +5,7 @@ import Quickshell
 import Quickshell.Io
 import "."
 import "../services"
-import "CortetsuDesign.js" as CortetsuDesign
+import "../theme"
 import "CortetsuWallpaperSearch.js" as WallpaperSearch
 
 Singleton {
@@ -38,6 +38,7 @@ Singleton {
             : applySucceeded
                 ? "applied"
                 : "idle"
+    readonly property bool scanning: scan.running
     readonly property string applyStatusPath: applying ? pendingApplyPath : lastApplyPath
     property bool randomApply: false
     property int applyGeneration: 0
@@ -69,7 +70,18 @@ Singleton {
         ));
     }
 
+    // An unchanged directory must not replace the catalog: consumers treat a
+    // new list as a new catalog and drop their selection and preview.
+    function acceptScan(raw: string): void {
+        const paths = raw.split("\n").filter(Boolean).sort();
+        if (paths.length === list.length && paths.every((path, index) => path === list[index].path))
+            return;
+        list = paths.map(path => entry(path));
+    }
+
     function reload(): void {
+        if (scan.running)
+            return;
         scan.command = ["find", wallsdir, "-type", "f", "(", "-iname", "*.jpg", "-o", "-iname", "*.jpeg", "-o", "-iname", "*.png", "-o", "-iname", "*.webp", "-o", "-iname", "*.tif", "-o", "-iname", "*.tiff", "-o", "-iname", "*.gif", ")", "-print"];
         scan.running = true;
     }
@@ -200,6 +212,7 @@ Singleton {
     }
 
     Component.onCompleted: reload()
+    onWallsdirChanged: reload()
 
     IpcHandler {
         target: "cortetsu-wallpaper"
@@ -233,7 +246,7 @@ Singleton {
     Process {
         id: scan
         stdout: StdioCollector {
-            onStreamFinished: root.list = text.split("\n").filter(Boolean).sort().map(path => root.entry(path))
+            onStreamFinished: root.acceptScan(text)
         }
     }
 
@@ -272,5 +285,4 @@ Singleton {
         }
     }
 
-    Timer { interval: 30000; repeat: true; running: true; onTriggered: root.reload() }
 }

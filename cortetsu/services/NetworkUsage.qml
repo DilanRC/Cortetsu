@@ -7,6 +7,9 @@ import Quickshell.Io
 Singleton {
     id: root
 
+    // Sampling runs only while a visible view holds a reference.
+    property int consumers: 0
+
     readonly property int historyLength: 30
     property real downloadSpeed: 0
     property real uploadSpeed: 0
@@ -62,7 +65,8 @@ Singleton {
     }
 
     Timer {
-        running: true
+        running: root.consumers > 0
+        triggeredOnStart: true
         repeat: true
         interval: 2000
         onTriggered: probe.running = true

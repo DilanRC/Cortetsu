@@ -2,7 +2,8 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import "../../components"
-import "../CortetsuDesign.js" as CortetsuDesign
+import ".."
+import "../../theme"
 import "../CortetsuTypography.js" as CortetsuTypography
 
 Column {
@@ -11,6 +12,7 @@ Column {
     required property var screenState
     property var lockController: null
     property string pendingAction: ""
+    property string failedAction: ""
     property var deferredCommand: null
     property string deferredState: "idle"
 
@@ -23,7 +25,7 @@ Column {
             label: qsTr("Bloquear"),
             detail: qsTr("Proteger esta sesión"),
             icon: "lock",
-            command: ["hyprctl", "dispatch", "global", "cortetsu:lock"],
+            lockOnly: true,
             confirm: false,
             danger: false,
             lockBefore: false
@@ -43,7 +45,7 @@ Column {
             label: qsTr("Cerrar sesión"),
             detail: qsTr("Finalizar la sesión de Hyprland"),
             icon: "logout",
-            command: ["hyprctl", "dispatch", "exit"],
+            dispatch: CortetsuHypr.usingLua ? "hl.dsp.exit()" : "exit",
             confirm: true,
             danger: true,
             lockBefore: false
@@ -87,11 +89,30 @@ Column {
     }
 
     function execute(action): void {
-        if (!action || !action.command)
+        if (!action || !(action.command || action.dispatch || action.lockOnly))
             return;
 
         pendingAction = "";
+        failedAction = "";
         confirmTimer.stop();
+
+        if (action.lockOnly) {
+            // The lock is owned by this shell; a compositor round trip can
+            // only fail (and did, silently, with the Lua dispatcher syntax).
+            if (!lockController) {
+                failedAction = action.id;
+                return;
+            }
+            lockController.requestLock();
+            root.screenState.session = false;
+            return;
+        }
+
+        if (action.dispatch) {
+            CortetsuHypr.dispatch(action.dispatch);
+            root.screenState.session = false;
+            return;
+        }
 
         if (action.lockBefore) {
             if (!lockController)
@@ -173,9 +194,11 @@ Column {
             title: root.pendingAction === actionRow.modelData.id
                 ? qsTr("Confirmar %1").arg(actionRow.modelData.label)
                 : actionRow.modelData.label
-            subtitle: root.pendingAction === actionRow.modelData.id
-                ? qsTr("Pulsa otra vez en 4 segundos")
-                : actionRow.modelData.detail
+            subtitle: root.failedAction === actionRow.modelData.id
+                ? qsTr("No disponible: el bloqueo de sesión no está listo")
+                : root.pendingAction === actionRow.modelData.id
+                    ? qsTr("Pulsa otra vez en 4 segundos")
+                    : actionRow.modelData.detail
             danger: actionRow.modelData.danger
             selected: root.pendingAction === actionRow.modelData.id
             trailingIcon: actionRow.selected ? "warning" : "chevron_right"

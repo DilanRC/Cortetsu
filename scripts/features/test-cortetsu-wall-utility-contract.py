@@ -123,7 +123,7 @@ assert "cosmicPulse" in content
 assert 'import "../settings"' in content
 assert "function returnToSettings(): void" in content
 assert 'SettingsController.select("wallpaper")' in content
-assert 'tooltipText: qsTr("Return to Wallpaper settings")' in content
+assert 'tooltipText: qsTr("Ajustes de fondo")' in content
 assert "pendingScheme" in (ROOT / "cortetsu/modules/launcher/services/Schemes.qml").read_text(encoding="utf-8")
 assert "wallUtility" in content + wrapper
 assert "CortetsuDesign.wallUtilityPanelMotionMs" in wrapper

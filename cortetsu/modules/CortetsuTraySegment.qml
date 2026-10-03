@@ -2,7 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import "../components"
-import "CortetsuDesign.js" as CortetsuDesign
+import "../theme"
 import "CortetsuTypography.js" as CortetsuTypography
 import "BottomHubTray.js" as BottomHubTray
 

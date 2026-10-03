@@ -4,7 +4,7 @@ import QtQuick
 import QtQuick.Controls
 import ".."
 import "../../components"
-import "../CortetsuDesign.js" as CortetsuDesign
+import "../../theme"
 import "../CortetsuSearchBar.qml"
 import "services"
 

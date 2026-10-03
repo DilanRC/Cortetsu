@@ -6,7 +6,7 @@ import Quickshell
 import Quickshell.Widgets
 import "../../utils"
 import ".."
-import "../CortetsuDesign.js" as CortetsuDesign
+import "../../theme"
 import "../CortetsuTypography.js" as CortetsuTypography
 import "../CortetsuSurface.qml"
 import "../CortetsuText.qml"

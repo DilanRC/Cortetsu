@@ -27,7 +27,8 @@ REQUIRED_FIRST_PARTY_PRIMITIVES = (
     "CortetsuSurface.qml",
     "CortetsuText.qml",
     "CortetsuIcon.qml",
-    "CortetsuDesign.js",
+    "../theme/CortetsuDesign.qml",
+    "../theme/CortetsuDesignDefaults.js",
     "../services/CortetsuTokens.qml",
 )
 
