@@ -2,7 +2,9 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import ".."
+import "../../components"
 import "../../theme"
+import "summary"
 import "../CortetsuTypography.js" as CortetsuTypography
 import QtQuick.Layouts
 import QtCore
@@ -275,351 +277,252 @@ FocusScope {
         onTriggered: root.pendingDeleteId = ""
     }
 
-    RowLayout {
+    Row {
         anchors.fill: parent
-        spacing: 14
+        spacing: CortetsuDesign.spacingStandard
 
-        Rectangle {
-            Layout.preferredWidth: Math.min(390, root.width * 0.34)
-            Layout.fillHeight: true
-            radius: CortetsuDesign.radiusLarge
-            color: CortetsuDesign.colorSurface
-            border.width: 1
-            border.color: CortetsuDesign.colorOutlineVariant
+        Panel {
+            id: creator
+            width: Math.min(390, Math.round(root.width * 0.34))
+            height: parent.height
 
-            ColumnLayout {
+            Column {
                 anchors.fill: parent
-                anchors.margins: 16
-                spacing: 10
+                spacing: CortetsuDesign.spacingStandard
 
-                CortetsuText {
-                    Layout.fillWidth: true
-                    text: qsTr("Crear atajo de aplicación")
-                    color: CortetsuDesign.colorOnSurface
-                    textSize: CortetsuTypography.titleMediumPx
+                SummaryLabel {
+                    icon: "add_circle"
+                    text: qsTr("Atajo para una aplicación")
+                    anchors.rightMargin: 0
                 }
 
-                Rectangle {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 44
-                    radius: CortetsuDesign.radiusMedium
-                    color: CortetsuDesign.colorSurfaceHigh
-                    border.width: appSearch.activeFocus ? 1 : 0
-                    border.color: CortetsuDesign.colorPrimary
+                CortetsuSearchBar {
+                    id: appSearch
+                    width: parent.width
+                    compact: true
+                    placeholderText: qsTr("Buscar aplicaciones instaladas")
+                    text: root.appFilter
+                    onTextChanged: root.appFilter = text
+                }
 
-                    CortetsuIcon {
-                        anchors.left: parent.left
-                        anchors.leftMargin: 12
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: "search"
-                        color: CortetsuDesign.colorOnSurfaceVariant
-                        iconSize: CortetsuTypography.iconMediumPx
-                    }
-
-                    TextInput {
-                        id: appSearch
-                        anchors.fill: parent
-                        anchors.leftMargin: 42
-                        anchors.rightMargin: 10
-                        verticalAlignment: TextInput.AlignVCenter
-                        color: CortetsuDesign.colorOnSurface
-                        selectionColor: CortetsuDesign.colorPrimary
-                        font.pixelSize: 15
-                        text: root.appFilter
-                        onTextChanged: root.appFilter = text
-                    }
-
-                    CortetsuText {
-                        anchors.left: parent.left
-                        anchors.leftMargin: 42
-                        anchors.verticalCenter: parent.verticalCenter
-                        visible: appSearch.text.length === 0
-                        text: qsTr("Buscar aplicaciones instaladas")
-                        color: CortetsuDesign.colorOutline
-                        textSize: CortetsuTypography.bodyPx
-                    }
+                CortetsuText {
+                    visible: root.filteredApps.length === 0 && !root.selectedApp
+                    width: parent.width
+                    wrapMode: Text.WordWrap
+                    text: root.appFilter.length > 0
+                        ? qsTr("Ninguna aplicación instalada coincide.")
+                        : qsTr("Escribe el nombre de una aplicación para asignarle una combinación de teclas.")
+                    color: CortetsuDesign.colorOnSurfaceVariant
+                    textSize: CortetsuTypography.bodySmallPx
                 }
 
                 ListView {
                     id: appResults
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: Math.min(contentHeight, 296)
+                    width: parent.width
+                    height: Math.min(contentHeight, 296)
                     visible: root.filteredApps.length > 0
                     model: root.filteredApps
-                    spacing: 4
+                    spacing: CortetsuDesign.spacingUnit
                     clip: true
+                    boundsBehavior: Flickable.StopAtBounds
 
-                    delegate: Rectangle {
+                    delegate: CortetsuListRow {
+                        id: appRow
                         required property DesktopEntry modelData
+
                         width: appResults.width
-                        height: 48
-                        radius: CortetsuDesign.radiusSmall
-                        color: root.selectedApp?.id === modelData.id
-                            ? CortetsuDesign.colorSecondaryContainer
-                            : "transparent"
-
-                        CortetsuStateLayer {
-                            radius: parent.radius
-                            onClicked: {
-                                root.selectedApp = parent.modelData;
-                                root.appFilter = parent.modelData.name;
-                            }
-                        }
-
-                        RowLayout {
-                            anchors.fill: parent
-                            anchors.leftMargin: 8
-                            anchors.rightMargin: 8
-                            spacing: 10
-
-                            IconImage {
-                                implicitSize: 30
-                                source: Quickshell.iconPath(parent.parent.modelData.icon, "image-missing")
-                            }
-
-                            CortetsuText {
-                                Layout.fillWidth: true
-                                text: parent.parent.modelData.name
-                                color: CortetsuDesign.colorOnSurface
-                                textSize: CortetsuTypography.bodyPx
-                                elide: Text.ElideRight
-                            }
+                        compact: true
+                        title: appRow.modelData.name
+                        selected: root.selectedApp?.id === appRow.modelData.id
+                        onClicked: {
+                            root.selectedApp = appRow.modelData;
+                            root.appFilter = appRow.modelData.name;
                         }
                     }
                 }
 
-                Rectangle {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: root.selectedApp ? 106 : 0
-                    visible: root.selectedApp
-                    radius: CortetsuDesign.radiusMedium
-                    color: CortetsuDesign.colorSurfaceHigh
+                Item {
+                    visible: !!root.selectedApp
+                    width: parent.width
+                    height: 64
 
-                    RowLayout {
-                        anchors.fill: parent
-                        anchors.margins: 12
-                        spacing: 12
+                    IconImage {
+                        id: chosenIcon
+                        anchors.left: parent.left
+                        anchors.verticalCenter: parent.verticalCenter
+                        implicitSize: 44
+                        source: Quickshell.iconPath(root.selectedApp?.icon ?? "", true)
+                    }
 
-                        IconImage {
-                            implicitSize: 52
-                            source: Quickshell.iconPath(root.selectedApp?.icon, "image-missing")
+                    Column {
+                        anchors.left: chosenIcon.right
+                        anchors.leftMargin: CortetsuDesign.spacingStandard
+                        anchors.right: parent.right
+                        anchors.verticalCenter: parent.verticalCenter
+                        spacing: 2
+
+                        CortetsuText {
+                            width: parent.width
+                            text: root.selectedApp?.name ?? ""
+                            textSize: CortetsuTypography.bodyLargePx
+                            font.weight: Font.DemiBold
+                            elide: Text.ElideRight
                         }
 
-                        ColumnLayout {
-                            Layout.fillWidth: true
-                            spacing: 2
-
-                            CortetsuText {
-                                Layout.fillWidth: true
-                                text: root.selectedApp?.name ?? ""
-                                color: CortetsuDesign.colorOnSurface
-                                textSize: CortetsuTypography.titleSmallPx
-                                elide: Text.ElideRight
-                            }
-
-                            CortetsuText {
-                                Layout.fillWidth: true
-                                text: root.selectedApp?.execString ?? ""
-                                color: CortetsuDesign.colorOutline
-                                textSize: CortetsuTypography.labelSmallPx
-                                elide: Text.ElideMiddle
-                            }
-
-                            Rectangle {
-                                Layout.preferredWidth: shortcutText.implicitWidth + 24
-                                Layout.preferredHeight: 34
-                                radius: CortetsuDesign.radiusSmall
-                                color: root.captureNewApp
-                                    ? CortetsuDesign.colorPrimaryContainer
-                                    : CortetsuDesign.colorSecondaryContainer
-
-                                CortetsuStateLayer {
-                                    radius: parent.radius
-                                    enabled: !root.busy
-                                    onClicked: root.beginCapture("", true, root.selectedApp?.name ?? "", "")
-                                }
-
-                                CortetsuText {
-                                    id: shortcutText
-                                    anchors.centerIn: parent
-                                    text: root.captureNewApp ? qsTr("Escuchando…") : qsTr("Asignar atajo")
-                                    color: CortetsuDesign.colorOnSecondaryContainer
-                                    textSize: CortetsuTypography.labelMediumPx
-                                }
-                            }
+                        CortetsuText {
+                            width: parent.width
+                            text: root.selectedApp ? root.selectedApp.execString : ""
+                            color: CortetsuDesign.colorOnSurfaceVariant
+                            textSize: CortetsuTypography.labelSmallPx
+                            elide: Text.ElideMiddle
                         }
                     }
                 }
 
-                Item { Layout.fillHeight: true }
+                CortetsuButton {
+                    visible: !!root.selectedApp
+                    disabled: root.busy || !root.selectedApp
+                    active: root.captureNewApp
+                    icon: "keyboard"
+                    label: root.captureNewApp ? qsTr("Escuchando…") : qsTr("Grabar combinación")
+                    onClicked: root.beginCapture("", true, root.selectedApp?.name ?? "", "")
+                }
             }
         }
 
-        Rectangle {
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            radius: CortetsuDesign.radiusLarge
-            color: CortetsuDesign.colorSurface
-            border.width: 1
-            border.color: CortetsuDesign.colorOutlineVariant
+        Panel {
+            width: parent.width - creator.width - parent.spacing
+            height: parent.height
 
-            ColumnLayout {
-                anchors.fill: parent
-                anchors.margins: 16
-                spacing: 10
+            SummaryLabel {
+                id: listLabel
+                icon: "keyboard"
+                text: qsTr("Atajos")
+                detail: root.statusText
+                anchors.rightMargin: 0
+            }
 
-                RowLayout {
-                    Layout.fillWidth: true
+            CortetsuSearchBar {
+                id: bindingSearch
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.top: listLabel.bottom
+                anchors.topMargin: CortetsuDesign.spacingStandard
+                compact: true
+                placeholderText: qsTr("Filtrar por acción, aplicación o combinación")
+                onTextChanged: root.bindingFilter = text
+            }
 
-                    CortetsuText {
-                        Layout.fillWidth: true
-                        text: qsTr("Todos los atajos")
-                        color: CortetsuDesign.colorOnSurface
-                        textSize: CortetsuTypography.titleMediumPx
-                    }
+            ListView {
+                id: bindingList
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.top: bindingSearch.bottom
+                anchors.topMargin: CortetsuDesign.spacingStandard
+                anchors.bottom: parent.bottom
+                model: root.filteredBindings
+                spacing: CortetsuDesign.spacingUnit
+                clip: true
+                boundsBehavior: Flickable.StopAtBounds
 
-                    CortetsuText {
-                        text: root.statusText
-                        color: root.statusFailed
-                            ? CortetsuDesign.colorVermillion
-                            : CortetsuDesign.colorOutline
-                        textSize: CortetsuTypography.labelSmallPx
-                        elide: Text.ElideRight
-                    }
+                CortetsuStateMessage {
+                    anchors.centerIn: parent
+                    visible: root.filteredBindings.length === 0
+                    width: 320
+                    kind: root.statusFailed ? "error" : root.busy ? "loading" : "empty"
+                    icon: root.statusFailed ? "error_outline" : "search_off"
+                    title: root.statusFailed ? qsTr("No se pudieron leer los atajos") : qsTr("Ningún atajo coincide")
+                    detail: root.statusFailed ? root.statusText : ""
                 }
 
-                Rectangle {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 42
-                    radius: CortetsuDesign.radiusMedium
-                    color: CortetsuDesign.colorSurfaceHigh
+                delegate: Item {
+                    id: bindingRow
+                    required property var modelData
+                    readonly property var appEntry: root.appForBinding(modelData)
+                    readonly property string appIcon: bindingRow.appEntry !== null ? Quickshell.iconPath(bindingRow.appEntry.icon, true) : ""
+                    readonly property string title: bindingRow.appEntry?.name ?? bindingRow.modelData.appName ?? bindingRow.modelData.label
+                    readonly property bool deleting: root.pendingDeleteId === bindingRow.modelData.id
+
+                    width: bindingList.width
+                    height: 48
+
+                    CortetsuSurface {
+                        anchors.fill: parent
+                        radiusValue: CortetsuDesign.radiusMedium
+                        outlined: false
+                        baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlassStrong, 0.6)
+                    }
+
+                    IconImage {
+                        id: bindingIcon
+                        anchors.left: parent.left
+                        anchors.leftMargin: CortetsuDesign.spacingStandard
+                        anchors.verticalCenter: parent.verticalCenter
+                        visible: bindingRow.appIcon.length > 0
+                        implicitSize: 26
+                        source: bindingRow.appIcon
+                    }
 
                     CortetsuIcon {
-                        anchors.left: parent.left
-                        anchors.leftMargin: 12
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: "filter_list"
-                        color: CortetsuDesign.colorOnSurfaceVariant
+                        anchors.centerIn: bindingIcon
+                        visible: bindingRow.appIcon.length === 0
+                        text: bindingRow.modelData.command ? "terminal" : "keyboard"
+                        color: CortetsuDesign.colorOnSurfaceMuted
                         iconSize: CortetsuTypography.iconMediumPx
                     }
 
-                    TextInput {
-                        anchors.fill: parent
-                        anchors.leftMargin: 42
-                        anchors.rightMargin: 10
-                        verticalAlignment: TextInput.AlignVCenter
-                        color: CortetsuDesign.colorOnSurface
-                        selectionColor: CortetsuDesign.colorPrimary
-                        font.pixelSize: 15
-                        onTextChanged: root.bindingFilter = text
-                    }
-                }
+                    Column {
+                        anchors.left: parent.left
+                        anchors.leftMargin: 26 + CortetsuDesign.spacingStandard * 2
+                        anchors.right: chord.left
+                        anchors.rightMargin: CortetsuDesign.spacingStandard
+                        anchors.verticalCenter: parent.verticalCenter
+                        spacing: 1
 
-                ListView {
-                    id: bindingList
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    model: root.filteredBindings
-                    spacing: 5
-                    clip: true
-
-                    delegate: Rectangle {
-                        id: bindingRow
-                        required property var modelData
-                        readonly property var appEntry: root.appForBinding(modelData)
-                        width: bindingList.width
-                        height: 48
-                        radius: CortetsuDesign.radiusSmall
-                        color: CortetsuDesign.colorSurfaceHigh
-
-                        RowLayout {
-                            anchors.fill: parent
-                            anchors.leftMargin: 12
-                            anchors.rightMargin: 8
-                            spacing: 10
-
-                            IconImage {
-                                visible: bindingRow.appEntry !== null
-                                implicitSize: 26
-                                source: visible
-                                    ? Quickshell.iconPath(bindingRow.appEntry.icon, "image-missing")
-                                    : ""
-                            }
-
-                            CortetsuIcon {
-                                visible: bindingRow.appEntry === null
-                                text: modelData.command ? "terminal" : "keyboard"
-                                color: CortetsuDesign.colorSecondary
-                                iconSize: CortetsuTypography.iconMediumPx
-                            }
-
-                            ColumnLayout {
-                                Layout.fillWidth: true
-                                spacing: 0
-
-                                CortetsuText {
-                                    Layout.fillWidth: true
-                                    text: bindingRow.appEntry?.name ?? modelData.appName ?? modelData.label
-                                    color: CortetsuDesign.colorOnSurface
-                                    textSize: CortetsuTypography.bodyPx
-                                    elide: Text.ElideRight
-                                }
-
-                                CortetsuText {
-                                    text: modelData.description
-                                    color: CortetsuDesign.colorOutline
-                                    textSize: CortetsuTypography.labelSmallPx
-                                    elide: Text.ElideMiddle
-                                }
-                            }
-
-                            Rectangle {
-                                Layout.preferredWidth: Math.max(118, chordLabel.implicitWidth + 24)
-                                Layout.preferredHeight: 34
-                                radius: CortetsuDesign.radiusSmall
-                                color: root.captureId === modelData.id
-                                    ? CortetsuDesign.colorPrimaryContainer
-                                    : CortetsuDesign.colorSecondaryContainer
-
-                                CortetsuStateLayer {
-                                    radius: parent.radius
-                                    enabled: !root.busy
-                                    onClicked: root.beginCapture(bindingRow.modelData.id, false, bindingRow.appEntry?.name ?? bindingRow.modelData.appName ?? bindingRow.modelData.label, bindingRow.modelData.chord)
-                                }
-
-                                CortetsuText {
-                                    id: chordLabel
-                                    anchors.centerIn: parent
-                                    text: root.captureId === modelData.id ? qsTr("Escuchando…") : modelData.chord
-                                    color: CortetsuDesign.colorOnSecondaryContainer
-                                    textSize: CortetsuTypography.labelMediumPx
-                                }
-                            }
-
-                            Rectangle {
-                                Layout.preferredWidth: 34
-                                Layout.preferredHeight: 34
-                                radius: CortetsuDesign.radiusSmall
-                                color: root.pendingDeleteId === modelData.id
-                                    ? Qt.darker(CortetsuDesign.colorVermillion, 1.5)
-                                    : "transparent"
-
-                                CortetsuStateLayer {
-                                    radius: parent.radius
-                                    enabled: !root.busy
-                                    onClicked: root.requestDelete(bindingRow.modelData.id)
-                                }
-
-                                CortetsuIcon {
-                                    anchors.centerIn: parent
-                                    text: "delete"
-                                    color: root.pendingDeleteId === bindingRow.modelData.id
-                                        ? CortetsuDesign.colorOnSurface
-                                        : CortetsuDesign.colorOnSurfaceVariant
-                                    iconSize: CortetsuTypography.iconMediumPx
-                                }
-                            }
+                        CortetsuText {
+                            width: parent.width
+                            text: bindingRow.title
+                            textSize: CortetsuTypography.bodyPx
+                            elide: Text.ElideRight
                         }
+
+                        CortetsuText {
+                            width: parent.width
+                            // A description that only repeats the title adds nothing.
+                            visible: text.length > 0 && text !== bindingRow.title
+                            text: bindingRow.modelData.description ?? ""
+                            color: CortetsuDesign.colorOnSurfaceVariant
+                            textSize: CortetsuTypography.labelSmallPx
+                            elide: Text.ElideMiddle
+                        }
+                    }
+
+                    CortetsuButton {
+                        id: chord
+                        anchors.right: remove.left
+                        anchors.rightMargin: CortetsuDesign.spacingCompact
+                        anchors.verticalCenter: parent.verticalCenter
+                        compact: true
+                        disabled: root.busy
+                        active: root.captureId === bindingRow.modelData.id
+                        label: root.captureId === bindingRow.modelData.id ? qsTr("Escuchando…") : bindingRow.modelData.chord
+                        tooltipText: qsTr("Cambiar la combinación")
+                        onClicked: root.beginCapture(bindingRow.modelData.id, false, bindingRow.title, bindingRow.modelData.chord)
+                    }
+
+                    CortetsuButton {
+                        id: remove
+                        anchors.right: parent.right
+                        anchors.rightMargin: CortetsuDesign.spacingCompact
+                        anchors.verticalCenter: parent.verticalCenter
+                        compact: true
+                        disabled: root.busy
+                        danger: bindingRow.deleting
+                        icon: "delete"
+                        label: bindingRow.deleting ? qsTr("Confirmar") : ""
+                        tooltipText: qsTr("Eliminar el atajo")
+                        Accessible.name: qsTr("Eliminar el atajo de %1").arg(bindingRow.title)
+                        onClicked: root.requestDelete(bindingRow.modelData.id)
                     }
                 }
             }

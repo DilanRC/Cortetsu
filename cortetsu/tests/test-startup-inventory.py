@@ -420,12 +420,12 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-startup-test-") as temp:
     startup_docs = (repo_root / "docs/HARDWARE_CENTER.md").read_text(encoding="utf-8")
     assert 'return entry.startupState ?? (entry.configured ? "persistent" : "disabled")' in startup_page
     assert "root.stateCategory(entry)" in startup_page
-    assert "root.stateLabel(modelData)" in startup_page
-    assert '"always-on", "conditional", "on-demand"' in startup_page
+    assert "root.stateLabel(entryRow.modelData)" in startup_page
     assert 'root.stateCategory(entry) === "always-on"' in startup_page
     assert 'root.stateCategory(entry) === "conditional"' in startup_page
     assert 'root.stateCategory(entry) === "special"' in startup_page
-    assert '["all", "persistent", "runtime", "disabled", "special", "always-on", "conditional", "on-demand"]' in startup_page
+    for state_key in ("all", "persistent", "runtime", "disabled", "special", "always-on", "conditional", "on-demand"):
+        assert f'{{ key: "{state_key}", label:' in startup_page, state_key
     assert "systemctl enable --dry-run" in startup_docs
     assert "systemctl disable --dry-run" in startup_docs
     assert all(name in startup_docs for name in ("show", "is-enabled", "list-unit-files", "cat", "list-dependencies"))

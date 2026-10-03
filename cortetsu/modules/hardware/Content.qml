@@ -225,10 +225,13 @@ FocusScope {
                             id: tabDelegate
                             required property var modelData
                             required property int index
-                            width: Math.max(92, (tabs.width - tabRow.spacing * 9) / 10)
+                            // Each tab is as wide as its label, so a long name
+                            // is never squeezed into an equal share.
+                            width: tab.implicitWidth
                             height: tabRow.height
 
                             CortetsuTab {
+                                id: tab
                                 anchors.fill: parent
                                 index: tabDelegate.index
                                 count: 10
@@ -302,6 +305,7 @@ FocusScope {
             diskWriteHistory: telemetry.diskWriteHistory
             gpu0History: telemetry.gpu0History
             gpu1History: telemetry.gpu1History
+            historyLength: telemetry.historyLength
         }
     }
 

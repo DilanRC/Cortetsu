@@ -85,10 +85,11 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-keybind-capture-") as temporar
         shutil.copytree(ROOT / name, folder / name)
     (folder / "modules/hardware").mkdir(parents=True)
     for name in ("CortetsuText.qml", "CortetsuIcon.qml", "CortetsuStateLayer.qml", "CortetsuSurface.qml",
-                 "CortetsuTypography.js"):
+                 "CortetsuTypography.js", "CortetsuSearchBar.qml"):
         shutil.copy(ROOT / "modules" / name, folder / "modules" / name)
-    for name in ("KeybindsPage.qml", "KeyCaptureOverlay.qml", "KeyCapture.js"):
+    for name in ("KeybindsPage.qml", "KeyCaptureOverlay.qml", "KeyCapture.js", "Panel.qml"):
         shutil.copy(ROOT / "modules/hardware" / name, folder / "modules/hardware" / name)
+    shutil.copytree(ROOT / "modules/hardware/summary", folder / "modules/hardware/summary")
     (folder / "modules/CortetsuConfig.qml").write_text(CONFIG)
     page = folder / "modules/hardware/KeybindsPage.qml"
     # Shorten the timeout so the test covers it without waiting ten seconds.

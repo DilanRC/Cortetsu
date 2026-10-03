@@ -2,8 +2,11 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import ".."
+import "../../components"
 import "../../theme"
 import "../CortetsuTypography.js" as CortetsuTypography
+import "summary"
+import "Format.js" as Format
 import QtCore
 import Quickshell
 import Quickshell.Io
@@ -25,32 +28,13 @@ Item {
     readonly property var battery: power?.battery ?? ({})
     readonly property var gpus: power?.gpus ?? []
 
-    function number(value, digits = 1): string {
-        if (value === null || value === undefined || isNaN(Number(value)))
-            return "—";
-        return Number(value).toFixed(digits);
-    }
-
     function profileAvailable(name): bool {
         return Array.from(root.profiles?.available ?? []).includes(name);
     }
 
     function profileLabel(name): string {
-        if (name === "power-saver")
-            return qsTr("Power saver");
-        if (name === "performance")
-            return qsTr("Performance");
-        if (name === "balanced")
-            return qsTr("Balanced");
-        return name || qsTr("Desconocido");
-    }
-
-    function profileIcon(name): string {
-        if (name === "power-saver")
-            return "eco";
-        if (name === "performance")
-            return "speed";
-        return "balance";
+        const labels = { "power-saver": qsTr("Ahorro"), "balanced": qsTr("Equilibrado"), "performance": qsTr("Rendimiento") };
+        return labels[name] ?? (name || qsTr("Desconocido"));
     }
 
     function refresh(): void {
@@ -66,10 +50,6 @@ Item {
         Quickshell.execDetached([root.helperPath, "set-profile", name]);
         refreshAfterAction.restart();
         verifyAction.restart();
-    }
-
-    function gpuAt(index): var {
-        return index >= 0 && index < gpus.length ? gpus[index] : ({});
     }
 
     Component.onCompleted: { if (root.visible) refresh(); }
@@ -95,7 +75,7 @@ Item {
         repeat: false
         onTriggered: {
             if (root.pendingProfile.length > 0) {
-                root.statusText = qsTr("Profile change could not be verified");
+                root.statusText = qsTr("No se pudo comprobar el cambio de perfil");
                 root.pendingProfile = "";
             }
         }
@@ -113,422 +93,198 @@ Item {
                     root.power = parsed;
                     const current = parsed?.profiles?.current ?? "";
                     if (root.pendingProfile.length > 0 && current === root.pendingProfile) {
-                        root.statusText = qsTr("Profile applied: %1").arg(root.profileLabel(current));
+                        root.statusText = qsTr("Perfil aplicado: %1").arg(root.profileLabel(current));
                         root.pendingProfile = "";
                         verifyAction.stop();
                     } else if (root.pendingProfile.length === 0) {
                         root.statusText = parsed?.profiles?.backend === "powerprofilesctl"
-                            ? qsTr("Power Profiles daemon connected")
-                            : qsTr("Telemetría de energía de solo lectura · no se detectó un backend de perfiles");
+                            ? qsTr("Los cambios se aplican con power-profiles-daemon")
+                            : qsTr("Solo lectura: no hay un servicio de perfiles de energía en este equipo");
                     }
                 } catch (error) {
-                    root.statusText = qsTr("La telemetría de energía devolvió JSON no válido");
+                    root.statusText = qsTr("La sonda de energía no devolvió datos válidos");
                     console.warn(`Hardware Center Power: invalid JSON: ${error}`);
                 }
             }
         }
     }
 
+    readonly property var batteryStates: ({
+        "Charging": qsTr("cargando"),
+        "Discharging": qsTr("en uso"),
+        "Full": qsTr("cargada"),
+        "Not charging": qsTr("conectada, sin cargar")
+    })
+
     Column {
         anchors.fill: parent
-        spacing: 12
+        spacing: CortetsuDesign.spacingStandard
 
-        Rectangle {
+        Panel {
             width: parent.width
-            height: 158
-            radius: CortetsuDesign.radiusLarge
-            color: CortetsuDesign.colorSurface
-            border.width: 1
-            border.color: CortetsuDesign.colorOutlineVariant
+            height: profile.implicitHeight + padding * 2
 
-            Row {
-                anchors.fill: parent
-                anchors.margins: 16
-                spacing: 16
+            Column {
+                id: profile
+                width: parent.width
+                spacing: CortetsuDesign.spacingStandard
 
-                Column {
-                    width: 245
-                    anchors.verticalCenter: parent.verticalCenter
-                    spacing: 5
-
-                    Row {
-                        spacing: 10
-
-                        Rectangle {
-                            width: 44
-                            height: 44
-                            radius: CortetsuDesign.radiusMedium
-                            color: CortetsuDesign.colorPrimaryContainer
-
-                            CortetsuIcon {
-                                anchors.centerIn: parent
-                                text: "bolt"
-                                color: CortetsuDesign.colorOnPrimaryContainer
-                                iconSize: CortetsuTypography.iconLargePx
-                            }
-                        }
-
-                        Column {
-                            anchors.verticalCenter: parent.verticalCenter
-                            spacing: 0
-
-                            CortetsuText {
-                                text: qsTr("Power profile")
-                                color: CortetsuDesign.colorOnSurface
-                                textSize: CortetsuTypography.titleMediumPx
-                            }
-
-                            CortetsuText {
-                                text: root.profileLabel(root.profiles?.current ?? "")
-                                color: CortetsuDesign.colorPrimary
-                                textSize: CortetsuTypography.labelMediumPx
-                            }
-                        }
-                    }
-
-                    CortetsuText {
-                        width: parent.width
-                        text: root.statusText
-                        color: CortetsuDesign.colorOutline
-                        textSize: CortetsuTypography.labelSmallPx
-                        wrapMode: Text.WordWrap
-                    }
+                SummaryLabel {
+                    icon: "bolt"
+                    text: qsTr("Perfil de energía")
+                    detail: root.statusText
+                    anchors.rightMargin: 0
                 }
 
                 Row {
-                    id: profileButtons
-                    width: parent.width - 261
-                    anchors.verticalCenter: parent.verticalCenter
-                    spacing: 10
+                    id: choices
+                    width: parent.width
+                    spacing: CortetsuDesign.spacingStandard
 
                     Repeater {
                         model: ["power-saver", "balanced", "performance"]
 
-                        delegate: Rectangle {
-                            id: profileButton
+                        delegate: ProfileChoice {
                             required property string modelData
                             readonly property bool supported: root.profileAvailable(modelData)
-                            readonly property bool active: root.profiles?.current === modelData
-                            readonly property bool pending: root.pendingProfile === modelData
 
-                            width: (profileButtons.width - profileButtons.spacing * 2) / 3
-                            height: 108
-                            radius: CortetsuDesign.radiusLarge
-                            color: active
-                                ? CortetsuDesign.colorSecondaryContainer
-                                : CortetsuDesign.colorSurfaceHigh
-                            border.width: active ? 1 : 0
-                            border.color: CortetsuDesign.colorPrimary
-                            opacity: supported ? 1 : 0.45
-
-                            CortetsuStateLayer {
-                                radius: parent.radius
-                                enabled: profileButton.supported && root.profiles?.can_set && root.pendingProfile.length === 0
-                                onClicked: root.requestProfile(profileButton.modelData)
-                            }
-
-                            Column {
-                                anchors.centerIn: parent
-                                spacing: 7
-
-                                CortetsuIcon {
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                    text: profileButton.pending ? "progress_activity" : root.profileIcon(profileButton.modelData)
-                                    color: profileButton.active
-                                        ? CortetsuDesign.colorOnSecondaryContainer
-                                        : CortetsuDesign.colorOnSurfaceVariant
-                                    iconSize: CortetsuTypography.iconLargePx
-                                }
-
-                                CortetsuText {
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                    text: root.profileLabel(profileButton.modelData)
-                                    color: profileButton.active
-                                        ? CortetsuDesign.colorOnSecondaryContainer
-                                        : CortetsuDesign.colorOnSurfaceVariant
-                                    textSize: CortetsuTypography.labelMediumPx
-                                }
-
-                                CortetsuText {
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                    text: profileButton.supported
-                                        ? (profileButton.active ? qsTr("Activo") : qsTr("Disponible"))
-                                        : qsTr("No disponible")
-                                    color: profileButton.active
-                                        ? CortetsuDesign.colorOnSecondaryContainer
-                                        : CortetsuDesign.colorOutline
-                                    textSize: CortetsuTypography.labelSmallPx
-                                }
-                            }
+                            width: (choices.width - choices.spacing * 2) / 3
+                            profile: modelData
+                            selected: root.profiles?.current === modelData
+                            busy: root.pendingProfile === modelData
+                            disabled: !supported || !root.profiles?.can_set || root.pendingProfile.length > 0
+                            note: !supported
+                                ? qsTr("No disponible en este equipo")
+                                : selected ? qsTr("Activo") : busy ? qsTr("Aplicando…") : ""
+                            onChosen: root.requestProfile(modelData)
                         }
                     }
                 }
             }
         }
 
-        Grid {
-            id: powerGrid
+        Row {
             width: parent.width
-            height: parent.height - 170
-            columns: 2
-            columnSpacing: 12
-            rowSpacing: 12
+            spacing: CortetsuDesign.spacingStandard
 
-            Rectangle {
-                width: (powerGrid.width - 12) / 2
-                height: (powerGrid.height - 12) / 2
-                radius: CortetsuDesign.radiusLarge
-                color: CortetsuDesign.colorSurface
-                border.width: 1
-                border.color: CortetsuDesign.colorOutlineVariant
+            Panel {
+                id: cpuPanel
+                width: (parent.width - parent.spacing) / 2
+                height: Math.max(cpuFacts.implicitHeight, sourceFacts.implicitHeight) + padding * 2
 
                 Column {
-                    anchors.fill: parent
-                    anchors.margins: 18
-                    spacing: 11
+                    id: cpuFacts
+                    width: parent.width
+                    spacing: 0
 
-                    Row {
+                    SummaryLabel {
+                        icon: "memory"
+                        text: qsTr("Procesador")
+                        detail: root.cpu?.driver ?? ""
+                    }
+
+                    Item { width: 1; height: CortetsuDesign.spacingCompact }
+
+                    FactRow { width: parent.width; label: qsTr("Frecuencia actual"); value: Format.gigahertz(root.cpu?.current_mhz); emphasized: true }
+                    FactRow {
                         width: parent.width
-
-                        Column {
-                            width: parent.width * 0.7
-                            spacing: 2
-
-                            CortetsuText {
-                                text: qsTr("CPU policy")
-                                color: CortetsuDesign.colorOnSurface
-                                textSize: CortetsuTypography.titleMediumPx
-                            }
-                            CortetsuText {
-                                width: parent.width
-                                text: root.cpu?.driver ?? qsTr("Controlador desconocido")
-                                color: CortetsuDesign.colorOutline
-                                textSize: CortetsuTypography.labelSmallPx
-                                elide: Text.ElideRight
-                            }
-                        }
-
-                        CortetsuText {
-                            width: parent.width * 0.3
-                            text: root.cpu?.current_mhz
-                                ? `${root.number(Number(root.cpu.current_mhz) / 1000, 2)} GHz`
-                                : "—"
-                            color: CortetsuDesign.colorPrimary
-                            textSize: CortetsuTypography.titleSmallPx
-                            horizontalAlignment: Text.AlignRight
-                        }
+                        label: qsTr("Rango de frecuencias")
+                        value: root.cpu?.min_mhz && root.cpu?.max_mhz
+                            ? `${Format.fixed(root.cpu.min_mhz / 1000, 1)} a ${Format.fixed(root.cpu.max_mhz / 1000, 1)} GHz`
+                            : ""
                     }
-
-                    Repeater {
-                        model: [
-                            { label: qsTr("Governor"), value: root.cpu?.governor ?? "—" },
-                            { label: qsTr("Energy preference"), value: root.cpu?.epp || "—" },
-                            { label: qsTr("Frequency range"), value: root.cpu?.min_mhz && root.cpu?.max_mhz ? `${root.number(root.cpu.min_mhz / 1000, 2)}–${root.number(root.cpu.max_mhz / 1000, 2)} GHz` : "—" },
-                            { label: qsTr("Platform profile"), value: root.cpu?.platform_profile || qsTr("Not exposed") }
-                        ]
-
-                        delegate: Row {
-                            required property var modelData
-                            width: parent.width
-                            height: 25
-
-                            CortetsuText {
-                                width: parent.width * 0.43
-                                text: modelData.label
-                                color: CortetsuDesign.colorOutline
-                                textSize: CortetsuTypography.labelSmallPx
-                            }
-                            CortetsuText {
-                                width: parent.width * 0.57
-                                text: modelData.value
-                                color: CortetsuDesign.colorOnSurfaceVariant
-                                textSize: CortetsuTypography.labelMediumPx
-                                horizontalAlignment: Text.AlignRight
-                                elide: Text.ElideLeft
-                            }
-                        }
-                    }
-
-                    CortetsuText {
-                        width: parent.width
-                        text: root.cpu?.epp_choices?.length
-                            ? `${qsTr("EPP exposed")}: ${root.cpu.epp_choices.join(" · ")}`
-                            : qsTr("EPP choices are not exposed by the active CPU driver.")
-                        color: CortetsuDesign.colorOutline
-                        textSize: CortetsuTypography.labelSmallPx
-                        wrapMode: Text.WordWrap
-                    }
+                    FactRow { width: parent.width; label: qsTr("Gobernador"); value: root.cpu?.governor ?? "" }
+                    FactRow { width: parent.width; label: qsTr("Preferencia de energía (EPP)"); value: root.cpu?.epp ?? "" }
+                    FactRow { width: parent.width; label: qsTr("Perfil de plataforma"); value: root.cpu?.platform_profile ?? "" }
                 }
             }
 
-            Rectangle {
-                width: (powerGrid.width - 12) / 2
-                height: (powerGrid.height - 12) / 2
-                radius: CortetsuDesign.radiusLarge
-                color: CortetsuDesign.colorSurface
-                border.width: 1
-                border.color: CortetsuDesign.colorOutlineVariant
+            Panel {
+                width: cpuPanel.width
+                height: cpuPanel.height
 
                 Column {
-                    anchors.fill: parent
-                    anchors.margins: 18
-                    spacing: 10
+                    id: sourceFacts
+                    width: parent.width
+                    spacing: 0
 
-                    Row {
+                    SummaryLabel {
+                        icon: root.ac?.online ? "power" : "battery_full"
+                        text: qsTr("Alimentación")
+                    }
+
+                    Item { width: 1; height: CortetsuDesign.spacingCompact }
+
+                    FactRow {
                         width: parent.width
-
-                        Column {
-                            width: parent.width * 0.7
-                            spacing: 2
-
-                            CortetsuText {
-                                text: qsTr("Power source")
-                                color: CortetsuDesign.colorOnSurface
-                                textSize: CortetsuTypography.titleMediumPx
-                            }
-                            CortetsuText {
-                                text: root.ac?.online ? qsTr("AC adapter connected") : qsTr("Running on battery")
-                                color: root.ac?.online ? CortetsuDesign.colorPrimary : CortetsuDesign.colorTertiary
-                                textSize: CortetsuTypography.labelMediumPx
-                            }
-                        }
-
-                        CortetsuIcon {
-                            width: parent.width * 0.3
-                            text: root.ac?.online ? "power" : "battery_5_bar"
-                            color: root.ac?.online ? CortetsuDesign.colorPrimary : CortetsuDesign.colorTertiary
-                            iconSize: CortetsuTypography.iconExtraLargePx
-                            horizontalAlignment: Text.AlignRight
-                        }
+                        label: qsTr("Fuente")
+                        value: root.power?.ac === undefined
+                            ? ""
+                            : root.ac?.online ? qsTr("Conectado a la corriente") : qsTr("Batería")
+                        emphasized: true
                     }
-
-                    Repeater {
-                        model: [
-                            { label: qsTr("Batería"), value: root.battery?.present ? `${root.number(root.battery?.percent, 0)}% · ${root.battery?.status ?? "—"}` : qsTr("No detectada") },
-                            { label: qsTr("Consumo actual"), value: root.battery?.power_w !== null && root.battery?.power_w !== undefined ? `${root.number(root.battery.power_w, 1)} W` : "—" },
-                            { label: qsTr("Capacidad total"), value: root.battery?.energy_full_wh !== null && root.battery?.energy_full_wh !== undefined ? `${root.number(root.battery.energy_full_wh, 1)} Wh` : "—" },
-                            { label: qsTr("Salud de la batería"), value: root.battery?.health_percent !== null && root.battery?.health_percent !== undefined ? `${root.number(root.battery.health_percent, 1)}%` : "—" }
-                        ]
-
-                        delegate: Row {
-                            required property var modelData
-                            width: parent.width
-                            height: 25
-
-                            CortetsuText {
-                                width: parent.width * 0.48
-                                text: modelData.label
-                                color: CortetsuDesign.colorOutline
-                                textSize: CortetsuTypography.labelSmallPx
-                            }
-                            CortetsuText {
-                                width: parent.width * 0.52
-                                text: modelData.value
-                                color: CortetsuDesign.colorOnSurfaceVariant
-                                textSize: CortetsuTypography.labelMediumPx
-                                horizontalAlignment: Text.AlignRight
-                            }
-                        }
+                    FactRow {
+                        width: parent.width
+                        label: qsTr("Batería")
+                        value: root.power?.battery === undefined
+                            ? ""
+                            : !root.battery?.present
+                                ? qsTr("Este equipo no tiene")
+                                : Format.join([Format.percent(root.battery.percent), root.batteryStates[root.battery.status] ?? ""])
                     }
+                    FactRow { visible: !!root.battery?.present; width: parent.width; label: qsTr("Flujo"); value: Format.watts(root.battery?.power_w) }
+                    FactRow { visible: !!root.battery?.present; width: parent.width; label: qsTr("Capacidad"); value: Format.withUnit(root.battery?.energy_full_wh, 1, "Wh") }
+                    FactRow { visible: !!root.battery?.present; width: parent.width; label: qsTr("Salud"); value: Format.percent(root.battery?.health_percent) }
                 }
             }
+        }
+
+        Row {
+            id: gpuRow
+            width: parent.width
+            spacing: CortetsuDesign.spacingStandard
 
             Repeater {
-                model: [root.gpuAt(0), root.gpuAt(1)]
+                // Index-based: a panel per GPU, updated in place by each reading.
+                model: root.gpus.length
 
-                delegate: Rectangle {
-                    required property var modelData
+                delegate: Panel {
+                    id: gpuPanel
                     required property int index
-                    width: (powerGrid.width - 12) / 2
-                    height: (powerGrid.height - 12) / 2
-                    radius: CortetsuDesign.radiusLarge
-                    color: CortetsuDesign.colorSurface
-                    border.width: 1
-                    border.color: CortetsuDesign.colorOutlineVariant
+                    readonly property var gpu: root.gpus[gpuPanel.index] ?? ({})
+                    readonly property bool nvidia: gpuPanel.gpu.vendor === "NVIDIA"
+
+                    width: (gpuRow.width - gpuRow.spacing * (root.gpus.length - 1)) / Math.max(1, root.gpus.length)
+                    height: gpuFacts.implicitHeight + padding * 2
 
                     Column {
-                        anchors.fill: parent
-                        anchors.margins: 18
-                        spacing: 10
+                        id: gpuFacts
+                        width: parent.width
+                        spacing: 0
 
-                        Row {
+                        SummaryLabel {
+                            icon: "view_in_ar"
+                            text: gpuPanel.gpu.vendor ? qsTr("GPU %1").arg(gpuPanel.gpu.vendor) : qsTr("GPU")
+                            detail: gpuPanel.nvidia ? (gpuPanel.gpu.name ?? "") : (gpuPanel.gpu.card ?? "")
+                            anchors.rightMargin: 0
+                        }
+
+                        Item { width: 1; height: CortetsuDesign.spacingCompact }
+
+                        FactRow {
                             width: parent.width
-
-                            Rectangle {
-                                width: 42
-                                height: 42
-                                radius: CortetsuDesign.radiusMedium
-                                color: CortetsuDesign.colorSecondaryContainer
-
-                                CortetsuIcon {
-                                    anchors.centerIn: parent
-                                    text: index === 0 ? "view_in_ar" : "sports_esports"
-                                    color: CortetsuDesign.colorOnSecondaryContainer
-                                    iconSize: CortetsuTypography.iconLargePx
-                                }
-                            }
-
-                            Column {
-                                width: parent.width - 54
-                                anchors.verticalCenter: parent.verticalCenter
-                                spacing: 1
-
-                                CortetsuText {
-                                    width: parent.width
-                                    text: modelData?.vendor
-                                        ? `${modelData.vendor} ${qsTr("GPU power")}`
-                                        : qsTr("GPU power")
-                                    color: CortetsuDesign.colorOnSurface
-                                    textSize: CortetsuTypography.titleSmallPx
-                                    elide: Text.ElideRight
-                                }
-
-                                CortetsuText {
-                                    width: parent.width
-                                    text: modelData?.name ?? modelData?.card ?? qsTr("Sin telemetría")
-                                    color: CortetsuDesign.colorOutline
-                                    textSize: CortetsuTypography.labelSmallPx
-                                    elide: Text.ElideRight
-                                }
-                            }
+                            label: qsTr("Consumo")
+                            value: gpuPanel.nvidia && Format.known(gpuPanel.gpu.power_limit_w)
+                                ? qsTr("%1 de %2").arg(Format.watts(gpuPanel.gpu.power_w)).arg(Format.watts(gpuPanel.gpu.power_limit_w))
+                                : Format.watts(gpuPanel.gpu.power_w)
+                            emphasized: true
                         }
-
-                        Repeater {
-                            model: modelData?.vendor === "NVIDIA"
-                                ? [
-                                    { label: qsTr("P-state"), value: modelData?.pstate ?? "—" },
-                                    { label: qsTr("Power"), value: modelData?.power_w !== null && modelData?.power_w !== undefined ? `${root.number(modelData.power_w, 1)} / ${root.number(modelData.power_limit_w, 1)} W` : "—" },
-                                    { label: qsTr("Graphics clock"), value: modelData?.graphics_clock_mhz !== null && modelData?.graphics_clock_mhz !== undefined ? `${root.number(modelData.graphics_clock_mhz, 0)} MHz` : "—" },
-                                    { label: qsTr("Temperature"), value: modelData?.temp_c !== null && modelData?.temp_c !== undefined ? `${root.number(modelData.temp_c, 1)} °C` : "—" }
-                                ]
-                                : [
-                                    { label: qsTr("Performance level"), value: modelData?.performance_level || "—" },
-                                    { label: qsTr("Power state"), value: modelData?.power_state || "—" },
-                                    { label: qsTr("Runtime"), value: modelData?.runtime_status || "—" },
-                                    { label: qsTr("Power / temp"), value: modelData?.power_w !== null && modelData?.power_w !== undefined ? `${root.number(modelData.power_w, 1)} W · ${root.number(modelData.temp_c, 1)} °C` : "—" }
-                                ]
-
-                            delegate: Row {
-                                required property var modelData
-                                width: parent.width
-                                height: 24
-
-                                CortetsuText {
-                                    width: parent.width * 0.48
-                                    text: modelData.label
-                                    color: CortetsuDesign.colorOutline
-                                    textSize: CortetsuTypography.labelSmallPx
-                                }
-                                CortetsuText {
-                                    width: parent.width * 0.52
-                                    text: modelData.value
-                                    color: CortetsuDesign.colorOnSurfaceVariant
-                                    textSize: CortetsuTypography.labelMediumPx
-                                    horizontalAlignment: Text.AlignRight
-                                    elide: Text.ElideLeft
-                                }
-                            }
-                        }
+                        FactRow { width: parent.width; label: qsTr("Temperatura"); value: Format.celsius(gpuPanel.gpu.temp_c) }
+                        FactRow { visible: gpuPanel.nvidia; width: parent.width; label: qsTr("Estado de rendimiento"); value: gpuPanel.gpu.pstate ?? "" }
+                        FactRow { visible: gpuPanel.nvidia; width: parent.width; label: qsTr("Reloj gráfico"); value: Format.withUnit(gpuPanel.gpu.graphics_clock_mhz, 0, "MHz") }
+                        FactRow { visible: !gpuPanel.nvidia; width: parent.width; label: qsTr("Nivel de rendimiento"); value: gpuPanel.gpu.performance_level ?? "" }
+                        FactRow { visible: !gpuPanel.nvidia; width: parent.width; label: qsTr("Estado de energía"); value: gpuPanel.gpu.power_state ?? "" }
+                        FactRow { visible: !gpuPanel.nvidia; width: parent.width; label: qsTr("Suspensión en ejecución"); value: gpuPanel.gpu.runtime_status ?? "" }
                     }
                 }
             }
