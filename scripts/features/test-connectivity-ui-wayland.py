@@ -48,7 +48,7 @@ ShellRoot {
             ColumnLayout {
                 width: window.width - 32
                 Loader { id: wifi; Layout.fillWidth: true; Layout.preferredHeight: item?.implicitHeight ?? 0; active: root.page===0; visible: active; sourceComponent: Settings.NetworkPage { screen:null; screenState:null } }
-                Loader { id: bt; Layout.fillWidth: true; Layout.preferredHeight: item?.implicitHeight ?? 0; active: root.page===1; visible: active; sourceComponent: Settings.BluetoothPage { screen:null; screenState:null } }
+                Loader { id: bt; Layout.fillWidth: true; Layout.preferredHeight: item?.implicitHeight ?? 0; active: root.page===1; visible: active; sourceComponent: Settings.SystemPage { screen:null; screenState:null; section:"bluetooth" } }
             }
         }
         TestCase { id: input; when:false; optional:true }
@@ -60,24 +60,23 @@ ShellRoot {
                 if (!wifi.item || !Connectivity.wifi.profiles.length) return;
                 if (!root.check(CortetsuNetwork.activeWifiNetwork === Connectivity.wifi.activeNetwork, "bar and BottomHub native Wi-Fi identity")) return;
                 if (!root.check(CortetsuSettingsNetwork.operation === Connectivity.wifi.operation, "Settings shared operation identity")) return;
-                const properties = root.findLabel(wifi.item, "Propiedades");
-                if (!root.check(!!properties, "connected properties action")) return;
-                input.mouseClick(properties, properties.width/2, properties.height/2);
-                if (!root.check(wifi.item.selectedNetwork === Connectivity.wifi.activeNetwork, "mouse selects native connected network")) return;
+                if (!root.check(Object.keys(Connectivity.wifi.scanOwners).length === 1, "visible Wi-Fi page owns one scan")) return;
+                const saved = root.findLabel(wifi.item, "Guardadas");
+                if (!root.check(!!saved, "saved profiles tab")) return;
+                input.mouseClick(saved, saved.width/2, saved.height/2);
+                if (!root.check(wifi.item.showingProfiles, "mouse opens saved profiles")) return;
                 input.keyClick(Qt.Key_Tab);
                 if (!root.check(!!window.contentItem.Window.window.activeFocusItem, "Tab assigns focus")) return;
-                const close = root.findLabel(wifi.item, "Cerrar detalle");
-                input.mouseClick(close, close.width/2, close.height/2);
-                if (!root.check(!wifi.item.selectedNetwork, "inspector closes")) return;
-                const add = root.findLabel(wifi.item, "Añadir red");
-                if (!root.check(!!add, "hidden network action")) return;
-                add.forceActiveFocus(); input.keyClick(Qt.Key_Return);
-                if (!root.check(!!root.findLabel(wifi.item, "Conectar red oculta"), "keyboard opens hidden form")) return;
+                const nearby = root.findLabel(wifi.item, "Cercanas");
+                if (!root.check(!!nearby, "nearby networks tab")) return;
+                nearby.forceActiveFocus(); input.keyClick(Qt.Key_Return);
+                if (!root.check(!wifi.item.showingProfiles, "keyboard returns to nearby networks")) return;
                 root.page = 1; root.stage = 1;
             } else if (root.stage === 1) {
                 if (!bt.item) return;
-                if (!root.check(!wifi.item && !Connectivity.wifi.scanning, "leaving Wi-Fi releases page and scanner")) return;
-                if (!root.check(bt.item.bluetooth === Connectivity.bluetooth, "Bluetooth shared identity")) return;
+                if (!root.check(!wifi.item && !Connectivity.wifi.scanning
+                    && Object.keys(Connectivity.wifi.scanOwners).length === 0, "leaving Wi-Fi releases page and scanner")) return;
+                if (!root.check(bt.item.bluetoothEnabled === Connectivity.bluetooth.enabled, "Bluetooth shared state")) return;
                 input.keyClick(Qt.Key_Tab);
                 root.page = 2; root.stage = 2;
             } else {

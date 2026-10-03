@@ -357,6 +357,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-startup-test-") as temp:
     assert phases["cortetsu:brightness-maximum"] == "conditional"
     assert phases["cortetsu:connectivity-monitor"] == "always-on"
     assert phases["cortetsu:connectivity-command"] == "conditional"
+    assert phases["cortetsu:network-password-copy"] == "on-demand"
     assert phases["cortetsu:wallpaper-scan"] == "always-on"
     assert phases["cortetsu:battery-notification"] == phases["cortetsu:battery-hibernate"] == "conditional"
     assert phases["cortetsu:hardware-startup-scan"] == "on-demand"
@@ -371,7 +372,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-startup-test-") as temp:
     assert {entry["id"] for entry in app.CORTETSU_STARTUP} == {
         "cortetsu:pomodoro", "cortetsu:wallpaper-scan", "cortetsu:battery-notification",
         "cortetsu:battery-hibernate", "cortetsu:spectrum", "cortetsu:connectivity-monitor",
-        "cortetsu:connectivity-command", "cortetsu:vpn-status",
+        "cortetsu:connectivity-command", "cortetsu:network-password-copy", "cortetsu:vpn-status",
         "cortetsu:brightness-discovery", "cortetsu:brightness-maximum", "cortetsu:nvibrant-query",
         "cortetsu:cpu-temperature", "cortetsu:gpu-probe", "cortetsu:storage-probe",
         "cortetsu:network-usage-probe", "cortetsu:recorder-status", "cortetsu:lock-keyboard-probe",
@@ -397,6 +398,15 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-startup-test-") as temp:
     declarations = {}
     for source in (repo_root / "cortetsu").rglob("*.qml"):
         starts = qml_process_starts(source)
+        # Explicitly created Process components are cold until the user requests them.
+        text = source.read_text(encoding="utf-8")
+        if re.search(r"\bproperty\s+Component\s+\w+\s*:\s*Component\s*\{", text) and ".createObject(" in text:
+            factories = re.findall(r"startup inventory:\s*(cortetsu:[\w-]+)\s*\n\s*Process\s*\{", text)
+            for marker in factories:
+                entry = next(item for item in app.CORTETSU_STARTUP if item["id"] == marker)
+                assert entry["startupPhase"] == "on-demand", marker
+                assert marker not in starts, "factory must not launch during singleton creation"
+                starts.append(marker)
         if starts:
             declarations[source.relative_to(repo_root).as_posix()] = sorted(starts)
     registry = {}

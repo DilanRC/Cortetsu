@@ -6,261 +6,1104 @@ import QtQuick.Layouts
 import Quickshell.Networking
 import "../../components"
 import "../../services"
-import "../CortetsuDesign.js" as Design
-import "../CortetsuTypography.js" as Typography
+import ".."
+import "../CortetsuDesign.js" as CortetsuDesign
+import "../CortetsuTypography.js" as CortetsuTypography
 
+// Wi-Fi is a workbench: the active link stays visible while the explorer and
+// inspector handle discovery, saved profiles and NetworkManager actions.
 Item {
     id: root
+
     required property var screenState
     required property var screen
-    readonly property var wifi: Connectivity.wifi
-    property var selectedNetwork: null
-    property string selectedUuid: ""
-    property string confirmForgetUuid: ""
-    property bool showingProfiles: false
-    property bool showVpn: true
-    readonly property var selectedDetails: selectedNetwork?.connected ? wifi.details[selectedNetwork.device.name] ?? ({}) : ({})
-    readonly property string scanOwner: "settings-wifi-" + String(root)
-    readonly property var selectedProfile: wifi.profiles.find(profile => profile.uuid === selectedUuid) ?? null
-    readonly property var sortedNetworks: wifi.networks.slice().sort((a, b) =>
-        Number(b.connected) - Number(a.connected) || Number(b.known) - Number(a.known)
-        || b.signalStrength - a.signalStrength)
-    implicitHeight: body.implicitHeight
 
-    function refreshAll(): void { wifi.refresh(); }
-    function selectNetwork(network): void {
-        selectedNetwork = network;
-        selectedUuid = "";
-        confirmForgetUuid = "";
-        password.clear();
-        if (network?.device) wifi.refreshDetails(network.device.name);
+    property bool showVpn: true
+    readonly property var wifi: Connectivity.wifi
+    readonly property string scanOwner: "settings-wifi-" + String(root)
+    property bool showingProfiles: false
+    property int selectedIndex: 0
+    property string networkQuery: ""
+    property bool strongestFirst: true
+    property string copiedProfileUuid: ""
+    property bool passwordVisible: false
+    property string password: ""
+
+    readonly property var networks: wifi.networks
+    readonly property var profiles: wifi.profiles.filter(profile => profile.type === "802-11-wireless")
+    readonly property var filteredNetworks: {
+        const query = root.networkQuery.trim().toLowerCase();
+        const matching = root.networks.filter(network => !query || network.name.toLowerCase().includes(query));
+        return matching.slice().sort((left, right) => {
+            if (left.connected !== right.connected) return left.connected ? -1 : 1;
+            return root.strongestFirst ? right.signalStrength - left.signalStrength : left.name.localeCompare(right.name);
+        });
     }
+    readonly property var selectedNetwork: root.showingProfiles ? null : root.filteredNetworks[root.selectedIndex] ?? null
+    readonly property var activeNetwork: wifi.activeNetwork
+    readonly property var activeProfile: root.profiles.find(profile => profile.uuid === root.activeDetails.uuid) ?? null
+    readonly property var selectedProfile: {
+        if (root.showingProfiles) return root.profiles[root.selectedIndex] ?? null;
+        if (!root.selectedNetwork) return null;
+        if (root.selectedNetwork.connected) return root.profiles.find(profile => profile.uuid === wifi.details[root.selectedNetwork.device.name]?.uuid) ?? null;
+        const matching = root.profiles.filter(profile => profile.ssid === root.selectedNetwork.name
+            && (!profile.interface || profile.interface === root.selectedNetwork.device.name));
+        return matching.length === 1 ? matching[0] : null;
+    }
+    readonly property bool selectedIsActive: root.selectedNetwork?.connected ?? false
+    readonly property bool selectedNeedsPassword: !!root.selectedNetwork && !root.selectedIsActive
+        && [WifiSecurityType.WpaPsk, WifiSecurityType.Wpa2Psk, WifiSecurityType.Sae].includes(root.selectedNetwork.security)
+        && (!root.selectedNetwork.known || (wifi.operationNetwork === root.selectedNetwork
+            && ["password-required", "authentication-failed"].includes(wifi.operation.lastErrorCode)))
+    readonly property bool selectedCanCopyPassword: !!root.selectedProfile && (!root.selectedNetwork
+        || [WifiSecurityType.WpaPsk, WifiSecurityType.Wpa2Psk, WifiSecurityType.Sae].includes(root.selectedNetwork.security))
+    readonly property string secretState: CortetsuSettingsNetwork.secretState
+    readonly property bool compactLayout: width < 700
+    readonly property var activeDetails: CortetsuSettingsNetwork.activeDetails
+
+    // Content.qml places the page in the settings Flickable. This is tall
+    // enough for the split workbench while still allowing the compact layout
+    // to grow naturally when a narrow window wraps it vertically.
+    implicitHeight: root.compactLayout ? 1060 : 720
+
+    component SignalBars: Row {
+        id: bars
+        property real signalValue: 0
+        property color activeColor: CortetsuDesign.colorPrimary
+        property int barCount: 5
+        spacing: 3
+        height: 24
+
+        Repeater {
+            model: bars.barCount
+            delegate: Rectangle {
+                required property int index
+                width: 5
+                height: 8 + index * 4
+                y: bars.height - height
+                radius: 2
+                color: index < Math.ceil(Math.max(0, bars.signalValue) / (100 / bars.barCount))
+                    ? bars.activeColor
+                    : Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.48)
+            }
+        }
+    }
+
+    component DetailRow: RowLayout {
+        required property string label
+        required property string value
+        Layout.fillWidth: true
+        spacing: CortetsuDesign.spacingStandard
+
+        CortetsuText {
+            Layout.fillWidth: true
+            text: parent.label
+            textSize: CortetsuTypography.bodySmallPx
+            color: CortetsuDesign.colorOnSurfaceVariant
+        }
+
+        CortetsuText {
+            Layout.minimumWidth: 110
+            text: parent.value
+            textSize: CortetsuTypography.bodySmallPx
+            font.weight: Font.DemiBold
+            horizontalAlignment: Text.AlignRight
+            elide: Text.ElideRight
+        }
+    }
+
+    function signalLabel(signal): string {
+        const value = Number(signal ?? -1);
+        if (value < 0) return qsTr("Sin medición");
+        if (value >= 80) return qsTr("Excelente");
+        if (value >= 60) return qsTr("Buena");
+        if (value >= 35) return qsTr("Aceptable");
+        return qsTr("Débil");
+    }
+
+    function signalValue(signal): real {
+        return Math.max(0, Math.min(100, Number(signal ?? 0))) / 100;
+    }
+
+    function signalText(signal): string {
+        const value = Number(signal ?? -1);
+        return value >= 0 ? qsTr("%1%").arg(value) : qsTr("—");
+    }
+
+    function networkSignal(network): real { return network ? wifi.strengthPercent(network.signalStrength) : -1; }
+    function securityLabel(network): string {
+        return !network || network.security === WifiSecurityType.Open ? qsTr("Red abierta") : WifiSecurityType.toString(network.security);
+    }
+    function networkIsActive(network): bool {
+        return !!network && (network.connected ?? (network.uuid === root.activeDetails.uuid));
+    }
+
+    function resetSelection(): void {
+        selectedIndex = 0;
+        password = "";
+        passwordVisible = false;
+    }
+
+    function refreshDetails(): void {
+        const device = root.activeNetwork?.device?.name ?? "";
+        if (device.length > 0)
+            CortetsuSettingsNetwork.refreshDetails(device);
+    }
+
+    function refreshAll(): void {
+        CortetsuSettingsNetwork.refreshAll();
+        Qt.callLater(root.refreshDetails);
+    }
+
     function connectSelected(): void {
-        if (!selectedNetwork) return;
-        const profile = selectedProfile?.ssid === selectedNetwork.name
-            && (!selectedProfile.interface || selectedProfile.interface === selectedNetwork.device.name) ? selectedProfile : null;
-        wifi.connectNetwork(selectedNetwork, password.text, profile);
-        password.clear();
+        if (!root.selectedNetwork || wifi.busy) return;
+        const secret = root.selectedNeedsPassword ? root.password : "";
+        root.password = "";
+        root.passwordVisible = false;
+        wifi.connectNetwork(root.selectedNetwork, secret, root.selectedProfile);
     }
-    function networkState(network): string {
-        const op = wifi.operation;
-        if (wifi.operationNetwork === network && ["connecting", "auth-required", "failed"].includes(op.state))
-            return op.state === "failed" ? op.lastError : op.state === "auth-required"
-                ? qsTr("Se requieren credenciales") : qsTr("Conectando…");
-        return network.connected ? Connectivity.internetLabel
-            : network.known ? qsTr("Guardada") : qsTr("Disponible");
+    function retrySelected(): void {
+        if (wifi.operation.kind === "connect" && wifi.operationNetwork === root.selectedNetwork && root.selectedNetwork) root.connectSelected();
+        else root.refreshAll();
     }
+    function copySelectedPassword(): void {
+        if (root.selectedProfile) { root.copiedProfileUuid = root.selectedProfile.uuid; CortetsuSettingsNetwork.copyPassword(root.selectedProfile.uuid); }
+    }
+    function disconnectActive(): void {
+        if (root.activeNetwork) wifi.disconnectNetwork(root.activeNetwork);
+    }
+    function forgetActive(): void {
+        if (root.activeProfile) wifi.forgetProfile(root.activeProfile.uuid);
+    }
+    function disconnectProfile(): void {
+        const network = root.networks.find(item => item.connected && wifi.details[item.device.name]?.uuid === root.selectedProfile?.uuid);
+        if (network) wifi.disconnectNetwork(network);
+    }
+    function detailsValue(value): string {
+        return String(value ?? "").length > 0 ? String(value) : qsTr("No disponible");
+    }
+
+    onShowingProfilesChanged: resetSelection()
+    onNetworkQueryChanged: resetSelection()
+
+    onSelectedNetworkChanged: { root.password = ""; root.passwordVisible = false; CortetsuSettingsNetwork.cancelPasswordCopy(); }
+    onSelectedProfileChanged: if (copiedProfileUuid && selectedProfile?.uuid !== copiedProfileUuid) { copiedProfileUuid = ""; CortetsuSettingsNetwork.cancelPasswordCopy(); }
     onVisibleChanged: {
         wifi.setScanOwner(scanOwner, visible);
-        if (!visible) password.clear();
+        if (!visible) { root.password = ""; root.passwordVisible = false; CortetsuSettingsNetwork.cancelPasswordCopy(); }
     }
-    Component.onCompleted: wifi.setScanOwner(scanOwner, visible)
-    Component.onDestruction: wifi.setScanOwner(scanOwner, false)
+    Component.onCompleted: { wifi.setScanOwner(scanOwner, visible); Qt.callLater(root.refreshDetails); }
+    Component.onDestruction: { wifi.setScanOwner(scanOwner, false); CortetsuSettingsNetwork.cancelPasswordCopy(); }
+
     Connections {
-        target: root.wifi
+        target: CortetsuSettingsNetwork
+
         function onNetworksChanged(): void {
-            if (root.selectedNetwork && !root.wifi.networks.includes(root.selectedNetwork))
-                root.selectNetwork(null);
+            if (root.selectedIndex >= root.filteredNetworks.length)
+                root.resetSelection();
+            root.refreshDetails();
+        }
+
+        function onProfilesChanged(): void {
+            if (root.showingProfiles && root.selectedIndex >= root.profiles.length)
+                root.resetSelection();
+        }
+
+        function onActiveSsidChanged(): void {
+            root.refreshDetails();
+        }
+
+        function onActiveDeviceChanged(): void {
+            root.refreshDetails();
         }
     }
 
     ColumnLayout {
-        id: body
-        width: parent.width
-        spacing: Design.spacingStandard
-        RowLayout {
-            Layout.fillWidth: true
-            CortetsuSectionHeader { Layout.fillWidth: true; title: qsTr("Wi-Fi"); detail: Connectivity.internetLabel }
-            CortetsuToggle {
-                checked: root.wifi.wifiEnabled
-                disabled: !root.wifi.wifiDevice || !root.wifi.hardwareEnabled
-                onToggled: value => root.wifi.setEnabled(value)
-                Accessible.name: qsTr("Activar Wi-Fi")
-            }
-        }
-        CortetsuStateMessage {
-            Layout.fillWidth: true
-            visible: !root.wifi.wifiDevice || !root.wifi.wifiEnabled || !root.wifi.hardwareEnabled
-            title: !root.wifi.wifiDevice ? qsTr("Wi-Fi no disponible")
-                : !root.wifi.hardwareEnabled ? qsTr("Radio bloqueada") : qsTr("Wi-Fi desactivado")
-            detail: !root.wifi.wifiDevice ? qsTr("Comprueba el adaptador y NetworkManager")
-                : !root.wifi.hardwareEnabled ? qsTr("Comprueba rfkill o el interruptor del equipo") : ""
-        }
+        anchors.fill: parent
+        spacing: CortetsuDesign.spacingStandard
+
         CortetsuSurface {
             Layout.fillWidth: true
-            visible: !!root.wifi.activeNetwork
-            implicitHeight: activeBody.implicitHeight + Design.spacingComfortable * 2
-            baseColor: Qt.alpha(Design.colorPrimaryContainer, 0.32)
+            visible: CortetsuSettingsNetwork.state === "error"
+            implicitHeight: 52
+            baseColor: Qt.alpha(CortetsuDesign.colorWarning, 0.12)
+            outlineColor: Qt.alpha(CortetsuDesign.colorWarning, 0.54)
             outlined: true
-            radiusValue: Design.radiusLarge
-            ColumnLayout {
-                id: activeBody
+            radiusValue: CortetsuDesign.radiusMedium
+
+            RowLayout {
                 anchors.fill: parent
-                anchors.margins: Design.spacingComfortable
-                spacing: Design.spacingCompact
-                CortetsuText { text: qsTr("Conectada"); textSize: Design.labelSmallPx; color: Design.colorOnSurfaceVariant }
-                CortetsuText { text: root.wifi.activeNetwork?.name ?? ""; textSize: Typography.titleLargePx; font.weight: Font.DemiBold }
+                anchors.margins: CortetsuDesign.spacingStandard
+                spacing: CortetsuDesign.spacingStandard
+
+                CortetsuIcon {
+                    text: "warning"
+                    color: CortetsuDesign.colorWarning
+                    iconSize: CortetsuTypography.iconMediumPx
+                }
+
                 CortetsuText {
-                    text: qsTr("%1% de señal · %2").arg(Math.round((root.wifi.activeNetwork?.signalStrength ?? 0) * 100)).arg(Connectivity.internetLabel)
-                    textSize: Design.bodySmallPx
+                    Layout.fillWidth: true
+                    text: CortetsuSettingsNetwork.error
+                    textSize: CortetsuTypography.bodySmallPx
+                    color: CortetsuDesign.colorWarning
+                    elide: Text.ElideRight
                 }
-                RowLayout {
-                    CortetsuButton { label: qsTr("Propiedades"); icon: "info"; onClicked: root.selectNetwork(root.wifi.activeNetwork) }
-                    CortetsuButton { label: qsTr("Desconectar"); icon: "link_off"; onClicked: root.wifi.disconnectNetwork(root.wifi.activeNetwork) }
+
+                CortetsuButton {
+                    compact: true
+                    icon: "refresh"
+                    label: qsTr("Reintentar")
+                    disabled: CortetsuSettingsNetwork.busy
+                    onClicked: root.retrySelected()
                 }
             }
         }
-        CortetsuText {
-            Layout.fillWidth: true
-            visible: ["failed", "auth-required"].includes(root.wifi.operation.state) || root.wifi.metadataError.length > 0
-            text: root.wifi.operation.lastError || root.wifi.metadataError
-            textSize: Design.bodySmallPx
-            color: Design.colorVermillion
-            wrapMode: Text.WordWrap
-        }
-        CortetsuSectionHeader {
-            Layout.fillWidth: true
-            title: qsTr("Redes disponibles")
-            detail: qsTr("Los puntos de acceso conservan su identidad por interfaz y BSSID")
-        }
-        Repeater {
-            model: root.sortedNetworks
-            delegate: CortetsuListRow {
-                required property var modelData
-                Layout.fillWidth: true
-                title: modelData.name
-                subtitle: root.networkState(modelData) + " · " + Math.round(modelData.signalStrength * 100) + "% · " + WifiSecurityType.toString(modelData.security)
-                icon: root.wifi.operationNetwork === modelData && root.wifi.operation.state === "connecting" ? "sync" : "wifi"
-                selected: modelData === root.selectedNetwork
-                onClicked: root.selectNetwork(modelData)
-            }
-        }
-        CortetsuStateMessage {
-            Layout.fillWidth: true
-            visible: root.wifi.wifiEnabled && !!root.wifi.wifiDevice && root.sortedNetworks.length === 0
-            title: qsTr("El scan no encontró redes")
-            detail: qsTr("Acerca el equipo al punto de acceso y vuelve a buscar")
-        }
-        CortetsuButton { label: qsTr("Buscar redes"); icon: "refresh"; disabled: !root.wifi.wifiEnabled; onClicked: root.refreshAll() }
+
         CortetsuSurface {
             Layout.fillWidth: true
-            visible: !!root.selectedNetwork
-            implicitHeight: inspector.implicitHeight + Design.spacingComfortable * 2
-            baseColor: Qt.alpha(Design.colorSurfaceGlass, 0.72)
+            visible: !!root.activeNetwork
+            implicitHeight: 104
+            baseColor: Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.64)
+            outlineColor: Qt.alpha(CortetsuDesign.colorPrimary, 0.54)
             outlined: true
-            radiusValue: Design.radiusMedium
-            ColumnLayout {
-                id: inspector
+            radiusValue: CortetsuDesign.radiusMedium
+
+            RowLayout {
                 anchors.fill: parent
-                anchors.margins: Design.spacingComfortable
-                spacing: Design.spacingCompact
-                CortetsuSectionHeader { title: root.selectedNetwork?.name ?? ""; detail: root.selectedNetwork ? root.networkState(root.selectedNetwork) : "" }
-                ConnectionDetail { Layout.fillWidth: true; label: qsTr("Interfaz"); value: root.selectedNetwork?.device?.name ?? "" }
-                ConnectionDetail { Layout.fillWidth: true; label: qsTr("Seguridad"); value: root.selectedNetwork ? WifiSecurityType.toString(root.selectedNetwork.security) : "" }
-                Repeater {
-                    model: root.wifi.accessPoints.filter(ap => ap.ssid === root.selectedNetwork?.name && ap.device === root.selectedNetwork?.device?.name)
-                    delegate: ConnectionDetail {
-                        required property var modelData
-                        Layout.fillWidth: true
-                        label: modelData.active ? qsTr("AP activo") : qsTr("Punto de acceso")
-                        value: modelData.bssid + " · " + (modelData.frequency >= 5925 ? "6 GHz" : modelData.frequency >= 4900 ? "5 GHz" : "2.4 GHz") + " · " + modelData.frequency + " MHz · " + modelData.strength + "%"
+                anchors.margins: CortetsuDesign.spacingStandard
+                spacing: CortetsuDesign.spacingStandard
+
+                CortetsuSurface {
+                    Layout.preferredWidth: 64
+                    Layout.preferredHeight: 64
+                    baseColor: Qt.alpha(CortetsuDesign.colorPrimary, 0.18)
+                    outlined: false
+                    radiusValue: CortetsuDesign.radiusMedium
+
+                    CortetsuIcon {
+                        anchors.centerIn: parent
+                        text: "wifi"
+                        color: CortetsuDesign.colorPrimary
+                        iconSize: CortetsuTypography.iconLargePx
                     }
                 }
-                ConnectionDetail { Layout.fillWidth: true; label: qsTr("Dirección IP"); value: root.selectedDetails.address ?? "" }
-                ConnectionDetail { Layout.fillWidth: true; label: qsTr("IPv6"); value: (root.selectedDetails.ipv6Addresses ?? []).join(", ") }
-                ConnectionDetail { Layout.fillWidth: true; label: qsTr("Puerta de enlace"); value: root.selectedDetails.gateway ?? "" }
-                ConnectionDetail { Layout.fillWidth: true; label: qsTr("DNS"); value: (root.selectedDetails.dns ?? []).join(", ") }
-                ConnectionDetail { Layout.fillWidth: true; label: qsTr("UUID activo"); value: root.selectedDetails.uuid ?? "" }
-                ConnectionDetail { Layout.fillWidth: true; label: qsTr("Perfil activo"); value: root.selectedDetails.profileName ?? "" }
-                TextField {
-                    id: password
-                    Layout.fillWidth: true
-                    visible: !!root.selectedNetwork && !root.selectedNetwork.connected
-                    placeholderText: qsTr("Contraseña (si la red la requiere)")
-                    echoMode: TextInput.Password
-                    color: Design.colorOnSurface
-                    onAccepted: root.connectSelected()
-                    background: CortetsuSurface { baseColor: Design.colorSurfaceGlassStrong; radiusValue: Design.radiusSmall; outlined: true }
+
+                ColumnLayout {
+                    Layout.preferredWidth: 185
+                    Layout.minimumWidth: 145
+                    spacing: 2
+
+                    CortetsuText {
+                        text: qsTr("Conexión actual")
+                        textSize: CortetsuTypography.labelSmallPx
+                        color: CortetsuDesign.colorOnSurfaceVariant
+                    }
+
+                    CortetsuText {
+                        Layout.fillWidth: true
+                        text: root.activeNetwork?.name ?? qsTr("No hay conexión Wi‑Fi activa")
+                        textSize: CortetsuTypography.titleMediumPx
+                        font.weight: Font.DemiBold
+                        elide: Text.ElideRight
+                    }
+
+                    CortetsuText {
+                        Layout.fillWidth: true
+                        text: qsTr("%1 · %2 · %3 · %4")
+                            .arg(root.wifi.connectivity === "full" ? qsTr("Conectada") : root.wifi.connectivity === "portal" ? qsTr("Portal cautivo") : root.wifi.connectivity === "limited" ? qsTr("Conectividad limitada") : qsTr("Sin Internet"))
+                            .arg(root.signalLabel(root.networkSignal(root.activeNetwork)))
+                            .arg(root.securityLabel(root.activeNetwork))
+                            .arg(root.activeNetwork?.device?.name || qsTr("dispositivo no disponible"))
+                        textSize: CortetsuTypography.labelSmallPx
+                        color: CortetsuDesign.colorOnSurfaceVariant
+                        elide: Text.ElideRight
+                    }
                 }
-                CortetsuText {
+
+                ColumnLayout {
                     Layout.fillWidth: true
-                    visible: !!root.selectedNetwork && [WifiSecurityType.Wpa2Eap, WifiSecurityType.WpaEap, WifiSecurityType.Wpa3SuiteB192, WifiSecurityType.DynamicWep, WifiSecurityType.Leap].includes(root.selectedNetwork.security)
-                    text: qsTr("802.1X requiere un perfil con identidad y certificados. Selecciona un perfil configurado; esta página no crea credenciales empresariales.")
-                    wrapMode: Text.WordWrap
-                    textSize: Design.bodySmallPx
+                    Layout.minimumWidth: 150
+                    spacing: CortetsuDesign.spacingCompact
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        CortetsuText {
+                            Layout.fillWidth: true
+                            text: qsTr("Calidad de la señal")
+                            textSize: CortetsuTypography.labelSmallPx
+                            color: CortetsuDesign.colorOnSurfaceVariant
+                        }
+                        CortetsuText {
+                            text: root.signalText(root.networkSignal(root.activeNetwork))
+                            textSize: CortetsuTypography.bodyPx
+                            font.weight: Font.DemiBold
+                        }
+                    }
+
+                    CortetsuProgressBar {
+                        Layout.fillWidth: true
+                        value: root.signalValue(root.networkSignal(root.activeNetwork))
+                        fillColor: CortetsuDesign.colorPrimary
+                        barHeight: 6
+                    }
+
+                    SignalBars {
+                        Layout.alignment: Qt.AlignRight
+                        signalValue: Math.max(0, root.networkSignal(root.activeNetwork))
+                        activeColor: CortetsuDesign.colorPrimary
+                    }
                 }
+
                 RowLayout {
-                    CortetsuButton { label: qsTr("Conectar / reintentar"); icon: "link"; disabled: !root.selectedNetwork || root.selectedNetwork.connected || root.wifi.connecting; onClicked: root.connectSelected() }
-                    CortetsuButton { label: qsTr("Cerrar detalle"); icon: "close"; onClicked: root.selectNetwork(null) }
+                    visible: !root.compactLayout
+                    Layout.alignment: Qt.AlignRight
+                    spacing: CortetsuDesign.spacingCompact
+
+                    CortetsuButton {
+                        compact: true
+                        danger: true
+                        icon: "link_off"
+                        label: qsTr("Desconectar")
+                        disabled: CortetsuSettingsNetwork.busy
+                        onClicked: root.disconnectActive()
+                    }
+
+                    CortetsuButton {
+                        compact: true
+                        icon: "visibility_off"
+                        label: qsTr("Olvidar")
+                        disabled: CortetsuSettingsNetwork.busy
+                        onClicked: root.forgetActive()
+                    }
                 }
             }
         }
-        CortetsuSectionHeader { title: qsTr("Perfiles guardados"); detail: qsTr("Identificados por UUID, independientemente del nombre de la red") }
-        Repeater {
-            model: root.wifi.profiles.filter(profile => profile.type === "802-11-wireless")
-            delegate: CortetsuListRow {
-                required property var modelData
-                Layout.fillWidth: true
-                title: modelData.name
-                subtitle: (modelData.ssid || qsTr("SSID no disponible")) + " · " + modelData.uuid
-                icon: "bookmark"
-                selected: modelData.uuid === root.selectedUuid
-                onClicked: { root.selectedUuid = modelData.uuid; root.confirmForgetUuid = ""; }
-            }
-        }
+
         RowLayout {
-            visible: !!root.selectedProfile
+            visible: !!root.activeNetwork && root.compactLayout
             Layout.fillWidth: true
-            CortetsuText { Layout.fillWidth: true; text: qsTr("Conectar automáticamente"); textSize: Design.bodySmallPx }
-            CortetsuToggle {
-                checked: root.selectedProfile?.autoconnect ?? false
-                onToggled: value => root.wifi.setAutoconnect(root.selectedUuid, value)
-                Accessible.name: qsTr("Autoconexión del perfil")
-            }
-            CortetsuButton { label: qsTr("Conectar perfil"); icon: "link"; disabled: root.wifi.busy; onClicked: root.wifi.connectProfile(root.selectedUuid) }
+            spacing: CortetsuDesign.spacingCompact
+
             CortetsuButton {
-                label: root.confirmForgetUuid === root.selectedUuid ? qsTr("Confirmar olvido") : qsTr("Olvidar perfil")
-                icon: "delete"
+                compact: true
                 danger: true
-                onClicked: {
-                    if (root.confirmForgetUuid === root.selectedUuid) {
-                        root.wifi.forgetProfile(root.selectedUuid);
-                        root.selectedUuid = "";
-                        root.confirmForgetUuid = "";
-                    } else root.confirmForgetUuid = root.selectedUuid;
+                icon: "link_off"
+                label: qsTr("Desconectar")
+                disabled: CortetsuSettingsNetwork.busy
+                onClicked: root.disconnectActive()
+            }
+
+            CortetsuButton {
+                compact: true
+                icon: "visibility_off"
+                label: qsTr("Olvidar")
+                disabled: CortetsuSettingsNetwork.busy
+                onClicked: root.forgetActive()
+            }
+        }
+
+        Flow {
+            id: workbench
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            spacing: CortetsuDesign.spacingSection
+            property bool compact: root.compactLayout
+            height: compact
+                ? listPanel.implicitHeight + detailPanel.implicitHeight + spacing
+                : Math.max(listPanel.implicitHeight, detailPanel.implicitHeight)
+
+            Item {
+                id: listPanel
+                width: workbench.compact
+                    ? workbench.width
+                    : Math.min(390, Math.max(340, workbench.width * 0.34))
+                height: implicitHeight
+                implicitHeight: 520
+
+                CortetsuSurface {
+                    anchors.fill: parent
+                    baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.60)
+                    outlined: true
+                    radiusValue: CortetsuDesign.radiusMedium
+                }
+
+                ColumnLayout {
+                    anchors.fill: parent
+                    anchors.margins: CortetsuDesign.spacingCompact
+                    spacing: CortetsuDesign.spacingCompact
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: CortetsuDesign.spacingCompact
+
+                        CortetsuButton {
+                            Layout.fillWidth: true
+                            compact: true
+                            icon: "wifi"
+                            label: qsTr("Cercanas")
+                            active: !root.showingProfiles
+                            onClicked: root.showingProfiles = false
+                        }
+
+                        CortetsuButton {
+                            Layout.fillWidth: true
+                            compact: true
+                            icon: "bookmark"
+                            label: qsTr("Guardadas")
+                            active: root.showingProfiles
+                            onClicked: root.showingProfiles = true
+                        }
+                    }
+
+                    RowLayout {
+                        Layout.fillWidth: true
+
+                        CortetsuText {
+                            Layout.fillWidth: true
+                            text: root.showingProfiles
+                                ? qsTr("%1 perfiles guardados").arg(root.profiles.length)
+                                : qsTr("%1 redes visibles").arg(root.filteredNetworks.length)
+                            textSize: CortetsuTypography.labelSmallPx
+                            color: CortetsuDesign.colorOnSurfaceVariant
+                        }
+
+                        CortetsuButton {
+                            compact: true
+                            visible: !root.showingProfiles
+                            icon: root.strongestFirst ? "sort" : "sort_by_alpha"
+                            label: root.strongestFirst ? qsTr("Señal") : qsTr("Nombre")
+                            tooltipText: qsTr("Cambiar orden de la lista")
+                            onClicked: root.strongestFirst = !root.strongestFirst
+                        }
+                    }
+
+                    CortetsuSearchBar {
+                        Layout.fillWidth: true
+                        compact: true
+                        visible: !root.showingProfiles
+                        placeholderText: qsTr("Filtrar redes…")
+                        onTextChanged: root.networkQuery = text
+                    }
+
+                    ListView {
+                        id: networkList
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        clip: true
+                        spacing: 3
+                        model: root.showingProfiles ? root.profiles : root.filteredNetworks
+                        currentIndex: root.selectedIndex
+                        onCurrentIndexChanged: if (currentIndex >= 0) root.selectedIndex = currentIndex
+
+                        delegate: Item {
+                            id: networkDelegate
+                            required property var modelData
+                            required property int index
+                            width: networkList.width
+                            height: 60
+
+                            CortetsuSurface {
+                                anchors.fill: parent
+                                baseColor: index === root.selectedIndex
+                                    ? Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.86)
+                                    : delegateMouse.containsMouse
+                                        ? Qt.alpha(CortetsuDesign.colorSurfaceGlassStrong, 0.94)
+                                        : "transparent"
+                                outlineColor: index === root.selectedIndex
+                                    ? Qt.alpha(CortetsuDesign.colorPrimary, 0.44)
+                                    : "transparent"
+                                outlined: index === root.selectedIndex
+                                radiusValue: CortetsuDesign.radiusSmall
+                                hovered: delegateMouse.containsMouse
+                            }
+
+                            Rectangle {
+                                anchors.left: parent.left
+                                anchors.leftMargin: 3
+                                anchors.verticalCenter: parent.verticalCenter
+                                width: 2
+                                height: 30
+                                radius: 1
+                                visible: index === root.selectedIndex
+                                color: CortetsuDesign.colorWashi
+                            }
+
+                            RowLayout {
+                                anchors.fill: parent
+                                anchors.leftMargin: CortetsuDesign.spacingStandard
+                                anchors.rightMargin: CortetsuDesign.spacingCompact
+                                spacing: CortetsuDesign.spacingCompact
+
+                                CortetsuIcon {
+                                    text: root.showingProfiles
+                                        ? "bookmark"
+                                        : root.networkIsActive(networkDelegate.modelData)
+                                            ? "wifi"
+                                            : networkDelegate.modelData.security !== WifiSecurityType.Open
+                                                ? "wifi_lock"
+                                                : "wifi_find"
+                                    color: root.networkIsActive(networkDelegate.modelData)
+                                        ? CortetsuDesign.colorSuccess
+                                        : index === root.selectedIndex
+                                            ? CortetsuDesign.colorOnPrimaryContainer
+                                            : CortetsuDesign.colorPrimary
+                                    iconSize: CortetsuTypography.iconMediumPx
+                                }
+
+                                ColumnLayout {
+                                    Layout.fillWidth: true
+                                    spacing: 1
+
+                                    CortetsuText {
+                                        Layout.fillWidth: true
+                                        text: root.showingProfiles
+                                            ? networkDelegate.modelData.name
+                                            : (networkDelegate.modelData.name || qsTr("Red sin nombre"))
+                                        textSize: CortetsuTypography.bodySmallPx
+                                        font.weight: root.networkIsActive(networkDelegate.modelData) ? Font.DemiBold : Font.Normal
+                                        color: index === root.selectedIndex
+                                            ? CortetsuDesign.colorOnPrimaryContainer
+                                            : CortetsuDesign.colorOnSurface
+                                        elide: Text.ElideRight
+                                    }
+
+                                    CortetsuText {
+                                        Layout.fillWidth: true
+                                        text: root.showingProfiles
+                                            ? (networkDelegate.modelData.autoconnect
+                                                ? qsTr("Autoconexión activa")
+                                                : qsTr("Autoconexión desactivada"))
+                                            : qsTr("%1 · %2")
+                                                .arg(root.signalLabel(root.networkSignal(networkDelegate.modelData)))
+                                                .arg(root.securityLabel(networkDelegate.modelData))
+                                        textSize: CortetsuTypography.labelSmallPx
+                                        color: index === root.selectedIndex
+                                            ? Qt.alpha(CortetsuDesign.colorOnPrimaryContainer, 0.76)
+                                            : CortetsuDesign.colorOnSurfaceVariant
+                                        elide: Text.ElideRight
+                                    }
+                                }
+
+                                SignalBars {
+                                    visible: !root.showingProfiles
+                                    signalValue: Math.max(0, root.networkSignal(networkDelegate.modelData))
+                                    activeColor: root.networkIsActive(networkDelegate.modelData)
+                                        ? CortetsuDesign.colorSuccess
+                                        : index === root.selectedIndex
+                                            ? CortetsuDesign.colorOnPrimaryContainer
+                                            : CortetsuDesign.colorPrimary
+                                }
+
+                                CortetsuIcon {
+                                    visible: !root.showingProfiles && root.networkIsActive(networkDelegate.modelData)
+                                    text: "check"
+                                    color: CortetsuDesign.colorSuccess
+                                    iconSize: CortetsuTypography.iconSmallPx
+                                }
+                            }
+
+                            MouseArea {
+                                id: delegateMouse
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: root.selectedIndex = networkDelegate.index
+                            }
+                        }
+
+                        CortetsuStateMessage {
+                            anchors.centerIn: parent
+                            visible: networkList.count === 0
+                            kind: CortetsuSettingsNetwork.busy ? "loading" : "empty"
+                            title: CortetsuSettingsNetwork.busy
+                                ? qsTr("Buscando redes")
+                                : root.showingProfiles
+                                    ? qsTr("No hay perfiles guardados")
+                                    : root.networkQuery.length > 0
+                                        ? qsTr("No hay coincidencias")
+                                        : qsTr("No hay redes visibles")
+                            detail: root.showingProfiles
+                                ? qsTr("Los perfiles aparecerán después de conectarte a una red")
+                                : qsTr("Pulsa Actualizar para volver a escanear")
+                        }
+                    }
                 }
             }
-        }
-        NetworkAdvanced {
-            Layout.fillWidth: true
-            profileUuid: root.selectedUuid
-            onProfileSelected: uuid => root.selectedUuid = uuid
-        }
-        ColumnLayout {
-            Layout.fillWidth: true
-            visible: root.showVpn
-        CortetsuSectionHeader { title: qsTr("VPN"); detail: Connectivity.vpn.active.displayName }
-        RowLayout {
-            Layout.fillWidth: true
-            CortetsuText { Layout.fillWidth: true; text: Connectivity.vpn.status.reason || Connectivity.vpn.status.state; textSize: Design.bodySmallPx }
-            CortetsuToggle {
-                checked: Connectivity.vpn.connected
-                disabled: Connectivity.vpn.connecting || Connectivity.vpn.disconnecting || Connectivity.vpn.providers.length === 0
-                onToggled: Connectivity.vpn.toggle()
-                Accessible.name: qsTr("Activar VPN")
+
+            Item {
+                id: detailPanel
+                width: workbench.compact
+                    ? workbench.width
+                    : Math.max(0, workbench.width - listPanel.width - workbench.spacing)
+                height: implicitHeight
+                implicitHeight: 520
+
+                CortetsuSurface {
+                    id: detailBackdrop
+                    anchors.fill: detailColumn
+                    visible: !root.showingProfiles && !!root.selectedNetwork
+                    z: -1
+                    baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.58)
+                    outlined: true
+                    radiusValue: CortetsuDesign.radiusMedium
+                }
+
+                ColumnLayout {
+                    id: detailColumn
+                    anchors.fill: parent
+                    anchors.margins: root.showingProfiles || !root.selectedNetwork ? 0 : CortetsuDesign.spacingStandard
+                    spacing: root.showingProfiles || !root.selectedNetwork ? CortetsuDesign.spacingStandard : 0
+
+                    RowLayout {
+                        id: detailHeader
+                        Layout.fillWidth: true
+                        visible: root.showingProfiles || !root.selectedNetwork
+
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 2
+
+                            CortetsuText {
+                                Layout.fillWidth: true
+                                text: root.showingProfiles
+                                    ? (root.selectedProfile?.name ?? qsTr("Perfil guardado"))
+                                    : (root.selectedNetwork?.name ?? qsTr("Selecciona una red"))
+                                textSize: CortetsuTypography.titleMediumPx
+                                font.weight: Font.DemiBold
+                                elide: Text.ElideRight
+                            }
+
+                            CortetsuText {
+                                Layout.fillWidth: true
+                                text: root.showingProfiles
+                                    ? qsTr("Preferencias de conexión guardadas")
+                                    : root.selectedNetwork
+                                        ? qsTr("%1 · %2")
+                                            .arg(root.securityLabel(root.selectedNetwork))
+                                            .arg(root.selectedNetwork.device.name || qsTr("dispositivo no disponible"))
+                                        : qsTr("Elige una red para ver sus propiedades")
+                                textSize: CortetsuTypography.labelSmallPx
+                                color: CortetsuDesign.colorOnSurfaceVariant
+                                elide: Text.ElideRight
+                            }
+                        }
+
+                        CortetsuButton {
+                            visible: !root.showingProfiles && root.selectedCanCopyPassword
+                            compact: true
+                            icon: root.secretState === "ready" ? "check" : "key"
+                            label: root.secretState === "ready"
+                                ? qsTr("Contraseña copiada")
+                                : qsTr("Copiar contraseña")
+                            disabled: CortetsuSettingsNetwork.secretBusy
+                            onClicked: root.copySelectedPassword()
+                        }
+                    }
+
+                    CortetsuSurface {
+                        Layout.fillWidth: true
+                        visible: !root.showingProfiles && !!root.selectedNetwork
+                        implicitHeight: 206
+                        baseColor: "transparent"
+                        outlined: false
+                        radiusValue: 0
+
+                        ColumnLayout {
+                            anchors.fill: parent
+                            anchors.margins: CortetsuDesign.spacingStandard
+                            spacing: CortetsuDesign.spacingStandard
+
+                            RowLayout {
+                                Layout.fillWidth: true
+
+                                CortetsuSurface {
+                                    Layout.preferredWidth: 54
+                                    Layout.preferredHeight: 54
+                                    baseColor: root.selectedIsActive
+                                        ? Qt.alpha(CortetsuDesign.colorSuccess, 0.16)
+                                        : Qt.alpha(CortetsuDesign.colorPrimary, 0.14)
+                                    outlined: false
+                                    radiusValue: CortetsuDesign.radiusMedium
+
+                                    CortetsuIcon {
+                                        anchors.centerIn: parent
+                                        text: root.selectedIsActive ? "wifi" : "wifi_find"
+                                        color: root.selectedIsActive
+                                            ? CortetsuDesign.colorSuccess
+                                            : CortetsuDesign.colorPrimary
+                                        iconSize: CortetsuTypography.iconLargePx
+                                    }
+                                }
+
+                                ColumnLayout {
+                                    Layout.fillWidth: true
+                                    spacing: 2
+
+                                    RowLayout {
+                                        spacing: CortetsuDesign.spacingCompact
+                                        CortetsuText {
+                                            text: root.selectedIsActive
+                                                ? qsTr("Conectada ahora")
+                                                : qsTr("Red disponible")
+                                            textSize: CortetsuTypography.labelSmallPx
+                                            color: CortetsuDesign.colorOnSurfaceVariant
+                                        }
+                                        Rectangle {
+                                            visible: root.selectedIsActive
+                                            width: 8
+                                            height: width
+                                            radius: width / 2
+                                            color: CortetsuDesign.colorSuccess
+                                            Layout.alignment: Qt.AlignVCenter
+                                        }
+                                    }
+
+                                    CortetsuText {
+                                        text: root.selectedNetwork?.name ?? ""
+                                        textSize: CortetsuTypography.titleMediumPx
+                                        font.weight: Font.DemiBold
+                                        elide: Text.ElideRight
+                                    }
+
+                                    CortetsuText {
+                                        text: root.signalLabel(root.networkSignal(root.selectedNetwork))
+                                        textSize: CortetsuTypography.bodySmallPx
+                                        color: root.selectedIsActive
+                                            ? CortetsuDesign.colorSuccess
+                                            : CortetsuDesign.colorOnSurfaceVariant
+                                    }
+                                }
+
+                                CortetsuText {
+                                    text: root.signalText(root.networkSignal(root.selectedNetwork))
+                                    textSize: CortetsuTypography.titleMediumPx
+                                    font.weight: Font.DemiBold
+                                }
+
+                                CortetsuButton {
+                                    visible: root.selectedCanCopyPassword
+                                    compact: true
+                                    icon: root.secretState === "ready" ? "check" : "key"
+                                    label: root.secretState === "ready"
+                                        ? qsTr("Contraseña copiada")
+                                        : qsTr("Copiar contraseña")
+                                    disabled: CortetsuSettingsNetwork.secretBusy
+                                    onClicked: root.copySelectedPassword()
+                                }
+                            }
+
+                            RowLayout {
+                                Layout.fillWidth: true
+
+                                CortetsuText {
+                                    Layout.fillWidth: true
+                                    text: qsTr("Calidad de la señal")
+                                    textSize: CortetsuTypography.labelSmallPx
+                                    color: CortetsuDesign.colorOnSurfaceVariant
+                                }
+
+                                SignalBars {
+                                    signalValue: Math.max(0, root.networkSignal(root.selectedNetwork))
+                                    activeColor: root.selectedIsActive
+                                        ? CortetsuDesign.colorSuccess
+                                        : CortetsuDesign.colorPrimary
+                                }
+                            }
+
+                            CortetsuProgressBar {
+                                Layout.fillWidth: true
+                                value: root.signalValue(root.networkSignal(root.selectedNetwork))
+                                fillColor: root.selectedIsActive
+                                    ? CortetsuDesign.colorSuccess
+                                    : CortetsuDesign.colorPrimary
+                                barHeight: 7
+                            }
+                        }
+                    }
+
+                    CortetsuSurface {
+                        Layout.fillWidth: true
+                        visible: !root.showingProfiles && !!root.selectedNetwork
+                        implicitHeight: 134
+                        baseColor: "transparent"
+                        outlined: false
+                        radiusValue: 0
+
+                        ColumnLayout {
+                            anchors.fill: parent
+                            anchors.margins: CortetsuDesign.spacingStandard
+                            spacing: CortetsuDesign.spacingCompact
+
+                            DetailRow {
+                                label: qsTr("Seguridad")
+                                value: root.securityLabel(root.selectedNetwork)
+                            }
+
+                            DetailRow {
+                                label: qsTr("Dispositivo")
+                                value: root.detailsValue(root.selectedNetwork?.device?.name)
+                            }
+
+                            RowLayout {
+                                Layout.fillWidth: true
+                                CortetsuText {
+                                    Layout.fillWidth: true
+                                    text: root.selectedProfile?.autoconnect
+                                        ? qsTr("Conexión automática")
+                                        : qsTr("Conexión automática desactivada")
+                                    textSize: CortetsuTypography.bodySmallPx
+                                    color: CortetsuDesign.colorOnSurfaceVariant
+                                }
+                                CortetsuToggle {
+                                    checked: root.selectedProfile?.autoconnect ?? false
+                                    visible: !!root.selectedProfile
+                                    disabled: CortetsuSettingsNetwork.busy
+                                    onToggled: checked => wifi.setAutoconnect(root.selectedProfile.uuid, checked)
+                                }
+                            }
+                        }
+                    }
+
+                    CortetsuSurface {
+                        Layout.fillWidth: true
+                        visible: !root.showingProfiles && root.selectedIsActive
+                        implicitHeight: 92
+                        baseColor: "transparent"
+                        outlined: false
+                        radiusValue: 0
+
+                        GridLayout {
+                            anchors.fill: parent
+                            anchors.margins: CortetsuDesign.spacingStandard
+                            columns: 3
+                            columnSpacing: CortetsuDesign.spacingStandard
+                            rowSpacing: CortetsuDesign.spacingCompact
+
+                            CortetsuText { text: qsTr("Dirección IP"); textSize: CortetsuTypography.labelSmallPx; color: CortetsuDesign.colorOnSurfaceVariant }
+                            CortetsuText { text: qsTr("Puerta de enlace"); textSize: CortetsuTypography.labelSmallPx; color: CortetsuDesign.colorOnSurfaceVariant }
+                            CortetsuText { text: qsTr("DNS"); textSize: CortetsuTypography.labelSmallPx; color: CortetsuDesign.colorOnSurfaceVariant }
+                            CortetsuText { Layout.fillWidth: true; text: root.detailsValue(root.activeDetails.address); textSize: CortetsuTypography.bodySmallPx; font.weight: Font.DemiBold; elide: Text.ElideRight }
+                            CortetsuText { Layout.fillWidth: true; text: root.detailsValue(root.activeDetails.gateway); textSize: CortetsuTypography.bodySmallPx; font.weight: Font.DemiBold; elide: Text.ElideRight }
+                            CortetsuText { Layout.fillWidth: true; text: root.detailsValue((root.activeDetails.dns ?? []).join(", ")); textSize: CortetsuTypography.bodySmallPx; font.weight: Font.DemiBold; elide: Text.ElideRight }
+                        }
+                    }
+
+                    CortetsuSurface {
+                        Layout.fillWidth: true
+                        visible: !root.showingProfiles && root.selectedIsActive
+                            && CortetsuSettingsNetwork.detailsState === "error"
+                        implicitHeight: 44
+                        baseColor: Qt.alpha(CortetsuDesign.colorWarning, 0.10)
+                        outlineColor: Qt.alpha(CortetsuDesign.colorWarning, 0.34)
+                        outlined: true
+                        radiusValue: CortetsuDesign.radiusSmall
+                        CortetsuText {
+                            anchors.fill: parent
+                            anchors.margins: CortetsuDesign.spacingStandard
+                            text: CortetsuSettingsNetwork.detailsError
+                            textSize: CortetsuTypography.labelSmallPx
+                            color: CortetsuDesign.colorWarning
+                            elide: Text.ElideRight
+                        }
+                    }
+
+                    CortetsuSurface {
+                        Layout.fillWidth: true
+                        visible: !root.showingProfiles && !!root.selectedNetwork
+                        implicitHeight: root.selectedIsActive ? 64 : 108
+                        baseColor: Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.26)
+                        outlineColor: "transparent"
+                        outlined: false
+                        radiusValue: CortetsuDesign.radiusSmall
+
+                        ColumnLayout {
+                            anchors.fill: parent
+                            anchors.margins: CortetsuDesign.spacingStandard
+                            spacing: CortetsuDesign.spacingCompact
+
+                            RowLayout {
+                                Layout.fillWidth: true
+                                CortetsuIcon {
+                                    text: "info"
+                                    color: CortetsuDesign.colorPrimary
+                                    iconSize: CortetsuTypography.iconMediumPx
+                                }
+                                CortetsuText {
+                                    Layout.fillWidth: true
+                                    text: root.selectedIsActive
+                                        ? qsTr("Estás conectado a esta red.")
+                                        : root.selectedNeedsPassword
+                                            ? qsTr("Esta red requiere una contraseña para conectarse.")
+                                            : qsTr("Esta red está abierta y puede conectarse directamente.")
+                                    textSize: CortetsuTypography.bodySmallPx
+                                    wrapMode: Text.WordWrap
+                                }
+                            }
+
+                            RowLayout {
+                                Layout.fillWidth: true
+                                visible: !root.selectedIsActive
+                                CortetsuText {
+                                    Layout.fillWidth: true
+                                    text: root.selectedNeedsPassword
+                                        ? qsTr("Introduce la contraseña y pulsa Conectar.")
+                                        : qsTr("No se solicitará contraseña.")
+                                    textSize: CortetsuTypography.labelSmallPx
+                                    color: CortetsuDesign.colorOnSurfaceVariant
+                                }
+                                CortetsuButton {
+                                    compact: true
+                                    icon: "wifi"
+                                    label: wifi.operationNetwork === root.selectedNetwork && wifi.operation.state === "connecting" ? qsTr("Conectando…") : qsTr("Conectar")
+                                    disabled: CortetsuSettingsNetwork.busy
+                                        || (root.selectedNeedsPassword && root.password.length === 0)
+                                    onClicked: root.connectSelected()
+                                }
+                            }
+                        }
+                    }
+
+                    TextField {
+                        Layout.fillWidth: true
+                        visible: !root.showingProfiles && root.selectedNeedsPassword
+                        placeholderText: qsTr("Contraseña de Wi‑Fi")
+                        echoMode: root.passwordVisible ? TextInput.Normal : TextInput.Password
+                        text: root.password
+                        onTextChanged: root.password = text
+                        color: CortetsuDesign.colorOnSurface
+                        placeholderTextColor: CortetsuDesign.colorOnSurfaceVariant
+                        leftPadding: CortetsuDesign.spacingStandard
+                        rightPadding: CortetsuDesign.spacingStandard
+                        implicitHeight: 42
+                        background: CortetsuSurface {
+                            radiusValue: CortetsuDesign.radiusSmall
+                            baseColor: CortetsuDesign.colorSurfaceGlassStrong
+                            outlined: true
+                        }
+                    }
+
+                    CortetsuButton {
+                        Layout.fillWidth: true
+                        visible: !root.showingProfiles && root.selectedNeedsPassword
+                        compact: true
+                        label: root.passwordVisible ? qsTr("Ocultar contraseña") : qsTr("Mostrar contraseña")
+                        icon: root.passwordVisible ? "visibility_off" : "visibility"
+                        onClicked: root.passwordVisible = !root.passwordVisible
+                    }
+
+                    CortetsuSurface {
+                        Layout.fillWidth: true
+                        visible: !root.showingProfiles && root.selectedCanCopyPassword
+                            && CortetsuSettingsNetwork.secretState === "error"
+                        implicitHeight: 44
+                        baseColor: Qt.alpha(CortetsuDesign.colorWarning, 0.10)
+                        outlineColor: Qt.alpha(CortetsuDesign.colorWarning, 0.34)
+                        outlined: true
+                        radiusValue: CortetsuDesign.radiusSmall
+                        CortetsuText {
+                            anchors.fill: parent
+                            anchors.margins: CortetsuDesign.spacingStandard
+                            text: CortetsuSettingsNetwork.secretError
+                            textSize: CortetsuTypography.labelSmallPx
+                            color: CortetsuDesign.colorWarning
+                            elide: Text.ElideRight
+                        }
+                    }
+
+                    CortetsuSurface {
+                        Layout.fillWidth: true
+                        visible: root.showingProfiles && !!root.selectedProfile
+                        implicitHeight: 210
+                        baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.68)
+                        outlined: true
+                        radiusValue: CortetsuDesign.radiusMedium
+
+                        ColumnLayout {
+                            anchors.fill: parent
+                            anchors.margins: CortetsuDesign.spacingStandard
+                            spacing: CortetsuDesign.spacingStandard
+
+                            RowLayout {
+                                Layout.fillWidth: true
+                                CortetsuIcon {
+                                    text: "bookmark"
+                                    color: CortetsuDesign.colorPrimary
+                                    iconSize: CortetsuTypography.iconMediumPx
+                                }
+                                ColumnLayout {
+                                    Layout.fillWidth: true
+                                    CortetsuText { text: qsTr("Perfil de NetworkManager"); textSize: CortetsuTypography.labelSmallPx; color: CortetsuDesign.colorOnSurfaceVariant }
+                                    CortetsuText { text: root.selectedProfile?.name ?? ""; textSize: CortetsuTypography.titleMediumPx; font.weight: Font.DemiBold; elide: Text.ElideRight }
+                                }
+                            }
+
+                            RowLayout {
+                                Layout.fillWidth: true
+                                CortetsuText {
+                                    Layout.fillWidth: true
+                                    text: root.selectedProfile?.autoconnect
+                                        ? qsTr("Se conectará automáticamente cuando esté disponible")
+                                        : qsTr("La conexión automática está desactivada")
+                                    textSize: CortetsuTypography.bodySmallPx
+                                    color: CortetsuDesign.colorOnSurfaceVariant
+                                    wrapMode: Text.WordWrap
+                                }
+                                CortetsuToggle {
+                                    checked: root.selectedProfile?.autoconnect ?? false
+                                    disabled: CortetsuSettingsNetwork.busy
+                                    onToggled: checked => wifi.setAutoconnect(root.selectedProfile?.uuid ?? "", checked)
+                                }
+                            }
+
+                            RowLayout {
+                                Layout.fillWidth: true
+                                CortetsuButton {
+                                    Layout.fillWidth: true
+                                    compact: true
+                                    icon: "link_off"
+                                    label: qsTr("Desconectar")
+                                    disabled: CortetsuSettingsNetwork.busy || root.selectedProfile?.uuid !== root.activeDetails.uuid
+                                    onClicked: root.disconnectProfile()
+                                }
+                                CortetsuButton {
+                                    Layout.fillWidth: true
+                                    compact: true
+                                    icon: "delete_outline"
+                                    label: qsTr("Olvidar perfil")
+                                    danger: true
+                                    disabled: CortetsuSettingsNetwork.busy
+                                    onClicked: wifi.forgetProfile(root.selectedProfile?.uuid ?? "")
+                                }
+                            }
+                        }
+                    }
+
+                    CortetsuStateMessage {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        visible: root.showingProfiles
+                            ? !root.selectedProfile
+                            : !root.selectedNetwork
+                        kind: "empty"
+                        title: root.showingProfiles
+                            ? qsTr("Selecciona un perfil")
+                            : qsTr("Selecciona una red")
+                        detail: root.showingProfiles
+                            ? qsTr("Elige un perfil para administrar su conexión automática")
+                            : qsTr("Elige una red de la lista para consultar su señal, seguridad y acciones")
+                    }
+
+                    CortetsuText {
+                        Layout.fillWidth: true
+                        visible: CortetsuSettingsNetwork.lastMessage.length > 0
+                        text: CortetsuSettingsNetwork.lastMessage
+                        textSize: CortetsuTypography.bodySmallPx
+                        color: CortetsuDesign.colorSuccess
+                        wrapMode: Text.WordWrap
+                    }
+                }
             }
-        }
-        Repeater {
-            model: Connectivity.vpn.providers
-            delegate: CortetsuListRow {
-                required property var modelData
-                Layout.fillWidth: true
-                title: modelData.displayName || modelData.name
-                subtitle: modelData.providerId === Connectivity.vpn.selectedProvider ? qsTr("Proveedor seleccionado") : qsTr("Seleccionar proveedor")
-                icon: "vpn_key"
-                onClicked: Connectivity.vpn.setActiveProvider(modelData.index)
-            }
-        }
         }
     }
 }

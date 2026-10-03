@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell
 import Quickshell.Io
 import "ConnectivityPolicy.js" as Policy
 
@@ -33,7 +34,7 @@ QtObject {
     function enqueue(kind, args, context) {
         if (queue.some(item => item.kind === kind && JSON.stringify(item.context) === JSON.stringify(context))) return;
         const item = { kind: kind, args: args, context: context || {} };
-        queue = kind === "mutation" ? [item, ...queue] : [...queue, item];
+        queue = ["mutation", "save-secret"].includes(kind) ? [item, ...queue] : [...queue, item];
         pump();
     }
     function pump() {
@@ -42,7 +43,9 @@ QtObject {
         queue = queue.slice(1);
         output = ""; errorOutput = ""; commandTimedOut = false;
         worker.stdinEnabled = !!job.context.usesStdin;
-        worker.command = ["nmcli", "--wait", "12", "-t", "--escape", "yes", ...job.args];
+        worker.command = job.kind === "save-secret"
+            ? ["python3", Quickshell.shellPath("services/ConnectivitySecret.py"), job.context.uuid]
+            : ["nmcli", "--wait", "12", "-t", "--escape", "yes", ...job.args];
         worker.running = true;
         commandDeadline.restart();
     }
@@ -59,10 +62,16 @@ QtObject {
     }
     function cancelOperation(operationId) {
         operationCancelled(operationId);
-        queue = queue.filter(item => item.kind !== "mutation" || item.context.operationId !== operationId);
-        if (job?.kind === "mutation" && job.context.operationId === operationId) {
+        queue = queue.filter(item => !["mutation", "save-secret"].includes(item.kind) || item.context.operationId !== operationId);
+        if (["mutation", "save-secret"].includes(job?.kind) && job.context.operationId === operationId) {
             job.cancelled = true;
-            worker.running = false;
+            if (worker.running) worker.running = false;
+            else {
+                worker.running = false;
+                commandDeadline.stop();
+                job = null;
+                Qt.callLater(pump);
+            }
         }
     }
     function monitorEvent(data) {
@@ -73,9 +82,9 @@ QtObject {
     function refreshDetails(device) {
         if (!device) return;
         detailsState = "loading";
-        enqueue("details", ["-f", "GENERAL.DEVICE,GENERAL.CON-UUID,GENERAL.CONNECTION,IP4.ADDRESS,IP4.GATEWAY,IP4.DNS,IP6.ADDRESS,IP6.GATEWAY,IP6.DNS", "device", "show", device], { device: device });
+        enqueue("details", ["-f", "GENERAL.DEVICE,GENERAL.HWADDR,GENERAL.CON-UUID,GENERAL.CONNECTION,IP4.ADDRESS,IP4.GATEWAY,IP4.DNS,IP6.ADDRESS,IP6.GATEWAY,IP6.DNS", "device", "show", device], { device: device });
     }
-    function activateWithPassword(operationId, uuid, device, password) {
+    function saveAndActivate(operationId, uuid, device, password) {
         if (!Policy.validUuid(uuid) || !password || /[\r\n\0]/.test(password)) {
             mutationFinished(operationId, false, "invalid-password", "Comprueba la contraseña", false); return;
         }
@@ -87,15 +96,14 @@ QtObject {
         }
         function cancelled(id) { if (id === operationId) release(); }
         function send() {
-            if (root.job?.context?.operationId !== operationId || !root.job.context.usesStdin) return;
-            worker.write("802-11-wireless-security.psk:" + secret + "\n");
+            if (root.job?.context?.operationId !== operationId || root.job.kind !== "save-secret") return;
+            worker.write(secret);
             worker.stdinEnabled = false;
             release();
         }
         root.operationCancelled.connect(cancelled);
         worker.started.connect(send);
-        enqueue("mutation", ["connection", "up", "uuid", uuid, ...(device ? ["ifname", device] : []), "passwd-file", "/dev/stdin"],
-            { operationId: operationId, kind: "connect", usesStdin: true });
+        enqueue("save-secret", [], { operationId: operationId, uuid: uuid, device: device, usesStdin: true });
     }
     function createHidden(operationId, uuid, ssid, device, security, password) {
         let secret = password;
@@ -108,7 +116,7 @@ QtObject {
         function afterCreate(id) {
             if (id !== operationId) return;
             if (security === "open") root.mutate(operationId, "connect", uuid, false, device);
-            else root.activateWithPassword(operationId, uuid, device, secret);
+            else root.saveAndActivate(operationId, uuid, device, secret);
             release();
         }
         root.hiddenProfileCreated.connect(afterCreate);
@@ -137,12 +145,18 @@ QtObject {
         job = null;
         if (!completed) return;
         if (completed.cancelled) { Qt.callLater(pump); return; }
-        if (commandTimedOut || exitCode !== 0) {
+        if (commandTimedOut || exitCode !== 0 || (completed.kind === "save-secret" && output.trim() !== "CREDENTIAL_SAVED")) {
             const error = commandTimedOut ? {code: "timeout", message: "NetworkManager tardó demasiado", retryable: true} : Policy.commandError(errorOutput, exitCode);
             rawError = errorOutput;
             lastError = error.message;
             if (completed.kind === "details") detailsState = "failed";
-            if (completed.kind === "mutation") mutationFinished(completed.context.operationId, false, error.code, error.message, error.retryable);
+            if (completed.kind === "save-secret") {
+                const code = commandTimedOut ? "timeout" : exitCode === 2 ? "profile-invalid"
+                    : exitCode === 3 ? (errorOutput.trim() === "timeout" ? "timeout" : "service-unavailable") : "credential-save-failed";
+                mutationFinished(completed.context.operationId, false, code,
+                    code === "service-unavailable" ? "NetworkManager no está disponible" : code === "timeout" ? "La verificación de la contraseña tardó demasiado"
+                    : "No se pudo guardar y verificar la contraseña", exitCode !== 2);
+            } else if (completed.kind === "mutation") mutationFinished(completed.context.operationId, false, error.code, error.message, error.retryable);
         } else {
             lastError = "";
             if (completed.kind === "radio") { radioEnabled = output.trim() === "enabled"; radioReady = true; }
@@ -170,12 +184,14 @@ QtObject {
                 const props = Policy.properties(output);
                 const next = Object.assign({}, details);
                 next[completed.context.device] = {
-                    device: completed.context.device, uuid: props["GENERAL.CON-UUID"]?.[0] || "", profileName: props["GENERAL.CONNECTION"]?.[0] || "", profile: props["GENERAL.CONNECTION"]?.[0] || "",
+                    device: completed.context.device, macAddress: props["GENERAL.HWADDR"]?.[0] || "", uuid: props["GENERAL.CON-UUID"]?.[0] || "", profileName: props["GENERAL.CONNECTION"]?.[0] || "", profile: props["GENERAL.CONNECTION"]?.[0] || "",
                     address: (props["IP4.ADDRESS"]?.[0] || "").split("/")[0], addresses: props["IP4.ADDRESS"] || [],
                     gateway: props["IP4.GATEWAY"]?.[0] || "", dns: props["IP4.DNS"] || [],
                     ipv6Addresses: props["IP6.ADDRESS"] || [], ipv6: props["IP6.ADDRESS"] || [], ipv6Gateway: props["IP6.GATEWAY"]?.[0] || "", ipv6Dns: props["IP6.DNS"] || []
                 };
                 details = next; detailsState = "ready";
+            } else if (completed.kind === "save-secret") {
+                mutate(completed.context.operationId, "connect", completed.context.uuid, false, completed.context.device);
             } else if (completed.kind === "mutation") {
                 if (completed.context.kind === "create-hidden") hiddenProfileCreated(completed.context.operationId);
                 else mutationFinished(completed.context.operationId, true, "", "", false);

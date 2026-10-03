@@ -96,7 +96,7 @@ const retryContext = vm.createContext({
     qsTr: text => text,
     begin: () => { begins++; return true; }, fail: () => { throw Error('unexpected failure'); },
     adapter: {profileReadsPending:true, createHidden:()=>{creations++;},
-        activateWithPassword:(_id, target)=>{assert.equal(target,uuid);activations++;}}
+        saveAndActivate:(_id, target)=>{assert.equal(target,uuid);activations++;}}
 });
 vm.runInContext(dispatcher, retryContext);
 retryContext.connectHidden('Hidden','wlan0','example-only-passphrase','wpa-psk');
@@ -110,3 +110,34 @@ assert.equal(begins,1);
 assert.equal(creations,0);
 assert.equal(activations,1);
 console.log('PASS: hidden retry waits for metadata and reuses the confirmed UUID');
+
+
+const connectBody = wifiSource.match(/function connectNetwork\(network, password, profile\) \{[\s\S]*?\n    \}/)[0];
+let credentialCalls = [];
+const credentialContext = vm.createContext({
+    Object, qsTr: message => message, WifiSecurityType: {WpaPsk: 1, Wpa2Psk: 2, Sae: 3},
+    containsNetwork: () => true, hardwareEnabled: true, wifiEnabled: true,
+    begin: (kind, target) => { credentialContext.operation = {id: 12, target}; return true; },
+    fail: code => credentialCalls.push(['fail', code]), observe: () => {},
+    adapter: {saveAndActivate: (...args) => credentialCalls.push(['save', ...args]), mutate: (...args) => credentialCalls.push(['activate', ...args])},
+});
+vm.runInContext(connectBody, credentialContext);
+const knownNetwork = {name: 'Fixture', security: 2, known: true, device: {name: 'wlan0'}, connectWithPsk: () => credentialCalls.push(['native-secret']), connect: () => credentialCalls.push(['native-connect'])};
+const credentialProfile = {uuid, type: '802-11-wireless', ssid: 'Fixture', interface: 'wlan0'};
+credentialContext.profiles = [credentialProfile];
+credentialContext.connectNetwork(knownNetwork, 'test-secret', null);
+assert.equal(credentialCalls[0][0], 'save');
+assert.equal(credentialCalls[0][2], uuid);
+assert.equal(credentialContext.operation.target.uuid, uuid);
+credentialCalls = [];
+credentialContext.profiles = [credentialProfile, Object.assign({}, credentialProfile, {uuid: uuid2})];
+credentialContext.connectNetwork(knownNetwork, 'test-secret', null);
+assert.deepEqual(credentialCalls, [['fail', 'ambiguous-profile']]);
+credentialCalls = [];
+credentialContext.profiles = [];
+credentialContext.connectNetwork(knownNetwork, 'test-secret', null);
+assert.deepEqual(credentialCalls, [['fail', 'ambiguous-profile']]);
+credentialCalls = [];
+credentialContext.connectNetwork(Object.assign({}, knownNetwork, {known: false}), 'test-secret', null);
+assert.deepEqual(credentialCalls, [['native-secret']]);
+console.log('PASS: known credentials persist through a unique UUID; ambiguous profiles cannot be overwritten');

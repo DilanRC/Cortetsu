@@ -95,9 +95,19 @@ Singleton {
         if (secret && ![WifiSecurityType.WpaPsk, WifiSecurityType.Wpa2Psk, WifiSecurityType.Sae].includes(network.security)) {
             fail("unsupported-authentication", qsTr("Esta red requiere un perfil de autenticación avanzado"), false); return;
         }
-        if (profile?.uuid && secret) { passwordProvided = true; adapter.activateWithPassword(operation.id, profile.uuid, network.device.name, secret); }
-        else if (profile?.uuid) adapter.mutate(operation.id, "connect", profile.uuid, false, network.device.name);
-        else if (secret) { passwordProvided = true; network.connectWithPsk(secret); }
+        if (secret) {
+            passwordProvided = true;
+            const matching = profiles.filter(item => item.type === "802-11-wireless" && item.ssid === network.name
+                && (!item.interface || item.interface === network.device.name));
+            const targetProfile = profile || (matching.length === 1 ? matching[0] : null);
+            if (!targetProfile && (matching.length > 1 || network.known)) {
+                fail("ambiguous-profile", qsTr("Selecciona el perfil guardado antes de actualizar su contraseña"), false); return;
+            }
+            if (targetProfile) {
+                operation = Object.assign({}, operation, { target: Object.assign({}, operation.target, { uuid: targetProfile.uuid }) });
+                adapter.saveAndActivate(operation.id, targetProfile.uuid, network.device.name, secret);
+            } else network.connectWithPsk(secret);
+        } else if (profile?.uuid) adapter.mutate(operation.id, "connect", profile.uuid, false, network.device.name);
         else network.connect();
         observe();
     }
@@ -127,7 +137,7 @@ Singleton {
         passwordProvided = !!password;
         if (existing) {
             if (security === "open") adapter.mutate(operation.id, "connect", uuid, false, selected.name);
-            else adapter.activateWithPassword(operation.id, uuid, selected.name, password || "");
+            else adapter.saveAndActivate(operation.id, uuid, selected.name, password || "");
         } else adapter.createHidden(operation.id, uuid, ssid, selected.name, security, password || "");
     }
     function disconnectWired(device) {

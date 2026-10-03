@@ -92,16 +92,19 @@ assert "CortetsuAudio.setAudioSink(modelData)" in system
 assert "Nvibrant.setValue(value * 1024)" in calibration
 # Connectivity is shared, reactive, and retains profile UUIDs through actions.
 assert "Connectivity.wifi" in network_page
-assert "root.wifi.setAutoconnect(root.selectedUuid, value)" in network_page
-assert "root.wifi.forgetProfile(root.selectedUuid)" in network_page
-assert "root.wifi.connectNetwork(selectedNetwork, password.text, selectedProfile)" not in network_page  # unqualified service access is prohibited
-assert "wifi.connectNetwork(selectedNetwork, password.text, profile)" in network_page
-assert "selectedProfile?.ssid === selectedNetwork.name" in network_page
+assert "wifi.setAutoconnect(root.selectedProfile.uuid, checked)" in network_page
+assert 'wifi.forgetProfile(root.selectedProfile?.uuid ?? "")' in network_page
+assert "wifi.forgetProfile(root.activeProfile.uuid)" in network_page
+assert "wifi.connectNetwork(root.selectedNetwork, secret, root.selectedProfile)" in network_page
+# An SSID shared by several profiles never picks one implicitly.
+assert "matching.length === 1 ? matching[0] : null" in network_page
 assert "readonly property var networks: ConnectivityWifi.networks" in network_service
-assert "Process" not in network_service
-assert "BluetoothPage {" in content
+# The only process is the on-demand password copy; nothing polls.
+assert network_service.count("Process {") == 1 and "passwordCopyComponent.createObject" in network_service
+assert "BluetoothPage" not in content
+assert 'visible: root.section === "bluetooth"' in system
 assert "NetworkPage {" in content
-assert "password.clear()" in network_page
+assert 'root.password = "";' in network_page
 assert "visible: Nvibrant.available || Nvibrant.error.length > 0" in calibration
 assert 'title: qsTr("Desplazamiento del volumen")' in system
 assert 'title: qsTr("Brightness scroll")' not in system

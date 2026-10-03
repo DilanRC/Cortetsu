@@ -34,9 +34,10 @@ elif "modify" in args:
     else: data["autoconnect"] = args[-1] == "yes"
     state.write_text(json.dumps(data))
 elif "up" in args:
-    if "passwd-file" in args:
-        assert sys.stdin.read() == "802-11-wireless-security.psk:example-only-passphrase\\n"
-        data["passwordReceived"] = True; state.write_text(json.dumps(data))
+    assert "passwd-file" not in args
+    assert data.get("passwordReceived") and data.get("flags") == 0
+    assert data.get("savedUuid") == args[args.index("uuid") + 1]
+    data["activatedAfterSave"] = True; state.write_text(json.dumps(data))
 elif "device" in args and "wifi" in args:
     print("*:AA\\\\:BB\\\\:CC\\\\:DD\\\\:EE\\\\:FF: Same SSID :82:5180 MHz:WPA2:wlan0")
     print(":AA\\\\:BB\\\\:CC\\\\:DD\\\\:EE\\\\:00: Same SSID :42:2412 MHz:WPA2:wlan0")
@@ -49,6 +50,18 @@ else:
     for uuid in data["profiles"]: print(uuid + ":Different profile name:802-11-wireless:" + ("yes" if data["autoconnect"] else "no") + ":")
 ''')
     binary.chmod(0o700)
+    (root / "services").mkdir()
+    (root / "services/ConnectivitySecret.py").write_text('''import json, os, sys
+from pathlib import Path
+assert len(sys.argv) == 2 and "example-only-passphrase" not in " ".join(sys.argv)
+assert sys.stdin.read() == "example-only-passphrase"
+state = Path(os.environ["CONNECTIVITY_FIXTURE"])
+data = json.loads(state.read_text())
+assert sys.argv[1] in data["profiles"]
+data.update(passwordReceived=True, flags=0, savedUuid=sys.argv[1])
+state.write_text(json.dumps(data))
+print("CREDENTIAL_SAVED")
+''')
     (root / "shell.qml").write_text('''import QtQuick
 import Quickshell
 import "."
@@ -60,7 +73,7 @@ ShellRoot {
         onMutationFinished: (operationId, success, code, message, retryable) => {
             if (operationId === 77) {
                 if (!root.check(success, "hidden activation fixture failed: " + message)) return;
-                console.log("PASS_HIDDEN", "PSK delivered only via closed stdin pipe");
+                console.log("PASS_HIDDEN", "PSK persisted+verified by helper before activation, only through stdin");
                 console.log("PASS_ADAPTER", "UUID operations and IPv4 confirmed, gone targets, multiple BSSID, whitespace");
                 Qt.quit();
             }
@@ -116,6 +129,8 @@ ShellRoot {
     assert str(binary) not in processes, "fixture nmcli process survived shell exit"
     assert len(json.loads(state.read_text())["profiles"]) == 2
     assert json.loads(state.read_text())["passwordReceived"] is True
+    assert json.loads(state.read_text())["activatedAfterSave"] is True
+    assert json.loads(state.read_text())["flags"] == 0
     assert "PASS_HIDDEN" in result.stdout
     assert "example-only-passphrase" not in result.stdout
 print("PASS: isolated nmcli runtime verifies profile operations without touching user profiles")
