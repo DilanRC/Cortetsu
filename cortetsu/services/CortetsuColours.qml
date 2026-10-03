@@ -12,6 +12,7 @@ Singleton {
     property bool showPreview: false
     property string scheme: "cortetsu"
     property string flavour: "dark"
+    property string variant: "tonal-spot"
     property bool currentLight: false
     property bool previewLight: false
     readonly property bool light: showPreview ? previewLight : currentLight
@@ -81,8 +82,10 @@ Singleton {
                 showPreview = true;
             } else {
                 currentColours = value.colours;
-                scheme = value.name ?? "cortetsu";
-                flavour = value.flavour ?? "dark";
+                // Same fallbacks as `cortetsu-scheme get`, so both name the scheme alike.
+                scheme = value.name ?? "dynamic";
+                flavour = value.flavour ?? "default";
+                variant = value.variant ?? "tonal-spot";
                 currentLight = value.mode === "light";
             }
         } catch (_) {

@@ -40,6 +40,23 @@ with tempfile.TemporaryDirectory() as directory:
     # reads scheme.json at runtime (test-cortetsu-theme-reactive-runtime.py).
     assert {path.name: path.read_bytes() for path in runtime.iterdir()} == shipped
 
+    # With the palette file present, Hyprland re-reads its config and nothing
+    # else: a full reload would also re-apply every monitor.
+    fake_bin = Path(directory) / "fake-bin"
+    fake_bin.mkdir()
+    calls = Path(directory) / "hyprctl-calls"
+    (fake_bin / "hyprctl").write_text(f'#!/bin/sh\nprintf "%s\\n" "$*" >> "{calls}"\n', encoding="utf-8")
+    (fake_bin / "hyprctl").chmod(0o755)
+    reloading = {key: value for key, value in env.items() if key != "CORTETSU_SKIP_RELOAD"}
+    reloading["PATH"] = f'{fake_bin}:{env["PATH"]}'
+    subprocess.run([str(script), "set", "-n", "nebula", "default"], env=reloading, check=True)
+    assert calls.read_text(encoding="utf-8").splitlines() == ["reload config-only"], calls.read_text()
+    missing = subprocess.run([str(script), "set", "-n", "no-such-scheme", "default"], env=reloading,
+                             text=True, capture_output=True)
+    assert missing.returncode == 1 and "esquema no encontrado" in missing.stderr
+    assert calls.read_text(encoding="utf-8").splitlines() == ["reload config-only"], "a failed set reloads nothing"
+    assert json.loads((Path(directory) / "cortetsu/scheme.json").read_text(encoding="utf-8"))["name"] == "nebula"
+
     installed = Path(directory) / "bin/cortetsu-scheme"
     installed.parent.mkdir()
     shutil.copy2(script, installed)

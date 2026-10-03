@@ -1,0 +1,47 @@
+pragma ComponentBehavior: Bound
+
+import QtQuick
+import "../../../components"
+
+// A switch with its explanation. The whole row is one target and one Tab
+// stop. `checked` is bound by the caller to the real value: the row never
+// flips on its own, so a refused change leaves the switch where it was.
+SettingRow {
+    id: root
+
+    property bool checked: false
+    signal toggled(bool checked)
+
+    interactive: true
+    // Qt will not drop the flag from the item that holds the focus.
+    activeFocusOnTab: !disabled || activeFocus
+    enabled: !disabled
+
+    Accessible.role: Accessible.CheckBox
+    Accessible.name: title
+    Accessible.checked: checked
+
+    function request(): void {
+        if (!root.disabled && root.status !== "busy")
+            root.toggled(!root.checked);
+    }
+
+    Keys.onEnterPressed: root.request()
+    Keys.onReturnPressed: root.request()
+    Keys.onSpacePressed: root.request()
+
+    onClicked: {
+        root.forceActiveFocus();
+        root.request();
+    }
+
+    CortetsuToggle {
+        objectName: "switch"
+        checked: root.checked
+        disabled: root.disabled || root.status === "busy"
+        // The row is the target for keys and pointer alike; the switch only
+        // draws the state. Left enabled it would answer the same click too.
+        enabled: false
+        activeFocusOnTab: false
+    }
+}

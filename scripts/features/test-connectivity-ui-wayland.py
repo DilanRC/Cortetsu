@@ -24,6 +24,7 @@ import QtQuick.Layouts
 import QtTest
 import Quickshell
 import qs.modules.settings as Settings
+import qs.modules.settings.sections as Sections
 import qs.services
 import qs.modules
 ShellRoot {
@@ -43,12 +44,13 @@ ShellRoot {
         visible: true; implicitWidth: 1000; implicitHeight: 760
         title: "Cortetsu Connectivity acceptance"
         color: "#1c2027"
+        Settings.SettingsContext { id: settingsContext; screen: null; screenState: null }
         ScrollView {
             anchors.fill: parent; contentWidth: availableWidth
             ColumnLayout {
                 width: window.width - 32
-                Loader { id: wifi; Layout.fillWidth: true; Layout.preferredHeight: item?.implicitHeight ?? 0; active: root.page===0; visible: active; sourceComponent: Settings.NetworkPage { screen:null; screenState:null } }
-                Loader { id: bt; Layout.fillWidth: true; Layout.preferredHeight: item?.implicitHeight ?? 0; active: root.page===1; visible: active; sourceComponent: Settings.SystemPage { screen:null; screenState:null; section:"bluetooth" } }
+                Loader { id: wifi; Layout.fillWidth: true; Layout.preferredHeight: item?.implicitHeight ?? 0; active: root.page===0; visible: active; sourceComponent: Settings.NetworkPage { context: settingsContext } }
+                Loader { id: bt; Layout.fillWidth: true; Layout.preferredHeight: item?.implicitHeight ?? 0; active: root.page===1; visible: active; sourceComponent: Sections.BluetoothSection { context: settingsContext } }
             }
         }
         TestCase { id: input; when:false; optional:true }
@@ -76,7 +78,7 @@ ShellRoot {
                 if (!bt.item) return;
                 if (!root.check(!wifi.item && !Connectivity.wifi.scanning
                     && Object.keys(Connectivity.wifi.scanOwners).length === 0, "leaving Wi-Fi releases page and scanner")) return;
-                if (!root.check(bt.item.bluetoothEnabled === Connectivity.bluetooth.enabled, "Bluetooth shared state")) return;
+                if (!root.check(bt.item.bluetooth === Connectivity.bluetooth, "Bluetooth shared state")) return;
                 input.keyClick(Qt.Key_Tab);
                 root.page = 2; root.stage = 2;
             } else {

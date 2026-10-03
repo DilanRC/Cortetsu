@@ -3,83 +3,87 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import "../../../components"
-import "../.."
 import "../../../services"
-import "../../../utils"
 import "../../../theme"
+import "../.."
+import "../controls"
 
 ColumnLayout {
     id: root
 
-    required property var page
+    required property var context
 
-    spacing: CortetsuDesign.spacingStandard
+    spacing: CortetsuDesign.spacingSection
 
-    CortetsuSectionHeader {
-        Layout.fillWidth: true
-        title: qsTr("Energía")
-        detail: qsTr("Lectura de batería y política de reposo")
-    }
+    SettingsGroup {
+        title: qsTr("Batería")
+        visible: CortetsuPower.hasBattery
 
-    DomainHero {
-        icon: CortetsuPower.hasBattery
-            ? Icons.getBatteryIcon(CortetsuPower.value, root.page.batteryCharging)
-            : "power"
-        title: CortetsuPower.hasBattery
-            ? (root.page.batteryCharging ? qsTr("Batería cargando") : qsTr("Batería en uso"))
-            : qsTr("Alimentación externa")
-        detail: CortetsuPower.onBattery
-            ? qsTr("Funcionando sin alimentación externa")
-            : qsTr("Conectado a la alimentación externa")
-        value: root.page.batteryStatus
-        meta: CortetsuPower.charging
-            ? qsTr("Carga completa en %1").arg(root.page.formatDuration(CortetsuPower.timeToFull * 1000))
-            : qsTr("Autonomía estimada: %1").arg(root.page.formatDuration(CortetsuPower.timeToEmpty * 1000))
-        progress: CortetsuPower.hasBattery ? CortetsuPower.value : -1
-        warningState: CortetsuPower.critical
-    }
+        SettingValueRow {
+            objectName: "batteryLevel"
+            title: qsTr("Carga")
+            value: qsTr("%1 %").arg(CortetsuPower.percent)
+            attention: CortetsuPower.critical
+        }
 
-    StatusCard {
-        title: CortetsuPower.laptopBattery ? qsTr("Batería") : qsTr("Fuente de energía")
-        value: CortetsuPower.hasBattery ? qsTr("%1%").arg(root.page.batteryPercent) : qsTr("Alimentación externa")
-        detail: CortetsuPower.onBattery ? qsTr("Funcionando con batería") : qsTr("Conectado a alimentación externa")
-        icon: CortetsuPower.hasBattery
-            ? Icons.getBatteryIcon(CortetsuPower.value, root.page.batteryCharging)
-            : "power"
-        activeState: !CortetsuPower.onBattery
-        warningState: CortetsuPower.critical
-    }
+        SettingValueRow {
+            title: qsTr("Fuente")
+            value: CortetsuPower.onBattery ? qsTr("Batería") : qsTr("Corriente")
+        }
 
-    PreferenceToggle {
-        title: qsTr("Evitar reposo durante el audio")
-        detail: qsTr("Mantener activa la sesión durante la reproducción")
-        icon: "music_note"
-        checked: CortetsuConfig.idleInhibitWhenAudio
-        onChanged: checked => {
-            CortetsuConfig.idleInhibitWhenAudio = checked;
-            root.page.savePreference();
+        SettingValueRow {
+            title: CortetsuPower.charging ? qsTr("Carga completa en") : qsTr("Autonomía estimada")
+            value: root.context.formatDuration(CortetsuPower.charging ? CortetsuPower.timeToFull : CortetsuPower.timeToEmpty)
         }
     }
 
-    PreferenceToggle {
-        title: qsTr("Evitar reposo mientras carga")
-        detail: qsTr("Mantener activa la sesión con alimentación externa")
-        icon: "power"
-        checked: CortetsuConfig.idleInhibitWhenCharging
-        onChanged: checked => {
-            CortetsuConfig.idleInhibitWhenCharging = checked;
-            root.page.savePreference();
+    SettingsGroup {
+        title: qsTr("Alimentación")
+        visible: !CortetsuPower.hasBattery
+
+        SettingValueRow {
+            objectName: "noBattery"
+            title: qsTr("Fuente")
+            detail: qsTr("Este equipo no informa de una batería")
+            value: qsTr("Corriente")
         }
     }
 
-    PreferenceToggle {
-        title: qsTr("Bloquear antes de suspender")
-        detail: qsTr("Bloquear la sesión antes de que el equipo entre en suspensión")
-        icon: "lock"
-        checked: CortetsuConfig.idleLockBeforeSleep
-        onChanged: checked => {
-            CortetsuConfig.idleLockBeforeSleep = checked;
-            root.page.savePreference();
+    SettingsGroup {
+        title: qsTr("Reposo")
+        detail: qsTr("Cuándo se mantiene despierta la sesión")
+
+        SettingToggleRow {
+            title: qsTr("Evitar reposo durante el audio")
+            detail: qsTr("No suspender mientras algo se reproduce")
+            checked: CortetsuConfig.idleInhibitWhenAudio
+            onToggled: value => { CortetsuConfig.idleInhibitWhenAudio = value; CortetsuConfig.save(); }
+        }
+
+        SettingToggleRow {
+            title: qsTr("Evitar reposo mientras carga")
+            detail: qsTr("No suspender con el equipo enchufado")
+            checked: CortetsuConfig.idleInhibitWhenCharging
+            onToggled: value => { CortetsuConfig.idleInhibitWhenCharging = value; CortetsuConfig.save(); }
+        }
+
+        SettingToggleRow {
+            title: qsTr("Bloquear antes de suspender")
+            detail: qsTr("Pedir la contraseña al volver de la suspensión")
+            checked: CortetsuConfig.idleLockBeforeSleep
+            onToggled: value => { CortetsuConfig.idleLockBeforeSleep = value; CortetsuConfig.save(); }
+        }
+    }
+
+    SettingsGroup {
+        title: qsTr("Perfiles de energía")
+
+        SettingActionRow {
+            title: qsTr("Perfil, límites y automatización")
+            detail: qsTr("Se ajustan en Hardware, página Energía")
+            actionLabel: qsTr("Abrir Hardware")
+            actionIcon: "memory"
+            onActivated: root.context.openSurface("hardware")
         }
     }
 }

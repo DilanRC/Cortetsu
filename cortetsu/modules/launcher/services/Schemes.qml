@@ -5,20 +5,37 @@ import "../.."
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import "../../../services"
 import "../../../utils"
 
 Searcher {
     id: root
 
-    property string currentScheme: ""
-    property string currentVariant: ""
+    // The active scheme is what scheme.json holds. CortetsuColours watches
+    // that file, so a scheme set here, from the launcher, from a terminal or
+    // by the wallpaper shows up without asking the helper again.
+    readonly property string currentScheme: `${CortetsuColours.scheme} ${CortetsuColours.flavour}`
+    readonly property string currentVariant: CortetsuColours.variant
     property string error: ""
     property string pendingScheme: ""
+    // idle | applying | applied | failed
     property string applyStatus: "idle"
     property string applyError: ""
-    readonly property bool loading: getSchemes.running || getCurrent.running
+    property string catalogText: ""
+    // "name flavour" → { name, flavour, colours }. The list is built from the
+    // keys, so a catalogue that gains or loses one scheme adds or removes one
+    // object and leaves the others, and whatever draws them, alone.
+    property var entries: ({})
+    readonly property bool loading: getSchemes.running
     readonly property bool applying: applyStatus === "applying"
     readonly property int catalogCount: schemes.instances?.length ?? 0
+
+    // A scheme set from outside the catalogue (the one derived from the
+    // wallpaper) gets its entry as soon as it becomes the active one.
+    onCurrentSchemeChanged: {
+        if (catalogText.length > 0 && !entries[currentScheme])
+            reload();
+    }
 
     function transformSearch(search: string): string {
         return search.slice(`${CortetsuConfig.actionPrefix}scheme `.length);
@@ -32,8 +49,6 @@ Searcher {
         root.error = "";
         if (!getSchemes.running)
             getSchemes.running = true;
-        if (!getCurrent.running)
-            getCurrent.running = true;
     }
 
     function apply(name: string, flavour: string): void {
@@ -42,6 +57,7 @@ Searcher {
 
         root.error = "";
         root.applyError = "";
+        appliedNotice.stop();
         root.pendingScheme = `${name} ${flavour}`;
         root.applyStatus = "applying";
         applyScheme.command = ["cortetsu-scheme", "set", "-n", name, flavour];
@@ -67,55 +83,36 @@ Searcher {
         command: ["cortetsu-scheme", "list"]
         stdout: StdioCollector {
             onStreamFinished: {
+                // An unchanged catalogue keeps its objects, and with them
+                // every card and row that is showing one.
+                if (text === root.catalogText && text.length > 0)
+                    return;
                 try {
                     const schemeData = JSON.parse(text);
                     if (!schemeData || typeof schemeData !== "object" || Array.isArray(schemeData))
                         throw new Error("scheme catalog is not an object");
 
-                    const flat = [];
+                    const entries = {};
                     for (const [name, flavours] of Object.entries(schemeData)) {
                         if (!flavours || typeof flavours !== "object" || Array.isArray(flavours))
                             continue;
                         for (const [flavour, colours] of Object.entries(flavours)) {
-                            flat.push({
+                            entries[`${name} ${flavour}`] = {
                                 name,
                                 flavour,
                                 colours: colours && typeof colours === "object" ? colours : ({})
-                            });
+                            };
                         }
                     }
 
-                    schemes.model = flat.sort((a, b) =>
-                        String(`${a.name} ${a.flavour}`).localeCompare(String(`${b.name} ${b.flavour}`)));
+                    root.entries = entries;
+                    schemes.model = Object.keys(entries).sort((a, b) => a.localeCompare(b));
+                    root.catalogText = text;
                     root.error = "";
                 } catch (error) {
                     root.error = qsTr("No se pudo leer el catálogo de esquemas");
                     console.warn("Cortetsu Schemes: invalid catalog:", error);
                 }
-            }
-        }
-    }
-
-    // startup inventory: cortetsu:launcher-scheme-current
-    Process {
-        id: getCurrent
-
-        running: true
-        command: ["cortetsu-scheme", "get", "-nfv"]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                const parts = text.trim().split("\n");
-                const name = parts[0]?.trim() ?? "";
-                const flavour = parts[1]?.trim() ?? "";
-                const variant = parts[2]?.trim() ?? "";
-
-                if (!name || !flavour) {
-                    root.error = root.error || qsTr("No se pudo identificar el esquema activo");
-                    return;
-                }
-
-                root.currentScheme = `${name} ${flavour}`;
-                root.currentVariant = variant;
             }
         }
     }
@@ -126,16 +123,12 @@ Searcher {
 
         stderr: StdioCollector { id: applyStderr }
 
-        onRunningChanged: {
-            if (!running && command.length > 0 && applyStatus === "applying")
-                root.reload();
-        }
-
         onExited: code => { // qmllint disable signal-handler-parameters
             const detail = applyStderr.text.trim();
             if (code === 0) {
                 root.applyStatus = "applied";
                 root.applyError = "";
+                appliedNotice.restart();
             } else {
                 root.applyStatus = "failed";
                 root.applyError = detail || qsTr("No se pudo aplicar el esquema");
@@ -145,11 +138,20 @@ Searcher {
         }
     }
 
+    // "Applied" is a confirmation, not a state to keep on screen. A failure
+    // stays until the next attempt.
+    Timer {
+        id: appliedNotice
+        interval: 4000
+        onTriggered: if (root.applyStatus === "applied") root.applyStatus = "idle"
+    }
+
     component Scheme: QtObject {
-        required property var modelData
-        readonly property string name: modelData.name
-        readonly property string flavour: modelData.flavour
-        readonly property var colours: modelData.colours
+        required property string modelData
+        readonly property var entry: root.entries[modelData] ?? ({})
+        readonly property string name: entry.name ?? ""
+        readonly property string flavour: entry.flavour ?? ""
+        readonly property var colours: entry.colours ?? ({})
 
         function onClicked(list: AppList): void {
             list.screenState.launcher = false;

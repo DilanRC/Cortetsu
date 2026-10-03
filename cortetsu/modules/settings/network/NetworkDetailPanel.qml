@@ -15,7 +15,7 @@ Item {
     required property var page
 
     height: implicitHeight
-    implicitHeight: 520
+    implicitHeight: 580
 
     CortetsuSurface {
         id: detailBackdrop
@@ -173,7 +173,7 @@ Item {
         CortetsuSurface {
             Layout.fillWidth: true
             visible: !root.page.showingProfiles && !!root.page.selectedNetwork
-            implicitHeight: root.page.selectedIsActive ? 64 : 108
+            implicitHeight: 108
             baseColor: Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.26)
             outlineColor: "transparent"
             outlined: false
@@ -200,6 +200,52 @@ Item {
                                 : qsTr("Esta red está abierta y puede conectarse directamente.")
                         textSize: CortetsuTypography.bodySmallPx
                         wrapMode: Text.WordWrap
+                    }
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    visible: root.page.selectedIsActive
+                    spacing: CortetsuDesign.spacingCompact
+
+                    CortetsuText {
+                        Layout.fillWidth: true
+                        text: forget.armed
+                            ? qsTr("Olvidar borra el perfil y su contraseña. Pulsa de nuevo para confirmar.")
+                            : qsTr("Desconectar conserva el perfil guardado.")
+                        textSize: CortetsuTypography.labelSmallPx
+                        color: forget.armed ? CortetsuDesign.colorVermillion : CortetsuDesign.colorOnSurfaceVariant
+                        wrapMode: Text.WordWrap
+                    }
+                    CortetsuButton {
+                        objectName: "disconnectNetwork"
+                        compact: true
+                        icon: "link_off"
+                        label: qsTr("Desconectar")
+                        disabled: CortetsuSettingsNetwork.busy
+                        onClicked: root.page.disconnectSelected()
+                    }
+                    CortetsuButton {
+                        id: forget
+                        objectName: "forgetNetwork"
+                        // The first press arms it; it disarms on its own.
+                        property bool armed: false
+                        visible: !!root.page.selectedProfile
+                        compact: true
+                        danger: true
+                        icon: armed ? "warning" : "delete_outline"
+                        label: armed ? qsTr("Confirmar") : qsTr("Olvidar")
+                        disabled: CortetsuSettingsNetwork.busy
+                        onClicked: {
+                            if (!armed) {
+                                armed = true;
+                                disarm.restart();
+                                return;
+                            }
+                            armed = false;
+                            root.page.forgetSelected();
+                        }
+                        Timer { id: disarm; interval: 4000; onTriggered: forget.armed = false }
                     }
                 }
 

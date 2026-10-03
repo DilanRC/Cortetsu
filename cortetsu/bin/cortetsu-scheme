@@ -54,7 +54,10 @@ def write_hypr_scheme(colours: dict) -> None:
     os.replace(temporary, path)
     hyprctl = shutil.which("hyprctl")
     if hyprctl and not os.environ.get("CORTETSU_SKIP_RELOAD"):
-        subprocess.run([hyprctl, "reload"], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        # The palette is read by the Lua config, so the config has to run
+        # again; the monitors have not changed and are left alone.
+        subprocess.run([hyprctl, "reload", "config-only"], check=False,
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 
 def resource_root() -> Path:

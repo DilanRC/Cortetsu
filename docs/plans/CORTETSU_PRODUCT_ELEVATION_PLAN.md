@@ -25,6 +25,7 @@ Actualizado el 2026-10-03, rama `elevation/phase-1-behaviour`.
 | H-33 Octágono repetido | Hecho | `OctagonFrame.qml`, un solo `ShapePath` |
 | H-17 Resumen de Hardware | Hecho | `test-cortetsu-hardware-home-runtime.py` (38 comprobaciones sobre el `Content.qml` real con sonda guionizada), `tst_HardwareHealth.qml`, `tst_NavBlock.qml`, renders de los seis estados |
 | Páginas de Hardware (H-32, H-44; parte de H-16 y H-23) | Hecho | las nueve páginas de detalle y las pestañas comparten `Panel.qml`, `FactRow.qml`, `HistoryGraph.qml` y `Format.js`; textos en español; Forzar cierre pide una segunda pulsación; los delegados de Energía y Automatización toman el ancho del `id` de su contenedor y las listas que siguen una lectura van por índice; el render sin pantalla de las diez páginas no deja avisos QML. Sin prueba de comportamiento propia para Procesos, Sensores, E/S, Energía, Automatización y Consumo |
+| Ajustes, SUPER+I (H-14, H-20, H-31; parte de H-10, H-25 y H-30) | Hecho | `test-cortetsu-settings-runtime.py` (173 comprobaciones sobre el `Content.qml` real con dobles de servicio y teclas reales), `test-cortetsu-settings.py`, `tst_SettingsNavigation.qml`, `tst_StateMessage.qml`, `tst_Slider.qml`, renders de las 14 páginas a tres tamaños y con dos esquemas. Detalle en `docs/SETTINGS.md` |
 | H-08 Dos fuentes de telemetría | Parcial | dentro de Hardware hay una (`HardwareTelemetry.qml`) y la muestra baja de 125 KB a 4 KB fuera de Procesos (`test-hardware-probe.py`); el Dashboard sigue con sus servicios |
 | H-16, H-20, H-23 | Parcial | pestañas de Hardware y textos de atajos en español; encabezado vacío y "familias" corregidos |
 | H-35 | Parcial | `eval-ascension-runtime.py` usa el dispatcher Lua y cierra su popout; la prueba de Bluetooth sigue sensible a carga |
@@ -70,6 +71,48 @@ Hallazgos nuevos de esa ronda, sin corregir:
 | H-42 | U | Un bloque del Resumen abre la página correcta, pero no la métrica: la fila de la segunda GPU abre Rendimiento sin seleccionar esa gráfica | `hardware/OverviewPage.qml`, `PerformancePage.qml`. K |
 | H-43 | A | `PowerProfiles` de Quickshell no dice si `power-profiles-daemon` responde. Sin el demonio, el Resumen y el popout de batería mostrarían "Equilibrado". El paquete es dependencia declarada en `packages/arch.toml`, así que `cortetsu doctor` lo cubre | `/usr/lib/qt6/qml/Quickshell/Services/UPower/*.qmltypes`. K |
 | H-44 | C | Al salir de Energía o de Automatización, el journal recibe `TypeError: Cannot read property 'width' of null`: sus `Repeater` usan arreglos literales como modelo y los delegados leen `parent.width` mientras se destruyen. Es el patrón de modelo reemplazado que el Resumen ya no usa. Propuesta: modelo por índice o `ScriptModel`, y ancho tomado del `id` del contenedor | `hardware/PowerPage.qml:513`, `hardware/PowerAutomationPage.qml:346`; journal del 2026-10-03 13:44:54 (14 avisos). V |
+
+Ajustes (fase 5, sin mover el editor de atajos): el contenido solo existe con
+la ventana abierta y solo existe la página seleccionada. El Nexus muestra los
+14 destinos con el estado en vivo de cada dominio y marca en bermellón el que
+necesita atención; la búsqueda encuentra ajustes concretos, sin acentos, y
+oculta filas en vez de reconstruir la lista. Las páginas son grupos de filas
+(conmutador, deslizador, acción, valor) en lugar de una tarjeta por ajuste. Un
+conmutador está enlazado al valor real: una operación en curso se dice, una
+fallida deja el control en su sitio y explica por qué, y un backend ausente se
+muestra como tal. Las preferencias se escriben una vez, 300 ms después del
+último cambio, y el resultado se ve en la cabecera. Se retiran `DomainHero`,
+`StatusCard`, `ActionCard`, `PreferenceToggle`, `ShortcutRow`, `SystemPage`,
+`Wrapper` y `NetworkSection` (esta última nunca llegaba a verse).
+
+Reactividad del esquema, medida sobre el código anterior y el nuevo con el
+mismo recorrido de objetos:
+
+| Evento | Antes | Ahora |
+| --- | --- | --- |
+| Aplicar un esquema | `cortetsu-scheme list` y `get` de nuevo, `hyprctl reload` completo; la tarjeta activa no cambiaba hasta otra relectura | Ningún proceso de consulta; `reload config-only`; 0 objetos destruidos, 0 creados |
+| Releer el catálogo sin cambios | 350 objetos destruidos y 336 creados (las 25 tarjetas) | 0 y 0 |
+| El catálogo gana un esquema | Las 25 tarjetas | Una tarjeta |
+| Cambiar un token | 5 objetos recreados | 0 |
+| Filtrar esquemas o categorías | Modelo reemplazado | Solo cambia `visible` |
+| Mover un deslizador de preferencia | Dos escrituras por paso | Una escritura al soltar |
+
+Hallazgos nuevos de esta ronda:
+
+| ID | Tipo | Hallazgo | Estado |
+| --- | --- | --- | --- |
+| H-45 | C/U | Dieciocho preferencias que Ajustes mostraba no las lee nada en el shell en ejecución; solo las leían los paneles heredados de `base/modules/nexus` y la barra superior retirada: `bar.clock.showDate`, `bar.persistent`, `bar.tray.compact`, `bar.activeWindow.compact`, `bar.scrollActions.brightness`, `bar.scrollActions.workspaces`, `launcher.maxShown`, `launcher.maxWallpapers`, `notificationExpire`, `notificationDefaultExpireTimeout`, `notificationOpenExpanded`, `toastCapsLockChanged`, `toastNumLockChanged`, `toastKbLayoutChanged`, `toastDndChanged`, `toastNowPlaying`, `useFuzzyActions`, `useFuzzySchemes` | Los controles se retiran y una prueba impide que vuelvan. Las preferencias siguen en `CortetsuConfig`. Darles efecto (caducidad de avisos, avisos de bloqueo de teclado, fecha en el reloj) es funcionalidad nueva, fuera de esta ronda |
+| H-46 | C | `CortetsuStateMessage` enlazaba su ancho a su propio ancho implícito. Dentro de un `Layout` sin sitio, ambos se redimensionaban sin fin y la ventana no salía de `polishItems()`: un núcleo al 100 %. En Ajustes ocurría con la página de Red oculta y ninguna red seleccionada (Wi‑Fi apagado). Es la causa del bloqueo de SUPER+I del 2026-09-19 | Corregido en el componente, con prueba que se cuelga contra el anterior |
+| H-47 | C | `CortetsuSlider` asignaba su propio `value` al arrastrar o pulsar una tecla y rompía el enlace del consumidor: tras el primer arrastre, volumen o brillo cambiados desde fuera dejaban de mover el control | Corregido, con prueba |
+| H-48 | C | "Abrir lanzador" en Ajustes no hacía nada: pedía una superficie retenida que no existe con ese nombre | Corregido |
+| H-49 | A | El filtro de color de pantalla lo aplicaba `settings/DisplayCalibration.qml` al construirse, es decir, dependía de que existiera una página de Ajustes, y se lanzaba una vez por monitor | Pasa a `services/DisplayCalibration.qml`, una sola vez |
+| H-50 | C | Sin `preferences.json`, `CortetsuConfig` nunca llegaba a `loaded` y no guardaba nada. Un fallo de escritura pasaba en silencio | Corregido; `saveState` y `saveError` |
+| H-51 | A | `dashboard.enabled` y `dashboard.showDashboard` son dos banderas para lo mismo | Ajustes las mueve juntas con un solo conmutador; unificarlas en la configuración queda para la fase 3 |
+| H-52 | U | El editor de atajos sigue en Hardware. Ajustes lista los atajos reales, de solo lectura, con filtro, y enlaza a Hardware, pero no puede abrirlo en la página Teclas porque `HardwareController` no admite página destino | Pendiente: mover el editor (fase 5) |
+| H-53 | D | El relleno de `CortetsuSlider` usa `colorPrimary`, con el mismo contraste bajo de H-37 sobre el esquema de `ui.toml`. El valor se lee por el tirador y por la cifra | Pendiente con H-37 |
+| H-54 | A | `hyprctl reload config-only` sigue releyendo toda la configuración Lua para siete colores. Un `hyprctl eval` dirigido evitaría la relectura | Pendiente de validar en Hyprland 0.56 |
+| H-55 | A | En reposo, el proceso `qs` consume alrededor de un 15 % de un núcleo sin ninguna superficie abierta (45 ticks en 3 s, medido el 2026-10-03) | Sin investigar; no es de Ajustes |
+| H-56 | A | `CortetsuConfig` no observa `preferences.json`: un cambio hecho a mano con el shell en marcha no se refleja y se pierde en el siguiente guardado | Decisión previa documentada en el archivo; queda para la fase 3 |
 
 Pendiente de H-05: las combinaciones con `SUPER` que ya tienen acción siguen
 sin llegar al editor. La tarjeta lo dice. La solución es un submapa vacío

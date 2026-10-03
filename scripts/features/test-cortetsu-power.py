@@ -2,7 +2,7 @@
 """Gate contract for the shared first-party power capability."""
 from pathlib import Path
 
-from settings_sources import system_page_text
+from settings_sources import pages_text
 
 ROOT = Path(__file__).resolve().parents[2]
 service = ROOT / "cortetsu/services/CortetsuPower.qml"
@@ -11,7 +11,7 @@ consumers = [
     ROOT / "cortetsu/modules/BottomHub.qml",
     ROOT / "cortetsu/modules/osd/FullContent.qml",
     ROOT / "cortetsu/modules/dashboard/Dash.qml",
-    ROOT / "cortetsu/modules/settings/SystemPage.qml",
+    ROOT / "cortetsu/modules/settings/SettingsContext.qml",
     ROOT / "cortetsu/modules/lock/LockSurface.qml",
     ROOT / "cortetsu/modules/bar/popouts/CortetsuBatteryPopup.qml",
     ROOT / "cortetsu/modules/bar/components/StatusIcons.qml",
@@ -36,7 +36,7 @@ for marker in (
     assert marker in source, marker
 
 for path in consumers:
-    text = system_page_text() if path.name == "SystemPage.qml" else path.read_text(encoding="utf-8")
+    text = pages_text() if path.name == "SettingsContext.qml" else path.read_text(encoding="utf-8")
     assert "CortetsuPower" in text, path
     assert "UPower.displayDevice.percentage" not in text, path
     assert "UPowerDeviceState" not in text, path
