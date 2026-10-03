@@ -16,16 +16,16 @@ for marker in (
     "FileView {",
     "watchChanges: true",
     "onLoaded: root.load(text(), false)",
-    "onFileChanged: root.load(text(), false)",
+    "onFileChanged: reload()",
     "onLoadFailed: root.currentColours = ({})",
     "currentColours = ({})",
     "function clearPreview(): void",
     "previewColours = ({})",
-    "m3primary: root.schemeColour(\"primary\", CortetsuDesign.colorPrimary)",
-    "m3surface: root.schemeColour(\"surface\", CortetsuDesign.colorSurface)",
-    "m3error: CortetsuDesign.colorVermillion",
-    "CortetsuDesign.colorWashi",
-    "CortetsuDesign.colorTetsu",
+    "m3primary: root.schemeColour(\"primary\", Defaults.colorPrimary)",
+    "m3surface: root.schemeColour(\"surface\", Defaults.colorSurface)",
+    "m3error: Defaults.colorVermillion",
+    "Defaults.colorWashi",
+    "Defaults.colorTetsu",
 ):
     assert marker in colours, marker
 

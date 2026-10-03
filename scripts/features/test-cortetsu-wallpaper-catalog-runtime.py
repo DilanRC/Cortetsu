@@ -79,7 +79,8 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-wallpaper-catalog-") as tempor
     (folder / "modules").mkdir()
     (folder / "services").mkdir()
     (folder / "assets").mkdir()
-    for name in ("CortetsuWallpapers.qml", "CortetsuDesign.js", "CortetsuWallpaperSearch.js"):
+    shutil.copytree(ROOT / "theme", folder / "theme")
+    for name in ("CortetsuWallpapers.qml", "CortetsuWallpaperSearch.js"):
         shutil.copy(ROOT / "modules" / name, folder / "modules" / name)
     (folder / "modules/CortetsuConfig.qml").write_text(CONFIG)
     (folder / "services/CortetsuColours.qml").write_text(COLOURS)

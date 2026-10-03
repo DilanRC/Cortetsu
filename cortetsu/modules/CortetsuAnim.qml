@@ -1,5 +1,5 @@
 import QtQuick
-import "CortetsuDesign.js" as CortetsuDesign
+import "../theme"
 
 NumberAnimation {
     enum Type { StandardSmall, Standard, StandardLarge, StandardExtraLarge,

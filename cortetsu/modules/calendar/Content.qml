@@ -6,7 +6,7 @@ import Quickshell
 import Quickshell.Io
 import ".."
 import "../../components"
-import "../CortetsuDesign.js" as CortetsuDesign
+import "../../theme"
 import "../CortetsuTypography.js" as CortetsuTypography
 
 Item {

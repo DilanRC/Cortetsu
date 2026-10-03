@@ -10,7 +10,8 @@ The repository copy under `dotfiles/home/.config/cortetsu/ui.toml` is compiled b
 
 `cortetsu theme compile` derives the following from `ui.toml`:
 
-- `cortetsu/modules/CortetsuDesign.js` for Cortetsu-owned QML tokens.
+- `cortetsu/theme/CortetsuDesignDefaults.js`, the token values from `ui.toml`.
+- `cortetsu/theme/CortetsuDesign.qml`, the singleton QML reads tokens from. Its colour tokens bind to the active scheme and fall back to the defaults.
 - `dotfiles/generated/theme/home/.config/kitty/cortetsu-theme.conf` for Kitty.
 - GTK 3 and GTK 4 `cortetsu-colors.css` token files.
 - `dotfiles/generated/theme/home/.local/share/color-schemes/Cortetsu.colors` for the KDE palette.
@@ -64,7 +65,7 @@ KDE continues to own its application preferences in `kdeglobals`; Cortetsu chang
 
 ## 6. Shell visual contract
 
-Cortetsu-owned QML imports `CortetsuDesign.js` for colour, shape, spacing and motion tokens. The generated contract currently exposes:
+Cortetsu-owned QML imports the `theme` directory and reads `CortetsuDesign.<token>` for colour, shape, spacing and motion. `CortetsuColours` watches `~/.local/state/cortetsu/scheme.json` and feeds the scheme (or a preview palette) to the singleton, so `cortetsu-scheme set` and wallpaper palettes repaint live surfaces without a shell reload and without writing into the promoted generation. `SCHEME_ROLES` in `core/theme.py` lists which tokens follow the scheme; vermillion, warning and scrim keep their `ui.toml` value. The generated contract currently exposes:
 
 - sumi / tetsu / washi / indigo / vermillion / muted colours
 - small / medium / large radii

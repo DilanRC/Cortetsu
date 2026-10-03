@@ -3,7 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import ".."
 import "../../components"
-import "../CortetsuDesign.js" as CortetsuDesign
+import "../../theme"
 import "../CortetsuTypography.js" as CortetsuTypography
 
 Rectangle {

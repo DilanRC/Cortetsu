@@ -8,7 +8,7 @@ import ".."
 import "../settings"
 import "../../services"
 import "../../components"
-import "../CortetsuDesign.js" as CortetsuDesign
+import "../../theme"
 import "../CortetsuTypography.js" as CortetsuTypography
 import "OrbitModel.js" as Orbit
 

@@ -82,8 +82,8 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-session-test-") as temporary:
     folder = Path(temporary)
     shutil.copytree(ROOT / "components", folder / "components")
     (folder / "modules/session").mkdir(parents=True)
-    for name in ("CortetsuDesign.js", "CortetsuTypography.js"):
-        shutil.copy(ROOT / "modules" / name, folder / "modules" / name)
+    shutil.copytree(ROOT / "theme", folder / "theme")
+    shutil.copy(ROOT / "modules/CortetsuTypography.js", folder / "modules/CortetsuTypography.js")
     shutil.copy(ROOT / "modules/session/Content.qml", folder / "modules/session/Content.qml")
     (folder / "modules/CortetsuHypr.qml").write_text(HYPR)
     (folder / "modules/CortetsuConfig.qml").write_text(CONFIG)

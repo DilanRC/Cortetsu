@@ -5,7 +5,7 @@ import QtQuick.Layouts
 import "../../../components"
 import "../.."
 import "../../../services"
-import "../../CortetsuDesign.js" as CortetsuDesign
+import "../../../theme"
 
 ColumnLayout {
     id: root

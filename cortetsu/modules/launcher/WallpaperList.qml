@@ -4,7 +4,7 @@ import QtQuick
 import QtQuick.Controls
 import Quickshell
 import ".."
-import "../CortetsuDesign.js" as CortetsuDesign
+import "../../theme"
 import ".."
 
 PathView {

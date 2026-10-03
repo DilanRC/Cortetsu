@@ -432,6 +432,7 @@ test_cmd() {
         "scripts/features/test-launcher-process-scope.py"
         "scripts/features/eval-cortetsu-process-launcher.py"
         "scripts/features/test-cortetsu-scheme.py"
+        "scripts/features/test-cortetsu-theme-reactive-runtime.py"
         "scripts/features/test-scheme-catalog.py"
         "scripts/features/eval-scheme-catalog.py"
         "scripts/features/test-super-e-dolphin.py"

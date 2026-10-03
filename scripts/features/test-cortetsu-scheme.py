@@ -7,18 +7,20 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
 colours = (REPO / "cortetsu/services/CortetsuColours.qml").read_text(encoding="utf-8")
-assert 'import "../modules/CortetsuDesign.js" as CortetsuDesign' in colours
+assert 'import "../theme/CortetsuDesignDefaults.js" as Defaults' in colours
+assert 'target: CortetsuDesign' in colours
 
 script = Path(__file__).resolve().parents[2] / "cortetsu/bin/cortetsu-scheme"
 with tempfile.TemporaryDirectory() as directory:
-    env = {**os.environ, "XDG_STATE_HOME": directory, "XDG_CONFIG_HOME": str(Path(directory) / "config")}
+    # The live compositor must not be reloaded by a test run.
+    env = {**os.environ, "XDG_STATE_HOME": directory, "XDG_CONFIG_HOME": str(Path(directory) / "config"),
+           "CORTETSU_SKIP_RELOAD": "1"}
     live_scheme = Path(env["XDG_CONFIG_HOME"]) / "hypr/scheme/current.lua"
     live_scheme.parent.mkdir(parents=True)
     live_scheme.write_text("return {}\n", encoding="utf-8")
-    runtime = Path(directory) / "runtime/current/modules"
-    runtime.mkdir(parents=True)
-    design = REPO / "cortetsu/modules/CortetsuDesign.js"
-    (runtime / "CortetsuDesign.js").write_text(design.read_text(encoding="utf-8"), encoding="utf-8")
+    runtime = Path(directory) / "runtime/current/theme"
+    shutil.copytree(REPO / "cortetsu/theme", runtime)
+    shipped = {path.name: path.read_bytes() for path in runtime.iterdir()}
     env["CORTETSU_RUNTIME_ROOT"] = str(Path(directory) / "runtime")
     subprocess.run([str(script), "set", "-v", "expressive"], env=env, check=True)
     result = subprocess.run([str(script), "get", "-nfv"], env=env, check=True, text=True, capture_output=True)
@@ -34,9 +36,9 @@ with tempfile.TemporaryDirectory() as directory:
     live = live_scheme.read_text(encoding="utf-8")
     assert f'primary = "{catalog["aura"]["default"]["primary"].lstrip("#")}"' in live
     assert 'surfaceContainer =' in live and 'onSurfaceVariant =' in live
-    runtime_design = (runtime / "CortetsuDesign.js").read_text(encoding="utf-8")
-    assert 'var colorPrimary = "#A277FF"' in runtime_design
-    assert 'var colorTetsu = "#211F2D"' in runtime_design
+    # Selecting a scheme never rewrites the promoted generation; the shell
+    # reads scheme.json at runtime (test-cortetsu-theme-reactive-runtime.py).
+    assert {path.name: path.read_bytes() for path in runtime.iterdir()} == shipped
 
     installed = Path(directory) / "bin/cortetsu-scheme"
     installed.parent.mkdir()

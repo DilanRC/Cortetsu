@@ -5,7 +5,7 @@ import Quickshell
 import Quickshell.Io
 import "."
 import "../services"
-import "CortetsuDesign.js" as CortetsuDesign
+import "../theme"
 import "CortetsuWallpaperSearch.js" as WallpaperSearch
 
 Singleton {

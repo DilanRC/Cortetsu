@@ -7,7 +7,7 @@ import "../components/containers"
 import "../services"
 import "."
 import "launcher"
-import "CortetsuDesign.js" as CortetsuDesign
+import "../theme"
 
 Scope {
     Variants {

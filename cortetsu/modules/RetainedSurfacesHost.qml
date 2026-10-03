@@ -12,7 +12,7 @@ import "hardware" as Hardware
 import "display" as Display
 import "wallpaper" as Wallpaper
 import "calendar" as Calendar
-import "CortetsuDesign.js" as CortetsuDesign
+import "../theme"
 
 // Retained surfaces have their own overlay window. Keeping them out of the
 // shared drawer window gives every full surface a stable layer, focus policy,

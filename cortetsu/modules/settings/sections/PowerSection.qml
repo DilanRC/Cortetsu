@@ -6,7 +6,7 @@ import "../../../components"
 import "../.."
 import "../../../services"
 import "../../../utils"
-import "../../CortetsuDesign.js" as CortetsuDesign
+import "../../../theme"
 
 ColumnLayout {
     id: root

@@ -4,7 +4,7 @@ import "../"
 import "../../components"
 import "../../services"
 import "../../utils"
-import "../CortetsuDesign.js" as CortetsuDesign
+import "../../theme"
 import "../CortetsuTypography.js" as CortetsuTypography
 
 CortetsuSurface {

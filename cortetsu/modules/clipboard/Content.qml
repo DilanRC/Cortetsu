@@ -6,7 +6,7 @@ import QtCore
 import Quickshell
 import Quickshell.Io
 import ".."
-import "../CortetsuDesign.js" as CortetsuDesign
+import "../../theme"
 import "../CortetsuTypography.js" as CortetsuTypography
 
 FocusScope {

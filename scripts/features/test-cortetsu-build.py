@@ -83,7 +83,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-e2e-") as temporary:
     assert (runtime / "previous").resolve() == shell1
     assert (runtime / "legacy-previous").resolve() == unmanaged
     assert f'var colorPrimary = "#{aura_primary}"' in (
-        shell2 / "modules/CortetsuDesign.js"
+        shell2 / "theme/CortetsuDesignDefaults.js"
     ).read_text(encoding="utf-8")
 
     subprocess.run(

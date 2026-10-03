@@ -4,7 +4,7 @@ import ".."
 import QtQuick
 import Quickshell
 import QtQuick.Controls
-import "../CortetsuDesign.js" as CortetsuDesign
+import "../../theme"
 import "../CortetsuTypography.js" as CortetsuTypography
 import "../../components"
 

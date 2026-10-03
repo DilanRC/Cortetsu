@@ -1,6 +1,6 @@
 import QtQuick
 import "../.."
-import "../../CortetsuDesign.js" as CortetsuDesign
+import "../../../theme"
 
 CortetsuSurface {
     id: root

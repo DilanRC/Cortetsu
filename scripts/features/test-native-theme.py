@@ -50,7 +50,7 @@ assert "ColorScheme=" not in kde and "TerminalApplication=" not in kde
 assert "[Colors:Window]" in kde and "[WM]" in kde
 assert "Caelestia" not in kde
 
-design = (repo / "cortetsu/modules/CortetsuDesign.js").read_text(encoding="utf-8")
+design = (repo / "cortetsu/theme/CortetsuDesignDefaults.js").read_text(encoding="utf-8")
 assert 'var colorSumi = "#0B0D10"' in design
 assert 'var colorVermillion = "#D64B32"' in design
 assert "var motionFastMs = 120" in design

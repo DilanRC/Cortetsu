@@ -5,7 +5,7 @@ import QtQuick.Layouts
 import Quickshell.Bluetooth
 import "../../../services"
 import "../../../components"
-import "../../CortetsuDesign.js" as CortetsuDesign
+import "../../../theme"
 import "../.."
 
 CortetsuPopupSurface {

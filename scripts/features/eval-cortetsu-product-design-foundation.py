@@ -1,7 +1,7 @@
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-design = (ROOT / "cortetsu/modules/CortetsuDesign.js").read_text(encoding="utf-8")
+design = (ROOT / "cortetsu/theme/CortetsuDesignDefaults.js").read_text(encoding="utf-8")
 brand = (ROOT / "cortetsu/assets/branding/cortetsu-mark-ascended.svg").read_text(encoding="utf-8")
 manifest = (ROOT / "cortetsu/assets/branding/manifest.json").read_text(encoding="utf-8")
 assert all(token in design for token in ("colorSumi", "colorTetsu", "colorWashi", "colorIndigo", "colorVermillion"))

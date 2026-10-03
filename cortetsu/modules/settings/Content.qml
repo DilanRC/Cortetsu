@@ -9,7 +9,7 @@ import "../../services"
 import ".."
 import "../launcher/services"
 import "../CortetsuSearchBar.qml"
-import "../CortetsuDesign.js" as CortetsuDesign
+import "../../theme"
 import "../CortetsuTypography.js" as CortetsuTypography
 
 Item {

@@ -6,7 +6,7 @@ import Quickshell
 import Quickshell.Wayland
 import "../../utils"
 import ".."
-import "../CortetsuDesign.js" as CortetsuDesign
+import "../../theme"
 import "../CortetsuTypography.js" as CortetsuTypography
 
 Item {

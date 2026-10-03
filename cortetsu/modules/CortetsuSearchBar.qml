@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Controls
-import "CortetsuDesign.js" as CortetsuDesign
+import "../theme"
 import "CortetsuTypography.js" as CortetsuTypography
 
 TextField {
