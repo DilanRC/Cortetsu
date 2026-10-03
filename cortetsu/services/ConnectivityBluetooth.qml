@@ -155,7 +155,11 @@ Singleton {
             else if (kind === "blocked") target.blocked = expected;
             else if (kind === "connect") target.connect();
             else if (kind === "disconnect") target.disconnect();
-            else if (kind === "pair") target.pair();
+            else if (kind === "pair") {
+                // BlueZ does not store the link key while the adapter is not pairable, so the pairing would be lost on disconnect.
+                if (!adapter.pairable) adapter.pairable = true;
+                target.pair();
+            }
             else if (kind === "cancel-pair") target.cancelPair();
             else if (kind === "forget") target.forget();
         } catch (error) { finish("failed", "native-call", String(error)); }
@@ -234,6 +238,11 @@ Singleton {
     Process {
         id: verification
         property int operationId: 0
+        // A device without WakeAllowed has nothing to read back; fail now instead of at the deadline.
+        onExited: exitCode => {
+            if (exitCode !== 0 && root.busy && verification.operationId === root.operation.id && root.operation.kind === "wake")
+                root.finish("failed", "unsupported", qsTr("Este dispositivo no admite despertar el equipo."));
+        }
         stdout: StdioCollector {
             onStreamFinished: {
                 if (root.busy && verification.operationId === root.operation.id

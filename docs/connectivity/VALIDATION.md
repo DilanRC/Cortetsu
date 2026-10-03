@@ -41,12 +41,12 @@ PASS_CONTROLLED significa fixture de política/backend o interacción QML aislad
 | Radio off/on | PASS_PHYSICAL_PRE_MIGRATION; readback/pending fixture PASS_CONTROLLED | PASS_PHYSICAL: backend nuevo, registro /tmp/cortetsu-connectivity-physical.log |
 | Discovery | Owner múltiple y liberación de página PASS_CONTROLLED/Wayland | PASS_PHYSICAL: backend nuevo, registro /tmp/cortetsu-connectivity-physical.log |
 | Connect/disconnect/reconnect | Confirmación nativa/single-flight/plazo PASS_CONTROLLED | PASS_PHYSICAL 2026-10-03 con Gamepad despierto |
-| Pairing/cancel | API instalada y progreso/cancel fixture PASS_CONTROLLED | PENDING_PHYSICAL_VALIDATION de dispositivo de prueba |
+| Pairing/cancel | API instalada y progreso/cancel fixture PASS_CONTROLLED | PASS_PHYSICAL 2026-10-03 con ZON y Gamepad (ver «Operaciones de dispositivo») |
 | Pairing incorrecto/rechazado | Taxonomía policy PASS_CONTROLLED; método no expone error QML | PENDING_PHYSICAL_VALIDATION |
 | PIN/passkey/confirmación | API instalada no expone Agent1 interactivo; UI lo explica | PENDING_PHYSICAL_VALIDATION con agente del sistema |
-| Trust/block/wake | Valor confirmado retenido mientras pending/fallo PASS_CONTROLLED | PENDING_PHYSICAL_VALIDATION de dispositivo de prueba |
-| Forget | Espera desaparición; adapter-removed no confirma éxito PASS_CONTROLLED | PENDING_PHYSICAL_VALIDATION de dispositivo de prueba |
-| Batería | Propiedades API y presentación cuando disponible | PENDING_PHYSICAL_VALIDATION; equipos actuales no informan |
+| Trust/block/wake | Valor confirmado retenido mientras pending/fallo PASS_CONTROLLED | PASS_PHYSICAL 2026-10-03: trust y block con ZON, wake con Gamepad |
+| Forget | Espera desaparición; adapter-removed no confirma éxito PASS_CONTROLLED | PASS_PHYSICAL 2026-10-03 con ZON y Gamepad |
+| Batería | Propiedades API y presentación cuando disponible | PASS_PHYSICAL 2026-10-03: ZON informa 80 % en el backend y en BlueZ |
 | Dispositivo desaparece | Política de pertenencia y fallo PASS_CONTROLLED | PENDING_PHYSICAL_VALIDATION |
 | Dormido/fuera de alcance | Host is down observado antes de migración | PASS_PHYSICAL 2026-10-02 (ver «Validación física del 2026-10-02») |
 | BlueZ recovery | Estado de adaptador y limpieza inspeccionados | PENDING_PHYSICAL_VALIDATION de reinicio deliberado |
@@ -69,7 +69,7 @@ PASS_CONTROLLED significa fixture de política/backend o interacción QML aislad
 - `test-connectivity-wifi-policy.cjs`: escapes, whitespace, identidad de perfil/AP, confirmación UUID, errores y configuración IPv4.
 - `test-connectivity-wifi-runtime.py`: backend QML real con nmcli falso aislado; inventario/olvido/autoconnect/IP, varios BSSID y contraseña por stdin. No toca perfiles del usuario.
 - `test-connectivity-bluetooth.mjs`: 16 comprobaciones de política.
-- `test-connectivity-bluetooth-runtime.py`: 17 comprobaciones del backend con objetos nativos falsos: confirmación, single-flight, dueños de scan, cancel, plazos, desaparición de adaptador y conservación de trust confirmado.
+- `test-connectivity-bluetooth-runtime.py`: 18 comprobaciones del backend con objetos nativos falsos: confirmación, single-flight, dueños de scan, emparejado con adaptador no emparejable, cancel, plazos, desaparición de adaptador y conservación de trust confirmado. Otras 9 con un `busctl` falso cubren la potencia obsoleta y el wake no admitido.
 - `test-connectivity-ui-wayland.py`: opt-in visible, controles originales mouse/Tab/Enter/identidad/lifetime/scans, contra runtime construido. No conecta/desconecta dispositivos. Requiere una red ya conectada y perfiles existentes.
 
 Las suites aisladas de backend y credenciales están integradas en build-runtime. La suite visible es opt-in para no abrir ventanas ni hacer discovery automáticamente en cualquier construcción.
@@ -130,3 +130,23 @@ Apagado con el estado nativo obsoleto, misma generación, sin dispositivos conec
 Mando despierto, mismo arnés: desconexión confirmada y reconexión confirmada en unos 4 s, sin propietarios de scan al terminar. El mando se había conectado solo al encenderse, así que la primera conexión iniciada por Cortetsu no quedó ejercitada; la reconexión sí.
 
 La misma sesión encontró dos fallos de bloqueo ajenos a conectividad, corregidos en `IdleMonitors.qml`: la acción idle `lock` lanzaba un error y el ajuste «bloquear antes de dormir» no estaba conectado. Tras la corrección, un ciclo real de suspensión dejó la sesión bloqueada al reanudar.
+
+### Operaciones de dispositivo del 2026-10-03
+
+Mismo arnés, con ZON (auriculares, conectados) y Gamepad, ambos en modo de emparejamiento cuando hizo falta. Las cuatro primeras filas son de la generación `20261003-000621-564064`; las marcadas «corregido» usan el backend del commit que acompaña a esta sección, cargado en el arnés antes de instalarlo como generación `20261003-004843-620903` (build completo con sus gates y recarga suave del shell sin avisos en el journal).
+
+| Caso | Resultado observado |
+|---|---|
+| Batería | ZON: 80 % en el backend y en BlueZ |
+| Trust | ZON: quitar y devolver la confianza, cada escritura confirmada por BlueZ en 0.6 s; la fachada siguió el valor confirmado |
+| Block | ZON: bloquear lo desconecta y BlueZ lo confirma en 0.6 s; desbloquear y reconectar funcionan |
+| Forget | ZON y Gamepad: el dispositivo desaparece del backend y de BlueZ (2.3 s en ZON) |
+| Pair seguido de cancel | ZON: `cancel-pair` termina `succeeded` y el dispositivo queda sin emparejar; BlueZ lo retira y vuelve a aparecer por discovery |
+| Pair con el adaptador no emparejable | Fallo: la operación terminaba `succeeded` pero BlueZ dejaba `Bonded=false` y el emparejado se perdía al caer el enlace. Corregido: con `Pairable=false`, emparejar ZON deja `Pairable=true`, `Paired=true` y `Bonded=true`; después confianza, conexión estable y salida de audio |
+| Pair, Gamepad | Con `Pairable=true`: `Paired=true`, `Bonded=true` en 1.7 s |
+| Wake, Gamepad | Desactivar y reactivar, confirmado por BlueZ en 0.6 s cada vez |
+| Wake, ZON | ZON no tiene la propiedad `WakeAllowed`. Fallo: la operación esperaba 20 s hasta `timeout`. Corregido: falla en 0.6 s con `unsupported`, «Este dispositivo no admite despertar el equipo»; la fachada conserva `false` |
+
+Causa del emparejado no persistente: el adaptador estaba con `Pairable=false`, que en BlueZ es el ajuste «bondable» del controlador. Sin él la clave de enlace no se guarda. `bluetoothctl` con agente dio el mismo resultado en ese estado, así que no dependía del agente ni del dispositivo. `ConnectivityBluetooth.qml` activa ahora `pairable` en el adaptador antes de emparejar. El interruptor «Pairable» de Ajustes sigue disponible, y quien lo apague lo verá encendido otra vez tras emparejar algo.
+
+Limitaciones que quedan: `connectDevice` da éxito en cuanto BlueZ informa `Connected=true`, y eso ocurre ya con el enlace que crea el emparejado; si los perfiles no llegan a conectarse el enlace cae segundos después y la operación ya figura como correcta. El interruptor de wake se muestra también en dispositivos que no lo admiten, porque la API nativa no indica si la propiedad existe. El Gamepad quedó emparejado y de confianza pero no se reconectó desde el backend (`timeout`): había salido del modo de emparejamiento y hay que encenderlo para comprobarlo. Pairing rechazado y con PIN siguen pendientes.

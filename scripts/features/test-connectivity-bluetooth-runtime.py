@@ -34,6 +34,7 @@ source = source.replace('    id: root', '''    id: root
         property string dbusPath: "/test/adapter"
         property bool enabled: true
         property bool discovering: false
+        property bool pairable: false
         property int state: 1
         property QtObject devices: QtObject { property var values: [root.fakeDevice] }
     }''', 1)
@@ -59,6 +60,7 @@ ShellRoot {
         verify(!backend.fakeAdapter.discovering, "last owner releases scan");
         backend.pairDevice(backend.fakeDevice);
         verify(backend.busy, "pair pending");
+        verify(backend.fakeAdapter.pairable, "pairing makes the adapter pairable so BlueZ stores the bond");
         backend.cancelPair();
         backend.checkCompletion();
         verify(!backend.fakeDevice.pairing && !backend.busy, "cancel confirmed");
@@ -97,7 +99,7 @@ with tempfile.TemporaryDirectory(prefix='cortetsu-bt-test-') as folder:
     result = subprocess.run(['quickshell', '-p', str(folder / 'shell.qml')], env={**os.environ, 'QT_QPA_PLATFORM': 'offscreen'}, capture_output=True, text=True, timeout=5)
     output = result.stdout + result.stderr
     print(output)
-    assert result.returncode == 0 and 'BT_RUNTIME_PASS 17' in output, 'QML runtime lifecycle failed'
+    assert result.returncode == 0 and 'BT_RUNTIME_PASS 18' in output, 'QML runtime lifecycle failed'
     assert 'BT_FAIL' not in output and 'Binding loop' not in output
     assert 'TypeError' not in output and 'ReferenceError' not in output and ' ERROR:' not in output
 
@@ -118,6 +120,11 @@ ShellRoot {
     Timer { interval: 400; running: true; onTriggered: {
         verify(backend.enabled, "settled BlueZ power overrides the stale native value");
         verify(!backend.fakeAdapter.enabled, "native value stays stale in this scenario");
+        verify(backend.setWakeAllowed(backend.fakeDevice, true), "wake dispatches");
+    } }
+    Timer { interval: 480; running: true; onTriggered: {
+        verify(backend.operation.state === "failed" && backend.operation.lastErrorCode === "unsupported", "a device without WakeAllowed fails as unsupported, not by deadline");
+        verify(!backend.propertyValue(backend.fakeDevice, "wakeAllowed"), "unsupported wake keeps the confirmed value");
         verify(backend.setEnabled(false), "power off dispatches");
     } }
     Timer { interval: 900; running: true; onTriggered: {
@@ -142,6 +149,8 @@ if "set-property" in args:
 elif args[-1] == "PowerState":
     # The first read lands while BlueZ is still powering the adapter up.
     print('s "off-enabling"' if count == 1 else 's "on"' if on else 's "off"')
+elif args[-1] == "WakeAllowed":
+    sys.exit("Unknown property")
 elif args[-1] == "Powered":
     print("b true" if on else "b false")
 """
@@ -160,7 +169,7 @@ with tempfile.TemporaryDirectory(prefix='cortetsu-bt-stale-') as folder:
     output = result.stdout + result.stderr
     print(output)
     calls = (folder / 'bin/calls').read_text()
-    assert result.returncode == 0 and 'BT_STALE_PASS 6' in output, 'stale native power was not reconciled'
+    assert result.returncode == 0 and 'BT_STALE_PASS 9' in output, 'stale native power was not reconciled'
     assert 'BT_FAIL' not in output and 'TypeError' not in output and 'ReferenceError' not in output
     assert 'set-property org.bluez /test/adapter org.bluez.Adapter1 Powered b false' in calls
     assert (folder / 'bin/power').read_text() == 'off'
