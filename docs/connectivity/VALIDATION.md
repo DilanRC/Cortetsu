@@ -80,9 +80,9 @@ IDs QML repetidos, imports relativos inválidos después del aplanado, perfil eq
 
 ## Logs y medición
 
-La construcción aislada completa final pasó todos los gates del repositorio: `/tmp/cortetsu-connectivity-build-final.log`. UI visible: `/tmp/cortetsu-connectivity-ui-acceptance.log`, resultado UI_WAYLAND_PASS 11. Los logs temporales de las sondas fallidas se conservan para diagnóstico, pero no representan la versión instalada.
+La construcción aislada completa pasó todos los gates del repositorio antes de promover la generación. Contra la generación instalada, `test-connectivity-ui-wayland.py` dio UI_WAYLAND_PASS 11 y `test-connectivity-original-nexus.py` ORIGINAL_NEXUS_PASS 7, ambos ya adaptados a la interfaz original restaurada. Los logs temporales de las sondas fallidas se conservan para diagnóstico, pero no representan la versión instalada.
 
-Antes: PID 2719, ventana de 10.0007 s, CPU 7.2995% de un núcleo, RSS 350292 KiB, generación `20260930-034419-1073298`. El porcentaje de CPU de ps acumulado desde inicio no se compara con este muestreo. Después y recarga: añadir registro final solo tras medir.
+Antes: PID 2719, ventana de 10.0007 s, CPU 7.2995% de un núcleo, RSS 350292 KiB, generación `20260930-034419-1073298`. El porcentaje de CPU de ps acumulado desde inicio no se compara con este muestreo. Después (2026-10-02, commit `53ac55f`, generación `20261002-233039-497538`, recarga suave sin cambiar de PID, journal sin avisos nuevos): tres ventanas de 10–15 s dieron 14.2–15.3% de un núcleo, RSS 609172 KiB tras dos recargas en el mismo proceso. El consumo estaba en los hilos de render (QSGRenderThread y gl), con el hilo principal en reposo y un único hijo `nmcli monitor`; en 12 s no se creó ningún proceso nuevo, así que no hay sondeo. El escritorio tenía ventanas actualizándose durante la muestra, por lo que la cifra no es comparable con la de antes ni atribuible a conectividad. Falta una medición en reposo real.
 
 ## Reversión exacta de la shell
 
