@@ -50,10 +50,9 @@ assert "entries: bar.entries" in config
 assert "CortetsuConfig.bar.workspaces.perMonitorWorkspaces" in hub
 assert "bottomHub.statusCluster" in config
 assert "bottomHub.segments" in config
-assert "saveLegacy();" in config
-assert "payload.bottomHub" in config
+assert "function snapshot()" in config
 assert "watchChanges: false" in config
-assert "property bool patchBottomHubAfterSave" in config
+assert "patchBottomHubAfterSave" not in config
 assert "onSaved:" in config
 assert "loaded = false;" in config
 assert "bar: { persistent: bar.persistent" in config
