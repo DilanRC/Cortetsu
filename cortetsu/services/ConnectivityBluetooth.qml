@@ -38,13 +38,14 @@ Singleton {
         operationTarget?.connected, operationTarget?.paired, operationTarget?.bonded,
         operationTarget?.pairing, operationTarget?.trusted, operationTarget?.blocked] : []
     onObservedChanged: Qt.callLater(checkCompletion)
-    onAdapterChanged: { reconcileScan(); Qt.callLater(checkCompletion); }
+    onAdapterChanged: { reconcileScan(); reconcilePower(); Qt.callLater(checkCompletion); }
     onEnabledChanged: reconcileScan()
     onAdaptersChanged: {
         const present = adapters.map(item => item.dbusPath);
         const next = {};
         for (const path of Object.keys(confirmedPower ?? {})) if (present.includes(path)) next[path] = confirmedPower[path];
         confirmedPower = next;
+        reconcilePower();
         Qt.callLater(checkCompletion);
     }
     onAllDevicesChanged: {
@@ -139,7 +140,14 @@ Singleton {
         deadline.interval = kind === "pair" ? 60000 : 20000;
         deadline.start();
         try {
-            if (kind === "power") target.enabled = expected;
+            if (kind === "power") {
+                // A stale native value equal to the request would skip the D-Bus write.
+                if (target.enabled === expected) {
+                    powerWrite.command = ["busctl", "--system", "--timeout=5", "set-property", "org.bluez", target.dbusPath,
+                        "org.bluez.Adapter1", "Powered", "b", expected ? "true" : "false"];
+                    powerWrite.running = true;
+                } else target.enabled = expected;
+            }
             else if (kind === "discoverable") target.discoverable = expected;
             else if (kind === "pairable") target.pairable = expected;
             else if (kind === "wake") target.wakeAllowed = expected;
@@ -242,6 +250,43 @@ Singleton {
             }
         }
     }
+    // Quickshell can keep a re-registered adapter (after resume) cached as off while BlueZ has it on.
+    // Read BlueZ until its power state settles: a bounded readback per adapter change, no idle polling.
+    property int powerReads: 0
+    function reconcilePower() {
+        powerReads = 0;
+        if (adapter) powerSettle.restart();
+    }
+    Timer {
+        id: powerSettle
+        interval: 2000
+        onTriggered: {
+            if (!root.adapter || powerReadback.running) return;
+            powerReadback.path = root.adapter.dbusPath;
+            powerReadback.command = ["busctl", "--system", "--timeout=2", "get-property", "org.bluez", powerReadback.path, "org.bluez.Adapter1", "PowerState"];
+            powerReadback.running = true;
+        }
+    }
+    Process {
+        id: powerReadback
+        property string path: ""
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const value = text.trim();
+                const settled = /^s "[a-z-]+"$/.test(value) && !/-(enabling|disabling)"$/.test(value);
+                if (!settled) {
+                    if (++root.powerReads < 8) powerSettle.restart();
+                    return;
+                }
+                if (root.adapter?.dbusPath !== powerReadback.path || (root.busy && root.operation.kind === "power")) return;
+                const power = Object.assign({}, root.confirmedPower);
+                power[powerReadback.path] = value === 's "on"';
+                root.confirmedPower = power;
+            }
+        }
+    }
+    Process { id: powerWrite }
+    Component.onCompleted: reconcilePower()
     Timer {
         id: deadline
         onTriggered: {

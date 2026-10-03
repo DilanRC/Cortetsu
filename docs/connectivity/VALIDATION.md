@@ -40,7 +40,7 @@ PASS_CONTROLLED significa fixture de política/backend o interacción QML aislad
 |---|---|---|
 | Radio off/on | PASS_PHYSICAL_PRE_MIGRATION; readback/pending fixture PASS_CONTROLLED | PASS_PHYSICAL: backend nuevo, registro /tmp/cortetsu-connectivity-physical.log |
 | Discovery | Owner múltiple y liberación de página PASS_CONTROLLED/Wayland | PASS_PHYSICAL: backend nuevo, registro /tmp/cortetsu-connectivity-physical.log |
-| Connect/disconnect/reconnect | Confirmación nativa/single-flight/plazo PASS_CONTROLLED | PENDING_PHYSICAL_VALIDATION con Gamepad despierto; el 2026-10-02 estaba dormido |
+| Connect/disconnect/reconnect | Confirmación nativa/single-flight/plazo PASS_CONTROLLED | PASS_PHYSICAL 2026-10-03 con Gamepad despierto |
 | Pairing/cancel | API instalada y progreso/cancel fixture PASS_CONTROLLED | PENDING_PHYSICAL_VALIDATION de dispositivo de prueba |
 | Pairing incorrecto/rechazado | Taxonomía policy PASS_CONTROLLED; método no expone error QML | PENDING_PHYSICAL_VALIDATION |
 | PIN/passkey/confirmación | API instalada no expone Agent1 interactivo; UI lo explica | PENDING_PHYSICAL_VALIDATION con agente del sistema |
@@ -50,7 +50,7 @@ PASS_CONTROLLED significa fixture de política/backend o interacción QML aislad
 | Dispositivo desaparece | Política de pertenencia y fallo PASS_CONTROLLED | PENDING_PHYSICAL_VALIDATION |
 | Dormido/fuera de alcance | Host is down observado antes de migración | PASS_PHYSICAL 2026-10-02 (ver «Validación física del 2026-10-02») |
 | BlueZ recovery | Estado de adaptador y limpieza inspeccionados | PENDING_PHYSICAL_VALIDATION de reinicio deliberado |
-| Suspend/resume | Lifetime y estado reactivo inspeccionados | FAIL_PHYSICAL 2026-10-02: estado nativo del adaptador obsoleto en 3 de 6 ciclos |
+| Suspend/resume | Lifetime y estado reactivo inspeccionados | PASS_PHYSICAL 2026-10-03 tras corregir el FAIL del 2026-10-02 (estado nativo obsoleto) |
 | Varios adaptadores | Modelo/selección/contador global y guard durante operación | PENDING_PHYSICAL_VALIDATION; un adaptador real |
 
 | UI | Evidencia |
@@ -117,6 +117,14 @@ Generación instalada `20261002-234544-524584` (commit `7303702`); el ciclo fina
 
 Efectos de la prueba sobre el equipo: el perfil B conserva ahora la contraseña correcta, con autoconnect desactivado como antes; `nmcli` y libnm no permitieron devolverlo a «sin contraseña». El intento con contraseña incorrecta la guardó en el perfil antes de activar, igual que hará la interfaz: un perfil que funcionaba queda con la contraseña equivocada hasta que se introduce la buena.
 
-Pendiente: reconexión del mando despierto, y decidir qué hacer con el estado Bluetooth obsoleto tras reanudar. Mientras dure, la interfaz muestra Bluetooth apagado aunque esté encendido; como la escritura nativa parte del valor en caché, es probable que tampoco permita apagarlo desde ahí.
+Con el estado obsoleto la fachada mostraba Bluetooth apagado estando encendido y rechazaba operaciones sobre dispositivos.
+
+### Corrección y revalidación del 2026-10-03
+
+`ConnectivityBluetooth.qml` trata a BlueZ como autoridad de la potencia del adaptador. Cada vez que cambia el conjunto de adaptadores lee `PowerState` por `busctl` cada 2 s, como máximo ocho veces, hasta que deja de estar en transición, y guarda el resultado en `confirmedPower`; no hay sondeo en reposo. Si al cambiar la potencia el valor nativo ya coincide con el pedido, la escritura va por `busctl set-property`, porque el setter nativo no emitiría nada. La propiedad `state` de la fachada sigue reflejando el valor nativo; ninguna vista la usa.
+
+Generación `20261003-000621-564064`, cinco ciclos reales de suspensión: en el primero el objeto nativo volvió a quedar en `enabled=false`, `Enabling` y la fachada informó `enabled=true`, igual que BlueZ; en los otros cuatro el valor nativo era correcto y la fachada coincidió. `test-connectivity-bluetooth-runtime.py` cubre la lectura y la escritura con un `busctl` falso.
+
+Mando despierto, mismo arnés: desconexión confirmada y reconexión confirmada en unos 4 s, sin propietarios de scan al terminar. El mando se había conectado solo al encenderse, así que la primera conexión iniciada por Cortetsu no quedó ejercitada; la reconexión sí.
 
 La misma sesión encontró dos fallos de bloqueo ajenos a conectividad, corregidos en `IdleMonitors.qml`: la acción idle `lock` lanzaba un error y el ajuste «bloquear antes de dormir» no estaba conectado. Tras la corrección, un ciclo real de suspensión dejó la sesión bloqueada al reanudar.
