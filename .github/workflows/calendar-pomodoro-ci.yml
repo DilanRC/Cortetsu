@@ -13,10 +13,19 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
+    # The runtime build runs Qt Quick Test and Quickshell fixtures; Ubuntu
+    # packages neither Quickshell nor a matching Qt, Arch ships both.
+    container: archlinux:latest
     steps:
+      - name: Install runtime test dependencies
+        run: pacman -Syu --noconfirm git python nodejs qt6-declarative quickshell
       - uses: actions/checkout@v6
         with:
           fetch-depth: 2
+      # The build test isolates HOME, so the per-user safe.directory written
+      # by checkout is not visible to the git calls it makes.
+      - name: Trust the workspace for git
+        run: git config --system --add safe.directory "$GITHUB_WORKSPACE"
       - name: Compile Python sources
         run: |
           python3 -m py_compile \

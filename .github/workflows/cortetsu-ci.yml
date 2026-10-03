@@ -106,7 +106,7 @@ jobs:
           test -f dotfiles/generated/theme/home/.config/kitty/cortetsu-theme.conf
           test -f dotfiles/generated/theme/home/.config/gtk-3.0/cortetsu-colors.css
           test -f dotfiles/generated/theme/home/.config/gtk-4.0/cortetsu-colors.css
-          test -f dotfiles/generated/theme/home/.config/kdeglobals
+          test -f dotfiles/generated/theme/home/.local/share/color-schemes/Cortetsu.colors
           test ! -e dotfiles/imported/desktop/home/.config/kitty/caelestia-theme.conf
           test ! -e scripts/features/install-theme-bridge.py
           test ! -e cortetsu/bin/ensure-upstream.sh
@@ -136,7 +136,7 @@ jobs:
           grep -q 'rollback) rollback_cmd' scripts/cortetsu
           ! grep -q 'install-theme-bridge.py' scripts/install-cortetsu.sh
           ! grep -q 'caelestia-theme.conf' dotfiles/manifest.toml
-          ! git grep -n -I -E 'caerice-|CAERICE_|~/.config/caerice|~/.local/state/caerice' -- ':!docs/history/**' ':!docs/PROVENANCE.md' ':!scripts/migrate-cortetsu-v2.sh' ':!cortetsu/tests/test-runtime-contract.py' ':!.github/workflows/**'
+          ! git grep -n -I -E 'caerice-|CAERICE_|~/.config/caerice|~/.local/state/caerice' -- ':!docs/history/**' ':!docs/PROVENANCE.md' ':!scripts/migrate-cortetsu-v2.sh' ':!cortetsu/tests/test-runtime-contract.py' ':!core/migrate_legacy_processes.py' ':!scripts/features/test-legacy-process-migration.py' ':!cortetsu/tests/test-legacy-process-migration-eval.sh' ':!docs/PERFORMANCE_BASELINE_2026-09-04.md' ':!.github/workflows/**'
           ! git grep -n -I 'sh -c' -- '*.qml'
           ! git grep -n -I 'CORTETSU_DATA_ROOT:-${CORTETSU_DATA_ROOT' -- ':!docs/history/**' ':!.github/workflows/**'
           ! git grep -n -I 'CORTETSU_RUNTIME_ROOT:-${CORTETSU_RUNTIME_ROOT' -- ':!docs/history/**' ':!.github/workflows/**'

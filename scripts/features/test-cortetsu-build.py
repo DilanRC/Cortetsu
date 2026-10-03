@@ -28,6 +28,9 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-e2e-") as temporary:
         "CORTETSU_RUNTIME_ROOT": str(runtime),
         "CORTETSU_REPOSITORY": str(repo),
     }
+    # A host platform theme cannot find its config under the isolated HOME and
+    # logs Qt warnings that the Quickshell fixtures treat as failures.
+    env.pop("QT_QPA_PLATFORMTHEME", None)
 
     build = repo / "cortetsu/bin/build-runtime.sh"
     dotfiles = repo / "core/dotfiles.py"
