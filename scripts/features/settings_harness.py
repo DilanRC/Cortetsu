@@ -269,7 +269,7 @@ COMMANDS = {
 
 FAILURE_MARKERS = ("SETTINGS_FAIL", "TypeError", "ReferenceError", "is not a type", "Unable to assign",
                    "Binding loop", "Cannot anchor", "is not defined", "Cannot read property", "Failed to load",
-                   "Cannot set activeFocusOnTab", "Cannot call method")
+                   "Cannot set activeFocusOnTab", "Cannot call method", "is not a function")
 
 
 def build_tree(folder: Path) -> None:

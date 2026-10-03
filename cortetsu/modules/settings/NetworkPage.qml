@@ -80,7 +80,7 @@ Item {
 
     function signalText(signal): string {
         const value = Number(signal ?? -1);
-        return value >= 0 ? qsTr("%1%").arg(value) : qsTr("—");
+        return value >= 0 ? qsTr("%1 %").arg(value) : qsTr("No disponible");
     }
 
     function networkSignal(network): real { return network ? wifi.strengthPercent(network.signalStrength) : -1; }

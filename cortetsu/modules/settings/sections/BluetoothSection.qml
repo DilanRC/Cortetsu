@@ -85,7 +85,7 @@ ColumnLayout {
         }
 
         Repeater {
-            model: ScriptModel { values: root.bluetooth.allDevices ?? [] }
+            model: ScriptModel { values: [...(root.bluetooth.allDevices ?? [])] }
 
             delegate: SettingActionRow {
                 required property var modelData

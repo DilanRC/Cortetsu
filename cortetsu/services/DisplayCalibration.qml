@@ -21,23 +21,29 @@ Singleton {
 
     function setEnabled(enabled: bool): void {
         CortetsuConfig.colorCalibrationEnabled = enabled;
-        root.apply();
+        root.change();
     }
 
     function setTemperature(kelvin: real): void {
         CortetsuConfig.colorTemperature = Math.max(2500, Math.min(6500, Math.round(kelvin / 100) * 100));
-        root.apply();
+        root.change();
     }
 
     function setGamma(percent: real): void {
         CortetsuConfig.colorGamma = Math.max(50, Math.min(150, Math.round(percent)));
+        root.change();
+    }
+
+    // A change made by the user is stored and applied; restoring at start
+    // only applies what is already stored.
+    function change(): void {
+        CortetsuConfig.save();
         root.apply();
     }
 
     // Runs once the previous change has finished, so a dragged slider ends
     // on its last value without queueing a process per step.
     function apply(): void {
-        CortetsuConfig.save();
         if (root.busy) {
             retry.restart();
             return;

@@ -54,7 +54,7 @@ ColumnLayout {
         }
 
         Repeater {
-            model: ScriptModel { values: CortetsuAudio.sinks }
+            model: ScriptModel { values: [...CortetsuAudio.sinks] }
 
             delegate: CortetsuListRow {
                 required property var modelData
@@ -106,7 +106,7 @@ ColumnLayout {
         }
 
         Repeater {
-            model: ScriptModel { values: CortetsuAudio.sources }
+            model: ScriptModel { values: [...CortetsuAudio.sources] }
 
             delegate: CortetsuListRow {
                 required property var modelData
@@ -138,7 +138,7 @@ ColumnLayout {
         }
 
         Repeater {
-            model: ScriptModel { values: CortetsuAudio.streams }
+            model: ScriptModel { values: [...CortetsuAudio.streams] }
 
             delegate: SettingSliderRow {
                 required property var modelData

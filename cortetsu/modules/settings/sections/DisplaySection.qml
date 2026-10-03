@@ -95,7 +95,7 @@ ColumnLayout {
         detail: root.context.monitorCount === 1 ? qsTr("1 detectado") : qsTr("%1 detectados").arg(root.context.monitorCount)
 
         Repeater {
-            model: ScriptModel { values: Hypr.monitors?.values ?? [] }
+            model: ScriptModel { values: [...(Hypr.monitors?.values ?? [])] }
 
             delegate: SettingValueRow {
                 required property var modelData
