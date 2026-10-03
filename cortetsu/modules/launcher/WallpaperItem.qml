@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import Quickshell
 import ".."
 import "../CortetsuDesign.js" as CortetsuDesign
 import "../CortetsuTypography.js" as CortetsuTypography
@@ -10,6 +11,7 @@ Item {
 
     required property var modelData
     required property var screenState
+    required property var applyOwner
 
     scale: 0.5
     opacity: 0
@@ -25,10 +27,8 @@ Item {
 
     CortetsuStateLayer {
         radius: CortetsuDesign.radiusLarge
-        onClicked: {
-            CortetsuWallpapers.setWallpaper(root.modelData.path);
-            root.screenState.launcher = false;
-        }
+        disabled: CortetsuWallpapers.applying
+        onClicked: root.applyOwner.requestWallpaper(root.modelData.path)
     }
 
     CortetsuSurface {
@@ -63,7 +63,7 @@ Item {
             anchors.fill: parent
             source: root.modelData.path
             fillMode: Image.PreserveAspectCrop
-            smooth: !PathView.view.moving
+            smooth: !(PathView.view?.moving ?? false)
             sourceSize: {
                 const dpr = (QsWindow.window as QsWindow)?.devicePixelRatio ?? 1;
                 return Qt.size(image.implicitWidth * dpr, image.implicitHeight * dpr);

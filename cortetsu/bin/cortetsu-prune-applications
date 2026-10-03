@@ -1,0 +1,74 @@
+#!/usr/bin/env python3
+"""Quarantine broken user desktop entries without touching installed apps."""
+from __future__ import annotations
+
+import argparse
+import configparser
+import os
+import shlex
+import shutil
+from pathlib import Path
+
+
+def applications_dir() -> Path:
+    return Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local/share")) / "applications"
+
+
+def command_target(exec_value: str) -> str | None:
+    try:
+        tokens = shlex.split(exec_value)
+    except ValueError:
+        return None
+    while tokens and (tokens[0] in {"env", "nohup"} or "=" in tokens[0]):
+        tokens.pop(0)
+    if not tokens or tokens[0].startswith("%"):
+        return None
+    return tokens[0]
+
+
+def broken_desktop_file(path: Path) -> bool:
+    parser = configparser.RawConfigParser(interpolation=None, strict=False)
+    parser.optionxform = str
+    try:
+        with path.open(encoding="utf-8") as handle:
+            parser.read_file(handle)
+        section = parser["Desktop Entry"]
+    except (OSError, configparser.Error, KeyError):
+        return False
+    if section.get("Type", "Application") != "Application":
+        return False
+    target = command_target(section.get("Exec", ""))
+    if not target:
+        return True
+    if os.path.isabs(target):
+        return not Path(target).is_file()
+    return shutil.which(target) is None
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--dry-run", action="store_true", help="solo mostrar candidatos")
+    args = parser.parse_args()
+    source = applications_dir()
+    quarantine = Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local/share")) \
+        / "cortetsu/quarantine/applications"
+    candidates = sorted(path for path in source.glob("*.desktop") if broken_desktop_file(path))
+    if args.dry_run:
+        for path in candidates:
+            print(path)
+        return 0
+    if not candidates:
+        print("No hay entradas de usuario rotas.")
+        return 0
+    quarantine.mkdir(parents=True, exist_ok=True)
+    for path in candidates:
+        destination = quarantine / path.name
+        if destination.exists():
+            destination = quarantine / f"{path.stem}-{os.getpid()}{path.suffix}"
+        shutil.move(str(path), destination)
+        print(f"Cuarentena: {path} -> {destination}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

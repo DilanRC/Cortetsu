@@ -15,9 +15,12 @@ assert not legacy_service.exists()
 assert not re.search(r"(?<!Cortetsu)Wallpapers\.", launcher_content)
 assert not re.search(r"(?<!Cortetsu)Wallpapers\.", launcher_content_list)
 
+# The owned reactive palette is allowed; only the inherited bare Colours.
+# namespace is retired.
+service_for_audit = service.replace("CortetsuColours.", "")
 for legacy in ("Caelestia", "qs.services", "Searcher", "FileSystemModel", "Colours.", "Paths."):
-    assert legacy not in service, legacy
-for contract in ("cortetsu/wallpaper/path.txt", 'target: "cortetsu-wallpaper"', "function query", "function preview", "previewGeneration", "cortetsu-wallpaper-select", "cortetsu-wallpaper-colours"):
+    assert legacy not in service_for_audit, legacy
+for contract in ("cortetsu/wallpaper/path.txt", 'target: "cortetsu-wallpaper"', "function query", "function preview", "previewGeneration", "cortetsu-wallpaper-select", "cortetsu-wallpaper-colours", "cortetsu-apply-wallpaper-colors"):
     assert contract in service, contract
 
 print("PASS: Wallpaper service is first-party, XDG-owned and cancellation-aware")
@@ -27,7 +30,9 @@ for text in (wallpaper_list, wallpaper_item):
         assert legacy not in text, legacy
 assert "CortetsuWallpapers.query(query)" in wallpaper_list
 assert "CortetsuWallpapers.preview(currentItem.modelData.path)" in wallpaper_list
-assert "CortetsuWallpapers.setWallpaper(root.modelData.path)" in wallpaper_item
+assert "required property var applyOwner" in wallpaper_item
+assert "disabled: CortetsuWallpapers.applying" in wallpaper_item
+assert "root.applyOwner.requestWallpaper(root.modelData.path)" in wallpaper_item
 print("PASS: launcher wallpaper list and delegate are first-party")
 
 for legacy in ("Caelestia", "qs.services", "qs.components", "Colours.", "Tokens.", "StyledRect", "StyledText", "MaterialIcon"):

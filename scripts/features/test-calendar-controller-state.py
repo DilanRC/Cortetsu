@@ -8,7 +8,7 @@ source = (repo / "cortetsu/modules/CalendarController.qml").read_text(encoding="
 assert "CortetsuShellState.forScreen(screen)?.cortetsuState?.calendar" in source
 assert 'state.setRetained("calendar", false)' in source
 assert "CortetsuShellState.forActive()?.cortetsuState" in source
-assert "OverlayPolicy.closeOtherPanels(state.legacyState)" in source
+assert "OverlayPolicy.closeOtherPanels(state)" in source
 assert 'state.setRetained("calendar", true)' in source
 assert "CortetsuShellState.forScreen(screen)?.calendar" not in source
 print("PASS: CalendarController uses CortetsuScreenState")

@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
+import Quickshell.Networking
 import qs.components
 import qs.components.controls
 import qs.services
@@ -13,15 +14,17 @@ PageBase {
     id: root
 
     readonly property string ssid: nState.selectedNetworkSsid
-    readonly property var ap: Nmcli.findNetwork(root.ssid)
-    readonly property var details: Nmcli.wirelessDeviceDetails
-    readonly property bool isActive: !!Nmcli.active && Nmcli.active.ssid === root.ssid
+    readonly property var ap: Connectivity.wifi.networks.includes(nState.selectedNetwork) ? nState.selectedNetwork : null
+    readonly property string profileUuid: nState.selectedNetworkUuid || (ap?.connected ? Connectivity.wifi.details[ap.device.name]?.uuid ?? "" : "")
+    readonly property var profile: Connectivity.wifi.profiles.find(item => item.uuid === profileUuid) ?? null
+    readonly property var details: Connectivity.wifi.details[ap?.device?.name || profile?.interface] ?? ({})
+    readonly property bool isActive: !!ap?.connected && details.uuid === profileUuid
 
     // Locally-edited IPv4 form state.
     property string ipMethod: "auto" // "auto" | "auto-dns" | "manual"
     property bool ipLoaded: false
     property bool savingIp: false
-    property bool autoconnect: true
+    readonly property bool autoconnect: profile?.autoconnect ?? false
 
     // Snapshot of the saved IPv4 config, so the Apply button only shows up once
     // something actually changed.
@@ -33,49 +36,49 @@ PageBase {
     readonly property bool hasChanges: root.ipLoaded && (root.ipMethod !== root.origMethod || (root.ipMethod === "manual" && (addressField.text.trim() !== root.origAddress || gatewayField.text.trim() !== root.origGateway)) || ((root.ipMethod === "manual" || root.ipMethod === "auto-dns") && dnsField.text.trim() !== root.origDns))
     readonly property bool showDnsSettings: root.ipMethod === "manual" || root.ipMethod === "auto-dns"
 
-    function loadIpConfig(): void {
-        if (!root.ssid)
-            return;
-        Nmcli.getIpv4Config(root.ssid, cfg => {
-            if (!cfg)
-                return;
-            root.ipMethod = cfg.method; // "auto" | "auto-dns" | "manual"
-            methodSelect.active = cfg.method === "manual" ? manualItem : (cfg.method === "auto-dns" ? autoDnsItem : autoItem);
-            addressField.text = cfg.address;
-            gatewayField.text = cfg.gateway;
-            dnsField.text = cfg.dns;
-            root.autoconnect = cfg.autoconnect;
-            root.origMethod = cfg.method;
-            root.origAddress = cfg.address;
-            root.origGateway = cfg.gateway;
-            root.origDns = cfg.dns;
-            root.ipLoaded = true;
-        });
+    property int saveId: -1
+    property int actionId: -1
+    function observeAction(): void {
+        const op = Connectivity.wifi.operation;
+        if (op.id === actionId && ["idle", "connected"].includes(op.state) && !Connectivity.wifi.busy) root.nState.closeSubPage();
     }
-
+    function loadIpConfig(): void {
+        const cfg = profile?.ipv4;
+        if (!cfg || root.ipLoaded) return;
+        root.ipMethod = cfg.method === "auto" && cfg.ignoreAutoDns ? "auto-dns" : cfg.method;
+        methodSelect.active = root.ipMethod === "manual" ? manualItem : (root.ipMethod === "auto-dns" ? autoDnsItem : autoItem);
+        addressField.text = (cfg.addresses ?? []).join(", ");
+        gatewayField.text = cfg.gateway ?? "";
+        dnsField.text = (cfg.dns ?? []).join(", ");
+        root.origMethod = root.ipMethod;
+        root.origAddress = addressField.text;
+        root.origGateway = gatewayField.text;
+        root.origDns = dnsField.text;
+        root.ipLoaded = true;
+    }
     function saveIpConfig(): void {
-        if (!root.ssid)
-            return;
-        root.savingIp = true;
-        Nmcli.setIpv4Config(root.ssid, {
-            method: root.ipMethod,
-            address: addressField.text.trim(),
-            gateway: gatewayField.text.trim(),
-            dns: dnsField.text.trim()
-        }, result => {
-            root.savingIp = false;
-            if (!(result && result.success)) {
-                if (root.ipMethod === "manual")
-                    addressField.isError = true;
-                else
-                    dnsField.isError = true;
-            } else {
-                root.origMethod = root.ipMethod;
-                root.origAddress = addressField.text.trim();
-                root.origGateway = gatewayField.text.trim();
-                root.origDns = dnsField.text.trim();
-            }
-        });
+        if (!root.profile || Connectivity.wifi.busy) return;
+        Connectivity.wifi.setIpv4(root.profile.uuid, root.ipMethod === "auto-dns" ? "auto" : root.ipMethod,
+            addressField.text.trim(), gatewayField.text.trim(), root.ipMethod === "auto" ? "" : dnsField.text.trim());
+        root.saveId = Connectivity.wifi.operation.id;
+        observeSave();
+    }
+    function observeSave(): void {
+        const op = Connectivity.wifi.operation;
+        if (op.id !== saveId) return;
+        savingIp = Connectivity.wifi.busy;
+        if (op.state === "failed") { addressField.isError = true; return; }
+        if (!savingIp && op.state === "idle") {
+            root.origMethod = root.ipMethod;
+            root.origAddress = addressField.text.trim();
+            root.origGateway = gatewayField.text.trim();
+            root.origDns = dnsField.text.trim();
+        }
+    }
+    onProfileChanged: { if (!root.ipLoaded) loadIpConfig(); }
+    property Connections operationConnections: Connections {
+        target: Connectivity.wifi
+        function onOperationChanged() { root.observeSave(); root.observeAction(); }
     }
 
     // Close if the network is no longer active (e.g. disconnected elsewhere).
@@ -89,7 +92,7 @@ PageBase {
     isSubPage: true
 
     Component.onCompleted: {
-        Nmcli.getWirelessDeviceDetails("", () => {});
+        Connectivity.wifi.refreshDetails(ap?.device?.name || profile?.interface || "");
         loadIpConfig();
     }
 
@@ -108,6 +111,7 @@ PageBase {
 
             ButtonBase {
                 id: forgetBtn
+                stateLayer.disabled: !root.profile || Connectivity.wifi.busy
 
                 fillWidth: true
                 shapeMorph: root.isActive
@@ -119,8 +123,9 @@ PageBase {
                 implicitHeight: forgetLayout.implicitHeight + CortetsuTokens.padding.medium * 2
 
                 onClicked: {
-                    Nmcli.forgetNetwork(root.ssid);
-                    root.nState.closeSubPage();
+                    if (root.profile) Connectivity.wifi.forgetProfile(root.profile.uuid);
+                    root.actionId = Connectivity.wifi.operation.id;
+                    root.observeAction();
                 }
 
                 ColumnLayout {
@@ -146,8 +151,9 @@ PageBase {
 
             ButtonBase {
                 id: disconnectBtn
+                stateLayer.disabled: Connectivity.wifi.busy
 
-                visible: root.isActive
+                visible: root.isActive || !!root.profile
                 fillWidth: true
                 shapeMorph: true
                 isRound: true
@@ -158,8 +164,10 @@ PageBase {
                 implicitHeight: disconnectLayout.implicitHeight + CortetsuTokens.padding.medium * 2
 
                 onClicked: {
-                    Nmcli.disconnectFromNetwork();
-                    root.nState.closeSubPage();
+                    if (root.isActive && root.ap) Connectivity.wifi.disconnectNetwork(root.ap);
+                    else if (root.profile) Connectivity.wifi.connectProfile(root.profile.uuid, root.ap?.device?.name || root.profile.interface || "");
+                    root.actionId = Connectivity.wifi.operation.id;
+                    root.observeAction();
                 }
 
                 ColumnLayout {
@@ -170,14 +178,14 @@ PageBase {
 
                     CortetsuIcon {
                         Layout.alignment: Qt.AlignHCenter
-                        text: "link_off"
+                        text: root.isActive ? "link_off" : "link"
                         color: disconnectBtn.onColour
                         fontStyle: CortetsuTokens.font.icon.medium
                     }
 
                     CortetsuText {
                         Layout.alignment: Qt.AlignHCenter
-                        text: qsTr("Disconnect")
+                        text: root.isActive ? qsTr("Disconnect") : qsTr("Connect")
                         color: disconnectBtn.onColour
                     }
                 }
@@ -195,28 +203,28 @@ PageBase {
             first: true
             icon: "signal_wifi_4_bar"
             label: qsTr("Signal")
-            value: root.ap ? qsTr("%1%").arg(root.ap.strength) : qsTr("—")
+            value: root.ap ? qsTr("%1%").arg(Math.round(root.ap.signalStrength * 100)) : qsTr("—")
             visible: root.isActive
         }
 
         InfoRow {
             icon: "lock"
             label: qsTr("Security")
-            value: root.ap?.security || qsTr("Open")
+            value: root.ap ? WifiSecurityType.toString(root.ap.security) : qsTr("—")
             visible: root.isActive
         }
 
         InfoRow {
             icon: "graphic_eq"
             label: qsTr("Frequency")
-            value: root.ap && root.ap.frequency > 0 ? qsTr("%1 MHz").arg(root.ap.frequency) : qsTr("—")
+            value: root.ap ? qsTr("%1 MHz").arg(Connectivity.wifi.accessPoints.find(item => item.active && item.ssid === root.ap.name && item.device === root.ap.device.name)?.frequency ?? 0) : qsTr("—")
             visible: root.isActive
         }
 
         InfoRow {
             icon: "lan"
             label: qsTr("IP address")
-            value: root.details?.ipAddress || qsTr("—")
+            value: root.details?.address || qsTr("—")
             visible: root.isActive
         }
 
@@ -250,9 +258,18 @@ PageBase {
             checked: root.autoconnect
             enabled: root.ipLoaded
             onToggled: {
-                root.autoconnect = checked;
-                Nmcli.setAutoconnect(root.ssid, checked, () => {});
+                if (root.profile) Connectivity.wifi.setAutoconnect(root.profile.uuid, checked);
             }
+        }
+
+        CortetsuText {
+            Layout.fillWidth: true
+            visible: root.saveId === Connectivity.wifi.operation.id
+            text: Connectivity.wifi.operation.state === "failed" ? Connectivity.wifi.operation.lastError
+                : !root.savingIp && Connectivity.wifi.operation.state === "idle" ? qsTr("Guardado y confirmado. Reconecta el perfil para aplicar IPv4.") : qsTr("Guardando IPv4…")
+            wrapMode: Text.WordWrap
+            color: CortetsuColours.palette.m3onSurfaceVariant
+            font: CortetsuTokens.font.body.small
         }
 
         // ---- IPv4 ------------------------------------------------------------

@@ -10,31 +10,28 @@ Item {
     required property ShellScreen screen
     required property var screenState
 
-    readonly property bool shouldBeActive: screenState.cortetsuState?.hardware ?? false
+    readonly property bool shouldBeActive: screenState?.cortetsuState?.hardware ?? false
 
     visible: shouldBeActive
     opacity: shouldBeActive ? 1 : 0
-    scale: shouldBeActive ? 1 : 0.985
-    transformOrigin: Item.Center
 
     Behavior on opacity {
-        NumberAnimation { duration: 120 }
-    }
-
-    Behavior on scale {
-        NumberAnimation { duration: 120 }
+        NumberAnimation {
+            duration: CortetsuDesign.motionFastMs
+            easing.type: Easing.OutCubic
+        }
     }
 
     Rectangle {
         anchors.fill: parent
         visible: root.shouldBeActive
-        color: Qt.alpha(CortetsuDesign.colorScrim, 0.42)
+        color: Qt.alpha(CortetsuDesign.colorScrim, 0.38)
     }
 
     Loader {
         id: contentLoader
         anchors.fill: parent
-        active: root.shouldBeActive
+        active: true
 
         sourceComponent: Content {
             screen: root.screen

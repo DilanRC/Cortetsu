@@ -92,7 +92,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-desktop-import-") as tmp:
     assert "caelestia-theme.conf" in plan.stdout and "theme-owned" in plan.stdout
     assert "cortetsu-theme.conf" in plan.stdout and "theme-owned" in plan.stdout
     assert "cortetsu-colors.css" in plan.stdout and "theme-owned" in plan.stdout
-    assert "kdeglobals" in plan.stdout and "theme-owned" in plan.stdout
+    assert "kdeglobals" in plan.stdout and "user-owned" in plan.stdout
 
     applied = run(["apply", "--commit"], repo=repo, home=home, check=True)
     assert "IMPORTED desktop=" in applied.stdout

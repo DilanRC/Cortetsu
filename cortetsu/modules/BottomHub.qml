@@ -5,11 +5,12 @@ import Quickshell
 import Quickshell.Wayland
 import Quickshell.Io
 import Quickshell.Bluetooth
-import Quickshell.Services.UPower
 import Quickshell.Services.SystemTray
 import "../services"
-import qs.utils
-import qs.modules.launcher.services
+import "../utils"
+import "launcher/services"
+import "BottomHubResolver.js" as BottomHubResolver
+import "BottomHubTray.js" as BottomHubTray
 import "OverlayPolicy.js" as OverlayPolicy
 import "utilities/toasts" as Toasts
 
@@ -17,6 +18,25 @@ Scope {
     id: hubRoot
 
     property bool shown: true
+
+    CortetsuHoverSurfaceController {
+        id: hoverSurfaceController
+
+        onOpenRequested: (screen, mode, anchorCenter) =>
+            hubRoot.openAttachedControlNow(screen, mode, anchorCenter)
+        onCloseRequested: hubRoot.closeAllPopouts()
+    }
+
+    Connections {
+        target: CortetsuConfig.bar.popouts
+
+        function onStatusIconsChanged(): void {
+            if (!CortetsuConfig.bar.popouts.statusIcons) {
+                hoverSurfaceController.cancelPending();
+                hubRoot.closeAllPopouts();
+            }
+        }
+    }
 
     Timer {
         id: hideTimer
@@ -48,6 +68,20 @@ Scope {
         }
     }
 
+    function toggleClipboardFor(screen): void {
+        const state = CortetsuShellState.forScreen(screen)?.cortetsuState;
+        if (!state)
+            return;
+
+        const wasOpen = state.clipboard;
+        closeAllLaunchers();
+        closeAllPanels();
+        closeAllPopouts();
+        if (!wasOpen)
+            state.setRetained("clipboard", true);
+        shown = true;
+    }
+
     function setShown(value): void {
         if (value) {
             hideTimer.stop();
@@ -72,6 +106,7 @@ Scope {
         command: [Paths.home + "/.local/bin/cortetsu-calendar", "sync"]
     }
 
+    // startup inventory: cortetsu:pomodoro (always-on with Bottom Hub)
     Process {
         id: pomodoroOwner
         command: [Paths.home + "/.local/bin/cortetsu-pomodoro", "daemon"]
@@ -130,7 +165,8 @@ Scope {
             closeAllPopouts();
         OverlayPolicy.closeOtherPanels(state);
         state.launcher = !wasOpen;
-        shown = true;
+        // Launcher visibility is independent from BottomHub visibility. Do
+        // not resurrect the bar when the launcher is opened by its shortcut.
     }
 
     function toggleSidebarFor(screen): void {
@@ -138,14 +174,16 @@ Scope {
         if (!state)
             return;
 
-        const wasOpen = state.sidebar || state.utilities;
+        const wasOpen = state.sidebar;
         closeAllLaunchers();
         closeAllPanels();
         if (!wasOpen)
             closeAllPopouts();
         OverlayPolicy.closeOtherPanels(state);
         state.sidebar = !wasOpen;
-        state.utilities = !wasOpen;
+        // Notifications are a standalone surface. Quick settings are opened
+        // through their own OSD entry point.
+        state.utilities = false;
         shown = true;
     }
 
@@ -154,25 +192,17 @@ Scope {
         if (!state)
             return;
 
-        const wasOpen = state.utilities;
         closeAllLaunchers();
         closeAllPanels();
-        if (!wasOpen)
-            closeAllPopouts();
+        closeAllPopouts();
         OverlayPolicy.closeOtherPanels(state);
-        state.utilities = !wasOpen;
+        state.osd = !state.osd;
         shown = true;
     }
 
     function openWallpaperFor(screen): void {
         closeAllPopouts();
-        for (const candidate of CortetsuScreens.screens) {
-            const state = CortetsuShellState.forScreen(candidate)?.cortetsuState;
-            if (!state)
-                continue;
-            OverlayPolicy.closeOtherPanels(state.legacyState);
-            state.setRetained("wallpaperManager", candidate === screen);
-        }
+        WallpaperController.open(screen);
         shown = true;
     }
 
@@ -193,18 +223,29 @@ Scope {
         shown = true;
     }
 
-    function showAttachedControlFor(screen, mode, anchorCenter = -1): void {
+    function openAttachedControlNow(screen, mode, anchorCenter = -1): void {
         const popouts = CortetsuShellState.componentsFor(screen)?.popouts;
         if (!popouts)
             return;
 
         closeAllLaunchers();
         closeAllPanels();
+        popouts.cancelClose();
+        popouts.detachedMode = "";
         popouts.bottomAnchorCenter = anchorCenter;
         popouts.bottomAttached = true;
         popouts.currentName = mode;
         popouts.hasCurrent = true;
         shown = true;
+    }
+
+    function showAttachedControlFor(screen, mode, anchorCenter = -1): void {
+        hoverSurfaceController.request(screen, mode, anchorCenter);
+    }
+
+    function enterAttachedControl(screen, mode, anchorCenter = -1): void {
+        hoverSurfaceController.enterTrigger();
+        hoverSurfaceController.request(screen, mode, anchorCenter);
     }
 
     IpcHandler {
@@ -214,6 +255,33 @@ Scope {
         function show(): void { hubRoot.setShown(true); }
         function hide(): void { hubRoot.setShown(false); }
         function isShown(): bool { return hubRoot.shown; }
+        // Read-only runtime evidence for focus, lifetime and monitor ownership.
+        function inspect(): string {
+            return JSON.stringify(CortetsuScreens.screens.map(screen => {
+                const state = CortetsuShellState.forScreen(screen);
+                const panels = CortetsuShellState.componentsFor(screen);
+                const popup = panels?.popouts;
+                const trayLoader = popup?.content?.item?.currentPopout ?? null;
+                const trayMenu = popup?.current ?? null;
+                const popupWindow = panels?.popoutsWrapper ?? null;
+                return { screen: screen.name, launcher: state?.launcher ?? false,
+                    utilities: state?.utilities ?? false, sidebar: state?.sidebar ?? false,
+                    popup: popup?.currentName ?? "", open: popup?.hasCurrent ?? false,
+                    closing: popup?.closing ?? false, detached: popup?.detachedMode ?? "",
+                    anchor: popup?.bottomAnchorCenter ?? -1, focus: popup?.activeFocus ?? false,
+                    tray: { itemKey: trayLoader?.modelData?.key ?? null,
+                        popupName: trayLoader?.name ?? null,
+                        shouldBeActive: trayLoader?.shouldBeActive ?? false,
+                        loaderActive: trayLoader?.active ?? false,
+                        menuHandle: !!trayLoader?.menuHandle,
+                        stackDepth: trayMenu?.menuDepth ?? 0,
+                        menuContentHeight: trayMenu?.menuContentHeight ?? 0,
+                        menuHeight: trayMenu?.implicitHeight ?? 0,
+                        popupY: popupWindow?.y ?? 0,
+                        popupHeight: popupWindow?.height ?? 0,
+                        screenHeight: screen.height ?? 0 } };
+            }));
+        }
         function launcher(): void {
             const state = CortetsuShellState.forActive();
             if (!state)
@@ -290,7 +358,9 @@ Scope {
                 || (screenState?.session ?? false)
                 || (cortetsuState?.calendar ?? false)
             readonly property int hubMargin: 8
-            readonly property int activeWsId: monitor?.activeWorkspace?.id ?? CortetsuHypr.activeWsId
+            readonly property int activeWsId: CortetsuConfig.bar.workspaces.perMonitorWorkspaces
+                ? monitor?.activeWorkspace?.id ?? CortetsuHypr.activeWsId
+                : CortetsuHypr.activeWsId
             readonly property int workspaceCount: CortetsuConfig.workspacesShown
             readonly property int workspaceOffset: Math.floor((activeWsId - 1) / workspaceCount) * workspaceCount
             readonly property var occupiedWorkspaceIds: CortetsuHypr.workspaces.values
@@ -300,32 +370,42 @@ Scope {
             readonly property string volumeIcon: Icons.getVolumeIcon(CortetsuAudio.volume, CortetsuAudio.muted)
             readonly property string networkIcon: CortetsuNetwork.activeEthernet
                 ? "cable"
+                : CortetsuNetwork.connecting
+                    ? "sync"
                 : CortetsuNetwork.active
                     ? Icons.getNetworkIcon(CortetsuNetwork.active.strength ?? 0)
                     : "wifi_off"
-            readonly property bool networkActive: CortetsuNetwork.activeEthernet || !!CortetsuNetwork.active
-            readonly property bool bluetoothActive: Bluetooth.devices.values.some(device => device.connected)
-            readonly property string bluetoothIcon: !Bluetooth.defaultAdapter?.enabled
-                ? "bluetooth_disabled"
-                : bluetoothActive
-                    ? "bluetooth_connected"
-                    : "bluetooth"
-            readonly property bool batteryCharging: [
-                UPowerDeviceState.Charging,
-                UPowerDeviceState.FullyCharged,
-                UPowerDeviceState.PendingCharge
-            ].includes(UPower.displayDevice.state)
-            readonly property string batteryIcon: UPower.displayDevice.isLaptopBattery
-                ? Icons.getBatteryIcon(UPower.displayDevice.percentage, batteryCharging)
+            readonly property bool networkActive: CortetsuNetwork.connecting || CortetsuNetwork.activeEthernet || !!CortetsuNetwork.active
+            readonly property string networkTooltip: CortetsuNetwork.connecting
+                ? qsTr("Conectando a la red")
+                : CortetsuNetwork.activeEthernet
+                    ? qsTr("Ethernet conectado")
+                    : CortetsuNetwork.active
+                        ? qsTr("%1 · señal %2% · %3").arg(CortetsuNetwork.active.ssid).arg(Math.round(CortetsuNetwork.active.strength ?? 0)).arg(Connectivity.internetLabel)
+                        : qsTr("Red no disponible")
+            readonly property bool bluetoothActive: Connectivity.bluetooth.connectedCount > 0
+            readonly property string bluetoothIcon: bluetoothActive ? "bluetooth_connected"
+                : Connectivity.bluetooth.busy ? "sync"
+                : !Connectivity.bluetooth.enabled ? "bluetooth_disabled" : "bluetooth"
+            readonly property bool batteryCharging: CortetsuPower.charging
+            readonly property string batteryIcon: CortetsuPower.hasBattery
+                ? Icons.getBatteryIcon(CortetsuPower.value, batteryCharging)
                 : "balance"
-            readonly property bool batteryCritical:
-                UPower.onBattery && UPower.displayDevice.percentage <= 0.2
-            readonly property string batteryTooltip: UPower.displayDevice.isLaptopBattery
-                ? qsTr("Battery %1%").arg(Math.round(UPower.displayDevice.percentage * 100))
-                : qsTr("Power profile")
+            readonly property bool batteryCritical: CortetsuPower.critical
+            readonly property string batteryTooltip: CortetsuPower.hasBattery
+                ? qsTr("Batería %1%").arg(CortetsuPower.percent)
+                : qsTr("Perfil de energía")
 
-            property date now: new Date()
             property var pendingFocusClient: null
+
+            function desktopEntryForClient(client): var {
+                return BottomHubResolver.desktopEntryForWindow(
+                    client.lastIpcObject ?? {},
+                    DesktopEntries.applications.values,
+                    identity => DesktopEntries.byId(identity),
+                    candidate => Strings.testRegexList(CortetsuConfig.favouriteApps, candidate.id)
+                );
+            }
 
             readonly property var dockItems: {
                 const clients = CortetsuHypr.toplevels.values.filter(client => {
@@ -336,25 +416,7 @@ Scope {
                     return win.monitor && clientMonitor === win.monitor.id;
                 });
 
-                const groups = new Map();
-
-                for (const client of clients) {
-                    const cls = client.lastIpcObject?.class ?? "";
-                    const entry = DesktopEntries.heuristicLookup(cls);
-                    const key = entry?.id ?? cls.toLowerCase();
-
-                    if (!groups.has(key)) {
-                        groups.set(key, {
-                            key: key,
-                            entry: entry,
-                            className: cls,
-                            pinned: false,
-                            windows: []
-                        });
-                    }
-
-                    groups.get(key).windows.push(client);
-                }
+                const groups = BottomHubResolver.groupWindows(clients, desktopEntryForClient);
 
                 const result = [];
                 const pinnedEntries = DesktopEntries.applications.values.filter(entry =>
@@ -393,26 +455,31 @@ Scope {
                     client => client.lastIpcObject?.address === activeAddress
                 ),
                 title: item.entry?.name ?? item.className,
-                iconSource: item.entry?.icon
-                    ? Quickshell.iconPath(item.entry.icon, "image-missing")
-                    : Icons.getAppIcon(item.className, "image-missing"),
+                iconSource: Icons.getAppIcon(item.entry?.icon || item.className, "image-missing"),
                 windowCount: item.windows.length
             }))
 
-            readonly property var trayViewItems: SystemTray.items.values
-                .filter(item => !CortetsuConfig.hiddenTrayIcons.includes(item.id))
-                .map(item => ({
+            readonly property var trayViewItems: BottomHubTray.visibleEntries(
+                SystemTray.items.values,
+                CortetsuConfig.hiddenTrayIcons,
+                Status.Passive
+            )
+                .map(({ key, item }) => ({
+                    key,
                     id: item.id,
-                    title: item.id,
-                    iconSource: item.icon || Icons.getTrayIcon(item.id, item.icon)
+                    needsAttention: item.status === Status.NeedsAttention,
+                    title: BottomHubTray.tooltipFor(item),
+                    iconSource: item.icon || Icons.getTrayIcon(item.id, item.icon),
+                    onlyMenu: item.onlyMenu,
+                    hasMenu: item.hasMenu
                 }))
 
             function dockItemForKey(key): var {
                 return dockItems.find(item => item.key === key) ?? null;
             }
 
-            function trayItemForId(itemId): var {
-                return SystemTray.items.values.find(item => item.id === itemId) ?? null;
+            function trayItemForKey(key): var {
+                return BottomHubTray.itemForKey(SystemTray.items.values, key);
             }
 
             function togglePinned(item): void {
@@ -436,6 +503,11 @@ Scope {
 
                 const address = client.lastIpcObject?.address;
                 if (!address)
+                    return;
+
+                if (!CortetsuHypr.toplevels.values.some(
+                    candidate => candidate.lastIpcObject?.address === address
+                ))
                     return;
 
                 const selector = `address:${address}`;
@@ -543,28 +615,46 @@ Scope {
                     togglePinned(item);
             }
 
-            function showTrayMenu(itemId, centerX): void {
-                const item = trayItemForId(itemId);
-                if (!item)
-                    return;
-                const sourceIndex = SystemTray.items.values.indexOf(item);
-                if (sourceIndex < 0)
+            function showTrayMenu(itemKey, centerX): void {
+                const item = trayItemForKey(itemKey);
+                if (!item || BottomHubTray.contextAction(item) !== "menu")
                     return;
                 hubRoot.showAttachedControlFor(
                     modelData,
-                    `traymenu${sourceIndex}`,
+                    BottomHubTray.menuName(itemKey),
                     hubMargin + centerX
                 );
             }
 
-            function activateTrayItem(itemId, secondary = false): void {
-                const item = trayItemForId(itemId);
+            function openTrayMenu(itemKey, centerX): void {
+                const item = trayItemForKey(itemKey);
+                if (!item || BottomHubTray.contextAction(item) !== "menu")
+                    return;
+                hubRoot.openAttachedControlNow(
+                    modelData,
+                    BottomHubTray.menuName(itemKey),
+                    hubMargin + centerX
+                );
+            }
+
+            function activateTrayItem(itemKey): void {
+                const item = trayItemForKey(itemKey);
                 if (!item)
                     return;
-                if (secondary)
-                    item.secondaryActivate();
-                else
+                if (BottomHubTray.primaryAction(item) === "activate")
                     item.activate();
+            }
+
+            function activateTraySecondary(itemKey): void {
+                const item = trayItemForKey(itemKey);
+                if (item)
+                    item.secondaryActivate();
+            }
+
+            function scrollTrayItem(itemKey, delta, horizontal): void {
+                const item = trayItemForKey(itemKey);
+                if (item)
+                    item.scroll(delta, horizontal);
             }
 
             function toggleSession(): void {
@@ -574,6 +664,8 @@ Scope {
                 const wasOpen = screenState.session;
                 hubRoot.closeAllLaunchers();
                 hubRoot.closeAllPanels();
+                if (!wasOpen)
+                    hubRoot.closeAllPopouts();
                 OverlayPolicy.closeOtherPanels(screenState);
                 screenState.session = !wasOpen;
             }
@@ -624,22 +716,15 @@ Scope {
                 }
             }
 
-            Timer {
-                interval: 1000
-                repeat: true
-                running: true
-                onTriggered: win.now = new Date()
-            }
-
             screen: modelData
-            visible: hubRoot.shown
+            visible: hubRoot.shown || toasts.visibleToasts.length > 0
             color: "transparent"
 
             mask: Region {
                 Region {
                     x: 0
                     y: win.height - bottomHubView.height
-                    width: win.width
+                    width: hubRoot.shown ? win.width : 0
                     height: bottomHubView.height
                 }
                 Region {
@@ -651,9 +736,12 @@ Scope {
             }
 
             focusable: true
-            WlrLayershell.keyboardFocus: toasts.visibleToasts.length > 0
-                ? WlrKeyboardFocus.Exclusive
-                : WlrKeyboardFocus.OnDemand
+            // Keep toast-only surfaces mapped without asking the compositor for
+            // keyboard focus. Keyboard navigation remains available when the
+            // hub is explicitly shown.
+            WlrLayershell.keyboardFocus: hubRoot.shown
+                ? WlrKeyboardFocus.OnDemand
+                : WlrKeyboardFocus.None
 
             anchors.bottom: true
             margins.bottom: 2
@@ -671,36 +759,44 @@ Scope {
                 anchors.right: parent.right
                 anchors.bottom: parent.bottom
                 height: implicitHeight
+                visible: hubRoot.shown
 
                 launcherActive: win.screenState?.launcher ?? false
-                wallpaperActive: win.cortetsuState?.wallpaperManager ?? false
-                wallpaperSource: CortetsuWallpapers.actualCurrent
                 workspaceCount: win.workspaceCount
                 workspaceOffset: win.workspaceOffset
                 activeWsId: win.activeWsId
                 occupiedWorkspaceIds: win.occupiedWorkspaceIds
                 dockItems: win.dockViewItems
                 trayItems: win.trayViewItems
+                modeVisible: CortetsuConfig.bottomHub.segments.mode
+                appsVisible: CortetsuConfig.bottomHub.segments.apps
+                trayVisible: CortetsuConfig.bottomHub.segments.tray
+                statusVisible: CortetsuConfig.bottomHub.segments.status
 
                 volumeIcon: win.volumeIcon
                 volumeMuted: CortetsuAudio.muted
                 networkIcon: win.networkIcon
+                networkTooltip: win.networkTooltip
                 networkActive: win.networkActive
                 bluetoothIcon: win.bluetoothIcon
                 bluetoothActive: win.bluetoothActive
                 batteryIcon: win.batteryIcon
                 batteryCritical: win.batteryCritical
                 batteryTooltip: win.batteryTooltip
+                audioVisible: CortetsuConfig.bottomHub.statusCluster.audio
+                networkVisible: CortetsuConfig.bottomHub.statusCluster.network
+                bluetoothVisible: CortetsuConfig.bottomHub.statusCluster.bluetooth
+                batteryVisible: CortetsuConfig.bottomHub.statusCluster.battery
+                statusPopoutsEnabled: CortetsuConfig.bar.popouts.statusIcons
                 notificationCount: CortetsuNotifications.count
                 sidebarActive: win.screenState?.sidebar ?? false
                 recordingActive: CortetsuRecorder.running
                 dndActive: CortetsuNotifications.dnd
                 idleInhibited: CortetsuIdleInhibitor.enabled
-                now: win.now
+                now: Time.date
                 sessionActive: win.screenState?.session ?? false
 
                 onLauncherRequested: hubRoot.toggleLauncherFor(win.modelData)
-                onWallpaperRequested: hubRoot.openWallpaperFor(win.modelData)
                 onWorkspaceRequested: workspaceId => CortetsuHypr.dispatch(
                     CortetsuHypr.usingLua
                         ? `hl.dsp.focus({ workspace = \"${workspaceId}\" })`
@@ -710,20 +806,32 @@ Scope {
                 onAppTogglePinnedRequested: key => win.togglePinnedKey(key)
                 onAppCloseRequested: key => win.closeDockKey(key)
                 onAppCycleRequested: (key, direction) => win.cycleDockKey(key, direction)
-                onTrayHoverRequested: (itemId, centerX) => win.showTrayMenu(itemId, centerX)
-                onTrayActivateRequested: itemId => win.activateTrayItem(itemId)
-                onTraySecondaryRequested: itemId => win.activateTrayItem(itemId, true)
+                onTrayHoverRequested: (itemKey, centerX) => win.showTrayMenu(itemKey, centerX)
+                onTrayActivateRequested: itemKey => win.activateTrayItem(itemKey)
+                onTraySecondaryActivateRequested: itemKey => win.activateTraySecondary(itemKey)
+                onTrayScrollRequested: (itemKey, delta, horizontal) =>
+                    win.scrollTrayItem(itemKey, delta, horizontal)
+                onTraySecondaryRequested: (itemKey, centerX) => win.openTrayMenu(itemKey, centerX)
                 onAttachedControlRequested: (mode, centerX) => hubRoot.showAttachedControlFor(
                     win.modelData,
                     mode,
                     win.hubMargin + centerX
                 )
+                onAttachedControlEntered: (mode, centerX) => hubRoot.enterAttachedControl(
+                    win.modelData,
+                    mode,
+                    win.hubMargin + centerX
+                )
+                onSystemControlsEntered: hoverSurfaceController.enterTrigger()
+                onSystemControlsExited: hoverSurfaceController.leaveTrigger()
                 onDetachedControlRequested: mode => hubRoot.toggleDetachedControlFor(win.modelData, mode)
                 onVolumeMuteRequested: {
                     if (CortetsuAudio.sink?.audio)
                         CortetsuAudio.sink.audio.muted = !CortetsuAudio.sink.audio.muted;
                 }
                 onVolumeWheel: delta => {
+                    if (!CortetsuConfig.bar.scrollActions.volume)
+                        return;
                     if (delta > 0)
                         CortetsuAudio.incrementVolume();
                     else if (delta < 0)
@@ -743,6 +851,18 @@ Scope {
                 anchors.bottom: bottomHubView.top
                 anchors.margins: toasts.spacing
                 z: 100
+            }
+
+            Connections {
+                target: CortetsuToaster
+
+                function onFocusRequested(id: int): void {
+                    const screen = CortetsuShellState.forActive()?.modelData;
+                    if (!screen || screen !== win.modelData)
+                        return;
+                    hubRoot.setShown(true);
+                    Qt.callLater(() => toasts.focusToast(id));
+                }
             }
         }
     }

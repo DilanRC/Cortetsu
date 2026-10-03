@@ -14,6 +14,9 @@ QtObject {
     property BluetoothDevice selectedBtDevice
     property DesktopEntry selectedApp
     property int editingVpnIndex: -1
+    property var selectedNetwork: null
+    property string selectedNetworkUuid: ""
+    property string selectedEthernetUuid: ""
     property string selectedNetworkSsid
     property string selectedEthernetInterface
     property bool networkDetailsFromSaved

@@ -61,6 +61,10 @@ local required_modules = {
 
 local failures = {}
 for _, mod in ipairs(required_modules) do
+    -- Hyprland's Lua runtime keeps package.loaded across config reloads.
+    -- Drop first-party modules so keybind changes cannot leave stale
+    -- __lua callbacks registered after a Cortetsu promotion.
+    package.loaded[mod] = nil
     local ok, err = pcall(require, mod)
     if not ok then
         failures[#failures + 1] = mod .. ": " .. tostring(err)

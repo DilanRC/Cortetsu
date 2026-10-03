@@ -159,7 +159,7 @@ Item {
                             anchors.leftMargin: 42
                             anchors.verticalCenter: parent.verticalCenter
                             visible: searchInput.text.length === 0
-                            text: qsTr("Filter processes…")
+                        text: qsTr("Filtrar procesos…")
                             color: CortetsuDesign.colorOutline
                             textSize: CortetsuTypography.bodyPx
                         }
@@ -273,13 +273,13 @@ Item {
 
                     CortetsuText {
                         width: parent.width * 0.43
-                        text: qsTr("Process")
+                        text: qsTr("Proceso")
                         color: CortetsuDesign.colorOutline
                         textSize: CortetsuTypography.labelSmallPx
                     }
                     CortetsuText {
                         width: parent.width * 0.17
-                        text: qsTr("User")
+                        text: qsTr("Usuario")
                         color: CortetsuDesign.colorOutline
                         textSize: CortetsuTypography.labelSmallPx
                     }
@@ -292,7 +292,7 @@ Item {
                     }
                     CortetsuText {
                         width: parent.width * 0.14
-                        text: root.numericMode ? qsTr("CPU cores") : qsTr("CPU %")
+                        text: root.numericMode ? qsTr("Núcleos de CPU") : qsTr("CPU %")
                         color: CortetsuDesign.colorOutline
                         textSize: CortetsuTypography.labelSmallPx
                         horizontalAlignment: Text.AlignRight
@@ -431,7 +431,7 @@ Item {
 
                         CortetsuText {
                             width: parent.width
-                            text: root.selectedProcess?.name ?? qsTr("No process selected")
+                            text: root.selectedProcess?.name ?? qsTr("No hay proceso seleccionado")
                             color: CortetsuDesign.colorOnSurface
                             textSize: CortetsuTypography.titleMediumPx
                             elide: Text.ElideRight
@@ -457,7 +457,7 @@ Item {
                     CortetsuText {
                         anchors.fill: parent
                         anchors.margins: 12
-                        text: root.selectedProcess?.command ?? qsTr("Select a process to inspect its command line.")
+                        text: root.selectedProcess?.command ?? qsTr("Selecciona un proceso para inspeccionar su línea de comandos.")
                         color: CortetsuDesign.colorOnSurfaceVariant
                         textSize: CortetsuTypography.bodySmallPx
                         wrapMode: Text.WrapAnywhere
@@ -469,11 +469,11 @@ Item {
                 Repeater {
                     model: [
                         { label: qsTr("CPU"), value: root.cpuText(root.selectedProcess) },
-                        { label: qsTr("Memory"), value: root.ramText(root.selectedProcess) },
-                        { label: qsTr("State"), value: root.selectedProcess?.state ?? "—" },
-                        { label: qsTr("Threads"), value: String(root.selectedProcess?.threads ?? "—") },
-                        { label: qsTr("Parent PID"), value: String(root.selectedProcess?.ppid ?? "—") },
-                        { label: qsTr("Elapsed"), value: root.selectedProcess?.elapsed_sec !== undefined ? `${Math.floor(Number(root.selectedProcess.elapsed_sec) / 60)}m` : "—" }
+                        { label: qsTr("Memoria"), value: root.ramText(root.selectedProcess) },
+                        { label: qsTr("Estado"), value: root.selectedProcess?.state ?? "—" },
+                        { label: qsTr("Hilos"), value: String(root.selectedProcess?.threads ?? "—") },
+                        { label: qsTr("PID padre"), value: String(root.selectedProcess?.ppid ?? "—") },
+                        { label: qsTr("Tiempo transcurrido"), value: root.selectedProcess?.elapsed_sec !== undefined ? `${Math.floor(Number(root.selectedProcess.elapsed_sec) / 60)}m` : "—" }
                     ]
 
                     delegate: Row {
@@ -545,7 +545,7 @@ Item {
                                 iconSize: CortetsuTypography.iconSmallPx
                             }
                             CortetsuText {
-                                text: root.selectedStopped ? qsTr("Resume") : qsTr("Pause")
+                                text: root.selectedStopped ? qsTr("Reanudar") : qsTr("Pausar")
                                 color: CortetsuDesign.colorOnSecondaryContainer
                                 textSize: CortetsuTypography.labelMediumPx
                             }
@@ -572,7 +572,7 @@ Item {
                                 iconSize: CortetsuTypography.iconSmallPx
                             }
                             CortetsuText {
-                                text: qsTr("Interrupt")
+                                text: qsTr("Interrumpir")
                                 color: CortetsuDesign.colorOnSurfaceVariant
                                 textSize: CortetsuTypography.labelMediumPx
                             }
@@ -599,7 +599,7 @@ Item {
                                 iconSize: CortetsuTypography.iconSmallPx
                             }
                             CortetsuText {
-                                text: qsTr("Terminate")
+                                text: qsTr("Terminar")
                                 color: CortetsuDesign.colorOnSurface
                                 textSize: CortetsuTypography.labelMediumPx
                             }
@@ -626,7 +626,7 @@ Item {
                                 iconSize: CortetsuTypography.iconSmallPx
                             }
                             CortetsuText {
-                                text: qsTr("Force kill")
+                                text: qsTr("Forzar cierre")
                                 color: CortetsuDesign.colorOnSurface
                                 textSize: CortetsuTypography.labelMediumPx
                             }

@@ -11,8 +11,12 @@ import qs.utils
 
 ColumnLayout {
     id: root
+    readonly property string scanOwner: "bluetooth-" + String(root)
 
     required property PopoutState popouts
+
+    Component.onDestruction: ConnectivityBluetooth.setScanOwner(root.scanOwner, false)
+    onVisibleChanged: { if (!visible) ConnectivityBluetooth.setScanOwner(root.scanOwner, false); }
 
     width: 300
     spacing: CortetsuTokens.spacing.small
@@ -26,21 +30,21 @@ ColumnLayout {
 
     Toggle {
         label: qsTr("Enabled")
-        checked: Bluetooth.defaultAdapter?.enabled ?? false // qmllint disable unresolved-type
+        checked: ConnectivityBluetooth.adapter?.enabled ?? false // qmllint disable unresolved-type
         toggle.onToggled: {
-            const adapter = Bluetooth.defaultAdapter; // qmllint disable unresolved-type
+            const adapter = ConnectivityBluetooth.adapter; // qmllint disable unresolved-type
             if (adapter)
-                adapter.enabled = checked;
+                ConnectivityBluetooth.setEnabled(checked);
         }
     }
 
     Toggle {
         label: qsTr("Discovering")
-        checked: Bluetooth.defaultAdapter?.discovering ?? false // qmllint disable unresolved-type
+        checked: ConnectivityBluetooth.adapter?.discovering ?? false // qmllint disable unresolved-type
         toggle.onToggled: {
-            const adapter = Bluetooth.defaultAdapter; // qmllint disable unresolved-type
+            const adapter = ConnectivityBluetooth.adapter; // qmllint disable unresolved-type
             if (adapter)
-                adapter.discovering = checked;
+                ConnectivityBluetooth.setScanOwner(root.scanOwner, checked);
         }
     }
 
@@ -48,7 +52,7 @@ ColumnLayout {
         Layout.topMargin: CortetsuTokens.spacing.small
         Layout.rightMargin: CortetsuTokens.padding.extraSmall
         text: {
-            const devices = Bluetooth.devices.values; // qmllint disable unresolved-type
+            const devices = ConnectivityBluetooth.devices; // qmllint disable unresolved-type
             let available = qsTr("%1 device%2 available").arg(devices.length).arg(devices.length === 1 ? "" : "s");
             const connected = devices.filter(d => d.connected).length;
             if (connected > 0)
@@ -61,7 +65,7 @@ ColumnLayout {
 
     Repeater {
         model: ScriptModel {
-            values: [...Bluetooth.devices.values].sort((a, b) => (b.connected - a.connected) || (b.paired - a.paired) || a.name.localeCompare(b.name)).slice(0, 5) // qmllint disable unresolved-type
+            values: [...ConnectivityBluetooth.devices].sort((a, b) => (b.connected - a.connected) || (b.paired - a.paired) || a.name.localeCompare(b.name)).slice(0, 5) // qmllint disable unresolved-type
         }
 
         RowLayout {
@@ -126,8 +130,8 @@ ColumnLayout {
 
                 CortetsuStateLayer {
                     color: device.modelData.state === BluetoothDeviceState.Connected ? CortetsuColours.palette.m3onPrimary : CortetsuColours.palette.m3onSurface // qmllint disable unresolved-type
-                    disabled: device.loading
-                    onClicked: device.modelData.connected = !device.modelData.connected
+                    disabled: device.loading || ConnectivityBluetooth.busy
+                    onClicked: device.modelData.connected ? ConnectivityBluetooth.disconnectDevice(device.modelData) : (device.modelData.paired ? ConnectivityBluetooth.connectDevice(device.modelData) : ConnectivityBluetooth.pairDevice(device.modelData))
                 }
 
                 CortetsuIcon {
@@ -158,7 +162,7 @@ ColumnLayout {
 
                     CortetsuStateLayer {
                         radius: CortetsuTokens.rounding.full
-                        onClicked: device.modelData.forget()
+                        onClicked: ConnectivityBluetooth.forgetDevice(device.modelData)
                     }
 
                     CortetsuIcon {

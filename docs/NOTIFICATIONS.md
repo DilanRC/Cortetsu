@@ -46,7 +46,12 @@ and bar remain interactive without intercepting the rest of the screen.
 Mouse click, Escape, and the per-item action keys dismiss the newest visible
 toast. Toasts take exclusive keyboard focus only while the stack is visible,
 then release it when the stack becomes empty. The current implementation caps
-the visible stack at five items and expires each item after five seconds.
+the visible stack at five items and expires each item after five seconds. The
+notification card keeps one hover island across its body and actions, while
+toast hitboxes remain fixed and their timeout pauses during hover or keyboard
+focus. The live notification model receives the same interaction state, so its
+backend expiry timer pauses too and cannot remove the popup under an active
+action row.
 
 ## What is explicitly out of scope, and why
 
@@ -85,24 +90,28 @@ diff and needed no migration.
 ## DBus notification ownership (runtime verification)
 
 After promoting the Cortetsu runtime, the active owner was rechecked on the
-real session:
+real session. The first check found a competing `mako` process even though its
+user unit was disabled, so the test stopped that already-running unit before
+reloading Cortetsu:
 
 ```
+$ systemctl --user stop mako.service
+$ cortetsu shell reload
 $ busctl --user status org.freedesktop.Notifications
-PID=3361346
+PID=<current Cortetsu qs PID>
 Comm=qs
 CommandLine=/usr/bin/qs -p /home/dilan/.config/quickshell/cortetsu/current -n
 ```
 
 Quickshell's `NotificationServer` is therefore the live backend in the
-promoted session. A real `notify-send` notification was rendered in the
-Cortetsu notification center, appeared in the two-monitor toast layer, and
-was dismissed with the always-visible `Dismiss` action. Escape closed the
-center. The service remained at `NRestarts=0`, `ExecMainStatus=0`, with no new
-QML warnings or errors.
+promoted session while `mako` remains inactive. A real `notify-send`
+notification was rendered in the Cortetsu notification center and expired from
+the popup collection after its configured timeout. The service remained at
+`NRestarts=0`, `ExecMainStatus=0`, with no new QML warnings or errors.
 
-The earlier `mako` ownership observation is historical and no longer describes
-the promoted runtime. No service disablement or backend handoff is required.
+The ownership check is part of the runtime contract: if another daemon claims
+`org.freedesktop.Notifications`, Cortetsu cannot receive the live event. Keep
+`mako.service` inactive while Cortetsu's native `NotificationServer` is in use.
 
 ```sh
 # Confirm current owner if the runtime is rebuilt:

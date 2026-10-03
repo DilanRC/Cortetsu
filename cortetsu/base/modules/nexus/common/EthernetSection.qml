@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Networking
 import qs.components
 import qs.components.controls
 import qs.services
@@ -16,22 +17,6 @@ ColumnLayout {
     required property int cappedWidth
 
     spacing: CortetsuTokens.spacing.extraSmall / 2
-
-    // Keep ethernet state fresh while the page is visible.
-    Timer {
-        running: root.visible
-        repeat: true
-        triggeredOnStart: true
-        interval: 5000
-        onTriggered: {
-            Nmcli.getEthernetInterfaces(() => {});
-            if (Nmcli.activeEthernet) {
-                Nmcli.getEthernetDeviceDetails(Nmcli.activeEthernet.iface, () => {});
-                Nmcli.getEthernetDataUsage(Nmcli.activeEthernet.iface, () => {});
-                Nmcli.getEthernetSpeed(Nmcli.activeEthernet.iface);
-            }
-        }
-    }
 
     ConnectedRect {
         Layout.fillWidth: true
@@ -59,15 +44,15 @@ ColumnLayout {
 
                 CortetsuText {
                     Layout.alignment: Qt.AlignRight
-                    text: Nmcli.activeEthernet ? qsTr("Connected") : qsTr("Not connected")
-                    color: Nmcli.activeEthernet ? CortetsuColours.palette.m3primary : CortetsuColours.palette.m3outline
+                    text: Connectivity.wifi.activeEthernet ? qsTr("Connected") : qsTr("Not connected")
+                    color: Connectivity.wifi.activeEthernet ? CortetsuColours.palette.m3primary : CortetsuColours.palette.m3outline
                     font: CortetsuTokens.font.label.small
                 }
 
                 CortetsuText {
                     Layout.alignment: Qt.AlignRight
-                    visible: Nmcli.activeEthernet && Nmcli.ethernetDataUsage.length > 0
-                    text: qsTr("Data usage: %1").arg(Nmcli.ethernetDataUsage)
+                    visible: Connectivity.wifi.activeEthernet && false
+                    text: qsTr("Data usage: %1").arg("")
                     color: CortetsuColours.palette.m3outline
                     font: CortetsuTokens.font.label.small
                 }
@@ -79,19 +64,20 @@ ColumnLayout {
         id: ethRepeater
 
         model: ScriptModel {
-            values: Nmcli.ethernetDevices.filter(d => d.state !== "unavailable")
+            values: Connectivity.wifi.devices.filter(d => d.type === DeviceType.Wired)
         }
 
         delegate: ConnectedRect {
             id: ethRow
 
-            required property Nmcli.EthernetDevice modelData
+            required property var modelData
             required property int index
+            Component.onCompleted: Connectivity.wifi.refreshDetails(modelData.name)
 
             readonly property bool isConnected: modelData.connected
             // IP/MAC/DNS come from the parsed device details, not the basic
             // device list (which leaves those fields blank).
-            readonly property var details: ethRow.isConnected ? Nmcli.ethernetDeviceDetails : null
+            readonly property var details: Connectivity.wifi.details[modelData.name] ?? null
 
             Layout.fillWidth: true
             last: index === ethRepeater.count - 1
@@ -100,7 +86,8 @@ ColumnLayout {
             // Tap opens the detail page for this interface.
             CortetsuStateLayer {
                 onClicked: {
-                    root.nState.selectedEthernetInterface = ethRow.modelData.iface;
+                    root.nState.selectedEthernetInterface = ethRow.modelData.name;
+                    root.nState.selectedEthernetUuid = ethRow.details?.uuid ?? "";
                     root.nState.openSubPage(1);
                 }
             }
@@ -139,7 +126,7 @@ ColumnLayout {
 
                     CortetsuText {
                         Layout.fillWidth: true
-                        text: ethRow.modelData.connection || ethRow.modelData.iface || qsTr("Wired connection")
+                        text: ethRow.details?.profileName || ethRow.modelData.name || qsTr("Wired connection")
                         font: CortetsuTokens.font.body.medium
                         elide: Text.ElideRight
                         animate: true
@@ -147,7 +134,7 @@ ColumnLayout {
 
                     CortetsuText {
                         Layout.fillWidth: true
-                        text: ethRow.isConnected ? ethRow.modelData.iface : qsTr("Not connected • %1").arg(ethRow.modelData.iface)
+                        text: ethRow.isConnected ? ethRow.modelData.name : qsTr("Not connected • %1").arg(ethRow.modelData.name)
                         color: ethRow.isConnected ? CortetsuColours.palette.m3primary : CortetsuColours.palette.m3onSurfaceVariant
                         font: CortetsuTokens.font.label.small
                         elide: Text.ElideRight
@@ -162,19 +149,6 @@ ColumnLayout {
 
                     implicitWidth: ethRow.isConnected && root?.cappedWidth > CortetsuTokens.sizes.nexus.networkShowEthDetailWidth ? ethDetailRow.implicitWidth : 0
                     implicitHeight: ethDetailRow.implicitHeight
-
-                    onVisibleChanged: {
-                        if (visible) {
-                            ethIpAddr.value = ethRow.details?.ipAddress ?? "";
-                            ethDns.value = ethRow.details?.dns[0] ?? "";
-                        }
-                    }
-                    Component.onCompleted: {
-                        if (visible) {
-                            ethIpAddr.value = ethRow.details?.ipAddress ?? "";
-                            ethDns.value = ethRow.details?.dns[0] ?? "";
-                        }
-                    }
 
                     Behavior on opacity {
                         Anim {
@@ -192,12 +166,14 @@ ColumnLayout {
                             id: ethIpAddr
 
                             label: qsTr("Local IP Address")
+                            value: ethRow.details?.address ?? ""
                         }
 
                         EthDetail {
                             id: ethDns
 
                             label: qsTr("Primary DNS")
+                            value: ethRow.details?.dns?.[0] ?? ""
                         }
                     }
                 }
@@ -205,15 +181,16 @@ ColumnLayout {
                 // Connect / disconnect
                 IconButton {
                     type: IconButton.Tonal
+                    enabled: !Connectivity.wifi.busy && (ethRow.isConnected || Connectivity.wifi.profiles.some(profile => profile.type === "802-3-ethernet" && (!profile.interface || profile.interface === ethRow.modelData.name)))
                     isToggle: true
                     isRound: true
                     checked: ethRow.isConnected
                     icon: ethRow.isConnected ? "link_off" : "link"
                     onClicked: {
                         if (ethRow.isConnected)
-                            Nmcli.disconnectEthernet(ethRow.modelData.connection);
+                            Connectivity.wifi.disconnectWired(ethRow.modelData);
                         else
-                            Nmcli.connectEthernet(ethRow.modelData.connection, ethRow.modelData.iface);
+                            Connectivity.wifi.connectProfile(Connectivity.wifi.profiles.find(profile => profile.type === "802-3-ethernet" && (!profile.interface || profile.interface === ethRow.modelData.name))?.uuid ?? "", ethRow.modelData.name);
                     }
                 }
 

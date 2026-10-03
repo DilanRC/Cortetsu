@@ -48,7 +48,7 @@ Singleton {
     function setStreamMuted(node, value: bool): void { if (node?.ready && node.audio) node.audio.muted = value; }
     function getStreamVolume(node): real { return node?.audio?.volume ?? 0; }
     function getStreamMuted(node): bool { return !!node?.audio?.muted; }
-    function getStreamName(node): string { return node?.properties?.["application.name"] || node?.description || node?.name || qsTr("Unknown Application"); }
+    function getStreamName(node): string { return node?.properties?.["application.name"] || node?.description || node?.name || qsTr("Aplicación desconocida"); }
     function refreshNodes(): void {
         const nextSinks = [], nextSources = [], nextStreams = [];
         for (const node of Pipewire.nodes.values) {

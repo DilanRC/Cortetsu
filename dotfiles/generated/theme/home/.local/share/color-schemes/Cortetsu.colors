@@ -1,10 +1,5 @@
 [General]
-ColorScheme=Cortetsu
 Name=Cortetsu
-TerminalApplication=kitty
-
-[KDE]
-contrast=4
 
 [Colors:Button]
 BackgroundAlternate=18,21,25

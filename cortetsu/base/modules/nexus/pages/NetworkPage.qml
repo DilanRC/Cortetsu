@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Networking
 import qs.components
 import qs.components.controls
 import qs.modules
@@ -12,6 +13,11 @@ import qs.modules.nexus.common
 PageBase {
     id: root
 
+    readonly property string scanOwner: "legacy-nexus-network-" + String(root)
+    readonly property bool hasEthernet: Connectivity.wifi.devices.some(device => device.type === DeviceType.Wired)
+    onVisibleChanged: Connectivity.wifi.setScanOwner(scanOwner, visible)
+    Component.onCompleted: Connectivity.wifi.setScanOwner(scanOwner, visible)
+    Component.onDestruction: Connectivity.wifi.setScanOwner(scanOwner, false)
     title: qsTr("Network")
 
     ColumnLayout {
@@ -20,33 +26,9 @@ PageBase {
         width: root.cappedWidth
         spacing: CortetsuTokens.spacing.extraSmall / 2
 
-        Timer {
-            running: root.visible && Nmcli.wifiEnabled
-            repeat: true
-            triggeredOnStart: true
-            interval: CortetsuConfig.nexusNetworkRescanInterval
-            onTriggered: Nmcli.rescanWifi()
-        }
-
-        Timer {
-            id: wifiScanDelay
-
-            interval: 100
-            onTriggered: Nmcli.rescanWifi()
-        }
-
-        Connections {
-            function onWifiEnabledChanged(): void {
-                if (Nmcli.wifiEnabled)
-                    wifiScanDelay.start();
-            }
-
-            target: Nmcli
-        }
-
         Loader {
             Layout.fillWidth: true
-            active: Nmcli.hasAvailableEthernet
+            active: root.hasEthernet
             visible: active
             asynchronous: true
 
@@ -57,17 +39,26 @@ PageBase {
         }
 
         ToggleRow {
-            Layout.topMargin: Nmcli.hasAvailableEthernet ? CortetsuTokens.spacing.large : 0
+            Layout.topMargin: root.hasEthernet ? CortetsuTokens.spacing.large : 0
             first: true
             text: qsTr("Wi-Fi")
             font: CortetsuTokens.font.body.medium
             horizontalPadding: CortetsuTokens.padding.largeIncreased
-            checked: Nmcli.wifiEnabled
-            onToggled: Nmcli.enableWifi(checked)
+            checked: Connectivity.wifi.wifiEnabled
+            onToggled: Connectivity.wifi.setEnabled(checked)
+        }
+
+        CortetsuText {
+            Layout.fillWidth: true
+            visible: ["failed", "auth-required"].includes(Connectivity.wifi.operation.state)
+            text: Connectivity.wifi.operation.lastError
+            wrapMode: Text.WordWrap
+            color: CortetsuColours.palette.m3error
+            font: CortetsuTokens.font.body.small
         }
 
         NetworkList {
-            Layout.bottomMargin: Nmcli.wifiEnabled && Nmcli.networks.length > CortetsuConfig.nexusMaxNetworksShown ? 0 : -parent.spacing
+            Layout.bottomMargin: Connectivity.wifi.wifiEnabled && Connectivity.wifi.networks.length > CortetsuConfig.nexusMaxNetworksShown ? 0 : -parent.spacing
             nState: root.nState
             limit: CortetsuConfig.nexusMaxNetworksShown
 
@@ -80,11 +71,11 @@ PageBase {
 
         // All networks button, only when > max networks
         RowButton {
-            Layout.preferredHeight: Nmcli.wifiEnabled && Nmcli.networks.length > CortetsuConfig.nexusMaxNetworksShown ? implicitHeight : 0
+            Layout.preferredHeight: Connectivity.wifi.wifiEnabled && Connectivity.wifi.networks.length > CortetsuConfig.nexusMaxNetworksShown ? implicitHeight : 0
             clip: true
 
             icon: "expand_content"
-            text: qsTr("Show all networks (%1)").arg(Nmcli.networks.length)
+            text: qsTr("Show all networks (%1)").arg(Connectivity.wifi.networks.length)
             trailingIcon: "chevron_right"
             onClicked: root.nState.openSubPage(5) // All networks sub-page
 
@@ -107,8 +98,8 @@ PageBase {
             last: true
             icon: "add"
             text: qsTr("Add network")
-            disabled: !Nmcli.wifiEnabled
-            onClicked: root.nState.openSubPage(2) // Add network sub-page
+            disabled: !Connectivity.wifi.wifiEnabled
+            onClicked: { root.nState.selectedNetwork = null; root.nState.openSubPage(2); }
         }
 
         // ---- VPN -------------------------------------------------------------

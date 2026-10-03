@@ -9,6 +9,7 @@ The importer is intentionally conservative:
 - files that look like they contain passwords, API keys, tokens, client secrets or private keys block `apply`;
 - missing applications are not an error when at least one selected group has importable configuration;
 - generated files live under `dotfiles/imported/desktop/home/` so a new snapshot can replace the previous one atomically;
+- `~/.config/kdeglobals` is reported as user-owned and skipped so KDE can keep writing application preferences to a regular file;
 - only `dotfiles/manifest.toml` and `dotfiles/imported/desktop/` are staged by `--commit`; unrelated worktree changes remain untouched.
 
 ## Groups

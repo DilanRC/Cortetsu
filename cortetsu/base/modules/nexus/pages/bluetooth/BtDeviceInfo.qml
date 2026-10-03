@@ -48,6 +48,7 @@ PageBase {
 
             ButtonBase {
                 id: forgetBtn
+                stateLayer.disabled: ConnectivityBluetooth.busy
 
                 fillWidth: true
                 shapeMorph: true
@@ -60,8 +61,7 @@ PageBase {
                 implicitHeight: forgetBtnLayout.implicitHeight + CortetsuTokens.padding.medium * 2
 
                 onClicked: {
-                    root.device?.forget();
-                    root.nState.closeSubPage();
+                    ConnectivityBluetooth.forgetDevice(root.device);
                 }
 
                 ColumnLayout {
@@ -94,12 +94,12 @@ PageBase {
 
                 inactiveColour: CortetsuColours.palette.m3primaryContainer
                 inactiveOnColour: CortetsuColours.palette.m3onPrimaryContainer
-                stateLayer.disabled: root.loading
+                stateLayer.disabled: root.loading || ConnectivityBluetooth.busy
 
                 implicitWidth: connectBtnContent.implicitWidth + CortetsuTokens.padding.extraLarge * 2
                 implicitHeight: connectBtnContent.implicitHeight + CortetsuTokens.padding.medium * 2
 
-                onClicked: root.device.connected = !root.connected
+                onClicked: root.connected ? ConnectivityBluetooth.disconnectDevice(root.device) : ConnectivityBluetooth.connectDevice(root.device)
 
                 AnimLoader {
                     id: connectBtnContent
@@ -149,10 +149,11 @@ PageBase {
             first: true
             text: qsTr("Trusted")
             subtext: qsTr("Allow this device to connect automatically")
-            checked: root.device?.trusted ?? false
+            disabled: ConnectivityBluetooth.busy
+            checked: Connectivity.bluetooth.propertyValue(root.device, "trusted")
             onToggled: {
                 if (root.device)
-                    root.device.trusted = checked;
+                    ConnectivityBluetooth.setTrusted(root.device, checked);
             }
         }
 
@@ -160,10 +161,11 @@ PageBase {
             verticalPadding: CortetsuTokens.padding.large
             text: qsTr("Blocked")
             subtext: qsTr("Prevent this device from connecting")
-            checked: root.device?.blocked ?? false
+            disabled: ConnectivityBluetooth.busy
+            checked: Connectivity.bluetooth.propertyValue(root.device, "blocked")
             onToggled: {
                 if (root.device)
-                    root.device.blocked = checked;
+                    ConnectivityBluetooth.setBlocked(root.device, checked);
             }
         }
 
@@ -172,10 +174,11 @@ PageBase {
             last: true
             text: qsTr("Wake allowed")
             subtext: qsTr("Allow this device to wake the system")
-            checked: root.device?.wakeAllowed ?? false
+            disabled: ConnectivityBluetooth.busy
+            checked: Connectivity.bluetooth.propertyValue(root.device, "wakeAllowed")
             onToggled: {
                 if (root.device)
-                    root.device.wakeAllowed = checked;
+                    ConnectivityBluetooth.setWakeAllowed(root.device, checked);
             }
         }
 

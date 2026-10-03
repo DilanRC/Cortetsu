@@ -2,7 +2,8 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import Quickshell
-import qs.modules.bar.popouts
+import "."
+import "../../CortetsuDesign.js" as CortetsuDesign
 
 Item {
     id: root
@@ -16,6 +17,11 @@ Item {
     clip: false
     implicitWidth: content.implicitWidth
     implicitHeight: content.implicitHeight
+    // Panels places this wrapper as a positioned item, not in a layout. Keep
+    // its hit/draw bounds equal to the measured popup so attached popouts are
+    // visible and their HoverHandler can receive the pointer.
+    width: implicitWidth
+    height: implicitHeight
 
     x: content.isDetached
         ? (parent.width - content.nonAnimWidth) / 2
@@ -36,7 +42,12 @@ Item {
         return Math.max(off, 0);
     }
 
-    Behavior on offsetScale { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
+    Behavior on offsetScale {
+        NumberAnimation {
+            duration: content.closing ? CortetsuDesign.motionFastMs : CortetsuDesign.motionStandardMs
+            easing.type: content.closing ? Easing.InCubic : Easing.OutCubic
+        }
+    }
 
     Wrapper {
         id: content
@@ -48,6 +59,8 @@ Item {
         // from pulling popouts away from their BottomHub/tray icon.
         x: 0
         transformOrigin: Item.Bottom
-        scale: 1 - root.offsetScale
+        opacity: 1 - root.offsetScale
+        scale: 1 - 0.025 * root.offsetScale
+        transform: Translate { y: 12 * root.offsetScale }
     }
 }

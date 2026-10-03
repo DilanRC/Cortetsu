@@ -26,7 +26,11 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-e2e-") as temporary:
         "XDG_CONFIG_HOME": str(home / ".config"),
         "CORTETSU_DATA_ROOT": str(data),
         "CORTETSU_RUNTIME_ROOT": str(runtime),
+        "CORTETSU_REPOSITORY": str(repo),
     }
+    # A host platform theme cannot find its config under the isolated HOME and
+    # logs Qt warnings that the Quickshell fixtures treat as failures.
+    env.pop("QT_QPA_PLATFORMTHEME", None)
 
     build = repo / "cortetsu/bin/build-runtime.sh"
     dotfiles = repo / "core/dotfiles.py"
@@ -41,6 +45,22 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-e2e-") as temporary:
     assert (shell1 / "BUILD.json").is_file()
     assert not (runtime / "previous").exists()
     assert (runtime / "legacy-previous").resolve() == unmanaged
+
+    # A promoted generation must retain the selected scheme instead of
+    # reverting to the source-generated design defaults.
+    scheme = repo / "cortetsu/bin/cortetsu-scheme"
+    scheme_env = {**env, "CORTETSU_REPOSITORY": str(repo)}
+    subprocess.run(
+        [str(scheme), "set", "-n", "aura", "default"],
+        cwd=repo,
+        env={**scheme_env, "CORTETSU_SKIP_RELOAD": "1"},
+        check=True,
+    )
+    aura_primary = next(
+        line.split(None, 1)[1].strip().upper()
+        for line in (repo / "cortetsu/data/schemes/cortetsu-pack/aura/default/dark.txt").read_text().splitlines()
+        if line.startswith("primary ")
+    )
 
     subprocess.run(
         ["python3", str(dotfiles), "apply", "--repo", str(repo), "--profile", "personal"],
@@ -62,6 +82,9 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-e2e-") as temporary:
     assert shell2 != shell1
     assert (runtime / "previous").resolve() == shell1
     assert (runtime / "legacy-previous").resolve() == unmanaged
+    assert f'var colorPrimary = "#{aura_primary}"' in (
+        shell2 / "modules/CortetsuDesign.js"
+    ).read_text(encoding="utf-8")
 
     subprocess.run(
         ["python3", str(dotfiles), "apply", "--repo", str(repo), "--profile", "personal"],

@@ -70,7 +70,9 @@ assert hits.stdout.strip() == "", f"forbidden dependency on deleted Caelestia tr
 #     registered by Hyprland's Lua API and silently drops SUPER+SHIFT+#.
 user_config = (REPO / "config/hypr-user.lua").read_text(encoding="utf-8")
 assert 'local fn = require("utils.functions")' in user_config
-assert 'hl.bind("SUPER + SHIFT + " .. key, fn.wsaction("move", "", i))' in user_config
+assert 'local move_key = "SUPER + SHIFT + " .. key' in user_config
+assert 'hl.bind(move_key, fn.wsaction("move", "", i))' in user_config
+assert 'move_key = "SUPER + SHIFT + F7"' in user_config
 
 # 2b. Same gate for the migrated hypr-user.lua: it now lives only at
 # ~/.config/hypr/hypr-user.lua. Reintroducing the caelestia path as an active

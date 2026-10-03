@@ -13,6 +13,7 @@ Singleton {
     property real percentage: 0
     property real temperature: 0
 
+    // startup inventory: cortetsu:gpu-probe (on-demand dashboard telemetry)
     Process {
         id: probe
         command: ["sh", "-c", "command -v nvidia-smi >/dev/null 2>&1 && nvidia-smi --query-gpu=name,utilization.gpu,temperature.gpu --format=csv,noheader,nounits"]

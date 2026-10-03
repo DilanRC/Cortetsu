@@ -76,20 +76,12 @@ hl.bind(
     hl.dsp.global("cortetsu:dashboard")
 )
 
-hl.bind(
-    "SUPER + Slash",
-    hl.dsp.global("cortetsu:utilities")
-)
-
-hl.bind(
-    "SUPER + I",
-    hl.dsp.global("cortetsu:utilities")
-)
-
 -- Clipboard QML nativo
 hl.bind(
     "SUPER + V",
-    hl.dsp.global("cortetsu:clipboard")
+    -- Resolve the live systemd-owned Quickshell PID; `qs -p` cannot discover
+    -- this foreground instance reliably on the installed Quickshell version.
+    hl.dsp.exec_cmd("/home/dilan/.local/bin/cortetsu shell ipc clipboard toggle")
 )
 
 hl.bind(
@@ -132,19 +124,13 @@ hl.bind(
 -- ============================================================
 
 hl.bind(
-    "Print",
-    hl.dsp.exec_cmd("cortetsu screenshot -r -f")
-)
-
-
-hl.bind(
     "CTRL + Print",
     hl.dsp.exec_cmd("grimblast copy area")
 )
 
 hl.bind(
     "SUPER + Print",
-    hl.dsp.exec_cmd([[sh -c 'grimblast save area - | swappy -f -']])
+    hl.dsp.exec_cmd([[sh -c 'mkdir -p "$HOME/Imágenes/Screenshots"; grimblast save area - | swappy -f - -o "$HOME/Imágenes/Screenshots/swappy-$(date +%Y%m%d-%H%M%S-%N).png"']])
 )
 
 hl.bind(
@@ -155,7 +141,7 @@ hl.bind(
 hl.bind(
     "ALT + Print",
     hl.dsp.exec_cmd(
-        [[sh -c 'mkdir -p "$HOME/Imagenes/Screenshots"; grimblast save active "$HOME/Imagenes/Screenshots/$(date +%Y%m%d-%H%M%S).png"']]
+        [[sh -c 'mkdir -p "$HOME/Imágenes/Screenshots"; grimblast save active "$HOME/Imágenes/Screenshots/$(date +%Y%m%d-%H%M%S).png"']]
     )
 )
 
@@ -262,14 +248,13 @@ for i = 1, 10 do
     -- SUPER+SHIFT+# is the direct window-to-workspace shortcut. Keep it
     -- explicit here so the user overlay cannot be shadowed by the grouped
     -- workspace callback from hyprland/keybinds.lua.
-    hl.bind("SUPER + SHIFT + " .. key, fn.wsaction("move", "", i))
-
-    hl.bind(
-        "SUPER + CTRL + " .. key,
-        hl.dsp.focus({
-            workspace = workspace
-        })
-    )
+    local move_key = "SUPER + SHIFT + " .. key
+    -- On the active latam layout, slash is Shift+7. Keep QSD on that
+    -- product shortcut and give workspace 7 an explicit equivalent.
+    if key == "7" then
+        move_key = "SUPER + SHIFT + F7"
+    end
+    hl.bind(move_key, fn.wsaction("move", "", i))
 
     hl.bind(
         "SUPER + CTRL + SHIFT + " .. key,

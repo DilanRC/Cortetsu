@@ -7,7 +7,7 @@ import "../../CortetsuDesign.js" as CortetsuDesign
 
 ColumnLayout {
     spacing: CortetsuDesign.spacingCompact
-    CortetsuSectionHeader { title: qsTr("Lock state"); detail: qsTr("Keyboard indicators") }
-    CortetsuListRow { icon: "keyboard_capslock"; title: qsTr("Caps Lock"); subtitle: Hypr.capsLock ? qsTr("Enabled") : qsTr("Disabled") }
-    CortetsuListRow { icon: "pin"; title: qsTr("Num Lock"); subtitle: Hypr.numLock ? qsTr("Enabled") : qsTr("Disabled") }
+    CortetsuSectionHeader { title: qsTr("Estado de bloqueo"); detail: qsTr("Indicadores del teclado") }
+    CortetsuListRow { icon: "keyboard_capslock"; title: qsTr("Bloq Mayús"); subtitle: Hypr.capsLock ? qsTr("Activado") : qsTr("Desactivado") }
+    CortetsuListRow { icon: "pin"; title: qsTr("Bloq Num"); subtitle: Hypr.numLock ? qsTr("Activado") : qsTr("Desactivado") }
 }

@@ -92,7 +92,7 @@ def payload_from_legacy(path: Path) -> dict[str, object]:
         "useFuzzyApps": launcher.get("useFuzzy", {}).get("apps", True) is True,
         "useFuzzyWallpapers": launcher.get("useFuzzy", {}).get("wallpapers", True) is True,
         "smartScheme": data.get("services", {}).get("smartScheme", True) is True,
-        "wallpaperDirectory": data.get("paths", {}).get("wallpaperDir", "~/Pictures/Wallpapers") if isinstance(data.get("paths", {}).get("wallpaperDir", "~/Pictures/Wallpapers"), str) else "~/Pictures/Wallpapers",
+        "wallpaperDirectory": data.get("paths", {}).get("wallpaperDir", "~/Imágenes/Wallpapers") if isinstance(data.get("paths", {}).get("wallpaperDir", "~/Imágenes/Wallpapers"), str) else "~/Imágenes/Wallpapers",
         "useTwelveHourClock": services.get("useTwelveHourClock", False) is True,
         "useFahrenheit": services.get("useFahrenheit", False) is True,
         "useFahrenheitPerformance": services.get("useFahrenheitPerformance", False) is True,

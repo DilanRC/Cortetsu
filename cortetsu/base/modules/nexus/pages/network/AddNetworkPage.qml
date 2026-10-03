@@ -17,36 +17,49 @@ PageBase {
     property bool connecting: false
     property bool failed: false
     property bool success: false
+    property bool existingNetwork: false
 
     function submit(): void {
-        const ssid = ssidField.text.trim();
+        const ssid = ssidField.text;
         if (ssid.length === 0) {
             ssidField.isError = true;
             ssidField.forceActiveFocus();
             return;
         }
-        if (root.secured && passwordField.text.length < 8) {
+        if (root.secured && passwordField.text.length < (securitySelect.active === saeItem ? 1 : 8)) {
             passwordField.isError = true;
             passwordField.forceActiveFocus();
             return;
         }
 
-        root.failed = false;
-        root.connecting = true;
+        if (root.existingNetwork && !Connectivity.wifi.networks.includes(root.nState.selectedNetwork)) { root.failed = true; passwordField.text = ""; return; }
+        const secret = root.secured ? passwordField.text : "";
+        passwordField.text = "";
+        if (root.nState.selectedNetwork && Connectivity.wifi.networks.includes(root.nState.selectedNetwork))
+            Connectivity.wifi.connectNetwork(root.nState.selectedNetwork, secret, null);
+        else Connectivity.wifi.connectHidden(ssid, Connectivity.wifi.wifiDevice?.name ?? "", secret, root.secured ? (securitySelect.active === saeItem ? "sae" : "wpa-psk") : "open");
+        root.requestId = Connectivity.wifi.operation.id;
+        root.connecting = Connectivity.wifi.busy;
+        root.failed = ["failed", "auth-required"].includes(Connectivity.wifi.operation.state);
+    }
 
-        Nmcli.addHiddenNetwork(ssid, root.secured ? passwordField.text : "", root.secured ? "wpa" : "none", hiddenToggle.checked, result => {
-            root.connecting = false;
-            if (result && result.success) {
-                root.success = true;
-                root.nState.closeSubPage();
-            } else {
-                root.failed = true;
-                if (root.secured)
-                    passwordField.isError = true;
-                // Clean up the half-created profile so a retry starts fresh.
-                Nmcli.forgetNetwork(ssid);
-            }
-        });
+    property int requestId: -1
+    onVisibleChanged: { if (!visible) passwordField.text = ""; }
+    Component.onCompleted: {
+        root.existingNetwork = !!root.nState.selectedNetwork;
+        ssidField.text = root.nState.selectedNetwork?.name ?? "";
+        if (root.nState.selectedNetwork) hiddenToggle.checked = false;
+    }
+    property Connections operationConnections: Connections {
+        target: Connectivity.wifi
+        function onOperationChanged() {
+            const op = Connectivity.wifi.operation;
+            if (op.id !== root.requestId) return;
+            root.connecting = Connectivity.wifi.busy;
+            root.failed = ["failed", "auth-required"].includes(op.state);
+            root.success = op.state === "connected";
+            if (root.success) root.nState.closeSubPage();
+        }
     }
 
     title: qsTr("Add network")
@@ -57,19 +70,6 @@ PageBase {
         anchors.top: parent.top
         width: root.cappedWidth
         spacing: CortetsuTokens.spacing.large
-
-        Connections {
-            function onSubPageClosed(): void {
-                if (root.success)
-                    return;
-
-                const ssid = ssidField.text.trim();
-                if (ssid)
-                    Nmcli.forgetNetwork(ssid);
-            }
-
-            target: root.nState
-        }
 
         CortetsuText {
             Layout.fillWidth: true
@@ -82,6 +82,7 @@ PageBase {
 
         StyledTextField {
             id: ssidField
+            readOnly: root.existingNetwork
 
             Layout.fillWidth: true
             Layout.topMargin: CortetsuTokens.spacing.extraSmall
@@ -101,6 +102,7 @@ PageBase {
             text: qsTr("Hidden network")
             subtext: qsTr("Actively probe for a network that doesn't broadcast its name")
             checked: true
+            enabled: false
         }
 
         SelectRow {
@@ -109,13 +111,18 @@ PageBase {
             Layout.topMargin: CortetsuTokens.spacing.extraSmall / 2 - parent.spacing
             last: !root.secured
             label: qsTr("Security")
-            fallbackText: qsTr("WPA/WPA2/WPA3 Personal")
+            fallbackText: qsTr("WPA/WPA2 Personal")
             fallbackIcon: "lock"
 
             menuItems: [
                 MenuItem {
                     icon: "lock"
-                    text: qsTr("WPA/WPA2/WPA3 Personal")
+                    text: qsTr("WPA/WPA2 Personal")
+                },
+                MenuItem {
+                    id: saeItem
+                    icon: "lock"
+                    text: qsTr("WPA3 Personal (SAE)")
                 },
                 MenuItem {
                     id: noneItem
@@ -202,13 +209,13 @@ PageBase {
                 isRound: true
                 inactiveColour: CortetsuColours.palette.m3primary
                 inactiveOnColour: CortetsuColours.palette.m3onPrimary
-                stateLayer.disabled: root.connecting || ssidField.text.trim().length === 0
+                stateLayer.disabled: root.connecting || ssidField.text.length === 0
 
                 implicitWidth: connectMetrics.width + CortetsuTokens.padding.extraLarge * 2
                 implicitHeight: connectMetrics.height + CortetsuTokens.padding.medium * 2
 
                 onClicked: {
-                    if (!root.connecting && ssidField.text.trim().length > 0)
+                    if (!root.connecting && ssidField.text.length > 0)
                         root.submit();
                 }
 

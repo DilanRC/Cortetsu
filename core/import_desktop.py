@@ -29,7 +29,6 @@ THEME_OWNED_TARGETS = {
     Path(".config/kitty/cortetsu-theme.conf"),
     Path(".config/gtk-3.0/cortetsu-colors.css"),
     Path(".config/gtk-4.0/cortetsu-colors.css"),
-    Path(".config/kdeglobals"),
 }
 DIR_SPECS = (
     ("kitty", "terminal", ".config/kitty"),
@@ -115,6 +114,9 @@ def add_candidate(
     rejected: list[tuple[str, Path, str]],
 ) -> None:
     target = path.relative_to(home)
+    if target == Path(".config/kdeglobals"):
+        rejected.append((group, target, "user-owned"))
+        return
     if target in THEME_OWNED_TARGETS:
         rejected.append((group, target, "theme-owned"))
         return

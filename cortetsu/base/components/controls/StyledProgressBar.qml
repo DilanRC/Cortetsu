@@ -107,7 +107,7 @@ ProgressBar {
                 Component.onCompleted: implicitSize = Qt.binding(() => parent.width - wave.implicitWidth < parent.height ? parent.height : 4)
 
                 anchors.right: parent.right
-                anchors.verticalCenter: parent.verticalCenter
+                anchors.verticalCenter: parent?.verticalCenter
                 anchors.rightMargin: (parent.height - implicitHeight) / 2
 
                 implicitWidth: implicitSize
@@ -167,12 +167,8 @@ ProgressBar {
                     bounds: root.toBounds(cur.endFraction, next.startFraction, cur.gapSize / 2)
                 }
 
-                onObjectAdded: (_, obj) => content.data.push(obj)
-                onObjectRemoved: (_, obj) => {
-                    const idx = content.data.indexOf(obj);
-                    if (idx !== -1)
-                        content.data.splice(idx, 1);
-                }
+                onObjectAdded: (_, obj) => obj.parent = content
+                onObjectRemoved: (_, obj) => obj.visible = false
             }
 
             Instantiator {
@@ -188,12 +184,8 @@ ProgressBar {
                     color: root.fgColour
                 }
 
-                onObjectAdded: (_, obj) => content.data.push(obj)
-                onObjectRemoved: (_, obj) => {
-                    const idx = content.data.indexOf(obj);
-                    if (idx !== -1)
-                        content.data.splice(idx, 1);
-                }
+                onObjectAdded: (_, obj) => obj.parent = content
+                onObjectRemoved: (_, obj) => obj.visible = false
             }
         }
     }
@@ -204,8 +196,8 @@ ProgressBar {
         x: bounds.x
         implicitWidth: bounds.y - bounds.x
 
-        anchors.verticalCenter: parent.verticalCenter
-        implicitHeight: parent.height
+        anchors.verticalCenter: parent?.verticalCenter
+        implicitHeight: parent?.height ?? 0
 
         radius: CortetsuTokens.rounding.full
         color: root.bgColour
@@ -214,14 +206,14 @@ ProgressBar {
     component Wave: WavyLine {
         id: wave
 
-        anchors.verticalCenter: parent.verticalCenter
+        anchors.verticalCenter: parent?.verticalCenter
         implicitHeight: lineWidth * amplitudeMultiplier * 2 + lineWidth
 
-        lineWidth: parent.height
+        lineWidth: parent?.height ?? 0
         amplitudeMultiplier: root.wavy ? root.waveAmplitude : 0
         frequency: root.waveFrequency
         startX: x
-        fullLength: parent.width
+        fullLength: parent?.width ?? 0
         color: root.fgColour
 
         Anim on waveProgress {

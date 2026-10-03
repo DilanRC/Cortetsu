@@ -34,6 +34,12 @@ Singleton {
         const initialClass = window.initialClass ?? "";
         const title = window.title ?? "";
         const initialTitle = window.initialTitle ?? "";
+        // Hyprland can retain an unmapped helper surface briefly after its
+        // owner closes. It must not become a taskbar or overview item.
+        if (window.mapped === false)
+            return false;
+        if (Number.isFinite(Number(window.pid)) && Number(window.pid) <= 0)
+            return false;
         if ((window.xwayland ?? false) && !windowClass && !title)
             return false;
         if (/^(QtWebEngineProcess\.exe|QtWebEngineProcess)$/.test(windowClass) || /^(QtWebEngineProcess\.exe|QtWebEngineProcess)$/.test(initialClass))

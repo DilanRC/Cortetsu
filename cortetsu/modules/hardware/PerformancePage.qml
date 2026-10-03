@@ -72,7 +72,7 @@ Item {
             icon: "memory"
             headline: root.pct(root.selectedCpuNow)
             subtitle: `${root.number(root.cpu?.temp_c, 1)} °C · ${root.number(root.cpu?.freq_mhz, 0)} MHz · ${root.cpu?.governor ?? "—"}`
-            legendA: root.selectedCpuCore < 0 ? qsTr("Total") : `Core ${root.selectedCpuCore}`
+            legendA: root.selectedCpuCore < 0 ? qsTr("Total") : `Núcleo ${root.selectedCpuCore}`
             seriesA: root.selectedCpuHistory
             maxValue: 100
             unit: "%"
@@ -83,31 +83,31 @@ Item {
         HistoryGraph {
             width: (parent.width - 12) / 2
             height: (parent.height - 24) / 3
-            title: qsTr("Memory")
+            title: qsTr("Memoria")
             icon: "developer_board"
             headline: `${root.number(root.memory?.used_gb, 2)} / ${root.number(root.memory?.total_gb, 2)} GiB`
-            subtitle: `${qsTr("available")} ${root.number(root.memory?.available_gb, 2)} GiB · ${qsTr("cache")} ${root.number(root.memory?.cache_gb, 2)} · ${qsTr("swap")} ${root.number(root.memory?.swap_used_gb, 2)}`
-            legendA: qsTr("Used")
-            legendB: root.showSwapHistory ? qsTr("Swap") : qsTr("Cache")
+            subtitle: `${qsTr("disponible")} ${root.number(root.memory?.available_gb, 2)} GiB · ${qsTr("caché")} ${root.number(root.memory?.cache_gb, 2)} · ${qsTr("intercambio")} ${root.number(root.memory?.swap_used_gb, 2)}`
+            legendA: qsTr("Usada")
+            legendB: root.showSwapHistory ? qsTr("Intercambio") : qsTr("Caché")
             seriesA: root.memoryUsedHistory
             seriesB: root.showSwapHistory ? root.swapUsedHistory : root.memoryCacheHistory
             maxValue: Math.max(1, Number(root.memory?.total_gb ?? 1))
             unit: "GiB"
             colourA: CortetsuDesign.colorPrimary
             colourB: root.showSwapHistory ? CortetsuDesign.colorTertiary : CortetsuDesign.colorSecondary
-            actionLabel: root.showSwapHistory ? qsTr("Swap") : qsTr("Cache")
+            actionLabel: root.showSwapHistory ? qsTr("Intercambio") : qsTr("Caché")
             onActionRequested: root.showSwapHistory = !root.showSwapHistory
         }
 
         HistoryGraph {
             width: (parent.width - 12) / 2
             height: (parent.height - 24) / 3
-            title: qsTr("Network")
+            title: qsTr("Red")
             icon: "wifi"
             headline: `${root.number(root.network?.rx_mbps, 2)} ↓  ${root.number(root.network?.tx_mbps, 2)} ↑ Mb/s`
             subtitle: `${root.network?.interface ?? "—"} · RX ${root.number(root.network?.rx_total_gb, 2)} GiB · TX ${root.number(root.network?.tx_total_gb, 2)} GiB`
-            legendA: qsTr("Download")
-            legendB: qsTr("Upload")
+            legendA: qsTr("Descarga")
+            legendB: qsTr("Subida")
             seriesA: root.networkRxHistory
             seriesB: root.networkTxHistory
             unit: "Mb/s"
@@ -118,12 +118,12 @@ Item {
         HistoryGraph {
             width: (parent.width - 12) / 2
             height: (parent.height - 24) / 3
-            title: qsTr("NVMe / disk I/O")
+            title: qsTr("E/S de disco / NVMe")
             icon: "hard_drive"
             headline: `${root.number(root.diskIo?.read_mib_s, 2)} R · ${root.number(root.diskIo?.write_mib_s, 2)} W MiB/s`
-            subtitle: `${root.diskIo?.device ?? qsTr("Root device")} · ${root.number(root.diskIo?.read_iops, 0)} / ${root.number(root.diskIo?.write_iops, 0)} IOPS`
-            legendA: qsTr("Read")
-            legendB: qsTr("Write")
+            subtitle: `${root.diskIo?.device ?? qsTr("Dispositivo raíz")} · ${root.number(root.diskIo?.read_iops, 0)} / ${root.number(root.diskIo?.write_iops, 0)} IOPS`
+            legendA: qsTr("Lectura")
+            legendB: qsTr("Escritura")
             seriesA: root.diskReadHistory
             seriesB: root.diskWriteHistory
             unit: "MiB/s"
@@ -136,11 +136,11 @@ Item {
             height: (parent.height - 24) / 3
             title: root.gpuAt(0)?.vendor ? `${root.gpuAt(0).vendor} ${qsTr("GPU")}` : qsTr("GPU 1")
             icon: "view_in_ar"
-            headline: root.gpus.length > 0 ? root.pct(root.gpuAt(0)?.usage) : qsTr("Not detected")
+            headline: root.gpus.length > 0 ? root.pct(root.gpuAt(0)?.usage) : qsTr("No detectada")
             subtitle: root.gpus.length > 0
                 ? `${root.number(root.gpuAt(0)?.temp_c, 1)} °C · ${root.number(root.gpuAt(0)?.power_w, 1)} W · ${root.number(root.gpuAt(0)?.vram_used_gb, 2)} / ${root.number(root.gpuAt(0)?.vram_total_gb, 2)} GiB`
-                : qsTr("No telemetry")
-            legendA: qsTr("GPU usage")
+                : qsTr("Sin datos")
+            legendA: qsTr("Uso de GPU")
             seriesA: root.gpu0History
             maxValue: 100
             unit: "%"
@@ -152,11 +152,11 @@ Item {
             height: (parent.height - 24) / 3
             title: root.gpuAt(1)?.vendor ? `${root.gpuAt(1).vendor} ${qsTr("GPU")}` : qsTr("GPU 2")
             icon: "sports_esports"
-            headline: root.gpus.length > 1 ? root.pct(root.gpuAt(1)?.usage) : qsTr("Not detected")
+            headline: root.gpus.length > 1 ? root.pct(root.gpuAt(1)?.usage) : qsTr("No detectada")
             subtitle: root.gpus.length > 1
                 ? `${root.number(root.gpuAt(1)?.temp_c, 1)} °C · ${root.number(root.gpuAt(1)?.power_w, 1)} W · ${root.number(root.gpuAt(1)?.vram_used_gb, 2)} / ${root.number(root.gpuAt(1)?.vram_total_gb, 2)} GiB`
-                : qsTr("No telemetry")
-            legendA: qsTr("GPU usage")
+                : qsTr("Sin datos")
+            legendA: qsTr("Uso de GPU")
             seriesA: root.gpu1History
             maxValue: 100
             unit: "%"

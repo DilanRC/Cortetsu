@@ -5,21 +5,20 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-utilities = (ROOT / "cortetsu/modules/utilities/Content.qml").read_text(encoding="utf-8")
+utilities = (ROOT / "cortetsu/modules/utilities/Wrapper.qml").read_text(encoding="utf-8")
 osd = (ROOT / "cortetsu/modules/osd/Content.qml").read_text(encoding="utf-8")
+qsd = (ROOT / "cortetsu/modules/osd/FullContent.qml").read_text(encoding="utf-8")
+progress = (ROOT / "cortetsu/components/CortetsuProgressBar.qml").read_text(encoding="utf-8")
 
 checks = {
-    "quick settings has a shared popup surface": "CortetsuPopupSurface" in utilities,
-    "quick settings balances primary controls": "RowLayout" in utilities and "Layout.fillWidth" in utilities,
-    "quick settings has a status summary": "Recording active" in utilities and "Ready" in utilities,
-    "keep-awake remains actionable": "CortetsuIdleInhibitor.enabled = !CortetsuIdleInhibitor.enabled" in utilities,
-    "recording remains actionable": "CortetsuRecorder.stop()" in utilities and '"cortetsu-record", "start"' in utilities,
-    "notifications remain reachable": "root.screenState.sidebar = true" in utilities,
-    "osd keeps volume wheel control": "CortetsuAudio.incrementVolume" in osd and "CortetsuAudio.decrementVolume" in osd,
-    "osd uses one shared surface": "CortetsuPopupSurface" in osd and "id: indicators" in osd,
-    "osd keeps brightness wheel control": "root.monitor.setBrightness" in osd,
-    "osd renders a bounded level": "Math.max(0, Math.min(1, modelData.value))" in osd,
-    "osd distinguishes mute": "root.muted && index === 0" in osd,
+    "legacy quick settings host is inert": "readonly property bool shouldBeActive: false" in utilities,
+    "osd composes the complete large surface": "FullContent" in osd,
+    "large surface keeps system controls": "CortetsuActionTile" in qsd and "CortetsuSlider" in qsd,
+    "osd has a stable large width": "implicitWidth: 520" in osd,
+    "large surface closes the OSD": "state.osd = false" in qsd,
+    "large surface keeps power and network context": "CortetsuPower" in qsd and "networkName" in qsd,
+    "osd uses the shared bounded level primitive": "CortetsuSlider" in qsd
+    and "Math.max(0, Math.min(1, root.value))" in progress,
     "surfaces avoid legacy ownership": all(
         legacy not in utilities and legacy not in osd
         for legacy in ("Caelestia", "GlobalConfig", "qs.services", "qs.components", "Tokens", "Colours")

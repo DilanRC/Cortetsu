@@ -24,6 +24,7 @@ PageBase {
         spacing: CortetsuTokens.spacing.extraSmall / 2
 
         // e.g. "Quickshell 0.3.0 (revision ...)"
+        // startup inventory: cortetsu:about-quickshell-version
         Process {
             running: true
             command: ["quickshell", "--version"]
@@ -33,6 +34,7 @@ PageBase {
         }
 
         // Read the optional first-party CLI without making the shell depend on it.
+        // startup inventory: cortetsu:about-cortetsu-version
         Process {
             running: true
             command: ["sh", "-c", "command -v cortetsu >/dev/null 2>&1 && cortetsu --version"]

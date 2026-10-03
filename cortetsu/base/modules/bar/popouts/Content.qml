@@ -7,6 +7,7 @@ import Quickshell.Services.SystemTray
 import qs.components
 import qs.modules
 import qs.services
+import "../SystemTrayIdentity.js" as TrayIdentity
 
 Item {
     id: root
@@ -62,12 +63,13 @@ Item {
                                 (passwordPopout.item as CortetsuWifiPasswordPopup).network = (networkPopout.item as CortetsuNetworkPopup).passwordNetwork;
                             }
                         }
-                        // Also try after a short delay in case networkPopout.item wasn't ready
+                        // Defer to the next event loop turn in case networkPopout.item
+                        // has not finished updating yet.
                         Qt.callLater(() => {
                             if (passwordPopout.item && (networkPopout.item as CortetsuNetworkPopup)?.passwordNetwork) {
                                 (passwordPopout.item as CortetsuWifiPasswordPopup).network = (networkPopout.item as CortetsuNetworkPopup).passwordNetwork;
                             }
-                        }, 100);
+                        });
                     }
                 }
 
@@ -121,23 +123,42 @@ Item {
 
         Repeater {
             model: ScriptModel {
-                values: SystemTray.items.values.filter(i => !CortetsuConfig.hiddenTrayIcons.includes(i.id))
+                values: TrayIdentity.entries(SystemTray.items.values.filter(i => i.status !== Status.Passive && !CortetsuConfig.hiddenTrayIcons.includes(i.id)))
+                objectProp: "key"
             }
 
             Popout {
                 id: trayMenu
 
-                required property SystemTrayItem modelData
-                required property int index
+                required property var modelData
+                readonly property var menuHandle: modelData?.item?.menu ?? null
+                property bool menuReady: true
 
-                name: `traymenu${index}`
-                sourceComponent: trayMenuComp
+                name: TrayIdentity.popupName(modelData.key)
+                sourceComponent: menuHandle && menuReady ? trayMenuComp : null
+
+                Component.onDestruction: {
+                    if (shouldBeActive && menuReady)
+                        root.popouts.close();
+                }
+
+                onMenuHandleChanged: {
+                    if (!menuHandle && shouldBeActive)
+                        root.popouts.close();
+                }
+
+                Timer {
+                    id: menuReload
+                    interval: 0
+                    repeat: false
+                    onTriggered: trayMenu.menuReady = true
+                }
 
                 Connections {
                     function onHasCurrentChanged(): void {
                         if (root.popouts.hasCurrent && trayMenu.shouldBeActive) {
-                            trayMenu.sourceComponent = null;
-                            trayMenu.sourceComponent = trayMenuComp;
+                            trayMenu.menuReady = false;
+                            menuReload.restart();
                         }
                     }
 
@@ -149,7 +170,7 @@ Item {
 
                     CortetsuTrayMenu {
                         popouts: root.popouts
-                        trayItem: trayMenu.modelData.menu // qmllint disable unresolved-type
+                        trayItem: trayMenu.menuHandle // qmllint disable unresolved-type
                     }
                 }
             }

@@ -5,14 +5,17 @@ import QtQuick.Controls
 import Quickshell
 import ".."
 import "../CortetsuDesign.js" as CortetsuDesign
-import qs.modules
+import ".."
 
 PathView {
     id: root
 
     required property TextField search
     required property var screenState
-    required property var panels
+    // The dedicated LauncherHost intentionally has no legacy panel bundle.
+    // Wallpaper browsing only needs those measurements when embedded in the
+    // drawer composition, so keep the host contract optional and null-safe.
+    property var panels: null
     required property var content
 
     readonly property int itemWidth: 176 * 0.8 + CortetsuDesign.spacingStandard * 2
@@ -21,12 +24,17 @@ PathView {
         if (!screen)
             return 0;
 
-        const barMargins = Math.max(CortetsuOverlayConfig.border.thickness, panels.bar.implicitWidth);
+        const barMargins = Math.max(
+            CortetsuOverlayConfig.border.thickness,
+            panels?.bar?.implicitWidth ?? 0
+        );
         let outerMargins = 0;
-        if (panels.popouts.hasCurrent && panels.popouts.currentCenter + panels.popouts.nonAnimHeight / 2 > screen.height - content.implicitHeight - CortetsuOverlayConfig.border.thickness * 2)
-            outerMargins = panels.popouts.nonAnimWidth;
-        if ((screenState.utilities || screenState.sidebar) && panels.utilities.implicitWidth > outerMargins)
-            outerMargins = panels.utilities.implicitWidth;
+        const popouts = panels?.popouts;
+        if (popouts?.hasCurrent && popouts.currentCenter + popouts.nonAnimHeight / 2 > screen.height - content.implicitHeight - CortetsuOverlayConfig.border.thickness * 2)
+            outerMargins = popouts.nonAnimWidth;
+        const utilitiesWidth = panels?.utilities?.implicitWidth ?? 0;
+        if ((screenState.utilities || screenState.sidebar) && utilitiesWidth > outerMargins)
+            outerMargins = utilitiesWidth;
         const maxWidth = screen.width - CortetsuOverlayConfig.border.rounding * 4 - (barMargins + outerMargins) * 2;
         if (maxWidth <= 0)
             return 0;
@@ -63,7 +71,10 @@ PathView {
     preferredHighlightEnd: 0.5
     highlightRangeMode: PathView.StrictlyEnforceRange
 
-    delegate: WallpaperItem { screenState: root.screenState }
+    delegate: WallpaperItem {
+        screenState: root.screenState
+        applyOwner: root.content
+    }
 
     path: Path {
         startY: root.height / 2

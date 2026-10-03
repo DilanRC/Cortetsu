@@ -51,7 +51,7 @@ Item {
                         spacing: 2
 
                         CortetsuText {
-                            text: qsTr("CPU cores")
+                            text: qsTr("Núcleos de CPU")
                             color: CortetsuDesign.colorOnSurface
                             textSize: CortetsuTypography.titleMediumPx
                         }
@@ -168,7 +168,7 @@ Item {
                     spacing: 9
 
                     CortetsuText {
-                        text: qsTr("Cooling")
+                        text: qsTr("Refrigeración")
                         color: CortetsuDesign.colorOnSurface
                         textSize: CortetsuTypography.titleSmallPx
                     }
@@ -201,7 +201,7 @@ Item {
 
                     CortetsuText {
                         visible: root.fans.length === 0
-                        text: qsTr("No fan telemetry exposed by hwmon")
+                        text: qsTr("hwmon no expone datos de ventiladores")
                         color: CortetsuDesign.colorOutline
                         textSize: CortetsuTypography.bodySmallPx
                     }
@@ -273,7 +273,7 @@ Item {
                     spacing: 8
 
                     CortetsuText {
-                        text: qsTr("Battery")
+                        text: qsTr("Batería")
                         color: CortetsuDesign.colorOnSurface
                         textSize: CortetsuTypography.titleSmallPx
                     }
@@ -281,14 +281,14 @@ Item {
                     CortetsuText {
                         text: root.battery?.present
                             ? `${root.number(root.battery?.percent, 0)}% · ${root.battery?.status ?? "—"}`
-                            : qsTr("No battery detected")
+                            : qsTr("No se detectó batería")
                         color: CortetsuDesign.colorPrimary
                         textSize: CortetsuTypography.titleMediumPx
                     }
 
                     CortetsuText {
                         text: root.battery?.present
-                            ? `${qsTr("Current draw")}: ${root.number(root.battery?.power_w, 1)} W`
+                            ? `${qsTr("Consumo actual")}: ${root.number(root.battery?.power_w, 1)} W`
                             : ""
                         color: CortetsuDesign.colorOnSurfaceVariant
                         textSize: CortetsuTypography.labelMediumPx
@@ -296,7 +296,7 @@ Item {
 
                     CortetsuText {
                         text: root.battery?.present
-                            ? qsTr("Battery and fan values come directly from kernel power_supply/hwmon interfaces.")
+                            ? qsTr("Los valores de batería y ventiladores provienen directamente de las interfaces power_supply y hwmon del kernel.")
                             : qsTr("Sensor data is read only while Hardware Center is open.")
                         color: CortetsuDesign.colorOutline
                         textSize: CortetsuTypography.labelSmallPx

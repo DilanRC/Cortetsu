@@ -18,6 +18,8 @@ assert "import Quickshell.Hyprland" in hypr
 assert "Hyprland.dispatch(request)" in hypr
 assert "Hyprland.monitorFor(screen)" not in hypr
 assert "Hyprland.monitors.values.find(monitor => monitor.name === name)" in hypr
+assert "window.mapped === false" in hypr
+assert "Number.isFinite(Number(window.pid))" in hypr
 assert "Quickshell.screens" in screens
 assert "CortetsuHypr" in service
 assert "import Caelestia" not in service

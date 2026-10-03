@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
+import Quickshell.Networking
 import qs.components
 import qs.components.controls
 import qs.modules
@@ -11,6 +12,10 @@ import qs.modules.nexus.common
 PageBase {
     id: root
 
+    readonly property string scanOwner: "legacy-nexus-all-" + String(root)
+    onVisibleChanged: Connectivity.wifi.setScanOwner(scanOwner, visible)
+    Component.onCompleted: Connectivity.wifi.setScanOwner(scanOwner, visible)
+    Component.onDestruction: Connectivity.wifi.setScanOwner(scanOwner, false)
     title: qsTr("All networks")
     isSubPage: true
     flickable.bottomMargin: CortetsuTokens.padding.extraExtraLarge * 2 // Extra scrolling space at the bottom
@@ -21,13 +26,6 @@ PageBase {
         width: root.cappedWidth
         spacing: CortetsuTokens.spacing.extraSmall / 2
 
-        Timer {
-            running: root.visible && Nmcli.wifiEnabled
-            repeat: true
-            triggeredOnStart: true
-            interval: CortetsuConfig.nexusNetworkRescanInterval
-            onTriggered: Nmcli.rescanWifi()
-        }
 
         ConnectedRect {
             Layout.fillWidth: true
@@ -58,8 +56,8 @@ PageBase {
                 FilterButton {
                     id: savedFilter
 
-                    function internalFilter(ap: Nmcli.AccessPoint): bool {
-                        return Nmcli.hasSavedProfile(ap.ssid);
+                    function internalFilter(ap: var): bool {
+                        return ap.known;
                     }
 
                     text: qsTr("Saved")
@@ -82,8 +80,8 @@ PageBase {
                 FilterButton {
                     id: secureFilter
 
-                    function internalFilter(ap: Nmcli.AccessPoint): bool {
-                        return ap.security !== "none";
+                    function internalFilter(ap: var): bool {
+                        return ap.security !== WifiSecurityType.Open;
                     }
 
                     text: qsTr("Secured")
@@ -92,8 +90,8 @@ PageBase {
                 FilterButton {
                     id: highFreqFilter
 
-                    function internalFilter(ap: Nmcli.AccessPoint): bool {
-                        return ap.frequency >= 4900 && ap.frequency <= 5900;
+                    function internalFilter(ap: var): bool {
+                        return (Connectivity.wifi.accessPoints.find(item => item.ssid === ap.name && item.device === ap.device.name)?.frequency ?? 0) >= 4900 && (Connectivity.wifi.accessPoints.find(item => item.ssid === ap.name && item.device === ap.device.name)?.frequency ?? 0) <= 5900;
                     }
 
                     text: qsTr("5 GHz")
@@ -102,8 +100,8 @@ PageBase {
                 FilterButton {
                     id: lowFreqFilter
 
-                    function internalFilter(ap: Nmcli.AccessPoint): bool {
-                        return ap.frequency >= 2400 && ap.frequency <= 2500;
+                    function internalFilter(ap: var): bool {
+                        return (Connectivity.wifi.accessPoints.find(item => item.ssid === ap.name && item.device === ap.device.name)?.frequency ?? 0) >= 2400 && (Connectivity.wifi.accessPoints.find(item => item.ssid === ap.name && item.device === ap.device.name)?.frequency ?? 0) <= 2500;
                     }
 
                     text: qsTr("2.4 GHz")
@@ -128,7 +126,7 @@ PageBase {
         NetworkList {
             id: networkList
 
-            function networkFilter(ap: Nmcli.AccessPoint): bool {
+            function networkFilter(ap: var): bool {
                 return savedFilter.filter(ap) && secureFilter.filter(ap) && highFreqFilter.filter(ap) && lowFreqFilter.filter(ap);
             }
 
@@ -143,7 +141,7 @@ PageBase {
 
         property int filterState // 0 = default, 1 = on, 2 = negate
 
-        function filter(ap: Nmcli.AccessPoint): bool {
+        function filter(ap: var): bool {
             if (filterState === 0)
                 return true;
             if (filterState === 1)
@@ -151,7 +149,7 @@ PageBase {
             return !internalFilter(ap);
         }
 
-        function internalFilter(ap: Nmcli.AccessPoint): bool {
+        function internalFilter(ap: var): bool {
             return true;
         }
 

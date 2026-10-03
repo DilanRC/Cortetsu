@@ -8,7 +8,9 @@ MouseArea {
     property bool showHoverBackground: true
     property bool manualPressOverride: false
     property bool manualHoverOverride: false
-    property real stateOpacity: showHoverBackground && (containsMouse || manualHoverOverride || pressed || manualPressOverride) ? 0.08 : 0
+    property real stateOpacity: !showHoverBackground || disabled ? 0
+        : pressed || manualPressOverride ? 0.16
+        : containsMouse || manualHoverOverride ? 0.08 : 0
     property real radius: 0
     property alias color: base.color
 

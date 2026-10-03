@@ -6,7 +6,7 @@ Item {
 
     required property var screenState
     readonly property real nonAnimHeight: content.implicitHeight
-    readonly property bool shouldBeActive: screenState.dashboard === true
+    readonly property bool shouldBeActive: screenState?.dashboard === true
     property real offsetScale: shouldBeActive ? 0 : 1
 
     visible: offsetScale < 1

@@ -131,7 +131,7 @@ def check_content_window(root: Path, text: str) -> bool:
         if f"root.screenState.{flag} = false;" not in cleared:
             return False
 
-    if "opacity: root.screenState.overview ? 0.58" not in text:
+    if "opacity: root.screenState.overview ? CortetsuDesign.scrimOpacity" not in text:
         return False
     if "clipboard" in flags and "root.screenState.clipboard ? 0.48" not in text:
         return False

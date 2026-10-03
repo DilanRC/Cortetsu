@@ -2,6 +2,8 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
+import QtQml.Models
+import Quickshell.Networking
 import qs.components
 import qs.components.controls
 import qs.services
@@ -13,13 +15,17 @@ PageBase {
     id: root
 
     readonly property string ifaceName: nState.selectedEthernetInterface
-    readonly property Nmcli.EthernetDevice device: Nmcli.ethernetDevices.find(d => d.iface === root.ifaceName) ?? null
-    readonly property var details: Nmcli.ethernetDeviceDetails
-    readonly property string connectionName: root.device?.connection ?? ""
+    readonly property var device: Connectivity.wifi.devices.find(d => d.type === DeviceType.Wired && d.name === root.ifaceName) ?? null
+    readonly property var details: Connectivity.wifi.details[ifaceName] ?? ({})
+    readonly property var compatibleProfiles: Connectivity.wifi.profiles.filter(item => item.type === "802-3-ethernet" && (!item.interface || item.interface === ifaceName))
+    readonly property string profileUuid: nState.selectedEthernetUuid || details.uuid || (compatibleProfiles.length === 1 ? compatibleProfiles[0].uuid : "")
+    readonly property var profile: Connectivity.wifi.profiles.find(item => item.uuid === profileUuid) ?? null
+    readonly property string connectionName: profile?.name ?? details.profileName ?? ""
 
     // Locally-edited IPv4 form state.
     property string ipMethod: "auto" // "auto" | "auto-dns" | "manual"
     property bool ipLoaded: false
+    property string loadedProfileUuid: ""
     property bool savingIp: false
 
     // Original loaded values, so the Apply button only shows on a real change.
@@ -30,75 +36,63 @@ PageBase {
 
     readonly property bool hasChanges: root.ipLoaded && (root.ipMethod !== root.origMethod || (root.ipMethod === "manual" && (addressField.text.trim() !== root.origAddress || gatewayField.text.trim() !== root.origGateway)) || ((root.ipMethod === "manual" || root.ipMethod === "auto-dns") && dnsField.text.trim() !== root.origDns))
 
+    property int saveId: -1
     function loadIpConfig(): void {
-        if (!root.connectionName)
-            return;
-        Nmcli.getIpv4Config(root.connectionName, cfg => {
-            if (!cfg)
-                return;
-            root.ipMethod = cfg.method;
-            methodSelect.active = cfg.method === "manual" ? manualItem : (cfg.method === "auto-dns" ? autoDnsItem : autoItem);
-            addressField.text = cfg.address;
-            gatewayField.text = cfg.gateway;
-            dnsField.text = cfg.dns;
-            root.origMethod = cfg.method;
-            root.origAddress = cfg.address;
-            root.origGateway = cfg.gateway;
-            root.origDns = cfg.dns;
-            root.ipLoaded = true;
-        });
-    }
+        const cfg = profile?.ipv4;
+        if (!cfg || root.ipLoaded) return;
+        root.ipMethod = cfg.method === "auto" && cfg.ignoreAutoDns ? "auto-dns" : cfg.method;
+        methodSelect.active = root.ipMethod === "manual" ? manualItem : (root.ipMethod === "auto-dns" ? autoDnsItem : autoItem);
+        addressField.text = (cfg.addresses ?? []).join(", ");
+        gatewayField.text = cfg.gateway ?? "";
+        dnsField.text = (cfg.dns ?? []).join(", ");
+        root.origMethod = root.ipMethod;
+        root.origAddress = addressField.text;
+        root.origGateway = gatewayField.text;
+        root.origDns = dnsField.text;
+        root.ipLoaded = true;
+        loadedProfileUuid = profileUuid;
 
+    }
     function saveIpConfig(): void {
-        if (!root.connectionName)
-            return;
-
-        // Bail out and flag the offending field before touching nmcli.
-        if (root.ipMethod === "manual") {
-            if (!addressField.valid) {
-                addressField.isError = true;
-                return;
-            }
-            if (!gatewayField.valid) {
-                gatewayField.isError = true;
-                return;
-            }
+        if (!root.profile || Connectivity.wifi.busy) return;
+        Connectivity.wifi.setIpv4(root.profile.uuid, root.ipMethod === "auto-dns" ? "auto" : root.ipMethod,
+            addressField.text.trim(), gatewayField.text.trim(), root.ipMethod === "auto" ? "" : dnsField.text.trim());
+        root.saveId = Connectivity.wifi.operation.id;
+        observeSave();
+    }
+    function observeSave(): void {
+        const op = Connectivity.wifi.operation;
+        if (op.id !== saveId) return;
+        savingIp = Connectivity.wifi.busy;
+        if (op.state === "failed") { addressField.isError = true; return; }
+        if (!savingIp && op.state === "idle") {
+            root.origMethod = root.ipMethod;
+            root.origAddress = addressField.text.trim();
+            root.origGateway = gatewayField.text.trim();
+            root.origDns = dnsField.text.trim();
         }
-        if ((root.ipMethod === "manual" || root.ipMethod === "auto-dns") && !dnsField.valid) {
-            dnsField.isError = true;
-            return;
+    }
+    onProfileChanged: { if (profile?.uuid !== loadedProfileUuid) root.ipLoaded = false; loadIpConfig(); }
+    property Instantiator profileOptions: Instantiator {
+        model: root.compatibleProfiles
+        delegate: MenuItem {
+            required property var modelData
+            property string uuid: modelData.uuid
+            text: modelData.name
+            icon: "lan"
         }
-
-        root.savingIp = true;
-        Nmcli.setIpv4Config(root.connectionName, {
-            method: root.ipMethod,
-            address: addressField.text.trim(),
-            gateway: gatewayField.text.trim(),
-            dns: dnsField.text.trim()
-        }, result => {
-            root.savingIp = false;
-            if (!(result && result.success)) {
-                if (root.ipMethod === "manual")
-                    addressField.isError = true;
-                else
-                    dnsField.isError = true;
-            } else {
-                // Persisted — make the current values the new baseline so the
-                // Apply button hides again until something else changes.
-                root.origMethod = root.ipMethod;
-                root.origAddress = addressField.text.trim();
-                root.origGateway = gatewayField.text.trim();
-                root.origDns = dnsField.text.trim();
-            }
-        });
+    }
+    property Connections operationConnections: Connections {
+        target: Connectivity.wifi
+        function onOperationChanged() { root.observeSave(); }
     }
 
-    title: root.device?.connection || root.ifaceName || qsTr("Ethernet")
+    title: root.connectionName || root.ifaceName || qsTr("Ethernet")
     isSubPage: true
 
     Component.onCompleted: {
-        Nmcli.getEthernetDeviceDetails(root.ifaceName, () => {});
-        Nmcli.getEthernetSpeed(root.ifaceName);
+        Connectivity.wifi.refreshDetails(root.ifaceName);
+
         loadIpConfig();
     }
 
@@ -117,6 +111,7 @@ PageBase {
 
             ButtonBase {
                 id: connectBtn
+                stateLayer.disabled: Connectivity.wifi.busy || (!root.device?.connected && !root.profile)
 
                 fillWidth: true
                 shapeMorph: true
@@ -129,9 +124,9 @@ PageBase {
 
                 onClicked: {
                     if (root.device?.connected)
-                        Nmcli.disconnectEthernet(root.connectionName);
+                        Connectivity.wifi.disconnectWired(root.device);
                     else
-                        Nmcli.connectEthernet(root.connectionName, root.ifaceName);
+                        if (root.profile) Connectivity.wifi.connectProfile(root.profile.uuid, root.ifaceName);
                 }
 
                 ColumnLayout {
@@ -156,6 +151,20 @@ PageBase {
             }
         }
 
+        SelectRow {
+            Layout.fillWidth: true
+            visible: root.compatibleProfiles.length > 1
+            label: qsTr("Connection profile")
+            fallbackText: root.profile?.name ?? qsTr("Select a profile")
+            fallbackIcon: "lan"
+            menuItems: {
+                const result = [];
+                for (let i = 0; i < root.profileOptions.count; i++) result.push(root.profileOptions.objectAt(i));
+                return result;
+            }
+            onSelected: item => { root.nState.selectedEthernetUuid = item.uuid; root.ipLoaded = false; root.loadIpConfig(); }
+        }
+
         // ---- Connection info ------------------------------------------------
         SectionHeader {
             first: true
@@ -178,14 +187,14 @@ PageBase {
         InfoRow {
             icon: "speed"
             label: qsTr("Speed")
-            visible: Nmcli.ethernetSpeed.length > 0
-            value: Nmcli.ethernetSpeed
+            visible: (root.device?.linkSpeed ?? 0) > 0
+            value: qsTr("%1 Mbps").arg(root.device?.linkSpeed ?? 0)
         }
 
         InfoRow {
             icon: "lan"
             label: qsTr("IP address")
-            value: root.details?.ipAddress || qsTr("—")
+            value: root.details?.address || qsTr("—")
         }
 
         InfoRow {
@@ -199,6 +208,16 @@ PageBase {
             icon: "memory"
             label: qsTr("MAC address")
             value: root.details?.macAddress || qsTr("—")
+        }
+
+        CortetsuText {
+            Layout.fillWidth: true
+            visible: root.saveId === Connectivity.wifi.operation.id
+            text: Connectivity.wifi.operation.state === "failed" ? Connectivity.wifi.operation.lastError
+                : !root.savingIp && Connectivity.wifi.operation.state === "idle" ? qsTr("Guardado y confirmado. Reconecta el perfil para aplicar IPv4.") : qsTr("Guardando IPv4…")
+            wrapMode: Text.WordWrap
+            color: CortetsuColours.palette.m3onSurfaceVariant
+            font: CortetsuTokens.font.body.small
         }
 
         // ---- IPv4 ------------------------------------------------------------

@@ -13,7 +13,11 @@ path = repo / "cortetsu/modules/CortetsuNetwork.qml"
 text = path.read_text(encoding="utf-8")
 
 assert text.startswith("pragma Singleton"), "must stay a Quickshell singleton"
-assert "import Quickshell.Networking" in text
+backend = (repo / "cortetsu/services/ConnectivityWifi.qml").read_text(encoding="utf-8")
+policy = (repo / "cortetsu/services/ConnectivityPolicy.js").read_text(encoding="utf-8")
+assert "import Quickshell.Networking" in backend
+assert "ConnectivityWifi.active" in text
+assert "ConnectivityWifi.activeEthernet" in text
 
 # Event-driven contract: reacts to Networking's bindable properties, no
 # process spawning, no timers, no GlobalConfig/Caelestia coupling.
@@ -23,7 +27,9 @@ for banned in ("Quickshell.Io", "Process {", "StdioCollector", "Timer {", "nmcli
 # Public contract consumed by BottomHub.qml must be preserved exactly.
 assert re.search(r"readonly property var active:", text)
 assert re.search(r"readonly property var activeEthernet:", text)
-assert "strength" in text and "ssid" in text and "connected: true" in text
+assert "strength" in backend and "ssid" in backend and "device.connected" in backend
+assert "function strengthPercent" in text
+assert "value *= 100" in policy
 
 # Balanced braces -> catches an obviously broken QML edit.
 assert text.count("{") == text.count("}")

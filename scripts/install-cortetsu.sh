@@ -4,6 +4,7 @@ set -euo pipefail
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BIN_DIR="${HOME}/.local/bin"
 DATA_ROOT="${CORTETSU_DATA_ROOT:-${XDG_DATA_HOME:-$HOME/.local/share}/cortetsu}"
+export CORTETSU_DATA_ROOT="$DATA_ROOT"
 SYSTEMD_USER_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
 KEEP_AWAKE_UNIT="cortetsu-keep-awake.service"
 WALLPAPER_COLOR_UNIT="cortetsu-wallpaper-color.service"
@@ -54,6 +55,7 @@ install -m 0644 "$REPO/config/systemd/user/$WALLPAPER_COLOR_UNIT" "$SYSTEMD_USER
 # Low-level shell rollback remains available for recovery. Normal operation uses
 # `cortetsu rollback`, which reverts the full system generation.
 install -m 0755 "$REPO/cortetsu/bin/rollback-runtime.sh" "$BIN_DIR/cortetsu-rollback"
+install -m 0755 "$REPO/cortetsu/bin/cortetsu-scheme" "$BIN_DIR/cortetsu-scheme"
 
 if [[ -x "$REPO/scripts/cortetsu" ]]; then
     atomic_symlink "$REPO" "$DATA_ROOT/repository"
@@ -63,6 +65,9 @@ fi
 printf '==> Tema nativo Cortetsu\n'
 python3 "$REPO/core/theme.py" check --repo "$REPO"
 
+printf '==> Ownership de tema\n'
+python3 "$REPO/core/theme.py" adopt --repo "$REPO"
+
 printf '==> Dotfiles Cortetsu\n'
 python3 "$REPO/core/dotfiles.py" apply --repo "$REPO"
 
@@ -71,9 +76,6 @@ python3 "$REPO/scripts/maintenance/retire_legacy_theme.py"
 
 printf '==> Ciclo de vida del shell\n'
 python3 "$REPO/core/shell_lifecycle.py" migrate
-
-printf '==> Ownership de tema\n'
-python3 "$REPO/core/theme.py" adopt --repo "$REPO"
 
 systemctl --user daemon-reload >/dev/null 2>&1 || true
 
@@ -108,16 +110,19 @@ fi
 printf '==> Generación unificada Cortetsu\n'
 python3 "$REPO/core/system.py" promote --repo "$REPO"
 
-# Never enable shell supervision implicitly. Once the user has explicitly
-# adopted it, is-enabled is our durable opt-in. Restarting also recovers a
-# previously adopted service that became inactive because an older unit used
-# Quickshell's --daemonize flag under Type=simple.
+printf '==> Verificación completa antes de GC\n'
+"$REPO/scripts/cortetsu" verify
+printf '==> GC conservador de generaciones\n'
+"$REPO/scripts/cortetsu" gc --keep 5
+
+# Never restart shell supervision implicitly. The promoted generation is safe
+# to adopt on an explicit soft reload that keeps the process alive. Persistent
+# application launches use independent user scopes, so an explicit hard shell
+# lifecycle operation does not own or terminate those applications.
 if systemctl --user is-enabled --quiet cortetsu-shell.service 2>/dev/null; then
-    if systemctl --user restart cortetsu-shell.service; then
-        printf 'Shell supervision: adopted service running on promoted runtime\n'
-    else
-        printf 'WARN: cortetsu-shell.service está habilitado pero no pudo arrancar\n' >&2
-    fi
+    printf 'Shell supervision: no se reinicia automáticamente; se conserva el escritorio abierto\n'
+    printf 'Para adoptar el runtime sin cerrar el proceso: cortetsu shell reload\n'
+    printf 'Mantenimiento duro: disponible de forma explícita; las aplicaciones persistentes usan scopes independientes\n'
 fi
 
 runtime_root="${CORTETSU_RUNTIME_ROOT:-${XDG_CONFIG_HOME:-$HOME/.config}/quickshell/cortetsu}"
@@ -125,7 +130,7 @@ printf '\nCortetsu runtime: %s/current\n' "$runtime_root"
 printf 'Dotfiles runtime: %s/dotfiles/current\n' "$DATA_ROOT"
 printf 'System runtime: %s/system/current\n' "$DATA_ROOT"
 printf 'No se escribió ningún runtime legacy de Caelestia.\n'
-printf 'Tema desktop: ui.toml -> CortetsuDesign/Kitty/GTK/KDE; Caelestia queda sin ownership de esas superficies.\n'
+printf 'Tema desktop: ui.toml -> CortetsuDesign/Kitty/GTK/KDE; kdeglobals permanece editable.\n'
 printf 'Shell personal: Fish es dependencia del perfil personal y se importa de forma explícita con core/import_fish.py.\n'
 printf 'cortetsu-shell.service no se habilita implícitamente; una adopción existente sí se conserva.\n'
 printf 'Rollback completo: cortetsu rollback\n'

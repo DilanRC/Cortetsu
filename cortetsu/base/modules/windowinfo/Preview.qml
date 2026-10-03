@@ -67,8 +67,8 @@ Item {
 
             anchors.centerIn: parent
 
-            captureSource: root.client?.wayland ?? null // qmllint disable unresolved-type
-            live: true
+            captureSource: root.visible ? (root.client?.wayland ?? null) : null // qmllint disable unresolved-type
+            live: visible
 
             constraintSize.width: root.client ? parent.height * Math.min(root.screen.width / root.screen.height, root.client?.lastIpcObject.size[0] / root.client?.lastIpcObject.size[1]) : parent.height
             constraintSize.height: parent.height

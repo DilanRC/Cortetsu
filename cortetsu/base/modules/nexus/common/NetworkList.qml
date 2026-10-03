@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Networking
 import qs.components
 import qs.components.controls
 import qs.services
@@ -16,24 +17,24 @@ ItemList {
     property int limit: 0 // 0 = show all
     property bool enableFilter
 
-    signal networkSelected(ap: Nmcli.AccessPoint)
+    signal networkSelected(ap: var)
 
-    function networkFilter(ap: Nmcli.AccessPoint): bool {
+    function networkFilter(ap: var): bool {
         return true;
     }
 
-    showList: Nmcli.wifiEnabled
-    placeholderIcon: Nmcli.wifiEnabled ? "wifi_find" : "signal_wifi_off"
-    placeholderText: Nmcli.wifiEnabled ? qsTr("No networks found") : qsTr("Wi-Fi disabled")
-    extraHeight: Nmcli.scanning ? CortetsuTokens.rounding.extraSmall : 0 // Inline so it isn't affected by anim
+    showList: Connectivity.wifi.wifiEnabled
+    placeholderIcon: Connectivity.wifi.wifiEnabled ? "wifi_find" : "signal_wifi_off"
+    placeholderText: Connectivity.wifi.wifiEnabled ? qsTr("No networks found") : qsTr("Wi-Fi disabled")
+    extraHeight: Connectivity.wifi.scanning ? CortetsuTokens.rounding.extraSmall : 0 // Inline so it isn't affected by anim
     list.anchors.top: scanningIndicator.bottom
 
     model: ScriptModel {
         values: {
-            const connecting = Nmcli.connectingSsid();
+            const connecting = Connectivity.wifi.operationNetwork;
             // Lower rank sorts higher in the list
-            const rank = n => n.active ? 0 : n.ssid === connecting ? 1 : Nmcli.hasSavedProfile(n.ssid) ? 2 : 3;
-            const sorted = [...Nmcli.networks].sort((a, b) => rank(a) - rank(b) || b.strength - a.strength);
+            const rank = n => n.connected ? 0 : n === connecting ? 1 : n.known ? 2 : 3;
+            const sorted = [...Connectivity.wifi.networks].sort((a, b) => rank(a) - rank(b) || b.signalStrength - a.signalStrength);
             if (root.limit > 0 && sorted.length > root.limit)
                 sorted.length = root.limit;
             return root.enableFilter ? sorted.filter(root.networkFilter) : sorted;
@@ -48,7 +49,7 @@ ItemList {
         property bool currentSelected
         property real textOpacity: disabled ? 0.5 : 1
 
-        disabled: currentSelected || Nmcli.connectingSsid() === modelData.ssid
+        disabled: Connectivity.wifi.busy && Connectivity.wifi.operationNetwork === modelData
 
         anchors.left: root.list.contentItem.left
         anchors.right: root.list.contentItem.right
@@ -59,13 +60,16 @@ ItemList {
         anchors.fill: undefined
 
         onClicked: {
-            if (!modelData.active) {
-                NetworkConnection.handleConnect(modelData);
+            if (!modelData.connected) {
+                if (modelData.known || modelData.security === WifiSecurityType.Open) Connectivity.wifi.connectNetwork(modelData, "", null);
+                else { root.nState.selectedNetwork = modelData; root.nState.openSubPage(2); }
                 currentSelected = true;
                 root.networkSelected(modelData);
             } else {
                 // Active network: open its detail/settings sub-page.
-                root.nState.selectedNetworkSsid = modelData.ssid;
+                root.nState.selectedNetwork = modelData;
+                root.nState.selectedNetworkUuid = Connectivity.wifi.details[modelData.device.name]?.uuid ?? "";
+                root.nState.selectedNetworkSsid = modelData.name;
                 root.nState.networkDetailsFromSaved = false;
                 root.nState.openSubPage(3);
             }
@@ -78,8 +82,8 @@ ItemList {
         }
 
         Connections {
-            function onActiveChanged(): void {
-                if (network.modelData.active)
+            function onConnectedChanged(): void {
+                if (network.modelData.connected)
                     network.currentSelected = false;
             }
 
@@ -87,7 +91,7 @@ ItemList {
         }
 
         Connections {
-            function onNetworkSelected(ap: Nmcli.AccessPoint): void {
+            function onNetworkSelected(ap: var): void {
                 if (ap !== network.modelData)
                     network.currentSelected = false;
             }
@@ -105,8 +109,8 @@ ItemList {
             spacing: CortetsuTokens.spacing.medium
 
             CortetsuIcon {
-                text: Icons.getNetworkIcon(network.modelData.strength)
-                color: network.modelData.active ? CortetsuColours.palette.m3primary : CortetsuColours.palette.m3onSurfaceVariant
+                text: Icons.getNetworkIcon(Math.round(network.modelData.signalStrength * 100))
+                color: network.modelData.connected ? CortetsuColours.palette.m3primary : CortetsuColours.palette.m3onSurfaceVariant
                 fontStyle: CortetsuTokens.font.icon.medium
                 opacity: network.textOpacity
             }
@@ -118,14 +122,14 @@ ItemList {
 
                 CortetsuText {
                     Layout.fillWidth: true
-                    text: network.modelData.ssid
+                    text: network.modelData.name
                     font: CortetsuTokens.font.body.small
                     elide: Text.ElideRight
                 }
 
                 CortetsuText {
                     Layout.fillWidth: true
-                    text: qsTr("Security: %1%2").arg(network.modelData.security).arg(network.modelData.active ? qsTr(" • Connected") : Nmcli.hasSavedProfile(network.modelData.ssid) ? qsTr(" • Saved") : "")
+                    text: qsTr("Security: %1%2").arg(WifiSecurityType.toString(network.modelData.security)).arg(network.modelData.connected ? qsTr(" • Connected") : network.modelData.known ? qsTr(" • Saved") : "")
                     color: CortetsuColours.palette.m3outline
                     font: CortetsuTokens.font.label.small
                     elide: Text.ElideRight
@@ -133,14 +137,14 @@ ItemList {
             }
 
             AnimLoader {
-                sourceComp: Nmcli.connectingSsid() === network.modelData.ssid ? loadingComp : iconComp
+                sourceComp: Connectivity.wifi.busy && Connectivity.wifi.operationNetwork === network.modelData ? loadingComp : iconComp
 
                 Component {
                     id: iconComp
 
                     CortetsuIcon {
-                        text: network.modelData.active ? "settings" : "lock"
-                        color: network.modelData.active ? CortetsuColours.palette.m3primary : CortetsuColours.palette.m3onSurfaceVariant
+                        text: network.modelData.connected ? "settings" : "lock"
+                        color: network.modelData.connected ? CortetsuColours.palette.m3primary : CortetsuColours.palette.m3onSurfaceVariant
                         fontStyle: CortetsuTokens.font.icon.medium
                         opacity: network.textOpacity
                     }
@@ -163,7 +167,7 @@ ItemList {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.margins: 1
-        implicitHeight: Nmcli.scanning ? CortetsuTokens.rounding.extraSmall : 0
+        implicitHeight: Connectivity.wifi.scanning ? CortetsuTokens.rounding.extraSmall : 0
         indeterminate: true
 
         Behavior on implicitHeight {

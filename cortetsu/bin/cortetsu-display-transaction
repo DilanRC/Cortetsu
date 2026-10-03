@@ -143,13 +143,49 @@ def plan(candidate: dict) -> dict:
     return run_json([str(PLANNER), "--candidate", json.dumps(candidate, separators=(",", ":"))], 10)
 
 
+def lua_monitor_command(command: list[str]) -> list[str]:
+    """Translate the planner's monitor command to the active Lua parser."""
+    if command[:3] != ["hyprctl", "keyword", "monitor"] or len(command) != 4:
+        raise RuntimeError("planner returned an unexpected command")
+    fields = command[3].split(",")
+    if len(fields) < 2 or not fields[0]:
+        raise RuntimeError("planner returned an invalid monitor command")
+    output = fields[0]
+    if len(fields) == 2 and fields[1] == "disable":
+        lua = f'hl.monitor({{ output = {json.dumps(output)}, disable = true }})'
+        return ["hyprctl", "eval", lua]
+    if len(fields) < 4:
+        raise RuntimeError("planner returned an incomplete monitor command")
+    values = {"mode": fields[1], "position": fields[2], "scale": fields[3]}
+    index = 4
+    while index + 1 < len(fields):
+        values[fields[index]] = fields[index + 1]
+        index += 2
+    lua_values = [f"output = {json.dumps(output)}"]
+    for key in ("mode", "position", "scale", "transform", "bitdepth", "cm", "vrr"):
+        if key not in values:
+            continue
+        raw = values[key]
+        if key in {"scale"}:
+            lua_values.append(f"{key} = {float(raw):g}")
+        elif key in {"transform", "bitdepth", "vrr"}:
+            lua_values.append(f"{key} = {int(raw)}")
+        else:
+            lua_values.append(f"{key} = {json.dumps(raw)}")
+    return ["hyprctl", "eval", "hl.monitor({" + ", ".join(lua_values) + "})"]
+
+
 def execute_plan(planned: dict) -> tuple[bool, str]:
     commands = planned.get("commands", [])
     if not planned.get("ok") or not isinstance(commands, list):
         return False, "candidate plan is not valid"
     for command in commands:
-        if not isinstance(command, list) or command[:3] != ["hyprctl", "keyword", "monitor"]:
+        if not isinstance(command, list):
             return False, "planner returned an unexpected command"
+        try:
+            command = lua_monitor_command(command)
+        except (RuntimeError, ValueError) as exc:
+            return False, str(exc)
         try:
             cp = subprocess.run(command, text=True, capture_output=True, timeout=6, check=False)
         except (OSError, subprocess.SubprocessError) as exc:

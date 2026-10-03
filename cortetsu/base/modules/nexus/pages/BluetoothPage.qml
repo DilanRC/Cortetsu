@@ -13,7 +13,7 @@ import qs.modules.nexus.common
 PageBase {
     id: root
 
-    readonly property BluetoothAdapter adapter: Bluetooth.defaultAdapter // qmllint disable unresolved-type
+    readonly property BluetoothAdapter adapter: ConnectivityBluetooth.adapter // qmllint disable unresolved-type
     readonly property bool btEnabled: adapter?.enabled ?? false
 
     title: qsTr("Connected devices")
@@ -32,7 +32,7 @@ PageBase {
             checked: root.btEnabled
             onToggled: {
                 if (root.adapter)
-                    root.adapter.enabled = checked;
+                    ConnectivityBluetooth.setEnabled(checked);
             }
         }
 
@@ -44,7 +44,7 @@ PageBase {
             placeholderText: root.btEnabled ? qsTr("No saved devices") : qsTr("Bluetooth disabled")
 
             model: ScriptModel {
-                values: Bluetooth.devices.values.filter(d => d.bonded).sort((a, b) => (b.connected - a.connected) || a.name.localeCompare(b.name)) // qmllint disable unresolved-type
+                values: ConnectivityBluetooth.devices.filter(d => d.bonded).sort((a, b) => (b.connected - a.connected) || a.name.localeCompare(b.name)) // qmllint disable unresolved-type
             }
 
             delegate: CortetsuSurface {
@@ -68,11 +68,11 @@ PageBase {
                 }
 
                 CortetsuStateLayer {
-                    disabled: device.loading
+                    disabled: device.loading || ConnectivityBluetooth.busy
                     onClicked: {
                         if (!device.modelData || device.loading)
                             return;
-                        device.modelData.connected = !device.connected;
+                        device.connected ? ConnectivityBluetooth.disconnectDevice(device.modelData) : ConnectivityBluetooth.connectDevice(device.modelData);
                     }
                 }
 
@@ -185,7 +185,7 @@ PageBase {
             checked: root.adapter?.discoverable ?? false
             onToggled: {
                 if (root.adapter)
-                    root.adapter.discoverable = checked;
+                    ConnectivityBluetooth.setDiscoverable(checked);
             }
 
             Behavior on opacity {
@@ -201,7 +201,7 @@ PageBase {
             checked: root.adapter?.pairable ?? false
             onToggled: {
                 if (root.adapter)
-                    root.adapter.pairable = checked;
+                    ConnectivityBluetooth.setPairable(checked);
             }
 
             Behavior on opacity {

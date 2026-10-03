@@ -80,19 +80,17 @@ CortetsuSurface {
                     roleValue: "wifi"
                     delegate: Toggle {
                         icon: "wifi"
-                        checked: Nmcli.wifiEnabled
-                        onClicked: Nmcli.toggleWifi()
+                        checked: Connectivity.wifi.wifiEnabled
+                        onClicked: Connectivity.wifi.setEnabled(!Connectivity.wifi.wifiEnabled)
                     }
                 }
                 DelegateChoice {
                     roleValue: "bluetooth"
                     delegate: Toggle {
                         icon: "bluetooth"
-                        checked: Bluetooth.defaultAdapter?.enabled ?? false // qmllint disable unresolved-type
+                        checked: Connectivity.bluetooth.enabled // qmllint disable unresolved-type
                         onClicked: {
-                            const adapter = Bluetooth.defaultAdapter; // qmllint disable unresolved-type
-                            if (adapter)
-                                adapter.enabled = !adapter.enabled;
+                            Connectivity.bluetooth.setEnabled(!Connectivity.bluetooth.enabled);
                         }
                     }
                 }

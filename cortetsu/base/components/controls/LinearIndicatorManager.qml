@@ -3,6 +3,7 @@ import QtQuick
 // First-party linear-indicator manager.
 // It models a single looping segment and splits it when it crosses an edge.
 QtObject {
+    id: root
     property real progress: 0
     property real completeEndProgress: 0
     property int gap: 0

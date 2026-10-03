@@ -16,5 +16,6 @@ for legacy in ("Caelestia", "CavaProvider", "BeatTracker", "GlobalConfig"):
 assert not re.search(r"(?<!Cortetsu)Audio\.", hub)
 for marker in ("CortetsuAudio.volume", "CortetsuAudio.muted", "CortetsuAudio.incrementVolume()", "CortetsuAudio.decrementVolume()"):
     assert marker in hub, marker
+assert "if (!CortetsuConfig.bar.scrollActions.volume)" in hub
 
 print("PASS: Bottom Hub audio uses the native Cortetsu PipeWire backend")

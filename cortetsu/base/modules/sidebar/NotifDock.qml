@@ -148,9 +148,9 @@ Item {
 
         repeat: true
         triggeredOnStart: true
-        interval: Math.max(15, Math.min(80, 69.8 - 12.3 * Math.log(Notifs.notClosed.length)))
+        interval: Math.max(15, Math.min(80, 69.8 - 12.3 * Math.log(Notifs.notClosed().length)))
         onTriggered: {
-            const first = Notifs.notClosed[0];
+            const first = Notifs.notClosed()[0];
             if (!first) {
                 stop();
                 return;
@@ -158,7 +158,7 @@ Item {
 
             const appName = first.appName;
             let cleared = 0;
-            for (const n of Notifs.notClosed.filter(n => n.appName === appName)) {
+            for (const n of Notifs.notClosed().filter(n => n.appName === appName)) {
                 n.close();
                 cleared++;
                 if (cleared > 30) {

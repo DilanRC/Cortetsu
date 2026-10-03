@@ -1,0 +1,170 @@
+# Evidencia de Connectivity 2.0
+
+Fecha: 2026-10-02. Rama de trabajo: `ascension/product-elevation`. Base auditada: `344a6e690406d7074fefac785f2bcb6e5cc207d1`. `.codebase-memory/` y `scripts/integration/` son preexistentes y se conservan sin incluirlos en commits.
+
+## Entorno y evidencia inicial
+
+La auditoría precedente confirmó Quickshell 0.3.1.r6.g0f9939c, Qt 6.11.2, Hyprland 0.56.2, NetworkManager 1.58.1, BlueZ 5.87, PipeWire 1.6.9 y kernel 7.2.8-1-cachyos. Sus pruebas preceden la migración: no se presentan como pruebas del código nuevo.
+
+Interfaz Wi-Fi real: wlan0, conectada a la red doméstica por su perfil guardado (SSID y nombre de perfil coinciden, aunque el modelo los distingue). AP activo en 5180 MHz/5 GHz, anuncio WPA1/WPA2; la API nativa clasifica WPA2. Señal variable 60–61% durante la observación. IPv4 por DHCP con gateway y DNS del router; IPv6 link-local. Autoconnect activo. Conectividad full. Los identificadores del equipo (SSID, BSSID, UUID, direcciones) se omiten porque el repositorio es público. Los fixtures cubren nombres de perfil distintos del SSID y whitespace significativo.
+
+Adaptador Bluetooth: hci0. Dispositivos conocidos: Gamepad y ZON, desconectados. En la auditoría conectar Gamepad produjo br-connection-create-socket/Host is down. No hay evidencia para atribuirlo a Cortetsu; necesita estar despierto para comparar conexión directa y desde UI.
+
+Una sola pantalla activa: eDP-1, 1920×1080, escala 1, transform 0. Ethernet eno1 sin cable. No se reiniciaron NetworkManager, BlueZ ni el equipo. No se borraron perfiles reales ni se modificó su IPv4 en pruebas.
+
+## Interpretación de la matriz
+
+PASS_CONTROLLED significa fixture de política/backend o interacción QML aislada; no sustituye una prueba física. PASS_PHYSICAL_PRE_MIGRATION identifica pruebas de la fase de auditoría ya realizadas. PASS_PASSIVE identifica lecturas del equipo sin cambiar su conectividad. PENDING_PHYSICAL_VALIDATION significa que falta la ejecución física indicada, no que el caso esté probado.
+
+| Caso Wi-Fi | Evidencia disponible | Validación física del código nuevo |
+|---|---|---|
+| Scan repetido | PASS_PHYSICAL_PRE_MIGRATION; scanner/lifetime QML PASS | PASS_PHYSICAL: backend nuevo, registro /tmp/cortetsu-connectivity-physical.log |
+| Radio off/on | PASS_PHYSICAL_PRE_MIGRATION | PASS_PHYSICAL: backend nuevo, registro /tmp/cortetsu-connectivity-physical.log |
+| Reconexión UUID | PASS_PHYSICAL_PRE_MIGRATION; identidad UUID fixture PASS | PASS_PHYSICAL: backend nuevo, registro /tmp/cortetsu-connectivity-physical.log |
+| Red guardada | Fixture UUID/SSID distintos PASS_CONTROLLED | PASS_PHYSICAL 2026-10-02 (ver «Validación física del 2026-10-02») |
+| Credenciales correctas | PSK exclusivamente stdin PASS_CONTROLLED | PASS_PHYSICAL 2026-10-02 (ver «Validación física del 2026-10-02») |
+| Credenciales incorrectas | Normalización/auth-required PASS_CONTROLLED | PASS_PHYSICAL 2026-10-02 (ver «Validación física del 2026-10-02») |
+| Cambio entre redes | Destinos/identidad fixture PASS_CONTROLLED | PASS_PHYSICAL 2026-10-02 (ver «Validación física del 2026-10-02») |
+| Múltiples BSSID | APs de mismo SSID y distinta banda fixture PASS_CONTROLLED | PENDING_PHYSICAL_VALIDATION; no grupo físico duplicado en lectura inicial |
+| Olvido | Inventario por UUID y confirmación PASS_CONTROLLED | PENDING_PHYSICAL_VALIDATION de perfil desechable |
+| Autoconnect | Escritura+lectura por UUID PASS_CONTROLLED; real activo PASS_PASSIVE | PENDING_PHYSICAL_VALIDATION de perfil desechable |
+| Limited → full | PASS_PHYSICAL_PRE_MIGRATION; enum/state policy PASS_CONTROLLED | PENDING_PHYSICAL_VALIDATION de transición provocada |
+| Sin Internet / portal | Etiquetas/enum PASS_CONTROLLED | PENDING_PHYSICAL_VALIDATION de AP sin salida/portal |
+| Ethernet + Wi-Fi | Modelo dispositivos y metadatos cable PASS_PASSIVE | PENDING_PHYSICAL_VALIDATION; falta cable |
+| Red oculta | Creación+activación y stdin PASS_CONTROLLED | PENDING_PHYSICAL_VALIDATION de AP oculto |
+| IPv4 DHCP/manual | Validación y lectura confirmada PASS_CONTROLLED | PENDING_PHYSICAL_VALIDATION de perfil desechable |
+| NM recovery | Monitor/backoff/plazos inspeccionados y fixtures | PENDING_PHYSICAL_VALIDATION de reinicio deliberado |
+| Suspend/resume | Lifetime y estado reactivo inspeccionados | PASS_PHYSICAL 2026-10-02 (ver «Validación física del 2026-10-02») |
+
+| Caso Bluetooth | Evidencia disponible | Validación física del código nuevo |
+|---|---|---|
+| Radio off/on | PASS_PHYSICAL_PRE_MIGRATION; readback/pending fixture PASS_CONTROLLED | PASS_PHYSICAL: backend nuevo, registro /tmp/cortetsu-connectivity-physical.log |
+| Discovery | Owner múltiple y liberación de página PASS_CONTROLLED/Wayland | PASS_PHYSICAL: backend nuevo, registro /tmp/cortetsu-connectivity-physical.log |
+| Connect/disconnect/reconnect | Confirmación nativa/single-flight/plazo PASS_CONTROLLED | PASS_PHYSICAL 2026-10-03 con Gamepad despierto |
+| Pairing/cancel | API instalada y progreso/cancel fixture PASS_CONTROLLED | PASS_PHYSICAL 2026-10-03 con ZON y Gamepad (ver «Operaciones de dispositivo») |
+| Pairing incorrecto/rechazado | Taxonomía policy PASS_CONTROLLED; método no expone error QML | PENDING_PHYSICAL_VALIDATION |
+| PIN/passkey/confirmación | API instalada no expone Agent1 interactivo; UI lo explica | PENDING_PHYSICAL_VALIDATION con agente del sistema |
+| Trust/block/wake | Valor confirmado retenido mientras pending/fallo PASS_CONTROLLED | PASS_PHYSICAL 2026-10-03: trust y block con ZON, wake con Gamepad |
+| Forget | Espera desaparición; adapter-removed no confirma éxito PASS_CONTROLLED | PASS_PHYSICAL 2026-10-03 con ZON y Gamepad |
+| Batería | Propiedades API y presentación cuando disponible | PASS_PHYSICAL 2026-10-03: ZON informa 80 % en el backend y en BlueZ |
+| Dispositivo desaparece | Política de pertenencia y fallo PASS_CONTROLLED | PENDING_PHYSICAL_VALIDATION |
+| Dormido/fuera de alcance | Host is down observado antes de migración | PASS_PHYSICAL 2026-10-02 (ver «Validación física del 2026-10-02») |
+| BlueZ recovery | Estado de adaptador y limpieza inspeccionados | PENDING_PHYSICAL_VALIDATION de reinicio deliberado |
+| Suspend/resume | Lifetime y estado reactivo inspeccionados | PASS_PHYSICAL 2026-10-03 tras corregir el FAIL del 2026-10-02 (estado nativo obsoleto) |
+| Varios adaptadores | Modelo/selección/contador global y guard durante operación | PENDING_PHYSICAL_VALIDATION; un adaptador real |
+
+| UI | Evidencia |
+|---|---|
+| Settings/Nexus original restaurado | Layout original conservado; siete páginas cargan en prueba Wayland |
+| Mouse | Revalidación de controles originales en suite Wayland |
+| Teclado | Revalidación Tab/Enter de controles originales en suite Wayland |
+| Lifetime/scans | Cambio de categoría libera propietarios; prueba original Nexus cero scanowners |
+| Barra/BottomHub/quick settings | Fachadas únicas y contratos PASS; ver registro de recarga efectiva |
+| Popups/errores/toasts | Migrados a operación común; pruebas source/fixtures; ver registro de recarga |
+| Multimonitor | Propietarios por instancia y estado por monitor inspeccionados; PENDING_PHYSICAL_VALIDATION |
+| Escalado Wayland | PASS físico escala 1; PENDING_PHYSICAL_VALIDATION escala distinta |
+
+## Suites nuevas
+
+- `test-connectivity-wifi-policy.cjs`: escapes, whitespace, identidad de perfil/AP, confirmación UUID, errores y configuración IPv4.
+- `test-connectivity-wifi-runtime.py`: backend QML real con nmcli falso aislado; inventario/olvido/autoconnect/IP, varios BSSID y contraseña por stdin. No toca perfiles del usuario.
+- `test-connectivity-bluetooth.mjs`: 16 comprobaciones de política.
+- `test-connectivity-bluetooth-runtime.py`: 18 comprobaciones del backend con objetos nativos falsos: confirmación, single-flight, dueños de scan, emparejado con adaptador no emparejable, cancel, plazos, desaparición de adaptador y conservación de trust confirmado. Otras 9 con un `busctl` falso cubren la potencia obsoleta y el wake no admitido, y 6 más la conexión confirmada por la respuesta de BlueZ.
+- `test-connectivity-ui-wayland.py`: opt-in visible, controles originales mouse/Tab/Enter/identidad/lifetime/scans, contra runtime construido. No conecta/desconecta dispositivos. Requiere una red ya conectada y perfiles existentes.
+
+Las suites aisladas de backend y credenciales están integradas en build-runtime. La suite visible es opt-in para no abrir ventanas ni hacer discovery automáticamente en cualquier construcción.
+
+## Problemas detectados y corregidos durante revisión
+
+IDs QML repetidos, imports relativos inválidos después del aplanado, perfil equivocado por SSID, membresía de adaptador que podía confirmar un olvido, estado auth-required sin recuperación en popup, monitor VPN duplicado y toggles Bluetooth optimistas se corrigieron. El rediseño provisional fue retirado tras la corrección de alcance del usuario. La entrega conserva la interfaz original y adapta su comportamiento al backend común. Se corrigieron además tres fallos de controles compartidos expuestos por las páginas originales: id ausente, ventana nula y uso de splice sobre una lista QObject.
+
+## Logs y medición
+
+La construcción aislada completa pasó todos los gates del repositorio antes de promover la generación. Contra la generación instalada, `test-connectivity-ui-wayland.py` dio UI_WAYLAND_PASS 11 y `test-connectivity-original-nexus.py` ORIGINAL_NEXUS_PASS 7, ambos ya adaptados a la interfaz original restaurada. Los logs temporales de las sondas fallidas se conservan para diagnóstico, pero no representan la versión instalada.
+
+Antes: PID 2719, ventana de 10.0007 s, CPU 7.2995% de un núcleo, RSS 350292 KiB, generación `20260930-034419-1073298`. El porcentaje de CPU de ps acumulado desde inicio no se compara con este muestreo. Después (2026-10-02, commit `53ac55f`, generación `20261002-233039-497538`, recarga suave sin cambiar de PID, journal sin avisos nuevos): tres ventanas de 10–15 s dieron 14.2–15.3% de un núcleo, RSS 609172 KiB tras dos recargas en el mismo proceso. El consumo estaba en los hilos de render (QSGRenderThread y gl), con el hilo principal en reposo y un único hijo `nmcli monitor`; en 12 s no se creó ningún proceso nuevo, así que no hay sondeo. El escritorio tenía ventanas actualizándose durante la muestra, por lo que la cifra no es comparable con la de antes ni atribuible a conectividad. Falta una medición en reposo real.
+
+## Reversión exacta de la shell
+
+La generación inicial conservada es `/home/dilan/.local/share/cortetsu/builds/20260930-034419-1073298`. Para volver a ella sin resetear el checkout ni modificar dotfiles (comandos compatibles con fish):
+
+```fish
+ln -s /home/dilan/.local/share/cortetsu/builds/20260930-034419-1073298 /home/dilan/.config/quickshell/cortetsu/current.connectivity-rollback
+mv -Tf /home/dilan/.config/quickshell/cortetsu/current.connectivity-rollback /home/dilan/.config/quickshell/cortetsu/current
+cortetsu shell reload
+```
+
+Si el nombre temporal ya existe, inspeccionarlo antes; no sobrescribirlo a ciegas. Las generaciones se conservan, no se ejecutó GC. La reversión del código se hace con revert de los commits de esta tarea sobre esta rama, sin reset y sin tocar main.
+
+## Persistencia y prueba física posterior
+
+Los fixtures test-connectivity-secret.py usan libnm real para verificar que flags AGENT_OWNED/NOT_SAVED se eliminan, se preserva el resto del perfil y el readback incorrecto falla. test-connectivity-credential-flow.py comprueba que fallo, falta de comprobante y cancelación impiden activar el perfil. Los fixtures no modifican perfiles reales.
+
+La prueba física del backend instalado realizó dos scans, Wi-Fi off/on, reconexión del UUID original, Bluetooth off/on y discovery; terminó con Internet full, radios encendidas y ningún propietario de scan/discovery. Resultado PHYSICAL_PASS en /tmp/cortetsu-connectivity-physical.log. No probó contraseñas de una segunda red ni conexión de Gamepad dormido.
+
+## Validación física del 2026-10-02
+
+Generación instalada `20261002-234544-524584` (commit `7303702`); el ciclo final de suspensión usó `20261002-235943-550193`. El arnés cargó `ConnectivityWifi.qml`, `ConnectivityNmAdapter.qml`, `ConnectivityBluetooth.qml` y `ConnectivitySecret.py` de la generación instalada en una instancia de Quickshell aparte, contra NetworkManager y BlueZ reales. Ejercita el backend, no los popups ni las páginas de Ajustes. Las redes se nombran A (perfil doméstico de 5 GHz, en uso) y B (perfil de 2.4 GHz del mismo router, nunca usado y sin contraseña guardada).
+
+| Caso | Resultado observado |
+|---|---|
+| Contraseña incorrecta en B | Operación `failed` a los 11.8 s con `authentication-failed`, «La contraseña no fue aceptada» (NetworkManager: `Secrets were required but not provided`). Cuatro segundos después el equipo estaba otra vez en A con Internet full, sin intervención |
+| Contraseña correcta en B | `connected` a los 3.2 s; B activa según el backend y según `nmcli`, Internet full |
+| Cambio a red guardada | De B a A por su perfil guardado: `connected` en 1.7 s, Internet full |
+| Mando dormido | `connectDevice` falla con `timeout` a los 20.5 s; no queda operación pendiente ni propietario de scan |
+| Suspend/resume, Wi-Fi | Seis ciclos reales de s2idle (el equipo despierta solo a los 4–8 s). En el ciclo registrado en el journal NetworkManager reactivó A unos 4 s después de reanudar; en todos los ciclos el backend volvió a A con Internet full, conservó un único `nmcli monitor` y `refresh()` tomó y soltó su propietario de scan |
+| Suspend/resume, Bluetooth | En 3 de 6 ciclos el adaptador reapareció con `enabled=false` y estado `Enabling` en el objeto nativo de Quickshell, mientras BlueZ informaba `Powered=true`, `PowerState=on`. Seguía así más de un minuto después. `confirmedPower` estaba vacío: el valor obsoleto viene de la capa nativa (Quickshell 0.3.1, revisión `0f9939c`), no de la caché de Cortetsu |
+
+Efectos de la prueba sobre el equipo: el perfil B conserva ahora la contraseña correcta, con autoconnect desactivado como antes; `nmcli` y libnm no permitieron devolverlo a «sin contraseña». El intento con contraseña incorrecta la guardó en el perfil antes de activar, igual que hará la interfaz: un perfil que funcionaba queda con la contraseña equivocada hasta que se introduce la buena.
+
+Con el estado obsoleto la fachada mostraba Bluetooth apagado estando encendido y rechazaba operaciones sobre dispositivos.
+
+### Corrección y revalidación del 2026-10-03
+
+`ConnectivityBluetooth.qml` trata a BlueZ como autoridad de la potencia del adaptador. Cada vez que cambia el conjunto de adaptadores lee `PowerState` por `busctl` cada 2 s, como máximo ocho veces, hasta que deja de estar en transición, y guarda el resultado en `confirmedPower`; no hay sondeo en reposo. Si al cambiar la potencia el valor nativo ya coincide con el pedido, la escritura va por `busctl set-property`, porque el setter nativo no emitiría nada. La propiedad `state` de la fachada sigue reflejando el valor nativo; ninguna vista la usa.
+
+Generación `20261003-000621-564064`, cinco ciclos reales de suspensión: en el primero el objeto nativo volvió a quedar en `enabled=false`, `Enabling` y la fachada informó `enabled=true`, igual que BlueZ; en los otros cuatro el valor nativo era correcto y la fachada coincidió. `test-connectivity-bluetooth-runtime.py` cubre la lectura y la escritura con un `busctl` falso.
+
+Apagado con el estado nativo obsoleto, misma generación, sin dispositivos conectados. El estado obsoleto es poco frecuente: una primera tanda de 15 ciclos con una instancia del backend no lo reprodujo (la fachada coincidió con BlueZ en los 15). Una segunda tanda con cuatro instancias observando cada reanudación lo reprodujo en el ciclo 8, en una de ellas: objeto nativo en `enabled=false`, `Enabling`, BlueZ en `Powered=true` y fachada en `enabled=true`. Desde esa instancia, `setEnabled(false)` fue por `busctl set-property`, porque el valor nativo ya coincidía con el pedido, y quedó confirmado en 0.6 s: BlueZ en `Powered=false`, `PowerState=off`, fachada apagada. `setEnabled(true)` fue por el setter nativo y quedó confirmado en 0.6 s, con BlueZ en `on`. Tras el apagado y encendido el objeto nativo volvió a `enabled=true`, `Enabled`: el ciclo de potencia también limpia el estado obsoleto.
+
+Mando despierto, mismo arnés: desconexión confirmada y reconexión confirmada en unos 4 s, sin propietarios de scan al terminar. El mando se había conectado solo al encenderse, así que la primera conexión iniciada por Cortetsu no quedó ejercitada; la reconexión sí.
+
+La misma sesión encontró dos fallos de bloqueo ajenos a conectividad, corregidos en `IdleMonitors.qml`: la acción idle `lock` lanzaba un error y el ajuste «bloquear antes de dormir» no estaba conectado. Tras la corrección, un ciclo real de suspensión dejó la sesión bloqueada al reanudar.
+
+### Operaciones de dispositivo del 2026-10-03
+
+Mismo arnés, con ZON (auriculares, conectados) y Gamepad, ambos en modo de emparejamiento cuando hizo falta. Las cuatro primeras filas son de la generación `20261003-000621-564064`; las marcadas «corregido» usan el backend del commit que acompaña a esta sección, cargado en el arnés antes de instalarlo como generación `20261003-004843-620903` (build completo con sus gates y recarga suave del shell sin avisos en el journal).
+
+| Caso | Resultado observado |
+|---|---|
+| Batería | ZON: 80 % en el backend y en BlueZ |
+| Trust | ZON: quitar y devolver la confianza, cada escritura confirmada por BlueZ en 0.6 s; la fachada siguió el valor confirmado |
+| Block | ZON: bloquear lo desconecta y BlueZ lo confirma en 0.6 s; desbloquear y reconectar funcionan |
+| Forget | ZON y Gamepad: el dispositivo desaparece del backend y de BlueZ (2.3 s en ZON) |
+| Pair seguido de cancel | ZON: `cancel-pair` termina `succeeded` y el dispositivo queda sin emparejar; BlueZ lo retira y vuelve a aparecer por discovery |
+| Pair con el adaptador no emparejable | Fallo: la operación terminaba `succeeded` pero BlueZ dejaba `Bonded=false` y el emparejado se perdía al caer el enlace. Corregido: con `Pairable=false`, emparejar ZON deja `Pairable=true`, `Paired=true` y `Bonded=true`; después confianza, conexión estable y salida de audio |
+| Pair, Gamepad | Con `Pairable=true`: `Paired=true`, `Bonded=true` en 1.7 s |
+| Wake, Gamepad | Desactivar y reactivar, confirmado por BlueZ en 0.6 s cada vez |
+| Wake, ZON | ZON no tiene la propiedad `WakeAllowed`. Fallo: la operación esperaba 20 s hasta `timeout`. Corregido: falla en 0.6 s con `unsupported`, «Este dispositivo no admite despertar el equipo»; la fachada conserva `false` |
+
+Causa del emparejado no persistente: el adaptador estaba con `Pairable=false`, que en BlueZ es el ajuste «bondable» del controlador. Sin él la clave de enlace no se guarda. `bluetoothctl` con agente dio el mismo resultado en ese estado, así que no dependía del agente ni del dispositivo. `ConnectivityBluetooth.qml` activa ahora `pairable` en el adaptador antes de emparejar. El interruptor «Pairable» de Ajustes sigue disponible, y quien lo apague lo verá encendido otra vez tras emparejar algo.
+
+Limitaciones que quedan: El interruptor de wake se muestra también en dispositivos que no lo admiten, porque la API nativa no indica si la propiedad existe. Pairing rechazado y con PIN siguen pendientes.
+
+Gamepad, generación `20261003-004843-620903` instalada: tras olvidarlo y emparejarlo otra vez (`Bonded=true` en 1.2 s) y devolverle la confianza, `connectDevice` lo conectó; el kernel registró el dispositivo de entrada HID y el enlace seguía activo 20 s después.
+
+### Conexión confirmada por BlueZ, 2026-10-03
+
+Fallo: `connectDevice` daba éxito en cuanto el objeto nativo informaba `connected=true`, y eso ocurre ya con el enlace de radio. Se reprodujo con el Gamepad en modo de emparejamiento y su vínculo anterior aún guardado en el equipo: la operación terminó `succeeded` a los 0.6 s mientras BlueZ registraba `Permission denied (13)` en el perfil de entrada, y cuatro segundos después estaba desconectado.
+
+Corrección: el backend llama a `Device1.Connect` por `busctl` y usa su respuesta. BlueZ solo responde con éxito cuando conectan los perfiles, y si falla da su motivo, que se muestra tal cual. Validado con el backend del commit que acompaña a esta sección, cargado en el arnés antes de instalarlo como generación `20261003-005853-636995`:
+
+| Caso | Resultado observado |
+|---|---|
+| ZON, desconectar y conectar | `succeeded` a los 4.2 s; seguía conectado 10 s después, con salida de audio |
+| Gamepad, ya conectado | `succeeded` inmediato |
+| Gamepad, conectar tras desconectarlo (se apaga al perder el host) | `failed`, `connect-failed`, «No se pudo conectar: br-connection-create-socket» a los 5.3 s; antes este caso esperaba 20 s hasta `timeout` |
+| ZON bloqueado | `failed`, «No se pudo conectar: Connection timed out» a los 18 s; al desbloquear, la conexión se confirmó en 3.7 s |
+| ZON, conectar estando ya conectado | `failed`, «No se pudo conectar: br-connection-busy». BlueZ tenía otra conexión en curso para ese dispositivo y rechazó la segunda; el dispositivo siguió conectado. No se investigó qué la mantenía en curso |
+
+Los motivos son los textos de BlueZ, sin traducir. El Gamepad quedó emparejado, con vínculo y de confianza, apagado tras la prueba de desconexión.

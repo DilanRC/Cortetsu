@@ -22,6 +22,8 @@ Implemented:
 - `cortetsu-display-plan`: validates a complete candidate and renders the exact Hyprland monitor commands without executing them;
 - `cortetsu-display-transaction`: timed live preview with automatic rollback;
 - explicit `Preview 15s`, `Keep` and `Revert` controls;
+- shared `CortetsuButton` interaction states for header and safe-apply actions,
+  including keyboard focus and shared tooltips;
 - full installer, development updater and validator.
 
 ## Safety model

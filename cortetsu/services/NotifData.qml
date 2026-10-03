@@ -8,6 +8,7 @@ QtObject {
     id: root
     property bool popup: false
     property bool closed: false
+    property bool interactionActive: false
     property var locks: new Set()
     property bool dismissalRequested: false
     property date time: new Date()
@@ -27,10 +28,13 @@ QtObject {
     property list<var> actions: []
     readonly property Timer timeStrTimer: Timer { running: !root.closed; repeat: true; interval: 30000; onTriggered: root.updateTimeStr() }
     readonly property Timer timer: Timer {
-        running: root.popup && root.expireTimeout > 0
+        running: root.popup && root.expireTimeout > 0 && !root.interactionActive
         interval: root.expireTimeout
         onTriggered: root.popup = false
     }
+
+    onPopupChanged: Notifs.refreshCollections()
+    onClosedChanged: Notifs.refreshCollections()
 
     function updateTimeStr(): void {
         const minutes = Math.floor((Date.now() - root.time.getTime()) / 60000);
@@ -60,6 +64,10 @@ QtObject {
         if (closed)
             return;
 
+        // Remove the live popup before the delegate destruction handshake.
+        // Otherwise a dismissed notification stays in Notifs.popups() with
+        // opacity 0 while the UI lock keeps the model item alive.
+        popup = false;
         closed = true;
         if (locks.size === 0)
             dismissAndRemove();

@@ -44,6 +44,7 @@ run_migration() {
         XDG_STATE_HOME="$STATE_HOME" \
         XDG_CACHE_HOME="$CACHE_HOME" \
         XDG_DATA_HOME="$DATA_HOME" \
+        CORTETSU_DATA_ROOT="$DATA_HOME/cortetsu" \
         PATH="$FAKE_BIN:/usr/bin:/bin" \
         bash "$REPO/scripts/migrate-cortetsu-v2.sh"
 }

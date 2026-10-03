@@ -5,10 +5,29 @@ import Quickshell
 import Quickshell.Services.Notifications
 
 Singleton {
-    readonly property var weatherIcons: ({"0":"clear_day", "1":"clear_day", "2":"partly_cloudy_day", "3":"cloud", "45":"foggy", "48":"foggy", "51":"rainy", "53":"rainy", "55":"rainy", "61":"rainy", "63":"rainy", "65":"rainy", "71":"cloudy_snowing", "73":"cloudy_snowing", "75":"snowing_heavy", "80":"rainy", "81":"rainy", "82":"rainy", "85":"cloudy_snowing", "86":"snowing_heavy", "95":"thunderstorm", "96":"thunderstorm", "99":"thunderstorm"})
     readonly property var categoryIcons: ({WebBrowser:"web", Printing:"print", Security:"security", Network:"chat", Development:"code", IDE:"code", Audio:"music_note", Music:"music_note", Player:"music_note", Recorder:"mic", Game:"sports_esports", FileManager:"files", Settings:"settings", TerminalEmulator:"terminal", Utility:"build", Monitor:"monitor_heart", Video:"videocam", Graphics:"photo_library", TV:"tv", System:"host", Office:"content_paste"})
 
-    function getAppIcon(name: string, fallback: string): string { return Quickshell.iconPath(DesktopEntries.heuristicLookup(name)?.icon, fallback); }
+    function getAppIcon(name: string, fallback: string): string {
+        const value = String(name ?? "");
+        if (value.startsWith("file://") || value.startsWith("/"))
+            return value.startsWith("/") ? `file://${value}` : value;
+
+        const entry = DesktopEntries.heuristicLookup(value);
+        const entryIcon = String(entry?.icon ?? "");
+        const steamMatch = (value.match(/^(?:steam_app|steam_icon)_([0-9]+)$/i)
+            ?? entryIcon.match(/^steam_icon_(\d+)$/i));
+        if (steamMatch) {
+            const iconName = `steam_icon_${steamMatch[1]}`;
+            // Steam's generated desktop entries are not always visible to
+            // Quickshell's icon theme lookup. Keep the user icon cache as a
+            // deterministic fallback for taskbar/overview surfaces.
+            const home = Quickshell.env("HOME") || "";
+            const cachedIcon = `file://${home}/.local/share/icons/hicolor/128x128/apps/${iconName}.png`;
+            return Quickshell.iconPath(iconName, cachedIcon);
+        }
+
+        return Quickshell.iconPath(entryIcon || value, fallback);
+    }
     function getAppCategoryIcon(name: string, fallback: string): string {
         const categories = DesktopEntries.heuristicLookup(name)?.categories ?? [];
         for (const key of Object.keys(categoryIcons)) if (categories.includes(key)) return categoryIcons[key];
@@ -30,7 +49,6 @@ Singleton {
         if (icon.includes("keyboard")) return "keyboard";
         return "bluetooth";
     }
-    function getWeatherIcon(code: string): string { return weatherIcons[code] ?? "air"; }
     function getNotifIcon(summary: string, urgency: int): string {
         const value = summary.toLowerCase();
         if (value.includes("reboot")) return "restart_alt";

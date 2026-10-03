@@ -7,9 +7,9 @@ return {
 
     -- Apps
     terminal                   = "/home/dilan/.local/bin/kitty-tab",
-    browser                    = "firefox",
+    browser                    = "/usr/bin/brave-origin",
     editor                     = "codium",
-    fileExplorer               = "thunar",
+    fileExplorer               = "dolphin",
     audioSettings              = "pavucontrol",
 
     -- Touchpad
@@ -111,7 +111,7 @@ return {
 
     -- Apps
     kbTerminal                 = "SUPER + Return",
-    kbBrowser                  = "SUPER + W",
+    kbBrowser                  = "SUPER + B",
     kbEditor                   = "SUPER + C",
     kbFileExplorer             = "SUPER + E",
     kbAudioSettings            = "CTRL + ALT + V",
@@ -123,7 +123,7 @@ return {
     kbRecord                   = "CTRL + ALT + R",
     kbRecordSound              = "SUPER + ALT + R",
     kbRecordRegion             = "SUPER + SHIFT + ALT + R",
-    kbColorPicker              = "SUPER + SHIFT + C",
+    kbColorPicker              = "SUPER + SHIFT + P",
 
     -- Media
     kbMediaToggle              = "CTRL + SUPER + Space",
@@ -136,6 +136,7 @@ return {
     kbLauncher                 = "SUPER + SUPER_L",
     kbSession                  = "CTRL + ALT + Delete",
     kbShowSidebar              = "SUPER + N",
+    kbFocusToast               = "SUPER + ALT + N",
     kbClearNotifs              = "CTRL + ALT + C",
     kbShowPanels               = "SUPER + K",
     kbLock                     = "SUPER + L",

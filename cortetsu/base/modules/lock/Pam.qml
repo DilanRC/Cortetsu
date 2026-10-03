@@ -27,11 +27,13 @@ Scope {
     property string lockMessage
     property int state
     property string buffer
+    property bool successPending: false
 
     signal flashMsg
+    signal authenticationSucceeded
 
     function handleKey(event: KeyEvent): void {
-        if (passwd.active)
+        if (passwd.active || successPending)
             return;
 
         // Trigger howdy on enter while empty buffer
@@ -73,6 +75,16 @@ Scope {
                 obj.state = Pam.None;
     }
 
+    function releaseAfterSuccess(): void {
+        if (!successPending)
+            return;
+        successPending = false;
+        fprint.abort();
+        howdy.abort();
+        // Only this path may drop the lock.
+        root.lock.locked = false;
+    }
+
     PamContext {
         id: passwd
 
@@ -95,8 +107,11 @@ Scope {
         }
 
         onCompleted: res => {
-            if (res === PamResult.Success)
-                return root.lock.unlock();
+            if (res === PamResult.Success) {
+                root.successPending = true;
+                root.authenticationSucceeded();
+                return;
+            }
 
             root.clearTransientState();
 
@@ -161,13 +176,8 @@ Scope {
                 root.buffer = "";
                 root.state = Pam.None;
                 root.lockMessage = "";
+                root.successPending = false;
             }
-        }
-
-        function onUnlock(): void {
-            fprint.abort();
-            howdy.abort();
-            passwd.abort();
         }
 
         target: root.lock
@@ -233,8 +243,11 @@ Scope {
                 if (!ctx.available)
                     return;
 
-                if (res === PamResult.Success)
-                    return root.lock.unlock();
+                if (res === PamResult.Success) {
+                    root.successPending = true;
+                    root.authenticationSucceeded();
+                    return;
+                }
 
                 root.clearTransientState();
 

@@ -15,14 +15,30 @@ Singleton {
             Quickshell.execDetached(["notify-send", "--app-name=Cortetsu", title, message]);
     }
 
+    function dispatchKeyword(key: string, value: string): void {
+        if (CortetsuHypr.usingLua) {
+            const field = key.replaceAll(":", " = ");
+            Quickshell.execDetached(["hyprctl", "eval", `hl.config({ ${field} = ${value === "0" ? "false" : "true"} })`]);
+        } else {
+            Quickshell.execDetached(["hyprctl", "keyword", key, value]);
+        }
+    }
+
     function apply(): void {
+        if (CortetsuHypr.usingLua) {
+            Quickshell.execDetached([
+                "hyprctl", "eval",
+                "hl.config({ animations = { enabled = false }, decoration = { shadow = { enabled = false }, blur = { enabled = false }, rounding = 0 }, general = { gaps_in = 0, gaps_out = 0, border_size = 1, allow_tearing = true } })"
+            ]);
+            return;
+        }
         for (const setting of [
             ["animations:enabled", "0"], ["decoration:shadow:enabled", "0"],
             ["decoration:blur:enabled", "0"], ["general:gaps_in", "0"],
             ["general:gaps_out", "0"], ["general:border_size", "1"],
             ["decoration:rounding", "0"], ["general:allow_tearing", "1"]
         ])
-            CortetsuHypr.dispatch(`keyword ${setting[0]} ${setting[1]}`);
+            dispatchKeyword(setting[0], setting[1]);
     }
 
     function toggle(): void { enabled = !enabled; }
@@ -30,10 +46,10 @@ Singleton {
     onEnabledChanged: {
         if (enabled) {
             apply();
-            notify(qsTr("Game mode enabled"), qsTr("Reduced compositor effects for games"));
+            notify(qsTr("Modo juego activado"), qsTr("Animaciones y efectos reducidos"));
         } else {
-            CortetsuHypr.dispatch("reload");
-            notify(qsTr("Game mode disabled"), qsTr("Hyprland settings restored"));
+            Quickshell.execDetached(["hyprctl", "reload"]);
+            notify(qsTr("Modo juego desactivado"), qsTr("Configuración de Hyprland restaurada"));
         }
     }
 

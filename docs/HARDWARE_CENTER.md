@@ -30,11 +30,42 @@ uses the same native surface as Launcher, Overview and Clipboard.
 7. **Auto** — optional AC/battery/low-battery profile rules with verified actions and a small persistent event history. Automation remains disabled until explicitly enabled.
 8. **Energy** — rolling battery/CPU/AMD/NVIDIA power histories, battery energy/health and estimated remaining/charge time when the kernel exposes enough data.
 9. **Keybinds** — installed-app search, automatic launcher metadata, real application icons, direct reassignment and confirmed deletion with automatic snapshots.
+10. **Inicio** — inventory of XDG autostart, user/system systemd units, Hyprland Lua startup callbacks and Cortetsu-owned processes. XDG user entries and manageable user units can be disabled for future logins; system units and source-owned entries are read only.
 
-Keyboard: `1`–`9` switches pages, `R` refreshes main telemetry and `Esc` closes.
+Keyboard: `1`–`9` switches current pages, `0` opens Inicio, `R` refreshes main telemetry and `Esc` closes.
 There is also an explicit close button. Clicking empty space inside the panel does
 not close it; only clicking outside the panel, `Esc`, the close button or
 `Super+H` closes/toggles it.
+
+Inicio scans when its page opens or when **Actualizar** is selected. It shows
+system services read only and keeps XDG global files untouched by writing a
+user override. User systemd toggles affect the next login; an active process is
+left running. Active user services offer a separate **Detener ahora** action
+with explicit confirmation. Every successful action is re-scanned and recorded
+without copying command arguments into the history.
+
+Cortetsu process starts are declared by component in
+`cortetsu/bin/cortetsu-startup`, with startup phase, condition, command and live
+execution state kept separately. The drift test covers bound `running` states,
+`Component.onCompleted` starts, startup timers, detached commands and helper
+calls reached from those startup callbacks. Each producer marks its registry
+entry in QML. Dynamic commands that cannot be matched exactly show an unknown
+execution state. On-demand queries stay labeled as on-demand and are excluded
+from autostart counts.
+`enabled` is persistent and `enabled-runtime` is temporary. `linked` and
+`linked-runtime` only make a unit available through a symlink; they do not
+enable automatic start, so Inicio labels them as linked and groups them with
+special, non-toggleable states. `static`, `indirect`, `generated`, `transient`
+and `alias` are also non-toggleable. Target relationships are shown as
+installation configuration only for `enabled` or `enabled-runtime` units.
+`TriggeredBy` shows possible socket/timer/path activators without claiming they
+caused a past run. Startup inventory refreshes on demand and Hardware Center
+telemetry polling stops when the panel closes.
+
+For read-only systemd inspection, use `show`, `is-enabled`, `list-unit-files`,
+`cat` and `list-dependencies`. Never use `systemctl enable --dry-run` or
+`systemctl disable --dry-run` as read-only checks; those operations can change
+unit symlinks.
 
 Keybind changes are written only to the user's Caelestia files. Every change
 creates a snapshot under `~/.local/share/cortetsu/upstream/snapshots/keybinds/`.

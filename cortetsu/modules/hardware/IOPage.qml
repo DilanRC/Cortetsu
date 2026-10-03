@@ -78,7 +78,7 @@ Item {
 
                                 CortetsuText {
                                     width: parent.width * 0.58
-                                    text: qsTr("Storage / root")
+                                    text: qsTr("Almacenamiento / raíz")
                                     color: CortetsuDesign.colorOnSurface
                                     textSize: CortetsuTypography.titleMediumPx
                                 }
@@ -124,14 +124,14 @@ Item {
 
                         Repeater {
                             model: [
-                                root.row(qsTr("Used"), root.gib(root.disk?.used_gb)),
-                                root.row(qsTr("Free"), root.gib(root.disk?.free_gb)),
-                                root.row(qsTr("Read"), `${root.number(root.diskIo?.read_mib_s, 2)} MiB/s`),
-                                root.row(qsTr("Write"), `${root.number(root.diskIo?.write_mib_s, 2)} MiB/s`),
-                                root.row(qsTr("Read IOPS"), root.number(root.diskIo?.read_iops, 0)),
-                                root.row(qsTr("Write IOPS"), root.number(root.diskIo?.write_iops, 0)),
-                                root.row(qsTr("Read total"), root.gib(root.diskIo?.read_total_gb)),
-                                root.row(qsTr("Write total"), root.gib(root.diskIo?.write_total_gb))
+                                root.row(qsTr("Usado"), root.gib(root.disk?.used_gb)),
+                                root.row(qsTr("Libre"), root.gib(root.disk?.free_gb)),
+                                root.row(qsTr("Lectura"), `${root.number(root.diskIo?.read_mib_s, 2)} MiB/s`),
+                                root.row(qsTr("Escritura"), `${root.number(root.diskIo?.write_mib_s, 2)} MiB/s`),
+                                root.row(qsTr("IOPS de lectura"), root.number(root.diskIo?.read_iops, 0)),
+                                root.row(qsTr("IOPS de escritura"), root.number(root.diskIo?.write_iops, 0)),
+                                root.row(qsTr("Lectura total"), root.gib(root.diskIo?.read_total_gb)),
+                                root.row(qsTr("Escritura total"), root.gib(root.diskIo?.write_total_gb))
                             ]
 
                             delegate: Row {
@@ -177,14 +177,14 @@ Item {
 
                         CortetsuText {
                             width: parent.width * 0.6
-                            text: qsTr("Detected block devices")
+                            text: qsTr("Dispositivos de bloque detectados")
                             color: CortetsuDesign.colorOnSurface
                             textSize: CortetsuTypography.titleSmallPx
                         }
 
                         CortetsuText {
                             width: parent.width * 0.4
-                            text: `${root.disks.length} ${qsTr("devices")}`
+                        text: `${root.disks.length} ${qsTr("dispositivos")}`
                             color: CortetsuDesign.colorOutline
                             textSize: CortetsuTypography.labelSmallPx
                             horizontalAlignment: Text.AlignRight
@@ -212,7 +212,7 @@ Item {
                                     spacing: 1
 
                                     CortetsuText {
-                                        text: modelData?.device ?? qsTr("root")
+                                        text: modelData?.device ?? qsTr("raíz")
                                         color: CortetsuDesign.colorOnSurface
                                         textSize: CortetsuTypography.labelMediumPx
                                     }
@@ -290,7 +290,7 @@ Item {
                             spacing: 2
 
                             CortetsuText {
-                                text: root.network?.interface ?? qsTr("No active interface")
+                                text: root.network?.interface ?? qsTr("Sin interfaz activa")
                                 color: CortetsuDesign.colorOnSurface
                                 textSize: CortetsuTypography.titleMediumPx
                             }
@@ -299,7 +299,7 @@ Item {
                                 width: parent.width
                                 text: root.network?.ssid
                                     ? `${root.network.ssid} · ${root.network?.ipv4 ?? ""}`
-                                    : (root.network?.ipv4 ?? qsTr("Active network path"))
+                                    : (root.network?.ipv4 ?? qsTr("Ruta de red activa"))
                                 color: CortetsuDesign.colorOutline
                                 textSize: CortetsuTypography.labelSmallPx
                                 elide: Text.ElideRight
@@ -315,12 +315,12 @@ Item {
 
                         Repeater {
                             model: [
-                                root.row(qsTr("Download"), `${root.number(root.network?.rx_mbps, 2)} Mb/s`),
-                                root.row(qsTr("Upload"), `${root.number(root.network?.tx_mbps, 2)} Mb/s`),
+                                root.row(qsTr("Descarga"), `${root.number(root.network?.rx_mbps, 2)} Mb/s`),
+                                root.row(qsTr("Subida"), `${root.number(root.network?.tx_mbps, 2)} Mb/s`),
                                 root.row(qsTr("RX total"), `${root.number(root.network?.rx_total_gb, 2)} GiB`),
                                 root.row(qsTr("TX total"), `${root.number(root.network?.tx_total_gb, 2)} GiB`),
-                                root.row(qsTr("Signal"), root.network?.signal_dbm !== undefined ? `${root.network.signal_dbm} dBm` : "—"),
-                                root.row(qsTr("Link"), root.network?.bitrate_mbps !== undefined ? `${root.number(root.network.bitrate_mbps, 0)} Mb/s` : "—"),
+                                root.row(qsTr("Señal"), root.network?.signal_dbm !== undefined ? `${root.network.signal_dbm} dBm` : "—"),
+                                root.row(qsTr("Enlace"), root.network?.bitrate_mbps !== undefined ? `${root.number(root.network.bitrate_mbps, 0)} Mb/s` : "—"),
                                 root.row(qsTr("IPv4"), root.network?.ipv4 ?? "—"),
                                 root.row(qsTr("MAC"), root.network?.mac ?? "—")
                             ]
@@ -364,14 +364,14 @@ Item {
                     spacing: 10
 
                     CortetsuText {
-                        text: qsTr("Throughput summary")
+                        text: qsTr("Resumen de transferencia")
                         color: CortetsuDesign.colorOnSurface
                         textSize: CortetsuTypography.titleSmallPx
                     }
 
                     CortetsuText {
                         width: parent.width
-                        text: qsTr("The I/O page uses kernel counters and only samples while Hardware Center is open.")
+                        text: qsTr("La página de E/S usa contadores del kernel y solo toma muestras mientras el Centro de hardware está abierto.")
                         color: CortetsuDesign.colorOutline
                         textSize: CortetsuTypography.bodySmallPx
                         wrapMode: Text.WordWrap
@@ -379,14 +379,14 @@ Item {
 
                     CortetsuText {
                         width: parent.width
-                        text: `${qsTr("Disk")}: ${root.number(root.diskIo?.read_mib_s, 2)} R / ${root.number(root.diskIo?.write_mib_s, 2)} W MiB/s`
+                        text: `${qsTr("Disco")}: ${root.number(root.diskIo?.read_mib_s, 2)} L / ${root.number(root.diskIo?.write_mib_s, 2)} E MiB/s`
                         color: CortetsuDesign.colorOnSurfaceVariant
                         textSize: CortetsuTypography.labelMediumPx
                     }
 
                     CortetsuText {
                         width: parent.width
-                        text: `${qsTr("Network")}: ${root.number(root.network?.rx_mbps, 2)} ↓ / ${root.number(root.network?.tx_mbps, 2)} ↑ Mb/s`
+                        text: `${qsTr("Red")}: ${root.number(root.network?.rx_mbps, 2)} ↓ / ${root.number(root.network?.tx_mbps, 2)} ↑ Mb/s`
                         color: CortetsuDesign.colorOnSurfaceVariant
                         textSize: CortetsuTypography.labelMediumPx
                     }

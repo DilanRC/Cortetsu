@@ -44,6 +44,7 @@ Singleton {
         onLoaded: root.readStats(text())
     }
 
+    // startup inventory: cortetsu:cpu-temperature (on-demand resource view)
     Process {
         id: temperature
         command: ["sh", "-c", "for f in /sys/class/thermal/thermal_zone*/temp; do [ -r \"$f\" ] && cat \"$f\" && break; done"]

@@ -4,9 +4,11 @@ import QtQuick
 import ".."
 import "../CortetsuDesign.js" as CortetsuDesign
 import "../CortetsuTypography.js" as CortetsuTypography
+import "Navigation.js" as HardwareNavigation
 import QtCore
 import Quickshell
 import Quickshell.Io
+import "../../components"
 
 FocusScope {
     id: root
@@ -16,7 +18,7 @@ FocusScope {
     required property bool hardwareVisible
 
     property var snapshot: ({})
-    property string statusText: qsTr("Waiting for first sample…")
+    property string statusText: qsTr("Esperando la primera lectura…")
     property int sampleCount: 0
     property int currentPage: 0
 
@@ -87,7 +89,7 @@ FocusScope {
     function refresh(): void {
         if (!root.hardwareVisible || probe.running)
             return;
-        root.statusText = qsTr("Refreshing…");
+        root.statusText = qsTr("Actualizando…");
         probe.running = true;
     }
 
@@ -100,19 +102,35 @@ FocusScope {
         root.screenState.cortetsuState?.setRetained("hardware", false);
     }
 
-    Keys.onEscapePressed: root.closeHardware()
-
     Keys.onPressed: event => {
+        if (HardwareNavigation.isEscape(event.key, Qt.Key_Escape)) {
+            root.closeHardware();
+            event.accepted = true;
+            return;
+        }
         if (event.key === Qt.Key_R) {
             root.refresh();
             event.accepted = true;
             return;
         }
-        if (event.key >= Qt.Key_1 && event.key <= Qt.Key_9) {
-            root.currentPage = event.key - Qt.Key_1;
+        if (HardwareNavigation.handlesPageKey(event.key, Qt.Key_1, Qt.Key_9, Qt.Key_0)) {
+            root.currentPage = HardwareNavigation.pageForKey(
+                event.key, root.currentPage, Qt.Key_1, Qt.Key_9, Qt.Key_0);
             event.accepted = true;
         }
     }
+
+    function selectAdjacentTab(delta): void {
+        root.currentPage = Math.max(0, Math.min(9, root.currentPage + delta));
+    }
+
+    function revealPageTab(index): void {
+        const tab = tabRepeater.itemAt(index);
+        if (tab)
+            tabs.contentX = Math.max(0, Math.min(tab.x, tabs.contentWidth - tabs.width));
+    }
+
+    onCurrentPageChanged: Qt.callLater(() => root.revealPageTab(root.currentPage))
 
     Timer {
         interval: 1500
@@ -122,6 +140,7 @@ FocusScope {
         onTriggered: root.refresh()
     }
 
+    // startup inventory: cortetsu:hardware-probe
     Process {
         id: probe
         command: [root.probePath]
@@ -133,9 +152,9 @@ FocusScope {
                     root.snapshot = parsed;
                     root.recordHistory(parsed);
                     root.sampleCount += 1;
-                    root.statusText = qsTr("Live · %1 ms cadence").arg(1500);
+                    root.statusText = qsTr("Live");
                 } catch (error) {
-                    root.statusText = qsTr("Probe returned invalid JSON");
+                    root.statusText = qsTr("Probe unavailable");
                     console.warn(`Hardware Center: invalid probe JSON: ${error}`);
                 }
             }
@@ -160,180 +179,163 @@ FocusScope {
     Rectangle {
         id: panel
 
-        width: Math.min(1260, parent.width - 96)
-        height: Math.min(900, parent.height - 64)
+        width: Math.min(1120, parent.width - 96)
+        height: Math.min(820, parent.height - 72)
         x: Math.round((parent.width - width) / 2)
         y: Math.round((parent.height - height) / 2)
-        radius: 30
-        color: CortetsuDesign.colorSurfaceHigh
+        radius: 24
+        color: Qt.alpha(CortetsuDesign.colorTetsu, 0.97)
         border.width: 1
-        border.color: CortetsuDesign.colorOutlineVariant
+        border.color: Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.22)
         clip: true
-
-        Rectangle {
-            anchors.fill: parent
-            anchors.margins: 1
-            radius: panel.radius - 1
-            color: "transparent"
-            border.width: 1
-            border.color: Qt.alpha(CortetsuDesign.colorPrimary, 0.18)
-        }
 
         Column {
             anchors.fill: parent
-            anchors.margins: 22
-            spacing: 12
+            anchors.margins: CortetsuDesign.spacingComfortable
+            spacing: CortetsuDesign.spacingStandard
 
             Row {
                 id: header
                 width: parent.width
-                height: 58
-                spacing: 14
+                height: 50
+                spacing: CortetsuDesign.spacingStandard
 
-                Rectangle {
-                    width: 52
-                    height: 52
-                    radius: CortetsuDesign.radiusLarge
-                    color: CortetsuDesign.colorPrimaryContainer
-
-                    CortetsuIcon {
-                        anchors.centerIn: parent
-                        text: "monitor_heart"
-                        color: CortetsuDesign.colorOnPrimaryContainer
-                        iconSize: CortetsuTypography.iconExtraLargePx
-                    }
+                CortetsuIcon {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: "monitor_heart"
+                    color: CortetsuDesign.colorPrimary
+                    iconSize: CortetsuTypography.iconLargePx
                 }
 
                 Column {
                     anchors.verticalCenter: parent.verticalCenter
-                    width: parent.width - 52 - refreshButton.width - closeButton.width - 42
-                    spacing: 0
+                    width: Math.max(120, parent.width - x - status.width - refreshButton.width - closeButton.width - 36)
+                    spacing: 1
 
                     CortetsuText {
                         width: parent.width
-                        text: qsTr("Hardware Center")
+                        text: qsTr("Hardware")
                         color: CortetsuDesign.colorOnSurface
                         textSize: CortetsuTypography.titleLargePx
+                        font.weight: Font.DemiBold
                         elide: Text.ElideRight
                     }
 
                     CortetsuText {
                         width: parent.width
-                        text:
-                            `${root.snapshot?.host ?? "Cortetsu"} · ` +
-                            `${root.snapshot?.kernel ?? ""} · ` +
-                            `${root.uptimeText(root.snapshot?.uptime_sec)}`
+                        text: `${root.snapshot?.host ?? "Cortetsu"} · ${root.snapshot?.kernel ?? ""} · ${root.uptimeText(root.snapshot?.uptime_sec)}`
                         color: CortetsuDesign.colorOnSurfaceVariant
-                        textSize: CortetsuTypography.labelMediumPx
-                        elide: Text.ElideRight
-                    }
-
-                    CortetsuText {
-                        width: parent.width
-                        text: root.statusText
-                        color: CortetsuDesign.colorOutline
                         textSize: CortetsuTypography.labelSmallPx
                         elide: Text.ElideRight
                     }
                 }
 
-                Rectangle {
+                CortetsuText {
+                    id: status
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: root.statusText
+                    color: probe.running ? CortetsuDesign.colorPrimary : CortetsuDesign.colorOnSurfaceVariant
+                    textSize: CortetsuTypography.labelSmallPx
+                }
+
+                Item {
                     id: refreshButton
                     anchors.verticalCenter: parent.verticalCenter
-                    width: 46
-                    height: 46
-                    radius: CortetsuDesign.radiusMedium
-                    color: CortetsuDesign.colorSurfaceHigh
+                    width: 38
+                    height: 38
 
+                    CortetsuSurface {
+                        anchors.fill: parent
+                        radiusValue: CortetsuDesign.radiusPill
+                        baseColor: refreshLayer.containsMouse ? CortetsuDesign.colorSurfaceGlassStrong : "transparent"
+                        outlined: false
+                    }
                     CortetsuStateLayer {
-                        radius: parent.radius
+                        id: refreshLayer
+                        anchors.fill: parent
+                        radius: CortetsuDesign.radiusPill
                         onClicked: root.refresh()
                     }
-
                     CortetsuIcon {
                         anchors.centerIn: parent
                         text: probe.running ? "progress_activity" : "refresh"
-                        color: CortetsuDesign.colorPrimary
-                        iconSize: CortetsuTypography.iconLargePx
+                        color: CortetsuDesign.colorOnSurfaceVariant
+                        iconSize: CortetsuTypography.iconMediumPx
                     }
                 }
 
-                Rectangle {
+                Item {
                     id: closeButton
                     anchors.verticalCenter: parent.verticalCenter
-                    width: 46
-                    height: 46
-                    radius: CortetsuDesign.radiusMedium
-                    color: CortetsuDesign.colorSurfaceHigh
+                    width: 38
+                    height: 38
 
+                    CortetsuSurface {
+                        anchors.fill: parent
+                        radiusValue: CortetsuDesign.radiusPill
+                        baseColor: closeLayer.containsMouse ? CortetsuDesign.colorSurfaceGlassStrong : "transparent"
+                        outlined: false
+                    }
                     CortetsuStateLayer {
-                        radius: parent.radius
+                        id: closeLayer
+                        anchors.fill: parent
+                        radius: CortetsuDesign.radiusPill
                         onClicked: root.closeHardware()
                     }
-
                     CortetsuIcon {
                         anchors.centerIn: parent
                         text: "close"
                         color: CortetsuDesign.colorOnSurfaceVariant
-                        iconSize: CortetsuTypography.iconLargePx
+                        iconSize: CortetsuTypography.iconMediumPx
                     }
                 }
             }
 
-            Row {
+            Flickable {
                 id: tabs
                 width: parent.width
-                height: 42
-                spacing: 7
+                height: 40
+                contentWidth: tabRow.implicitWidth
+                clip: true
+                boundsBehavior: Flickable.StopAtBounds
 
-                Repeater {
-                    model: [
-                        { label: qsTr("Overview"), icon: "dashboard" },
-                        { label: qsTr("Performance"), icon: "monitoring" },
-                        { label: qsTr("Processes"), icon: "account_tree" },
-                        { label: qsTr("Sensors"), icon: "device_thermostat" },
-                        { label: qsTr("I/O"), icon: "lan" },
-                        { label: qsTr("Power"), icon: "bolt" },
-                        { label: qsTr("Auto"), icon: "auto_mode" },
-                        { label: qsTr("Energy"), icon: "electric_bolt" },
-                        { label: qsTr("Keybinds"), icon: "keyboard" }
-                    ]
+                Row {
+                    id: tabRow
+                    spacing: CortetsuDesign.spacingUnit
+                    height: parent.height
 
-                    delegate: Rectangle {
-                        required property var modelData
-                        required property int index
-                        width: Math.min(132, (tabs.width - tabs.spacing * 8) / 9)
-                        height: 42
-                        radius: CortetsuDesign.radiusMedium
-                        color: root.currentPage === index
-                            ? CortetsuDesign.colorSecondaryContainer
-                            : CortetsuDesign.colorSurface
-                        border.width: root.currentPage === index ? 1 : 0
-                        border.color: CortetsuDesign.colorPrimary
+                    Repeater {
+                        id: tabRepeater
+                        model: [
+                            { label: qsTr("Overview"), icon: "dashboard" },
+                            { label: qsTr("Performance"), icon: "monitoring" },
+                            { label: qsTr("Procesos"), icon: "account_tree" },
+                            { label: qsTr("Sensors"), icon: "device_thermostat" },
+                            { label: qsTr("I/O"), icon: "lan" },
+                            { label: qsTr("Energía"), icon: "bolt" },
+                            { label: qsTr("Automático"), icon: "auto_mode" },
+                            { label: qsTr("Energy"), icon: "electric_bolt" },
+                            { label: qsTr("Keys"), icon: "keyboard" },
+                            { label: qsTr("Inicio"), icon: "play_circle" }
+                        ]
 
-                        CortetsuStateLayer {
-                            radius: parent.radius
-                            onClicked: root.currentPage = index
-                        }
+                        delegate: Item {
+                            id: tabDelegate
+                            required property var modelData
+                            required property int index
+                            width: Math.max(92, (tabs.width - tabRow.spacing * 9) / 10)
+                            height: tabRow.height
 
-                        Row {
-                            anchors.centerIn: parent
-                            spacing: 6
-
-                            CortetsuIcon {
-                                text: modelData.icon
-                                color: root.currentPage === index
-                                    ? CortetsuDesign.colorOnSecondaryContainer
-                                    : CortetsuDesign.colorOnSurfaceVariant
-                                iconSize: CortetsuTypography.iconSmallPx
-                            }
-
-                            CortetsuText {
-                                text: `${index + 1}  ${modelData.label}`
-                                color: root.currentPage === index
-                                    ? CortetsuDesign.colorOnSecondaryContainer
-                                    : CortetsuDesign.colorOnSurfaceVariant
-                                textSize: CortetsuTypography.labelSmallPx
+                            CortetsuTab {
+                                anchors.fill: parent
+                                index: tabDelegate.index
+                                count: 10
+                                label: tabDelegate.modelData.label
+                                icon: tabDelegate.modelData.icon
+                                selected: root.currentPage === tabDelegate.index
+                                onActivated: root.currentPage = tabDelegate.index
+                                onPreviousRequested: root.selectAdjacentTab(-1)
+                                onNextRequested: root.selectAdjacentTab(1)
                             }
                         }
                     }
@@ -343,7 +345,7 @@ FocusScope {
             Loader {
                 id: pageLoader
                 width: parent.width
-                height: parent.height - header.height - tabs.height - 24
+                height: parent.height - header.height - tabs.height - CortetsuDesign.spacingStandard * 2
                 sourceComponent: root.currentPage === 0
                     ? overviewComponent
                     : root.currentPage === 1
@@ -360,22 +362,20 @@ FocusScope {
                                             ? automationComponent
                                             : root.currentPage === 7
                                                 ? energyComponent
-                                                : keybindsComponent
+                                                : root.currentPage === 8
+                                                    ? keybindsComponent
+                                                    : startupComponent
             }
         }
     }
 
     Component {
         id: overviewComponent
-
-        OverviewPage {
-            snapshot: root.snapshot
-        }
+        OverviewPage { snapshot: root.snapshot }
     }
 
     Component {
         id: performanceComponent
-
         PerformancePage {
             snapshot: root.snapshot
             cpuHistory: root.cpuHistory
@@ -394,50 +394,17 @@ FocusScope {
 
     Component {
         id: processesComponent
-
         ProcessesPage {
             processes: root.processes
             memoryTotalGb: Number(root.snapshot?.memory?.total_gb ?? 0)
         }
     }
 
-    Component {
-        id: sensorsComponent
-
-        SensorsPage {
-            snapshot: root.snapshot
-        }
-    }
-
-    Component {
-        id: ioComponent
-
-        IOPage {
-            snapshot: root.snapshot
-        }
-    }
-
-    Component {
-        id: powerComponent
-
-        PowerPage {}
-    }
-
-    Component {
-        id: automationComponent
-
-        PowerAutomationPage {}
-    }
-
-    Component {
-        id: energyComponent
-
-        EnergyPage {}
-    }
-
-    Component {
-        id: keybindsComponent
-
-        KeybindsPage {}
-    }
+    Component { id: sensorsComponent; SensorsPage { snapshot: root.snapshot } }
+    Component { id: ioComponent; IOPage { snapshot: root.snapshot } }
+    Component { id: powerComponent; PowerPage {} }
+    Component { id: automationComponent; PowerAutomationPage {} }
+    Component { id: energyComponent; EnergyPage {} }
+    Component { id: keybindsComponent; KeybindsPage {} }
+    Component { id: startupComponent; StartupPage {} }
 }

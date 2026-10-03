@@ -7,13 +7,13 @@ Item {
 
     objectName: "cortetsuBottomNotificationCenter"
     required property var screenState
-    readonly property bool shouldBeActive: screenState.sidebar
+    readonly property bool shouldBeActive: screenState?.sidebar ?? false
     property real offsetScale: shouldBeActive ? 0 : 1
 
     visible: offsetScale < 1
     anchors.bottomMargin: 66 + (-implicitHeight - 5 - 66) * offsetScale
-    implicitWidth: Math.min(520, parent.width - 16)
-    implicitHeight: Math.min(430, parent.height * 0.55)
+    implicitWidth: Math.min(440, parent.width - 16)
+    implicitHeight: Math.min(380, parent.height * 0.50)
     opacity: 1 - offsetScale
 
     Behavior on offsetScale {

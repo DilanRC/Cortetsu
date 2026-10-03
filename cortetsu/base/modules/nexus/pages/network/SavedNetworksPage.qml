@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Networking
 import qs.components
 import qs.services
 import qs.utils
@@ -14,7 +15,7 @@ PageBase {
     title: qsTr("Saved networks")
     isSubPage: true
 
-    Component.onCompleted: Nmcli.loadSavedConnections(() => {})
+    Component.onCompleted: Connectivity.wifi.refreshProfiles()
 
     ColumnLayout {
         anchors.horizontalCenter: parent.horizontalCenter
@@ -32,7 +33,7 @@ PageBase {
             placeholderText: qsTr("No saved networks")
 
             model: ScriptModel {
-                values: [...Nmcli.savedConnectionSsids].sort((a, b) => a.localeCompare(b))
+                values: Connectivity.wifi.profiles.filter(profile => profile.type === "802-11-wireless").slice().sort((a, b) => a.name.localeCompare(b.name))
             }
 
             delegate: CortetsuStateLayer {
@@ -40,8 +41,8 @@ PageBase {
 
                 required property int index
                 required property var modelData
-                readonly property var ap: Nmcli.findNetwork(modelData)
-                readonly property bool isActive: !!Nmcli.active && Nmcli.active.ssid === modelData
+                readonly property var ap: Connectivity.wifi.networks.find(network => network.name === modelData.ssid && (!modelData.interface || network.device.name === modelData.interface)) ?? null
+                readonly property bool isActive: Connectivity.wifi.devices.some(device => Connectivity.wifi.details[device.name]?.uuid === modelData.uuid)
 
                 anchors.left: savedList.list.contentItem.left
                 anchors.right: savedList.list.contentItem.right
@@ -54,7 +55,9 @@ PageBase {
                 anchors.fill: undefined
 
                 onClicked: {
-                    root.nState.selectedNetworkSsid = saved.modelData;
+                    root.nState.selectedNetworkSsid = saved.modelData.ssid;
+                    root.nState.selectedNetworkUuid = saved.modelData.uuid;
+                    root.nState.selectedNetwork = saved.ap;
                     root.nState.networkDetailsFromSaved = true;
                     root.nState.openSubPage(3); // Shared network detail/edit sub-page
                 }
@@ -69,7 +72,7 @@ PageBase {
                     spacing: CortetsuTokens.spacing.medium
 
                     CortetsuIcon {
-                        text: saved.ap ? Icons.getNetworkIcon(saved.ap.strength, !["", "none"].includes(Nmcli.savedSecurityFor(saved.modelData))) : "signal_wifi_off"
+                        text: saved.ap ? Icons.getNetworkIcon(Math.round(saved.ap.signalStrength * 100), saved.ap.security !== WifiSecurityType.Open) : "signal_wifi_off"
                         color: saved.isActive ? CortetsuColours.palette.m3primary : CortetsuColours.palette.m3onSurfaceVariant
                         fontStyle: CortetsuTokens.font.icon.medium
                     }
@@ -80,7 +83,7 @@ PageBase {
 
                         CortetsuText {
                             Layout.fillWidth: true
-                            text: saved.modelData
+                            text: saved.modelData.name
                             font: CortetsuTokens.font.body.small
                             elide: Text.ElideRight
                         }
@@ -90,9 +93,9 @@ PageBase {
                             text: {
                                 let security;
                                 if (saved.ap)
-                                    security = saved.ap.security || qsTr("Open");
+                                    security = WifiSecurityType.toString(saved.ap.security);
                                 else
-                                    security = Nmcli.securityLabel(Nmcli.savedSecurityFor(saved.modelData)) || qsTr("Unknown");
+                                    security = saved.modelData.uuid;
                                 if (saved.isActive)
                                     return qsTr("Connected • %1").arg(security);
                                 return security;

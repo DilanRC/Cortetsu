@@ -1,7 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import QtQuick.Controls
+import "../components"
 import "CortetsuDesign.js" as CortetsuDesign
 import "CortetsuTypography.js" as CortetsuTypography
 
@@ -69,7 +69,7 @@ Item {
                 visible: root.recordingActive
                 icon: "fiber_manual_record"
                 label: qsTr("REC")
-                tooltip: qsTr("Screen recording active")
+                tooltip: qsTr("Grabación de pantalla activa")
                 iconColor: CortetsuDesign.colorVermillion
                 textColor: CortetsuDesign.colorVermillion
                 pulse: true
@@ -84,7 +84,7 @@ Item {
                 visible: root.dndActive
                 icon: "do_not_disturb_on"
                 label: qsTr("DND")
-                tooltip: qsTr("Do Not Disturb enabled")
+                tooltip: qsTr("No molestar activado")
                 iconColor: CortetsuDesign.colorIndigo
                 textColor: CortetsuDesign.colorWashi
                 onClicked: root.toggleDndRequested()
@@ -97,8 +97,8 @@ Item {
             StatusPillItem {
                 visible: root.idleInhibited
                 icon: "coffee"
-                label: qsTr("Awake")
-                tooltip: qsTr("Idle inhibition active")
+                label: qsTr("Activo")
+                tooltip: qsTr("Reposo suspendido")
                 iconColor: CortetsuDesign.colorWashi
                 textColor: CortetsuDesign.colorWashi
                 onClicked: root.toggleIdleInhibitorRequested()
@@ -181,25 +181,11 @@ Item {
             }
         }
 
-        ToolTip {
-            id: tooltipPopup
-
-            parent: item
-            visible: mouse.containsMouse || item.activeFocus
-            delay: CortetsuDesign.motionDeliberateMs
+        CortetsuTooltip {
+            target: item
+            hovered: mouse.containsMouse
+            focused: item.activeFocus
             text: item.tooltip
-
-            background: CortetsuSurface {
-                radiusValue: CortetsuDesign.radiusSmall
-                baseColor: CortetsuDesign.colorTetsu
-                outlined: true
-            }
-
-            contentItem: CortetsuText {
-                text: tooltipPopup.text
-                color: CortetsuDesign.colorWashi
-                textSize: CortetsuTypography.labelSmallPx
-            }
         }
 
         MouseArea {

@@ -1,23 +1,20 @@
 import QtQuick
+import Quickshell
 import "../../CortetsuDesign.js" as CortetsuDesign
 import "../../../services"
 
 Item {
     id: root
 
-    readonly property int spacing: CortetsuDesign.spacingStandard
+    readonly property int spacing: CortetsuDesign.spacingCompact
     readonly property var visibleToasts: CortetsuToaster.toasts.slice(0, 5)
-    implicitWidth: 360
+    readonly property alias repeater: toastRepeater
+    implicitWidth: 368
     implicitHeight: column.childrenRect.height
     width: implicitWidth
     height: implicitHeight
     z: 100
-    focus: visibleToasts.length > 0
-
-    onVisibleToastsChanged: {
-        if (visibleToasts.length > 0)
-            forceActiveFocus();
-    }
+    focus: false
 
     Column {
         id: column
@@ -25,30 +22,50 @@ Item {
         spacing: root.spacing
 
         Repeater {
-            model: root.visibleToasts
+            id: toastRepeater
+            model: ScriptModel {
+                values: root.visibleToasts
+                objectProp: "id"
+            }
 
             delegate: ToastItem {
-                required property int index
+                id: toastItem
+                required property var modelData
                 width: root.width
-                toast: root.visibleToasts[index]
-                onDismissed: CortetsuToaster.dismiss(root.visibleToasts[index].id)
-            }
-        }
-    }
+                toast: modelData
+                opacity: 1
+                onDismissed: CortetsuToaster.dismiss(modelData.id)
 
-    MouseArea {
-        anchors.fill: parent
-        z: 1000
-        acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
-        onClicked: {
-            root.forceActiveFocus();
-            if (root.visibleToasts.length > 0)
-                CortetsuToaster.dismiss(root.visibleToasts[0].id);
+                Behavior on y {
+                    NumberAnimation {
+                        duration: CortetsuDesign.motionStandardMs
+                        easing.type: Easing.OutCubic
+                    }
+                }
+
+                Behavior on opacity {
+                    NumberAnimation {
+                        duration: CortetsuDesign.motionFastMs
+                        easing.type: Easing.OutCubic
+                    }
+                }
+            }
         }
     }
 
     Keys.onEscapePressed: {
         if (root.visibleToasts.length > 0)
             CortetsuToaster.dismiss(root.visibleToasts[0].id);
+    }
+
+    function focusToast(id: int): bool {
+        for (let i = 0; i < toastRepeater.count; i++) {
+            const item = toastRepeater.itemAt(i);
+            if (item?.toast?.id === id) {
+                item.forceActiveFocus(Qt.TabFocusReason);
+                return true;
+            }
+        }
+        return false;
     }
 }

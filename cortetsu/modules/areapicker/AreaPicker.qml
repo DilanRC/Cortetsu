@@ -16,6 +16,9 @@ Scope {
     property bool closing: false
     property bool clipboardOnly: false
 
+    onActiveChanged: CortetsuShellState.screenshotActive = active
+    Component.onDestruction: CortetsuShellState.screenshotActive = false
+
     function open(freezeFrame: bool, copyToClipboard: bool): void {
         freeze = freezeFrame;
         clipboardOnly = copyToClipboard;

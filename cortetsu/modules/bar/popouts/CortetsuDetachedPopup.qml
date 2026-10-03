@@ -2,7 +2,7 @@ import QtQuick
 import "../../../components"
 import "../../CortetsuDesign.js" as CortetsuDesign
 
-CortetsuSurface {
+Item {
     id: root
 
     required property string mode
@@ -10,9 +10,9 @@ CortetsuSurface {
 
     implicitWidth: loader.implicitWidth + CortetsuDesign.spacingStandard * 2
     implicitHeight: loader.implicitHeight + CortetsuDesign.spacingStandard * 2
-    radiusValue: CortetsuDesign.radiusLarge
-    baseColor: CortetsuDesign.colorSurfaceGlassStrong
-    outlined: true
+
+    // The loaded popup owns the only painted surface. This item only keeps
+    // detached geometry and input containment stable around it.
 
     // Keep clicks inside the detached surface from reaching the application below.
     MouseArea {
@@ -44,5 +44,5 @@ CortetsuSurface {
     Component { id: battery; CortetsuBatteryPopup {} }
     Component { id: keyboard; CortetsuKeyboardPopup {} }
     Component { id: lockstatus; CortetsuLockStatusPopup {} }
-    Component { id: empty; CortetsuText { text: qsTr("Surface unavailable"); textSize: CortetsuDesign.bodyPx } }
+    Component { id: empty; CortetsuText { text: qsTr("Ventana no disponible"); textSize: CortetsuDesign.bodyPx } }
 }

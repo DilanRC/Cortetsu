@@ -20,7 +20,7 @@ FocusScope {
     property string captureId: ""
     property bool captureNewApp: false
     property string pendingDeleteId: ""
-    property string statusText: qsTr("Loading shortcuts…")
+    property string statusText: qsTr("Cargando atajos…")
     property bool busy: false
 
     readonly property string helperPath:
@@ -161,7 +161,7 @@ FocusScope {
         if (event.key === Qt.Key_Escape) {
             captureId = "";
             captureNewApp = false;
-            statusText = qsTr("Shortcut change cancelled");
+            statusText = qsTr("Cambio de atajo cancelado");
             event.accepted = true;
             return;
         }
@@ -174,6 +174,7 @@ FocusScope {
 
     Component.onCompleted: refresh()
 
+    // startup inventory: cortetsu:hardware-keybind-list
     Process {
         id: listProcess
         command: [root.helperPath, "list"]
@@ -200,7 +201,7 @@ FocusScope {
                 try {
                     const result = JSON.parse(text.trim());
                     root.statusText = result.ok
-                        ? qsTr("Saved · %1").arg(result.chord)
+                        ? qsTr("Guardado · %1").arg(result.chord)
                         : result.error;
                     if (result.ok)
                         root.refresh();
@@ -220,7 +221,7 @@ FocusScope {
                 try {
                     const result = JSON.parse(text.trim());
                     root.statusText = result.ok
-                        ? qsTr("Deleted · %1").arg(result.deleted)
+                        ? qsTr("Eliminado · %1").arg(result.deleted)
                         : result.error;
                     if (result.ok)
                         root.refresh();
@@ -435,7 +436,7 @@ FocusScope {
 
                     CortetsuText {
                         Layout.fillWidth: true
-                        text: qsTr("All shortcuts")
+                        text: qsTr("Todos los atajos")
                         color: CortetsuDesign.colorOnSurface
                         textSize: CortetsuTypography.titleMediumPx
                     }

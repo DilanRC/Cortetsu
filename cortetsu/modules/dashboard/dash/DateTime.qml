@@ -1,6 +1,7 @@
 import QtQuick
 import "../../CortetsuDesign.js" as CortetsuDesign
 import "../../CortetsuTypography.js" as CortetsuTypography
+import "../../CortetsuText.qml"
 import "../../../services"
 
 Item {
@@ -11,35 +12,32 @@ Item {
         anchors.centerIn: parent
         spacing: 0
 
-        Text {
+        CortetsuText {
             anchors.horizontalCenter: parent.horizontalCenter
             text: Time.hourStr
             color: CortetsuDesign.colorSecondary
-            font.family: CortetsuTypography.uiFamily
-            font.pixelSize: 28
-            font.bold: true
+            textSize: CortetsuTypography.displayMediumPx
+            font.weight: Font.Bold
         }
-        Text {
+        CortetsuText {
             anchors.horizontalCenter: parent.horizontalCenter
             text: "•••"
             color: CortetsuDesign.colorPrimary
-            font.pixelSize: 24
+            textSize: CortetsuTypography.displaySmallPx
         }
-        Text {
+        CortetsuText {
             anchors.horizontalCenter: parent.horizontalCenter
             text: Time.minuteStr
             color: CortetsuDesign.colorSecondary
-            font.family: CortetsuTypography.uiFamily
-            font.pixelSize: 28
-            font.bold: true
+            textSize: CortetsuTypography.displayMediumPx
+            font.weight: Font.Bold
         }
-        Text {
+        CortetsuText {
             visible: CortetsuConfig.useTwelveHourClock
             anchors.horizontalCenter: parent.horizontalCenter
             text: Time.amPmStr
             color: CortetsuDesign.colorPrimary
-            font.family: CortetsuTypography.uiFamily
-            font.pixelSize: 16
+            textSize: CortetsuTypography.titleSmallPx
         }
     }
 }

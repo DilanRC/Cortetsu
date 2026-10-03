@@ -10,6 +10,7 @@ Singleton {
 
     property var toasts: []
     property int nextId: 0
+    signal focusRequested(int id)
     function toast(title, message, icon, type = 0) {
         const item = { id: nextId++, title, message, icon, type };
         toasts = [item, ...toasts];
@@ -19,7 +20,9 @@ Singleton {
         toasts = toasts.filter(item => item.id !== id);
     }
 
-    function clear() {
-        toasts = [];
+    function requestFocusNewest(): void {
+        if (toasts.length > 0)
+            focusRequested(toasts[0].id);
     }
+
 }

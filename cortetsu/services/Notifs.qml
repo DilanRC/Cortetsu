@@ -9,9 +9,8 @@ import "../modules"
 
 Singleton {
     id: root
-    property list<NotifData> list: []
-    readonly property list<NotifData> notClosed: list.filter(item => !item.closed)
-    readonly property list<NotifData> popups: list.filter(item => item.popup)
+    property var list: []
+    property int revision: 0
     property bool dnd: false
     property bool dndLoaded: false
     property bool loaded: true
@@ -22,7 +21,20 @@ Singleton {
     function shouldShowPopup(): bool {
         return !dnd && !CortetsuShellState.anySidebarOpen() && !(CortetsuConfig.suppressNotificationsInFullscreen && hasFullscreen());
     }
-    function remove(item: NotifData): void { list = list.filter(entry => entry !== item); item.destroy(); }
+    function refreshCollections(): void { revision += 1; }
+    function notClosed(): var {
+        root.revision;
+        return root.list.filter(item => !item.closed);
+    }
+    function popups(): var {
+        root.revision;
+        return root.list.filter(item => item.popup);
+    }
+    function remove(item: NotifData): void {
+        list = list.filter(entry => entry !== item);
+        refreshCollections();
+        item.destroy();
+    }
     function clear(): void { list.slice().forEach(item => item.close()); }
 
     FileView {
@@ -48,12 +60,25 @@ Singleton {
             notification.tracked = true;
             const item = notifComponent.createObject(root, {notification, popup: root.shouldShowPopup()});
             root.list = [item, ...root.list];
+            root.refreshCollections();
         }
     }
     Component { id: notifComponent; NotifData {} }
     IpcHandler {
         target: "notifs"
         function clear(): void { root.clear(); }
+        function inspect(): string {
+            return JSON.stringify(root.list.map(item => ({
+                id: item.notificationId,
+                summary: item.summary,
+                popup: item.popup,
+                closed: item.closed,
+                resident: item.resident,
+                urgency: item.urgency,
+                expireTimeout: item.expireTimeout,
+                actions: item.actions.length
+            })));
+        }
         function isDndEnabled(): bool { return root.dnd; }
         function toggleDnd(): void { root.dnd = !root.dnd; }
         function enableDnd(): void { root.dnd = true; }

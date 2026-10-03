@@ -40,8 +40,11 @@ def main() -> None:
     offenders: list[str] = []
     for path in MODULES.rglob("*.qml"):
         text = path.read_text(encoding="utf-8", errors="ignore")
+        # CortetsuColours is the owned reactive palette bridge; only the
+        # inherited bare Colours. namespace belongs to the retired vocabulary.
+        text_for_audit = text.replace("CortetsuColours.", "")
         for token in LEGACY_TOKENS:
-            if token in text:
+            if token in text_for_audit:
                 offenders.append(f"{path.relative_to(REPO)}: {token}")
 
     assert not offenders, (

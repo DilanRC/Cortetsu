@@ -1,5 +1,6 @@
 import QtQuick
 import "../modules/CortetsuDesign.js" as CortetsuDesign
+import "../modules"
 
 Rectangle {
     id: root
@@ -17,8 +18,15 @@ Rectangle {
     property color activeColor: danger ? CortetsuDesign.colorVermillion : CortetsuDesign.colorIndigo
     property color outlineColor: focused ? CortetsuDesign.colorWashi : active || danger ? CortetsuDesign.colorVermillion : CortetsuDesign.colorOutlineVariant
 
+    readonly property real transparencyFactor: CortetsuConfig.transparencyEnabled ? 0.78 : 1
+
+    function paintColor(value): color {
+        const colour = Qt.color(value);
+        return Qt.rgba(colour.r, colour.g, colour.b, colour.a * root.transparencyFactor);
+    }
+
     radius: radiusValue
-    color: pressed ? Qt.darker(active ? activeColor : hoverColor, 1.12) : active ? activeColor : hovered ? hoverColor : baseColor
+    color: root.paintColor(pressed ? Qt.darker(active ? activeColor : hoverColor, 1.12) : active ? activeColor : hovered ? hoverColor : baseColor)
     border.width: outlined || focused ? CortetsuDesign.outlineWidth : 0
     border.color: outlineColor
 

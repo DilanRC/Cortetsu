@@ -57,8 +57,8 @@ target = ".config/gtk-4.0/cortetsu-colors.css"
 tags = ["toolkit", "theme"]
 
 [[entry]]
-source = "dotfiles/generated/theme/home/.config/kdeglobals"
-target = ".config/kdeglobals"
+source = "dotfiles/generated/theme/home/.local/share/color-schemes/Cortetsu.colors"
+target = ".local/share/color-schemes/Cortetsu.colors"
 tags = ["toolkit", "theme"]
 # END CORTETSU NATIVE THEME
 
