@@ -21,10 +21,10 @@ PASS_CONTROLLED significa fixture de política/backend o interacción QML aislad
 | Scan repetido | PASS_PHYSICAL_PRE_MIGRATION; scanner/lifetime QML PASS | PASS_PHYSICAL: backend nuevo, registro /tmp/cortetsu-connectivity-physical.log |
 | Radio off/on | PASS_PHYSICAL_PRE_MIGRATION | PASS_PHYSICAL: backend nuevo, registro /tmp/cortetsu-connectivity-physical.log |
 | Reconexión UUID | PASS_PHYSICAL_PRE_MIGRATION; identidad UUID fixture PASS | PASS_PHYSICAL: backend nuevo, registro /tmp/cortetsu-connectivity-physical.log |
-| Red guardada | Fixture UUID/SSID distintos PASS_CONTROLLED | PENDING_PHYSICAL_VALIDATION de otra red |
-| Credenciales correctas | PSK exclusivamente stdin PASS_CONTROLLED | PENDING_PHYSICAL_VALIDATION de red de prueba |
-| Credenciales incorrectas | Normalización/auth-required PASS_CONTROLLED | PENDING_PHYSICAL_VALIDATION de red de prueba |
-| Cambio entre redes | Destinos/identidad fixture PASS_CONTROLLED | PENDING_PHYSICAL_VALIDATION |
+| Red guardada | Fixture UUID/SSID distintos PASS_CONTROLLED | PASS_PHYSICAL 2026-10-02 (ver «Validación física del 2026-10-02») |
+| Credenciales correctas | PSK exclusivamente stdin PASS_CONTROLLED | PASS_PHYSICAL 2026-10-02 (ver «Validación física del 2026-10-02») |
+| Credenciales incorrectas | Normalización/auth-required PASS_CONTROLLED | PASS_PHYSICAL 2026-10-02 (ver «Validación física del 2026-10-02») |
+| Cambio entre redes | Destinos/identidad fixture PASS_CONTROLLED | PASS_PHYSICAL 2026-10-02 (ver «Validación física del 2026-10-02») |
 | Múltiples BSSID | APs de mismo SSID y distinta banda fixture PASS_CONTROLLED | PENDING_PHYSICAL_VALIDATION; no grupo físico duplicado en lectura inicial |
 | Olvido | Inventario por UUID y confirmación PASS_CONTROLLED | PENDING_PHYSICAL_VALIDATION de perfil desechable |
 | Autoconnect | Escritura+lectura por UUID PASS_CONTROLLED; real activo PASS_PASSIVE | PENDING_PHYSICAL_VALIDATION de perfil desechable |
@@ -34,13 +34,13 @@ PASS_CONTROLLED significa fixture de política/backend o interacción QML aislad
 | Red oculta | Creación+activación y stdin PASS_CONTROLLED | PENDING_PHYSICAL_VALIDATION de AP oculto |
 | IPv4 DHCP/manual | Validación y lectura confirmada PASS_CONTROLLED | PENDING_PHYSICAL_VALIDATION de perfil desechable |
 | NM recovery | Monitor/backoff/plazos inspeccionados y fixtures | PENDING_PHYSICAL_VALIDATION de reinicio deliberado |
-| Suspend/resume | Lifetime y estado reactivo inspeccionados | PENDING_PHYSICAL_VALIDATION |
+| Suspend/resume | Lifetime y estado reactivo inspeccionados | PASS_PHYSICAL 2026-10-02 (ver «Validación física del 2026-10-02») |
 
 | Caso Bluetooth | Evidencia disponible | Validación física del código nuevo |
 |---|---|---|
 | Radio off/on | PASS_PHYSICAL_PRE_MIGRATION; readback/pending fixture PASS_CONTROLLED | PASS_PHYSICAL: backend nuevo, registro /tmp/cortetsu-connectivity-physical.log |
 | Discovery | Owner múltiple y liberación de página PASS_CONTROLLED/Wayland | PASS_PHYSICAL: backend nuevo, registro /tmp/cortetsu-connectivity-physical.log |
-| Connect/disconnect/reconnect | Confirmación nativa/single-flight/plazo PASS_CONTROLLED | PENDING_PHYSICAL_VALIDATION con Gamepad despierto |
+| Connect/disconnect/reconnect | Confirmación nativa/single-flight/plazo PASS_CONTROLLED | PENDING_PHYSICAL_VALIDATION con Gamepad despierto; el 2026-10-02 estaba dormido |
 | Pairing/cancel | API instalada y progreso/cancel fixture PASS_CONTROLLED | PENDING_PHYSICAL_VALIDATION de dispositivo de prueba |
 | Pairing incorrecto/rechazado | Taxonomía policy PASS_CONTROLLED; método no expone error QML | PENDING_PHYSICAL_VALIDATION |
 | PIN/passkey/confirmación | API instalada no expone Agent1 interactivo; UI lo explica | PENDING_PHYSICAL_VALIDATION con agente del sistema |
@@ -48,9 +48,9 @@ PASS_CONTROLLED significa fixture de política/backend o interacción QML aislad
 | Forget | Espera desaparición; adapter-removed no confirma éxito PASS_CONTROLLED | PENDING_PHYSICAL_VALIDATION de dispositivo de prueba |
 | Batería | Propiedades API y presentación cuando disponible | PENDING_PHYSICAL_VALIDATION; equipos actuales no informan |
 | Dispositivo desaparece | Política de pertenencia y fallo PASS_CONTROLLED | PENDING_PHYSICAL_VALIDATION |
-| Dormido/fuera de alcance | Host is down observado antes de migración | PENDING_PHYSICAL_VALIDATION para comparación de capas |
+| Dormido/fuera de alcance | Host is down observado antes de migración | PASS_PHYSICAL 2026-10-02 (ver «Validación física del 2026-10-02») |
 | BlueZ recovery | Estado de adaptador y limpieza inspeccionados | PENDING_PHYSICAL_VALIDATION de reinicio deliberado |
-| Suspend/resume | Lifetime y estado reactivo inspeccionados | PENDING_PHYSICAL_VALIDATION |
+| Suspend/resume | Lifetime y estado reactivo inspeccionados | FAIL_PHYSICAL 2026-10-02: estado nativo del adaptador obsoleto en 3 de 6 ciclos |
 | Varios adaptadores | Modelo/selección/contador global y guard durante operación | PENDING_PHYSICAL_VALIDATION; un adaptador real |
 
 | UI | Evidencia |
@@ -101,3 +101,22 @@ Si el nombre temporal ya existe, inspeccionarlo antes; no sobrescribirlo a ciega
 Los fixtures test-connectivity-secret.py usan libnm real para verificar que flags AGENT_OWNED/NOT_SAVED se eliminan, se preserva el resto del perfil y el readback incorrecto falla. test-connectivity-credential-flow.py comprueba que fallo, falta de comprobante y cancelación impiden activar el perfil. Los fixtures no modifican perfiles reales.
 
 La prueba física del backend instalado realizó dos scans, Wi-Fi off/on, reconexión del UUID original, Bluetooth off/on y discovery; terminó con Internet full, radios encendidas y ningún propietario de scan/discovery. Resultado PHYSICAL_PASS en /tmp/cortetsu-connectivity-physical.log. No probó contraseñas de una segunda red ni conexión de Gamepad dormido.
+
+## Validación física del 2026-10-02
+
+Generación instalada `20261002-234544-524584` (commit `7303702`); el ciclo final de suspensión usó `20261002-235943-550193`. El arnés cargó `ConnectivityWifi.qml`, `ConnectivityNmAdapter.qml`, `ConnectivityBluetooth.qml` y `ConnectivitySecret.py` de la generación instalada en una instancia de Quickshell aparte, contra NetworkManager y BlueZ reales. Ejercita el backend, no los popups ni las páginas de Ajustes. Las redes se nombran A (perfil doméstico de 5 GHz, en uso) y B (perfil de 2.4 GHz del mismo router, nunca usado y sin contraseña guardada).
+
+| Caso | Resultado observado |
+|---|---|
+| Contraseña incorrecta en B | Operación `failed` a los 11.8 s con `authentication-failed`, «La contraseña no fue aceptada» (NetworkManager: `Secrets were required but not provided`). Cuatro segundos después el equipo estaba otra vez en A con Internet full, sin intervención |
+| Contraseña correcta en B | `connected` a los 3.2 s; B activa según el backend y según `nmcli`, Internet full |
+| Cambio a red guardada | De B a A por su perfil guardado: `connected` en 1.7 s, Internet full |
+| Mando dormido | `connectDevice` falla con `timeout` a los 20.5 s; no queda operación pendiente ni propietario de scan |
+| Suspend/resume, Wi-Fi | Seis ciclos reales de s2idle (el equipo despierta solo a los 4–8 s). En el ciclo registrado en el journal NetworkManager reactivó A unos 4 s después de reanudar; en todos los ciclos el backend volvió a A con Internet full, conservó un único `nmcli monitor` y `refresh()` tomó y soltó su propietario de scan |
+| Suspend/resume, Bluetooth | En 3 de 6 ciclos el adaptador reapareció con `enabled=false` y estado `Enabling` en el objeto nativo de Quickshell, mientras BlueZ informaba `Powered=true`, `PowerState=on`. Seguía así más de un minuto después. `confirmedPower` estaba vacío: el valor obsoleto viene de la capa nativa (Quickshell 0.3.1, revisión `0f9939c`), no de la caché de Cortetsu |
+
+Efectos de la prueba sobre el equipo: el perfil B conserva ahora la contraseña correcta, con autoconnect desactivado como antes; `nmcli` y libnm no permitieron devolverlo a «sin contraseña». El intento con contraseña incorrecta la guardó en el perfil antes de activar, igual que hará la interfaz: un perfil que funcionaba queda con la contraseña equivocada hasta que se introduce la buena.
+
+Pendiente: reconexión del mando despierto, y decidir qué hacer con el estado Bluetooth obsoleto tras reanudar. Mientras dure, la interfaz muestra Bluetooth apagado aunque esté encendido; como la escritura nativa parte del valor en caché, es probable que tampoco permita apagarlo desde ahí.
+
+La misma sesión encontró dos fallos de bloqueo ajenos a conectividad, corregidos en `IdleMonitors.qml`: la acción idle `lock` lanzaba un error y el ajuste «bloquear antes de dormir» no estaba conectado. Tras la corrección, un ciclo real de suspensión dejó la sesión bloqueada al reanudar.

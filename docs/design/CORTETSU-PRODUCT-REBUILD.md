@@ -146,6 +146,11 @@ the `lock` IPC target expose `lock` and `isLocked`; there is no `unlock`
 shortcut, IPC function, or idle return action. Saved preferences that still
 carry `returnAction: "unlock"` drop it on load.
 
+The idle `lock` action and suspend both lock through `Lock.requestLock()`. With
+"lock before sleep" on, the shell holds a logind delay inhibitor while the
+session is unlocked, locks on `PrepareForSleep`, and releases the inhibitor once
+the compositor reports the lock as secure, so resume does not show the desktop.
+
 ## Launcher and system feedback
 
 Launcher now has a dedicated overlay host with exclusive keyboard focus. Its

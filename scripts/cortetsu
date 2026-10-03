@@ -418,6 +418,7 @@ test_cmd() {
         "scripts/features/test-cortetsu-config.py"
         "scripts/features/eval-cortetsu-config.py"
         "scripts/features/test-cortetsu-idle.py"
+        "scripts/features/test-cortetsu-idle-runtime.py"
         "scripts/features/eval-cortetsu-idle.py"
         "scripts/features/test-cortetsu-launcher.py"
         "scripts/features/eval-cortetsu-launcher.py"

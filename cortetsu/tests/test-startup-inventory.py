@@ -382,7 +382,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-startup-test-") as temp:
         "cortetsu:hardware-power-probe", "cortetsu:hardware-power-automation-status",
         "cortetsu:hardware-keybind-list", "cortetsu:hardware-energy-probe", "cortetsu:hardware-startup-scan",
         "cortetsu:display-calibration-control",
-        "cortetsu:session-sleep-monitor",
+        "cortetsu:session-sleep-monitor", "cortetsu:session-sleep-lock",
     }
     for entry in app.CORTETSU_STARTUP:
         source = Path(__file__).resolve().parents[1] / entry["source"]

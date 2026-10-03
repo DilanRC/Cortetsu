@@ -143,6 +143,10 @@ CORTETSU_STARTUP = [
     {"id": "cortetsu:session-sleep-monitor", "name": "Sleep/wake monitor", "source": "services/CortetsuSession.qml",
      "qmlId": "monitor", "startupPhase": "on-demand", "condition": "Cuando se instancia CortetsuSession",
      "command": ["dbus-monitor", "--system"], "manageable": False},
+    {"id": "cortetsu:session-sleep-lock", "name": "Lock-before-sleep delay", "source": "modules/IdleMonitors.qml",
+     "qmlId": "sleepLock", "startupPhase": "conditional",
+     "condition": "Mientras Bloquear antes de dormir esté activo y la sesión no esté bloqueada",
+     "command": ["systemd-inhibit", "--what=sleep"], "manageable": False},
 ]
 
 
