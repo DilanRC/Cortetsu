@@ -68,6 +68,7 @@ Hallazgos nuevos de esa ronda, sin corregir:
 | H-41 | A | Cambiar de pestaña destruye la página y crea la siguiente (`Loader.sourceComponent`). Los historiales sobreviven porque viven en la telemetría, pero las barras vuelven a animarse desde cero | `hardware/Content.qml`. V en los renders |
 | H-42 | U | Un bloque del Resumen abre la página correcta, pero no la métrica: la fila de la segunda GPU abre Rendimiento sin seleccionar esa gráfica | `hardware/OverviewPage.qml`, `PerformancePage.qml`. K |
 | H-43 | A | `PowerProfiles` de Quickshell no dice si `power-profiles-daemon` responde. Sin el demonio, el Resumen y el popout de batería mostrarían "Equilibrado". El paquete es dependencia declarada en `packages/arch.toml`, así que `cortetsu doctor` lo cubre | `/usr/lib/qt6/qml/Quickshell/Services/UPower/*.qmltypes`. K |
+| H-44 | C | Al salir de Energía o de Automatización, el journal recibe `TypeError: Cannot read property 'width' of null`: sus `Repeater` usan arreglos literales como modelo y los delegados leen `parent.width` mientras se destruyen. Es el patrón de modelo reemplazado que el Resumen ya no usa. Propuesta: modelo por índice o `ScriptModel`, y ancho tomado del `id` del contenedor | `hardware/PowerPage.qml:513`, `hardware/PowerAutomationPage.qml:346`; journal del 2026-10-03 13:44:54 (14 avisos). V |
 
 Pendiente de H-05: las combinaciones con `SUPER` que ya tienen acción siguen
 sin llegar al editor. La tarjeta lo dice. La solución es un submapa vacío
