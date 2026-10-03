@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from settings_sources import system_page_text
+from settings_sources import network_page_text, system_page_text
 
 ROOT = Path(__file__).resolve().parents[2]
 content = (ROOT / "cortetsu/modules/settings/Content.qml").read_text(encoding="utf-8")
@@ -32,8 +32,8 @@ assert "function refreshAll(" in network_service
 assert "function refreshDetails(" in network_service
 assert "function copyPassword(" in network_service
 assert "activeDetails" in network_service
-assert "CortetsuSettingsNetwork.copyPassword" in content or "CortetsuSettingsNetwork.copyPassword" in (ROOT / "cortetsu/modules/settings/NetworkPage.qml").read_text(encoding="utf-8")
-assert "Dirección IP" in (ROOT / "cortetsu/modules/settings/NetworkPage.qml").read_text(encoding="utf-8")
+assert "CortetsuSettingsNetwork.copyPassword" in content or "CortetsuSettingsNetwork.copyPassword" in network_page_text()
+assert "Dirección IP" in network_page_text()
 assert "Brightness.getMonitorForScreen(root.screen)" in system
 assert "onMoved: nextValue => CortetsuAudio.setVolume(nextValue)" in system
 assert "onMoved: nextValue => root.page.brightnessMonitor?.setBrightness(nextValue)" in system

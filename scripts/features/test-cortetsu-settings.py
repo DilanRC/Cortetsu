@@ -2,13 +2,13 @@
 """Static contracts for the first-party Cortetsu Settings Center."""
 from pathlib import Path
 
-from settings_sources import system_page_text
+from settings_sources import network_page_text, system_page_text
 
 ROOT = Path(__file__).resolve().parents[2]
 modules = ROOT / "cortetsu/modules"
 settings = modules / "settings"
 network_service = (ROOT / "cortetsu/services/CortetsuSettingsNetwork.qml").read_text(encoding="utf-8")
-network_page = (settings / "NetworkPage.qml").read_text(encoding="utf-8")
+network_page = network_page_text()
 
 host = (modules / "SettingsHost.qml").read_text(encoding="utf-8")
 wrapper = (settings / "Wrapper.qml").read_text(encoding="utf-8")
@@ -94,8 +94,8 @@ assert "CortetsuAudio.setAudioSink(modelData)" in system
 assert "Nvibrant.setValue(value * 1024)" in calibration
 # Connectivity is shared, reactive, and retains profile UUIDs through actions.
 assert "Connectivity.wifi" in network_page
-assert "wifi.setAutoconnect(root.selectedProfile.uuid, checked)" in network_page
-assert 'wifi.forgetProfile(root.selectedProfile?.uuid ?? "")' in network_page
+assert "wifi.setAutoconnect(root.page.selectedProfile.uuid, checked)" in network_page
+assert 'wifi.forgetProfile(root.page.selectedProfile?.uuid ?? "")' in network_page
 assert "wifi.forgetProfile(root.activeProfile.uuid)" in network_page
 assert "wifi.connectNetwork(root.selectedNetwork, secret, root.selectedProfile)" in network_page
 # An SSID shared by several profiles never picks one implicitly.

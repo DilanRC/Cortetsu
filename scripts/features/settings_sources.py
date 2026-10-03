@@ -13,3 +13,9 @@ def system_page_text() -> str:
         *(SETTINGS / f"{name}.qml" for name in SYSTEM_COMPONENTS),
     ]
     return "\n".join(path.read_text(encoding="utf-8") for path in files)
+
+
+def network_page_text() -> str:
+    """NetworkPage.qml and the panels under network/, as one string."""
+    files = [SETTINGS / "NetworkPage.qml", *sorted((SETTINGS / "network").glob("*.qml"))]
+    return "\n".join(path.read_text(encoding="utf-8") for path in files)
