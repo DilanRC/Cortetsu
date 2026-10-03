@@ -250,11 +250,13 @@ Item {
             spacing: CortetsuDesign.spacingStandard
             opacity: main.opacity
 
-            readonly property real linkWidth: (context.width - context.spacing * 2) / 3
+            // The network line carries a name and two rates, so it gets the
+            // widest share.
+            readonly property real available: context.width - context.spacing * 2
 
             ContextLink {
                 objectName: "powerLink"
-                width: context.linkWidth
+                width: Math.floor(context.available * 0.31)
                 height: parent.height
                 icon: root.battery?.present ? "battery_full" : "bolt"
                 title: qsTr("Energía")
@@ -265,7 +267,7 @@ Item {
 
             ContextLink {
                 objectName: "networkLink"
-                width: context.linkWidth
+                width: Math.floor(context.available * 0.41)
                 height: parent.height
                 icon: root.network?.interface ? "lan" : "signal_disconnected"
                 title: qsTr("Red")
@@ -276,7 +278,7 @@ Item {
 
             ContextLink {
                 objectName: "coolingLink"
-                width: context.linkWidth
+                width: Math.floor(context.available * 0.28)
                 height: parent.height
                 icon: "mode_fan"
                 title: qsTr("Refrigeración")
