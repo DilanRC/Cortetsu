@@ -18,7 +18,7 @@ jobs:
     container: archlinux:latest
     steps:
       - name: Install runtime test dependencies
-        run: pacman -Syu --noconfirm git python nodejs qt6-declarative quickshell
+        run: pacman -Syu --noconfirm git python python-gobject libnm nodejs qt6-declarative quickshell
       - uses: actions/checkout@v6
         with:
           fetch-depth: 2
