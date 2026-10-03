@@ -21,6 +21,8 @@ Actualizado el 2026-10-03, rama `elevation/phase-1-behaviour`.
 | H-07 Telemetría permanente | Hecho para el Dashboard | en reposo, 0 `nvidia-smi` en 15 s (antes 7 en 20 s) |
 | H-12 Popouts y exclusividad | Hecho | IPC en vivo: abrir, alternar, cerrar y cierre al abrir el portapapeles |
 | H-15, H-18, H-34 | Hecho | suite |
+| H-19 Wallpaper Orbital | Hecho salvo miniaturas en disco y resolución | `test-cortetsu-wallpaper-orbital-runtime.py` (26 + 3 comprobaciones sobre el QML real), `tst_Orbit.qml`, renders de los seis estados en weston sin pantalla |
+| H-33 Octágono repetido | Hecho | `OctagonFrame.qml`, un solo `ShapePath` |
 | H-16, H-20, H-23 | Parcial | pestañas de Hardware y textos de atajos en español; encabezado vacío y "familias" corregidos |
 | H-35 | Parcial | `eval-ascension-runtime.py` usa el dispatcher Lua y cierra su popout; la prueba de Bluetooth sigue sensible a carga |
 
@@ -30,6 +32,18 @@ el de la primera carga y ningún cambio de `scheme.json` llegaba a la interfaz.
 El mismo patrón está en `CortetsuWallpapers.qml`, `CortetsuNotifications.qml`,
 `CortetsuRecorder.qml`, `services/Notifs.qml` y `dashboard/Today.qml`; queda
 por comprobar uno a uno en la fase 3.
+
+Orbital (fase 7): escenario 16:9, arco bajo el escenario, rejilla con `Tab`,
+búsqueda, categorías con conteo, teclado completo, estados vacío, sin
+resultados, leyendo y error con Reintentar. Fuera de lo previsto en el plan:
+no hay indicador de monitor destino porque el fondo es global, y no se muestra
+la resolución porque la imagen se decodifica reducida. Sigue pendiente la caché
+de miniaturas en disco: la rejilla decodifica cada imagen a 256 px al entrar en
+vista. La pantalla de bloqueo de esta fase no está empezada.
+
+Verificación visual: `weston --backend=headless --renderer=gl` más
+`CORTETSU_TEST_QPA=wayland` dibuja las imágenes enmascaradas sin abrir nada en
+el escritorio; la plataforma `offscreen` de Qt no tiene efectos de sombreado.
 
 Pendiente de H-05: las combinaciones con `SUPER` que ya tienen acción siguen
 sin llegar al editor. La tarjeta lo dice. La solución es un submapa vacío

@@ -11,14 +11,6 @@ TestCase {
             result.push({path: `/walls/cat/${i}.webp`});
         return result;
     }
-    function test_bounded_windows_data() {
-        return [
-            {tag: "empty", count: 0, expected: 0}, {tag: "one", count: 1, expected: 1},
-            {tag: "two", count: 2, expected: 2}, {tag: "twelve", count: 12, expected: 12},
-            {tag: "thirteen", count: 13, expected: 12}, {tag: "hundreds", count: 300, expected: 12}
-        ];
-    }
-    function test_bounded_windows(data) { compare(Orbit.visible(paths(data.count), 0, 12).length, data.expected); }
     function test_prefetch_is_bounded_but_larger_than_orbit() {
         compare(Orbit.prefetch(paths(300), 0, 18).length, 18);
         compare(Orbit.prefetch(paths(5), 0, 18).length, 5);
@@ -37,31 +29,48 @@ TestCase {
         compare(Orbit.resolveCurrentIndex(entries, "/home/dilan/Pictures/Wallpapers/388074.jpg"), -1);
         compare(Orbit.resolveCurrentIndex(entries, "/home/dilan/Imágenes/Wallpapers/388074.jpg"), 0);
     }
-    function test_satellites_exclude_selected_data() {
+    function test_arc_wraps_a_large_collection() {
+        const entries = paths(300);
+        const arc = Orbit.arc(entries, 0, 5);
+        compare(arc.length, 11);
+        compare(arc.map(item => item.offset).join(","), "-5,-4,-3,-2,-1,0,1,2,3,4,5");
+        compare(arc[0].index, 295);
+        compare(arc[5].index, 0);
+        compare(arc[10].entry.path, entries[5].path);
+        compare(Orbit.arcSteps(0, 299, 300, 5), -1);
+    }
+    function test_arc_lays_a_small_collection_as_a_strip_data() {
         return [
-            {tag: "one", count: 1, expected: 0}, {tag: "two", count: 2, expected: 1},
-            {tag: "hundreds", count: 300, expected: 11}
+            {tag: "empty", count: 0, anchor: -1, expected: ""},
+            {tag: "one", count: 1, anchor: 0, expected: "0"},
+            {tag: "two", count: 2, anchor: 1, expected: "-1,0"},
+            {tag: "exact window", count: 11, anchor: 0, expected: "0,1,2,3,4,5,6,7,8,9,10"}
         ];
     }
-    function test_satellites_exclude_selected(data) {
-        const entries = paths(data.count);
-        const selected = data.count ? data.count - 1 : -1;
-        const satellites = Orbit.satellites(entries, selected, selected, 12);
-        compare(satellites.length, data.expected);
-        for (let i = 0; i < satellites.length; ++i) {
-            verify(satellites[i].index !== selected);
-            compare(satellites[i].entry.path, entries[satellites[i].index].path);
-        }
+    function test_arc_lays_a_small_collection_as_a_strip(data) {
+        const arc = Orbit.arc(paths(data.count), data.anchor, 5);
+        compare(arc.map(item => item.offset).join(","), data.expected);
+        // Every entry appears once, so re-anchoring never moves one across.
+        compare(arc.map(item => item.index).join(","), paths(data.count).map((entry, index) => index).join(","));
     }
-    function test_satellite_wrap_and_target_index() {
-        const entries = paths(20);
-        const satellites = Orbit.satellites(entries, 0, 0, 12);
-        compare(satellites.length, 11);
-        verify(satellites.some(item => item.index === 19));
-        verify(satellites.some(item => item.index === 1));
-        const target = satellites.find(item => item.index === 19);
-        compare(target.index, 19);
-        compare(target.entry.path, entries[19].path);
+    function test_strip_moves_do_not_wrap() {
+        compare(Orbit.arcSteps(0, 7, 8, 5), 7);
+        compare(Orbit.arcSteps(7, 0, 8, 5), -7);
+        compare(Orbit.arcSteps(0, 7, 12, 5), -5);
+    }
+    function test_arc_geometry() {
+        const span = Math.PI * 0.39;
+        compare(Orbit.arcAngle(0, 0, 5, span), -Math.PI / 2);
+        // A finished turn puts the neighbour exactly where the selection was.
+        compare(Orbit.arcAngle(1, 1, 5, span), Orbit.arcAngle(0, 0, 5, span));
+        compare(Orbit.arcAngle(-2, 0, 5, span), -Math.PI / 2 - 2 * span / 5);
+        compare(Orbit.arcDepth(Orbit.arcAngle(0, 0, 5, span), span), 1);
+        compare(Orbit.arcDepth(Orbit.arcAngle(5, 0, 5, span), span), 0);
+        compare(Orbit.arcDepth(Orbit.arcAngle(-9, 0, 5, span), span), 0);
+        const near = Orbit.arcDepth(Orbit.arcAngle(1, 0, 5, span), span);
+        const far = Orbit.arcDepth(Orbit.arcAngle(4, 0, 5, span), span);
+        verify(near < 1 && far > 0 && near > far);
+        fuzzyCompare(Orbit.arcDepth(Orbit.arcAngle(-3, 0, 5, span), span), Orbit.arcDepth(Orbit.arcAngle(3, 0, 5, span), span), 1e-9);
     }
     function test_wrap_and_unicode() {
         compare(Orbit.move(0, -1, 13), 12);
@@ -69,16 +78,16 @@ TestCase {
         const entries = [{path: "/walls/日本/星 空.webp"}, {path: "/walls/night/luna.png"}];
         compare(Orbit.filtered(entries, "日本", entry => entry.path.split("/")[2])[0].path, "/walls/日本/星 空.webp");
     }
-    function test_rotation_contract() {
-        compare(Orbit.angularStep(12), Math.PI / 6);
+    function test_shortest_steps() {
         compare(Orbit.shortestSteps(0, 12, 13), -1);
         compare(Orbit.shortestSteps(0, 7, 12), -5);
-        compare(Orbit.satelliteTarget(6, 0, 12, 20), 0);
-        verify(Orbit.satelliteAngle(0, 12, 0) !== Orbit.satelliteAngle(0, 12, -Orbit.angularStep(12)));
+        compare(Orbit.shortestSteps(3, 3, 12), 0);
     }
-    function test_categories() {
-        const entries = [{kind: "fog"}, {kind: "night"}, {kind: "fog"}];
-        compare(Orbit.categories(entries, entry => entry.kind).join(","), "ALL,fog,night");
+    function test_category_counts() {
+        const entries = [{kind: "loose"}, {kind: "fog"}, {kind: "night"}, {kind: "fog"}];
+        const counts = Orbit.categoryCounts(entries, entry => entry.kind, "loose");
+        compare(counts.map(item => `${item.name}:${item.count}`).join(","), "ALL:4,fog:2,night:1,loose:1");
+        compare(Orbit.categoryCounts([], entry => entry.kind, "loose").length, 1);
     }
     function test_wheel_threshold_and_reversal() {
         let intent = Orbit.wheelIntent(0, 60, 0);

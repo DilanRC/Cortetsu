@@ -38,6 +38,7 @@ Singleton {
             : applySucceeded
                 ? "applied"
                 : "idle"
+    readonly property bool scanning: scan.running
     readonly property string applyStatusPath: applying ? pendingApplyPath : lastApplyPath
     property bool randomApply: false
     property int applyGeneration: 0
