@@ -1,8 +1,10 @@
 from pathlib import Path
 
+from settings_sources import system_page_text
+
 ROOT = Path(__file__).resolve().parents[2]
 content = (ROOT / "cortetsu/modules/settings/Content.qml").read_text(encoding="utf-8")
-system = (ROOT / "cortetsu/modules/settings/SystemPage.qml").read_text(encoding="utf-8")
+system = system_page_text()
 calibration = (ROOT / "cortetsu/modules/settings/DisplayCalibration.qml").read_text(encoding="utf-8")
 network_service = (ROOT / "cortetsu/services/CortetsuSettingsNetwork.qml").read_text(encoding="utf-8")
 controller = (ROOT / "cortetsu/modules/settings/SettingsController.qml").read_text(encoding="utf-8")
@@ -34,7 +36,7 @@ assert "CortetsuSettingsNetwork.copyPassword" in content or "CortetsuSettingsNet
 assert "Dirección IP" in (ROOT / "cortetsu/modules/settings/NetworkPage.qml").read_text(encoding="utf-8")
 assert "Brightness.getMonitorForScreen(root.screen)" in system
 assert "onMoved: nextValue => CortetsuAudio.setVolume(nextValue)" in system
-assert "onMoved: nextValue => root.brightnessMonitor?.setBrightness(nextValue)" in system
+assert "onMoved: nextValue => root.page.brightnessMonitor?.setBrightness(nextValue)" in system
 assert "Connectivity.bluetooth.enabled" in system
 assert "CortetsuPower" in system
 assert "Icons.getBatteryIcon" in system
@@ -51,7 +53,7 @@ assert "activeFocusOnTab" in choice_card and "Keys.onSpacePressed" in choice_car
 assert "property var swatches" in choice_card
 assert "component AppearanceToggle" in content
 assert "Esquema activo" in content
-assert "component DomainHero" in system
+assert (ROOT / "cortetsu/modules/settings/DomainHero.qml").is_file() and "DomainHero {" in system
 for marker in (
     "CortetsuConfig.dashboard.performance.showCpu",
     "CortetsuConfig.bar.scrollActions.workspaces",
@@ -107,7 +109,7 @@ checks = {
         "CortetsuConfig.visualiserAutoHide",
         "CortetsuConfig.save();",
     )),
-    "system preferences persist": system.count("root.savePreference();") >= 30,
+    "system preferences persist": system.count("root.page.savePreference();") >= 30,
     "display calibration is real and persistent": all(marker in calibration for marker in (
         '"hyprsunset.service"', '"hyprsunset", "temperature"',
         '"hyprsunset", "gamma"', "CortetsuConfig.colorTemperature",

@@ -2,6 +2,8 @@
 """Static contracts for the first-party Cortetsu Settings Center."""
 from pathlib import Path
 
+from settings_sources import system_page_text
+
 ROOT = Path(__file__).resolve().parents[2]
 modules = ROOT / "cortetsu/modules"
 settings = modules / "settings"
@@ -11,7 +13,7 @@ network_page = (settings / "NetworkPage.qml").read_text(encoding="utf-8")
 host = (modules / "SettingsHost.qml").read_text(encoding="utf-8")
 wrapper = (settings / "Wrapper.qml").read_text(encoding="utf-8")
 content = (settings / "Content.qml").read_text(encoding="utf-8")
-system = (settings / "SystemPage.qml").read_text(encoding="utf-8")
+system = system_page_text()
 calibration = (settings / "DisplayCalibration.qml").read_text(encoding="utf-8")
 controller = (settings / "SettingsController.qml").read_text(encoding="utf-8")
 config = (modules / "CortetsuConfig.qml").read_text(encoding="utf-8")
@@ -83,8 +85,8 @@ for marker in (
     "Icons.getBatteryIcon",
 ):
     assert marker in system, marker
-assert 'root.openRetained("displayManager")' in system
-assert 'root.openRetained("wallpaperManager")' in system
+assert 'root.page.openRetained("displayManager")' in system
+assert 'root.page.openRetained("wallpaperManager")' in system
 assert "WallpaperController.open(root.screen)" in system
 assert "root.screenState.cortetsuState?.closeRetainedOverlaysExcept(flag)" in system
 assert "CortetsuAudio.setSourceVolume(nextValue)" in system
@@ -110,11 +112,12 @@ assert 'title: qsTr("Desplazamiento del volumen")' in system
 assert 'title: qsTr("Brightness scroll")' not in system
 assert 'title: qsTr("Open on hover")' not in system
 assert 'onMoved: nextValue => CortetsuAudio.setVolume(nextValue)' in system
-assert 'onMoved: nextValue => root.brightnessMonitor?.setBrightness(nextValue)' in system
+assert 'onMoved: nextValue => root.page.brightnessMonitor?.setBrightness(nextValue)' in system
 assert 'onMoved: CortetsuAudio.setVolume(value)' not in system
-assert 'onMoved: root.brightnessMonitor?.setBrightness(value)' not in system
+assert 'onMoved: root.page.brightnessMonitor?.setBrightness(value)' not in system
+assert (settings / "DomainHero.qml").is_file()
 for marker in (
-    "component DomainHero",
+    "DomainHero {",
     "CortetsuConfig.dashboard.performance.showCpu",
     "CortetsuConfig.bar.scrollActions.workspaces",
     "CortetsuConfig.launcher.maxShown",
@@ -186,7 +189,7 @@ for preference in (
     'CortetsuConfig.toastNumLockChanged',
 ):
     assert preference in system, preference
-assert system.count('root.savePreference();') >= 30
+assert system.count('root.page.savePreference();') >= 30
 
 # Scheme selection is a single owned transaction and refreshes the active highlight.
 for marker in (
@@ -245,6 +248,6 @@ for source in (content, system):
 assert 'import "../../components"' in content
 assert 'import "../launcher/services"' in content
 assert 'import "../../services"' in system
-assert 'import "../../utils"' in system
+assert 'import "../../../utils"' in system
 
 print("PASS: Settings owns per-monitor state, schemes, connected pages, retained handoffs and aligned SUPER+I/SUPER+/ bindings")

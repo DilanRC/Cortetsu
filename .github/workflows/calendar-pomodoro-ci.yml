@@ -13,8 +13,8 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
-    # The runtime build runs Qt Quick Test and Quickshell fixtures; Ubuntu
-    # packages neither Quickshell nor a matching Qt, Arch ships both.
+    # The runtime build runs Qt Quick Test and Quickshell fixtures. Ubuntu does
+    # not package Quickshell; Arch ships it next to the Qt it was built for.
     container: archlinux:latest
     steps:
       - name: Install runtime test dependencies

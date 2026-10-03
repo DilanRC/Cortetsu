@@ -2,6 +2,8 @@
 """Static contract gate for the shared Launcher/Wallpaper apply lifecycle."""
 from pathlib import Path
 
+from settings_sources import system_page_text
+
 ROOT = Path(__file__).resolve().parents[2]
 service = (ROOT / "cortetsu/modules/CortetsuWallpapers.qml").read_text(encoding="utf-8")
 manager = (ROOT / "cortetsu/modules/wallpaper/Content.qml").read_text(encoding="utf-8")
@@ -82,7 +84,7 @@ assert "CortetsuWallpapers.applyRandom()" in manager
 assert "id: applyTimeout" not in manager
 assert "onWallpaperApplySucceeded" in manager and "onWallpaperApplyFailed" in manager
 
-settings = (ROOT / "cortetsu/modules/settings/SystemPage.qml").read_text(encoding="utf-8")
+settings = system_page_text()
 assert 'CortetsuWallpapers.applyStatus === "applying"' in settings
 assert 'CortetsuWallpapers.applyStatus === "failed"' in settings
 assert "CortetsuWallpapers.applyStatusPath" in settings
