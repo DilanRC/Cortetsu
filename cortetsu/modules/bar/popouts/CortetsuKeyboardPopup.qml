@@ -35,6 +35,7 @@ ColumnLayout {
     }
 
     CortetsuStateMessage {
+        Layout.fillWidth: true
         visible: layouts.visibleModel.count === 0
         kind: "empty"
         title: qsTr("No hay más distribuciones")
