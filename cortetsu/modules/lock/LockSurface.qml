@@ -62,6 +62,11 @@ WlSessionLockSurface {
     Component.onCompleted: {
         keyboardProbe.running = true;
         Qt.callLater(() => keyboardFocus.forceActiveFocus());
+        // A surface created after PAM succeeded (output hotplug) must still finish the release.
+        if (pam.successPending) {
+            authenticationAccepted = true;
+            unlockTransition.restart();
+        }
     }
 
     Connections {

@@ -79,7 +79,10 @@ Scope {
         if (!successPending)
             return;
         successPending = false;
-        root.lock.unlock();
+        fprint.abort();
+        howdy.abort();
+        // `unlock` is unauthenticated (shortcut, IPC, idle); only this path may drop the lock.
+        root.lock.locked = false;
     }
 
     PamContext {

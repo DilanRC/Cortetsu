@@ -30,6 +30,7 @@ for marker in (
     "onAuthenticationSucceeded",
     "unlockTransition",
     "pam.releaseAfterSuccess",
+    "if (pam.successPending)",
     "interval: CortetsuDesign.motionStandardMs",
     'command: ["hyprctl", "-j", "devices"]',
     "active_keymap",
@@ -52,8 +53,13 @@ assert 'text: qsTr("CAPS")' in surface
 assert 'text: qsTr("Pulsa Enter para autenticarte")' in surface
 assert "Lock { id: lock }" in shell
 assert "SessionHost { lockController: lock }" in shell
-for marker in ("signal authenticationSucceeded", "property bool successPending", "root.authenticationSucceeded()", "function releaseAfterSuccess", "root.lock.unlock()"):
+for marker in ("signal authenticationSucceeded", "property bool successPending", "root.authenticationSucceeded()", "function releaseAfterSuccess"):
     assert marker in pam, marker
 assert "if (passwd.active || successPending)" in pam
+# The session lock is released in exactly one place: Pam.releaseAfterSuccess.
+assert pam.count("locked = false") == 1
+idle = (ROOT / "cortetsu/modules/IdleMonitors.qml").read_text(encoding="utf-8")
+for name, source in (("Lock.qml", lock), ("LockSurface.qml", surface), ("IdleMonitors.qml", idle)):
+    assert "locked = false" not in source, name
 
 print("PASS: Lock keeps PAM/session-lock semantics and surfaces live Cortetsu user, keyboard, power and network context")
