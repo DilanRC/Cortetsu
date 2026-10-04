@@ -360,6 +360,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-startup-test-") as temp:
     assert phases["cortetsu:network-password-copy"] == "on-demand"
     assert phases["cortetsu:wallpaper-scan"] == "conditional"
     assert phases["cortetsu:keyboard-state"] == "conditional"
+    assert phases["cortetsu:window-list"] == "conditional"
     assert phases["cortetsu:battery-notification"] == phases["cortetsu:battery-hibernate"] == "conditional"
     assert phases["cortetsu:hardware-startup-scan"] == "on-demand"
     startup_rows = {entry["id"]: entry for entry in app.cortetsu_entries()}
@@ -384,7 +385,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-startup-test-") as temp:
         "cortetsu:hardware-keybind-list", "cortetsu:settings-keybind-list", "cortetsu:hardware-energy-probe", "cortetsu:hardware-startup-scan",
         "cortetsu:display-calibration-control",
         "cortetsu:session-sleep-monitor", "cortetsu:session-sleep-lock",
-        "cortetsu:keyboard-state",
+        "cortetsu:keyboard-state", "cortetsu:window-list",
     }
     for entry in app.CORTETSU_STARTUP:
         source = Path(__file__).resolve().parents[1] / entry["source"]

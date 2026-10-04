@@ -8,6 +8,9 @@ screens = (modules / "CortetsuScreens.qml").read_text(encoding="utf-8")
 service = (repo / "cortetsu/services/Hypr.qml").read_text(encoding="utf-8")
 
 assert "pragma Singleton" in hypr and "pragma Singleton" in screens
+# Closed windows Quickshell still lists must not reach the taskbar or overview.
+assert "isLive(liveAddresses, client.address)" in hypr
+assert "?? liveAddresses" in hypr
 for marker in ("toplevels", "workspaces", "monitors", "activeToplevel", "focusedWorkspace", "focusedMonitor", "activeWsId", "usingLua", "dispatch", "isTaskbarToplevel"):
     assert marker in hypr, marker
 assert "readonly property var screens" in screens

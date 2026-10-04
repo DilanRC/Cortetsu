@@ -64,6 +64,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-keyboard-state-") as temporary
     (folder / "modules").mkdir()
     (folder / "bin").mkdir()
     shutil.copy(ROOT / "modules/CortetsuHypr.qml", folder / "modules/CortetsuHypr.qml")
+    shutil.copy(ROOT / "modules/CortetsuToplevels.js", folder / "modules/CortetsuToplevels.js")
     fake = folder / "bin/hyprctl"
     fake.write_text("#!/bin/sh\ncat <<'JSON'\n" + json.dumps(DEVICES) + "\nJSON\n")
     fake.chmod(0o700)

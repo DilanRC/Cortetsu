@@ -80,6 +80,7 @@ install -m 0644 "$WALL_UTILITY_CONTRACT" "$STAGING/wall-utility.json"
 printf '==> Regresiones\n'
 python3 "$REPO/cortetsu/tests/test-startup-inventory.py"
 QT_QPA_PLATFORM=offscreen /usr/lib/qt6/bin/qmltestrunner -input "$REPO/cortetsu/tests/qml/hardware"
+QT_QPA_PLATFORM=offscreen /usr/lib/qt6/bin/qmltestrunner -input "$REPO/cortetsu/tests/qml/hypr"
 python3 "$REPO/scripts/features/test-native-bottom-hub.py" --runtime "$STAGING/modules/BottomHub.qml"
 python3 "$REPO/scripts/features/test-bottom-hub-target.py"
 python3 "$REPO/scripts/features/test-bottom-hub-v3.py"
@@ -214,6 +215,7 @@ for required in \
     modules/calendar/Wrapper.qml \
     modules/CortetsuScreenState.qml \
     modules/CortetsuOverlayPolicy.js \
+    modules/CortetsuToplevels.js \
     modules/CortetsuHypr.qml \
     modules/CortetsuScreens.qml \
     modules/CortetsuConfig.qml \
