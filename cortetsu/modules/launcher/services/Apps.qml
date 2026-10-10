@@ -18,8 +18,30 @@ QtObject {
         return !!entry && !entry.noDisplay && Array.from(entry.command ?? []).length > 0;
     }
 
+    // Applications as of the last finished scan, by name. Quickshell lists
+    // them in hash order, which changes on every shell start, and rescans on
+    // any change in a parent of an applications directory, the home directory
+    // included. Mid-scan, DesktopEntries.applications.values drops every entry
+    // that exists in two directories before putting it back.
+    property var applications: []
+
+    readonly property Connections scans: Connections {
+        target: DesktopEntries
+
+        function onApplicationsChanged(): void {
+            root.settle();
+        }
+    }
+
+    Component.onCompleted: settle()
+
+    function settle(): void {
+        applications = [...DesktopEntries.applications.values].sort((a, b) =>
+            a.name.localeCompare(b.name) || a.id.localeCompare(b.id));
+    }
+
     function entries(): var {
-        return DesktopEntries.applications.values.filter(entry =>
+        return applications.filter(entry =>
             isLaunchable(entry)
             && !Strings.testRegexList(CortetsuConfig.hiddenApps, entry.id));
     }

@@ -416,7 +416,7 @@ Scope {
             function desktopEntryForClient(client): var {
                 return BottomHubResolver.desktopEntryForWindow(
                     client.lastIpcObject ?? {},
-                    DesktopEntries.applications.values,
+                    Apps.applications,
                     identity => DesktopEntries.byId(identity),
                     candidate => Strings.testRegexList(CortetsuConfig.favouriteApps, candidate.id)
                 );
@@ -434,7 +434,7 @@ Scope {
                 const groups = BottomHubResolver.groupWindows(clients, desktopEntryForClient);
 
                 const result = [];
-                const pinnedEntries = DesktopEntries.applications.values.filter(entry =>
+                const pinnedEntries = Apps.applications.filter(entry =>
                     Strings.testRegexList(CortetsuConfig.favouriteApps, entry.id)
                 );
 

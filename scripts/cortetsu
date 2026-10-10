@@ -430,6 +430,7 @@ test_cmd() {
         "scripts/features/test-cortetsu-wallpaper-orbital-runtime.py"
         "scripts/features/eval-cortetsu-idle.py"
         "scripts/features/test-cortetsu-launcher.py"
+        "scripts/features/test-cortetsu-launcher-apps-runtime.py"
         "scripts/features/eval-cortetsu-launcher.py"
         "scripts/features/test-cortetsu-dashboard-typography.py"
         "scripts/features/eval-cortetsu-dashboard-typography.py"
