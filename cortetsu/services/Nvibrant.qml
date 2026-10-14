@@ -5,75 +5,130 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// NVIDIA Digital Vibrance for Wayland. The helper owns the external command
-// so the settings UI never has to assemble a shell command or guess support.
+// NVIDIA Digital Vibrance for the output wired to the dGPU. nvibrant cannot
+// read a value: a bare call resets every display to 0. cortetsu-nvibrant owns
+// the tool, reads capability from sysfs without waking the dGPU and keeps the
+// profile the hotplug service reapplies, so this service never runs nvibrant
+// to inspect state.
 Singleton {
     id: root
 
-    property int value: 0
+    readonly property int minimum: -1024
+    readonly property int maximum: 1023
+    // A connected NVIDIA output exists; vibrance has nowhere to go otherwise.
     property bool available: false
+    property string connector: ""
+    // Last value nvibrant confirmed for the connector. Unknown until this
+    // session or the hotplug service applied one.
+    property bool known: false
+    property int value: 0
+    property int requested: 0
     property bool busy: false
-    property string error: ""
+    property bool writeQueued: false
+    // A failed write stays visible until a later write succeeds; a status
+    // refresh does not hide it.
+    property string writeError: ""
+    property string statusError: ""
+    readonly property string error: writeError || statusError
 
-    // startup inventory: cortetsu:nvibrant-query
-    readonly property Process readProcess: Process {
-        command: ["nvibrant"]
+    // startup inventory: cortetsu:nvibrant-status
+    readonly property Process statusProcess: Process {
+        command: ["cortetsu-nvibrant", "status"]
         running: false
         stdout: StdioCollector {
-            onStreamFinished: {
-                const match = text.match(/Set vibrance \(\s*(-?\d+)\s*\)/);
-                if (match) {
-                    root.value = Math.max(0, Math.min(1024, Number(match[1])));
-                    root.available = true;
-                    root.error = "";
-                } else if (!root.available) {
-                    root.error = qsTr("nvibrant no devolvió un display compatible");
-                }
-            }
+            onStreamFinished: root.applyStatus(text)
         }
-        stderr: StdioCollector {
-            onStreamFinished: {
-                if (text.trim().length > 0 && !root.available)
-                    root.error = text.trim().split("\n")[0];
-            }
+        onExited: exitCode => {
+            if (exitCode !== 0 && !root.statusError.length)
+                root.statusError = qsTr("No se pudo consultar la salida NVIDIA");
         }
-        onExited: root.busy = false
     }
 
     readonly property Process writeProcess: Process {
-        command: ["nvibrant", "0", String(root.pendingValue)]
+        property string sentConnector: ""
+        property int sentValue: 0
+        command: ["cortetsu-nvibrant", "set", sentConnector, String(sentValue)]
         running: false
-        stderr: StdioCollector {
-            onStreamFinished: {
-                if (text.trim().length > 0)
-                    root.error = text.trim().split("\n")[0];
-            }
+        stdout: StdioCollector {
+            onStreamFinished: root.applyWrite(text)
         }
         onExited: {
             root.busy = false;
-            if (exitCode === 0) {
-                root.value = root.pendingValue;
-                root.available = true;
-                root.error = "";
-            }
+            const again = root.writeQueued && root.requested !== root.writeProcess.sentValue;
+            root.writeQueued = false;
+            if (again)
+                root.startWrite();
         }
     }
 
-    property int pendingValue: 0
+    function parse(text: string): var {
+        try {
+            return JSON.parse(text);
+        } catch (error) {
+            return null;
+        }
+    }
+
+    function applyStatus(text: string): void {
+        const status = parse(text);
+        if (!status?.ok) {
+            available = false;
+            statusError = status?.error ?? qsTr("cortetsu-nvibrant devolvió un estado ilegible");
+            return;
+        }
+        const output = (status.outputs ?? []).find(item => item.connected) ?? null;
+        available = !!output;
+        connector = output?.connector ?? "";
+        known = output !== null && Number.isInteger(output.value);
+        if (known)
+            value = output.value;
+        if (!busy)
+            requested = value;
+        statusError = status.conflict
+            ? qsTr("%1 también fija la vibrance al iniciar sesión; desactívala para que este valor se mantenga").arg(status.conflict)
+            : "";
+    }
+
+    function applyWrite(text: string): void {
+        const result = parse(text);
+        if (result?.ok && Number.isInteger(result.value)) {
+            value = result.value;
+            known = true;
+            writeError = "";
+            return;
+        }
+        writeError = result?.error ?? qsTr("nvibrant no confirmó el cambio");
+        // The output may have been unplugged under the slider.
+        if (result?.code === "connector-disconnected" || result?.code === "connector-unknown")
+            reload();
+    }
 
     function reload(): void {
-        if (busy)
-            return;
+        if (!statusProcess.running)
+            statusProcess.running = true;
+    }
+
+    function startWrite(): void {
         busy = true;
-        readProcess.running = true;
+        writeProcess.sentConnector = connector;
+        writeProcess.sentValue = requested;
+        writeProcess.running = true;
     }
 
     function setValue(nextValue: real): void {
-        if (busy || !available)
+        if (!available)
             return;
-        pendingValue = Math.max(0, Math.min(1024, Math.round(nextValue)));
-        busy = true;
-        writeProcess.running = true;
+        requested = Math.max(minimum, Math.min(maximum, Math.round(nextValue)));
+        // A slider drag outruns nvibrant; keep only the latest value.
+        if (busy)
+            writeQueued = true;
+        else
+            startWrite();
+    }
+
+    Connections {
+        target: Quickshell
+        function onScreensChanged(): void { root.reload(); }
     }
 
     Component.onCompleted: reload()

@@ -1,0 +1,194 @@
+#!/usr/bin/env python3
+"""NVIDIA Digital Vibrance with an explicit per-connector profile.
+
+nvibrant has no read mode: every call writes one value per NVIDIA display and
+sets each omitted display to 0, so running it bare resets the HDMI output.
+This helper never runs it to read. Capability comes from sysfs (cached
+connector status, which does not wake a suspended dGPU), the wanted values
+come from a profile file, and every write sends the whole vector so no other
+display is zeroed. The profile is stored only after nvibrant echoes the value.
+
+  status                       JSON with NVIDIA connectors and profile values
+  set CONNECTOR VALUE          apply VALUE (-1024..1023) to one connected output
+  apply [--default N]          reapply the profile; does nothing without a
+                               connected NVIDIA output (hotplug hook)
+"""
+from __future__ import annotations
+
+import fcntl
+import json
+import os
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+NVIDIA_VENDOR = "0x10de"
+MINIMUM, MAXIMUM = -1024, 1023
+DRM_ROOT = Path(os.environ.get("CORTETSU_DRM_ROOT", "/sys/class/drm"))
+STATE_DIR = Path(os.environ.get("XDG_STATE_HOME", Path.home() / ".local/state")) / "cortetsu"
+PROFILE = STATE_DIR / "nvibrant.json"
+NVIBRANT = os.environ.get("CORTETSU_NVIBRANT", "nvibrant")
+# "• (0, HDMI) • Set vibrance (  128) • None"
+DISPLAY_LINE = re.compile(r"\(\s*(\d+)\s*,\s*([A-Za-z-]+)\s*\)\s*\S*\s*Set vibrance \(\s*(-?\d+)\s*\)")
+
+
+class VibranceError(Exception):
+    def __init__(self, code: str, message: str):
+        super().__init__(message)
+        self.code = code
+
+
+def read(path: Path) -> str:
+    try:
+        return path.read_text(encoding="utf-8").strip()
+    except OSError:
+        return ""
+
+
+def connectors() -> list[dict]:
+    """NVIDIA-owned connectors in nvibrant's display order (connector id)."""
+    found = []
+    for path in DRM_ROOT.glob("card*-*"):
+        card, _, name = path.name.partition("-")
+        if read(DRM_ROOT / card / "device/vendor").lower() != NVIDIA_VENDOR or name.startswith("Writeback"):
+            continue
+        connector_id = int(read(path / "connector_id") or sys.maxsize)
+        found.append((int(card[4:]), connector_id, name, card, read(path / "status") == "connected"))
+    # ponytail: nvkms enumerates displays in connector order and nvibrant
+    # echoes every display, connected or not; the order is checked against
+    # that echo after each write. Verified on a single NVIDIA connector
+    # (HDMI-A-1). A machine whose echo disagrees gets a mapping error instead
+    # of a profile entry.
+    return [{"connector": name, "card": card, "connected": connected, "index": index}
+            for index, (_, _, name, card, connected) in enumerate(sorted(found))]
+
+
+def legacy_unit() -> str:
+    """The pre-Cortetsu unit that runs a bare `nvibrant 128` at login."""
+    config = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config"))
+    enabled = any((config / "systemd/user").glob("*.wants/nvibrant.service"))
+    return "nvibrant.service" if enabled else ""
+
+
+def load_profile() -> dict[str, int]:
+    try:
+        data = json.loads(PROFILE.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    values = data.get("profile", {}) if isinstance(data, dict) else {}
+    return {str(name): int(value) for name, value in values.items()
+            if isinstance(value, int) and MINIMUM <= value <= MAXIMUM}
+
+
+def save_profile(profile: dict[str, int]) -> None:
+    STATE_DIR.mkdir(parents=True, exist_ok=True)
+    temporary = PROFILE.with_name(PROFILE.name + ".tmp")
+    temporary.write_text(json.dumps({"profile": profile}, indent=2) + "\n", encoding="utf-8")
+    os.replace(temporary, PROFILE)
+
+
+def run_nvibrant(outputs: list[dict], values: list[int]) -> None:
+    try:
+        result = subprocess.run([NVIBRANT, *map(str, values)], text=True,
+                                capture_output=True, timeout=15, check=False)
+    except (OSError, subprocess.SubprocessError) as error:
+        raise VibranceError("nvibrant-unavailable", f"nvibrant no se pudo ejecutar: {error}") from None
+    if result.returncode != 0:
+        detail = (result.stderr or result.stdout).strip().splitlines()
+        raise VibranceError("nvibrant-failed", detail[0] if detail else f"nvibrant salió con {result.returncode}")
+    echoed = {int(index): (kind, int(value)) for index, kind, value in DISPLAY_LINE.findall(result.stdout)}
+    for output, value in zip(outputs, values):
+        kind, applied = echoed.get(output["index"], ("", None))
+        if not kind or not output["connector"].upper().startswith(kind.upper()):
+            raise VibranceError("mapping-mismatch",
+                                f"nvibrant no confirmó {output['connector']} como display {output['index']}")
+        if applied != value:
+            raise VibranceError("not-applied", f"nvibrant aplicó {applied} en lugar de {value}")
+
+
+def vector(outputs: list[dict], profile: dict[str, int], default: int) -> list[int]:
+    return [profile.get(output["connector"], default) for output in outputs]
+
+
+def locked(action):
+    STATE_DIR.mkdir(parents=True, exist_ok=True)
+    with open(STATE_DIR / "nvibrant.lock", "w", encoding="utf-8") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        return action()
+
+
+def command_status() -> dict:
+    profile = load_profile()
+    return {"ok": True, "conflict": legacy_unit(),
+            "outputs": [dict(output, value=profile.get(output["connector"])) for output in connectors()]}
+
+
+def parse_value(raw: str) -> int:
+    try:
+        value = int(raw)
+    except ValueError:
+        raise VibranceError("value-invalid", "La vibrance debe ser un entero") from None
+    if not MINIMUM <= value <= MAXIMUM:
+        raise VibranceError("value-invalid", f"La vibrance va de {MINIMUM} a {MAXIMUM}")
+    return value
+
+
+def command_set(connector: str, raw_value: str) -> dict:
+    value = parse_value(raw_value)
+
+    def apply() -> dict:
+        outputs = connectors()
+        target = next((output for output in outputs if output["connector"] == connector), None)
+        if target is None:
+            raise VibranceError("connector-unknown", f"{connector} no es una salida NVIDIA")
+        if not target["connected"]:
+            raise VibranceError("connector-disconnected", f"{connector} no está conectado")
+        profile = load_profile()
+        wanted = dict(profile, **{connector: value})
+        # Displays without a profile entry keep nvibrant's neutral 0, which is
+        # what nvibrant itself would write for them.
+        run_nvibrant(outputs, vector(outputs, wanted, 0))
+        save_profile(wanted)
+        return {"ok": True, "connector": connector, "value": value}
+
+    return locked(apply)
+
+
+def command_apply(default: int | None) -> dict:
+    def apply() -> dict:
+        outputs = connectors()
+        if not any(output["connected"] for output in outputs):
+            return {"ok": True, "applied": False, "reason": "no-nvidia-output"}
+        profile = load_profile()
+        values = vector(outputs, profile, 0 if default is None else default)
+        run_nvibrant(outputs, values)
+        applied = {output["connector"]: value for output, value in zip(outputs, values)}
+        save_profile(dict(profile, **applied))
+        return {"ok": True, "applied": True, "values": applied}
+
+    return locked(apply)
+
+
+def main(argv: list[str]) -> int:
+    try:
+        if argv == ["status"]:
+            result = command_status()
+        elif len(argv) == 3 and argv[0] == "set":
+            result = command_set(argv[1], argv[2])
+        elif argv == ["apply"]:
+            result = command_apply(None)
+        elif len(argv) == 3 and argv[:2] == ["apply", "--default"]:
+            result = command_apply(parse_value(argv[2]))
+        else:
+            print(__doc__.strip(), file=sys.stderr)
+            return 2
+    except VibranceError as error:
+        print(json.dumps({"ok": False, "code": error.code, "error": str(error)}, ensure_ascii=False))
+        return 1
+    print(json.dumps(result, ensure_ascii=False))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

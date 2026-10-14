@@ -1,6 +1,8 @@
 local vars = require("variables")
 local fn   = require("utils.functions")
 
+local nvibrant_apply = os.getenv("HOME") .. "/.local/bin/cortetsu-nvibrant apply --default 128"
+
 hl.on("hyprland.start", function()
     -- Keyring and auth
     hl.exec_cmd("gnome-keyring-daemon --start --components=secrets")
@@ -30,11 +32,17 @@ hl.on("hyprland.start", function()
 
     -- Relaunch Wallpaper Engine renderer with per-monitor args and no fullscreen pause.
     hl.exec_cmd(os.getenv("HOME") .. "/.local/bin/wallpaper-engine-render-daemon")
+
+    -- nvidia-modeset tarda en aceptar ioctls tras el login; la unit
+    -- nvibrant.service anterior esperaba lo mismo.
+    hl.exec_cmd("sleep 5 && " .. nvibrant_apply)
 end)
 
--- Reaplica el perfil NVIDIA cuando el HDMI se conecta después de iniciar sesión.
+-- Reaplica el perfil de vibrance NVIDIA que edita Ajustes al conectar un
+-- monitor (el arranque lo cubre hyprland.start). Sin salida NVIDIA conectada
+-- no ejecuta nvibrant y no despierta la dGPU; 128 solo vale sin perfil guardado.
 hl.on("monitor.added", function()
-    hl.exec_cmd("systemctl --user restart nvibrant.service")
+    hl.exec_cmd(nvibrant_apply)
 end)
 
 -- Resizer listeners
