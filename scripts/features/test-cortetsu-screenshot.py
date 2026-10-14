@@ -14,7 +14,7 @@ assert "screenshot_cmd()" in text
 assert 'ipc call picker openFreeze' in text
 assert 'ipc call picker open' in text
 assert "/usr/bin/caelestia" not in text
-assert 'create_bind(vars.kbScreenshot, hl.dsp.exec_cmd("cortetsu screenshot -r -f"), locked)' in keybinds
+assert 'create_bind(vars.kbScreenshot, hl.dsp.exec_cmd("cortetsu screenshot -r -f"))' in keybinds
 assert '"Print",\n    hl.dsp.exec_cmd("cortetsu screenshot -r -f")' not in hypr
 assert "caelestia screenshot" not in hypr
 assert "Leaving them orphaned" not in keybinds

@@ -28,18 +28,28 @@ Searcher {
     component Action: QtObject {
         required property var modelData
         readonly property string name: modelData.name ?? qsTr("Sin nombre")
-        readonly property string desc: modelData.description ?? qsTr("Sin descripción")
+        // Sleep actions are named modes, not programs; logind decides
+        // whether they can run here.
+        readonly property string sleepMode: ["suspend", "hibernate", "suspendThenHibernate"].includes(command[0] ?? "")
+            ? command[0] : ""
+        readonly property bool available: !sleepMode || CortetsuSession.available(sleepMode)
+        readonly property string desc: available
+            ? (modelData.description ?? qsTr("Sin descripción"))
+            : CortetsuSession.reason(sleepMode)
         readonly property string icon: modelData.icon ?? "help_outline"
         readonly property list<string> command: modelData.command ?? []
         readonly property bool enabled: modelData.enabled ?? true
         readonly property bool dangerous: modelData.dangerous ?? false
 
         function onClicked(list: AppList): void {
-            if (command.length === 0)
+            if (command.length === 0 || !available)
                 return;
 
             if (command[0] === "autocomplete" && command.length > 1) {
                 list.search.text = `${CortetsuConfig.actionPrefix}${command[1]} `;
+            } else if (sleepMode) {
+                list.screenState.launcher = false;
+                CortetsuSession.request(sleepMode);
             } else if (command[0] === "setMode" && command.length > 1) {
                 list.screenState.launcher = false;
                 Quickshell.execDetached(["cortetsu", "theme", "set", command[1]]);

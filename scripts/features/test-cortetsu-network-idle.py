@@ -17,7 +17,8 @@ for marker in ("activeEthernet", "strength", "ssid", "DeviceType", "ConnectionSt
 for banned in ("nmcli", "Quickshell.Io", "Process {", "Timer {", "monitor", "GlobalConfig", "Caelestia"):
     assert banned not in network, banned
 
-for marker in ("IdleInhibitor", "PersistentProperties", "cortetsu-idle-inhibitor"):
+# Keep-awake is a persisted toggle with an IPC; IdleMonitors honours it.
+for marker in ('target: "keepAwake"', "PersistentProperties", "cortetsu-idle-inhibitor"):
     assert marker in idle, marker
 assert "Services.IdleInhibitor" not in hub
 assert not re.search(r"(?<!Cortetsu)Nmcli\.", hub)

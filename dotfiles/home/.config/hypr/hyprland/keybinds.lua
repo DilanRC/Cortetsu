@@ -162,8 +162,9 @@ create_bind(vars.kbAudioSettings, hl.dsp.exec_cmd(vars.audioSettings))
 
 -- Utilities
 -- Print keeps the existing frozen-region behavior; all screenshot ownership
--- remains in this canonical keybind module.
-create_bind(vars.kbScreenshot, hl.dsp.exec_cmd("cortetsu screenshot -r -f"), locked)
+-- remains in this canonical keybind module. Not `locked`: nothing behind the
+-- lock screen should be captured.
+create_bind(vars.kbScreenshot, hl.dsp.exec_cmd("cortetsu screenshot -r -f"))
 -- Freeze and region shortcuts target the first-party AreaPicker receiver.
 -- The Cortetsu runtime exposes both names through its picker IPC handler.
 create_bind(vars.kbScreenshotFreeze, hl.dsp.global("cortetsu:screenshotFreeze"))
@@ -202,15 +203,17 @@ create_bind(
     locked_repeating
 )
 
--- Sleep
-create_bind(vars.kbSleep, hl.dsp.exec_cmd(vars.sleepGestureCmd), locked)
+-- Sleep and keep-awake
+create_bind(vars.kbSleep, hl.dsp.exec_cmd(vars.sleepCmd), locked)
+create_bind(vars.kbKeepAwake, hl.dsp.global("cortetsu:keepAwake"))
 
 -- Clipboard and emoji picker
 create_bind(vars.kbEmoji, hl.dsp.exec_cmd("pkill fuzzel || cortetsu emoji -p"))
 create_bind(
     vars.kbClipboardPasteLatest,
-    hl.dsp.exec_cmd([[sleep 0.5s && ydotool type -d 1 "$(jq -r '.clipboardHistory[0].value // empty' "$HOME/.config/clipse/clipboard_history.json")"]]),
-    locked
+    -- Not `locked`: it would type the last clipboard entry into the lock
+    -- screen's password field.
+    hl.dsp.exec_cmd([[sleep 0.5s && ydotool type -d 1 "$(jq -r '.clipboardHistory[0].value // empty' "$HOME/.config/clipse/clipboard_history.json")"]])
 )
 
 -- Testing

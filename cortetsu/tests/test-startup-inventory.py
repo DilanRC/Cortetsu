@@ -194,7 +194,8 @@ def qml_process_starts(path: Path) -> list[str]:
         for process_id, process_offset in processes.items():
             if re.search(rf"\b{re.escape(process_id)}\.(?:exec\s*\(|running\s*=\s*true)", body):
                 starts.append(marker_at(process_offset) or f"UNREGISTERED:{process_id}")
-        if re.search(r"Quickshell\.execDetached\s*\(", body):
+        # CortetsuSession.suspend()/hibernate() wrap execDetached for sleep requests.
+        if re.search(r"Quickshell\.execDetached\s*\(|CortetsuSession\.(?:hibernate|suspend)\s*\(", body):
             starts.append(marker_at(callback_offset) or "UNREGISTERED:execDetached")
 
     return list(dict.fromkeys(starts))
@@ -361,7 +362,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-startup-test-") as temp:
     assert phases["cortetsu:wallpaper-scan"] == "conditional"
     assert phases["cortetsu:keyboard-state"] == "conditional"
     assert phases["cortetsu:window-list"] == "conditional"
-    assert phases["cortetsu:battery-notification"] == phases["cortetsu:battery-hibernate"] == "conditional"
+    assert phases["cortetsu:battery-notification"] == phases["cortetsu:battery-sleep"] == "conditional"
     assert phases["cortetsu:hardware-startup-scan"] == "on-demand"
     startup_rows = {entry["id"]: entry for entry in app.cortetsu_entries()}
     assert all(entry["configured"] == (entry["startupPhase"] != "on-demand")
@@ -373,7 +374,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-startup-test-") as temp:
     assert '"configured": component["startupPhase"] != "on-demand"' in SCRIPT.read_text(encoding="utf-8")
     assert {entry["id"] for entry in app.CORTETSU_STARTUP} == {
         "cortetsu:pomodoro", "cortetsu:wallpaper-scan", "cortetsu:battery-notification",
-        "cortetsu:battery-hibernate", "cortetsu:spectrum", "cortetsu:connectivity-monitor",
+        "cortetsu:battery-sleep", "cortetsu:spectrum", "cortetsu:connectivity-monitor",
         "cortetsu:connectivity-command", "cortetsu:network-password-copy", "cortetsu:network-password-clipboard", "cortetsu:vpn-status",
         "cortetsu:brightness-discovery", "cortetsu:brightness-connector", "cortetsu:brightness-read", "cortetsu:nvibrant-status",
         "cortetsu:cpu-temperature", "cortetsu:gpu-probe", "cortetsu:storage-probe",
@@ -384,7 +385,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-startup-test-") as temp:
         "cortetsu:hardware-power-probe", "cortetsu:hardware-power-automation-status",
         "cortetsu:hardware-keybind-list", "cortetsu:settings-keybind-list", "cortetsu:hardware-energy-probe", "cortetsu:hardware-startup-scan",
         "cortetsu:display-calibration-control",
-        "cortetsu:session-sleep-monitor", "cortetsu:session-sleep-lock",
+        "cortetsu:session-sleep-monitor", "cortetsu:session-sleep-capability", "cortetsu:session-sleep-lock",
         "cortetsu:keyboard-state", "cortetsu:window-list",
     }
     for entry in app.CORTETSU_STARTUP:

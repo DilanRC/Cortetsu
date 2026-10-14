@@ -6,6 +6,7 @@ BIN_DIR="${HOME}/.local/bin"
 DATA_ROOT="${CORTETSU_DATA_ROOT:-${XDG_DATA_HOME:-$HOME/.local/share}/cortetsu}"
 export CORTETSU_DATA_ROOT="$DATA_ROOT"
 SYSTEMD_USER_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
+# Retired: keep-awake is now a shell toggle (CortetsuIdleInhibitor), not a unit.
 KEEP_AWAKE_UNIT="cortetsu-keep-awake.service"
 WALLPAPER_COLOR_UNIT="cortetsu-wallpaper-color.service"
 
@@ -49,7 +50,6 @@ while IFS= read -r -d '' source; do
 done < <(find "$REPO/cortetsu/bin" -maxdepth 1 -type f -name 'cortetsu-*' -print0 | sort -z)
 
 mkdir -p "$SYSTEMD_USER_DIR"
-install -m 0644 "$REPO/config/systemd/user/$KEEP_AWAKE_UNIT" "$SYSTEMD_USER_DIR/$KEEP_AWAKE_UNIT"
 install -m 0644 "$REPO/config/systemd/user/$WALLPAPER_COLOR_UNIT" "$SYSTEMD_USER_DIR/$WALLPAPER_COLOR_UNIT"
 
 # The pre-Cortetsu nvibrant.service runs a bare `nvibrant 128` at login and
@@ -86,13 +86,21 @@ python3 "$REPO/core/shell_lifecycle.py" migrate
 
 systemctl --user daemon-reload >/dev/null 2>&1 || true
 
-# Keep-awake is an explicit user requirement and must survive each promoted
-# generation. The unit is scoped to this user session and uses systemd's
-# inhibitor API, never a global desktop setting.
-if systemctl --user enable --now "$KEEP_AWAKE_UNIT" >/dev/null 2>&1; then
-    printf 'Keep awake: active and enabled\n'
-else
-    printf 'WARN: no se pudo activar %s\n' "$KEEP_AWAKE_UNIT" >&2
+# The old unit held a permanent sleep:idle block inhibitor, so CanSuspend was
+# "inhibited" and the session menu's Suspend did nothing. Keep-awake is now
+# off by default and toggled from BottomHub, Settings, IPC or SUPER+ALT+K.
+if systemctl --user is-enabled --quiet "$KEEP_AWAKE_UNIT" 2>/dev/null \
+        || systemctl --user is-active --quiet "$KEEP_AWAKE_UNIT" 2>/dev/null; then
+    systemctl --user disable --now "$KEEP_AWAKE_UNIT" >/dev/null 2>&1 || true
+    if systemctl --user is-active --quiet "$KEEP_AWAKE_UNIT" 2>/dev/null; then
+        printf 'WARN: %s sigue activa; detenla con systemctl --user stop %s\n' "$KEEP_AWAKE_UNIT" "$KEEP_AWAKE_UNIT" >&2
+    else
+        printf 'Keep awake: unidad permanente retirada; ahora es un interruptor del shell\n'
+    fi
+fi
+if [[ -f "$SYSTEMD_USER_DIR/$KEEP_AWAKE_UNIT" ]]; then
+    mv -f "$SYSTEMD_USER_DIR/$KEEP_AWAKE_UNIT" "$SYSTEMD_USER_DIR/$KEEP_AWAKE_UNIT.retired"
+    systemctl --user daemon-reload >/dev/null 2>&1 || true
 fi
 
 if [[ "$(systemctl --user show -p Transient --value "$WALLPAPER_COLOR_UNIT" 2>/dev/null || true)" == "yes" ]]; then

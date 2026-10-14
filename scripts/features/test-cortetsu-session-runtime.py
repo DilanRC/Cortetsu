@@ -26,9 +26,23 @@ import QtQuick
 QtObject { property bool transparencyEnabled: false }
 """
 
+SESSION = """pragma Singleton
+import QtQuick
+QtObject {
+    property var answers: ({ suspend: "inhibited", hibernate: "na" })
+    property var requested: []
+    property int refreshes: 0
+    function available(mode) { const a = answers[mode] ?? ""; return a === "" || a === "yes" || a === "challenge"; }
+    function reason(mode) { return "unavailable:" + answers[mode]; }
+    function request(mode) { if (!available(mode)) return false; requested = requested.concat([mode]); return true; }
+    function refreshCapabilities() { refreshes++; }
+}
+"""
+
 SHELL = """import QtQuick
 import Quickshell
 import "modules"
+import "services"
 import "modules/session" as Session
 
 ShellRoot {
@@ -72,6 +86,25 @@ ShellRoot {
                "logout uses the Lua dispatcher");
         verify(!state.session, "logout closes the menu");
 
+        // Sleep modes follow logind: refused ones are inert and say why.
+        verify(CortetsuSession.refreshes >= 2, "opening the menu asks logind again");
+        state.session = true;
+        const before = lock.requests;
+        locked.run(action("suspend"));
+        verify(lock.requests === before && state.session, "an inhibited suspend does nothing");
+        locked.run(action("hibernate"));
+        locked.run(action("hibernate"));
+        verify(locked.pendingAction === "" && state.session, "hibernate without support never arms");
+        verify(!locked.available(action("hibernate")) && locked.available(action("reboot")),
+               "only sleep modes depend on logind");
+        CortetsuSession.answers = { suspend: "yes", hibernate: "na" };
+        locked.run(action("suspend"));
+        verify(lock.requests === before + 1 && CortetsuSession.requested.length === 0,
+               "a supported suspend locks first and waits for the lock");
+        lock.lockReady = true;
+        locked.dispatchDeferred();
+        verify(CortetsuSession.requested.join() === "suspend", "the lock releases exactly the suspend request");
+
         console.log("SESSION_RUNTIME_PASS", checks);
         Qt.quit();
     }
@@ -87,6 +120,8 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-session-test-") as temporary:
     shutil.copy(ROOT / "modules/session/Content.qml", folder / "modules/session/Content.qml")
     (folder / "modules/CortetsuHypr.qml").write_text(HYPR)
     (folder / "modules/CortetsuConfig.qml").write_text(CONFIG)
+    (folder / "services").mkdir()
+    (folder / "services/CortetsuSession.qml").write_text(SESSION)
     (folder / "shell.qml").write_text(SHELL)
     result = subprocess.run(
         ["quickshell", "-p", str(folder / "shell.qml")],
@@ -96,7 +131,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-session-test-") as temporary:
     output = result.stdout + result.stderr
     assert result.returncode == 0, output
     assert "SESSION_FAIL" not in output, output
-    assert "SESSION_RUNTIME_PASS 9" in output, output
+    assert "SESSION_RUNTIME_PASS 15" in output, output
     for marker in ("TypeError", "ReferenceError", " ERROR"):
         assert marker not in output, output
 

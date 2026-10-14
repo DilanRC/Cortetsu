@@ -19,10 +19,12 @@ hl.gesture({
     direction = "down",
     action    = fn.toggle("specialws"),
 })
+-- Abre el menú de sesión en lugar de suspender: un gesto se dispara sin
+-- querer, también jugando, y desde el menú la suspensión es una decisión.
 hl.gesture({
     fingers   = vars.gestureFingersMore,
     direction = "down",
     action    = function()
-        hl.exec_cmd(vars.sleepGestureCmd)
+        hl.dispatch(hl.dsp.global("cortetsu:session"))
     end,
 })
