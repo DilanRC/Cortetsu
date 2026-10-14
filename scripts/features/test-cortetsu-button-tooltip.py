@@ -19,7 +19,7 @@ for marker in (
 
 surfaces = {
     "osd": ROOT / "cortetsu/modules/osd/FullContent.qml",
-    "settings": ROOT / "cortetsu/modules/settings/Content.qml",
+    "settings": ROOT / "cortetsu/modules/settings/Nexus.qml",
     "dashboard": ROOT / "cortetsu/modules/dashboard/Dash.qml",
     "today": ROOT / "cortetsu/modules/dashboard/Today.qml",
     "calendar": ROOT / "cortetsu/modules/calendar/Content.qml",

@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import "../.."
 import "../../../services"
-import "../../CortetsuDesign.js" as CortetsuDesign
+import "../../../theme"
 import "../../CortetsuTypography.js" as CortetsuTypography
 
 Rectangle {

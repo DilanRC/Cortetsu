@@ -6,7 +6,7 @@ import Quickshell.Networking
 import "../../../utils"
 import "../../../services"
 import "../../../components"
-import "../../CortetsuDesign.js" as CortetsuDesign
+import "../../../theme"
 import "../.."
 
 CortetsuPopupSurface {

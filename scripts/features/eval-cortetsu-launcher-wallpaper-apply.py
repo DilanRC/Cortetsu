@@ -2,7 +2,7 @@
 """Product eval for honest wallpaper apply feedback across surfaces."""
 from pathlib import Path
 
-from settings_sources import system_page_text
+from settings_sources import pages_text
 
 ROOT = Path(__file__).resolve().parents[2]
 service = (ROOT / "cortetsu/modules/CortetsuWallpapers.qml").read_text(encoding="utf-8")
@@ -39,9 +39,9 @@ checks = {
     "delegate movement state is null-safe": "PathView.view?.moving ?? false" in item,
 }
 
-settings = system_page_text()
+settings = pages_text()
 checks.update({
-    "settings consumes shared status": "CortetsuWallpapers.applyStatusPath" in settings and 'warningState: CortetsuWallpapers.applyStatus === "failed"' in settings,
+    "settings consumes shared status": "CortetsuWallpapers.applyStatusPath" in settings and "CortetsuWallpapers.applyStatus" in settings,
 })
 
 assert all(checks.values()), [name for name, passed in checks.items() if not passed]

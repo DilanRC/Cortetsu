@@ -6,7 +6,7 @@ ROOT = Path(__file__).resolve().parents[2]
 SURFACES = {
     "osd": (ROOT / "cortetsu/modules/osd/FullContent.qml", "Layout.preferredWidth: 32"),
     "dashboard": (ROOT / "cortetsu/modules/dashboard/Dash.qml", "Layout.preferredWidth: 38"),
-    "settings": (ROOT / "cortetsu/modules/settings/Content.qml", "Layout.preferredWidth: 72"),
+    "settings": (ROOT / "cortetsu/modules/settings/Content.qml", "Layout.preferredWidth: 28"),
 }
 OSD = ROOT / "cortetsu/modules/osd/FullContent.qml"
 HUB_BUTTON = ROOT / "cortetsu/modules/HubButton.qml"

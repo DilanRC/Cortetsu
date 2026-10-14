@@ -18,6 +18,11 @@ def run(*args):
 runtime = str(Path.home() / '.config/quickshell/cortetsu/current')
 
 
+def move_cursor(x, y):
+    # Hyprland's Lua config only accepts dispatchers in the hl.dsp form.
+    run('hyprctl', 'dispatch', f'hl.dsp.cursor.move({{ x = {int(x)}, y = {int(y)} }})')
+
+
 def ipc(*args):
     return run('qs', 'ipc', '-p', runtime, 'call', 'bottomHub', *args)
 
@@ -37,7 +42,7 @@ results = []
 try:
     for monitor in monitors:
         name = monitor['name']
-        run('hyprctl', 'dispatch', 'movecursor', str(monitor['x'] + 500), str(monitor['y'] + 400))
+        move_cursor(monitor['x'] + 500, monitor['y'] + 400)
         time.sleep(.15)
         ipc('control', 'network')
         time.sleep(.25)
@@ -55,6 +60,7 @@ try:
         assert not state(name)['open'], state(name)
         results.append({'screen': name, 'open_focus_tab_reopen_close': 'PASS'})
 finally:
-    run('hyprctl', 'dispatch', 'movecursor', str(cursor['x']), str(cursor['y']))
+    ipc('closeControl')  # A failed step must not leave a popup on the desktop.
+    move_cursor(cursor['x'], cursor['y'])
     (evidence / 'results.json').write_text(json.dumps(results, indent=2) + '\n')
 print(json.dumps({'results': results, 'evidence': str(evidence)}, indent=2))

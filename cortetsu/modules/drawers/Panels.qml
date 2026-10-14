@@ -12,7 +12,7 @@ import ".."
 import "../../components"
 import "../utilities" as Utilities
 import "../bar/popouts" as BarPopouts
-import "../CortetsuDesign.js" as CortetsuDesign
+import "../../theme"
 import "../clipboard" as Clipboard
 import "../hardware" as Hardware
 import "../display" as Display

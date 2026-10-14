@@ -3,168 +3,128 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import "../../../components"
+import "../../../services"
+import "../../../theme"
 import "../.."
-import "../../CortetsuDesign.js" as CortetsuDesign
+import "../controls"
 
 ColumnLayout {
     id: root
 
-    required property var page
+    required property var context
 
-    spacing: CortetsuDesign.spacingStandard
+    spacing: CortetsuDesign.spacingSection
 
-    CortetsuSectionHeader {
-        Layout.fillWidth: true
-        title: qsTr("Comportamiento del escritorio")
-        detail: qsTr("Espacios y presentación del escritorio")
-    }
+    SettingsGroup {
+        title: qsTr("Dashboard")
+        detail: qsTr("El panel que baja desde el borde superior")
 
-    DomainHero {
-        icon: "desktop_windows"
-        title: qsTr("Escritorio preparado")
-        detail: qsTr("Estado de los monitores, espacios y Dashboard")
-        value: qsTr("%1 monitores").arg(root.page.monitorCount)
-        meta: qsTr("%1 espacios · Dashboard %2")
-            .arg(root.page.workspaceCount)
-            .arg(CortetsuConfig.dashboard.showDashboard ? qsTr("visible") : qsTr("oculto"))
-    }
+        SettingToggleRow {
+            objectName: "dashboardEnabled"
+            title: qsTr("Dashboard")
+            detail: qsTr("Si se apaga, ni el atajo ni el borde superior lo abren")
+            // Two stored flags gate the panel and nothing tells them apart;
+            // the switch reads and writes both so neither is left stranded.
+            checked: CortetsuConfig.dashboard.enabled && CortetsuConfig.dashboard.showDashboard
+            onToggled: value => {
+                CortetsuConfig.dashboard.enabled = value;
+                CortetsuConfig.dashboard.showDashboard = value;
+                CortetsuConfig.save();
+            }
+        }
 
-    PreferenceToggle {
-        title: qsTr("Dashboard disponible")
-        detail: qsTr("Permitir que Cortetsu presente el panel superior y sus controles")
-        icon: "dashboard"
-        checked: CortetsuConfig.dashboard.enabled
-        onChanged: checked => {
-            CortetsuConfig.dashboard.enabled = checked;
-            root.page.savePreference();
+        SettingToggleRow {
+            title: qsTr("Abrir al acercar el puntero")
+            detail: qsTr("Llevar el puntero al borde superior muestra el panel")
+            checked: CortetsuConfig.dashboard.showOnHover
+            disabled: !CortetsuConfig.dashboard.enabled
+            onToggled: value => { CortetsuConfig.dashboard.showOnHover = value; CortetsuConfig.save(); }
         }
     }
 
-    PreferenceToggle {
-        title: qsTr("Dashboard al abrirlo")
-        detail: qsTr("Mantener el panel visible cuando se solicita desde el atajo")
-        icon: "visibility"
-        checked: CortetsuConfig.dashboard.showDashboard
-        controlDisabled: !CortetsuConfig.dashboard.enabled
-        onChanged: checked => {
-            CortetsuConfig.dashboard.showDashboard = checked;
-            root.page.savePreference();
+    SettingsGroup {
+        title: qsTr("Contenido del Dashboard")
+        visible: CortetsuConfig.dashboard.enabled
+
+        SettingToggleRow {
+            title: qsTr("Multimedia")
+            detail: qsTr("El reproductor en curso")
+            checked: CortetsuConfig.dashboard.showMedia
+            onToggled: value => { CortetsuConfig.dashboard.showMedia = value; CortetsuConfig.save(); }
+        }
+
+        SettingToggleRow {
+            title: qsTr("Clima")
+            checked: CortetsuConfig.dashboard.showWeather
+            onToggled: value => { CortetsuConfig.dashboard.showWeather = value; CortetsuConfig.save(); }
+        }
+
+        SettingToggleRow {
+            objectName: "dashboardMetrics"
+            title: qsTr("Métricas")
+            detail: qsTr("Uso del equipo; cada lectura se elige abajo")
+            checked: CortetsuConfig.dashboard.showPerformance
+            onToggled: value => { CortetsuConfig.dashboard.showPerformance = value; CortetsuConfig.save(); }
+        }
+
+        SettingToggleRow {
+            title: qsTr("CPU")
+            checked: CortetsuConfig.dashboard.performance.showCpu
+            disabled: !CortetsuConfig.dashboard.showPerformance
+            onToggled: value => { CortetsuConfig.dashboard.performance.showCpu = value; CortetsuConfig.save(); }
+        }
+
+        SettingToggleRow {
+            title: qsTr("GPU")
+            checked: CortetsuConfig.dashboard.performance.showGpu
+            disabled: !CortetsuConfig.dashboard.showPerformance
+            onToggled: value => { CortetsuConfig.dashboard.performance.showGpu = value; CortetsuConfig.save(); }
+        }
+
+        SettingToggleRow {
+            title: qsTr("Memoria")
+            checked: CortetsuConfig.dashboard.performance.showMemory
+            disabled: !CortetsuConfig.dashboard.showPerformance
+            onToggled: value => { CortetsuConfig.dashboard.performance.showMemory = value; CortetsuConfig.save(); }
+        }
+
+        SettingToggleRow {
+            title: qsTr("Almacenamiento")
+            checked: CortetsuConfig.dashboard.performance.showStorage
+            disabled: !CortetsuConfig.dashboard.showPerformance
+            onToggled: value => { CortetsuConfig.dashboard.performance.showStorage = value; CortetsuConfig.save(); }
+        }
+
+        SettingToggleRow {
+            title: qsTr("Red")
+            checked: CortetsuConfig.dashboard.performance.showNetwork
+            disabled: !CortetsuConfig.dashboard.showPerformance
+            onToggled: value => { CortetsuConfig.dashboard.performance.showNetwork = value; CortetsuConfig.save(); }
+        }
+
+        SettingToggleRow {
+            title: qsTr("Batería")
+            checked: CortetsuConfig.dashboard.performance.showBattery
+            disabled: !CortetsuConfig.dashboard.showPerformance
+            onToggled: value => { CortetsuConfig.dashboard.performance.showBattery = value; CortetsuConfig.save(); }
         }
     }
 
-    PreferenceToggle {
-        title: qsTr("Reloj del escritorio")
-        detail: qsTr("Mostrar el reloj de Cortetsu en el escritorio")
-        icon: "schedule"
-        checked: CortetsuConfig.desktopClockEnabled
-        onChanged: checked => {
-            CortetsuConfig.desktopClockEnabled = checked;
-            root.page.savePreference();
+    SettingsGroup {
+        title: qsTr("Fondo del escritorio")
+
+        SettingToggleRow {
+            title: qsTr("Reloj del escritorio")
+            detail: qsTr("Un reloj sobre el fondo, detrás de las ventanas")
+            checked: CortetsuConfig.desktopClockEnabled
+            onToggled: value => { CortetsuConfig.desktopClockEnabled = value; CortetsuConfig.save(); }
         }
-    }
 
-    PreferenceToggle {
-        title: qsTr("Espacios por monitor")
-        detail: qsTr("Mantener el estado de espacios separado por pantalla")
-        icon: "view_carousel"
-        checked: CortetsuConfig.bar.workspaces.perMonitorWorkspaces
-        onChanged: checked => {
-            CortetsuConfig.bar.workspaces.perMonitorWorkspaces = checked;
-            root.page.savePreference();
-        }
-    }
-
-    PreferenceToggle {
-        title: qsTr("Panel superior al pasar el puntero")
-        detail: qsTr("Mostrar el Dashboard al acercarte al borde superior")
-        icon: "dashboard"
-        checked: CortetsuConfig.dashboard.showOnHover
-        onChanged: checked => {
-            CortetsuConfig.dashboard.showOnHover = checked;
-            root.page.savePreference();
-        }
-    }
-
-    PreferenceToggle {
-        title: qsTr("Contenido multimedia del Dashboard")
-        detail: qsTr("Mostrar el reproductor en el panel superior")
-        icon: "music_note"
-        checked: CortetsuConfig.dashboard.showMedia
-        onChanged: checked => {
-            CortetsuConfig.dashboard.showMedia = checked;
-            root.page.savePreference();
-        }
-    }
-
-    PreferenceToggle {
-        title: qsTr("Métricas del Dashboard")
-        detail: qsTr("Mostrar CPU, GPU, memoria y red en el panel superior")
-        icon: "monitoring"
-        checked: CortetsuConfig.dashboard.showPerformance
-        onChanged: checked => {
-            CortetsuConfig.dashboard.showPerformance = checked;
-            root.page.savePreference();
-        }
-    }
-
-    PreferenceToggle {
-        title: qsTr("Clima del Dashboard")
-        detail: qsTr("Mostrar el estado del tiempo en el panel superior")
-        icon: "cloud"
-        checked: CortetsuConfig.dashboard.showWeather
-        onChanged: checked => {
-            CortetsuConfig.dashboard.showWeather = checked;
-            root.page.savePreference();
-        }
-    }
-
-    CortetsuSectionHeader {
-        Layout.fillWidth: true
-        title: qsTr("Métricas visibles")
-        detail: qsTr("Elegir qué lecturas ocupan espacio en el Dashboard")
-    }
-
-    PreferenceToggle {
-        title: qsTr("CPU")
-        detail: qsTr("Uso del procesador")
-        icon: "memory"
-        checked: CortetsuConfig.dashboard.performance.showCpu
-        controlDisabled: !CortetsuConfig.dashboard.showPerformance
-        onChanged: checked => { CortetsuConfig.dashboard.performance.showCpu = checked; root.page.savePreference(); }
-    }
-
-    PreferenceToggle {
-        title: qsTr("GPU")
-        detail: qsTr("Uso de la tarjeta gráfica cuando está disponible")
-        icon: "developer_board"
-        checked: CortetsuConfig.dashboard.performance.showGpu
-        controlDisabled: !CortetsuConfig.dashboard.showPerformance
-        onChanged: checked => { CortetsuConfig.dashboard.performance.showGpu = checked; root.page.savePreference(); }
-    }
-
-    PreferenceToggle {
-        title: qsTr("Memoria y almacenamiento")
-        detail: qsTr("Consumo de RAM y espacio usado")
-        icon: "storage"
-        checked: CortetsuConfig.dashboard.performance.showMemory && CortetsuConfig.dashboard.performance.showStorage
-        controlDisabled: !CortetsuConfig.dashboard.showPerformance
-        onChanged: checked => {
-            CortetsuConfig.dashboard.performance.showMemory = checked;
-            CortetsuConfig.dashboard.performance.showStorage = checked;
-            root.page.savePreference();
-        }
-    }
-
-    PreferenceToggle {
-        title: qsTr("Red y batería")
-        detail: qsTr("Tráfico de red y estado de la batería")
-        icon: "monitoring"
-        checked: CortetsuConfig.dashboard.performance.showNetwork && CortetsuConfig.dashboard.performance.showBattery
-        controlDisabled: !CortetsuConfig.dashboard.showPerformance
-        onChanged: checked => {
-            CortetsuConfig.dashboard.performance.showNetwork = checked;
-            CortetsuConfig.dashboard.performance.showBattery = checked;
-            root.page.savePreference();
+        SettingToggleRow {
+            title: qsTr("Espacios por monitor")
+            detail: qsTr("BottomHub marca el espacio activo de su propia pantalla")
+            checked: CortetsuConfig.bar.workspaces.perMonitorWorkspaces
+            onToggled: value => { CortetsuConfig.bar.workspaces.perMonitorWorkspaces = value; CortetsuConfig.save(); }
         }
     }
 }

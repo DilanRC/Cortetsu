@@ -8,7 +8,7 @@ import Quickshell.Bluetooth
 import "../../components"
 import ".."
 import "../../services"
-import "../CortetsuDesign.js" as CortetsuDesign
+import "../../theme"
 import "../CortetsuTypography.js" as CortetsuTypography
 
 Item {

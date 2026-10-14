@@ -6,7 +6,7 @@ import Quickshell
 import Quickshell.Widgets
 import "../../utils"
 import ".."
-import "../CortetsuDesign.js" as CortetsuDesign
+import "../../theme"
 import "../CortetsuTypography.js" as CortetsuTypography
 import "../CortetsuSurface.qml"
 import "../CortetsuText.qml"
@@ -147,9 +147,27 @@ GridView {
             CortetsuConfig.setFavouriteApps([...apps, id]);
     }
 
+    // Query the selection was last reset for.
+    property string selectionQuery: ""
+
     model: ScriptModel {
+        // A rescan returns a new object for an entry it read again. Keyed by
+        // id, the cell stays and only its data changes.
+        objectProp: "id"
         values: root.resultsForText(root.search.text)
-        onValuesChanged: root.currentIndex = root.count > 0 ? 0 : -1
+
+        // A new query selects the first result. A refresh of the same query
+        // (a rescan, a hidden app) leaves the selection to the view, which
+        // follows the selected application through row changes.
+        // ponytail: a query that changes no result is not recorded, so the
+        // next refresh still selects the first result. Recording it needs a
+        // handler on search.text that runs after this binding.
+        onValuesChanged: {
+            const refreshed = root.search.text === root.selectionQuery;
+            root.selectionQuery = root.search.text;
+            if (!refreshed || root.currentIndex < 0)
+                root.currentIndex = root.count > 0 ? 0 : -1;
+        }
     }
 
     // Model and delegate/state always describe the SAME type of objects.

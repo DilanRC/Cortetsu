@@ -7,9 +7,11 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Widgets
 import ".."
-import "../CortetsuDesign.js" as CortetsuDesign
+import "../../theme"
 import "../CortetsuTypography.js" as CortetsuTypography
 import "../../components"
+import "summary"
+import "Format.js" as Format
 
 Item {
     id: root
@@ -161,183 +163,327 @@ Item {
         }
     }
 
+    readonly property var sourceFilters: [
+        { key: "all", label: qsTr("Todo") },
+        { key: "apps", label: qsTr("Aplicaciones") },
+        { key: "user", label: qsTr("Servicios de usuario") },
+        { key: "session", label: qsTr("Hyprland y Cortetsu") },
+        { key: "system", label: qsTr("Sistema") }
+    ]
+    readonly property var stateFilters: [
+        { key: "all", label: qsTr("Cualquier estado") },
+        { key: "persistent", label: qsTr("Persistentes") },
+        { key: "runtime", label: qsTr("Temporales") },
+        { key: "disabled", label: qsTr("Deshabilitados") },
+        { key: "special", label: qsTr("No administrables") },
+        { key: "always-on", label: qsTr("Siempre activos") },
+        { key: "conditional", label: qsTr("Condicionales") },
+        { key: "on-demand", label: qsTr("Bajo demanda") }
+    ]
+
+    // What qualifies an entry beyond its state, as short notes.
+    function notes(entry): string {
+        return Format.join([
+            entry.running === true ? qsTr("en ejecución") : entry.running === false ? qsTr("detenido") : "",
+            entry.runtimeOnly ? qsTr("solo esta sesión") : "",
+            entry.eligible === false ? qsTr("no aplica en esta sesión") : "",
+            entry.duplicateCount > 1 ? qsTr("%1 orígenes").arg(entry.duplicateCount) : ""
+        ]);
+    }
+
     Column {
         anchors.fill: parent
         spacing: CortetsuDesign.spacingCompact
 
         Row {
+            id: toolbar
             width: parent.width
+            height: 38
             spacing: CortetsuDesign.spacingCompact
 
-            CortetsuText {
+            CortetsuSearchBar {
+                objectName: "startupSearch"
                 width: parent.width - refresh.width - parent.spacing
-                text: `${qsTr("Inicio automático")} · ${root.statusText}`
-                textSize: CortetsuTypography.bodySmallPx
-                color: CortetsuDesign.colorOnSurfaceVariant
-                elide: Text.ElideRight
+                compact: true
+                placeholderText: qsTr("Buscar por nombre, comando, unidad u origen")
+                text: root.query
+                onTextChanged: root.query = text
             }
+
             CortetsuButton {
                 id: refresh
-                label: qsTr("Actualizar")
+                compact: true
+                height: parent.height
+                icon: "refresh"
+                label: qsTr("Volver a leer")
                 disabled: root.busy
                 onClicked: root.scan()
             }
         }
 
-        Row {
+        FilterRow {
+            id: sourceRow
             width: parent.width
-            spacing: CortetsuDesign.spacingCompact
-            TextField {
-                width: parent.width * 0.39
-                height: 44
-                placeholderText: qsTr("Buscar nombre, comando, unidad u origen")
-                text: root.query
-                onTextChanged: root.query = text
-                palette.text: CortetsuDesign.colorOnSurface
-                palette.placeholderText: CortetsuDesign.colorOnSurfaceVariant
-                background: Rectangle {
-                    radius: CortetsuDesign.radiusMedium
-                    color: CortetsuDesign.colorSurface
-                    border.width: 1
-                    border.color: CortetsuDesign.colorOutlineVariant
-                }
-            }
-            ComboBox {
-                width: parent.width * 0.32
-                height: 44
-                model: [qsTr("Todas las fuentes"), qsTr("Aplicaciones"), qsTr("Servicios de usuario"), qsTr("Hyprland/Cortetsu"), qsTr("Sistema")]
-                onActivated: root.sourceFilter = ["all", "apps", "user", "session", "system"][currentIndex]
-                palette.buttonText: CortetsuDesign.colorOnSurface
-                palette.button: CortetsuDesign.colorSurface
-                background: Rectangle { radius: CortetsuDesign.radiusMedium; color: CortetsuDesign.colorSurface; border.width: 1; border.color: CortetsuDesign.colorOutlineVariant }
-            }
-            ComboBox {
-                width: parent.width * 0.23
-                height: 44
-                model: [qsTr("Todos los estados"), qsTr("Persistentes"), qsTr("Temporales"), qsTr("Deshabilitados"), qsTr("No administrables"), qsTr("Siempre activos"), qsTr("Condicionales"), qsTr("Bajo demanda")]
-                onActivated: root.enabledFilter = ["all", "persistent", "runtime", "disabled", "special", "always-on", "conditional", "on-demand"][currentIndex]
-                palette.buttonText: CortetsuDesign.colorOnSurface
-                palette.button: CortetsuDesign.colorSurface
-                background: Rectangle { radius: CortetsuDesign.radiusMedium; color: CortetsuDesign.colorSurface; border.width: 1; border.color: CortetsuDesign.colorOutlineVariant }
-            }
+            options: root.sourceFilters
+            current: root.sourceFilter
+            onPicked: key => root.sourceFilter = key
+        }
+
+        FilterRow {
+            id: stateRow
+            width: parent.width
+            options: root.stateFilters
+            current: root.enabledFilter
+            onPicked: key => root.enabledFilter = key
+        }
+
+        CortetsuText {
+            id: status
+            width: parent.width
+            height: 20
+            verticalAlignment: Text.AlignVCenter
+            text: root.statusText
+            textSize: CortetsuTypography.labelSmallPx
+            color: root.pendingActionError ? CortetsuDesign.colorWarning : CortetsuDesign.colorOnSurfaceVariant
+            elide: Text.ElideRight
         }
 
         Row {
             width: parent.width
-            height: parent.height - 104
+            height: parent.height - toolbar.height - sourceRow.height - stateRow.height - status.height - parent.spacing * 4
             spacing: CortetsuDesign.spacingStandard
 
             ListView {
                 id: list
-                width: root.selected ? parent.width * 0.56 : parent.width
+                width: root.selected ? Math.round(parent.width * 0.58) : parent.width
                 height: parent.height
                 clip: true
-                spacing: CortetsuDesign.spacingCompact
+                spacing: CortetsuDesign.spacingUnit
+                boundsBehavior: Flickable.StopAtBounds
                 model: root.visibleEntries
-                ScrollBar.vertical: ScrollBar {}
-                Text {
+
+                CortetsuStateMessage {
                     anchors.centerIn: parent
-                    visible: !root.busy && root.visibleEntries.length === 0
-                    text: qsTr("No hay entradas para estos filtros")
-                    color: CortetsuDesign.colorOnSurfaceVariant
+                    visible: root.visibleEntries.length === 0
+                    width: 320
+                    kind: root.busy ? "loading" : "empty"
+                    icon: root.busy ? "sync" : "filter_alt_off"
+                    title: root.busy ? qsTr("Leyendo el inicio automático…") : qsTr("Nada coincide con estos filtros")
                 }
-                delegate: Rectangle {
+
+                delegate: Item {
+                    id: entryRow
                     required property var modelData
                     required property int index
-                    width: list.width - 8
-                    height: 78
-                    radius: CortetsuDesign.radiusMedium
-                    color: root.selected?.id === modelData.id
-                        ? Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.7)
-                        : CortetsuDesign.colorSurface
-                    border.width: 1
-                    border.color: CortetsuDesign.colorOutlineVariant
+                    readonly property bool current: root.selected?.id === entryRow.modelData.id
+                    readonly property string iconSource: entryRow.modelData.icon ? Quickshell.iconPath(entryRow.modelData.icon, true) : ""
+
+                    width: list.width
+                    height: 56
                     activeFocusOnTab: true
-                    focus: root.selected?.id === modelData.id
+                    focus: entryRow.current
+
+                    CortetsuSurface {
+                        anchors.fill: parent
+                        radiusValue: CortetsuDesign.radiusMedium
+                        outlined: false
+                        active: entryRow.current
+                        hovered: rowMouse.containsMouse
+                        focused: entryRow.activeFocus
+                        baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.72)
+                        hoverColor: CortetsuDesign.colorSurfaceGlassStrong
+                        activeColor: Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.76)
+                        outlineColor: Qt.alpha(CortetsuDesign.colorWashi, 0.86)
+                    }
 
                     MouseArea {
+                        id: rowMouse
                         anchors.fill: parent
-                        onClicked: { root.selected = modelData; parent.forceActiveFocus(); }
+                        hoverEnabled: true
+                        onClicked: { root.selected = entryRow.modelData; entryRow.forceActiveFocus(); }
                     }
-                    Keys.onReturnPressed: root.selected = modelData
-                    Keys.onEnterPressed: root.selected = modelData
-                    Keys.onSpacePressed: root.selected = modelData
-                    Row {
-                        anchors.fill: parent
-                        anchors.margins: 10
-                        spacing: 8
+                    Keys.onReturnPressed: root.selected = entryRow.modelData
+                    Keys.onEnterPressed: root.selected = entryRow.modelData
+                    Keys.onSpacePressed: root.selected = entryRow.modelData
+
+                    Item {
+                        id: glyph
+                        anchors.left: parent.left
+                        anchors.leftMargin: CortetsuDesign.spacingStandard
+                        anchors.verticalCenter: parent.verticalCenter
+                        width: 26
+                        height: 26
+
                         IconImage {
-                            anchors.verticalCenter: parent.verticalCenter
-                            implicitSize: 26
-                            source: modelData.icon ? Quickshell.iconPath(modelData.icon, "image-missing") : Quickshell.iconPath("application-x-executable", "image-missing")
+                            anchors.fill: parent
+                            visible: entryRow.iconSource.length > 0
+                            source: entryRow.iconSource
                         }
-                        Column {
-                            width: parent.width - toggle.width - parent.spacing - 34
-                            anchors.verticalCenter: parent.verticalCenter
-                            spacing: 2
-                            CortetsuText { width: parent.width; text: modelData.name; textSize: CortetsuTypography.bodyPx; elide: Text.ElideRight }
-                            CortetsuText { width: parent.width; text: `${root.sourceLabel(modelData)} · ${modelData.origin}`; textSize: CortetsuTypography.labelSmallPx; color: CortetsuDesign.colorOnSurfaceVariant; elide: Text.ElideMiddle }
-                            CortetsuText {
-                                width: parent.width
-                                text: `${modelData.startupPhase === "on-demand" ? qsTr("Fase") : qsTr("Configurado para iniciar")}: ${root.stateLabel(modelData)}${modelData.runtimeOnly ? ` · ${qsTr("Activo para esta sesión/arranque; no persistirá necesariamente tras reiniciar")}` : ""}${modelData.eligible === false ? ` · ${qsTr("No aplicable en esta sesión")}` : ""} · ${qsTr("Ejecutándose ahora")}: ${modelData.running === null ? qsTr("Desconocido") : modelData.running ? qsTr("Sí") : qsTr("No")}${modelData.duplicateCount > 1 ? ` · ${modelData.duplicateCount} fuentes` : ""}`
-                                textSize: CortetsuTypography.labelSmallPx
-                                color: modelData.duplicateCount > 1 ? CortetsuDesign.colorWarning : CortetsuDesign.colorOnSurfaceVariant
-                                elide: Text.ElideRight
-                            }
+
+                        // An entry without an icon of its own gets a glyph
+                        // for its kind, never a broken image.
+                        CortetsuIcon {
+                            anchors.centerIn: parent
+                            visible: entryRow.iconSource.length === 0
+                            text: String(entryRow.modelData.sourceType ?? "").startsWith("systemd") ? "settings_applications" : "terminal"
+                            color: CortetsuDesign.colorOnSurfaceMuted
+                            iconSize: CortetsuTypography.iconMediumPx
                         }
-                        Item {
-                            width: 46
-                            height: 44
-                            CortetsuToggle {
-                                id: toggle
-                                anchors.centerIn: parent
-                                checked: modelData.configured
-                                disabled: root.busy || !modelData.modifiable
-                                Accessible.name: `${qsTr("Inicio automático para")} ${modelData.name}`
-                                Accessible.description: root.sourceLabel(modelData)
-                                onToggled: checked => root.setEnabled(modelData, checked)
-                            }
+                    }
+
+                    Column {
+                        anchors.left: glyph.right
+                        anchors.leftMargin: CortetsuDesign.spacingStandard
+                        anchors.right: toggle.left
+                        anchors.rightMargin: CortetsuDesign.spacingStandard
+                        anchors.verticalCenter: parent.verticalCenter
+                        spacing: 2
+
+                        CortetsuText {
+                            width: parent.width
+                            text: entryRow.modelData.name
+                            textSize: CortetsuTypography.bodyPx
+                            font.weight: Font.DemiBold
+                            elide: Text.ElideRight
                         }
+
+                        CortetsuText {
+                            width: parent.width
+                            text: Format.join([root.sourceLabel(entryRow.modelData), root.stateLabel(entryRow.modelData), root.notes(entryRow.modelData)])
+                            textSize: CortetsuTypography.labelSmallPx
+                            color: entryRow.modelData.duplicateCount > 1 ? CortetsuDesign.colorWarning : CortetsuDesign.colorOnSurfaceVariant
+                            elide: Text.ElideRight
+                        }
+                    }
+
+                    CortetsuToggle {
+                        id: toggle
+                        anchors.right: parent.right
+                        anchors.rightMargin: CortetsuDesign.spacingStandard
+                        anchors.verticalCenter: parent.verticalCenter
+                        checked: entryRow.modelData.configured
+                        disabled: root.busy || !entryRow.modelData.modifiable
+                        Accessible.name: `${qsTr("Inicio automático para")} ${entryRow.modelData.name}`
+                        Accessible.description: root.sourceLabel(entryRow.modelData)
+                        onToggled: checked => root.setEnabled(entryRow.modelData, checked)
                     }
                 }
             }
 
-            Rectangle {
+            Panel {
                 visible: root.selected !== null
-                    width: parent.width - list.width - parent.spacing
+                width: parent.width - list.width - parent.spacing
                 height: parent.height
-                radius: CortetsuDesign.radiusMedium
-                color: CortetsuDesign.colorSurface
-                border.width: 1
-                border.color: CortetsuDesign.colorOutlineVariant
+
                 Flickable {
                     anchors.fill: parent
-                    anchors.margins: CortetsuDesign.spacingComfortable
                     contentHeight: details.implicitHeight
                     clip: true
                     boundsBehavior: Flickable.StopAtBounds
-                    ScrollBar.vertical: ScrollBar {}
+
                     Column {
                         id: details
                         width: parent.width
-                        spacing: CortetsuDesign.spacingCompact
-                        CortetsuText { width: parent.width; text: root.selected?.name ?? ""; textSize: CortetsuTypography.titleMediumPx; elide: Text.ElideRight }
-                        CortetsuText { width: parent.width; text: qsTr("Por qué se inicia"); textSize: CortetsuTypography.bodyPx; color: CortetsuDesign.colorPrimary }
-                        IconImage { implicitSize: 36; source: root.selected?.icon ? Quickshell.iconPath(root.selected.icon, "image-missing") : Quickshell.iconPath("application-x-executable", "image-missing") }
-                        CortetsuText { width: parent.width; text: root.selected?.reason ?? ""; textSize: CortetsuTypography.bodySmallPx; wrapMode: Text.WordWrap; color: CortetsuDesign.colorOnSurfaceVariant }
-                        CortetsuText { width: parent.width; text: `${qsTr("Origen")}: ${root.selected?.origin ?? ""}`; textSize: CortetsuTypography.labelSmallPx; wrapMode: Text.WrapAnywhere }
-                        CortetsuText { width: parent.width; visible: (root.selected?.command ?? "").length > 0; text: `${qsTr("Comando")}: ${root.selected?.command ?? ""}`; textSize: CortetsuTypography.labelSmallPx; wrapMode: Text.WrapAnywhere }
-                        CortetsuText { width: parent.width; text: `${qsTr("Tipo")}: ${root.sourceLabel(root.selected)}`; textSize: CortetsuTypography.labelSmallPx }
-                        CortetsuText { width: parent.width; visible: root.selected?.eligible !== undefined; text: `${qsTr("Aplicable en esta sesión")}: ${root.selected?.eligible ? qsTr("Sí") : qsTr("No; la especificación XDG excluye esta entrada")}`; textSize: CortetsuTypography.labelSmallPx; color: root.selected?.eligible === false ? CortetsuDesign.colorWarning : CortetsuDesign.colorOnSurfaceVariant; wrapMode: Text.WordWrap }
-                        CortetsuText { width: parent.width; text: `${qsTr("Inicio")}: ${root.phaseLabel(root.selected?.startupPhase)}`; textSize: CortetsuTypography.labelSmallPx }
-                        CortetsuText { width: parent.width; text: `${qsTr("Estado actual")}: ${root.selected?.activeState ?? (root.selected?.running === null ? qsTr("Desconocido") : root.selected?.running ? qsTr("Ejecutándose") : qsTr("Detenido"))}`; textSize: CortetsuTypography.labelSmallPx }
-                        CortetsuText { width: parent.width; visible: !!root.selected?.unitState; text: `${qsTr("Inicio automático")}: ${root.stateLabel(root.selected)} · ${qsTr("Estado systemd")}: ${root.selected?.unitState ?? "—"}`; textSize: CortetsuTypography.labelSmallPx; wrapMode: Text.WordWrap }
-                        CortetsuButton { visible: root.selected?.sourceType === "systemd-user" && root.selected?.modifiable && root.selected?.running === true; label: root.stopConfirmationId === root.selected?.id ? qsTr("Confirmar detener") : qsTr("Detener ahora"); disabled: root.busy; onClicked: root.requestStop(root.selected) }
-                        CortetsuText { width: parent.width; visible: root.selected?.sourceType === "systemd-system"; text: qsTr("Servicios del sistema: sólo lectura"); textSize: CortetsuTypography.labelSmallPx; color: CortetsuDesign.colorWarning }
-                        CortetsuText { width: parent.width; visible: root.selected?.duplicateCount > 1; text: qsTr("Inicio duplicado: revisa cada origen antes de cambiarlo."); textSize: CortetsuTypography.bodySmallPx; color: CortetsuDesign.colorWarning; wrapMode: Text.WordWrap }
+                        spacing: CortetsuDesign.spacingStandard
+
+                        CortetsuText {
+                            width: parent.width
+                            text: root.selected?.name ?? ""
+                            textSize: CortetsuTypography.titleMediumPx
+                            font.weight: Font.DemiBold
+                            wrapMode: Text.WordWrap
+                        }
+
+                        Detail { label: qsTr("Por qué se inicia"); value: root.selected?.reason ?? "" }
+                        Detail { label: qsTr("Tipo"); value: root.selected ? root.sourceLabel(root.selected) : "" }
+                        Detail { label: qsTr("Cuándo"); value: root.selected ? root.phaseLabel(root.selected.startupPhase) : "" }
+                        Detail {
+                            label: qsTr("Inicio automático")
+                            value: root.selected
+                                ? Format.join([root.stateLabel(root.selected), root.selected.unitState ? qsTr("systemd: %1").arg(root.selected.unitState) : ""])
+                                : ""
+                        }
+                        Detail {
+                            label: qsTr("Ahora")
+                            value: root.selected?.activeState
+                                ?? (root.selected?.running === true ? qsTr("En ejecución") : root.selected?.running === false ? qsTr("Detenido") : qsTr("No se puede saber"))
+                        }
+                        Detail { label: qsTr("Origen"); value: root.selected?.origin ?? ""; anywhere: true }
+                        Detail { label: qsTr("Comando"); value: root.selected?.command ?? ""; anywhere: true }
+                        Detail {
+                            caution: true
+                            label: qsTr("Aviso")
+                            value: Format.join([
+                                root.selected?.eligible === false ? qsTr("La especificación XDG excluye esta entrada en esta sesión.") : "",
+                                root.selected?.sourceType === "systemd-system" ? qsTr("Los servicios del sistema son de solo lectura.") : "",
+                                root.selected?.duplicateCount > 1 ? qsTr("Se inicia desde varios orígenes: revisa cada uno antes de cambiarlo.") : ""
+                            ], " ")
+                        }
+
+                        CortetsuButton {
+                            visible: root.selected?.sourceType === "systemd-user" && root.selected?.modifiable && root.selected?.running === true
+                            danger: root.stopConfirmationId === root.selected?.id
+                            icon: "stop_circle"
+                            label: root.stopConfirmationId === root.selected?.id ? qsTr("Confirmar detener") : qsTr("Detener ahora")
+                            disabled: root.busy || !visible
+                            onClicked: root.requestStop(root.selected)
+                        }
                     }
                 }
             }
+        }
+    }
+
+    // One group of mutually exclusive filters.
+    component FilterRow: Flow {
+        id: filterRow
+
+        property var options: []
+        property string current: ""
+        signal picked(string key)
+
+        spacing: CortetsuDesign.spacingCompact
+
+        Repeater {
+            model: filterRow.options
+
+            delegate: CortetsuButton {
+                required property var modelData
+
+                compact: true
+                active: filterRow.current === modelData.key
+                label: modelData.label
+                onClicked: filterRow.picked(modelData.key)
+            }
+        }
+    }
+
+    // A labelled detail whose value may wrap. It disappears when empty.
+    component Detail: Column {
+        id: detail
+
+        property string label: ""
+        property string value: ""
+        property bool anywhere: false
+        property bool caution: false
+
+        visible: detail.value.length > 0
+        width: parent.width
+        spacing: 2
+
+        CortetsuText {
+            width: parent.width
+            text: detail.label
+            color: detail.caution ? CortetsuDesign.colorWarning : CortetsuDesign.colorOnSurfaceVariant
+            textSize: CortetsuTypography.labelSmallPx
+            font.weight: Font.DemiBold
+        }
+
+        CortetsuText {
+            width: parent.width
+            text: detail.value
+            textSize: CortetsuTypography.bodySmallPx
+            wrapMode: detail.anywhere ? Text.WrapAnywhere : Text.WordWrap
         }
     }
 }

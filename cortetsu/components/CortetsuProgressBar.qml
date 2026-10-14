@@ -1,5 +1,5 @@
 import QtQuick
-import "../modules/CortetsuDesign.js" as CortetsuDesign
+import "../theme"
 
 Item {
     id: root
@@ -13,6 +13,16 @@ Item {
     property int motionDuration: CortetsuDesign.motionStandardMs
 
     readonly property real normalizedValue: Math.max(0, Math.min(1, root.value))
+    // The fraction is what animates, not the pixel width, so resizing the bar
+    // moves the fill with it instead of trailing behind or past the track.
+    property real shownValue: root.normalizedValue
+
+    Behavior on shownValue {
+        NumberAnimation {
+            duration: root.motionDuration
+            easing.type: Easing.OutCubic
+        }
+    }
 
     implicitHeight: root.barHeight
     visible: root.value >= 0 || root.visibleWhenUnavailable
@@ -24,16 +34,10 @@ Item {
     }
 
     Rectangle {
-        width: parent.width * root.normalizedValue
+        objectName: "fill"
+        width: parent.width * root.shownValue
         height: parent.height
         radius: root.barRadius
         color: root.fillColor
-
-        Behavior on width {
-            NumberAnimation {
-                duration: root.motionDuration
-                easing.type: Easing.OutCubic
-            }
-        }
     }
 }

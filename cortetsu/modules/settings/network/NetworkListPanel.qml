@@ -6,7 +6,7 @@ import Quickshell.Networking
 import "../../../components"
 import "../../../services"
 import "../.."
-import "../../CortetsuDesign.js" as CortetsuDesign
+import "../../../theme"
 import "../../CortetsuTypography.js" as CortetsuTypography
 
 Item {
@@ -15,7 +15,7 @@ Item {
     required property var page
 
     height: implicitHeight
-    implicitHeight: 520
+    implicitHeight: 580
 
     CortetsuSurface {
         anchors.fill: parent
@@ -88,9 +88,24 @@ Item {
             Layout.fillHeight: true
             clip: true
             spacing: 3
+            objectName: "networkList"
             model: root.page.showingProfiles ? root.page.profiles : root.page.filteredNetworks
             currentIndex: root.page.selectedIndex
             onCurrentIndexChanged: if (currentIndex >= 0) root.page.selectedIndex = currentIndex
+            // One Tab stop; Up and Down move the selection inside it.
+            activeFocusOnTab: count > 0
+            Accessible.role: Accessible.List
+            Accessible.name: root.page.showingProfiles ? qsTr("Redes guardadas") : qsTr("Redes cercanas")
+
+            Rectangle {
+                anchors.fill: parent
+                z: 2
+                visible: networkList.activeFocus
+                color: "transparent"
+                radius: CortetsuDesign.radiusSmall
+                border.width: 2
+                border.color: Qt.alpha(CortetsuDesign.colorWashi, 0.82)
+            }
 
             delegate: Item {
                 id: networkDelegate
@@ -175,7 +190,7 @@ Item {
                                     .arg(root.page.securityLabel(networkDelegate.modelData))
                             textSize: CortetsuTypography.labelSmallPx
                             color: index === root.page.selectedIndex
-                                ? Qt.alpha(CortetsuDesign.colorOnPrimaryContainer, 0.76)
+                                ? CortetsuDesign.colorOnPrimaryContainer
                                 : CortetsuDesign.colorOnSurfaceVariant
                             elide: Text.ElideRight
                         }
@@ -204,7 +219,10 @@ Item {
                     anchors.fill: parent
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: root.page.selectedIndex = networkDelegate.index
+                    onClicked: {
+                        networkList.forceActiveFocus();
+                        root.page.selectedIndex = networkDelegate.index;
+                    }
                 }
             }
 
@@ -212,16 +230,21 @@ Item {
                 anchors.centerIn: parent
                 visible: networkList.count === 0
                 kind: CortetsuSettingsNetwork.busy ? "loading" : "empty"
+                width: Math.max(0, networkList.width - CortetsuDesign.spacingSection * 2)
                 title: CortetsuSettingsNetwork.busy
                     ? qsTr("Buscando redes")
                     : root.page.showingProfiles
                         ? qsTr("No hay perfiles guardados")
-                        : root.page.networkQuery.length > 0
-                            ? qsTr("No hay coincidencias")
-                            : qsTr("No hay redes visibles")
+                        : !CortetsuSettingsNetwork.wifiEnabled
+                            ? qsTr("El Wi-Fi está apagado")
+                            : root.page.networkQuery.length > 0
+                                ? qsTr("No hay coincidencias")
+                                : qsTr("No hay redes visibles")
                 detail: root.page.showingProfiles
                     ? qsTr("Los perfiles aparecerán después de conectarte a una red")
-                    : qsTr("Pulsa Actualizar para volver a escanear")
+                    : !CortetsuSettingsNetwork.wifiEnabled
+                        ? qsTr("Enciéndelo arriba para ver las redes cercanas")
+                        : qsTr("Pulsa Buscar de nuevo para volver a escanear")
             }
         }
     }

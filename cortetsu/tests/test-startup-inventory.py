@@ -358,7 +358,9 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-startup-test-") as temp:
     assert phases["cortetsu:connectivity-monitor"] == "always-on"
     assert phases["cortetsu:connectivity-command"] == "conditional"
     assert phases["cortetsu:network-password-copy"] == "on-demand"
-    assert phases["cortetsu:wallpaper-scan"] == "always-on"
+    assert phases["cortetsu:wallpaper-scan"] == "conditional"
+    assert phases["cortetsu:keyboard-state"] == "conditional"
+    assert phases["cortetsu:window-list"] == "conditional"
     assert phases["cortetsu:battery-notification"] == phases["cortetsu:battery-hibernate"] == "conditional"
     assert phases["cortetsu:hardware-startup-scan"] == "on-demand"
     startup_rows = {entry["id"]: entry for entry in app.cortetsu_entries()}
@@ -377,12 +379,13 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-startup-test-") as temp:
         "cortetsu:cpu-temperature", "cortetsu:gpu-probe", "cortetsu:storage-probe",
         "cortetsu:network-usage-probe", "cortetsu:recorder-status", "cortetsu:lock-keyboard-probe",
         "cortetsu:about-quickshell-version", "cortetsu:about-cortetsu-version",
-        "cortetsu:launcher-scheme-list", "cortetsu:launcher-scheme-current", "cortetsu:calendar-sync",
+        "cortetsu:launcher-scheme-list", "cortetsu:calendar-sync",
         "cortetsu:display-presets", "cortetsu:display-preview-status", "cortetsu:hardware-probe",
         "cortetsu:hardware-power-probe", "cortetsu:hardware-power-automation-status",
-        "cortetsu:hardware-keybind-list", "cortetsu:hardware-energy-probe", "cortetsu:hardware-startup-scan",
+        "cortetsu:hardware-keybind-list", "cortetsu:settings-keybind-list", "cortetsu:hardware-energy-probe", "cortetsu:hardware-startup-scan",
         "cortetsu:display-calibration-control",
         "cortetsu:session-sleep-monitor", "cortetsu:session-sleep-lock",
+        "cortetsu:keyboard-state", "cortetsu:window-list",
     }
     for entry in app.CORTETSU_STARTUP:
         source = Path(__file__).resolve().parents[1] / entry["source"]
@@ -418,12 +421,12 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-startup-test-") as temp:
     startup_docs = (repo_root / "docs/HARDWARE_CENTER.md").read_text(encoding="utf-8")
     assert 'return entry.startupState ?? (entry.configured ? "persistent" : "disabled")' in startup_page
     assert "root.stateCategory(entry)" in startup_page
-    assert "root.stateLabel(modelData)" in startup_page
-    assert '"always-on", "conditional", "on-demand"' in startup_page
+    assert "root.stateLabel(entryRow.modelData)" in startup_page
     assert 'root.stateCategory(entry) === "always-on"' in startup_page
     assert 'root.stateCategory(entry) === "conditional"' in startup_page
     assert 'root.stateCategory(entry) === "special"' in startup_page
-    assert '["all", "persistent", "runtime", "disabled", "special", "always-on", "conditional", "on-demand"]' in startup_page
+    for state_key in ("all", "persistent", "runtime", "disabled", "special", "always-on", "conditional", "on-demand"):
+        assert f'{{ key: "{state_key}", label:' in startup_page, state_key
     assert "systemctl enable --dry-run" in startup_docs
     assert "systemctl disable --dry-run" in startup_docs
     assert all(name in startup_docs for name in ("show", "is-enabled", "list-unit-files", "cat", "list-dependencies"))

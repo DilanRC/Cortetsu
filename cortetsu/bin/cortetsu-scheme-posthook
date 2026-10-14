@@ -47,10 +47,12 @@ def detect_brave_origin() -> str | None:
 
 
 def apply_brave_origin() -> None:
-    state = load_state()
+    colours = load_state().get("colours")
+    if not isinstance(colours, dict):
+        colours = {}
     colour = None
     for key in ("surface", "background", "surfaceContainer"):
-        colour = normalise_hex(state.get(key))
+        colour = normalise_hex(colours.get(key))
         if colour:
             break
     if not colour:

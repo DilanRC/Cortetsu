@@ -1,7 +1,7 @@
 import QtQuick
 import Quickshell
 import "../../components"
-import "../CortetsuDesign.js" as CortetsuDesign
+import "../../theme"
 
 // The large OSD is the canonical full system-control surface. The legacy
 // The legacy compact host and Utilities card are not instantiated anywhere.

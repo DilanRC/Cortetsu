@@ -2,7 +2,7 @@ import QtQuick
 import Quickshell
 import "../../services"
 import ".."
-import "../CortetsuDesign.js" as CortetsuDesign
+import "../../theme"
 
 Item {
     id: root

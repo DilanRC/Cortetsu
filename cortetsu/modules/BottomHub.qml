@@ -306,8 +306,18 @@ Scope {
                 hubRoot.toggleDetachedControlFor(screen, mode);
                 return true;
             }
-            hubRoot.showAttachedControlFor(screen, mode);
+            // A second call with the same mode closes it, and a popup opened
+            // here never stays behind on another monitor.
+            const wasOpen = popouts.hasCurrent && !popouts.closing && !popouts.isDetached
+                && popouts.currentName === mode;
+            hubRoot.closeAllPopouts();
+            if (!wasOpen)
+                hubRoot.showAttachedControlFor(screen, mode);
             return true;
+        }
+        function closeControl(): void {
+            hoverSurfaceController.cancelPending();
+            hubRoot.closeAllPopouts();
         }
         function detachedControl(mode: string): bool {
             const allowed = ["activewindow", "audio", "network", "bluetooth", "battery", "kblayout", "lockstatus", "winfo"];
@@ -357,6 +367,11 @@ Scope {
                 || (screenState?.sidebar ?? false)
                 || (screenState?.session ?? false)
                 || (cortetsuState?.calendar ?? false)
+            // Attached popouts live outside the screen-state flags, so the
+            // exclusivity policy closes them from here when a full surface opens.
+            readonly property bool fullSurfaceOpen: OverlayPolicy.hasCompetingPanel(screenState)
+                || (cortetsuState?.wallpaperManager ?? false)
+            onFullSurfaceOpenChanged: if (fullSurfaceOpen) hubRoot.closeAllPopouts()
             readonly property int hubMargin: 8
             readonly property int activeWsId: CortetsuConfig.bar.workspaces.perMonitorWorkspaces
                 ? monitor?.activeWorkspace?.id ?? CortetsuHypr.activeWsId
@@ -401,7 +416,7 @@ Scope {
             function desktopEntryForClient(client): var {
                 return BottomHubResolver.desktopEntryForWindow(
                     client.lastIpcObject ?? {},
-                    DesktopEntries.applications.values,
+                    Apps.applications,
                     identity => DesktopEntries.byId(identity),
                     candidate => Strings.testRegexList(CortetsuConfig.favouriteApps, candidate.id)
                 );
@@ -419,7 +434,7 @@ Scope {
                 const groups = BottomHubResolver.groupWindows(clients, desktopEntryForClient);
 
                 const result = [];
-                const pinnedEntries = DesktopEntries.applications.values.filter(entry =>
+                const pinnedEntries = Apps.applications.filter(entry =>
                     Strings.testRegexList(CortetsuConfig.favouriteApps, entry.id)
                 );
 

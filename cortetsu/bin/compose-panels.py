@@ -15,7 +15,7 @@ if not path.is_file():
 text = path.read_text(encoding="utf-8")
 
 required_imports = (
-    'import "../CortetsuDesign.js" as CortetsuDesign',
+    'import "../../theme"',
     "import qs.modules.overview as Overview",
     "import qs.modules.clipboard as Clipboard",
     "import qs.modules.hardware as Hardware",

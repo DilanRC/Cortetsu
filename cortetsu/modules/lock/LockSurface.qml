@@ -9,7 +9,7 @@ import "../../components"
 import ".."
 import "../../services"
 import "../../utils"
-import "../CortetsuDesign.js" as CortetsuDesign
+import "../../theme"
 import "../CortetsuTypography.js" as CortetsuTypography
 
 WlSessionLockSurface {

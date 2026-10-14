@@ -15,14 +15,14 @@ for token in (
     "property int motionDuration",
     "readonly property real normalizedValue",
     "visible: root.value >= 0 || root.visibleWhenUnavailable",
-    "Behavior on width",
+    "Behavior on shownValue",
     "CortetsuDesign.motionStandardMs",
 ):
     assert token in text, f"progress primitive contract missing: {token}"
 
 consumers = {
     "cortetsu/modules/dashboard/Focus.qml": "value: root.progress()",
-    "cortetsu/modules/hardware/MetricCard.qml": "value: root.progress",
+    "cortetsu/modules/hardware/summary/CapacityBlock.qml": "value: Format.fraction(root.usage)",
     "cortetsu/modules/calendar/Content.qml": "value: root.progress()",
     "cortetsu/modules/bar/popouts/CortetsuBatteryPopup.qml": "value: CortetsuPower.value",
 }

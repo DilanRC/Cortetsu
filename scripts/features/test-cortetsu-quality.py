@@ -22,7 +22,7 @@ for relative in (
 hub = (modules / "HubButton.qml").read_text(encoding="utf-8")
 status = (modules / "StatusPill.qml").read_text(encoding="utf-8")
 surface = (modules / "CortetsuSurface.qml").read_text(encoding="utf-8")
-design = (modules / "CortetsuDesign.js").read_text(encoding="utf-8")
+design = (modules.parent / "theme/CortetsuDesignDefaults.js").read_text(encoding="utf-8")
 visualiser = (modules / "background/Visualiser.qml").read_text(encoding="utf-8")
 launcher = (modules / "launcher/Wrapper.qml").read_text(encoding="utf-8")
 bottom_hub = (modules / "BottomHub.qml").read_text(encoding="utf-8")
@@ -52,9 +52,8 @@ sidebar = (modules / "sidebar/Content.qml").read_text(encoding="utf-8")
 assert "onClicked: {}" not in sidebar, "interactive-looking no-op remains"
 assert "disabled: true" in sidebar, "read-only notification history lacks a disabled row contract"
 
-assert 'import "CortetsuDesign.js" as CortetsuDesign' in hub
-assert 'import "CortetsuDesign.js" as CortetsuDesign' in status
-assert 'import "CortetsuDesign.js" as CortetsuDesign' in surface
+for consumer in (hub, status, surface):
+    assert 'import "../theme"' in consumer and "CortetsuDesign.js" not in consumer
 assert "CortetsuSurface" in hub
 assert "CortetsuSurface" in status
 assert "Colours." not in hub

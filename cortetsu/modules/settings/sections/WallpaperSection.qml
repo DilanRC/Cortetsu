@@ -3,76 +3,56 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import "../../../components"
+import "../../../services"
+import "../../../theme"
 import "../.."
-import "../../CortetsuDesign.js" as CortetsuDesign
+import "../controls"
 
 ColumnLayout {
     id: root
 
-    required property var page
+    required property var context
 
-    spacing: CortetsuDesign.spacingStandard
+    readonly property string status: CortetsuWallpapers.applyStatus
 
-    CortetsuSectionHeader {
-        Layout.fillWidth: true
-        title: qsTr("Fondo de pantalla")
-        detail: qsTr("Fuente actual del fondo de pantalla")
-    }
+    spacing: CortetsuDesign.spacingSection
 
-    DomainHero {
-        icon: CortetsuWallpapers.applyStatus === "failed" ? "error" : "wallpaper"
-        title: CortetsuWallpapers.applyStatus === "applying"
-            ? qsTr("Aplicando fondo")
-            : CortetsuWallpapers.applyStatus === "failed"
-                ? qsTr("No se pudo aplicar")
-                : qsTr("Fondo activo")
-        detail: CortetsuConfig.wallpaperEnabled
-            ? qsTr("Cortetsu controla la superficie del escritorio")
-            : qsTr("La integración automática está desactivada")
-        value: CortetsuWallpapers.actualCurrent.split("/").pop() || qsTr("Sin fondo")
-        meta: CortetsuWallpapers.actualCurrent.length > 0
-            ? CortetsuWallpapers.actualCurrent
-            : qsTr("Abre el gestor para elegir una imagen")
-        warningState: CortetsuWallpapers.applyStatus === "failed"
-    }
+    SettingsGroup {
+        title: qsTr("Fondo actual")
 
-    StatusCard {
-        title: qsTr("Fondo de pantalla")
-        value: CortetsuWallpapers.applyStatus === "applying"
-            ? qsTr("Aplicando…")
-            : CortetsuWallpapers.applyStatus === "failed"
-                ? qsTr("Error al aplicar")
-                : CortetsuWallpapers.applyStatus === "applied"
-                    ? qsTr("Aplicado")
-                    : CortetsuWallpapers.actualCurrent.split("/").pop()
-        detail: CortetsuWallpapers.applyStatus === "applying" || CortetsuWallpapers.applyStatus === "failed"
-            ? CortetsuWallpapers.applyStatusPath.split("/").pop()
-            : CortetsuWallpapers.actualCurrent
-        icon: CortetsuWallpapers.applyStatus === "applying"
-            ? "sync"
-            : CortetsuWallpapers.applyStatus === "failed"
-                ? "error"
-                : "wallpaper"
-        activeState: CortetsuConfig.wallpaperEnabled
-            && (CortetsuWallpapers.applyStatus === "applying" || CortetsuWallpapers.applyStatus === "applied")
-        warningState: CortetsuWallpapers.applyStatus === "failed"
-    }
+        SettingValueRow {
+            objectName: "wallpaperFile"
+            title: root.status === "applying"
+                ? qsTr("Aplicando")
+                : root.status === "failed" ? qsTr("No se pudo aplicar") : qsTr("Imagen")
+            detail: root.status === "failed"
+                ? (CortetsuWallpapers.applyError || CortetsuWallpapers.applyStatusPath.split("/").pop())
+                : CortetsuWallpapers.actualCurrent
+            status: root.status === "failed" ? "error" : ""
+            statusText: CortetsuWallpapers.applyError || qsTr("El fondo anterior sigue puesto")
+            value: root.status === "applying"
+                ? CortetsuWallpapers.applyStatusPath.split("/").pop()
+                : root.context.wallpaperName.length > 0 ? root.context.wallpaperName : qsTr("Sin fondo")
+            attention: root.status === "failed"
+        }
 
-    PreferenceToggle {
-        title: qsTr("Integración del fondo")
-        detail: qsTr("Permitir que Cortetsu controle el fondo del escritorio")
-        icon: "wallpaper"
-        checked: CortetsuConfig.wallpaperEnabled
-        onChanged: checked => {
-            CortetsuConfig.wallpaperEnabled = checked;
-            root.page.savePreference();
+        SettingActionRow {
+            title: qsTr("Elegir otro fondo")
+            detail: qsTr("El gestor muestra la carpeta de fondos y una vista previa")
+            actionLabel: qsTr("Abrir gestor")
+            actionIcon: "collections"
+            onActivated: root.context.openSurface("wallpaperManager")
         }
     }
 
-    ActionCard {
-        title: qsTr("Abrir gestor de fondos")
-        detail: qsTr("Explorar el selector orbital y previsualizar un fondo")
-        icon: "collections"
-        onActivated: root.page.openRetained("wallpaperManager")
+    SettingsGroup {
+        title: qsTr("Integración")
+
+        SettingToggleRow {
+            title: qsTr("Cortetsu pone el fondo")
+            detail: qsTr("Si se apaga, el escritorio queda sin fondo de Cortetsu")
+            checked: CortetsuConfig.wallpaperEnabled
+            onToggled: value => { CortetsuConfig.wallpaperEnabled = value; CortetsuConfig.save(); }
+        }
     }
 }

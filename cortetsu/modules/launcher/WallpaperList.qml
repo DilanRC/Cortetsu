@@ -4,7 +4,7 @@ import QtQuick
 import QtQuick.Controls
 import Quickshell
 import ".."
-import "../CortetsuDesign.js" as CortetsuDesign
+import "../../theme"
 import ".."
 
 PathView {
@@ -55,7 +55,10 @@ PathView {
         onValuesChanged: root.currentIndex = query ? 0 : values.findIndex(w => w.path === CortetsuWallpapers.actualCurrent)
     }
 
-    Component.onCompleted: currentIndex = CortetsuWallpapers.list.findIndex(w => w.path === CortetsuWallpapers.actualCurrent)
+    Component.onCompleted: {
+        CortetsuWallpapers.reload();
+        currentIndex = CortetsuWallpapers.list.findIndex(w => w.path === CortetsuWallpapers.actualCurrent);
+    }
     Component.onDestruction: CortetsuWallpapers.stopPreview()
 
     onCurrentItemChanged: {

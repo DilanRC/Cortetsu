@@ -23,6 +23,7 @@ import qs.modules.nexus as Nexus
 import qs.modules.nexus.pages as Pages
 import qs.modules.nexus.pages.network as Network
 import qs.modules.settings as Settings
+import qs.modules.settings.sections as Sections
 ShellRoot {
     settings.watchFiles: false
     Nexus.NexusState { id: nexusSession }
@@ -36,7 +37,8 @@ ShellRoot {
         Loader { id: addPage; visible:false; sourceComponent: Network.AddNetworkPage { nState:nexusSession; visible:false; width:700 } }
         Loader { id: wifiDetails; visible:false; sourceComponent: Network.NetworkDetailPage { nState:nexusSession; visible:false; width:700 } }
         Loader { id: wiredDetails; visible:false; sourceComponent: Network.EthernetDetailPage { nState:nexusSession; visible:false; width:700 } }
-        Loader { id: btSettings; visible:false; sourceComponent: Settings.SystemPage { screen:null; screenState:null; section:"bluetooth"; visible:false; width:700 } }
+        Settings.SettingsContext { id: settingsContext; screen:null; screenState:null }
+        Loader { id: btSettings; visible:false; sourceComponent: Sections.BluetoothSection { context: settingsContext; visible:false; width:700 } }
     }
     Timer {
         interval:1800; running:true

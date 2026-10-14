@@ -1,5 +1,5 @@
 import QtQuick
-import "../modules/CortetsuDesign.js" as CortetsuDesign
+import "../theme"
 
 Item {
     id: root

@@ -3,7 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Effects
 import Quickshell
-import "../modules/CortetsuDesign.js" as CortetsuDesign
+import "../theme"
 
 Item {
     id: root

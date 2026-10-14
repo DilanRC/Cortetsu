@@ -45,8 +45,8 @@ def print_json_command(label: str, path: Path, *extra: str) -> None:
 print("\n===== LIVE VS REPO =====")
 repo_modules = REPO / "cortetsu/modules"
 checks = [(repo_modules / "HardwareController.qml", LIVE / "modules/HardwareController.qml")]
-for repo_path in sorted((repo_modules / "hardware").glob("*.qml")):
-    checks.append((repo_path, LIVE / "modules/hardware" / repo_path.name))
+for repo_path in sorted((repo_modules / "hardware").rglob("*.qml")):
+    checks.append((repo_path, LIVE / "modules" / repo_path.relative_to(repo_modules)))
 for repo_path, live_path in checks:
     repo_hash = sha(repo_path)
     live_hash = sha(live_path)

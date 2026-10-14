@@ -7,6 +7,9 @@ import Quickshell.Io
 Singleton {
     id: root
 
+    // Sampling runs only while a visible view holds a reference.
+    property int consumers: 0
+
     property list<var> disks: []
     property var manualPrimaryDisk: null
     readonly property var primaryDisk: manualPrimaryDisk ?? disks[0] ?? null
@@ -37,7 +40,8 @@ Singleton {
     }
 
     Timer {
-        running: true
+        running: root.consumers > 0
+        triggeredOnStart: true
         repeat: true
         interval: 5000
         onTriggered: probe.running = true

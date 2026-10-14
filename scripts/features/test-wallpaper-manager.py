@@ -9,6 +9,9 @@ MODULES = ROOT / "cortetsu/modules"
 content = (MODULES / "wallpaper/Content.qml").read_text(encoding="utf-8")
 wrapper = (MODULES / "wallpaper/Wrapper.qml").read_text(encoding="utf-8")
 orbit = (MODULES / "wallpaper/OrbitModel.js").read_text(encoding="utf-8")
+tile = (MODULES / "wallpaper/WallpaperTile.qml").read_text(encoding="utf-8")
+stage = (MODULES / "wallpaper/WallpaperStage.qml").read_text(encoding="utf-8")
+frame = (MODULES / "wallpaper/OctagonFrame.qml").read_text(encoding="utf-8")
 policy = (MODULES / "OverlayPolicy.js").read_text(encoding="utf-8")
 wallpaper_controller = (MODULES / "WallpaperController.qml").read_text(encoding="utf-8")
 service = (ROOT / "cortetsu/modules/CortetsuWallpapers.qml").read_text(encoding="utf-8")
@@ -27,15 +30,22 @@ def body(name: str) -> str:
 # Neutral open: actualCurrent determines selection, then focus, with no preview path.
 open_body = body("openManager")
 resync_body = body("resync")
-assert "resync();" in open_body and "forceActiveFocus();" in open_body
+refilter_body = body("refilter")
+assert "resync(CortetsuWallpapers.actualCurrent);" in open_body and "keyTarget.forceActiveFocus();" in open_body
 assert "CortetsuWallpapers.preview" not in open_body
-assert "CortetsuWallpapers.actualCurrent" in resync_body and "Orbit.resolveCurrentIndex" in resync_body
-assert "Orbit.resolveCurrentIndex" in body("selectCategory")
+# One place decides the selection: the preferred path, then the applied
+# wallpaper, then the first entry.
+assert refilter_body.index("Orbit.resolveCurrentIndex(filteredEntries, preferredPath)") < refilter_body.index("Orbit.resolveCurrentIndex(filteredEntries, CortetsuWallpapers.actualCurrent)")
+assert "refilter(preferredPath);" in resync_body and "refilter(keep);" in body("selectCategory")
+# A rescan or a failed apply keeps the candidate; a new applied wallpaper is followed.
+assert "function onListChanged(): void { root.resync(root.currentPath); }" in content
+assert "function onWallpaperApplyFailed(path: string, generation: int): void { root.resync(root.currentPath); }" in content
+assert "function onActualCurrentChanged(): void { root.resync(CortetsuWallpapers.actualCurrent); }" in content
 assert "function resolveCurrentIndex" in orbit and "function basename" in orbit
 
 # A→B→C→D has one preview timer and a short post-apply Cosmic timer. The
 # acknowledgement timeout is owned by the shared wallpaper service.
-assert content.count("Timer {") == 2
+assert content.count("    Timer {") == 2
 assert "interval: CortetsuDesign.wallUtilityOrbitMotionMs" in content
 timer_body = content[content.index("id: previewTimer"):content.index("NumberAnimation {", content.index("id: previewTimer"))]
 assert "Orbit.previewEligible" in timer_body
@@ -83,12 +93,12 @@ assert "WallpaperController.open(screen);" in hub
 assert "candidate === screen" not in hub
 
 # V2 visual and native-service contracts.
-for needle in ("Orbit.satellites", "Math.min(12", "Math.cos(angle)", "Math.sin(angle)", "depth", "scale:", "opacity:", "z:", "CortetsuMask { maskSource", "outgoingHeroPath", "heroCrossfade", "CortetsuButton {", "active: true"):
+for needle in ("Orbit.arc(", "Orbit.clamp(Math.floor(panel.width / 236), 2, 7)", "Math.cos(angle)", "Math.sin(angle)", "depth", "scale:", "opacity:", "z:", "outgoingHeroPath", "heroCrossfade", "CortetsuButton {", "active: true"):
     assert needle in content, needle
-for needle in ("id: header", "Wallpaper Forge", "Wallpaper-aware desktop surface", "CortetsuEvolvingMark", "markPhase", 'icon: "close"', "onClicked: root.cancel()"):
+for needle in ("id: header", "Wallpaper Orbital", "CortetsuSearchBar {", "CortetsuEvolvingMark", "markPhase", 'icon: "close"', "onClicked: root.cancel()"):
     assert needle in content, needle
 assert "source: satellite.modelData.entry.path" in content
-assert "root.selectSatellite(satellite.modelData.index)" in content
+assert "root.select(satellite.modelData.index)" in content
 assert "import qs.components.effects" not in content
 assert "import qs.components.controls" not in content
 assert "Image {\n            anchors.fill: parent; anchors.margins" not in content
@@ -103,10 +113,13 @@ assert "property bool presentationReady: false" in content
 assert "function updatePresentationReady" in content
 assert content.count("onStatusChanged: root.updatePresentationReady()") >= 2
 assert "Math.min(prefetchRepeater.count, 7)" in content
-assert content.count("cache: true") >= 4
-assert "id: panel\n        z: 1" in content and "Item {\n        id: panel" in content
-assert "CortetsuDesign.colorSurfaceHigh, 0.68" in content
-assert 'root.currentPath === CortetsuWallpapers.actualCurrent ? qsTr("Actual") : qsTr("Vista previa")' in content
+assert "cache: true" in content and stage.count("cache: true") == 2 and "cache: true" in tile
+assert stage.count("CortetsuMask { maskSource: heroMask }") == 2 and "CortetsuMask { maskSource: mask }" in tile
+# The prefetch and the tiles must decode at one size to share the pixmap cache.
+assert content.count("sourceSize.width: 256") == 1 and "sourceSize.width: 256" in tile
+assert "id: panel\n        z: 2" in content and "Item {\n        id: panel" in content
+assert "Qt.alpha(CortetsuDesign.colorSurface, 0.84)" in content
+assert '? qsTr("Actual")' in content and 'qsTr("Vista previa")' in content and 'qsTr("No se pudo aplicar")' in content and "stateLabel: root.currentStateLabel" in content
 assert "opacity: shouldBeActive ? 1 : 0" in wrapper
 assert "Content.qml owns the honest empty state" in wrapper
 assert "CortetsuDesign.colorScrim, 0.18" in wrapper
@@ -117,24 +130,29 @@ for legacy in ("Caelestia.Config", "import Caelestia\n", "import qs.components\n
 
 # V2.2 orbital motion: the settled model stays stable during rotation and
 # satellites communicate depth through scale, opacity and z-order.
-assert "Orbit.satellites(filteredEntries, windowIndex, windowIndex, visibleLimit)" in content
-assert "orbitMotion.to = orbitPhase - steps * Orbit.angularStep" in content
-assert "root.windowIndex = root.currentIndex;" in content
-assert "root.orbitPhase = 0;" not in content[content.index("NumberAnimation {"):content.index("ParallelAnimation {")]
+assert "Orbit.arc(filteredEntries, windowIndex, arcHalf + 1)" in content
+assert "orbitMotion.to = steps;" in content
+# The turn ends by re-anchoring the model and clearing the phase together,
+# so a satellite never jumps between two frames.
+assert "root.windowIndex = root.currentIndex;\n            root.orbitPhase = 0;" in content
 assert "scale: 1" in content
 assert "scale: satellite.visualScale" in content
-assert "opacity: satellite.hovered ? 1 : 0.28 + satellite.depth * 0.72" in content
+assert "opacity: satellite.hovered ? 1 : Math.min(1, satellite.depth * 4) * (0.34 + satellite.depth * 0.66)" in content
 assert "currentStateLabel" in content and "currentIsApplied" in content
 assert "scale: (0.72 + depth * 0.38)" not in content
 assert "anchors.bottomMargin: CortetsuDesign.wallUtilityOrbitBottomGap" in content
 assert "readonly property real radiusX" in content
 assert "readonly property real radiusY" in content
-assert "Math.cos(angle) * radiusX" in content
-assert "Math.sin(angle) * radiusY" in content
+assert "Math.cos(angle) * arcRegion.radiusX" in content
+assert "Math.sin(angle) * arcRegion.radiusY" in content
 assert "height: 40" in content
 assert "anchors.top: header.bottom" in content
-assert "anchors.topMargin: CortetsuDesign.spacingCompact" in content
-assert "anchors.bottomMargin: -4" in content
+# The stage shows the wallpaper at 16:9 and the chamfer is shared, not redrawn.
+assert "width: Math.min(parent.width, parent.height * 16 / 9)" in content and "height: width * 9 / 16" in content
+assert "ShapePath" not in content + stage + tile and stage.count("OctagonFrame {") == 2 and tile.count("OctagonFrame {") == 2
+# A failure is shown on the wallpaper that failed, not on whichever is selected.
+assert "readonly property bool currentFailed: applyFailed && currentPath === CortetsuWallpapers.applyStatusPath" in content
+assert frame.count("ShapePath {") == 1
 wire_line = next(line for line in canonical.splitlines() if line.startswith("WIRE_JSON="))
 assert "wire_sad_shell.py" in wire_line
 assert "--features" not in wire_line, "canonical wiring must include all retained features"

@@ -6,7 +6,7 @@ import "../../components"
 import ".."
 import "../../services"
 import "../notifications" as NotificationComponents
-import "../CortetsuDesign.js" as CortetsuDesign
+import "../../theme"
 
 Item {
     id: root

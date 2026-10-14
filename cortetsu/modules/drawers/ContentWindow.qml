@@ -11,7 +11,7 @@ import "../../components"
 import "../../components/containers"
 import "../../services"
 import "../bar" as Bar
-import "../CortetsuDesign.js" as CortetsuDesign
+import "../../theme"
 
 StyledWindow {
     id: root

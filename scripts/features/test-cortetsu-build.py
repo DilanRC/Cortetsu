@@ -82,9 +82,10 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-e2e-") as temporary:
     assert shell2 != shell1
     assert (runtime / "previous").resolve() == shell1
     assert (runtime / "legacy-previous").resolve() == unmanaged
-    assert f'var colorPrimary = "#{aura_primary}"' in (
-        shell2 / "modules/CortetsuDesign.js"
-    ).read_text(encoding="utf-8")
+    # A promoted generation ships the ui.toml tokens untouched; the selected
+    # scheme is applied at runtime from scheme.json, never baked into the build.
+    for name in ("CortetsuDesignDefaults.js", "CortetsuDesign.qml", "qmldir"):
+        assert (shell2 / "theme" / name).read_bytes() == (repo / "cortetsu/theme" / name).read_bytes(), name
 
     subprocess.run(
         ["python3", str(dotfiles), "apply", "--repo", str(repo), "--profile", "personal"],

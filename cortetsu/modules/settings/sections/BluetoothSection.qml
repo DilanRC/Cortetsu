@@ -2,93 +2,103 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 import "../../../components"
-import "../.."
 import "../../../services"
-import "../../CortetsuDesign.js" as CortetsuDesign
+import "../../../theme"
+import "../.."
+import "../controls"
 
 ColumnLayout {
     id: root
 
-    required property var page
+    required property var context
 
-    spacing: CortetsuDesign.spacingStandard
+    readonly property var bluetooth: root.context.bluetooth
+    readonly property var operation: bluetooth.operation
+    readonly property bool powerBusy: bluetooth.busy && operation.kind === "power"
 
-    CortetsuSectionHeader {
-        Layout.fillWidth: true
-        title: qsTr("Bluetooth")
-        detail: qsTr("Estado nativo del adaptador")
+    // What pressing the row does to a device, named before it is pressed.
+    function actionFor(device): string {
+        if (device.connected)
+            return qsTr("Desconectar");
+        return device.paired ? qsTr("Conectar") : qsTr("Emparejar");
     }
 
-    DomainHero {
-        icon: root.page.bluetoothConnected > 0 ? "bluetooth_connected" : "bluetooth"
-        title: root.page.bluetoothEnabled ? qsTr("Bluetooth preparado") : qsTr("Bluetooth desactivado")
-        detail: qsTr("Dispositivos gestionados por BlueZ")
-        value: qsTr("%1 conectados").arg(root.page.bluetoothConnected)
-        meta: Connectivity.bluetooth.adapter
-            ? qsTr("%1 dispositivos conocidos").arg(Connectivity.bluetooth.allDevices?.length ?? 0)
-            : qsTr("No hay adaptador disponible")
-        warningState: !Connectivity.bluetooth.adapter || !root.page.bluetoothEnabled
+    function stateFor(device): string {
+        if (root.bluetooth.busy && root.bluetooth.operationTarget === device)
+            return qsTr("En curso…");
+        if (device.connected)
+            return qsTr("Conectado");
+        return device.paired ? qsTr("Emparejado") : qsTr("Sin emparejar");
     }
 
-    StatusCard {
-        title: qsTr("Dispositivos")
-        value: root.page.bluetoothEnabled
-            ? root.page.bluetoothConnected > 0
-                ? qsTr("%1 conectados").arg(root.page.bluetoothConnected)
-                : qsTr("Listo")
-            : qsTr("Bluetooth apagado")
-        detail: root.page.bluetoothEnabled ? qsTr("Adaptador activado") : qsTr("Adaptador desactivado")
-        icon: root.page.bluetoothConnected > 0 ? "bluetooth_connected" : "bluetooth"
-        activeState: root.page.bluetoothEnabled
+    function act(device): void {
+        if (device.adapter !== root.bluetooth.adapter)
+            root.bluetooth.selectAdapter(device.adapter);
+        if (device.connected)
+            root.bluetooth.disconnectDevice(device);
+        else if (device.paired)
+            root.bluetooth.connectDevice(device);
+        else
+            root.bluetooth.pairDevice(device);
     }
 
-    ColumnLayout {
-        Layout.fillWidth: true
-        visible: root.page.bluetoothEnabled
-        spacing: 0
+    spacing: CortetsuDesign.spacingSection
 
-        CortetsuSectionHeader {
+    SettingsGroup {
+        title: qsTr("Adaptador")
+
+        CortetsuStateMessage {
+            objectName: "noAdapter"
             Layout.fillWidth: true
-            title: qsTr("Dispositivos conocidos")
-            detail: qsTr("Selecciona un dispositivo para conectar o desconectar")
+            Layout.margins: CortetsuDesign.spacingSection
+            visible: !root.bluetooth.adapter
+            kind: "empty"
+            icon: "bluetooth_disabled"
+            title: qsTr("No hay adaptador Bluetooth")
+            detail: qsTr("BlueZ no informa de ningún adaptador en este equipo")
+        }
+
+        SettingToggleRow {
+            objectName: "bluetoothPower"
+            visible: !!root.bluetooth.adapter
+            title: qsTr("Bluetooth")
+            detail: root.bluetooth.enabled ? qsTr("Encendido") : qsTr("Apagado")
+            checked: root.bluetooth.enabled
+            status: root.powerBusy ? "busy" : root.operation.state === "failed" && root.operation.kind === "power" ? "error" : ""
+            statusText: root.powerBusy ? qsTr("Aplicando…") : root.operation.lastError
+            onToggled: value => root.bluetooth.setEnabled(value)
+        }
+    }
+
+    SettingsGroup {
+        title: qsTr("Dispositivos")
+        detail: qsTr("Conocidos por este equipo")
+        visible: !!root.bluetooth.adapter && root.bluetooth.enabled
+
+        SettingValueRow {
+            objectName: "noDevices"
+            visible: (root.bluetooth.allDevices ?? []).length === 0
+            title: qsTr("Ningún dispositivo conocido")
+            detail: qsTr("Los dispositivos emparejados aparecen aquí")
         }
 
         Repeater {
-            model: Connectivity.bluetooth.allDevices ?? []
-            delegate: CortetsuListRow {
+            model: ScriptModel { values: [...(root.bluetooth.allDevices ?? [])] }
+
+            delegate: SettingActionRow {
                 required property var modelData
-                Layout.fillWidth: true
-                title: modelData.name ?? qsTr("Dispositivo Bluetooth")
-                subtitle: modelData.connected ? qsTr("Conectado · pulsa para desconectar") : qsTr("Disponible · pulsa para conectar")
-                icon: modelData.connected ? "bluetooth_connected" : "bluetooth"
-                selected: modelData.connected
-                enabled: !Connectivity.bluetooth.busy
-                onClicked: {
-                    if (modelData.adapter !== Connectivity.bluetooth.adapter) Connectivity.bluetooth.selectAdapter(modelData.adapter);
-                    modelData.connected ? Connectivity.bluetooth.disconnectDevice(modelData) : (modelData.paired ? Connectivity.bluetooth.connectDevice(modelData) : Connectivity.bluetooth.pairDevice(modelData));
-                }
+                readonly property bool failed: root.operation.state === "failed" && root.operation.target === modelData
+                title: modelData.name || qsTr("Dispositivo Bluetooth")
+                detail: root.stateFor(modelData)
+                status: failed ? "error" : root.bluetooth.busy && root.bluetooth.operationTarget === modelData ? "busy" : ""
+                statusText: failed ? root.operation.lastError : qsTr("En curso…")
+                actionLabel: root.actionFor(modelData)
+                actionIcon: modelData.connected ? "link_off" : "link"
+                disabled: root.bluetooth.busy
+                onActivated: root.act(modelData)
             }
-        }
-
-        CortetsuStateMessage {
-            Layout.fillWidth: true
-            visible: (Connectivity.bluetooth.allDevices ?? []).length === 0
-            kind: "empty"
-            title: qsTr("No hay dispositivos conocidos")
-            detail: qsTr("Empareja un dispositivo desde tu herramienta Bluetooth del sistema para verlo aquí")
-        }
-    }
-
-    PreferenceToggle {
-        title: qsTr("Adaptador Bluetooth")
-        detail: qsTr("Activar o desactivar el adaptador predeterminado")
-        icon: "bluetooth"
-        checked: root.page.bluetoothEnabled
-        controlDisabled: !Connectivity.bluetooth.adapter || Connectivity.bluetooth.busy
-        onChanged: checked => {
-            if (Connectivity.bluetooth.adapter)
-                Connectivity.bluetooth.setEnabled(checked);
         }
     }
 }

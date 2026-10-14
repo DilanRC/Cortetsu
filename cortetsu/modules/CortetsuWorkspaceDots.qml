@@ -1,5 +1,5 @@
 import QtQuick
-import "CortetsuDesign.js" as CortetsuDesign
+import "../theme"
 
 Row {
     id: root

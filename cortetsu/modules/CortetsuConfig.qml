@@ -184,7 +184,10 @@ QtObject {
     property bool loaded: false
     property bool writing: false
     property bool saveQueued: false
-    property bool patchBottomHubAfterSave: false
+    // idle | pending | saving | saved | failed. A surface that edits
+    // preferences shows this instead of assuming every write lands.
+    property string saveState: "idle"
+    property string saveError: ""
 
     readonly property QtObject dashboard: QtObject {
         property bool enabled: true
@@ -570,25 +573,54 @@ QtObject {
         loaded = true;
     }
 
+    // Changes are written once they settle: dragging a slider or flipping
+    // several switches in a row costs one write, not one per step.
     function save(): void {
         if (!loaded)
             return;
-        saveQueued = true;
-        if (!writing)
-            writeState();
+        saveState = "pending";
+        saveDelay.restart();
+    }
+
+    function flush(): void {
+        if (!saveDelay.running)
+            return;
+        saveDelay.stop();
+        writeState();
     }
 
     function writeState(): void {
-        saveQueued = false;
-        writing = true;
-        patchBottomHubAfterSave = true;
-        saveLegacy();
-    }
-
-    function saveLegacy(): void {
         if (!loaded)
             return;
-        storage.setText(JSON.stringify({ schema: 1, favouriteApps, hiddenApps, hiddenTrayIcons, terminalCommand, audioCommand, playbackCommand, explorerCommand, gpuType, lyricsBackend, statusIcons, quickToggles, vpn: { providers: vpn.providers, selectedProvider: vpn.selectedProvider, enabled: vpn.enabled }, actions, actionPrefix, specialPrefix, enableDangerousActions, useFuzzyApps, useFuzzyWallpapers, useFuzzyActions, useFuzzySchemes, useFuzzyVariants, smartScheme, wallpaperDirectory, wallpaperEnabled, transparencyEnabled, desktopClockEnabled, desktopClockPosition, borderThickness, borderSmoothing, useTwelveHourClock, useFahrenheit, useFahrenheitPerformance, weatherLocation, audioIncrement, brightnessIncrement, maxVolume, visualiserBars, visualiserEnabled, visualiserAutoHide, visualiserBlur, visualiserSpacing, visualiserRounding, defaultPlayer, playerAliases, toastAudioOutputChanged, toastAudioInputChanged, toastNowPlaying, toastFullscreen, maxToasts, toastChargingChanged, toastCapsLockChanged, toastNumLockChanged, toastKbLayoutChanged, toastKbLimit, toastVpnChanged, notificationExpire, suppressNotificationsInFullscreen, notificationDefaultExpireTimeout, notificationFullscreenExpireTimeout, notificationActionOnClick, notificationFullscreenMode, notificationClearThreshold, notificationExpandThreshold, notificationGroupPreviewNum, notificationOpenExpanded, toastDndChanged, toastGameModeChanged, lockRecolourLogo, lockHideNotifs, lockEnableFprint, lockMaxFprintTries, lockEnableHowdy, lockMaxHowdyTries, lockTriggerHowdyOnWake, vimKeybinds, workspacesShown, dashboardMediaUpdateInterval, dashboardResourceUpdateInterval, nexusWallpapersPerRow, nexusMaxNetworksShown, nexusNetworkRescanInterval, dashboard: { enabled: dashboard.enabled, showOnHover: dashboard.showOnHover, showDashboard: dashboard.showDashboard, showMedia: dashboard.showMedia, showPerformance: dashboard.showPerformance, showWeather: dashboard.showWeather, dragThreshold: dashboard.dragThreshold, performance: { showCpu: dashboard.performance.showCpu, showGpu: dashboard.performance.showGpu, showMemory: dashboard.performance.showMemory, showStorage: dashboard.performance.showStorage, showNetwork: dashboard.performance.showNetwork, showBattery: dashboard.performance.showBattery } }, launcher: { enabled: launcher.enabled, showOnHover: launcher.showOnHover, maxShown: launcher.maxShown, maxWallpapers: launcher.maxWallpapers, dragThreshold: launcher.dragThreshold }, sidebar: { enabled: sidebar.enabled, showOnHover: sidebar.showOnHover, dragThreshold: sidebar.dragThreshold, minHoverThreshold: sidebar.minHoverThreshold }, utilities: { enabled: utilities.enabled, cards: { keepAwake: utilities.cards.keepAwake, recorder: utilities.cards.recorder, quickToggles: utilities.cards.quickToggles } }, bar: { persistent: bar.persistent, showOnHover: bar.showOnHover, dragThreshold: bar.dragThreshold, entries: bar.entries, scrollActions: { workspaces: bar.scrollActions.workspaces, volume: bar.scrollActions.volume, brightness: bar.scrollActions.brightness }, tray: { background: bar.tray.background, compact: bar.tray.compact, recolour: bar.tray.recolour }, activeWindow: { compact: bar.activeWindow.compact, inverted: bar.activeWindow.inverted, showOnHover: bar.activeWindow.showOnHover }, popouts: { activeWindow: bar.popouts.activeWindow, statusIcons: bar.popouts.statusIcons, tray: bar.popouts.tray }, clock: { background: bar.clock.background, showDate: bar.clock.showDate, showIcon: bar.clock.showIcon }, workspaces: { activeIndicator: bar.workspaces.activeIndicator, activeTrail: bar.workspaces.activeTrail, occupiedBg: bar.workspaces.occupiedBg, showWindows: bar.workspaces.showWindows, maxWindowIcons: bar.workspaces.maxWindowIcons, showWindowsOnSpecialWorkspaces: bar.workspaces.showWindowsOnSpecialWorkspaces, perMonitorWorkspaces: bar.workspaces.perMonitorWorkspaces, displayType: bar.workspaces.displayType, label: bar.workspaces.label, occupiedLabel: bar.workspaces.occupiedLabel, activeLabel: bar.workspaces.activeLabel, capitalisation: bar.workspaces.capitalisation } }, idleInhibitWhenAudio, idleInhibitWhenCharging, idleLockBeforeSleep, idleTimeouts }, null, 2) + "\n");
+        if (writing) {
+            saveQueued = true;
+            return;
+        }
+        saveQueued = false;
+        writing = true;
+        saveState = "saving";
+        saveError = "";
+        storage.setText(JSON.stringify(snapshot(), null, 2) + "\n");
+    }
+
+    function snapshot(): var {
+        return ({ schema: 1, favouriteApps, hiddenApps, hiddenTrayIcons, terminalCommand, audioCommand, playbackCommand, explorerCommand, gpuType, lyricsBackend, statusIcons, quickToggles, vpn: { providers: vpn.providers, selectedProvider: vpn.selectedProvider, enabled: vpn.enabled }, actions, actionPrefix, specialPrefix, enableDangerousActions, useFuzzyApps, useFuzzyWallpapers, useFuzzyActions, useFuzzySchemes, useFuzzyVariants, smartScheme, wallpaperDirectory, wallpaperEnabled, transparencyEnabled, desktopClockEnabled, desktopClockPosition, borderThickness, borderSmoothing, useTwelveHourClock, useFahrenheit, useFahrenheitPerformance, weatherLocation, audioIncrement, brightnessIncrement, maxVolume, visualiserBars, visualiserEnabled, visualiserAutoHide, visualiserBlur, visualiserSpacing, visualiserRounding, defaultPlayer, playerAliases, toastAudioOutputChanged, toastAudioInputChanged, toastNowPlaying, toastFullscreen, maxToasts, toastChargingChanged, toastCapsLockChanged, toastNumLockChanged, toastKbLayoutChanged, toastKbLimit, toastVpnChanged, notificationExpire, suppressNotificationsInFullscreen, notificationDefaultExpireTimeout, notificationFullscreenExpireTimeout, notificationActionOnClick, notificationFullscreenMode, notificationClearThreshold, notificationExpandThreshold, notificationGroupPreviewNum, notificationOpenExpanded, toastDndChanged, toastGameModeChanged, lockRecolourLogo, lockHideNotifs, lockEnableFprint, lockMaxFprintTries, lockEnableHowdy, lockMaxHowdyTries, lockTriggerHowdyOnWake, vimKeybinds, workspacesShown, dashboardMediaUpdateInterval, dashboardResourceUpdateInterval, nexusWallpapersPerRow, nexusMaxNetworksShown, nexusNetworkRescanInterval, dashboard: { enabled: dashboard.enabled, showOnHover: dashboard.showOnHover, showDashboard: dashboard.showDashboard, showMedia: dashboard.showMedia, showPerformance: dashboard.showPerformance, showWeather: dashboard.showWeather, dragThreshold: dashboard.dragThreshold, performance: { showCpu: dashboard.performance.showCpu, showGpu: dashboard.performance.showGpu, showMemory: dashboard.performance.showMemory, showStorage: dashboard.performance.showStorage, showNetwork: dashboard.performance.showNetwork, showBattery: dashboard.performance.showBattery } }, launcher: { enabled: launcher.enabled, showOnHover: launcher.showOnHover, maxShown: launcher.maxShown, maxWallpapers: launcher.maxWallpapers, dragThreshold: launcher.dragThreshold }, sidebar: { enabled: sidebar.enabled, showOnHover: sidebar.showOnHover, dragThreshold: sidebar.dragThreshold, minHoverThreshold: sidebar.minHoverThreshold }, utilities: { enabled: utilities.enabled, cards: { keepAwake: utilities.cards.keepAwake, recorder: utilities.cards.recorder, quickToggles: utilities.cards.quickToggles } }, bar: { persistent: bar.persistent, showOnHover: bar.showOnHover, dragThreshold: bar.dragThreshold, entries: bar.entries, scrollActions: { workspaces: bar.scrollActions.workspaces, volume: bar.scrollActions.volume, brightness: bar.scrollActions.brightness }, tray: { background: bar.tray.background, compact: bar.tray.compact, recolour: bar.tray.recolour }, activeWindow: { compact: bar.activeWindow.compact, inverted: bar.activeWindow.inverted, showOnHover: bar.activeWindow.showOnHover }, popouts: { activeWindow: bar.popouts.activeWindow, statusIcons: bar.popouts.statusIcons, tray: bar.popouts.tray }, clock: { background: bar.clock.background, showDate: bar.clock.showDate, showIcon: bar.clock.showIcon }, workspaces: { activeIndicator: bar.workspaces.activeIndicator, activeTrail: bar.workspaces.activeTrail, occupiedBg: bar.workspaces.occupiedBg, showWindows: bar.workspaces.showWindows, maxWindowIcons: bar.workspaces.maxWindowIcons, showWindowsOnSpecialWorkspaces: bar.workspaces.showWindowsOnSpecialWorkspaces, perMonitorWorkspaces: bar.workspaces.perMonitorWorkspaces, displayType: bar.workspaces.displayType, label: bar.workspaces.label, occupiedLabel: bar.workspaces.occupiedLabel, activeLabel: bar.workspaces.activeLabel, capitalisation: bar.workspaces.capitalisation } }, idleInhibitWhenAudio, idleInhibitWhenCharging, idleLockBeforeSleep, idleTimeouts,
+            bottomHub: {
+                segments: { mode: bottomHub.segments.mode, apps: bottomHub.segments.apps, tray: bottomHub.segments.tray, status: bottomHub.segments.status },
+                statusCluster: { audio: bottomHub.statusCluster.audio, network: bottomHub.statusCluster.network, bluetooth: bottomHub.statusCluster.bluetooth, battery: bottomHub.statusCluster.battery }
+            },
+            displayCalibration: { enabled: colorCalibrationEnabled, temperature: colorTemperature, gamma: colorGamma } });
+    }
+
+    property Timer saveDelay: Timer {
+        interval: 300
+        onTriggered: root.writeState()
+    }
+
+    // A change still waiting when the shell goes away is written at once.
+    Component.onDestruction: {
+        storage.blockWrites = true;
+        flush();
     }
 
     function setFavouriteApps(values: list<string>): void {
@@ -664,41 +696,28 @@ QtObject {
         watchChanges: false
         printErrors: false
         onLoaded: root.load(text())
-        onSaved: {
-            if (root.patchBottomHubAfterSave) {
-                root.patchBottomHubAfterSave = false;
-                try {
-                    const payload = JSON.parse(text());
-                    payload.bottomHub = {
-                        segments: {
-                            mode: root.bottomHub.segments.mode,
-                            apps: root.bottomHub.segments.apps,
-                            tray: root.bottomHub.segments.tray,
-                            status: root.bottomHub.segments.status
-                        },
-                        statusCluster: {
-                            audio: root.bottomHub.statusCluster.audio,
-                            network: root.bottomHub.statusCluster.network,
-                            bluetooth: root.bottomHub.statusCluster.bluetooth,
-                            battery: root.bottomHub.statusCluster.battery
-                        }
-                    };
-                    payload.displayCalibration = {
-                        enabled: root.colorCalibrationEnabled,
-                        temperature: root.colorTemperature,
-                        gamma: root.colorGamma
-                    };
-                    setText(JSON.stringify(payload, null, 2) + "\n");
-                    return;
-                } catch (_) {}
-            }
-            root.writing = false;
-            if (root.saveQueued)
-                root.writeState();
+        // No file yet (a first run): the defaults stand and the first change
+        // creates it. Without this nothing would ever be saved.
+        onLoadFailed: error => {
+            if (error === FileViewError.FileNotFound)
+                root.loaded = true;
         }
-        onSaveFailed: {
+        onSaved: {
             root.writing = false;
-            root.patchBottomHubAfterSave = false;
+            if (root.saveQueued) {
+                root.writeState();
+                return;
+            }
+            // A change that arrived while this write was in flight is still
+            // waiting on its own delay.
+            if (!root.saveDelay.running)
+                root.saveState = "saved";
+        }
+        onSaveFailed: error => {
+            root.writing = false;
+            root.saveQueued = false;
+            root.saveState = "failed";
+            root.saveError = FileViewError.toString(error);
         }
     }
 }

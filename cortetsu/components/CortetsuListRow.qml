@@ -1,5 +1,5 @@
 import QtQuick
-import "../modules/CortetsuDesign.js" as CortetsuDesign
+import "../theme"
 
 Item {
     id: root
@@ -122,7 +122,7 @@ Item {
                 text: root.subtitle
                 textSize: CortetsuDesign.labelSmallPx
                 color: root.selected
-                    ? Qt.alpha(CortetsuDesign.colorOnPrimaryContainer, 0.72)
+                    ? CortetsuDesign.colorOnPrimaryContainer
                     : CortetsuDesign.colorOnSurfaceVariant
                 elide: Text.ElideRight
             }

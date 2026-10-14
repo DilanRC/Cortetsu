@@ -4,7 +4,7 @@ import QtQuick
 import QtQuick.Layouts
 import "kblayout"
 import "../../../components"
-import "../../CortetsuDesign.js" as CortetsuDesign
+import "../../../theme"
 
 ColumnLayout {
     id: root
@@ -35,6 +35,7 @@ ColumnLayout {
     }
 
     CortetsuStateMessage {
+        Layout.fillWidth: true
         visible: layouts.visibleModel.count === 0
         kind: "empty"
         title: qsTr("No hay más distribuciones")

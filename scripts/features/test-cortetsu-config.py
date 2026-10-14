@@ -50,10 +50,9 @@ assert "entries: bar.entries" in config
 assert "CortetsuConfig.bar.workspaces.perMonitorWorkspaces" in hub
 assert "bottomHub.statusCluster" in config
 assert "bottomHub.segments" in config
-assert "saveLegacy();" in config
-assert "payload.bottomHub" in config
+assert "function snapshot()" in config
 assert "watchChanges: false" in config
-assert "property bool patchBottomHubAfterSave" in config
+assert "patchBottomHubAfterSave" not in config
 assert "onSaved:" in config
 assert "loaded = false;" in config
 assert "bar: { persistent: bar.persistent" in config
@@ -276,7 +275,7 @@ assert "GlobalConfig" not in vpn and "Caelestia" not in vpn
 assert "CortetsuConfig.vpn.providers" in vpn and "CortetsuToaster" in vpn
 for legacy in ("Caelestia", "GlobalConfig", "qs.services", "qs.components", "Colours.qml"):
     assert legacy not in colours, legacy
-assert "CortetsuDesign.colorPrimary" in colours and "component CortetsuPalette" in colours
+assert "Defaults.colorPrimary" in colours and "component CortetsuPalette" in colours
 assert 'import "services"' in shell and "import qs.services" not in shell
 assert "BottomHub {}" in shell and "settings.watchFiles: false" in shell
 assert "import Caelestia" not in visualiser

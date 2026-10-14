@@ -2,7 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import "../.."
-import "../../CortetsuDesign.js" as CortetsuDesign
+import "../../../theme"
 
 Row {
     id: bars

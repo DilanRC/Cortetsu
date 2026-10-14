@@ -6,19 +6,19 @@ import Quickshell.Networking
 import "../../components"
 import "../../services"
 import ".."
-import "../CortetsuDesign.js" as CortetsuDesign
+import "../../theme"
 import "../CortetsuTypography.js" as CortetsuTypography
 import "network"
+import "controls"
 
 // Wi-Fi is a workbench: the active link stays visible while the explorer and
 // inspector handle discovery, saved profiles and NetworkManager actions.
 Item {
     id: root
 
-    required property var screenState
-    required property var screen
+    required property var context
 
-    property bool showVpn: true
+    readonly property bool wide: true
     readonly property var wifi: Connectivity.wifi
     readonly property string scanOwner: "settings-wifi-" + String(root)
     property bool showingProfiles: false
@@ -41,7 +41,6 @@ Item {
     }
     readonly property var selectedNetwork: root.showingProfiles ? null : root.filteredNetworks[root.selectedIndex] ?? null
     readonly property var activeNetwork: wifi.activeNetwork
-    readonly property var activeProfile: root.profiles.find(profile => profile.uuid === root.activeDetails.uuid) ?? null
     readonly property var selectedProfile: {
         if (root.showingProfiles) return root.profiles[root.selectedIndex] ?? null;
         if (!root.selectedNetwork) return null;
@@ -64,7 +63,7 @@ Item {
     // Content.qml places the page in the settings Flickable. This is tall
     // enough for the split workbench while still allowing the compact layout
     // to grow naturally when a narrow window wraps it vertically.
-    implicitHeight: root.compactLayout ? 1060 : 720
+    implicitHeight: (root.compactLayout ? 1180 : 620) + radio.implicitHeight + CortetsuDesign.spacingStandard
 
     function signalLabel(signal): string {
         const value = Number(signal ?? -1);
@@ -81,7 +80,7 @@ Item {
 
     function signalText(signal): string {
         const value = Number(signal ?? -1);
-        return value >= 0 ? qsTr("%1%").arg(value) : qsTr("—");
+        return value >= 0 ? qsTr("%1 %").arg(value) : qsTr("No disponible");
     }
 
     function networkSignal(network): real { return network ? wifi.strengthPercent(network.signalStrength) : -1; }
@@ -123,11 +122,11 @@ Item {
     function copySelectedPassword(): void {
         if (root.selectedProfile) { root.copiedProfileUuid = root.selectedProfile.uuid; CortetsuSettingsNetwork.copyPassword(root.selectedProfile.uuid); }
     }
-    function disconnectActive(): void {
-        if (root.activeNetwork) wifi.disconnectNetwork(root.activeNetwork);
+    function disconnectSelected(): void {
+        if (root.selectedIsActive) wifi.disconnectNetwork(root.selectedNetwork);
     }
-    function forgetActive(): void {
-        if (root.activeProfile) wifi.forgetProfile(root.activeProfile.uuid);
+    function forgetSelected(): void {
+        if (root.selectedProfile) wifi.forgetProfile(root.selectedProfile.uuid);
     }
     function disconnectProfile(): void {
         const network = root.networks.find(item => item.connected && wifi.details[item.device.name]?.uuid === root.selectedProfile?.uuid);
@@ -172,13 +171,47 @@ Item {
         }
     }
 
+    readonly property var operation: CortetsuSettingsNetwork.operation
+    readonly property bool radioBusy: CortetsuSettingsNetwork.busy && operation.kind === "enable"
+
     ColumnLayout {
         anchors.fill: parent
         spacing: CortetsuDesign.spacingStandard
 
+        SettingsGroup {
+            id: radio
+
+            SettingToggleRow {
+                objectName: "wifiPower"
+                title: qsTr("Wi-Fi")
+                detail: !root.wifi.hardwareEnabled
+                    ? qsTr("Apagado por el interruptor del equipo")
+                    : CortetsuSettingsNetwork.wifiEnabled ? qsTr("Encendido") : qsTr("Apagado")
+                checked: CortetsuSettingsNetwork.wifiEnabled
+                disabled: !root.wifi.hardwareEnabled
+                status: root.radioBusy
+                    ? "busy"
+                    : root.operation.kind === "enable" && CortetsuSettingsNetwork.state === "error" ? "error" : ""
+                statusText: root.radioBusy ? qsTr("Aplicando…") : CortetsuSettingsNetwork.error
+                onToggled: value => CortetsuSettingsNetwork.setWifi(value)
+            }
+
+            SettingActionRow {
+                objectName: "wifiScan"
+                title: qsTr("Redes cercanas")
+                detail: CortetsuSettingsNetwork.wifiEnabled
+                    ? qsTr("%1 a la vista").arg(root.networks.length)
+                    : qsTr("Enciende el Wi-Fi para buscarlas")
+                actionLabel: qsTr("Buscar de nuevo")
+                actionIcon: "refresh"
+                disabled: CortetsuSettingsNetwork.busy || !CortetsuSettingsNetwork.wifiEnabled
+                onActivated: root.refreshAll()
+            }
+        }
+
         CortetsuSurface {
             Layout.fillWidth: true
-            visible: CortetsuSettingsNetwork.state === "error"
+            visible: CortetsuSettingsNetwork.state === "error" && root.operation.kind !== "enable"
             implicitHeight: 52
             baseColor: Qt.alpha(CortetsuDesign.colorWarning, 0.12)
             outlineColor: Qt.alpha(CortetsuDesign.colorWarning, 0.54)
@@ -211,34 +244,6 @@ Item {
                     disabled: CortetsuSettingsNetwork.busy
                     onClicked: root.retrySelected()
                 }
-            }
-        }
-
-        ActiveNetworkCard {
-            Layout.fillWidth: true
-            page: root
-        }
-
-        RowLayout {
-            visible: !!root.activeNetwork && root.compactLayout
-            Layout.fillWidth: true
-            spacing: CortetsuDesign.spacingCompact
-
-            CortetsuButton {
-                compact: true
-                danger: true
-                icon: "link_off"
-                label: qsTr("Desconectar")
-                disabled: CortetsuSettingsNetwork.busy
-                onClicked: root.disconnectActive()
-            }
-
-            CortetsuButton {
-                compact: true
-                icon: "visibility_off"
-                label: qsTr("Olvidar")
-                disabled: CortetsuSettingsNetwork.busy
-                onClicked: root.forgetActive()
             }
         }
 

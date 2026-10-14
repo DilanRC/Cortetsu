@@ -3,7 +3,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 components = ROOT / "cortetsu/components"
-design = (ROOT / "cortetsu/modules/CortetsuDesign.js").read_text(encoding="utf-8")
+design = (ROOT / "cortetsu/theme/CortetsuDesignDefaults.js").read_text(encoding="utf-8")
 required = (
     "CortetsuButton.qml",
     "CortetsuToggle.qml",

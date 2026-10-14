@@ -6,7 +6,7 @@ import "../components"
 import "../services"
 import "."
 import "settings"
-import "CortetsuDesign.js" as CortetsuDesign
+import "../theme"
 
 // Settings is a normal desktop window. FloatingWindow gives it real compositor
 // state: it can be moved, tiled, resized and fullscreened.
@@ -26,8 +26,8 @@ Scope {
             surfaceFormat.opaque: false
             implicitWidth: 1368
             implicitHeight: 900
-            minimumSize.width: 1040
-            minimumSize.height: 680
+            minimumSize.width: 880
+            minimumSize.height: 620
 
             CortetsuSurface {
                 anchors.fill: parent
@@ -36,11 +36,19 @@ Scope {
                 radiusValue: CortetsuDesign.radiusSurface
                 outlined: true
 
-                Wrapper {
+                // The content exists only while the window is open: a closed
+                // Settings holds no pages, bindings or processes.
+                Loader {
                     anchors.fill: parent
                     anchors.margins: CortetsuDesign.spacingSpacious
-                    screenState: window.screenState
-                    screen: window.modelData
+                    active: window.visible
+                    focus: true
+                    sourceComponent: Content {
+                        screenState: window.screenState
+                        screen: window.modelData
+                        controller: SettingsController
+                    }
+                    onLoaded: item.open()
                 }
             }
         }

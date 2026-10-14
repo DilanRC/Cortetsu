@@ -2,206 +2,154 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 import "../../../components"
-import "../.."
 import "../../../services"
-import "../../CortetsuDesign.js" as CortetsuDesign
-import "../../CortetsuTypography.js" as CortetsuTypography
+import "../../../theme"
+import "../.."
+import "../controls"
 
 ColumnLayout {
     id: root
 
-    required property var page
+    required property var context
 
-    spacing: CortetsuDesign.spacingStandard
+    spacing: CortetsuDesign.spacingSection
 
-    CortetsuSectionHeader {
-        Layout.fillWidth: true
-        title: qsTr("Audio")
-        detail: qsTr("Control de salida PipeWire en vivo")
-    }
+    SettingsGroup {
+        title: qsTr("Salida")
+        detail: root.context.outputName
 
-    DomainHero {
-        icon: CortetsuAudio.muted ? "volume_off" : "volume_up"
-        title: CortetsuAudio.muted ? qsTr("Salida silenciada") : qsTr("Audio disponible")
-        detail: root.page.activeOutputName
-        value: qsTr("%1%").arg(root.page.volumePercent)
-        meta: qsTr("%1 salidas · %2 entradas · %3 streams")
-            .arg(CortetsuAudio.sinks.length)
-            .arg(CortetsuAudio.sources.length)
-            .arg(CortetsuAudio.streams.length)
-        progress: CortetsuAudio.volume
-        warningState: !CortetsuAudio.sink
-    }
-
-    PreferenceToggle {
-        title: CortetsuAudio.muted ? qsTr("Salida silenciada") : qsTr("Salida activada")
-        detail: qsTr("Volumen actual %1%").arg(root.page.volumePercent)
-        icon: CortetsuAudio.muted ? "volume_off" : "volume_up"
-        checked: !CortetsuAudio.muted
-        controlDisabled: !CortetsuAudio.sink?.audio
-        onChanged: enabled => {
-            if (CortetsuAudio.sink?.audio)
-                CortetsuAudio.sink.audio.muted = !enabled;
+        CortetsuStateMessage {
+            objectName: "noOutput"
+            Layout.fillWidth: true
+            Layout.margins: CortetsuDesign.spacingSection
+            visible: !CortetsuAudio.sink
+            kind: "error"
+            icon: "volume_off"
+            title: qsTr("No hay dispositivo de salida")
+            detail: qsTr("PipeWire no ofrece ninguna salida. Conecta un dispositivo o revisa el servicio de audio.")
         }
-    }
 
-    CortetsuSurface {
-        Layout.fillWidth: true
-        implicitHeight: 86
-        radiusValue: CortetsuDesign.radiusMedium
-        baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.72)
-        outlined: true
-        outlineColor: Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.48)
+        SettingSliderRow {
+            objectName: "outputVolume"
+            visible: !!CortetsuAudio.sink
+            title: qsTr("Volumen de salida")
+            valueText: CortetsuAudio.muted ? qsTr("Silenciado") : qsTr("%1 %").arg(root.context.volumePercent)
+            value: CortetsuAudio.volume
+            to: CortetsuConfig.maxVolume
+            onMoved: next => CortetsuAudio.setVolume(next)
+        }
 
-        ColumnLayout {
-            anchors.fill: parent
-            anchors.margins: CortetsuDesign.spacingStandard
-            spacing: CortetsuDesign.spacingCompact
-            RowLayout {
-                Layout.fillWidth: true
-                CortetsuText {
-                    Layout.fillWidth: true
-                    text: qsTr("Volumen de salida")
-                    textSize: CortetsuTypography.bodyPx
-                    font.weight: Font.DemiBold
-                }
-                CortetsuText {
-                    text: qsTr("%1%").arg(root.page.volumePercent)
-                    textSize: CortetsuTypography.labelSmallPx
-                    color: CortetsuDesign.colorOnSurfaceVariant
-                }
+        SettingToggleRow {
+            objectName: "outputMute"
+            visible: !!CortetsuAudio.sink
+            title: qsTr("Silenciar la salida")
+            checked: CortetsuAudio.muted
+            disabled: !CortetsuAudio.sink?.audio
+            onToggled: value => {
+                if (CortetsuAudio.sink?.audio)
+                    CortetsuAudio.sink.audio.muted = value;
             }
-            CortetsuSlider {
+        }
+
+        Repeater {
+            model: ScriptModel { values: [...CortetsuAudio.sinks] }
+
+            delegate: CortetsuListRow {
+                required property var modelData
+                readonly property bool current: CortetsuAudio.sink?.id === modelData.id
                 Layout.fillWidth: true
-                value: CortetsuAudio.volume
-                onMoved: nextValue => CortetsuAudio.setVolume(nextValue)
+                Layout.leftMargin: 2
+                Layout.rightMargin: 2
+                icon: "speaker"
+                title: modelData.description ?? modelData.name ?? qsTr("Salida desconocida")
+                subtitle: current ? qsTr("En uso") : qsTr("Usar esta salida")
+                selected: current
+                Accessible.role: Accessible.RadioButton
+                Accessible.name: title
+                Accessible.checked: current
+                onClicked: CortetsuAudio.setAudioSink(modelData)
             }
         }
     }
 
-    CortetsuSectionHeader {
-        Layout.fillWidth: true
+    SettingsGroup {
         title: qsTr("Entrada")
-        detail: root.page.activeInputName
-    }
+        detail: root.context.inputName
 
-    PreferenceToggle {
-        title: CortetsuAudio.sourceMuted ? qsTr("Entrada silenciada") : qsTr("Entrada activa")
-        detail: qsTr("Volumen del micrófono %1%").arg(root.page.inputVolumePercent)
-        icon: CortetsuAudio.sourceMuted ? "mic_off" : "mic"
-        checked: !CortetsuAudio.sourceMuted
-        controlDisabled: !CortetsuAudio.source?.audio
-        onChanged: enabled => {
-            if (CortetsuAudio.source?.audio)
-                CortetsuAudio.source.audio.muted = !enabled;
+        SettingValueRow {
+            objectName: "noInput"
+            visible: !CortetsuAudio.source
+            title: qsTr("Micrófono")
+            detail: qsTr("PipeWire no ofrece ninguna entrada")
+            value: qsTr("No disponible")
+        }
+
+        SettingSliderRow {
+            visible: !!CortetsuAudio.source
+            title: qsTr("Volumen de entrada")
+            valueText: CortetsuAudio.sourceMuted ? qsTr("Silenciado") : qsTr("%1 %").arg(root.context.inputVolumePercent)
+            value: CortetsuAudio.sourceVolume
+            onMoved: next => CortetsuAudio.setSourceVolume(next)
+        }
+
+        SettingToggleRow {
+            visible: !!CortetsuAudio.source
+            title: qsTr("Silenciar el micrófono")
+            checked: CortetsuAudio.sourceMuted
+            disabled: !CortetsuAudio.source?.audio
+            onToggled: value => {
+                if (CortetsuAudio.source?.audio)
+                    CortetsuAudio.source.audio.muted = value;
+            }
+        }
+
+        Repeater {
+            model: ScriptModel { values: [...CortetsuAudio.sources] }
+
+            delegate: CortetsuListRow {
+                required property var modelData
+                readonly property bool current: CortetsuAudio.source?.id === modelData.id
+                Layout.fillWidth: true
+                Layout.leftMargin: 2
+                Layout.rightMargin: 2
+                icon: "mic"
+                title: modelData.description ?? modelData.name ?? qsTr("Entrada desconocida")
+                subtitle: current ? qsTr("En uso") : qsTr("Usar esta entrada")
+                selected: current
+                Accessible.role: Accessible.RadioButton
+                Accessible.name: title
+                Accessible.checked: current
+                onClicked: CortetsuAudio.setAudioSource(modelData)
+            }
         }
     }
 
-    CortetsuSlider {
-        Layout.fillWidth: true
-        value: CortetsuAudio.sourceVolume
-        disabled: CortetsuAudio.sourceMuted || !CortetsuAudio.source
-        onMoved: nextValue => CortetsuAudio.setSourceVolume(nextValue)
-    }
+    SettingsGroup {
+        title: qsTr("Aplicaciones")
+        detail: qsTr("Volumen de cada una")
 
-    CortetsuSectionHeader {
-        Layout.fillWidth: true
-        title: qsTr("Dispositivos de salida")
-        detail: qsTr("%1 disponibles · %2 activo").arg(CortetsuAudio.sinks.length).arg(root.page.activeOutputName)
-    }
-
-    Repeater {
-        model: CortetsuAudio.sinks
-        delegate: CortetsuListRow {
-            required property var modelData
-            Layout.fillWidth: true
-            title: modelData.description ?? modelData.name ?? qsTr("Salida desconocida")
-            subtitle: CortetsuAudio.sink?.id === modelData.id ? qsTr("Salida actual") : qsTr("Usar esta salida")
-            icon: "speaker"
-            selected: CortetsuAudio.sink?.id === modelData.id
-            onClicked: CortetsuAudio.setAudioSink(modelData)
+        SettingValueRow {
+            objectName: "noStreams"
+            visible: CortetsuAudio.streams.length === 0
+            title: qsTr("Nada se está reproduciendo")
+            detail: qsTr("Cada aplicación aparece aquí mientras emite sonido")
         }
-    }
 
-    CortetsuSectionHeader {
-        Layout.fillWidth: true
-        title: qsTr("Dispositivos de entrada")
-        detail: qsTr("Selecciona el micrófono predeterminado de PipeWire")
-    }
+        Repeater {
+            model: ScriptModel { values: [...CortetsuAudio.streams] }
 
-    Repeater {
-        model: CortetsuAudio.sources
-        delegate: CortetsuListRow {
-            required property var modelData
-            Layout.fillWidth: true
-            title: modelData.description ?? modelData.name ?? qsTr("Entrada desconocida")
-            subtitle: CortetsuAudio.source?.id === modelData.id ? qsTr("Entrada actual") : qsTr("Usar esta entrada")
-            icon: "mic"
-            selected: CortetsuAudio.source?.id === modelData.id
-            onClicked: CortetsuAudio.setAudioSource(modelData)
-        }
-    }
-
-    CortetsuStateMessage {
-        Layout.fillWidth: true
-        visible: CortetsuAudio.streams.length === 0
-        kind: "empty"
-        icon: "music_off"
-        title: qsTr("Sin aplicaciones reproduciendo audio")
-        detail: qsTr("Los controles por aplicación aparecerán cuando PipeWire detecte un stream")
-    }
-
-    CortetsuSectionHeader {
-        Layout.fillWidth: true
-        title: qsTr("Aplicaciones reproduciendo")
-        detail: qsTr("Volumen independiente por stream")
-        visible: CortetsuAudio.streams.length > 0
-    }
-
-    Repeater {
-        model: CortetsuAudio.streams
-        delegate: CortetsuSurface {
-            required property var modelData
-            Layout.fillWidth: true
-            implicitHeight: 78
-            radiusValue: CortetsuDesign.radiusMedium
-            baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.72)
-            outlined: true
-
-            RowLayout {
-                anchors.fill: parent
-                anchors.margins: CortetsuDesign.spacingStandard
-                spacing: CortetsuDesign.spacingStandard
-
-                CortetsuIcon {
-                    text: CortetsuAudio.getStreamMuted(parent.parent.modelData) ? "volume_off" : "music_note"
-                    iconSize: CortetsuTypography.iconMediumPx
-                    color: CortetsuDesign.colorPrimary
-                }
-
-                ColumnLayout {
-                    Layout.fillWidth: true
-                    spacing: 2
-                    CortetsuText {
-                        Layout.fillWidth: true
-                        text: CortetsuAudio.getStreamName(parent.parent.modelData)
-                        textSize: CortetsuTypography.bodyPx
-                        font.weight: Font.DemiBold
-                        elide: Text.ElideRight
-                    }
-                    CortetsuSlider {
-                        Layout.fillWidth: true
-                        value: CortetsuAudio.getStreamVolume(parent.parent.modelData)
-                        disabled: CortetsuAudio.getStreamMuted(parent.parent.modelData)
-                        onMoved: nextValue => CortetsuAudio.setStreamVolume(parent.parent.modelData, nextValue)
-                    }
-                }
-
-                CortetsuToggle {
-                    checked: !CortetsuAudio.getStreamMuted(parent.parent.modelData)
-                    onToggled: checked => CortetsuAudio.setStreamMuted(parent.parent.modelData, !checked)
-                }
+            delegate: SettingSliderRow {
+                required property var modelData
+                title: CortetsuAudio.getStreamName(modelData)
+                valueText: CortetsuAudio.getStreamMuted(modelData)
+                    ? qsTr("Silenciada")
+                    : qsTr("%1 %").arg(Math.round(CortetsuAudio.getStreamVolume(modelData) * 100))
+                value: CortetsuAudio.getStreamVolume(modelData)
+                to: CortetsuConfig.maxVolume
+                disabled: CortetsuAudio.getStreamMuted(modelData)
+                onMoved: next => CortetsuAudio.setStreamVolume(modelData, next)
             }
         }
     }

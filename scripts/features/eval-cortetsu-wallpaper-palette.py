@@ -8,12 +8,12 @@ wallpapers = (ROOT / "cortetsu/modules/CortetsuWallpapers.qml").read_text(encodi
 
 criteria = {
     "FileView import": "import Quickshell.Io" in colours,
-    "current scheme readback": "schemePath" in colours and "onFileChanged: root.load(text(), false)" in colours,
+    "current scheme readback": "schemePath" in colours and "onFileChanged: reload()" in colours,
     "validated hex boundary": "normaliseHex" in colours and "#[0-9a-fA-F]{6}" in colours,
     "reactive active palette": "readonly property var activeColours:" in colours and "root.schemeColour(" in colours,
-    "brand fallback": all(token in colours for token in ("CortetsuDesign.colorPrimary", "CortetsuDesign.colorSurface", "CortetsuDesign.colorWashi")),
-    "danger semantic stable": "m3error: CortetsuDesign.colorVermillion" in colours,
-    "contrast fallback": all(token in colours for token in ("CortetsuDesign.colorWashi", "CortetsuDesign.colorTetsu")),
+    "brand fallback": all(token in colours for token in ("Defaults.colorPrimary", "Defaults.colorSurface", "Defaults.colorWashi")),
+    "danger semantic stable": "m3error: Defaults.colorVermillion" in colours,
+    "contrast fallback": all(token in colours for token in ("Defaults.colorWashi", "Defaults.colorTetsu")),
     "wall luminance": "readonly property real wallLuminance:" in colours and "function luminance" in colours,
     "preview bridge": "CortetsuColours.load(text, true);" in wallpapers,
     "preview reset": "CortetsuColours.clearPreview();" in wallpapers and "function clearPreview(): void" in colours,

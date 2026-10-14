@@ -1,5 +1,5 @@
 import QtQuick
-import "../modules/CortetsuDesign.js" as CortetsuDesign
+import "../theme"
 import "../modules/CortetsuTypography.js" as CortetsuTypography
 
 Item {
@@ -71,6 +71,7 @@ Item {
             width: parent.width
             text: root.title
             textSize: CortetsuTypography.bodyPx
+            color: root.selected ? CortetsuDesign.colorOnPrimaryContainer : CortetsuDesign.colorOnSurface
             font.weight: Font.DemiBold
             elide: Text.ElideRight
         }
@@ -80,7 +81,7 @@ Item {
             text: root.subtitle
             textSize: CortetsuTypography.labelSmallPx
             color: root.selected
-                ? CortetsuDesign.colorPrimary
+                ? CortetsuDesign.colorOnPrimaryContainer
                 : CortetsuDesign.colorOnSurfaceVariant
             elide: Text.ElideRight
         }
@@ -90,15 +91,17 @@ Item {
         Row {
             spacing: CortetsuDesign.spacingUnit
 
+            // Counted, not handed the array: a new list of the same length
+            // recolours these squares instead of rebuilding them.
             Repeater {
-                model: root.swatches
+                model: root.swatches.length
 
                 delegate: Rectangle {
-                    required property var modelData
+                    required property int index
                     width: 22
                     height: 22
                     radius: CortetsuDesign.radiusSmall / 2
-                    color: modelData
+                    color: root.swatches[index] ?? "transparent"
                     border.width: 1
                     border.color: Qt.alpha(CortetsuDesign.colorWashi, 0.16)
                 }

@@ -30,7 +30,7 @@ assert "readonly property bool hasModelData" in notification
 assert "readonly property bool closed: !hasModelData || modelData.closed" in notification
 assert "Component.onDestruction: {" in notification
 assert "root.modelData.unlock(root);" in notification
-assert 'import "../CortetsuDesign.js" as CortetsuDesign' in notification
+assert 'import "../../theme"' in notification
 assert 'import "../CortetsuTypography.js" as CortetsuTypography' in notification
 assert "modelData.appName" in notification
 assert "modelData.image" in notification

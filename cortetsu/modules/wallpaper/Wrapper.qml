@@ -4,7 +4,7 @@ import ".."
 import QtQuick
 import Quickshell
 import "../OverlayPolicy.js" as OverlayPolicy
-import "../CortetsuDesign.js" as CortetsuDesign
+import "../../theme"
 
 Item {
     id: root

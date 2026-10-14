@@ -7,7 +7,7 @@ import "../components"
 import "../components/containers"
 import "."
 import "session" as Session
-import "CortetsuDesign.js" as CortetsuDesign
+import "../theme"
 import "CortetsuTypography.js" as CortetsuTypography
 
 Scope {
