@@ -11,7 +11,8 @@ checks = {
     "idle uses shared power state": "readonly property bool isCharging: !CortetsuPower.onBattery" in idle,
     "idle has no native-provider duplicate": "UPower" not in idle and "Quickshell.Services.UPower" not in idle,
     "power service owns on-battery readback": "readonly property bool onBattery: UPower.onBattery === true" in power,
-    "all idle paths use one derived flag": idle.count("root.isCharging") >= 1 and "CortetsuConfig.idleInhibitWhenCharging" in idle,
+    "all idle paths use one derived flag": idle.count("isCharging") >= 3 and idle.count("CortetsuPower.onBattery") == 1
+        and "CortetsuConfig.idleInhibitWhenCharging" in idle,
 }
 
 assert all(checks.values()), [name for name, passed in checks.items() if not passed]

@@ -235,7 +235,7 @@ assert "CortetsuAudio" in status_icons and "CortetsuNetwork" in status_icons and
 for legacy in ("Caelestia", "GlobalConfig", "Toaster", "SessionManager"):
     assert legacy not in battery_monitor, legacy
 assert "CortetsuPower" in battery_monitor
-assert "notify-send" in battery_monitor and '"systemctl", "hibernate"' in battery_monitor
+assert "notify-send" in battery_monitor and "CortetsuSession.hibernate()" in battery_monitor
 for legacy in ("Caelestia", "GlobalConfig", "GameMode", "Notifs", "Weather", "VPN"):
     assert legacy not in service_loader, legacy
 assert "CortetsuAudio" in service_loader and "CortetsuNotifications" in service_loader

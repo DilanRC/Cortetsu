@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import "../../components"
+import "../../services"
 import ".."
 import "../../theme"
 import "../CortetsuTypography.js" as CortetsuTypography
@@ -13,6 +14,7 @@ Column {
     property var lockController: null
     property string pendingAction: ""
     property string failedAction: ""
+    // The action waiting for the lock before it runs.
     property var deferredCommand: null
     property string deferredState: "idle"
 
@@ -35,7 +37,7 @@ Column {
             label: qsTr("Suspender"),
             detail: qsTr("Bloquear y suspender"),
             icon: "mode_standby",
-            command: ["systemctl", "suspend"],
+            sleepMode: "suspend",
             confirm: false,
             danger: false,
             lockBefore: true
@@ -55,7 +57,7 @@ Column {
             label: qsTr("Hibernar"),
             detail: qsTr("Guardar la memoria en el disco"),
             icon: "bedtime",
-            command: ["systemctl", "hibernate"],
+            sleepMode: "hibernate",
             confirm: true,
             danger: false,
             lockBefore: false
@@ -88,8 +90,17 @@ Column {
         root.screenState.session = false;
     }
 
+    // Sleep modes follow what logind reports now; a mode it would refuse is
+    // shown as unavailable instead of failing silently after the lock.
+    function available(action): bool {
+        return !action.sleepMode || CortetsuSession.available(action.sleepMode);
+    }
+
+    Component.onCompleted: CortetsuSession.refreshCapabilities()
+    onVisibleChanged: if (visible) CortetsuSession.refreshCapabilities()
+
     function execute(action): void {
-        if (!action || !(action.command || action.dispatch || action.lockOnly))
+        if (!action || !(action.sleepMode || action.command || action.dispatch || action.lockOnly) || !available(action))
             return;
 
         pendingAction = "";
@@ -118,33 +129,40 @@ Column {
             if (!lockController)
                 return;
 
-            deferredCommand = action.command;
+            deferredCommand = action;
             deferredState = "requestingLock";
             deferredTimer.restart();
             lockController.requestLock();
             if (lockController.lockReady)
                 Qt.callLater(root.dispatchDeferred);
         } else {
-            Quickshell.execDetached(action.command);
+            launch(action);
         }
 
         root.screenState.session = false;
+    }
+
+    function launch(action): void {
+        if (action.sleepMode)
+            CortetsuSession.request(action.sleepMode);
+        else
+            Quickshell.execDetached(action.command);
     }
 
     function dispatchDeferred(): void {
         if (deferredState !== "requestingLock" || !deferredCommand || !lockController.lockReady)
             return;
 
-        const command = deferredCommand;
+        const action = deferredCommand;
         deferredCommand = null;
         deferredState = "dispatched";
         deferredTimer.stop();
-        Quickshell.execDetached(command);
+        launch(action);
         Qt.callLater(() => deferredState = "idle");
     }
 
     function run(action): void {
-        if (!action)
+        if (!action || !available(action))
             return;
 
         if (action.confirm && pendingAction !== action.id) {
@@ -194,7 +212,10 @@ Column {
             title: root.pendingAction === actionRow.modelData.id
                 ? qsTr("Confirmar %1").arg(actionRow.modelData.label)
                 : actionRow.modelData.label
-            subtitle: root.failedAction === actionRow.modelData.id
+            disabled: !root.available(actionRow.modelData)
+            subtitle: actionRow.disabled
+                ? CortetsuSession.reason(actionRow.modelData.sleepMode)
+                : root.failedAction === actionRow.modelData.id
                 ? qsTr("No disponible: el bloqueo de sesión no está listo")
                 : root.pendingAction === actionRow.modelData.id
                     ? qsTr("Pulsa otra vez en 4 segundos")

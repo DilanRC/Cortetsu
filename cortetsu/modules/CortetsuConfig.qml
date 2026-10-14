@@ -180,7 +180,14 @@ QtObject {
     property bool idleInhibitWhenAudio: true
     property bool idleInhibitWhenCharging: false
     property bool idleLockBeforeSleep: true
+    // Idle actions with timeouts in milliseconds: "lock", "dpms" (screen off)
+    // and "suspend", plus any Hyprland dispatch or command. Screen off and
+    // suspend are absent by default: neither runs until chosen in Settings.
     property list<var> idleTimeouts: [{ enabled: true, timeout: 900000, respectInhibitors: true, idleAction: "lock" }]
+    property bool idleSuspendOnBatteryOnly: true
+    // A focused fullscreen window (a game on a controller, a video) is
+    // activity the compositor cannot see.
+    property bool idleInhibitWhenFullscreen: true
     property bool loaded: false
     property bool writing: false
     property bool saveQueued: false
@@ -560,6 +567,10 @@ QtObject {
                 idleInhibitWhenCharging = data.idleInhibitWhenCharging;
             if (typeof data.idleLockBeforeSleep === "boolean")
                 idleLockBeforeSleep = data.idleLockBeforeSleep;
+            if (typeof data.idleSuspendOnBatteryOnly === "boolean")
+                idleSuspendOnBatteryOnly = data.idleSuspendOnBatteryOnly;
+            if (typeof data.idleInhibitWhenFullscreen === "boolean")
+                idleInhibitWhenFullscreen = data.idleInhibitWhenFullscreen;
             if (Array.isArray(data.idleTimeouts))
                 idleTimeouts = data.idleTimeouts.filter(value => value && typeof value === "object").map(value => {
                     // Saved preferences may still carry the removed "unlock" return action.
@@ -571,6 +582,26 @@ QtObject {
                 });
         } catch (_) {}
         loaded = true;
+    }
+
+
+    // An idle action's timeout in whole minutes, 0 when it is absent or off.
+    // A timeout under a minute still reads as 1 so an active lock never
+    // shows as "never".
+    function idleMinutes(action: string): int {
+        const entry = idleTimeouts.find(value => value.idleAction === action);
+        return entry && (entry.enabled ?? true) ? Math.max(1, Math.round((entry.timeout ?? 0) / 60000)) : 0;
+    }
+    function setIdleMinutes(action: string, minutes: int): void {
+        const entry = idleTimeouts.find(value => value.idleAction === action)
+            ?? { respectInhibitors: true, idleAction: action };
+        const others = idleTimeouts.filter(value => value.idleAction !== action);
+        if (minutes <= 0 && action !== "lock") {
+            idleTimeouts = others;
+            return;
+        }
+        const updated = Object.assign({}, entry, minutes > 0 ? { enabled: true, timeout: minutes * 60000 } : { enabled: false });
+        idleTimeouts = [...others, updated];
     }
 
     // Changes are written once they settle: dragging a slider or flipping
@@ -604,7 +635,7 @@ QtObject {
     }
 
     function snapshot(): var {
-        return ({ schema: 1, favouriteApps, hiddenApps, hiddenTrayIcons, terminalCommand, audioCommand, playbackCommand, explorerCommand, gpuType, lyricsBackend, statusIcons, quickToggles, vpn: { providers: vpn.providers, selectedProvider: vpn.selectedProvider, enabled: vpn.enabled }, actions, actionPrefix, specialPrefix, enableDangerousActions, useFuzzyApps, useFuzzyWallpapers, useFuzzyActions, useFuzzySchemes, useFuzzyVariants, smartScheme, wallpaperDirectory, wallpaperEnabled, transparencyEnabled, desktopClockEnabled, desktopClockPosition, borderThickness, borderSmoothing, useTwelveHourClock, useFahrenheit, useFahrenheitPerformance, weatherLocation, audioIncrement, brightnessIncrement, maxVolume, visualiserBars, visualiserEnabled, visualiserAutoHide, visualiserBlur, visualiserSpacing, visualiserRounding, defaultPlayer, playerAliases, toastAudioOutputChanged, toastAudioInputChanged, toastNowPlaying, toastFullscreen, maxToasts, toastChargingChanged, toastCapsLockChanged, toastNumLockChanged, toastKbLayoutChanged, toastKbLimit, toastVpnChanged, notificationExpire, suppressNotificationsInFullscreen, notificationDefaultExpireTimeout, notificationFullscreenExpireTimeout, notificationActionOnClick, notificationFullscreenMode, notificationClearThreshold, notificationExpandThreshold, notificationGroupPreviewNum, notificationOpenExpanded, toastDndChanged, toastGameModeChanged, lockRecolourLogo, lockHideNotifs, lockEnableFprint, lockMaxFprintTries, lockEnableHowdy, lockMaxHowdyTries, lockTriggerHowdyOnWake, vimKeybinds, workspacesShown, dashboardMediaUpdateInterval, dashboardResourceUpdateInterval, nexusWallpapersPerRow, nexusMaxNetworksShown, nexusNetworkRescanInterval, dashboard: { enabled: dashboard.enabled, showOnHover: dashboard.showOnHover, showDashboard: dashboard.showDashboard, showMedia: dashboard.showMedia, showPerformance: dashboard.showPerformance, showWeather: dashboard.showWeather, dragThreshold: dashboard.dragThreshold, performance: { showCpu: dashboard.performance.showCpu, showGpu: dashboard.performance.showGpu, showMemory: dashboard.performance.showMemory, showStorage: dashboard.performance.showStorage, showNetwork: dashboard.performance.showNetwork, showBattery: dashboard.performance.showBattery } }, launcher: { enabled: launcher.enabled, showOnHover: launcher.showOnHover, maxShown: launcher.maxShown, maxWallpapers: launcher.maxWallpapers, dragThreshold: launcher.dragThreshold }, sidebar: { enabled: sidebar.enabled, showOnHover: sidebar.showOnHover, dragThreshold: sidebar.dragThreshold, minHoverThreshold: sidebar.minHoverThreshold }, utilities: { enabled: utilities.enabled, cards: { keepAwake: utilities.cards.keepAwake, recorder: utilities.cards.recorder, quickToggles: utilities.cards.quickToggles } }, bar: { persistent: bar.persistent, showOnHover: bar.showOnHover, dragThreshold: bar.dragThreshold, entries: bar.entries, scrollActions: { workspaces: bar.scrollActions.workspaces, volume: bar.scrollActions.volume, brightness: bar.scrollActions.brightness }, tray: { background: bar.tray.background, compact: bar.tray.compact, recolour: bar.tray.recolour }, activeWindow: { compact: bar.activeWindow.compact, inverted: bar.activeWindow.inverted, showOnHover: bar.activeWindow.showOnHover }, popouts: { activeWindow: bar.popouts.activeWindow, statusIcons: bar.popouts.statusIcons, tray: bar.popouts.tray }, clock: { background: bar.clock.background, showDate: bar.clock.showDate, showIcon: bar.clock.showIcon }, workspaces: { activeIndicator: bar.workspaces.activeIndicator, activeTrail: bar.workspaces.activeTrail, occupiedBg: bar.workspaces.occupiedBg, showWindows: bar.workspaces.showWindows, maxWindowIcons: bar.workspaces.maxWindowIcons, showWindowsOnSpecialWorkspaces: bar.workspaces.showWindowsOnSpecialWorkspaces, perMonitorWorkspaces: bar.workspaces.perMonitorWorkspaces, displayType: bar.workspaces.displayType, label: bar.workspaces.label, occupiedLabel: bar.workspaces.occupiedLabel, activeLabel: bar.workspaces.activeLabel, capitalisation: bar.workspaces.capitalisation } }, idleInhibitWhenAudio, idleInhibitWhenCharging, idleLockBeforeSleep, idleTimeouts,
+        return ({ schema: 1, favouriteApps, hiddenApps, hiddenTrayIcons, terminalCommand, audioCommand, playbackCommand, explorerCommand, gpuType, lyricsBackend, statusIcons, quickToggles, vpn: { providers: vpn.providers, selectedProvider: vpn.selectedProvider, enabled: vpn.enabled }, actions, actionPrefix, specialPrefix, enableDangerousActions, useFuzzyApps, useFuzzyWallpapers, useFuzzyActions, useFuzzySchemes, useFuzzyVariants, smartScheme, wallpaperDirectory, wallpaperEnabled, transparencyEnabled, desktopClockEnabled, desktopClockPosition, borderThickness, borderSmoothing, useTwelveHourClock, useFahrenheit, useFahrenheitPerformance, weatherLocation, audioIncrement, brightnessIncrement, maxVolume, visualiserBars, visualiserEnabled, visualiserAutoHide, visualiserBlur, visualiserSpacing, visualiserRounding, defaultPlayer, playerAliases, toastAudioOutputChanged, toastAudioInputChanged, toastNowPlaying, toastFullscreen, maxToasts, toastChargingChanged, toastCapsLockChanged, toastNumLockChanged, toastKbLayoutChanged, toastKbLimit, toastVpnChanged, notificationExpire, suppressNotificationsInFullscreen, notificationDefaultExpireTimeout, notificationFullscreenExpireTimeout, notificationActionOnClick, notificationFullscreenMode, notificationClearThreshold, notificationExpandThreshold, notificationGroupPreviewNum, notificationOpenExpanded, toastDndChanged, toastGameModeChanged, lockRecolourLogo, lockHideNotifs, lockEnableFprint, lockMaxFprintTries, lockEnableHowdy, lockMaxHowdyTries, lockTriggerHowdyOnWake, vimKeybinds, workspacesShown, dashboardMediaUpdateInterval, dashboardResourceUpdateInterval, nexusWallpapersPerRow, nexusMaxNetworksShown, nexusNetworkRescanInterval, dashboard: { enabled: dashboard.enabled, showOnHover: dashboard.showOnHover, showDashboard: dashboard.showDashboard, showMedia: dashboard.showMedia, showPerformance: dashboard.showPerformance, showWeather: dashboard.showWeather, dragThreshold: dashboard.dragThreshold, performance: { showCpu: dashboard.performance.showCpu, showGpu: dashboard.performance.showGpu, showMemory: dashboard.performance.showMemory, showStorage: dashboard.performance.showStorage, showNetwork: dashboard.performance.showNetwork, showBattery: dashboard.performance.showBattery } }, launcher: { enabled: launcher.enabled, showOnHover: launcher.showOnHover, maxShown: launcher.maxShown, maxWallpapers: launcher.maxWallpapers, dragThreshold: launcher.dragThreshold }, sidebar: { enabled: sidebar.enabled, showOnHover: sidebar.showOnHover, dragThreshold: sidebar.dragThreshold, minHoverThreshold: sidebar.minHoverThreshold }, utilities: { enabled: utilities.enabled, cards: { keepAwake: utilities.cards.keepAwake, recorder: utilities.cards.recorder, quickToggles: utilities.cards.quickToggles } }, bar: { persistent: bar.persistent, showOnHover: bar.showOnHover, dragThreshold: bar.dragThreshold, entries: bar.entries, scrollActions: { workspaces: bar.scrollActions.workspaces, volume: bar.scrollActions.volume, brightness: bar.scrollActions.brightness }, tray: { background: bar.tray.background, compact: bar.tray.compact, recolour: bar.tray.recolour }, activeWindow: { compact: bar.activeWindow.compact, inverted: bar.activeWindow.inverted, showOnHover: bar.activeWindow.showOnHover }, popouts: { activeWindow: bar.popouts.activeWindow, statusIcons: bar.popouts.statusIcons, tray: bar.popouts.tray }, clock: { background: bar.clock.background, showDate: bar.clock.showDate, showIcon: bar.clock.showIcon }, workspaces: { activeIndicator: bar.workspaces.activeIndicator, activeTrail: bar.workspaces.activeTrail, occupiedBg: bar.workspaces.occupiedBg, showWindows: bar.workspaces.showWindows, maxWindowIcons: bar.workspaces.maxWindowIcons, showWindowsOnSpecialWorkspaces: bar.workspaces.showWindowsOnSpecialWorkspaces, perMonitorWorkspaces: bar.workspaces.perMonitorWorkspaces, displayType: bar.workspaces.displayType, label: bar.workspaces.label, occupiedLabel: bar.workspaces.occupiedLabel, activeLabel: bar.workspaces.activeLabel, capitalisation: bar.workspaces.capitalisation } }, idleInhibitWhenAudio, idleInhibitWhenCharging, idleLockBeforeSleep, idleTimeouts, idleSuspendOnBatteryOnly, idleInhibitWhenFullscreen,
             bottomHub: {
                 segments: { mode: bottomHub.segments.mode, apps: bottomHub.segments.apps, tray: bottomHub.segments.tray, status: bottomHub.segments.status },
                 statusCluster: { audio: bottomHub.statusCluster.audio, network: bottomHub.statusCluster.network, bluetooth: bottomHub.statusCluster.bluetooth, battery: bottomHub.statusCluster.battery }

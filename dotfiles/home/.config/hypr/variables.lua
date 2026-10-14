@@ -52,7 +52,10 @@ return {
     volumeMax                  = 100,
     cursorTheme                = "sweet-cursors",
     cursorSize                 = 24,
-    sleepGestureCmd            = "systemctl suspend-then-hibernate",
+    -- Suspensión a RAM: este equipo no tiene hibernación (solo zram, sin
+    -- resume=), así que suspend-then-hibernate fallaba siempre. El shell
+    -- bloquea la sesión antes de dormir (PrepareForSleep).
+    sleepCmd                   = "systemctl suspend",
 
     ------------------
     ---- KEYBINDS ----
@@ -142,6 +145,7 @@ return {
     kbLock                     = "SUPER + L",
     kbRestoreLock              = "SUPER + ALT + L",
     kbSleep                    = "SUPER + SHIFT + L",
+    kbKeepAwake                = "SUPER + ALT + K",
 
     -- Clipboard and emoji picker
     kbClipboard                = "SUPER + V",

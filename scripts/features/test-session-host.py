@@ -10,14 +10,13 @@ content = (repo / "cortetsu/modules/session/Content.qml").read_text(encoding="ut
 host = (repo / "cortetsu/modules/SessionHost.qml").read_text(encoding="utf-8")
 action_row = (repo / "cortetsu/components/CortetsuActionRow.qml").read_text(encoding="utf-8")
 
-# First-party power commands remain explicit and inspectable.
-for marker in (
-    '["systemctl", "suspend"]',
-    '["systemctl", "hibernate"]',
-    '["systemctl", "reboot"]',
-    '["systemctl", "poweroff"]',
-):
+# First-party power commands remain explicit and inspectable. Sleep modes go
+# through CortetsuSession, which only asks logind for the mode named.
+for marker in ('["systemctl", "reboot"]', '["systemctl", "poweroff"]', 'sleepMode: "suspend"', 'sleepMode: "hibernate"'):
     assert marker in content, marker
+session = (repo / "cortetsu/services/CortetsuSession.qml").read_text(encoding="utf-8")
+for marker in ('verb: "suspend"', 'verb: "hibernate"', 'verb: "suspend-then-hibernate"', '["systemctl", modes[mode].verb]'):
+    assert marker in session, marker
 
 # Hyprland's Lua config rejects `hyprctl dispatch <name> <args>`, so neither
 # action may shell out to it. test-cortetsu-session-runtime.py covers behaviour.
