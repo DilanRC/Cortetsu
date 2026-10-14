@@ -64,6 +64,11 @@ Singleton {
         }
     }
     Component { id: notifComponent; NotifData {} }
+    CortetsuShortcut {
+        name: "clearNotifs"
+        description: "Clear all notifications"
+        onPressed: root.clear()
+    }
     IpcHandler {
         target: "notifs"
         function clear(): void { root.clear(); }
