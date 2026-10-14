@@ -96,9 +96,9 @@ ColumnLayout {
             // Brightness scroll on bottom half
             const monitor = Brightness.getMonitorForScreen(screen);
             if (angleDelta.y > 0)
-                monitor.setBrightness(monitor.brightness + CortetsuConfig.brightnessIncrement);
+                monitor?.step(CortetsuConfig.brightnessIncrement);
             else if (angleDelta.y < 0)
-                monitor.setBrightness(monitor.brightness - CortetsuConfig.brightnessIncrement);
+                monitor?.step(-CortetsuConfig.brightnessIncrement);
         }
     }
 
