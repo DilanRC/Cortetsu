@@ -324,14 +324,17 @@ hl.bind(
     hl.dsp.global("cortetsu:overview")
 )
 
+-- App launchers. They used CTRL + End and CTRL + Down, which every editor and
+-- terminal needs for navigation; app shortcuts belong under SUPER. Change them
+-- in Hardware > Teclas.
 -- Cortetsu app shortcut: The Witcher 3: Wild Hunt (The Witcher 3 Wild Hunt)
 hl.bind(
-    "CTRL + End",
+    "SUPER + ALT + W",
     hl.dsp.exec_cmd([[steam steam://rungameid/292030]])
 )
 
 -- Cortetsu app shortcut: ChatGPT (chatgpt)
 hl.bind(
-    "CTRL + Down",
+    "SUPER + ALT + G",
     hl.dsp.exec_cmd([[chatgpt]])
 )

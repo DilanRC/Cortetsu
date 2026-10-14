@@ -24,15 +24,16 @@ TestCase {
         compare(KeyCapture.resolve(Qt.Key_Return, Qt.NoModifier).kind, "bare");
     }
 
-    function test_function_and_print_keys_need_no_modifier() {
-        compare(KeyCapture.resolve(Qt.Key_F9, Qt.NoModifier).chord, "F9");
+    function test_dedicated_keys_need_no_modifier() {
+        compare(KeyCapture.resolve(Qt.Key_F13, Qt.NoModifier).chord, "F13");
+        compare(KeyCapture.resolve(Qt.Key_F9, Qt.NoModifier).kind, "bare");
+        compare(KeyCapture.resolve(Qt.Key_MediaPlay, Qt.NoModifier).chord, "XF86AudioPlay");
         compare(KeyCapture.resolve(Qt.Key_F12, Qt.AltModifier).chord, "ALT + F12");
         compare(KeyCapture.resolve(Qt.Key_Print, Qt.NoModifier).chord, "Print");
     }
 
     function test_unnamed_key_is_reported_not_dropped() {
         compare(KeyCapture.resolve(Qt.Key_Exclam, Qt.ShiftModifier).kind, "unsupported");
-        compare(KeyCapture.resolve(Qt.Key_MediaPlay, Qt.NoModifier).kind, "unsupported");
     }
 
     function test_parts_split_a_stored_chord() {

@@ -31,13 +31,38 @@ local function flatten_keybinds(keybinds, keys)
     return keys
 end
 
+-- A bind created from a kb* variable carries its name as description, so
+-- `hyprctl binds -j` shows which action owns a chord. cortetsu-keybinds checks
+-- its edits by these tags (VAR_TAG there). Only an exact match to one
+-- variable's value is tagged: a shared or literal chord stays untagged.
+local function variable_for(keybinds)
+    local found
+    for name, value in pairs(vars) do
+        if type(name) == "string" and name:match("^kb") and rawequal(value, keybinds) then
+            if found then
+                return nil
+            end
+            found = name
+        end
+    end
+    return found
+end
+
 local function create_bind(keybinds, action, flags)
     local get_flags = type(flags) == "function" and flags or function()
         return flags
     end
 
+    local variable = variable_for(keybinds)
     for _, key in ipairs(flatten_keybinds(keybinds)) do
-        hl.bind(key, action, get_flags(key))
+        local options = {}
+        for option, value in pairs(get_flags(key) or {}) do
+            options[option] = value
+        end
+        if variable and not options.description then
+            options.description = "cortetsu:" .. variable
+        end
+        hl.bind(key, action, options)
     end
 end
 

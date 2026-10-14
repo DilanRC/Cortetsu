@@ -93,8 +93,25 @@ FocusScope {
         deleteReset.stop();
         pendingDeleteId = "";
         busy = true;
-        deleteProcess.command = [helperPath, "delete", identifier];
-        deleteProcess.running = true;
+        changeProcess.command = [helperPath, "delete", identifier];
+        changeProcess.running = true;
+    }
+
+    function requestReset(identifier): void {
+        busy = true;
+        changeProcess.command = [helperPath, "reset", identifier];
+        changeProcess.running = true;
+    }
+
+    // Where a bind comes from, or what it collides with.
+    function provenance(binding): string {
+        if ((binding.conflicts ?? []).length > 0)
+            return qsTr("También lo usa: %1").arg(binding.conflicts.join(", "));
+        if (!binding.active)
+            return qsTr("Desactivado · Restablecer lo devuelve");
+        if (binding.note)
+            return binding.note;
+        return ({ edited: qsTr("Cambiado por ti"), user: qsTr("hypr-user.lua"), fixed: binding.description })[binding.origin] ?? "";
     }
 
     function beginCapture(identifier, isNewApp, label, currentChord): void {
@@ -250,7 +267,7 @@ FocusScope {
     }
 
     Process {
-        id: deleteProcess
+        id: changeProcess
 
         stdout: StdioCollector {
             onStreamFinished: {
@@ -258,9 +275,7 @@ FocusScope {
                 try {
                     const result = JSON.parse(text.trim());
                     root.statusFailed = !result.ok;
-                    root.statusText = result.ok
-                        ? qsTr("Eliminado · %1").arg(result.deleted)
-                        : result.error;
+                    root.statusText = result.ok ? result.message : result.error;
                     if (result.ok)
                         root.refresh();
                 } catch (error) {
@@ -488,10 +503,11 @@ FocusScope {
 
                         CortetsuText {
                             width: parent.width
+                            readonly property bool conflicting: (bindingRow.modelData.conflicts ?? []).length > 0
                             // A description that only repeats the title adds nothing.
                             visible: text.length > 0 && text !== bindingRow.title
-                            text: bindingRow.modelData.description ?? ""
-                            color: CortetsuDesign.colorOnSurfaceVariant
+                            text: root.provenance(bindingRow.modelData) || (bindingRow.modelData.description ?? "")
+                            color: conflicting ? CortetsuDesign.colorVermillion : CortetsuDesign.colorOnSurfaceVariant
                             textSize: CortetsuTypography.labelSmallPx
                             elide: Text.ElideMiddle
                         }
@@ -499,15 +515,31 @@ FocusScope {
 
                     CortetsuButton {
                         id: chord
-                        anchors.right: remove.left
+                        anchors.right: reset.left
                         anchors.rightMargin: CortetsuDesign.spacingCompact
                         anchors.verticalCenter: parent.verticalCenter
                         compact: true
-                        disabled: root.busy
+                        disabled: root.busy || !bindingRow.modelData.editable
                         active: root.captureId === bindingRow.modelData.id
-                        label: root.captureId === bindingRow.modelData.id ? qsTr("Escuchando…") : bindingRow.modelData.chord
-                        tooltipText: qsTr("Cambiar la combinación")
+                        label: root.captureId === bindingRow.modelData.id ? qsTr("Escuchando…")
+                            : bindingRow.modelData.chord || qsTr("Sin combinación")
+                        tooltipText: bindingRow.modelData.editable ? qsTr("Cambiar la combinación") : qsTr("No se cambia desde aquí")
                         onClicked: root.beginCapture(bindingRow.modelData.id, false, bindingRow.title, bindingRow.modelData.chord)
+                    }
+
+                    CortetsuButton {
+                        id: reset
+                        anchors.right: remove.left
+                        anchors.rightMargin: CortetsuDesign.spacingCompact
+                        anchors.verticalCenter: parent.verticalCenter
+                        visible: !!bindingRow.modelData.resettable
+                        width: visible ? implicitWidth : 0
+                        compact: true
+                        disabled: root.busy
+                        icon: "restart_alt"
+                        tooltipText: qsTr("Volver a la combinación original")
+                        Accessible.name: qsTr("Restablecer %1").arg(bindingRow.title)
+                        onClicked: root.requestReset(bindingRow.modelData.id)
                     }
 
                     CortetsuButton {
@@ -515,6 +547,8 @@ FocusScope {
                         anchors.right: parent.right
                         anchors.rightMargin: CortetsuDesign.spacingCompact
                         anchors.verticalCenter: parent.verticalCenter
+                        visible: bindingRow.modelData.deletable !== false
+                        width: visible ? implicitWidth : 0
                         compact: true
                         disabled: root.busy
                         danger: bindingRow.deleting

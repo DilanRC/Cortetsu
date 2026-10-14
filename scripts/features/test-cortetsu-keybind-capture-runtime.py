@@ -58,6 +58,8 @@ ShellRoot {
                 root.verify(page.capturing && page.captureFailed && page.statusFailed, "a conflict keeps the editor listening");
                 root.verify(page.captureMessage.indexOf("already assigned") >= 0, "the conflict names the other action");
                 page.captureKey(Qt.Key_F9, Qt.NoModifier);
+                root.verify(page.capturing && page.captureFailed, "a bare F1-F12 key stays with applications");
+                page.captureKey(Qt.Key_F13, Qt.NoModifier);
             } else if (root.step === 3) {
                 root.verify(!page.capturing && !page.statusFailed, "a saved chord ends the capture");
                 page.beginCapture("shell.settings", false, "Ajustes", "F9");
@@ -101,11 +103,11 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-keybind-capture-") as temporar
     output = result.stdout + result.stderr
     assert result.returncode == 0, output
     assert "CAPTURE_FAIL" not in output, output
-    assert "CAPTURE_RUNTIME_PASS 11" in output, output
+    assert "CAPTURE_RUNTIME_PASS 12" in output, output
     for marker in ("TypeError", "ReferenceError"):
         assert marker not in output, output
     calls = (home / "calls").read_text().splitlines()
-    assert "set shell.settings SHIFT + SUPER + K" in calls and "set shell.settings F9" in calls, calls
+    assert "set shell.settings SHIFT + SUPER + K" in calls and "set shell.settings F13" in calls and "set shell.settings F9" not in calls, calls
     assert not any(call.startswith("set shell.settings A") for call in calls), calls
 
 print("PASS: shortcut capture has one explicit listening state with echo, refusal, conflict, cancel and timeout")
