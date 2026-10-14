@@ -357,7 +357,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-startup-test-") as temp:
     assert phases["cortetsu:brightness-maximum"] == "conditional"
     assert phases["cortetsu:connectivity-monitor"] == "always-on"
     assert phases["cortetsu:connectivity-command"] == "conditional"
-    assert phases["cortetsu:network-password-copy"] == "on-demand"
+    assert phases["cortetsu:network-password-copy"] == phases["cortetsu:network-password-clipboard"] == "on-demand"
     assert phases["cortetsu:wallpaper-scan"] == "conditional"
     assert phases["cortetsu:keyboard-state"] == "conditional"
     assert phases["cortetsu:window-list"] == "conditional"
@@ -374,8 +374,8 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-startup-test-") as temp:
     assert {entry["id"] for entry in app.CORTETSU_STARTUP} == {
         "cortetsu:pomodoro", "cortetsu:wallpaper-scan", "cortetsu:battery-notification",
         "cortetsu:battery-hibernate", "cortetsu:spectrum", "cortetsu:connectivity-monitor",
-        "cortetsu:connectivity-command", "cortetsu:network-password-copy", "cortetsu:vpn-status",
-        "cortetsu:brightness-discovery", "cortetsu:brightness-maximum", "cortetsu:nvibrant-query",
+        "cortetsu:connectivity-command", "cortetsu:network-password-copy", "cortetsu:network-password-clipboard", "cortetsu:vpn-status",
+        "cortetsu:brightness-discovery", "cortetsu:brightness-maximum", "cortetsu:nvibrant-status",
         "cortetsu:cpu-temperature", "cortetsu:gpu-probe", "cortetsu:storage-probe",
         "cortetsu:network-usage-probe", "cortetsu:recorder-status", "cortetsu:lock-keyboard-probe",
         "cortetsu:about-quickshell-version", "cortetsu:about-cortetsu-version",

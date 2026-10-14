@@ -227,11 +227,16 @@ QtObject {
 NVIBRANT = """pragma Singleton
 import QtQuick
 QtObject {
-    property int value: 0
+    readonly property int minimum: -1024
+    readonly property int maximum: 1023
     property bool available: false
+    property string connector: ""
+    property bool known: false
+    property int value: 0
+    property int requested: 0
     property bool busy: false
     property string error: ""
-    function setValue(next) { value = next; }
+    function setValue(next) { requested = next; value = next; known = true; }
 }
 """
 

@@ -80,13 +80,17 @@ ColumnLayout {
 
         SettingSliderRow {
             visible: Nvibrant.available
-            title: qsTr("Vibrance NVIDIA")
-            valueText: qsTr("%1 / 1024").arg(Nvibrant.value)
-            value: Nvibrant.value / 1024
-            disabled: Nvibrant.busy
+            title: qsTr("Vibrance NVIDIA · %1").arg(Nvibrant.connector)
+            valueText: Nvibrant.requested !== Nvibrant.value || !Nvibrant.known
+                ? (Nvibrant.busy ? qsTr("Aplicando %1").arg(Nvibrant.requested) : qsTr("Sin confirmar"))
+                : String(Nvibrant.value)
+            from: Nvibrant.minimum
+            to: Nvibrant.maximum
+            step: 1
+            value: Nvibrant.requested
             status: Nvibrant.error.length > 0 ? "error" : ""
             statusText: Nvibrant.error
-            onMoved: next => Nvibrant.setValue(next * 1024)
+            onMoved: next => Nvibrant.setValue(next)
         }
     }
 

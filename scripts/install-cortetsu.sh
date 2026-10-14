@@ -52,6 +52,13 @@ mkdir -p "$SYSTEMD_USER_DIR"
 install -m 0644 "$REPO/config/systemd/user/$KEEP_AWAKE_UNIT" "$SYSTEMD_USER_DIR/$KEEP_AWAKE_UNIT"
 install -m 0644 "$REPO/config/systemd/user/$WALLPAPER_COLOR_UNIT" "$SYSTEMD_USER_DIR/$WALLPAPER_COLOR_UNIT"
 
+# The pre-Cortetsu nvibrant.service runs a bare `nvibrant 128` at login and
+# would overwrite the profile that cortetsu-nvibrant reapplies from Hyprland.
+if systemctl --user is-enabled --quiet nvibrant.service 2>/dev/null; then
+    systemctl --user disable nvibrant.service >/dev/null 2>&1 || true
+    printf 'nvibrant.service desactivada; Cortetsu reaplica la vibrance. Revertir: systemctl --user enable nvibrant.service\n'
+fi
+
 # Low-level shell rollback remains available for recovery. Normal operation uses
 # `cortetsu rollback`, which reverts the full system generation.
 install -m 0755 "$REPO/cortetsu/bin/rollback-runtime.sh" "$BIN_DIR/cortetsu-rollback"

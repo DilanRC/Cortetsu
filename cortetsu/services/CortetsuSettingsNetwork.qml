@@ -31,6 +31,9 @@ Singleton {
     property string secretError: ""
     property var passwordCopyProcess: null
     readonly property bool secretBusy: !!passwordCopyProcess
+    // A copied password lives this long on the clipboard unless something else
+    // is copied first.
+    readonly property int secretClipboardLifetime: 45000
 
     function copyPassword(uuid) {
         if (secretBusy || !Policy.validUuid(uuid) || !profiles.some(profile => profile.uuid === uuid)) return;
@@ -55,11 +58,78 @@ Singleton {
         copyDeadline.stop();
         passwordCopyProcess = null;
         const secret = exitCode === 0 ? process.passwordReader.text.replace(/\r?\n$/, "") : "";
+        process.destroy();
         if (!secret.length) {
             secretState = "error";
             secretError = qsTr("No se pudo copiar la contraseña de este perfil");
-        } else { Quickshell.clipboardText = secret; secretState = "ready"; }
-        process.destroy();
+            return;
+        }
+        releaseSecretClipboard();
+        secretClipboard = secretClipboardComponent.createObject(root, { secret: secret });
+        secretClipboard.running = true;
+    }
+    // wl-copy --sensitive offers x-kde-passwordManagerHint, so `wl-paste
+    // --watch` hands clipse CLIPBOARD_STATE=sensitive and clipse skips the
+    // entry. Quickshell.clipboardText has no such hint and ends up in the
+    // persistent history. --foreground keeps wl-copy alive exactly while it
+    // owns the selection: it exits on its own when anything else is copied, so
+    // ending it at the deadline can never erase what the user copied later.
+    property var secretClipboard: null
+    function releaseSecretClipboard() {
+        secretExpiry.stop();
+        if (!secretClipboard) return;
+        const process = secretClipboard;
+        secretClipboard = null;
+        // Destroyed from its exit handler; destroying now would SIGKILL it.
+        if (process.running) process.signal(15);
+        else process.destroy();
+    }
+    function finishSecretClipboard(process, exitCode) {
+        if (process.finished) return;
+        process.finished = true;
+        Qt.callLater(() => process.destroy());
+        if (secretClipboard !== process) return;
+        const offered = process.offered;
+        secretClipboard = null;
+        secretExpiry.stop();
+        if (!offered) {
+            secretState = "error";
+            secretError = qsTr("No se pudo copiar de forma segura: wl-copy no está disponible");
+        } else if (exitCode !== 0) {
+            secretState = "error";
+            secretError = qsTr("No se pudo copiar de forma segura");
+        } else if (secretState === "ready") {
+            secretState = "idle";
+        }
+    }
+    readonly property Component secretClipboardComponent: Component {
+        // startup inventory: cortetsu:network-password-clipboard
+        Process {
+            id: secretCopy
+            property string secret
+            property bool offered: false
+            property bool finished: false
+            command: ["wl-copy", "--foreground", "--sensitive", "--type", "text/plain;charset=utf-8"]
+            stdinEnabled: true
+            onStarted: {
+                write(secret);
+                secret = "";
+                // Closing stdin is what makes wl-copy take the selection.
+                stdinEnabled = false;
+                offered = true;
+                root.secretState = "ready";
+                secretExpiry.restart();
+            }
+            onExited: exitCode => root.finishSecretClipboard(secretCopy, exitCode)
+            onRunningChanged: if (!running && root.secretClipboard === secretCopy) root.finishSecretClipboard(secretCopy, offered ? 0 : 127)
+        }
+    }
+    readonly property Timer secretExpiry: Timer {
+        interval: root.secretClipboardLifetime
+        onTriggered: {
+            root.releaseSecretClipboard();
+            if (root.secretState === "ready") root.secretState = "idle";
+        }
     }
     // The collector is destroyed with its one-shot query; no secret survives in service state.
     readonly property Component passwordCopyComponent: Component {
@@ -83,7 +153,7 @@ Singleton {
             root.secretError = qsTr("NetworkManager tardó demasiado");
         }
     }
-    Component.onDestruction: cancelPasswordCopy()
+    Component.onDestruction: { cancelPasswordCopy(); releaseSecretClipboard(); }
     function refresh() { ConnectivityWifi.refresh(); }
     function refreshAll() { ConnectivityWifi.refresh(); }
     function refreshNetworks() { ConnectivityWifi.refresh(); }
