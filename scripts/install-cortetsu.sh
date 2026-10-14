@@ -86,6 +86,9 @@ python3 "$REPO/core/shell_lifecycle.py" migrate
 
 systemctl --user daemon-reload >/dev/null 2>&1 || true
 
+source "$REPO/scripts/lib/notification-owner.sh"
+mask_rival_notification_daemon
+
 # The old unit held a permanent sleep:idle block inhibitor, so CanSuspend was
 # "inhibited" and the session menu's Suspend did nothing. Keep-awake is now
 # off by default and toggled from BottomHub, Settings, IPC or SUPER+ALT+K.
