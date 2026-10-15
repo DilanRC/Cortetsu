@@ -348,7 +348,7 @@ def run_host(folder: Path) -> str:
                 break
             time.sleep(0.05)
         output, _ = run(folder, "host.qml", "host", timeout=60,
-                        env={"XDG_RUNTIME_DIR": str(runtime), "WAYLAND_DISPLAY": "cortetsu-settings",
+                        env={"LANG": "C.UTF-8", "XDG_RUNTIME_DIR": str(runtime), "WAYLAND_DISPLAY": "cortetsu-settings",
                              "QT_QPA_PLATFORM": "wayland"})
     finally:
         compositor.terminate()

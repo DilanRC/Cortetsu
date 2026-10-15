@@ -91,7 +91,7 @@ def main() -> int:
             (shell / relative).write_text(text, encoding="utf-8")
         history = base / "state/cortetsu/notifs.json"
 
-        env = {"HOME": str(base), "PATH": os.environ["PATH"], "XDG_RUNTIME_DIR": str(runtime),
+        env = {"HOME": str(base), "PATH": os.environ["PATH"], "LANG": "C.UTF-8", "XDG_RUNTIME_DIR": str(runtime),
                "XDG_CONFIG_HOME": str(base / "cfg"), "XDG_STATE_HOME": str(base / "state")}
         bus = subprocess.Popen(["dbus-daemon", "--session", "--nofork", "--print-address=1"], env=env,
                                stdout=subprocess.PIPE, text=True)
