@@ -110,8 +110,29 @@ the popup collection after its configured timeout. The service remained at
 `NRestarts=0`, `ExecMainStatus=0`, with no new QML warnings or errors.
 
 The ownership check is part of the runtime contract: if another daemon claims
-`org.freedesktop.Notifications`, Cortetsu cannot receive the live event. Keep
-`mako.service` inactive while Cortetsu's native `NotificationServer` is in use.
+`org.freedesktop.Notifications`, Cortetsu cannot receive the live event.
+
+Disabling `mako.service` was not enough. mako ships
+`/usr/share/dbus-1/services/fr.emersion.mako.service` with
+`SystemdService=mako.service`, so the first notification sent before the shell
+registers the name activates mako and it keeps the bus (EVIDENCIA F06).
+
+`install-cortetsu.sh` calls `mask_rival_notification_daemon`
+(`scripts/lib/notification-owner.sh`), which masks that one user unit with
+`--now`, so a running mako stops too. mako stays installed; no generic unit or
+D-Bus file is touched. A notification sent in the startup window now fails
+instead of starting a rival server.
+
+If mako held the bus during the install, the running shell never got the name
+and does not retry. The installer prints a hint to run
+`systemctl --user restart cortetsu-shell` rather than restarting the shell
+itself. Masking blocks only systemd activation: a mako started by hand or from
+`exec-once` would still win (the repo starts none, and the live check below
+fails in that case). Revert with `systemctl --user unmask mako.service`.
+
+`scripts/features/test-notification-owner.py` runs that function against a fake
+systemctl and, on a live session, checks that the bus owner is
+`cortetsu-shell.service`.
 
 ```sh
 # Confirm current owner if the runtime is rebuilt:
