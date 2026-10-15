@@ -1,5 +1,6 @@
 pragma Singleton
 
+import QtQuick
 import Quickshell
 import Quickshell.Io
 
@@ -19,6 +20,7 @@ Singleton {
     property var history: []
     property bool dnd: false
     property bool loaded: false
+    property bool historyReady: false
 
     function readNotifications(): void {
         try {
@@ -47,12 +49,24 @@ Singleton {
         path: `${root.stateRoot}/cortetsu/notifs.json`
         watchChanges: true
         printErrors: false
-        onLoaded: root.readNotifications()
-        onFileChanged: root.readNotifications()
+        onLoaded: {
+            root.historyReady = true;
+            root.readNotifications();
+        }
+        onFileChanged: reload()
         onLoadFailed: {
             root.history = [];
             root.count = 0;
         }
+    }
+
+    // A missing file cannot be watched; Notifs creates it on its first save,
+    // so retry until it exists.
+    Timer {
+        running: !root.historyReady
+        interval: 1000
+        repeat: true
+        onTriggered: notifications.reload()
     }
 
     FileView {
@@ -65,9 +79,7 @@ Singleton {
             try { root.dnd = JSON.parse(text()).dnd === true; } catch (_) { root.dnd = false; }
             root.loaded = true;
         }
-        onFileChanged: {
-            try { root.dnd = JSON.parse(text()).dnd === true; } catch (_) { root.dnd = false; }
-        }
+        onFileChanged: reload()
         onLoadFailed: {
             root.loaded = true;
             setText(JSON.stringify({ dnd: false }));

@@ -6,13 +6,10 @@ watches reactively:
   - $XDG_STATE_HOME/cortetsu/notifs.json             (persisted notification history)
   - $XDG_STATE_HOME/cortetsu/notification-status.json (dnd flag)
 
-This script never touches the live DBus notification server (Quickshell's
-NotificationServer in the patched services/Notifs.qml, or a competing daemon
-such as mako). It only edits the persisted JSON snapshot Cortetsu renders in
-the bottom hub. Clearing/dismissing here removes entries from that snapshot;
-a notification the live server still considers open can be re-persisted by
-the live service on its next save cycle. See docs/notifications.md for the
-DBus ownership investigation this script's design is based on.
+This script never talks to the live DBus notification server. It edits the
+snapshot that services/Notifs.qml writes; Notifs watches the file and closes
+every notification its last save listed that the edit removed, so dismiss and
+clear reach the live list. See docs/NOTIFICATIONS.md.
 """
 from __future__ import annotations
 
@@ -36,18 +33,30 @@ def status_path() -> Path:
     return state_home() / "cortetsu/notification-status.json"
 
 
+class UnreadableHistory(Exception):
+    pass
+
+
 def load_history() -> list[dict[str, Any]]:
     try:
         data = json.loads(history_path().read_text(encoding="utf-8"))
-    except (OSError, ValueError):
+    except FileNotFoundError:
         return []
-    return data if isinstance(data, list) else []
+    except (OSError, ValueError) as error:
+        raise UnreadableHistory(str(error)) from error
+    if not isinstance(data, list):
+        raise UnreadableHistory("notifs.json is not a list")
+    return data
 
 
 def save_history(entries: list[dict[str, Any]]) -> None:
+    # Notifs.qml closes live notifications missing from this file, so it must
+    # never see a half-written one: write a sibling and rename it into place.
     path = history_path()
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(entries) + "\n", encoding="utf-8")
+    partial = path.with_name(f".{path.name}.{os.getpid()}")
+    partial.write_text(json.dumps(entries) + "\n", encoding="utf-8")
+    os.replace(partial, path)
 
 
 def entry_id(entry: dict[str, Any]) -> Any:
@@ -137,4 +146,8 @@ def main(argv: list[str]) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main(sys.argv[1:]))
+    try:
+        raise SystemExit(main(sys.argv[1:]))
+    except UnreadableHistory as error:
+        print(f"cortetsu-notifications: unreadable history, left untouched: {error}", file=sys.stderr)
+        raise SystemExit(65)

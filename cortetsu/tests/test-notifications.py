@@ -57,6 +57,15 @@ with tempfile.TemporaryDirectory() as directory:
     assert result.returncode == 0 and result.stdout.strip() == "1", result
     remaining = json.loads((state_dir / "notifs.json").read_text(encoding="utf-8"))
     assert [entry["notificationId"] for entry in remaining] == [2], remaining
+    assert sorted(path.name for path in state_dir.iterdir()) == ["notifs.json"], "partial write left behind"
+
+    # A half-written file is not an empty history: Notifs.qml would close every
+    # live notification missing from a rewritten [], so dismiss must refuse.
+    (state_dir / "notifs.json").write_text('[{"notificationId": 2', encoding="utf-8")
+    result = run(env, "dismiss", "2")
+    assert result.returncode == 65, result
+    assert (state_dir / "notifs.json").read_text(encoding="utf-8") == '[{"notificationId": 2', "file rewritten"
+    (state_dir / "notifs.json").write_text(json.dumps(remaining), encoding="utf-8")
 
     # Dismissing an id that no longer exists is a safe no-op.
     result = run(env, "dismiss", "999")

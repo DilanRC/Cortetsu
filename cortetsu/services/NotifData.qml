@@ -15,6 +15,7 @@ QtObject {
     property string timeStr: "now"
     property Notification notification
     property string notificationId: ""
+    property string key: ""
     property string summary: ""
     property string body: ""
     property string appIcon: ""

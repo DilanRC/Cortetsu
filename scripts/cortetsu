@@ -470,6 +470,7 @@ test_cmd() {
         "scripts/features/test-cortetsu-notifications.py"
         "scripts/features/test-notification-backend-boundary.py"
         "scripts/features/test-cortetsu-notification-actions.py"
+        "scripts/features/test-notification-history-runtime.py"
     )
     local test_path
     for test_path in "${tests[@]}"; do run_python_test "$test_path"; done
