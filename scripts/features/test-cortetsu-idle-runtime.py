@@ -164,7 +164,7 @@ def main() -> int:
         (shell / "services/Players.qml").write_text(PLAYERS_STUB, encoding="utf-8")
         (shell / "services/CortetsuPower.qml").write_text(POWER_STUB, encoding="utf-8")
 
-        env = {"HOME": str(base), "PATH": f"{tools}:{os.environ['PATH']}", "XDG_RUNTIME_DIR": str(runtime),
+        env = {"HOME": str(base), "PATH": f"{tools}:{os.environ['PATH']}", "LANG": "C.UTF-8", "XDG_RUNTIME_DIR": str(runtime),
                "XDG_CONFIG_HOME": str(base / "cfg"), "FAKE_SYSTEMCTL_LOG": str(calls)}
         compositor = subprocess.Popen(["Hyprland"], cwd=base, env=dict(env, WAYLAND_DISPLAY=parent_socket),
                                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)

@@ -38,7 +38,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-clip-") as temporary:
     runtime.mkdir(mode=0o700)
     (root / "cfg/hypr").mkdir(parents=True)
     (root / "cfg/hypr/hyprland.lua").write_text("hl.config({ misc = { disable_hyprland_logo = true } })\n")
-    base = {"HOME": str(root), "PATH": os.environ["PATH"], "XDG_RUNTIME_DIR": str(runtime),
+    base = {"HOME": str(root), "PATH": os.environ["PATH"], "LANG": "C.UTF-8", "XDG_RUNTIME_DIR": str(runtime),
             "XDG_CONFIG_HOME": str(root / "cfg")}
     compositor = subprocess.Popen(["Hyprland"], cwd=root, env=dict(base, WAYLAND_DISPLAY=parent_socket),
                                   stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)

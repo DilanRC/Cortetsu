@@ -63,7 +63,7 @@ class Nested:
     def start(self) -> None:
         shutil.rmtree(self.runtime, ignore_errors=True)
         self.runtime.mkdir(mode=0o700)
-        env = {"HOME": str(self.base / "home"), "PATH": os.environ["PATH"], "XDG_RUNTIME_DIR": str(self.runtime),
+        env = {"HOME": str(self.base / "home"), "PATH": os.environ["PATH"], "LANG": "C.UTF-8", "XDG_RUNTIME_DIR": str(self.runtime),
                "WAYLAND_DISPLAY": self.parent}
         self.process = subprocess.Popen(["Hyprland"], cwd=self.base, env=env,
                                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
