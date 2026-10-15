@@ -470,23 +470,11 @@ def rollback(repo: Path, profile_name: str | None = None) -> int:
 
 
 def gc(repo: Path, keep: int, profile_name: str | None = None) -> int:
+    # See core/system.py gc: deletions are planned only by the coordinator,
+    # which protects generations referenced by retained system metadata.
     load_manifest(repo, profile_name)
-    root = data_root() / "dotfiles/builds"
-    root.mkdir(parents=True, exist_ok=True)
-    protected = {
-        p for p in (
-            resolved_link(data_root() / "dotfiles/current"),
-            resolved_link(data_root() / "dotfiles/previous"),
-        ) if p is not None
-    }
-    builds = sorted((p for p in root.iterdir() if p.is_dir() and not p.name.startswith(".staging-")), key=lambda p: p.name, reverse=True)
-    retained = set(builds[: max(keep, 0)]) | protected
-    removed = 0
-    for build in builds:
-        if build not in retained:
-            shutil.rmtree(build)
-            removed += 1
-    print(f"GC removed={removed} retained={len(retained)}")
+    print("GC dotfiles: sin borrados; la recolección es coordinada y explícita.")
+    print(f"Revisa el plan con: cortetsu gc --keep {keep}")
     return 0
 
 
