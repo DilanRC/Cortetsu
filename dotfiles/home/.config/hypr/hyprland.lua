@@ -43,6 +43,55 @@ end
 -- Ensure a live scheme exists.
 maybe_copy(hypr .. "/scheme/default.lua", hypr .. "/scheme/current.lua")
 
+-- Keybinds edited with cortetsu-keybinds (Hardware > Teclas). Plain data in a
+-- mutable file outside the generations, so promotion and rollback keep it.
+-- A broken file is skipped with a notice: losing the edits beats losing every
+-- bind. Precedence: edits > hypr-user.lua > first-party defaults.
+local keybind_edits = {}
+local keybind_edits_path = hypr .. "/cortetsu-keybinds.lua"
+if file_exists(keybind_edits_path) then
+    local ok, data = pcall(dofile, keybind_edits_path)
+    if ok and type(data) == "table" then
+        keybind_edits = data
+    else
+        hl.exec_cmd("notify-send -a Cortetsu 'Atajos' 'cortetsu-keybinds.lua no es válido; se ignoraron los cambios'")
+    end
+end
+
+-- Rebound variables land in the shared `variables` table before any
+-- first-party module reads it. A one-chord list stays a string so modules
+-- that concatenate it keep working.
+package.loaded["variables"] = nil
+local vars = require("variables")
+local modifier_names = { SUPER = true, SHIFT = true, CTRL = true, CONTROL = true, ALT = true }
+local function only_strings(list)
+    for _, item in ipairs(list) do
+        if type(item) ~= "string" then
+            return false
+        end
+    end
+    return true
+end
+-- A modifier prefix such as kbGoToWs ("SUPER") is joined with keys in Lua;
+-- turning it into a list would break that, so it never changes here.
+local function is_prefix(value)
+    if type(value) ~= "string" then
+        return false
+    end
+    for part in value:gmatch("[^+%s]+") do
+        if not modifier_names[part:upper()] then
+            return false
+        end
+    end
+    return true
+end
+for name, chords in pairs(keybind_edits.variables or {}) do
+    if type(name) == "string" and name:match("^kb") and vars[name] ~= nil and not is_prefix(vars[name])
+        and type(chords) == "table" and only_strings(chords) then
+        vars[name] = #chords == 1 and chords[1] or chords
+    end
+end
+
 -- Required modules must fail loudly. Silently skipping one of these can
 -- remove entire groups of Hyprland configuration/keybinds after reload.
 local required_modules = {
@@ -99,5 +148,21 @@ if file_exists(cortetsu_user) then
     local ok, err = pcall(dofile, cortetsu_user)
     if not ok then
         error("[Cortetsu Hyprland] hypr-user.lua failed: " .. tostring(err))
+    end
+end
+
+-- Edits that replace or remove binds from the layers above, applied last.
+for _, chord in ipairs(keybind_edits.unbind or {}) do
+    if type(chord) == "string" then
+        hl.unbind(chord)
+    end
+end
+for _, bind in ipairs(keybind_edits.binds or {}) do
+    local action = type(bind.exec) == "string" and hl.dsp.exec_cmd(bind.exec)
+        or type(bind.global) == "string" and hl.dsp.global(bind.global)
+        or nil
+    if action and type(bind.chord) == "string" and type(bind.id) == "string" then
+        -- cortetsu-keybinds verifies this tag (EDIT_TAG there) after a reload.
+        hl.bind(bind.chord, action, { description = "cortetsu-keybinds:" .. bind.id })
     end
 end

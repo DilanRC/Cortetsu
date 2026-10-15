@@ -28,7 +28,8 @@ ColumnLayout {
     readonly property var groupTitles: ({
         "Cortetsu": qsTr("Cortetsu"),
         "Application": qsTr("Aplicaciones"),
-        "Custom": qsTr("Propios")
+        "Custom": qsTr("Propios"),
+        "Hardware": qsTr("Teclas del equipo")
     })
 
     function matches(binding): bool {
@@ -145,7 +146,9 @@ ColumnLayout {
                     required property var modelData
                     visible: root.matches(modelData)
                     title: modelData.label
-                    detail: modelData.description !== modelData.label ? (modelData.description ?? "") : ""
+                    detail: (modelData.conflicts ?? []).length > 0
+                        ? qsTr("También lo usa: %1").arg(modelData.conflicts.join(", "))
+                        : modelData.description !== modelData.label ? (modelData.description ?? "") : ""
                     value: modelData.chord
                 }
             }
