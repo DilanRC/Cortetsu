@@ -75,17 +75,21 @@ output.
 `scripts/features/test-zero-caelestia-gate.py` and
 `scripts/features/test-cortetsu-notifications.py`), so
 `CortetsuNotifications.qml` cannot call into the live `Notifs` singleton's
-in-memory list directly (e.g. to close one specific still-open toast). Its
-`dismiss`/`clear` therefore operate on the **persisted snapshot**
-(`cortetsu/notifs.json`) only. If the live shell's own `Notifs.qml` still
-considers a notification open, its own save timer can re-write that entry
-back into the snapshot on its next list mutation — this is expected, not a
-bug, and mirrors the same file-boundary tradeoff already accepted for DND.
-Actually clearing all *currently visible* toasts (not just history) is
-already possible with zero GlobalConfig coupling via upstream's own
-untouched `IpcHandler { target: "notifs" }` (`qs ipc call notifs clear`,
-`qs ipc call notifs toggleDnd`) — that code path was never part of the patch
-diff and needed no migration.
+in-memory list directly. `cortetsu/notifs.json` is the bridge instead:
+
+- `services/Notifs.qml` writes every open notification to it (300 ms
+  debounce) and restores them on start, without invocable actions.
+- When the file changes, Notifs closes each notification that its last save
+  listed and the edit removed. A notification that arrived after that save is
+  never closed by a stale snapshot. An empty file is a clear and closes
+  everything. An unreadable file is ignored, and the CLI writes atomically
+  and refuses to edit one. Before each save it rereads the file, so a
+  pending save cannot bring back what the CLI just dismissed.
+- Snapshot ids are `<arrival ms>-<server id>`, because the server restarts its
+  ids at 1 and would collide with restored entries.
+
+`scripts/features/test-notification-history-runtime.py` checks this end to
+end in a nested Hyprland with a private session bus.
 
 ## DBus notification ownership (runtime verification)
 
