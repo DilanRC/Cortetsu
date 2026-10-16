@@ -43,6 +43,38 @@ snapshot y recarga.
   `CTRL + Down`), F1–F12 solas, AltGr (escribe caracteres en latam) y las que ya
   usa otra acción.
 
+## Teclas del HP Victus
+
+| Tecla | Evento (capacidad del dispositivo y keymap latam; pulsación física pendiente) | Acción por defecto |
+|---|---|---|
+| OMEN | `KEY_PROG2` en «HP WMI hotkeys» → `XF86Launch2` (latam) | Hardware Center (`cortetsu:hardware`) |
+| Copilot | Super+Shift+`KEY_F23` en el teclado AT | Panel de acciones rápidas (`cortetsu:osd`) |
+| Calculadora | `KEY_CALC` → `XF86Calculator` | Sin asignar: no hay calculadora gráfica instalada; el cálculo del lanzador es `>calc` |
+| Fn+Esc | sin evento observado en el kernel | Sin asignar |
+
+- Los binds viven en `config/hypr-user.lua`; el editor (Hardware > Teclas) los
+  muestra como editables: cambiarlos o quitarlos es la reversión de cada uno.
+- `F23` y `Shift+F23` solos no se capturan; quedan para las aplicaciones.
+- Regresión: `scripts/integration/test-hp-keys.py` pulsa esos códigos con un
+  teclado virtual `latam` contra un Hyprland anidado con los mismos binds.
+
+### Gestos del touchpad ELAN
+
+Sin cambios: tres dedos arriba/abajo abren o alternan el workspace especial,
+cuatro en horizontal cambian de workspace y cuatro hacia abajo abren el menú de
+sesión (nunca suspenden directamente). No se añade un gesto de cinco dedos sin
+comprobar que el touchpad lo reporta.
+
+### Pruebas físicas pendientes (PENDING_PHYSICAL)
+
+1. OMEN: pulsarla abre el Hardware Center; otra vez lo cierra.
+2. Copilot: abre el panel de acciones rápidas; con un juego en primer plano no
+   debe interferir con el juego.
+3. Calculadora y Fn+Esc: ejecutar `journalctl -kf` y pulsar Fn+Esc; si aparece
+   `hp_wmi: Unknown key code`, anotar el código para asignarlo después.
+4. Cinco dedos: `sudo libinput debug-events --device /dev/input/event18` y
+   apoyar cinco dedos; si aparece `GESTURE_SWIPE_BEGIN ... 5`, el gesto es viable.
+
 ## Migración
 
 `~/.config/hypr/hypr-vars.lua`, donde escribía el editor anterior, nunca se
