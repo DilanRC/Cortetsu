@@ -85,3 +85,40 @@ activation to stdout. `GetLayout` respects the requested recursion depth and
 property list. Stopping or unregistering removes the item's bus name.
 Re-registering creates a new service name while retaining the application Id.
 The fixture does not drive the shell UI by itself.
+
+# Launcher dismissal (nested Hyprland)
+
+```sh
+python3 scripts/integration/test-launcher-dismiss.py --cycles 3
+```
+
+Runs the composed shell from this checkout in a nested Hyprland with the
+repository's Lua keybinds, three outputs (the nested window plus two headless
+ones) and a `kitty` terminal. `launcher_harness.py` compiles `vinput.c`, a virtual
+keyboard and pointer (`zwp_virtual_keyboard_v1`, `zwlr_virtual_pointer_v1`)
+that connects only to the nested `WAYLAND_DISPLAY`. Super therefore goes
+through Hyprland's real `SUPER_L` release bind and global-shortcut path, and
+the desktop session never receives an event.
+
+Isolation: temporary `HOME` and `XDG_*` directories, a private
+`dbus-daemon` with no service directories (nothing is bus-activated),
+`PATH` limited to a stub directory and `/usr/bin` (no `~/.local/bin`
+helpers), fixture `.desktop` entries, and a `cortetsu-launch-persistent` stub
+that only records argv. Startup programs from the Lua config are not run.
+
+Scenarios run on two headless outputs. The nested window's own output
+(`WAYLAND-1`) only gets frames when the desktop compositor paints that window,
+so a client commit on it can wait seconds; on it the launcher changed state
+without its surface catching up, which looked like the bug but was the test
+bed. The real Super key, the parent keyboard and pointer are disabled in the
+nested compositor (`hl.device`), and its `exec` binds are replaced by `true`
+so a stray chord never starts a real program.
+
+Every close is followed by a key typed into the terminal: the test fails if
+the launcher, or an invisible surface, still holds the keyboard. Needs a
+Wayland session, `Hyprland`, `qs`, `kitty`, `cc`, `wayland-scanner`,
+`pkg-config` with `wayland-client` and `xkbcommon`, and `dbus-daemon`; it
+prints SKIP otherwise. `cortetsu test` runs it with the default two cycles.
+
+The real Super key cannot be replaced fully: a physical check on the laptop
+keyboard is listed in the PR.

@@ -440,6 +440,7 @@ test_cmd() {
         "scripts/features/eval-cortetsu-dashboard-typography.py"
         "scripts/features/test-launcher-focus-runtime-contract.py"
         "scripts/features/eval-launcher-focus-runtime-contract.py"
+        "scripts/integration/test-launcher-dismiss.py"
         "scripts/features/test-launcher-process-scope.py"
         "scripts/features/eval-cortetsu-process-launcher.py"
         "scripts/features/test-cortetsu-scheme.py"

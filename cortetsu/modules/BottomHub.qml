@@ -46,11 +46,7 @@ Scope {
     }
 
     function closeAllLaunchers(): void {
-        for (const screen of CortetsuScreens.screens) {
-            const state = CortetsuShellState.forScreen(screen);
-            if (state)
-                state.launcher = false;
-        }
+        CortetsuShellState.closeLaunchers(null);
     }
 
     function closeAllPanels(): void {
@@ -158,7 +154,7 @@ Scope {
         if (!state)
             return;
 
-        const wasOpen = state.launcher;
+        const wasOpen = CortetsuShellState.launcherOpenAnywhere();
         closeAllLaunchers();
         closeAllPanels();
         if (!wasOpen)
