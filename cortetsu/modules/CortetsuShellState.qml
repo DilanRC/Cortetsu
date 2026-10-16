@@ -39,6 +39,20 @@ QtObject {
         return states.find(entry => entry.screen === screen)?.state ?? null;
     }
 
+    // The launcher is one effective state across screens: at most one screen
+    // has it open, and a toggle closes it wherever it is. Resolving the
+    // screen from the focused monitor alone moved the launcher to the
+    // pointer's monitor instead of closing it.
+    function launcherOpenAnywhere(): bool {
+        return states.some(entry => !!entry.state?.launcher);
+    }
+
+    function closeLaunchers(except): void {
+        for (const entry of states)
+            if (entry.state && entry.state !== except)
+                entry.state.launcher = false;
+    }
+
     function anySidebarOpen(): bool {
         return states.some(entry => !!entry.state?.sidebar);
     }
