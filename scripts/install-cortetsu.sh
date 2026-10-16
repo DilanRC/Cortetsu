@@ -19,6 +19,12 @@ atomic_symlink() {
     mv -Tf "$temporary" "$link"
 }
 
+mkdir -p "$DATA_ROOT"
+# Held for the whole install so an explicit GC cannot run against a
+# half-promoted system; GC takes this lock without waiting and refuses.
+exec 8>>"$DATA_ROOT/install.lock"
+flock -n 8 || { printf 'ERROR: ya hay una instalación de Cortetsu en curso\n' >&2; exit 1; }
+
 legacy_state_present=0
 for legacy_candidate in \
     "${XDG_CONFIG_HOME:-$HOME/.config}/caelestia" \
@@ -128,10 +134,14 @@ fi
 printf '==> Generación unificada Cortetsu\n'
 python3 "$REPO/core/system.py" promote --repo "$REPO"
 
-printf '==> Verificación completa antes de GC\n'
+printf '==> Verificación completa del sistema promovido\n'
 "$REPO/scripts/cortetsu" verify
-printf '==> GC conservador de generaciones\n'
-"$REPO/scripts/cortetsu" gc --keep 5
+# Installation never deletes generations. The report below is computed after
+# promotion, so it names exactly what an explicit `cortetsu gc --apply` would
+# remove now; the user decides whether to run it.
+printf '==> Generaciones (solo inspección, no se borra nada)\n'
+"$REPO/scripts/cortetsu" gc --keep 5 | grep -E '^(TOTAL_DELETE|TOTAL_RECLAIM|PLAN_ID|  DELETE)' || true
+printf 'Detalle y aplicación explícita: cortetsu gc\n'
 
 # Never restart shell supervision implicitly. The promoted generation is safe
 # to adopt on an explicit soft reload that keeps the process alive. Persistent

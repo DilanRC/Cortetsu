@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
 import fcntl
+import hashlib
 import json
 import os
 import re
 import shutil
 import subprocess
+import tarfile
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -28,6 +31,7 @@ class LayerPlan:
     protected: frozenset[Path]
     invalid: tuple[str, ...]
     sizes: dict[Path, int]
+    reasons: dict[Path, tuple[str, ...]]
 
     @property
     def deletions(self) -> tuple[Path, ...]:
@@ -48,6 +52,24 @@ class GCPlan:
     keep: int
     pins: dict[str, tuple[str, ...]]
     symlinks: dict[str, str]
+
+    @property
+    def plan_id(self) -> str:
+        """Digest of everything an approval covers; any drift changes it."""
+        payload = {
+            "keep": self.keep,
+            "pins": self.pins,
+            "symlinks": self.symlinks,
+            "layers": {
+                name: {
+                    "delete": sorted(path.name for path in layer.deletions),
+                    "protected": sorted(path.name for path in layer.protected),
+                }
+                for name, layer in sorted(self.layers.items())
+            },
+        }
+        encoded = json.dumps(payload, sort_keys=True).encode("utf-8")
+        return hashlib.sha256(encoded).hexdigest()[:16]
 
 
 _PIN_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
@@ -197,14 +219,19 @@ def _layer(
     previous: Path,
     extra: set[Path],
     pins: tuple[str, ...],
+    extra_reason: str,
 ) -> LayerPlan:
     generations = _direct_generations(root, name)
     by_name = {path.name: path for path in generations}
     protected = {current, previous, *extra}
+    reasons: dict[Path, list[str]] = {}
+    for path, reason in ((current, "current"), (previous, "previous"), *((path, extra_reason) for path in extra)):
+        reasons.setdefault(path, []).append(reason)
     for pin in pins:
         if pin not in by_name:
             raise GenerationGCError(f"pin {name}/{pin} no existe en {root}")
         protected.add(by_name[pin])
+        reasons.setdefault(by_name[pin], []).append("pinned")
     unknown = protected.difference(generations)
     if unknown:
         raise GenerationGCError(f"referencia {name} no existe: {', '.join(map(str, unknown))}")
@@ -220,7 +247,8 @@ def _layer(
     if invalid:
         raise GenerationGCError("generaciones protegidas inválidas: " + "; ".join(invalid))
     sizes = {path: _directory_size(path) for path in generations}
-    return LayerPlan(name, root, generations, frozenset(protected), tuple(invalid), sizes)
+    frozen_reasons = {path: tuple(dict.fromkeys(values)) for path, values in reasons.items()}
+    return LayerPlan(name, root, generations, frozenset(protected), tuple(invalid), sizes, frozen_reasons)
 
 
 def build_plan(keep: int = 5) -> GCPlan:
@@ -249,6 +277,7 @@ def build_plan(keep: int = 5) -> GCPlan:
     system_by_name = {path.name: path for path in system_generations}
     system_protected = {system_current, system_previous}
     _select_additional(system_generations, system_protected, len(system_protected) + keep)
+    system_additional = system_protected.difference({system_current, system_previous})
     pin_values = _pins(data, ("shell", "dotfiles", "system"))
     for pin in pin_values["system"]:
         if pin not in system_by_name:
@@ -272,9 +301,9 @@ def build_plan(keep: int = 5) -> GCPlan:
         raise GenerationGCError("drift: dotfiles current no coincide con system/current")
 
     layers = {
-        "system": _layer("system", system_root, system_current, system_previous, system_protected.difference({system_current, system_previous}), pin_values["system"]),
-        "shell": _layer("shell", shell_root, shell_current, shell_previous, system_refs, pin_values["shell"]),
-        "dotfiles": _layer("dotfiles", dots_root, dots_current, dots_previous, dots_refs, pin_values["dotfiles"]),
+        "system": _layer("system", system_root, system_current, system_previous, system_additional, pin_values["system"], "additional"),
+        "shell": _layer("shell", shell_root, shell_current, shell_previous, system_refs, pin_values["shell"], "referenced"),
+        "dotfiles": _layer("dotfiles", dots_root, dots_current, dots_previous, dots_refs, pin_values["dotfiles"], "referenced"),
     }
     symlinks = {name: str(_real(path)) for name, path in links.items()}
     return GCPlan(layers, keep, pin_values, symlinks)
@@ -291,9 +320,19 @@ def _human_bytes(value: int) -> str:
 
 
 def render(plan: GCPlan, dry_run: bool) -> str:
-    lines = ["Cortetsu generation GC", f"MODE={'DRY-RUN' if dry_run else 'APPLY'}", f"KEEP_ADDITIONAL={plan.keep}"]
+    lines = [
+        "Cortetsu generation GC",
+        f"MODE={'DRY-RUN' if dry_run else 'APPLY'}",
+        f"KEEP_ADDITIONAL={plan.keep}",
+        "RETENTION current+previous always; additional=newest system generations; "
+        "referenced=components of retained system generations; pinned=pins/<layer>.txt",
+    ]
+    total_delete = 0
+    total_reclaim = 0
     for name in ("system", "shell", "dotfiles"):
         layer = plan.layers[name]
+        total_delete += len(layer.deletions)
+        total_reclaim += layer.reclaim_size
         lines += [
             f"\n{name.upper()}:",
             f"  generations={len(layer.generations)}",
@@ -301,11 +340,25 @@ def render(plan: GCPlan, dry_run: bool) -> str:
             f"  delete={len(layer.deletions)}",
             f"  total_size={_human_bytes(layer.total_size)}",
             f"  estimated_reclaim={_human_bytes(layer.reclaim_size)}",
-            "  PROTECTED " + ", ".join(sorted(path.name for path in layer.protected)),
-            f"  WOULD_DELETE count={len(layer.deletions)}",
-            "  WOULD_KEEP " + (", ".join(sorted(path.name for path in layer.protected)) or "none"),
         ]
-    lines.append("\nINVALID: none")
+        for path in sorted(layer.protected, key=lambda item: item.name, reverse=True):
+            lines.append(f"  KEEP   {path.name} [{','.join(layer.reasons.get(path, ()))}]")
+        for path in layer.deletions:
+            lines.append(f"  DELETE {path.name} ({_human_bytes(layer.sizes[path])})")
+    lines += [
+        "\nINVALID: none",
+        f"TOTAL_DELETE={total_delete}",
+        f"TOTAL_RECLAIM={_human_bytes(total_reclaim)}",
+        f"PLAN_ID {plan.plan_id}",
+    ]
+    if dry_run:
+        if total_delete:
+            lines.append(
+                "Nada se borró. Para aplicar exactamente este plan: "
+                f"cortetsu gc --apply --keep {plan.keep} --plan-id {plan.plan_id} [--archive]"
+            )
+        else:
+            lines.append("Nada que recolectar.")
     return "\n".join(lines)
 
 
@@ -350,6 +403,49 @@ def _safe_delete(path: Path, root: Path) -> None:
     shutil.rmtree(path)
 
 
+def _archive_required_bytes(plan: GCPlan) -> int:
+    # ponytail: allocated size is an upper bound for an uncompressed tar of
+    # small files; gzip only shrinks it. The margin covers tar headers.
+    return sum(layer.reclaim_size for layer in plan.layers.values()) + 16 * 1024 * 1024
+
+
+def _check_archive_space(plan: GCPlan) -> None:
+    target = _real(data_root()) / "gc-backups"
+    probe = target if target.exists() else target.parent
+    free = shutil.disk_usage(probe).free
+    required = _archive_required_bytes(plan)
+    if free < required:
+        raise GenerationGCError(
+            f"espacio insuficiente para el archivo completo: libre={_human_bytes(free)} "
+            f"requerido={_human_bytes(required)}; no se borró nada"
+        )
+
+
+def _tree_entries(path: Path) -> set[str]:
+    entries = {path.name}
+    for base, dirs, files in os.walk(path, followlinks=False):
+        for name in [*dirs, *files]:
+            entries.add(str(Path(path.name) / Path(base, name).relative_to(path)))
+    return entries
+
+
+def _archive(plan: GCPlan, backup: Path) -> list[Path]:
+    """Write and verify a full tar.gz of every generation about to be deleted."""
+    archives: list[Path] = []
+    for name, layer in plan.layers.items():
+        for path in layer.deletions:
+            destination = backup / "archives" / name / f"{path.name}.tar.gz"
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            with tarfile.open(destination, "w:gz") as archive:
+                archive.add(path, arcname=path.name, recursive=True)
+            with tarfile.open(destination, "r:gz") as archive:
+                members = {member.name for member in archive.getmembers()}
+            if members != _tree_entries(path):
+                raise GenerationGCError(f"archivo incompleto, se aborta sin borrar: {destination}")
+            archives.append(destination)
+    return archives
+
+
 def apply(plan: GCPlan) -> None:
     for name in ("system", "dotfiles", "shell"):
         layer = plan.layers[name]
@@ -358,22 +454,60 @@ def apply(plan: GCPlan) -> None:
     build_plan(plan.keep)
 
 
-def run(repo: Path, keep: int = 5, dry_run: bool = False) -> int:
+@contextlib.contextmanager
+def generation_locks():
+    """Hold every lock that install, build, promote and rollback take.
+
+    Acquisition is non-blocking: collection refuses to run next to another
+    generation operation instead of queueing behind it with a stale view.
+    """
     data = _real(data_root())
-    lock_path = data / "gc.lock"
+    paths = (
+        data / "install.lock",
+        data / "build.lock",
+        data / "system" / "system.lock",
+        data / "gc.lock",
+    )
+    with contextlib.ExitStack() as stack:
+        for path in paths:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            handle = stack.enter_context(path.open("a", encoding="utf-8"))
+            try:
+                fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError as exc:
+                raise GenerationGCError(f"otra operación de generaciones está en curso ({path.name}); no se borró nada") from exc
+        yield
+
+
+def run(repo: Path, keep: int = 5, dry_run: bool = True, plan_id: str | None = None, archive: bool = False) -> int:
     if dry_run:
-        plan = build_plan(keep)
-        print(render(plan, True))
+        print(render(build_plan(keep), True))
         return 0
-    data.mkdir(parents=True, exist_ok=True)
-    with lock_path.open("w", encoding="utf-8") as lock:
-        fcntl.flock(lock, fcntl.LOCK_EX)
+    if not plan_id:
+        raise GenerationGCError("--apply exige --plan-id de un dry-run reciente")
+    with generation_locks():
         plan = build_plan(keep)
+        if plan.plan_id != plan_id:
+            raise GenerationGCError(
+                f"el plan cambió desde su aprobación (aprobado={plan_id} actual={plan.plan_id}); "
+                "revisa de nuevo con: cortetsu gc"
+            )
+        if not any(layer.deletions for layer in plan.layers.values()):
+            print(render(plan, False))
+            print("GC_APPLIED deleted=0")
+            return 0
+        if archive:
+            _check_archive_space(plan)
         output = render(plan, False)
         backup = _metadata_snapshot(plan, repo, output)
+        archives = _archive(plan, backup) if archive else []
         apply(plan)
         print(output)
         print(f"BACKUP_METADATA {backup}")
+        if archive:
+            print(f"BACKUP_ARCHIVES verified={len(archives)} dir={backup / 'archives'}")
+        else:
+            print("BACKUP_ARCHIVES none (solo metadatos: las generaciones borradas no son recuperables desde gc-backups)")
         print("GC_APPLIED verified=plan-and-links")
     return 0
 
@@ -382,11 +516,17 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Cortetsu coordinated generation garbage collection")
     parser.add_argument("--repo", type=Path, default=Path(__file__).resolve().parents[1])
     parser.add_argument("--keep", type=int, default=5)
-    parser.add_argument("--dry-run", action="store_true")
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--dry-run", action="store_true", help="inspect only (default)")
+    mode.add_argument("--apply", action="store_true", help="delete exactly the plan named by --plan-id")
+    parser.add_argument("--plan-id")
+    parser.add_argument("--archive", action="store_true", help="write and verify full tar.gz archives before deleting")
     args = parser.parse_args()
+    if not args.apply and (args.plan_id or args.archive):
+        parser.error("--plan-id y --archive solo tienen efecto con --apply")
     try:
-        return run(args.repo.resolve(), args.keep, args.dry_run)
-    except (GenerationGCError, OSError, ValueError, json.JSONDecodeError) as exc:
+        return run(args.repo.resolve(), args.keep, not args.apply, args.plan_id, args.archive)
+    except (GenerationGCError, OSError, ValueError, json.JSONDecodeError, tarfile.TarError) as exc:
         print(f"ERROR: {exc}", file=os.sys.stderr)
         return 1
 
