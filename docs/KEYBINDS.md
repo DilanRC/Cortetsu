@@ -53,3 +53,20 @@ en su sitio para consultarlo.
 
 Borrar `~/.config/cortetsu/keybinds.json` y `~/.config/hypr/cortetsu-keybinds.lua`
 y ejecutar `hyprctl reload` vuelve a los atajos de la generación.
+
+## Lanzador: apertura y cierre
+
+- El lanzador es un único estado entre pantallas: como mucho una lo tiene
+  abierto. Super (y `drawers toggle launcher`, `customDock launcher`) lo
+  cierra esté donde esté; antes, con el puntero en el otro monitor, lo movía
+  allí en lugar de cerrarlo.
+- Escape lo cierra; un clic dentro de su pantalla pero fuera del panel también,
+  igual que Hardware, Portapapeles, Pantallas y Fondos.
+- Super como modificador (`SUPER + 1`, `SUPER + arrastre`) no lo abre: Hyprland
+  descarta el bind de liberación de `SUPER_L` cuando hubo otra tecla o botón.
+- Diagnóstico: `cortetsu shell ipc drawers launcherScreens` lista las pantallas
+  con el lanzador abierto. Si se ve abierto y la salida está vacía, el estado
+  ya cerró y la superficie no recibió un fotograma nuevo (compositor); si la
+  salida no está vacía, el fallo es de estado.
+- Regresión: `scripts/integration/test-launcher-dismiss.py`.
+

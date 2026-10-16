@@ -116,12 +116,16 @@ Scope {
             const target = drawer === "qsd" ? "osd" : drawer;
             if (!state || typeof state[target] !== "boolean") return;
             if (root.hasFullscreen && ["launcher", "session", "dashboard", "utilities", "settings"].includes(target)) return;
-            if (["launcher", "session", "dashboard", "utilities", "settings"].includes(target))
+            if (target === "launcher" && CortetsuShellState.launcherOpenAnywhere())
+                CortetsuShellState.closeLaunchers(null);
+            else if (["launcher", "session", "dashboard", "utilities", "settings"].includes(target))
                 root.toggleExclusive(state, target);
             else
                 state[target] = !state[target];
         }
         function list(): string { const state = CortetsuShellState.forActive(); return state ? Object.keys(state).filter(k => typeof state[k] === "boolean").join("\n") : ""; }
+        // Screens whose launcher is open; the single-state contract keeps it to one line at most.
+        function launcherScreens(): string { return CortetsuShellState.states.filter(entry => !!entry.state?.launcher).map(entry => entry.screen?.name ?? "").join("\n"); }
         function isOpen(drawer: string): string { const state = CortetsuShellState.forActive(); return !state || typeof state[drawer] !== "boolean" ? "unknown" : state[drawer] ? "1" : "0"; }
     }
 }
