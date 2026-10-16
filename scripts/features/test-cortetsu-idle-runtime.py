@@ -7,6 +7,7 @@ lock controller is a stand-in with the surface of modules/lock/Lock.qml
 logind is asked nothing and the machine can never be suspended. The Hyprland
 singleton records dispatches instead of running them.
 """
+import contextlib
 import json
 import os
 import shutil
@@ -274,15 +275,16 @@ def main() -> int:
             raise
         finally:
             if proc:
-                os.killpg(proc.pid, signal.SIGTERM)
+                # An empty group (qs crashed with no helpers left) raises
+                # ProcessLookupError; it must not hide the test's own failure.
+                with contextlib.suppress(ProcessLookupError):
+                    os.killpg(proc.pid, signal.SIGTERM)
                 try:
                     proc.wait(5)
                 except subprocess.TimeoutExpired:
                     pass
-                try:
+                with contextlib.suppress(ProcessLookupError):
                     os.killpg(proc.pid, signal.SIGKILL)
-                except ProcessLookupError:
-                    pass
             log.close()
             compositor.terminate()
             try:
