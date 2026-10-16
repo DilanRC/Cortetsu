@@ -69,4 +69,3 @@ y ejecutar `hyprctl reload` vuelve a los atajos de la generación.
   ya cerró y la superficie no recibió un fotograma nuevo (compositor); si la
   salida no está vacía, el fallo es de estado.
 - Regresión: `scripts/integration/test-launcher-dismiss.py`.
-
