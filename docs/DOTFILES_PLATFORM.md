@@ -69,8 +69,10 @@ cortetsu system status
 cortetsu system rollback
 cortetsu dotfiles status
 cortetsu dotfiles verify
-cortetsu dotfiles gc
+cortetsu gc            # plan de recolección, solo lectura
 ```
+
+La recolección de generaciones es explícita y coordinada; ver la sección *Generation storage and garbage collection* del README. `cortetsu install` nunca borra generaciones.
 
 `cortetsu install` construye primero un shell válido, promueve los dotfiles, ejecuta integraciones y finalmente crea una generación de sistema que fija ese par. El servicio `cortetsu-shell.service` se instala pero no se habilita automáticamente mientras exista la posibilidad de un autostart previo.
 
