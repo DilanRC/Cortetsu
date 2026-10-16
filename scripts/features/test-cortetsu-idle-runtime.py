@@ -7,9 +7,11 @@ lock controller is a stand-in with the surface of modules/lock/Lock.qml
 logind is asked nothing and the machine can never be suspended. The Hyprland
 singleton records dispatches instead of running them.
 """
+import contextlib
 import json
 import os
 import shutil
+import signal
 import subprocess
 import sys
 import tempfile
@@ -173,7 +175,11 @@ def main() -> int:
         try:
             wait_for(lambda: (runtime / "wayland-1").exists(), "Hyprland anidado")
             nested = dict(env, WAYLAND_DISPLAY="wayland-1", QT_QPA_PLATFORM="wayland")
-            proc = subprocess.Popen(["qs", "-p", str(shell), "-n"], env=nested, stdout=log, stderr=subprocess.STDOUT)
+            # Own process group: the shell's helpers (systemd-inhibit holding a
+            # real logind delay lock, dbus-monitor) are not in a cgroup here and
+            # outlive a plain terminate of qs.
+            proc = subprocess.Popen(["qs", "-p", str(shell), "-n"], env=nested, stdout=log, stderr=subprocess.STDOUT,
+                                    start_new_session=True)
 
             def call(fn: str, *args: str) -> str:
                 result = subprocess.run(["qs", "ipc", "--pid", str(proc.pid), "call", "harness", fn, *args],
@@ -269,11 +275,16 @@ def main() -> int:
             raise
         finally:
             if proc:
-                proc.terminate()
+                # An empty group (qs crashed with no helpers left) raises
+                # ProcessLookupError; it must not hide the test's own failure.
+                with contextlib.suppress(ProcessLookupError):
+                    os.killpg(proc.pid, signal.SIGTERM)
                 try:
                     proc.wait(5)
                 except subprocess.TimeoutExpired:
-                    proc.kill()
+                    pass
+                with contextlib.suppress(ProcessLookupError):
+                    os.killpg(proc.pid, signal.SIGKILL)
             log.close()
             compositor.terminate()
             try:
