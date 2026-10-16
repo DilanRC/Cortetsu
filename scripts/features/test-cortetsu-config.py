@@ -149,7 +149,7 @@ metrics = {
     "Memory.qml": ("/proc/meminfo", "property real used"),
     "Storage.qml": ("df -kP", "property list<var> disks"),
     "NetworkUsage.qml": ("/proc/net/dev", "property real downloadSpeed"),
-    "Gpu.qml": ("nvidia-smi", "property int noneType"),
+    "Gpu.qml": ("cortetsu-hardware-probe", "property int noneType"),
     "UsageFmt.qml": ("formatKib", "QtObject"),
 }
 for filename, markers in metrics.items():
