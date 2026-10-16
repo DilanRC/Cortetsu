@@ -5,7 +5,6 @@ import argparse
 import fcntl
 import json
 import os
-import shutil
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -130,6 +129,14 @@ def build_id() -> str:
 
 
 def promote(repo: Path) -> int:
+    root = system_root()
+    root.mkdir(parents=True, exist_ok=True)
+    with (root / "system.lock").open("w", encoding="utf-8") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        return _promote(repo)
+
+
+def _promote(repo: Path) -> int:
     shell, dots = current_components()
     root = system_root()
     builds = root / "builds"
@@ -252,18 +259,11 @@ def rollback(repo: Path) -> int:
 
 
 def gc(repo: Path, keep: int) -> int:
-    root = system_root()
-    builds = root / "builds"
-    builds.mkdir(parents=True, exist_ok=True)
-    protected = {p for p in (resolve_link(root / "current"), resolve_link(root / "previous")) if p is not None}
-    candidates = sorted((p for p in builds.iterdir() if p.is_dir()), key=lambda p: p.name, reverse=True)
-    retained = set(candidates[: max(keep, 0)]) | protected
-    removed = 0
-    for candidate in candidates:
-        if candidate not in retained:
-            shutil.rmtree(candidate)
-            removed += 1
-    print(f"GC system removed={removed} retained={len(retained)}")
+    # A per-layer collector cannot see which shell and dotfiles generations a
+    # retained system generation still references. Only the coordinator may
+    # plan deletions; this action stays as a read-only pointer to it.
+    print("GC system: sin borrados; la recolección es coordinada y explícita.")
+    print(f"Revisa el plan con: cortetsu gc --keep {keep}")
     return 0
 
 

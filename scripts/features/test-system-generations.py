@@ -94,8 +94,10 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-system-test-") as tmp:
     assert (data / "dotfiles/previous").resolve(strict=True) == dots2
     run(env, SYSTEM, "verify")
 
-    gc = run(env, SYSTEM, "gc", "--keep", "1")
-    assert "GC system" in gc
-    assert system1.exists() and system2.exists()
+    # The per-layer action must not delete: it cannot see cross-layer references.
+    builds_before = set((data / "system/builds").iterdir())
+    gc = run(env, SYSTEM, "gc", "--keep", "0")
+    assert "sin borrados" in gc
+    assert set((data / "system/builds").iterdir()) == builds_before
 
 print("PASS: unified system promotion/verify/rollback/gc keeps shell and dotfiles coherent")

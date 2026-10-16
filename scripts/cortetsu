@@ -54,8 +54,9 @@ Usage:
   cortetsu emoji [-p] [-f]        Emoji/glyph picker (-p) or data refresh (-f)
   cortetsu test                    Run repository, UX and transaction regressions
   cortetsu verify                  Verify the complete promoted Cortetsu system
-  cortetsu gc [--dry-run] [--keep N]
-                                  Collect unreferenced generations safely
+  cortetsu gc [--keep N]           Show exactly what collection would delete (read-only)
+  cortetsu gc --apply --plan-id ID [--keep N] [--archive]
+                                  Delete only that reviewed plan; --archive keeps verified tar.gz
   cortetsu audit                   Run status, doctor, tests and verification
   cortetsu install                 Build shell, dotfiles and unified system generation
   cortetsu help                    Show this help

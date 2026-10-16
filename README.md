@@ -120,23 +120,55 @@ system generation is retained together with the shell and dotfiles generations
 named by its `SYSTEM.json`; deleting any of those references would make the
 rollback contract invalid.
 
-Use the coordinator for collection:
+Collection is always a separate, explicit operation. `cortetsu install`
+never deletes generations: after promoting, it only prints what a collection
+would remove at that moment.
 
 ```bash
-cortetsu gc --dry-run
-cortetsu gc --keep 5 --dry-run
-cortetsu gc --keep 5
+cortetsu gc                      # read-only plan (default); prints PLAN_ID
+cortetsu gc --keep 8             # same, with a larger retention window
+cortetsu gc --apply --keep 5 --plan-id <PLAN_ID>             # delete that plan
+cortetsu gc --apply --keep 5 --plan-id <PLAN_ID> --archive   # archive first
 ```
 
-The default keeps `current`, `previous`, five additional recent generations in
-each layer, all components referenced by retained system metadata, and manual
-pins. A dry-run is read-only and prints protected generations, deletion
-candidates, invalid entries, total size, and estimated reclaim. An apply run
-locks the data root, recomputes and validates the entire plan, writes a small
-metadata backup under `~/.local/share/cortetsu/gc-backups/`, then removes only
-direct generation directories below their known build root. It never removes
-`current` or `previous`, follows no top-level symlink, and aborts on drift,
-broken links, invalid metadata, or unsafe paths.
+Every generation listed by the plan carries its retention reason:
+`current` and `previous` (always kept), `additional` (the newest `--keep`
+system generations beyond those two), `referenced` (shell and dotfiles
+components of a retained system generation) and `pinned`. Each deletion
+candidate is listed by name with its size, plus `TOTAL_RECLAIM`.
+
+`--apply` takes every generation lock without waiting (`install.lock`,
+`build.lock`, `system/system.lock`, `gc.lock`) and refuses if an install,
+build, promotion or rollback is running. Under those locks it recomputes the
+plan; if its `PLAN_ID` differs from the approved one (a new promotion, a pin,
+a moved link, a different `--keep`) nothing is deleted and the plan must be
+reviewed again. Drift between layers, broken or outside links, invalid
+metadata and unsafe paths abort before any deletion.
+
+`gc-backups/<stamp>/` holds metadata only (plan, links, `BUILD.json`,
+`MANIFEST.json`, `SYSTEM.json` of the kept generations). It is **not** a copy
+of deleted generations. With `--archive`, a verified `tar.gz` of each deleted
+generation is written to `gc-backups/<stamp>/archives/<layer>/` first; the
+run aborts before writing anything if free space is below the allocated size
+being collected plus 16 MiB, and aborts before deleting if an archive does not
+list every file of its generation.
+
+Recovering an archived generation is a manual, separate step; Cortetsu never
+restores history on its own:
+
+```bash
+tar -tzf ~/.local/share/cortetsu/gc-backups/<stamp>/archives/shell/<name>.tar.gz   # inspect
+tar -xzf .../archives/shell/<name>.tar.gz -C ~/.local/share/cortetsu/builds/
+tar -xzf .../archives/dotfiles/<name>.tar.gz -C ~/.local/share/cortetsu/dotfiles/builds/
+tar -xzf .../archives/system/<name>.tar.gz -C ~/.local/share/cortetsu/system/builds/
+cortetsu gc   # the restored generations must appear without INVALID entries
+```
+
+Pointing `current` or `previous` at a restored generation is a deliberate
+rollback decision; restore the system generation together with the shell and
+dotfiles generations its `SYSTEM.json` names. `cortetsu system gc` and
+`cortetsu dotfiles gc` no longer delete anything, because a single layer cannot
+see the references held by the others.
 
 Manual pins are one generation name per file:
 
@@ -147,6 +179,4 @@ Manual pins are one generation name per file:
 ```
 
 Blank lines and `#` comments are ignored. A pin must name an existing
-generation. Normal installation verifies the complete promoted system and then
-runs the same conservative collector with `--keep 5`; a failed verification
-never reaches GC. Rollback remains available with `cortetsu rollback`.
+generation. Rollback remains available with `cortetsu rollback`.
