@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import os
+import runpy
 import subprocess
 import sys
 import tempfile
@@ -18,15 +19,17 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
 HELPER = REPO / "cortetsu/bin/cortetsu-gamemode"
+GAME = runpy.run_path(str(HELPER))["GAME"]
 sys.path.insert(0, str(REPO / "scripts/integration"))
 try:
-    from nested_gpu import compositor_env  # keeps a suspended dGPU asleep (PR #34)
+    from nested_gpu import compositor_env  # keeps a suspended dGPU asleep
+# TODO(#34): drop this fallback once nested_gpu.py is on main.
 except ImportError:
     def compositor_env(env: dict, base: Path) -> dict:
         return env
 
 CONFIG = """hl.config({
-    general = { gaps_in = 5, gaps_out = 12, border_size = 2, allow_tearing = false },
+    general = { gaps_in = 5, gaps_out = "4 8 12 16", border_size = 2, allow_tearing = false },
     decoration = { rounding = 15, blur = { enabled = true }, shadow = { enabled = true } },
     animations = { enabled = true },
     misc = { disable_hyprland_logo = true },
@@ -95,6 +98,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-gamemode-") as tmp:
             assert time.monotonic() < deadline, f"nested Hyprland IPC: {probe.stdout}{probe.stderr}"
             time.sleep(0.2)
         before = effective()
+        assert before["general:gaps_out"] != before["general:gaps_in"], before["general:gaps_out"]
         assert before["general:border_size"] == 2 and before["decoration:rounding"] == 15, {k: before.get(k) for k in ("general:border_size", "decoration:rounding", "general:gaps_in")}
         assert gamemode("status") == {"enabled": False}
         assert gamemode("disable") == {"enabled": False}, "disable with nothing to restore is a no-op"
@@ -106,9 +110,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-gamemode-") as tmp:
         assert on["decoration:rounding"] == 0 and on["general:border_size"] == 1
         assert on["general:allow_tearing"] in (1, True)
         changed = {name for name in before if before[name] != on[name]}
-        assert changed <= {"animations:enabled", "decoration:shadow:enabled", "decoration:blur:enabled",
-                           "general:gaps_in", "general:gaps_out", "general:border_size", "decoration:rounding",
-                           "general:allow_tearing"}, f"game mode touched more than it owns: {sorted(changed)}"
+        assert changed <= set(GAME), f"game mode touched more than it owns: {sorted(changed)}"
 
         assert gamemode("enable") == {"enabled": True}, "a repeated enable keeps the first snapshot"
         assert gamemode("disable") == {"enabled": False}
@@ -130,7 +132,19 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-gamemode-") as tmp:
         assert gamemode("status") == {"enabled": True}, "a restarted shell sees game mode on"
         gamemode("disable")
         assert effective() == before
-        assert not list(runtime.glob("cortetsu-gamemode-*")), "no snapshot left behind"
+        assert not list(runtime.glob("cortetsu-gamemode-*.json")), "no snapshot left behind"
+
+        # A quick on/off starts two helpers at once. Whatever order they run
+        # in, the snapshot exists exactly when the game values are live.
+        for _ in range(6):
+            racers = [subprocess.Popen(["python3", str(HELPER), action], env=env, stdout=subprocess.PIPE, text=True)
+                      for action in ("enable", "disable")]
+            for racer in racers:
+                racer.communicate(timeout=30)
+            if gamemode("status")["enabled"]:
+                assert option("decoration:rounding") == 0, "snapshot kept but game values missing"
+                gamemode("disable")
+            assert effective() == before, "an interleaved enable/disable lost the user's values"
 
         # QML wiring: a shell that starts while the snapshot exists shows game
         # mode on without applying it again; turning it off calls disable.
@@ -148,8 +162,18 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-gamemode-") as tmp:
         fake = base / "fakebin"
         fake.mkdir()
         calls = base / "gamemode-calls"
-        (fake / "cortetsu-gamemode").write_text(
-            f'#!/bin/sh\necho "$*" >> {calls}\necho \'{{"enabled": true}}\'\n')
+        flag = base / "fake-on"
+        flag.touch()
+        (fake / "cortetsu-gamemode").write_text(f"""#!/bin/sh
+echo "start $1" >> {calls}
+sleep 0.3
+case "$1" in
+  enable) [ -f {base}/fail-enable ] || touch {flag} ;;
+  disable) rm -f {flag} ;;
+esac
+echo "end $1" >> {calls}
+[ -f {flag} ] && echo '{{"enabled": true}}' || echo '{{"enabled": false}}'
+""")
         (fake / "cortetsu-gamemode").chmod(0o755)
         nested = dict(env, PATH=f"{fake}:{env['PATH']}", WAYLAND_DISPLAY=next(
             p.name for p in runtime.glob("wayland-*[0-9]")), QT_QPA_PLATFORM="wayland")
@@ -165,12 +189,44 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-gamemode-") as tmp:
                 assert qs.poll() is None, (base / "qs.log").read_text()
                 assert time.monotonic() < deadline, "the shell did not recover game mode from status"
                 time.sleep(0.2)
-            assert calls.read_text().split() == ["status"], "recovery must not re-apply game mode"
+            def runs() -> list[str]:
+                return [line.split()[1] for line in calls.read_text().splitlines() if line.startswith("start")]
+
+            def settle(expected: list[str]) -> None:
+                deadline = time.monotonic() + 15
+                while runs() != expected or calls.read_text().count("start") != calls.read_text().count("end"):
+                    assert time.monotonic() < deadline, calls.read_text()
+                    time.sleep(0.1)
+
+            assert runs() == ["status"], "recovery must not re-apply game mode"
             ipc("gameMode", "disable")
-            deadline = time.monotonic() + 10
-            while calls.read_text().split() != ["status", "disable"]:
+            settle(["status", "disable"])
+            assert ipc("harness", "enabled") == "false"
+
+            # A failed enable must not read as on.
+            (base / "fail-enable").touch()
+            ipc("gameMode", "enable")
+            settle(["status", "disable", "enable"])
+            deadline = time.monotonic() + 5
+            while ipc("harness", "enabled") != "false":
+                assert time.monotonic() < deadline, "a failed enable still shows game mode on"
+                time.sleep(0.1)
+            (base / "fail-enable").unlink()
+
+            # Five quick toggles: helpers never overlap and the last request wins.
+            for _ in range(5):
+                ipc("gameMode", "toggle")
+            deadline = time.monotonic() + 15
+            while calls.read_text().count("start") != calls.read_text().count("end") or len(runs()) < 4:
                 assert time.monotonic() < deadline, calls.read_text()
                 time.sleep(0.1)
+            time.sleep(1)
+            lines = calls.read_text().splitlines()
+            depth = 0
+            for line in lines:
+                depth += 1 if line.startswith("start") else -1
+                assert depth <= 1, f"helpers overlapped: {lines}"
+            assert ipc("harness", "enabled") == "true" and flag.exists(), "odd number of toggles from off ends on"
             log_text = (base / "qs.log").read_text()
             assert "WARN" not in log_text and "ERROR" not in log_text, log_text
         finally:

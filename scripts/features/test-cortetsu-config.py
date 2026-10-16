@@ -24,7 +24,6 @@ battery_monitor = (modules / "BatteryMonitor.qml").read_text(encoding="utf-8")
 service_loader = (modules / "ServiceLoader.qml").read_text(encoding="utf-8")
 game_mode = (repo / "cortetsu/services/GameMode.qml").read_text(encoding="utf-8")
 # Behaviour lives in scripts/features/test-gamemode-runtime.py (nested Hyprland).
-assert '["cortetsu-gamemode", action' in game_mode and '"cortetsu-gamemode", "status"' in game_mode
 assert '"reload"' not in game_mode, "game mode must not reload the whole Hyprland config"
 requests = (repo / "cortetsu/services/Requests.qml").read_text(encoding="utf-8")
 assert "onExited: code => root.finish(request, code" in requests

@@ -15,6 +15,7 @@ HYPRLAND_INSTANCE_SIGNATURE, so it never outlives the compositor it belongs to.
 """
 from __future__ import annotations
 
+import fcntl
 import json
 import os
 import subprocess
@@ -77,41 +78,43 @@ def lua(value) -> str:
     return str(value)
 
 
-def write(values: dict) -> None:
+def lua_config(values: dict) -> str:
+    tree: dict = {}
+    for option, value in values.items():
+        *parents, leaf = option.split(":")
+        node = tree
+        for part in parents:
+            node = node.setdefault(part, {})
+        node[leaf] = value
+
+    def render(node) -> str:
+        return "{ " + ", ".join(
+            f"{key} = {render(value) if isinstance(value, dict) else lua(value)}" for key, value in node.items()
+        ) + " }"
+    return f"hl.config({render(tree)})"
+
+
+def write(values: dict, keyword: bool) -> None:
     if not values:
         return
-    if "--keyword" not in sys.argv:
-        tree: dict = {}
-        for option, value in values.items():
-            *parents, leaf = option.split(":")
-            node = tree
-            for part in parents:
-                node = node.setdefault(part, {})
-            node[leaf] = value
-
-        def render(node) -> str:
-            return "{ " + ", ".join(
-                f"{key} = {render(value) if isinstance(value, dict) else lua(value)}" for key, value in node.items()
-            ) + " }"
-        hyprctl("eval", f"hl.config({render(tree)})")
+    if not keyword:
+        hyprctl("eval", lua_config(values))
         return
     for option, value in values.items():
-        if isinstance(value, bool):
-            value = int(value)
-        hyprctl("keyword", option, lua(value).strip('"'))
+        hyprctl("keyword", option, lua(int(value) if isinstance(value, bool) else value).strip('"'))
 
 
-def enable() -> None:
+def enable(keyword: bool) -> None:
     path = snapshot_path()
     if not path.exists():
         previous = {option: read(option) for option in GAME}
         tmp = path.with_suffix(".tmp")
         tmp.write_text(json.dumps(previous), encoding="utf-8")
         tmp.replace(path)
-    write(GAME)
+    write(GAME, keyword)
 
 
-def disable() -> None:
+def disable(keyword: bool) -> None:
     path = snapshot_path()
     try:
         previous = json.loads(path.read_text(encoding="utf-8"))
@@ -119,21 +122,37 @@ def disable() -> None:
         return
     restore = {option: previous[option] for option, game in GAME.items()
                if option in previous and same(read(option), game)}
-    write(restore)
+    write(restore, keyword)
     path.unlink(missing_ok=True)
 
 
 def main() -> int:
-    command = sys.argv[1] if len(sys.argv) > 1 else "status"
-    if command == "enable":
-        enable()
-    elif command == "disable":
-        disable()
-    elif command != "status":
-        print("usage: cortetsu-gamemode enable|disable|status", file=sys.stderr)
+    args = sys.argv[1:]
+    keyword = "--keyword" in args
+    commands = [arg for arg in args if arg != "--keyword"] or ["status"]
+    if commands[0] not in ("enable", "disable", "status") or len(commands) > 1:
+        print("usage: cortetsu-gamemode enable|disable|status [--keyword]", file=sys.stderr)
         return 2
-    print(json.dumps({"enabled": snapshot_path().exists()}))
-    return 0
+    path = snapshot_path()
+    code = 0
+    # One operation at a time: a quick on/off from the shell starts two
+    # processes, and an unordered disable could delete the snapshot before
+    # enable applies the game values, losing the user's settings.
+    with path.with_suffix(".lock").open("a") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        try:
+            if commands[0] == "enable":
+                enable(keyword)
+            elif commands[0] == "disable":
+                disable(keyword)
+        except SystemExit as error:
+            print(error, file=sys.stderr)
+            code = 1
+        finally:
+            # Always report the state that holds now, so the shell shows it
+            # even after a failed apply.
+            print(json.dumps({"enabled": path.exists()}))
+    return code
 
 
 if __name__ == "__main__":

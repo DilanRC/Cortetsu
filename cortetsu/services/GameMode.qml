@@ -12,56 +12,79 @@ import "../modules"
 Singleton {
     id: root
 
+    // The user's request. The helper's reply (the snapshot exists or not)
+    // decides what stays shown, so a failed apply never reads as on.
     property alias enabled: state.enabled
     property bool recovering: false
+    property bool pending: false
 
     function notify(title: string, message: string): void {
         if (CortetsuConfig.toastGameModeChanged)
             Quickshell.execDetached(["notify-send", "--app-name=Cortetsu", title, message]);
     }
 
-    function run(action: string): void {
-        Quickshell.execDetached(CortetsuHypr.usingLua
-            ? ["cortetsu-gamemode", action]
-            : ["cortetsu-gamemode", action, "--keyword"]);
-    }
-
     function toggle(): void { enabled = !enabled; }
 
-    onEnabledChanged: {
-        if (recovering)
+    // One helper process at a time; a toggle during a run is applied after.
+    function sync(): void {
+        if (helper.running) {
+            pending = true;
             return;
-        run(enabled ? "enable" : "disable");
-        if (enabled)
-            notify(qsTr("Modo juego activado"), qsTr("Animaciones y efectos reducidos"));
-        else
-            notify(qsTr("Modo juego desactivado"), qsTr("Configuración de Hyprland restaurada"));
+        }
+        const action = enabled ? "enable" : "disable";
+        helper.requested = action;
+        helper.command = CortetsuHypr.usingLua ? ["cortetsu-gamemode", action] : ["cortetsu-gamemode", action, "--keyword"];
+        helper.running = true;
     }
 
+    function settle(active: bool): void {
+        if (active === enabled)
+            return;
+        recovering = true;
+        enabled = active;
+        recovering = false;
+    }
+
+    onEnabledChanged: {
+        if (!recovering)
+            sync();
+    }
+
+    // PersistentProperties keeps the request across a QML reload; the
+    // snapshot read by `status` at startup wins after a shell restart.
     PersistentProperties {
         id: state
         property bool enabled: false
         reloadableId: "gameMode"
     }
 
-    // A shell restarted while game mode was on finds the snapshot of the
-    // running Hyprland and shows it as on, so turning it off restores.
     Process {
+        id: helper
+        property string requested: "status"
         running: true
         command: ["cortetsu-gamemode", "status"]
+        onRunningChanged: {
+            if (!running && root.pending) {
+                root.pending = false;
+                root.sync();
+            }
+        }
         stdout: StdioCollector {
             onStreamFinished: {
                 let active = false;
                 try {
                     active = JSON.parse(text).enabled === true;
                 } catch (error) {
-                    return;
+                    active = false;
                 }
-                if (active === root.enabled)
-                    return;
-                root.recovering = true;
-                root.enabled = active;
-                root.recovering = false;
+                const requested = helper.requested;
+                if (root.pending)
+                    return; // superseded; onRunningChanged runs the newer request
+                root.settle(active);
+                if (requested === "enable" && active)
+                    root.notify(qsTr("Modo juego activado"), qsTr("Animaciones y efectos reducidos"));
+                else if (requested === "disable" && !active)
+                    root.notify(qsTr("Modo juego desactivado"), qsTr("Configuración de Hyprland restaurada"));
             }
         }
     }

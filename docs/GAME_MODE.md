@@ -35,7 +35,7 @@ elige cada juego.
   `HYPRLAND_INSTANCE_SIGNATURE`.
 
 Prueba: `scripts/features/test-gamemode-runtime.py` usa un Hyprland anidado y
-compara el valor vivo de las 353 opciones antes de activar y después de
+compara el valor vivo de todas las opciones (`hyprctl descriptions`) antes de activar y después de
 desactivar.
 
 ## Prueba física pendiente (PENDING_PHYSICAL)
