@@ -45,7 +45,7 @@ snapshot y recarga.
 
 ## Teclas del HP Victus
 
-| Tecla | Evento (capacidad del dispositivo y keymap latam; pulsación física pendiente) | Acción por defecto |
+| Tecla | Evento | Acción por defecto |
 |---|---|---|
 | OMEN | `KEY_PROG2` en «HP WMI hotkeys» → `XF86Launch2` (latam) | Hardware Center (`cortetsu:hardware`) |
 | Copilot | Super+Shift+`KEY_F23` en el teclado AT | Panel de acciones rápidas (`cortetsu:osd`) |
@@ -54,7 +54,13 @@ snapshot y recarga.
 
 - Los binds viven en `config/hypr-user.lua`; el editor (Hardware > Teclas) los
   muestra como editables: cambiarlos o quitarlos es la reversión de cada uno.
-- `F23` y `Shift+F23` solos no se capturan; quedan para las aplicaciones.
+- Eventos comprobados por capacidad del dispositivo y keymap latam; la
+  pulsación física está pendiente (abajo).
+- `F23` y `Shift+F23` solos no se capturan; quedan para las aplicaciones, y
+  Copilot no dispara el lanzador de la liberación de Super.
+- OMEN abre el Hardware Center también sobre una ventana a pantalla completa,
+  igual que `SUPER + H` (mismo global). Copilot no: `osd` se ignora en
+  pantalla completa.
 - Regresión: `scripts/integration/test-hp-keys.py` pulsa esos códigos con un
   teclado virtual `latam` contra un Hyprland anidado con los mismos binds.
 
