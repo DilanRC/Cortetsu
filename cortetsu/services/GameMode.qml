@@ -58,6 +58,7 @@ Singleton {
         reloadableId: "gameMode"
     }
 
+    // startup inventory: cortetsu:gamemode-control
     Process {
         id: helper
         property string requested: "status"

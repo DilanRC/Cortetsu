@@ -373,7 +373,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-startup-test-") as temp:
     assert all("eligible" not in entry for entry in startup_rows.values())
     assert '"configured": component["startupPhase"] != "on-demand"' in SCRIPT.read_text(encoding="utf-8")
     assert {entry["id"] for entry in app.CORTETSU_STARTUP} == {
-        "cortetsu:pomodoro", "cortetsu:wallpaper-scan", "cortetsu:battery-notification",
+        "cortetsu:pomodoro", "cortetsu:gamemode-control", "cortetsu:wallpaper-scan", "cortetsu:battery-notification",
         "cortetsu:battery-sleep", "cortetsu:spectrum", "cortetsu:connectivity-monitor",
         "cortetsu:connectivity-command", "cortetsu:network-password-copy", "cortetsu:network-password-clipboard", "cortetsu:vpn-status",
         "cortetsu:brightness-discovery", "cortetsu:brightness-connector", "cortetsu:brightness-read", "cortetsu:nvibrant-status",
