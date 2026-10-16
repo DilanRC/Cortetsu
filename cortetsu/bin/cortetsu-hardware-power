@@ -273,7 +273,7 @@ def nvidia_asleep() -> bool:
 
 def nvidia_gpu_power() -> list[dict]:
     if nvidia_asleep():
-        return [{"vendor": "NVIDIA", "state": "suspended", "power_w": None, "temp_c": None}]
+        return [{"vendor": "NVIDIA", "name": "NVIDIA GPU", "state": "suspended", "power_w": None, "temp_c": None}]
     exe = shutil.which("nvidia-smi")
     if not exe:
         return []

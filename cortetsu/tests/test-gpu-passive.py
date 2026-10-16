@@ -56,6 +56,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-gpu-passive-") as tmp:
         assert probe[0]["usage"] is None and probe[0]["temp_c"] is None, "no invented statistics while asleep"
         assert probe[0]["name"], "the name comes from pci.ids or the generic fallback"
         assert [gpu["state"] for gpu in power] == ["suspended"] and power[0]["power_w"] is None, power
+        assert power[0]["name"], "the power page shows the name as its detail line"
 
     (device / "power/runtime_status").write_text("active\n")
     probe, power = run("cortetsu-hardware-probe", "--gpus"), run("cortetsu-hardware-power")
