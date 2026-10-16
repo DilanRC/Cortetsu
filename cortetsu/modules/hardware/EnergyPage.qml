@@ -201,7 +201,7 @@ Item {
                     headline: Format.watts(gpuGraph.gpu?.power_w)
                     subtitle: Format.join([
                         Format.celsius(gpuGraph.gpu?.temp_c),
-                        gpuGraph.gpu?.pstate ?? gpuGraph.gpu?.runtime_status ?? "",
+                        gpuGraph.gpu?.state === "suspended" ? qsTr("En reposo") : (gpuGraph.gpu?.pstate ?? gpuGraph.gpu?.runtime_status ?? ""),
                         Format.withUnit(gpuGraph.gpu?.graphics_clock_mhz, 0, "MHz")
                     ])
                     legendA: qsTr("Consumo")

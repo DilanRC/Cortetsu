@@ -508,7 +508,55 @@ def amd_gpu_snapshot() -> list[dict]:
     return out
 
 
+SYSFS = Path(os.environ.get("CORTETSU_SYSFS_ROOT", "/sys"))
+PCI_IDS = (Path("/usr/share/hwdata/pci.ids"), Path("/usr/share/misc/pci.ids"))
+# A runtime-suspended dGPU stays asleep only while nobody opens it.
+ASLEEP = {"suspended", "suspending"}
+
+
+def pci_ids_name(vendor: str, device: str) -> str:
+    for path in PCI_IDS:
+        try:
+            lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+        except OSError:
+            continue
+        in_vendor = False
+        for line in lines:
+            if line.startswith(vendor):
+                in_vendor = True
+            elif in_vendor and line and not line.startswith(("\t", "#")):
+                break
+            elif in_vendor and line.startswith(f"\t{device} "):
+                name = line.split(None, 1)[1].strip()
+                bracket = re.search(r"\[(.+)\]", name)
+                return bracket.group(1) if bracket else name
+    return ""
+
+
+def nvidia_devices() -> list[dict]:
+    """NVIDIA display devices from attributes the kernel already holds.
+
+    vendor, class, device and power/runtime_status never resume a
+    runtime-suspended device. nvidia-smi, lspci and config space reads do.
+    """
+    out = []
+    for device in sorted((SYSFS / "bus/pci/devices").glob("*")):
+        if read_text(device / "vendor").lower() != "0x10de" or not read_text(device / "class").startswith("0x03"):
+            continue
+        out.append({
+            "slot": device.name,
+            "status": read_text(device / "power/runtime_status", "unknown"),
+            "name": pci_ids_name("10de", read_text(device / "device").lower().removeprefix("0x")) or "NVIDIA GPU",
+        })
+    return out
+
+
 def nvidia_gpu_snapshot() -> list[dict]:
+    devices = nvidia_devices()
+    if devices and all(device["status"] in ASLEEP for device in devices):
+        # Asking nvidia-smi would wake the GPU only to report that it was idle.
+        return [{"vendor": "NVIDIA", "name": device["name"], "state": "suspended", "usage": None, "temp_c": None,
+                 "vram_used_gb": None, "vram_total_gb": None, "power_w": None} for device in devices]
     if not shutil.which("nvidia-smi"):
         return []
     query = "name,utilization.gpu,temperature.gpu,memory.used,memory.total,power.draw"
@@ -541,6 +589,7 @@ def nvidia_gpu_snapshot() -> list[dict]:
             {
                 "vendor": "NVIDIA",
                 "name": parts[0],
+                "state": "active",
                 "usage": round(clamp(f(1)) or 0.0, 1),
                 "temp_c": round(f(2), 1) if f(2) is not None else None,
                 "vram_used_gb": round(used_mib / 1024, 2) if used_mib is not None else None,
@@ -646,6 +695,7 @@ def process_snapshot(previous: dict, now: float, uptime: float, total_mem: int) 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Print one hardware telemetry sample as JSON.")
+    parser.add_argument("--gpus", action="store_true", help="emit only the GPU list (cheap; used by the dashboard)")
     parser.add_argument(
         "--top-processes",
         type=int,
@@ -658,6 +708,9 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
+    if args.gpus:
+        print(json.dumps({"gpus": amd_gpu_snapshot() + nvidia_gpu_snapshot()}, separators=(",", ":")))
+        return
     previous = load_state()
     now = time.monotonic()
 

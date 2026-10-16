@@ -392,7 +392,10 @@ Item {
             Component.onDestruction: Gpu.consumers -= 1
             icon: "developer_board"
             title: Gpu.name || qsTr("GPU %1%").arg(Math.round(Gpu.percentage * 100))
-            subtitle: Gpu.name ? qsTr("%1% · %2°C").arg(Math.round(Gpu.percentage * 100)).arg(Math.round(Gpu.temperature)) : qsTr("No disponible")
+            subtitle: Gpu.type === Gpu.noneType
+                ? (Gpu.dgpuAsleep ? qsTr("En reposo") : qsTr("No disponible"))
+                : qsTr("%1% · %2°C").arg(Math.round(Gpu.percentage * 100)).arg(Math.round(Gpu.temperature))
+                    + (Gpu.dgpuAsleep ? qsTr(" · dGPU en reposo") : "")
             selected: false
         }
     }
