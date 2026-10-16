@@ -96,8 +96,10 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-dotfiles-test-") as tmp:
     assert previous_link.resolve(strict=True) == second_generation
     run(env, "verify")
 
-    gc = run(env, "gc", "--keep", "1")
-    assert "GC removed=" in gc
+    builds_before = set((data / "dotfiles/builds").iterdir())
+    gc = run(env, "gc", "--keep", "0")
+    assert "sin borrados" in gc
+    assert set((data / "dotfiles/builds").iterdir()) == builds_before
     assert current_link.resolve(strict=True).exists()
     assert previous_link.resolve(strict=True).exists()
 
