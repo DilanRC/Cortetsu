@@ -367,6 +367,7 @@ test_cmd() {
         "scripts/features/eval-cortetsu-native-design-system.py"
         "scripts/features/test-hardware-design.py"
         "cortetsu/tests/test-hardware-probe.py"
+        "cortetsu/tests/test-gpu-passive.py"
         "scripts/features/test-cortetsu-hardware-home-runtime.py"
         "scripts/features/test-cortetsu-settings.py"
         "scripts/features/test-cortetsu-settings-runtime.py"
