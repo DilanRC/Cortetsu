@@ -5,58 +5,65 @@ import Quickshell
 import Quickshell.Io
 import "../modules"
 
+// Visual game mode. cortetsu-gamemode snapshots the options it changes and
+// restores only those still holding the game value, without `hyprctl reload`,
+// so changes made from Settings while it is on survive. Feral GameMode, power
+// profiles and GPU selection are separate and untouched here.
 Singleton {
     id: root
 
     property alias enabled: state.enabled
+    property bool recovering: false
 
     function notify(title: string, message: string): void {
         if (CortetsuConfig.toastGameModeChanged)
             Quickshell.execDetached(["notify-send", "--app-name=Cortetsu", title, message]);
     }
 
-    function dispatchKeyword(key: string, value: string): void {
-        if (CortetsuHypr.usingLua) {
-            const field = key.replaceAll(":", " = ");
-            Quickshell.execDetached(["hyprctl", "eval", `hl.config({ ${field} = ${value === "0" ? "false" : "true"} })`]);
-        } else {
-            Quickshell.execDetached(["hyprctl", "keyword", key, value]);
-        }
-    }
-
-    function apply(): void {
-        if (CortetsuHypr.usingLua) {
-            Quickshell.execDetached([
-                "hyprctl", "eval",
-                "hl.config({ animations = { enabled = false }, decoration = { shadow = { enabled = false }, blur = { enabled = false }, rounding = 0 }, general = { gaps_in = 0, gaps_out = 0, border_size = 1, allow_tearing = true } })"
-            ]);
-            return;
-        }
-        for (const setting of [
-            ["animations:enabled", "0"], ["decoration:shadow:enabled", "0"],
-            ["decoration:blur:enabled", "0"], ["general:gaps_in", "0"],
-            ["general:gaps_out", "0"], ["general:border_size", "1"],
-            ["decoration:rounding", "0"], ["general:allow_tearing", "1"]
-        ])
-            dispatchKeyword(setting[0], setting[1]);
+    function run(action: string): void {
+        Quickshell.execDetached(CortetsuHypr.usingLua
+            ? ["cortetsu-gamemode", action]
+            : ["cortetsu-gamemode", action, "--keyword"]);
     }
 
     function toggle(): void { enabled = !enabled; }
 
     onEnabledChanged: {
-        if (enabled) {
-            apply();
+        if (recovering)
+            return;
+        run(enabled ? "enable" : "disable");
+        if (enabled)
             notify(qsTr("Modo juego activado"), qsTr("Animaciones y efectos reducidos"));
-        } else {
-            Quickshell.execDetached(["hyprctl", "reload"]);
+        else
             notify(qsTr("Modo juego desactivado"), qsTr("Configuración de Hyprland restaurada"));
-        }
     }
 
     PersistentProperties {
         id: state
         property bool enabled: false
         reloadableId: "gameMode"
+    }
+
+    // A shell restarted while game mode was on finds the snapshot of the
+    // running Hyprland and shows it as on, so turning it off restores.
+    Process {
+        running: true
+        command: ["cortetsu-gamemode", "status"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                let active = false;
+                try {
+                    active = JSON.parse(text).enabled === true;
+                } catch (error) {
+                    return;
+                }
+                if (active === root.enabled)
+                    return;
+                root.recovering = true;
+                root.enabled = active;
+                root.recovering = false;
+            }
+        }
     }
 
     IpcHandler {

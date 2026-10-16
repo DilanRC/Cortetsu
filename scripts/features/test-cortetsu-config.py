@@ -23,12 +23,9 @@ vpn_service = (repo / "cortetsu/base/services/VPN.qml").read_text(encoding="utf-
 battery_monitor = (modules / "BatteryMonitor.qml").read_text(encoding="utf-8")
 service_loader = (modules / "ServiceLoader.qml").read_text(encoding="utf-8")
 game_mode = (repo / "cortetsu/services/GameMode.qml").read_text(encoding="utf-8")
-assert "function dispatchKeyword(key: string, value: string)" in game_mode
-assert 'Quickshell.execDetached(["hyprctl", "eval"' in game_mode
-assert 'hl.config({ animations = { enabled = false }' in game_mode
-assert 'Quickshell.execDetached(["hyprctl", "keyword", key, value])' in game_mode
-assert 'Quickshell.execDetached(["hyprctl", "reload"])' in game_mode
-assert "dispatchKeyword(setting[0], setting[1])" in game_mode
+# Behaviour lives in scripts/features/test-gamemode-runtime.py (nested Hyprland).
+assert '["cortetsu-gamemode", action' in game_mode and '"cortetsu-gamemode", "status"' in game_mode
+assert '"reload"' not in game_mode, "game mode must not reload the whole Hyprland config"
 requests = (repo / "cortetsu/services/Requests.qml").read_text(encoding="utf-8")
 assert "onExited: code => root.finish(request, code" in requests
 assert "onExited: root.finish(request, exitCode" not in requests
@@ -241,8 +238,6 @@ for legacy in ("Caelestia", "GlobalConfig", "GameMode", "Notifs", "Weather", "VP
 assert "CortetsuAudio" in service_loader and "CortetsuNotifications" in service_loader
 for legacy in ("Caelestia", "GlobalConfig", "Toaster", "SessionManager", "Hypr.extras"):
     assert legacy not in game_mode, legacy
-assert 'Quickshell.execDetached(["hyprctl", "keyword", key, value])' in game_mode
-assert 'Quickshell.execDetached(["hyprctl", "reload"])' in game_mode
 assert 'target: "gameMode"' in game_mode
 for legacy in ("Caelestia", "GlobalConfig", "Requests.get", "QNetworkAccessManager"):
     assert legacy not in requests, legacy

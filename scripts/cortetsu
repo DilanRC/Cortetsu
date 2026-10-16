@@ -427,6 +427,7 @@ test_cmd() {
         "scripts/features/eval-cortetsu-config.py"
         "scripts/features/test-cortetsu-idle.py"
         "scripts/features/test-cortetsu-idle-runtime.py"
+        "scripts/features/test-gamemode-runtime.py"
         "scripts/features/test-cortetsu-session-runtime.py"
         "scripts/features/test-cortetsu-keybind-capture-runtime.py"
         "scripts/features/test-cortetsu-keyboard-state-runtime.py"

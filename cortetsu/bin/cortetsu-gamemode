@@ -1,0 +1,140 @@
+#!/usr/bin/env python3
+"""Reversible Cortetsu game mode for the running Hyprland instance.
+
+enable   snapshot the effective value of every option game mode touches, then
+         set the game values. A second enable keeps the first snapshot.
+disable  put back the snapshot, but only for options that still hold the game
+         value: whatever Settings or the user changed meanwhile is kept.
+         No `hyprctl reload`, so nothing else in the live config moves.
+status   print {"enabled": bool}; enabled means a snapshot exists for this
+         Hyprland instance, which lets a restarted shell recover its state.
+--keyword  use `hyprctl keyword` for a hyprlang (non-Lua) config.
+
+The snapshot lives in XDG_RUNTIME_DIR and is keyed by
+HYPRLAND_INSTANCE_SIGNATURE, so it never outlives the compositor it belongs to.
+"""
+from __future__ import annotations
+
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+# option -> value while game mode is on. allow_tearing only lets windows
+# tagged as games (rules.lua: immediate = true) tear; it is not global.
+GAME = {
+    "animations:enabled": False,
+    "decoration:shadow:enabled": False,
+    "decoration:blur:enabled": False,
+    "general:gaps_in": 0,
+    "general:gaps_out": 0,
+    "general:border_size": 1,
+    "decoration:rounding": 0,
+    "general:allow_tearing": True,
+}
+HYPRCTL = os.environ.get("CORTETSU_HYPRCTL", "hyprctl")
+
+
+def snapshot_path() -> Path:
+    runtime = Path(os.environ.get("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}"))
+    instance = os.environ.get("HYPRLAND_INSTANCE_SIGNATURE", "")
+    if not instance:
+        raise SystemExit("cortetsu-gamemode: HYPRLAND_INSTANCE_SIGNATURE is not set")
+    return runtime / f"cortetsu-gamemode-{instance}.json"
+
+
+def hyprctl(*args: str) -> str:
+    result = subprocess.run([HYPRCTL, *args], text=True, capture_output=True, timeout=5, check=False)
+    if result.returncode != 0:
+        raise SystemExit(f"cortetsu-gamemode: hyprctl {args[0]} failed: {(result.stderr or result.stdout).strip()}")
+    return result.stdout
+
+
+def read(option: str):
+    """Effective value as bool, int or a 4-side gap list."""
+    data = json.loads(hyprctl("getoption", option, "-j"))
+    if "bool" in data:
+        return bool(data["bool"])
+    if "int" in data:
+        return int(data["int"])
+    if "css" in data:
+        return [int(side) for side in data["css"].split()]
+    raise SystemExit(f"cortetsu-gamemode: unsupported option type for {option}: {data}")
+
+
+def same(current, wanted) -> bool:
+    if isinstance(current, list) and not isinstance(wanted, list):
+        return all(side == wanted for side in current)
+    return current == wanted
+
+
+def lua(value) -> str:
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, list):
+        return str(value[0]) if len(set(value)) == 1 else json.dumps(" ".join(map(str, value)))
+    return str(value)
+
+
+def write(values: dict) -> None:
+    if not values:
+        return
+    if "--keyword" not in sys.argv:
+        tree: dict = {}
+        for option, value in values.items():
+            *parents, leaf = option.split(":")
+            node = tree
+            for part in parents:
+                node = node.setdefault(part, {})
+            node[leaf] = value
+
+        def render(node) -> str:
+            return "{ " + ", ".join(
+                f"{key} = {render(value) if isinstance(value, dict) else lua(value)}" for key, value in node.items()
+            ) + " }"
+        hyprctl("eval", f"hl.config({render(tree)})")
+        return
+    for option, value in values.items():
+        if isinstance(value, bool):
+            value = int(value)
+        hyprctl("keyword", option, lua(value).strip('"'))
+
+
+def enable() -> None:
+    path = snapshot_path()
+    if not path.exists():
+        previous = {option: read(option) for option in GAME}
+        tmp = path.with_suffix(".tmp")
+        tmp.write_text(json.dumps(previous), encoding="utf-8")
+        tmp.replace(path)
+    write(GAME)
+
+
+def disable() -> None:
+    path = snapshot_path()
+    try:
+        previous = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return
+    restore = {option: previous[option] for option, game in GAME.items()
+               if option in previous and same(read(option), game)}
+    write(restore)
+    path.unlink(missing_ok=True)
+
+
+def main() -> int:
+    command = sys.argv[1] if len(sys.argv) > 1 else "status"
+    if command == "enable":
+        enable()
+    elif command == "disable":
+        disable()
+    elif command != "status":
+        print("usage: cortetsu-gamemode enable|disable|status", file=sys.stderr)
+        return 2
+    print(json.dumps({"enabled": snapshot_path().exists()}))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
