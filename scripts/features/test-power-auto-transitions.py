@@ -65,7 +65,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-power-auto-") as tmp:
 
     settled = tick("")
     assert profile() == "performance" and calls() == ["get", "set performance", "get"], calls()
-    assert settled == "performance"
+    assert settled, "a verified profile settles the rule"
 
     settled = tick(settled, 20)
     assert len(calls()) == 3, f"a steady rule must not spawn powerprofilesctl: {calls()[3:]}"
@@ -78,7 +78,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-power-auto-") as tmp:
 
     source["ac"] = False
     settled = tick(settled)
-    assert profile() == "balanced" and settled == "balanced", "an AC transition applies the battery rule"
+    assert profile() == "balanced" and settled, "an AC transition applies the battery rule"
     state = json.loads(watcher.STATE_PATH.read_text())
     assert state["ac_online"] is False and state["desired_profile"] == "balanced"
 
@@ -89,6 +89,19 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-power-auto-") as tmp:
     assert settled == "" and len(calls()) == before + 2, "an unreachable daemon is retried, not marked applied"
     (root / "down").unlink()
     settled = tick(settled)
-    assert profile() == "performance" and settled == "performance", "the retry applies once the daemon is back"
+    assert profile() == "performance" and settled, "the retry applies once the daemon is back"
+
+    # Both rules ask for the same profile: a hand pick must still end at the
+    # next AC/battery transition, not survive it because the name matches.
+    watcher.CONFIG_PATH.write_text(json.dumps({"enabled": True, "ac_profile": "balanced",
+                                               "battery_profile": "balanced"}))
+    settled = tick(settled)
+    assert profile() == "balanced"
+    (root / "profile").write_text("performance\n")
+    settled = tick(settled, 3)
+    assert profile() == "performance"
+    source["ac"] = False
+    settled = tick(settled)
+    assert profile() == "balanced", "unplugging re-applies the battery rule even when its profile name is unchanged"
 
 print("PASS: power-auto spawns powerprofilesctl only on rule transitions and keeps a hand-picked profile")

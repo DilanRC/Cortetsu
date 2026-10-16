@@ -18,7 +18,7 @@ import subprocess
 import tempfile
 import time
 
-from nested_gpu import MESA_ONLY, compositor_env
+from nested_gpu import compositor_env
 
 REPO = Path(__file__).resolve().parents[2]
 loader = importlib.machinery.SourceFileLoader("cortetsu_startup", str(REPO / "cortetsu/bin/cortetsu-startup"))
@@ -41,7 +41,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-clip-") as temporary:
     (root / "cfg/hypr").mkdir(parents=True)
     (root / "cfg/hypr/hyprland.lua").write_text("hl.config({ misc = { disable_hyprland_logo = true } })\n")
     base = {"HOME": str(root), "PATH": os.environ["PATH"], "LANG": "C.UTF-8", "XDG_RUNTIME_DIR": str(runtime),
-            "XDG_CONFIG_HOME": str(root / "cfg"), **MESA_ONLY}
+            "XDG_CONFIG_HOME": str(root / "cfg")}
     compositor = subprocess.Popen(["Hyprland"], cwd=root, env=compositor_env(dict(base, WAYLAND_DISPLAY=parent_socket), root),
                                   stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     watcher = None

@@ -54,7 +54,7 @@ aislado, mismo `/proc` y los mismos archivos de wallpaper y perfil que la sesió
 | Residente | Antes | Después | Qué cambió |
 |---|---|---|---|
 | `cortetsu-wallpaper-color-daemon` | 1028 ms/min, ~7 procesos cada 2 s | 218 ms/min, 0 procesos en reposo | Python en un solo proceso: lee `/proc` y hace `stat` sin lanzar `pgrep`/`jq`/`sha256sum`. Mismo hash que la versión bash, así que actualizar no recolorea. RSS 3,7 → 8 MB. |
-| `cortetsu-power-auto` | 1249 ms/min, 15 `powerprofilesctl` por minuto | 150 ms/min, 1 llamada | Sólo pregunta a power-profiles-daemon cuando cambia el perfil que pide la regla, o hasta verificarlo. Un perfil elegido a mano se respeta hasta la siguiente transición AC/batería. `power-auto-control status` lee el perfil vivo. |
+| `cortetsu-power-auto` | 1249 ms/min, 15 `powerprofilesctl` por minuto | 150 ms/min, 1 llamada | Sólo pregunta a power-profiles-daemon cuando cambia el perfil que pide la regla, o hasta verificarlo. Un perfil elegido a mano, o puesto por otra herramienta o por power-profiles-daemon al reiniciarse, se respeta hasta la siguiente transición AC/batería o cambio de configuración; antes se revertía cada 4 s. `power-auto-control status` lee el perfil vivo. |
 
 Ambos siguen sondeando (2 s y `poll_seconds`): arrancar o parar Wallpaper
 Engine no emite eventos sin una dependencia nueva, y leer

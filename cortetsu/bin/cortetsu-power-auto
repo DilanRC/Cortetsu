@@ -142,9 +142,10 @@ def apply_profile(exe: str, profile: str) -> tuple[bool, str]:
 def iteration(force: bool = False, settled: str = "") -> tuple[bool, str]:
     """Run one pass; return (keep_running, settled).
 
-    settled is the profile this watcher last verified for the current rule.
-    While the rule still asks for it nothing is spawned, so a profile the user
-    picks by hand stays until the next AC/battery transition or config change.
+    settled names the rule (power source, reason, config) whose profile this
+    watcher last verified. While that rule holds nothing is spawned, so a
+    profile picked by hand, or set by another tool, stays until the next
+    AC/battery transition or config change.
     """
     cfg = load_config()
     previous = read_state()
@@ -168,10 +169,13 @@ def iteration(force: bool = False, settled: str = "") -> tuple[bool, str]:
 
     ac_online, percent, battery_status = power_source()
     desired, reason = desired_profile(cfg, ac_online, percent)
-    if not force and desired == settled:
-        write_state({**previous, "ac_online": ac_online, "battery_percent": percent,
-                     "battery_status": battery_status, "reason": reason})
-        return bool(cfg.get("enabled", False)), settled
+    rule = json.dumps([ac_online, reason, desired, cfg], sort_keys=True)
+    if not force and rule == settled:
+        write_state({"enabled": True, "active": True, "one_shot": False, "ac_online": ac_online,
+                     "battery_percent": percent, "battery_status": battery_status, "desired_profile": desired,
+                     "profile": previous.get("profile", desired), "reason": reason, "changed": False,
+                     "ok": True, "error": ""})
+        return True, settled
     before = get_current(exe)
     requested_change = bool(before and before != desired)
     ok = True
@@ -221,7 +225,8 @@ def iteration(force: bool = False, settled: str = "") -> tuple[bool, str]:
             "error": error,
         })
 
-    return bool(cfg.get("enabled", False) and not force), (after or before) if ok and (after or before) == desired else ""
+    current = after or before
+    return bool(cfg.get("enabled", False) and not force), rule if ok and current == desired else ""
 
 
 def main() -> int:

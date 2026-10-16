@@ -28,4 +28,4 @@ def compositor_env(env: dict, base: Path) -> dict:
     lspci = stub / "lspci"
     lspci.write_text("#!/bin/sh\nexit 0\n")
     lspci.chmod(0o755)
-    return {**env, **MESA_ONLY, "PATH": f"{stub}:{env.get('PATH', os.environ['PATH'])}"}
+    return {**env, **MESA_ONLY, "PATH": f"{stub}:{env.get('PATH') or os.environ.get('PATH', '')}"}

@@ -59,10 +59,18 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-wallcolor-") as tmp:
     assert len(once()) == 4, "the same file rewritten in place is coloured again"
     assert len(once()) == 4
 
+    (bindir / "cortetsu-apply-wallpaper-colors").unlink()
+    state.write_text(f"{wall_a}\n")
+    assert len(once()) == 4, "a missing colour helper is skipped, not a crash loop"
+    (bindir / "cortetsu-apply-wallpaper-colors").write_text(f'#!/bin/sh\necho "$1" >> {home}/applied\n')
+    (bindir / "cortetsu-apply-wallpaper-colors").chmod(0o755)
+    state.write_text(f"{wall_b}\n")
+    assert len(once()) == 5
+
     lock = (home / "cortetsu-wallpaper-color-daemon/lock").open("a")
     import fcntl
     fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
     state.write_text(f"{wall_a}\n")
-    assert len(once()) == 4, "a second instance exits while the first holds the lock"
+    assert len(once()) == 5, "a second instance exits while the first holds the lock"
 
 print("PASS: the wallpaper colour watcher re-colours exactly on source changes and spawns nothing otherwise")
