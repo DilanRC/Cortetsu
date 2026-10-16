@@ -13,8 +13,12 @@ import os
 import shutil
 import subprocess
 import tempfile
+import sys
 import time
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "integration"))
+from nested_gpu import MESA_ONLY, compositor_env  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -92,11 +96,11 @@ def main() -> int:
         history = base / "state/cortetsu/notifs.json"
 
         env = {"HOME": str(base), "PATH": os.environ["PATH"], "LANG": "C.UTF-8", "XDG_RUNTIME_DIR": str(runtime),
-               "XDG_CONFIG_HOME": str(base / "cfg"), "XDG_STATE_HOME": str(base / "state")}
+               "XDG_CONFIG_HOME": str(base / "cfg"), "XDG_STATE_HOME": str(base / "state"), **MESA_ONLY}
         bus = subprocess.Popen(["dbus-daemon", "--session", "--nofork", "--print-address=1"], env=env,
                                stdout=subprocess.PIPE, text=True)
         env["DBUS_SESSION_BUS_ADDRESS"] = bus.stdout.readline().strip()
-        compositor = subprocess.Popen(["Hyprland"], cwd=base, env=dict(env, WAYLAND_DISPLAY=parent_socket),
+        compositor = subprocess.Popen(["Hyprland"], cwd=base, env=compositor_env(dict(env, WAYLAND_DISPLAY=parent_socket), base),
                                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         log = (base / "qs.log").open("w")
         proc = None

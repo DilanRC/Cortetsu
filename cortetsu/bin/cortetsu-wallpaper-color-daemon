@@ -1,56 +1,115 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/usr/bin/env python3
+"""Regenerate the dynamic scheme when the effective wallpaper source changes.
 
-state_dir="${XDG_RUNTIME_DIR:-/tmp}/cortetsu-wallpaper-color-daemon"
-mkdir -p "$state_dir"
-active_config="$HOME/.config/Linux Wallpaper Engine/active-wallpapers.json"
-static_path_file="${XDG_STATE_HOME:-$HOME/.local/state}/cortetsu/wallpaper/path.txt"
-last_hash_file="$state_dir/last.hash"
-lock_file="$state_dir/lock"
+The sources are the same the shell script hashed: whether Linux Wallpaper
+Engine runs, its active-wallpapers.json, and the static wallpaper path and
+file. A static wallpaper chosen in the shell is coloured by the shell itself;
+this watcher covers the rest (Wallpaper Engine stopping, path.txt written by
+other tools, the file changing in place).
 
-hash_sources() {
-    {
-        if pgrep -u "$USER" -f 'linux-wallpaperengine' >/dev/null 2>&1; then
-            printf 'wallpaper-engine=active\n'
-        else
-            printf 'wallpaper-engine=inactive\n'
-        fi
-        if [[ -f "$active_config" ]]; then
-            stat -c '%Y %s' "$active_config"
-            jq -r '.activeWallpapers | to_entries[]? | "\(.key)=\(.value.backgroundId)"' "$active_config" 2>/dev/null || true
-        fi
-        if [[ -f "$static_path_file" ]]; then
-            static_path="$(tr -d '\n' < "$static_path_file")"
-            printf 'static=%s\n' "$static_path"
-            [[ -f "$static_path" ]] && stat -c '%Y %s' "$static_path" || true
-        fi
-    } | sha256sum | awk '{print $1}'
-}
+ponytail: polls every 2 s because Wallpaper Engine starting or stopping has
+no event source short of a new dependency. Each pass reads /proc and stats
+two files in-process; it spawns nothing until a source actually changes.
+"""
+from __future__ import annotations
 
-apply_colors() {
-    local static_path=""
-    if [[ -f "$static_path_file" ]]; then
-        static_path="$(tr -d '\n' < "$static_path_file")"
-    fi
-    if pgrep -u "$USER" -f 'linux-wallpaperengine' >/dev/null 2>&1; then
+import fcntl
+import hashlib
+import json
+import os
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+HOME = Path.home()
+STATE_DIR = Path(os.environ.get("XDG_RUNTIME_DIR", "/tmp")) / "cortetsu-wallpaper-color-daemon"
+ACTIVE_CONFIG = HOME / ".config/Linux Wallpaper Engine/active-wallpapers.json"
+STATIC_PATH_FILE = Path(os.environ.get("XDG_STATE_HOME", HOME / ".local/state")) / "cortetsu/wallpaper/path.txt"
+APPLY = HOME / ".local/bin/cortetsu-apply-wallpaper-colors"
+PROC = Path(os.environ.get("CORTETSU_PROC_ROOT", "/proc"))
+INTERVAL = float(os.environ.get("CORTETSU_WALLPAPER_POLL", "2"))
+UID = os.getuid()
+
+
+def engine_running() -> bool:
+    """Same match as `pgrep -u $USER -f linux-wallpaperengine`."""
+    for entry in PROC.iterdir():
+        if not entry.name.isdigit():
+            continue
+        try:
+            if entry.stat().st_uid != UID:
+                continue
+            cmdline = (entry / "cmdline").read_bytes()
+        except OSError:
+            continue
+        if b"linux-wallpaperengine" in cmdline and int(entry.name) != os.getpid():
+            return True
+    return False
+
+
+def stat_line(path: Path) -> str:
+    st = path.stat()
+    return f"{int(st.st_mtime)} {st.st_size}\n"
+
+
+def static_path() -> str:
+    try:
+        return STATIC_PATH_FILE.read_text(encoding="utf-8").replace("\n", "")
+    except OSError:
+        return ""
+
+
+def sources(running: bool) -> str:
+    text = f"wallpaper-engine={'active' if running else 'inactive'}\n"
+    try:
+        text += stat_line(ACTIVE_CONFIG)
+        wallpapers = json.loads(ACTIVE_CONFIG.read_text(encoding="utf-8")).get("activeWallpapers") or {}
+        for key, value in wallpapers.items():
+            background = value.get("backgroundId") if isinstance(value, dict) else None
+            text += f"{key}={background if isinstance(background, str) else json.dumps(background)}\n"
+    except (OSError, ValueError, AttributeError):
+        pass
+    if STATIC_PATH_FILE.is_file():
+        path = static_path()
+        text += f"static={path}\n"
+        try:
+            text += stat_line(Path(path)) if path and Path(path).is_file() else ""
+        except OSError:
+            pass
+    return hashlib.sha256(text.encode()).hexdigest()
+
+
+def apply_colors(running: bool) -> None:
+    path = static_path()
+    if running or not path or not Path(path).is_file():
+        return
+    subprocess.run([str(APPLY), path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
+
+
+def main() -> int:
+    STATE_DIR.mkdir(parents=True, exist_ok=True)
+    lock = (STATE_DIR / "lock").open("a")
+    try:
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError:
         return 0
-    fi
-    if [[ -n "$static_path" && -f "$static_path" ]]; then
-        "$HOME/.local/bin/cortetsu-apply-wallpaper-colors" "$static_path" >/dev/null 2>&1 || true
-    fi
-}
+    last_hash = STATE_DIR / "last.hash"
+    try:
+        previous = last_hash.read_text().strip()
+    except OSError:
+        previous = ""
+    while True:
+        running = engine_running()
+        current = sources(running)
+        if current != previous:
+            apply_colors(running)
+            last_hash.write_text(current + "\n")
+            previous = current
+        if "--once" in sys.argv:
+            return 0
+        time.sleep(INTERVAL)
 
-(
-    flock -n 9 || exit 0
-    previous=""
-    [[ -f "$last_hash_file" ]] && previous="$(cat "$last_hash_file")"
-    while true; do
-        current="$(hash_sources)"
-        if [[ "$current" != "$previous" ]]; then
-            apply_colors
-            printf '%s\n' "$current" > "$last_hash_file"
-            previous="$current"
-        fi
-        sleep 2
-    done
-) 9>"$lock_file"
+
+if __name__ == "__main__":
+    raise SystemExit(main())

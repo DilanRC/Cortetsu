@@ -139,13 +139,19 @@ def apply_profile(exe: str, profile: str) -> tuple[bool, str]:
     return True, ""
 
 
-def iteration(force: bool = False) -> bool:
+def iteration(force: bool = False, settled: str = "") -> tuple[bool, str]:
+    """Run one pass; return (keep_running, settled).
+
+    settled is the profile this watcher last verified for the current rule.
+    While the rule still asks for it nothing is spawned, so a profile the user
+    picks by hand stays until the next AC/battery transition or config change.
+    """
     cfg = load_config()
     previous = read_state()
 
     if not cfg.get("enabled", False) and not force:
         write_state({"enabled": False, "active": False, "reason": "automation disabled"})
-        return False
+        return False, ""
 
     exe = shutil.which("powerprofilesctl")
     if not exe:
@@ -158,10 +164,14 @@ def iteration(force: bool = False) -> bool:
         }
         write_state(state)
         append_event({"kind": "error", **state})
-        return cfg.get("enabled", False) and not force
+        return cfg.get("enabled", False) and not force, ""
 
     ac_online, percent, battery_status = power_source()
     desired, reason = desired_profile(cfg, ac_online, percent)
+    if not force and desired == settled:
+        write_state({**previous, "ac_online": ac_online, "battery_percent": percent,
+                     "battery_status": battery_status, "reason": reason})
+        return bool(cfg.get("enabled", False)), settled
     before = get_current(exe)
     requested_change = bool(before and before != desired)
     ok = True
@@ -211,7 +221,7 @@ def iteration(force: bool = False) -> bool:
             "error": error,
         })
 
-    return bool(cfg.get("enabled", False) and not force)
+    return bool(cfg.get("enabled", False) and not force), (after or before) if ok and (after or before) == desired else ""
 
 
 def main() -> int:
@@ -220,8 +230,9 @@ def main() -> int:
         iteration(force=True)
         return 0
 
+    settled = ""
     while True:
-        keep_running = iteration(force=False)
+        keep_running, settled = iteration(force=False, settled=settled)
         if not keep_running:
             return 0
         time.sleep(load_config().get("poll_seconds", 4))
