@@ -256,7 +256,24 @@ def amd_gpu_power() -> list[dict]:
     return out
 
 
+SYSFS = Path(os.environ.get("CORTETSU_SYSFS_ROOT", "/sys"))
+
+
+def nvidia_asleep() -> bool:
+    """True when every NVIDIA display device is runtime-suspended.
+
+    Same passive rule as cortetsu-hardware-probe: runtime_status is held by
+    the kernel and reading it never resumes the device; nvidia-smi does.
+    """
+    states = [read_text(device / "power/runtime_status")
+              for device in (SYSFS / "bus/pci/devices").glob("*")
+              if read_text(device / "vendor").lower() == "0x10de" and read_text(device / "class").startswith("0x03")]
+    return bool(states) and all(state in {"suspended", "suspending"} for state in states)
+
+
 def nvidia_gpu_power() -> list[dict]:
+    if nvidia_asleep():
+        return [{"vendor": "NVIDIA", "state": "suspended", "power_w": None, "temp_c": None}]
     exe = shutil.which("nvidia-smi")
     if not exe:
         return []
@@ -282,6 +299,7 @@ def nvidia_gpu_power() -> list[dict]:
             {
                 "vendor": "NVIDIA",
                 "name": parts[0],
+                "state": "active",
                 "pstate": parts[1],
                 "power_w": finite(number(2), 2),
                 "power_limit_w": finite(number(3), 2),

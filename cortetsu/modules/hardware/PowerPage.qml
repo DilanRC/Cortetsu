@@ -280,7 +280,7 @@ Item {
                             emphasized: true
                         }
                         FactRow { width: parent.width; label: qsTr("Temperatura"); value: Format.celsius(gpuPanel.gpu.temp_c) }
-                        FactRow { visible: gpuPanel.nvidia; width: parent.width; label: qsTr("Estado de rendimiento"); value: gpuPanel.gpu.pstate ?? "" }
+                        FactRow { visible: gpuPanel.nvidia; width: parent.width; label: qsTr("Estado de rendimiento"); value: gpuPanel.gpu.state === "suspended" ? qsTr("En reposo") : (gpuPanel.gpu.pstate ?? "") }
                         FactRow { visible: gpuPanel.nvidia; width: parent.width; label: qsTr("Reloj gráfico"); value: Format.withUnit(gpuPanel.gpu.graphics_clock_mhz, 0, "MHz") }
                         FactRow { visible: !gpuPanel.nvidia; width: parent.width; label: qsTr("Nivel de rendimiento"); value: gpuPanel.gpu.performance_level ?? "" }
                         FactRow { visible: !gpuPanel.nvidia; width: parent.width; label: qsTr("Estado de energía"); value: gpuPanel.gpu.power_state ?? "" }
