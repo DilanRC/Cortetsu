@@ -20,7 +20,9 @@ for (const mode of ['network', 'audio', 'traymenu0']) {
     const popup = { hasCurrent: true, closing: true, detachedMode: 'any' };
     const context = vm.createContext({ ...popup, closeTimer: { stop() { pending = false; } } });
     popup.cancelClose = () => { vm.runInContext(body(wrapper, 'cancelClose'), context); popup.closing = context.closing; };
-    const open = vm.createContext({ popouts: popup, screen: {}, mode, anchorCenter: 720,
+    const screen = {};
+    const open = vm.createContext({ popouts: popup, screen, mode, anchorCenter: 720,
+        CortetsuScreens: { screens: [screen] },
         CortetsuShellState: { componentsFor: () => ({ popouts: popup }) },
         closeAllLaunchers() {}, closeAllPanels() {} });
     vm.runInContext('(function() {' + body(read('BottomHub.qml'), 'openAttachedControlNow') + '})()', open);

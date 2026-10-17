@@ -228,11 +228,12 @@ Scope {
         closeAllPanels();
         // One attached control at a time: the hover controller is shared by
         // every screen, so entering the hub of another screen stops the close
-        // that would have dismissed this one. Detached popouts (a password
-        // being typed) are left alone.
+        // that would have dismissed this one. Detached popouts and a Wi-Fi
+        // password being typed (attached, but holding the keyboard) stay.
         for (const other of CortetsuScreens.screens) {
             const otherPopouts = CortetsuShellState.componentsFor(other)?.popouts;
-            if (other !== screen && otherPopouts?.hasCurrent && otherPopouts.bottomAttached)
+            if (other !== screen && otherPopouts?.hasCurrent && otherPopouts.bottomAttached
+                    && otherPopouts.currentName !== "wirelesspassword")
                 otherPopouts.close();
         }
         popouts.cancelClose();

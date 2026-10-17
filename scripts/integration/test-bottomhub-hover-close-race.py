@@ -50,7 +50,6 @@ def main() -> int:
         print(f"SKIP: faltan {', '.join(missing)}")
         return 0
 
-    old_path = os.environ["PATH"]
     with tempfile.TemporaryDirectory(prefix="cz-hover-race-", dir="/tmp") as tmp:
         session = H.Session(Path(tmp))
         hypr_config = session.home / ".config/hypr/hyprland.lua"
@@ -150,10 +149,7 @@ def main() -> int:
                                          if "WARN" in line or "ERROR" in line)[-3000:] + "\n")
             raise
         finally:
-            try:
-                session.stop()
-            finally:
-                os.environ["PATH"] = old_path
+            session.stop()
 
     print("PASS: re-entering the active attached popout cancels its close; one attached popup across outputs")
     return 0
