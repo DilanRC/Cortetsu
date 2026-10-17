@@ -88,10 +88,10 @@ ColumnLayout {
 
         SettingActionRow {
             title: qsTr("Cambiar o añadir atajos")
-            detail: qsTr("El editor está en Hardware, página Teclas")
-            actionLabel: qsTr("Abrir Hardware")
+            detail: qsTr("Teclados conectados, teclas libres y el editor de combinaciones")
+            actionLabel: qsTr("Abrir Atajos y teclados")
             actionIcon: "keyboard_command_key"
-            onActivated: root.context.openSurface("hardware")
+            onActivated: root.context.openSurface("keyboards")
         }
     }
 

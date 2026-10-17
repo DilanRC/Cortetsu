@@ -12,6 +12,7 @@ import "hardware" as Hardware
 import "display" as Display
 import "wallpaper" as Wallpaper
 import "calendar" as Calendar
+import "keyboards" as Keyboards
 import "../theme"
 
 // Retained surfaces have their own overlay window. Keeping them out of the
@@ -69,6 +70,11 @@ Scope {
                 anchors.fill: parent
             }
             Wallpaper.Wrapper {
+                screen: window.modelData
+                screenState: window.screenState
+                anchors.fill: parent
+            }
+            Keyboards.Wrapper {
                 screen: window.modelData
                 screenState: window.screenState
                 anchors.fill: parent

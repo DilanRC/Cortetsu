@@ -2,6 +2,8 @@
 //! The binary (`cortetsu-keybinds`) is a thin CLI over this library.
 
 pub mod bitmap;
+pub mod capture;
+pub mod editor;
 pub mod hypr;
 pub mod inventory;
 pub mod keycodes;

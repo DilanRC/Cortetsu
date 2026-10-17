@@ -28,7 +28,6 @@ FocusScope {
         { label: qsTr("Energía"), icon: "bolt" },
         { label: qsTr("Automatización"), icon: "auto_mode" },
         { label: qsTr("Consumo"), icon: "electric_bolt" },
-        { label: qsTr("Atajos"), icon: "keyboard" },
         { label: qsTr("Arranque"), icon: "play_circle" }
     ]
     // The summary names its destinations with the tab labels themselves.
@@ -81,7 +80,7 @@ FocusScope {
     }
 
     function selectAdjacentTab(delta): void {
-        root.currentPage = Math.max(0, Math.min(9, root.currentPage + delta));
+        root.currentPage = Math.max(0, Math.min(HardwareNavigation.lastPage, root.currentPage + delta));
     }
 
     function revealPageTab(index): void {
@@ -234,7 +233,7 @@ FocusScope {
                                 id: tab
                                 anchors.fill: parent
                                 index: tabDelegate.index
-                                count: 10
+                                count: root.pageTabs.length
                                 label: tabDelegate.modelData.label
                                 icon: tabDelegate.modelData.icon
                                 selected: root.currentPage === tabDelegate.index
@@ -267,9 +266,7 @@ FocusScope {
                                             ? automationComponent
                                             : root.currentPage === 7
                                                 ? energyComponent
-                                                : root.currentPage === 8
-                                                    ? keybindsComponent
-                                                    : startupComponent
+                                                : startupComponent
             }
         }
     }
@@ -322,6 +319,5 @@ FocusScope {
     Component { id: powerComponent; PowerPage {} }
     Component { id: automationComponent; PowerAutomationPage {} }
     Component { id: energyComponent; EnergyPage {} }
-    Component { id: keybindsComponent; KeybindsPage {} }
     Component { id: startupComponent; StartupPage {} }
 }

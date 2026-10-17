@@ -1,6 +1,6 @@
 # Atajos editables
 
-Un único editor (Hardware › Teclas) y una lista de solo lectura en Ajustes ›
+Un único editor («Atajos y teclados») y una lista de solo lectura en Ajustes ›
 Atajos leen el mismo helper, `cortetsu-keybinds` (Rust, `cortetsu/keyboards`;
 ver [KEYBOARDS.md](KEYBOARDS.md)).
 
@@ -54,7 +54,7 @@ snapshot y recarga.
 | Calculadora | `KEY_CALC` → `XF86Calculator` | Sin asignar: no hay calculadora gráfica instalada; el cálculo del lanzador es `>calc` |
 | Fn+Esc | `KEY_FN_ESC` (465) en «HP WMI hotkeys» → `XF86Fn_Esc` (latam) | Sin asignar |
 
-- Los binds viven en `config/hypr-user.lua`; el editor (Hardware > Teclas) los
+- Los binds viven en `config/hypr-user.lua`; el editor («Atajos y teclados») los
   muestra como editables: cambiarlos o quitarlos es la reversión de cada uno.
 - Eventos comprobados por capacidad del dispositivo y keymap latam; la
   pulsación física está pendiente (abajo).

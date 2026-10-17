@@ -92,7 +92,7 @@ hl.bind(
 -- HP Victus: OMEN (KEY_PROG2 from HP WMI hotkeys) opens the Hardware Center,
 -- except over a fullscreen window (cortetsu:hardwareKey); SUPER+H always does.
 -- Copilot sends Super+Shift+F23 and opens the quick-actions panel. Plain F23
--- and Shift+F23 stay with applications. Editable in Hardware > Teclas.
+-- and Shift+F23 stay with applications. Editable in Atajos y teclados.
 hl.bind(
     "XF86Launch2",
     hl.dsp.global("cortetsu:hardwareKey")
@@ -340,7 +340,7 @@ hl.bind(
 
 -- App launchers. They used CTRL + End and CTRL + Down, which every editor and
 -- terminal needs for navigation; app shortcuts belong under SUPER. Change them
--- in Hardware > Teclas.
+-- in Atajos y teclados.
 -- Cortetsu app shortcut: The Witcher 3: Wild Hunt (The Witcher 3 Wild Hunt)
 hl.bind(
     "SUPER + ALT + W",

@@ -43,7 +43,7 @@ end
 -- Ensure a live scheme exists.
 maybe_copy(hypr .. "/scheme/default.lua", hypr .. "/scheme/current.lua")
 
--- Keybinds edited with cortetsu-keybinds (Hardware > Teclas). Plain data in a
+-- Keybinds edited with cortetsu-keybinds (Atajos y teclados). Plain data in a
 -- mutable file outside the generations, so promotion and rollback keep it.
 -- A broken file is skipped with a notice: losing the edits beats losing every
 -- bind. Precedence: edits > hypr-user.lua > first-party defaults.

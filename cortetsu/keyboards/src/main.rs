@@ -3,14 +3,10 @@
 //! Runs on demand and exits; `watch` lives only while the editor keeps it
 //! open. Nothing here reads key presses.
 //!
-//!   list | set ID CHORD | delete ID | reset ID | add-app APP_ID NAME COMMAND CHORD
-//!                           the keybind editor (protocol 1, see legacy.rs)
-//!   inventory               keyboards present now (protocol 2)
-//!   keys [--device ID]      every declared key with its states (protocol 2)
-//!   watch                   inventory again on every keyboard hotplug
+//! The commands are listed once, in `USAGE`.
 
 use cortetsu_keyboards::protocol::{self, Error};
-use cortetsu_keyboards::{hypr, inventory, keymap, keys, legacy, watch};
+use cortetsu_keyboards::{capture, editor, hypr, inventory, keymap, keys, legacy, store, watch};
 use serde::Serialize;
 use std::collections::{BTreeMap, BTreeSet};
 use std::time::Instant;
@@ -104,12 +100,50 @@ fn inventory_command() -> serde_json::Value {
     value
 }
 
-const USAGE: &str =
-    "uso: cortetsu-keybinds list | set | delete | reset | add-app | inventory | keys [--device ID] | watch";
+fn bindings_command() -> Result<serde_json::Value, Error> {
+    let paths = store::Paths::from_env();
+    let bindings = legacy::list_bindings(&paths).map_err(|e| Error::new("config", e))?;
+    Ok(protocol::ok("bindings", serde_json::json!({ "bindings": bindings, "version": editor::version(&paths) })))
+}
+
+fn preview_command(verb: &str, rest: &[String]) -> Result<serde_json::Value, Error> {
+    let paths = store::Paths::from_env();
+    let preview = match (verb, rest) {
+        ("set", [id, chord]) => editor::preview(&paths, Some(id), chord),
+        ("add-app", [chord]) => editor::preview(&paths, None, chord),
+        _ => return Err(Error::new("usage", USAGE)),
+    }?;
+    Ok(protocol::ok("preview", preview))
+}
+
+fn capture_command(verb: &str, rest: &[String]) -> Result<serde_json::Value, Error> {
+    let status = match (verb, rest) {
+        ("begin", [ms]) => capture::begin(ms.parse().map_err(|_| Error::new("usage", USAGE))?),
+        ("end", []) => capture::end(),
+        ("status", []) => capture::status(),
+        _ => return Err(Error::new("usage", USAGE)),
+    }?;
+    Ok(protocol::ok("capture", status))
+}
+
+const USAGE: &str = "\
+uso: cortetsu-keybinds COMANDO
+  list | set ID CHORD | delete ID | reset ID | add-app APP_ID NAME COMMAND CHORD
+                          el editor de atajos (protocolo 1)
+  [--expect VERSION] set|delete|reset|add-app …
+                          rechaza el cambio si la configuración cambió
+  inventory               teclados conectados ahora
+  keys [--device ID]      cada tecla declarada con sus estados
+  watch                   el inventario otra vez en cada conexión
+  bindings                las filas del editor y la versión de la configuración
+  preview set ID CHORD | preview add-app CHORD
+                          lo que haría un cambio, sin escribir
+  capture begin MS | capture end | capture status
+                          el submapa que retiene los atajos mientras se graba";
 
 fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
-    if let Some((value, code)) = legacy::dispatch(&args) {
+    if let Some((value, code)) = editor::dispatch(&args) {
         println!("{value}");
         std::process::exit(code);
     }
@@ -119,6 +153,9 @@ fn main() {
         ("keys", []) => keys_command(None),
         ("keys", [flag, id]) if flag == "--device" => keys_command(Some(id)),
         ("watch", []) => watch::run(),
+        ("capture", [verb, rest @ ..]) => capture_command(verb, rest),
+        ("bindings", []) => bindings_command(),
+        ("preview", [verb, rest @ ..]) => preview_command(verb, rest),
         _ => Err(Error::new("usage", USAGE)),
     };
     let (value, code) = match result {

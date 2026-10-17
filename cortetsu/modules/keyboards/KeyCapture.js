@@ -79,19 +79,26 @@ function keyName(key, mask) {
 
 // Returns { kind, chord, held }:
 //   "modifier"     only modifiers are down; keep listening and echo them
+//   "altgr"        AltGr is held: in latam it types characters, never a chord
 //   "unsupported"  the key has no Hyprland name this editor can write
 //   "bare"         a plain key without a modifier would hijack typing
-//   "chord"        a complete combination, ready to save
-function resolve(key, mask) {
+//   "chord"        a complete combination, ready to preview
+// `keysym` is the device layout's name for the physical key (from the
+// helper's keymap, by scan code). It names keys Qt has no constant for, such
+// as KEY_F13, which latam's evdev rules turn into XF86Tools.
+function resolve(key, mask, keysym) {
     var held = modifiers(mask);
-    if (isModifierKey(key))
+    if (isModifierKey(key) || /^(ISO_Level3_Shift|Shift_[LR]|Control_[LR]|Alt_[LR]|Super_[LR]|Meta_[LR])$/.test(keysym || ""))
         return { kind: "modifier", chord: "", held: held };
-    var name = keyName(key, mask);
-    if (!name)
+    if (mask & Qt.GroupSwitchModifier)
+        return { kind: "altgr", chord: "", held: held };
+    var name = keyName(key, mask) || keysym || "";
+    if (!name || name === "NoSymbol")
         return { kind: "unsupported", chord: "", held: held };
     // Alone: dedicated hardware keys, Print and F13-F24. F1-F12 belong to
     // applications and games.
-    var solo = name.indexOf("XF86") === 0 || key === Qt.Key_Print || (key >= Qt.Key_F13 && key <= Qt.Key_F24);
+    var solo = name.indexOf("XF86") === 0 || key === Qt.Key_Print || (key >= Qt.Key_F13 && key <= Qt.Key_F24)
+        || /^F(1[3-9]|2[0-4])$/.test(name);
     if (held.length === 0 && !solo)
         return { kind: "bare", chord: "", held: held };
     return { kind: "chord", chord: held.concat([name]).join(" + "), held: held };

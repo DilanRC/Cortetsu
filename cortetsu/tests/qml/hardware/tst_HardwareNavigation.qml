@@ -7,7 +7,8 @@ TestCase {
 
     function test_zero_selects_last_tab() {
         verify(HardwareNavigation.handlesPageKey(Qt.Key_0, Qt.Key_1, Qt.Key_9, Qt.Key_0));
-        compare(HardwareNavigation.pageForKey(Qt.Key_0, 2, Qt.Key_1, Qt.Key_9, Qt.Key_0), 9);
+        compare(HardwareNavigation.pageForKey(Qt.Key_0, 2, Qt.Key_1, Qt.Key_9, Qt.Key_0), HardwareNavigation.lastPage);
+        compare(HardwareNavigation.lastPage, 8, "Atajos moved to its own surface");
     }
 
     function test_seven_selects_seventh_tab() {

@@ -45,17 +45,16 @@ pub fn parse(text: &str) -> Keymap {
     for line in text.lines() {
         let line = line.trim();
         if let Some(rest) = line.strip_prefix("alias ") {
-            if let (Some(alias), Some((_, target))) = (name_between(rest), rest.split_once('=')) {
-                if let Some(target) = name_between(target) {
-                    aliases.push((alias.to_owned(), target.to_owned()));
-                }
+            if let (Some(alias), Some((_, target))) = (name_between(rest), rest.split_once('='))
+                && let Some(target) = name_between(target)
+            {
+                aliases.push((alias.to_owned(), target.to_owned()));
             }
-        } else if line.starts_with('<') {
-            if let (Some(name), Some((_, value))) = (name_between(line), line.split_once('=')) {
-                if let Ok(code) = value.trim().trim_end_matches(';').trim().parse() {
-                    codes.insert(name.to_owned(), code);
-                }
-            }
+        } else if line.starts_with('<')
+            && let (Some(name), Some((_, value))) = (name_between(line), line.split_once('='))
+            && let Ok(code) = value.trim().trim_end_matches(';').trim().parse()
+        {
+            codes.insert(name.to_owned(), code);
         }
     }
     for (alias, target) in aliases {

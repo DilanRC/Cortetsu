@@ -27,8 +27,9 @@ PersistentProperties {
     property bool hardware
     property bool displayManager
     property bool wallpaperManager
+    property bool keyboards
 
-    readonly property bool retainedOverlayOpen: overview || calendar || clipboard || hardware || displayManager || wallpaperManager
+    readonly property bool retainedOverlayOpen: overview || calendar || clipboard || hardware || displayManager || wallpaperManager || keyboards
     readonly property bool requiresOverlayLayer: retainedOverlayOpen || launcher || session || settings
     readonly property bool requiresFullInputMask: retainedOverlayOpen
     readonly property bool requiresWindowKeyboardFocus: requiresFullInputMask || launcher || session || settings
@@ -36,7 +37,7 @@ PersistentProperties {
     function resetTransientState(): void {
         for (const flag of ["bar", "osd", "session", "launcher", "dashboard", "utilities",
                             "settings", "sidebar", "overview", "calendar", "clipboard",
-                            "hardware", "displayManager", "wallpaperManager"])
+                            "hardware", "displayManager", "wallpaperManager", "keyboards"])
             root[flag] = false;
     }
 

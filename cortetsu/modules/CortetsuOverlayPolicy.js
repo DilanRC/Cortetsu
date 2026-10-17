@@ -2,7 +2,7 @@
 
 // Public policy contract. It deliberately changes state only. Geometry,
 // popouts, tray ownership and wallpaper side effects stay in their callers.
-const retainedFlags = ["overview", "calendar", "clipboard", "hardware", "displayManager", "wallpaperManager"];
+const retainedFlags = ["overview", "calendar", "clipboard", "hardware", "displayManager", "wallpaperManager", "keyboards"];
 
 function isRetainedFlag(flag) {
     return retainedFlags.indexOf(flag) >= 0;

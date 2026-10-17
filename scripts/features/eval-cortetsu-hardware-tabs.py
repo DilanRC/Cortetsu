@@ -17,13 +17,13 @@ assert "enabled: !root.disabled" in tab
 assert "activeFocusOnTab: true" in tab
 assert "Keys.onSpacePressed" in tab
 assert "outlined: root.activeFocus || root.selected" in tab
-assert content.count("{ label:") == 10
-assert "count: 10" in content
+assert content.count("{ label:") == 9
+assert "count: root.pageTabs.length" in content
 assert 'import "Navigation.js" as HardwareNavigation' in content
 assert "HardwareNavigation.pageForKey(" in content
 assert "HardwareNavigation.handlesPageKey" in content
 assert "HardwareNavigation.isEscape" in content
-assert "Math.min(9, root.currentPage + delta)" in content
+assert "Math.min(HardwareNavigation.lastPage, root.currentPage + delta)" in content
 assert "contentWidth: tabRow.implicitWidth" in content
 assert "tabs.contentWidth - tabs.width" in content
 assert "automationComponent" in content and "currentPage === 6" in content

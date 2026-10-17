@@ -60,7 +60,7 @@ def main() -> int:
 
     with tempfile.TemporaryDirectory(prefix="cortetsu-hp-keys-") as tmp:
         base = Path(tmp)
-        # The shortcut editor (Hardware > Teclas) lists both as editable and
+        # The shortcut editor (Atajos y teclados) lists both as editable and
         # deletable with no conflicts: that is each bind's way back.
         hypr = base / "home/.config/hypr"
         shutil.copytree(REPO / "dotfiles/home/.config/hypr", hypr, symlinks=True)
