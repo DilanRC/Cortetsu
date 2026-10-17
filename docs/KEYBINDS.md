@@ -66,8 +66,9 @@ snapshot y recarga.
 - `F23` y `Shift+F23` solos no se capturan; quedan para las aplicaciones, y
   Copilot no dispara el lanzador de la liberación de Super.
 - OMEN abre el Hardware Center también sobre una ventana a pantalla completa,
-  igual que `SUPER + H` (mismo global). Copilot no: `osd` se ignora en
-  pantalla completa.
+  igual que `SUPER + H` (mismo global). Copilot no: el atajo `osd` de
+  `cortetsu/modules/Shortcuts.qml` no hace nada si hay una ventana a pantalla
+  completa.
 - Regresión: `scripts/integration/test-hp-keys.py` pulsa esos códigos con un
   teclado virtual `latam` contra un Hyprland anidado con los mismos binds.
 

@@ -54,6 +54,7 @@ int main(void) {
     const char *layout = getenv("VINPUT_LAYOUT");
     struct xkb_rule_names names = { .layout = layout && *layout ? layout : "us" };
     struct xkb_keymap *keymap = xkb_keymap_new_from_names(ctx, &names, XKB_KEYMAP_COMPILE_NO_FLAGS);
+    if (!keymap) { fprintf(stderr, "unknown keymap layout: %s\n", names.layout); return 1; }
     struct xkb_state *state = xkb_state_new(keymap);
     char *text = xkb_keymap_get_as_string(keymap, XKB_KEYMAP_FORMAT_TEXT_V1);
     size_t size = strlen(text) + 1;

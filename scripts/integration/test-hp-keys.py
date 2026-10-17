@@ -48,6 +48,10 @@ def main() -> int:
         return 0
 
     user = (REPO / "config/hypr-user.lua").read_text(encoding="utf-8")
+    # The launcher's default chord, read from keybinds.lua so this test
+    # follows it if it changes.
+    keybinds = (REPO / "dotfiles/home/.config/hypr/hyprland/keybinds.lua").read_text(encoding="utf-8")
+    launcher = re.search(r'launcher_default = normalise_keybind\("([^"]+)"\)', keybinds).group(1)
     shipped = set(re.findall(r'hl\.bind\(\s*"([^"]+)",\s*hl\.dsp\.global\("([^"]+)"\)', user))
     expected = {(chord, target) for chord, (target, _) in HP_BINDS.items()}
     assert expected <= shipped, f"missing HP binds: {expected - shipped}"
@@ -73,7 +77,7 @@ def main() -> int:
         fired = base / "fired"
         lines = ['hl.config({ input = { kb_layout = "latam" }, misc = { disable_hyprland_logo = true } })',
                  # keybinds.lua: the launcher opens on a bare Super release.
-                 f'hl.bind("SUPER + SUPER_L", hl.dsp.exec_cmd("echo launcher >> {fired}"), {{ release = true }})']
+                 f'hl.bind("{launcher}", hl.dsp.exec_cmd("echo launcher >> {fired}"), {{ release = true }})']
         for chord, (_, marker) in HP_BINDS.items():
             lines.append(f'hl.bind("{chord}", hl.dsp.exec_cmd("echo {marker} >> {fired}"))')
         (base / "cfg/hypr/hyprland.lua").write_text("\n".join(lines) + "\n")
@@ -82,8 +86,8 @@ def main() -> int:
         parent = parent if parent.startswith("/") else str(Path(os.environ["XDG_RUNTIME_DIR"]) / parent)
         env = {"HOME": str(base), "PATH": os.environ["PATH"], "LANG": "C.UTF-8", "XDG_RUNTIME_DIR": str(runtime),
                "XDG_CONFIG_HOME": str(base / "cfg")}
-        compositor = subprocess.Popen(["Hyprland"], cwd=base,
-                                      env=compositor_env(dict(env, WAYLAND_DISPLAY=parent), base),
+        nested_env = dict(env, WAYLAND_DISPLAY=parent)
+        compositor = subprocess.Popen(["Hyprland"], cwd=base, env=compositor_env(nested_env, base),
                                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
         keyboard = None
         try:
