@@ -1,0 +1,29 @@
+[package]
+name = "cortetsu-keyboards"
+version = "2.0.0"
+edition = "2024"
+rust-version = "1.85"
+description = "Keyboard inventory and keybind editor backend for Cortetsu (Atajos y teclados)"
+license = "MIT"
+publish = false
+
+[[bin]]
+name = "cortetsu-keybinds"
+path = "src/main.rs"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+strip = true
+panic = "abort"
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }

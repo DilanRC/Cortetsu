@@ -141,6 +141,28 @@ jobs:
           ! git grep -n -I 'CORTETSU_DATA_ROOT:-${CORTETSU_DATA_ROOT' -- ':!docs/history/**' ':!.github/workflows/**'
           ! git grep -n -I 'CORTETSU_RUNTIME_ROOT:-${CORTETSU_RUNTIME_ROOT' -- ':!docs/history/**' ':!.github/workflows/**'
 
+  keyboards-rust:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: cortetsu/keyboards
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install the Rust toolchain
+        run: rustup toolchain install stable --profile minimal --component rustfmt,clippy && rustup default stable
+      - name: Install xkbcli for the keymap test
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq libxkbcommon-tools
+      - name: Format
+        run: cargo fmt --check
+      - name: Lint
+        run: cargo clippy --all-targets --locked -- -D warnings
+      - name: Test
+        run: cargo test --locked
+      - name: The committed key table matches the kernel header
+        run: |
+          python3 tools/gen-keycodes.py /usr/include/linux/input-event-codes.h
+          git diff --exit-code -- src/keycodes.rs || echo "::warning::input-event-codes.h on the runner differs from the committed table"
+
   wall-utility-contract:
     runs-on: ubuntu-latest
     steps:
