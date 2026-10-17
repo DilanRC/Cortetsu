@@ -31,8 +31,7 @@ impl Scope {
         let Some(Value::Array(names)) = devices.get("names") else { return Scope::All };
         let names: BTreeSet<String> = names.iter().filter_map(Value::as_str).map(str::to_owned).collect();
         match devices.get("only") {
-            Some(Value::Bool(true)) => Scope::Only(names),
-            Some(Value::Bool(false)) => Scope::new(false, names),
+            Some(Value::Bool(only)) => Scope::new(*only, names),
             _ => Scope::All,
         }
     }
@@ -63,27 +62,31 @@ impl Scope {
         }
     }
 
+    fn only(&self) -> bool {
+        matches!(self, Scope::Only(_))
+    }
+
     /// The store field; None for a bind that fires everywhere.
     pub fn to_json(&self) -> Option<Value> {
-        let only = matches!(self, Scope::Only(_));
-        self.names().map(|names| json!({ "only": only, "names": names }))
+        self.names().map(|names| json!({ "only": self.only(), "names": names }))
     }
 
     /// The `device = {...}` entry of the compiled bind.
     pub fn to_lua(&self) -> Option<String> {
-        let only = matches!(self, Scope::Only(_));
         self.names().map(|names| {
             let list: Vec<String> = names.iter().map(|name| lua::quote(name)).collect();
-            format!("device = {{ inclusive = {only}, list = {{ {} }} }}", list.join(", "))
+            format!("device = {{ inclusive = {}, list = {{ {} }} }}", self.only(), list.join(", "))
         })
     }
 
-    /// For messages: "solo en a, b", "salvo en a", "en todos los teclados".
+    /// For messages, worded like the surface: "solo en a, b", "en todos
+    /// salvo a", "en todos los teclados".
     pub fn describe(&self) -> String {
+        let joined = |names: &BTreeSet<String>| names.iter().map(String::as_str).collect::<Vec<_>>().join(", ");
         match self {
             Scope::All => "en todos los teclados".into(),
-            Scope::Only(names) => format!("solo en {}", names.iter().cloned().collect::<Vec<_>>().join(", ")),
-            Scope::Except(names) => format!("salvo en {}", names.iter().cloned().collect::<Vec<_>>().join(", ")),
+            Scope::Only(names) => format!("solo en {}", joined(names)),
+            Scope::Except(names) => format!("en todos salvo {}", joined(names)),
         }
     }
 
@@ -113,6 +116,14 @@ pub fn requested(mode: &str, names: &[String]) -> std::result::Result<Scope, Ref
     }
 }
 
+/// The names that stay on their keyboard. Two identical keyboards are `x`
+/// and `x-1` in the order they were connected, which a replug or a reboot
+/// can swap: a scope on either would follow the wrong keyboard.
+pub fn distinct(names: &[String]) -> Vec<String> {
+    let twin = |a: &String| names.iter().any(|b| b != a && (hypr::is_instance_of(a, b) || hypr::is_instance_of(b, a)));
+    names.iter().filter(|n| !twin(n)).cloned().collect()
+}
+
 /// Every check `scope` makes before it writes. `keyboards`: the names
 /// `hyprctl devices` lists now. A name already in the bind's scope may stay
 /// while its keyboard is unplugged; a new one must be connected.
@@ -131,7 +142,9 @@ pub fn plan(
     }
     let kept = entry.scope.names().cloned().unwrap_or_default();
     if let Some(unknown) = wanted.names().into_iter().flatten().find(|n| !keyboards.contains(n) && !kept.contains(*n)) {
-        return Err(Refusal::Invalid(format!("Hyprland no tiene ningún teclado llamado {unknown}")));
+        return Err(Refusal::Invalid(format!(
+            "Hyprland no tiene ningún teclado llamado {unknown}, o tiene dos iguales que no distingue"
+        )));
     }
     legacy::ensure_free(&entry.chord, wanted, &[], Some(identifier), items)
         .map_err(|e| Refusal::Taken(format!("{e} {}", wanted.describe())))?;
@@ -140,11 +153,12 @@ pub fn plan(
 
 pub fn set_scope(paths: &Paths, identifier: &str, mode: &str, names: &[String]) -> Result<Value> {
     let wanted = requested(mode, names)?;
-    let keyboards: Vec<String> = hypr::keyboards()
+    let listed: Vec<String> = hypr::keyboards()
         .ok_or("No se pudo leer la lista de teclados de Hyprland")?
         .into_iter()
         .map(|k| k.name)
         .collect();
+    let keyboards = distinct(&listed);
     let entry = plan(&legacy::list_bindings(paths)?, &keyboards, identifier, &wanted)?;
     let mut store = load_store(&paths.store)?;
     for bind in store.binds.iter_mut().filter(|bind| text(bind, "id") == Some(identifier)) {
@@ -193,6 +207,8 @@ mod tests {
         assert_eq!(Scope::new(true, BTreeSet::new()), Scope::All);
         assert_eq!(Scope::new(false, BTreeSet::new()), Scope::All);
         assert_eq!(Scope::All.to_json(), None);
+        bind.insert("devices".into(), json!({ "only": true, "names": [] }));
+        assert_eq!(Scope::of(&bind), Scope::All, "an empty list never means nowhere");
         bind.insert("devices".into(), json!({ "only": "yes", "names": ["a"] }));
         assert_eq!(Scope::of(&bind), Scope::All, "an unreadable field is ignored like hyprland.lua does");
     }
@@ -202,6 +218,12 @@ mod tests {
         let scope = Scope::Except(set(&["b", "a \"x\""]));
         assert_eq!(scope.to_lua().unwrap(), r#"device = { inclusive = false, list = { "a \"x\"", "b" } }"#);
         assert_eq!(Scope::All.to_lua(), None);
+    }
+
+    #[test]
+    fn twin_keyboards_are_not_targets() {
+        let names: Vec<String> = ["kb", "kb-1", "kb-extra", "other"].iter().map(|n| (*n).to_owned()).collect();
+        assert_eq!(distinct(&names), vec!["kb-extra".to_owned(), "other".to_owned()]);
     }
 
     #[test]

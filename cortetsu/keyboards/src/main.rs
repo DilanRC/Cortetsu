@@ -6,9 +6,8 @@
 //! The commands are listed once, in `USAGE`.
 
 use cortetsu_keyboards::protocol::{self, Error};
-use cortetsu_keyboards::{capture, editor, hypr, inventory, keymap, keys, legacy, probe, store, watch};
+use cortetsu_keyboards::{capture, editor, hypr, inventory, keys, legacy, prefs, probe, store, watch};
 use serde::Serialize;
-use std::collections::BTreeMap;
 use std::time::Instant;
 
 #[derive(Serialize)]
@@ -61,18 +60,13 @@ fn keys_command(device: Option<&str>) -> Result<serde_json::Value, Error> {
     if let (Some(id), true) = (device, selected.is_empty()) {
         return Err(Error::new("unknown-device", format!("El teclado {id} no está conectado")));
     }
-    let mut keymaps: BTreeMap<inventory::Layout, Option<keymap::Keymap>> = BTreeMap::new();
+    let paths = store::Paths::from_env();
+    let mut keymaps = keys::Keymaps::new();
     let mut devices = Vec::new();
     let mut spare = Vec::new();
     for keyboard in selected {
-        // Hyprland gives every node of a keyboard the same layout.
-        let keymap = keyboard
-            .interfaces
-            .iter()
-            .find_map(|i| i.layout.clone())
-            .and_then(|layout| keymaps.entry(layout.clone()).or_insert_with(|| keymap::compile(&layout)).clone());
-        let verified = probe::verified(&keyboard.model);
-        let device_keys = keys::classify(keyboard, keymap.as_ref(), binds.as_deref(), &verified);
+        let verified = prefs::verified(&paths, &keyboard.model);
+        let device_keys = keys::of_keyboard(keyboard, &mut keymaps, binds.as_deref(), &verified);
         for key in device_keys.iter().filter(|k| k.has(keys::State::Candidate)) {
             spare.push(Spare { device: keyboard.id.clone(), device_label: keyboard.label.clone(), key: key.clone() });
         }

@@ -128,12 +128,13 @@ Item {
     }
 
     onActiveChanged: {
-        if (active)
+        if (active) {
             refresh();
-        else if (probe)
+            return;
+        }
+        if (probe)
             Quickshell.execDetached([helper, "probe", "end", probe.device]);
-        if (!active)
-            probe = null;
+        probe = null;
     }
 
     Timer {
@@ -161,7 +162,10 @@ Item {
                         root.probe = null;
                     return;
                 }
-                if (probeProcess.verb === "begin")
+                if (probeProcess.verb === "begin" && !root.active)
+                    // Closed while starting: end it rather than test unseen.
+                    Quickshell.execDetached([root.helper, "probe", "end", probeProcess.device]);
+                else if (probeProcess.verb === "begin")
                     root.probe = { device: probeProcess.device, codes: message.codes ?? [], hits: message.hits ?? [] };
                 else if (root.probe && !message.active)
                     // Hyprland's timer, or a reload, ended it: keep what was pressed.

@@ -174,7 +174,11 @@ se limita.
   `hyprland.lua` pasa a `hl.bind` como la opción `device` de Hyprland 0.56.
   Guarda además cada objeto `HL.Keybind` en `_G.cortetsu_binds[id]`.
 - `scope` solo acepta nombres que `hyprctl devices` lista ahora, salvo los que
-  el atajo ya tenía: un teclado desenchufado no se pierde al editar.
+  el atajo ya tenía: un teclado desenchufado no se pierde al editar. Rechaza
+  los de dos teclados iguales (`x` y `x-1`): Hyprland los numera por orden de
+  conexión y el ámbito acabaría en el otro tras reconectar.
+- La verificación solo falla por un atajo sin limitar si Hyprland lo tiene en
+  otros teclados; si no lo cargó, no bloquea los demás cambios.
 - Conflictos: dos atajos chocan si algún teclado dispararía los dos. Dos
   listas `only` disjuntas no chocan; `only A` contra `except B` choca salvo
   que A esté dentro de B; todo lo demás choca (una lista `except` nunca se da

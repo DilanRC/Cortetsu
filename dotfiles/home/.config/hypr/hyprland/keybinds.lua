@@ -309,7 +309,7 @@ end
 local function probe_report(probe, active)
     local hits = {}
     for code in pairs(probe and probe.hits or {}) do
-        hits[#hits + 1] = tostring(code)
+        hits[#hits + 1] = code
     end
     table.sort(hits)
     return "A=" .. (active and "1" or "0") .. " H=" .. table.concat(hits, ",")
@@ -322,7 +322,15 @@ function _G.cortetsu_probe_begin(devices, codes, ms)
     _G.cortetsu_probe_last = nil
     _G.cortetsu_probe_token = (_G.cortetsu_probe_token or 0) + 1
     local token = _G.cortetsu_probe_token
+    -- Registered, with its timer, before binding: if a bind fails midway,
+    -- end and the timer still remove the ones already made.
     local probe = { codes = codes, hits = {} }
+    _G.cortetsu_probe = probe
+    hl.timer(function()
+        if token == _G.cortetsu_probe_token then
+            probe_stop()
+        end
+    end, { timeout = ms, type = "oneshot" })
     for _, code in ipairs(codes) do
         local function hit()
             probe.hits[code] = true
@@ -330,12 +338,6 @@ function _G.cortetsu_probe_begin(devices, codes, ms)
         local options = { device = { inclusive = true, list = devices }, description = "cortetsu-probe:" .. code }
         hl.bind("code:" .. (code + 8), hit, options)
     end
-    _G.cortetsu_probe = probe
-    hl.timer(function()
-        if token == _G.cortetsu_probe_token then
-            probe_stop()
-        end
-    end, { timeout = ms, type = "oneshot" })
     return probe_report(probe, true)
 end
 

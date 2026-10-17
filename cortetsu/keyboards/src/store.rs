@@ -28,6 +28,8 @@ pub struct Paths {
     pub store: PathBuf,
     pub compiled: PathBuf,
     pub snapshots: PathBuf,
+    /// Key-test results (`prefs`).
+    pub keyboards: PathBuf,
 }
 
 impl Paths {
@@ -42,6 +44,7 @@ impl Paths {
             store: config.join("cortetsu/keybinds.json"),
             compiled: hypr.join("cortetsu-keybinds.lua"),
             snapshots: home.join(".local/share/cortetsu/snapshots/keybinds"),
+            keyboards: config.join("cortetsu/keyboards.json"),
         }
     }
 }
@@ -280,11 +283,11 @@ fn luac_check(compiled: &str) -> Result<()> {
 /// limited: a loader that predates the report binds everything everywhere.
 fn verify_scopes(store: &Store) -> Result<()> {
     let wanted: Vec<(&str, Scope)> =
-        store.binds.iter().map(|bind| (text(bind, "id").unwrap_or(""), Scope::of(bind))).collect();
-    let limited = wanted.iter().any(|(_, scope)| *scope != Scope::All);
+        store.binds.iter().filter_map(|bind| Some((text(bind, "id")?, Scope::of(bind)))).collect();
     if wanted.is_empty() {
         return Ok(());
     }
+    let limited = wanted.iter().any(|(_, scope)| *scope != Scope::All);
     let live = match hypr::live_scopes() {
         Some(Some(live)) => live,
         _ if !limited => return Ok(()),
@@ -296,7 +299,10 @@ fn verify_scopes(store: &Store) -> Result<()> {
         }
     };
     for (id, scope) in wanted {
-        if live.get(id) != Some(&scope) {
+        // A bind Hyprland did not take (none in the report) only matters if
+        // it was limited: unlimited, it has nothing to leak.
+        let held = live.get(id).cloned().or((scope == Scope::All).then_some(Scope::All));
+        if held.as_ref() != Some(&scope) {
             return Err(format!("Hyprland no tiene {id} {} tras recargar", scope.describe()));
         }
     }
@@ -330,15 +336,17 @@ pub fn commit(paths: &Paths, store: &Store, present: &[(String, String)], absent
                 return Err(format!("Hyprland no muestra {chord} con su acción tras recargar"));
             }
         }
+        // Another store bind may keep an absent chord on other keyboards.
+        let mut kept: BTreeMap<(u32, String), Vec<String>> = BTreeMap::new();
+        for bind in &store.binds {
+            if let (Some(chord), Some(id)) = (text(bind, "chord"), text(bind, "id")) {
+                kept.entry(chord_parts(chord)).or_default().push(format!("{EDIT_TAG}{id}"));
+            }
+        }
         for chord in absent {
-            // Another store bind may keep the chord on other keyboards.
-            let kept: Vec<String> = store
-                .binds
-                .iter()
-                .filter(|bind| text(bind, "chord").is_some_and(|c| chord_parts(c) == chord_parts(chord)))
-                .map(|bind| format!("{EDIT_TAG}{}", text(bind, "id").unwrap_or("")))
-                .collect();
-            if bound.get(&chord_parts(chord)).is_some_and(|d| d.iter().any(|d| !kept.contains(d))) {
+            let parts = chord_parts(chord);
+            let ours = kept.get(&parts).map(Vec::as_slice).unwrap_or_default();
+            if bound.get(&parts).is_some_and(|d| d.iter().any(|d| !ours.contains(d))) {
                 return Err(format!("{chord} sigue activo tras recargar"));
             }
         }
@@ -420,6 +428,7 @@ mod tests {
             store: root.join("keybinds.json"),
             compiled: root.join("cortetsu-keybinds.lua"),
             snapshots: root.join("snapshots"),
+            keyboards: root.join("keyboards.json"),
         };
         fs::write(&paths.store, "{}").unwrap();
         for n in 0..25 {

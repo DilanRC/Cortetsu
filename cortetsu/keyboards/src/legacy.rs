@@ -504,14 +504,15 @@ pub(crate) fn ensure_free(
         return Ok(());
     }
     // Workspace binds are generated in Lua and only Hyprland knows them all.
-    // Store binds, the row itself or on other keyboards, were checked above.
-    let checked = |bind: &hypr::Bind| {
-        bind.description.strip_prefix(EDIT_TAG).is_some_and(|id| {
-            Some(id) == row
-                || items.iter().any(|e| e.id == id && normalise(&e.chord) == wanted && !e.scope.overlaps(scope))
-        })
-    };
-    if live_on(chord).iter().any(|bind| !checked(bind)) {
+    // Store binds checked above, the row itself or on other keyboards, are
+    // not another action.
+    let checked: Vec<String> = items
+        .iter()
+        .filter(|e| normalise(&e.chord) == wanted && !e.scope.overlaps(scope))
+        .map(|e| format!("{EDIT_TAG}{}", e.id))
+        .chain(row.map(|id| format!("{EDIT_TAG}{id}")))
+        .collect();
+    if live_on(chord).iter().any(|bind| !checked.contains(&bind.description)) {
         return Err(format!("{chord} ya lo usa otra acción de Hyprland"));
     }
     Ok(())

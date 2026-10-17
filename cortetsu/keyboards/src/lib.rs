@@ -11,6 +11,7 @@ pub mod keymap;
 pub mod keys;
 pub mod legacy;
 pub mod lua;
+pub mod prefs;
 pub mod probe;
 pub mod protocol;
 pub mod scope;

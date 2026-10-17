@@ -67,13 +67,17 @@ def main() -> int:
                 return json.loads(result.stdout)
 
             wait_for(lambda: "cortetsu-capture:exit" in hyprctl("binds", "-j"), "configuración cargada")
-            for _ in range(2):
-                keyboards.append(subprocess.Popen([str(build_vinput(base / "vinput"))],
+            # Two names: identical keyboards (x, x-1) are refused as targets.
+            binary = build_vinput(base / "vinput")
+            other = binary.with_name("vother")
+            shutil.copy(binary, other)
+            for program in (binary, other):
+                keyboards.append(subprocess.Popen([str(program)],
                                                   env=dict(env, WAYLAND_DISPLAY=socket),
                                                   stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True))
                 assert keyboards[-1].stdout.readline().strip() == "ready"
             names = wait_for(lambda: (lambda n: n if len(n) == 2 else None)(
-                [k["name"] for k in json.loads(hyprctl("devices", "-j"))["keyboards"] if "vinput" in k["name"]]),
+                [k["name"] for k in json.loads(hyprctl("devices", "-j"))["keyboards"] if "virtual-keyboard" in k["name"]]),
                 "dos teclados virtuales")
             marks = {name: base / f"fired-{index}" for index, name in enumerate(names)}
 

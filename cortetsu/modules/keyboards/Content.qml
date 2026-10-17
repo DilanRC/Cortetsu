@@ -48,6 +48,7 @@ FocusScope {
     readonly property bool listening: Flow.holdsKeyboard(flow)
     // The key test and a change never run together: both rebind keys.
     readonly property bool probing: backend.probe !== null
+    readonly property Item listTop: [search, tabRow, probeBar][currentTab] ?? tabRow
     readonly property var probeHits: probing && backend.probe.device === deviceId ? backend.probe.hits : []
 
     // A write's error: a string from the editor commands, an object from v2.
@@ -433,7 +434,7 @@ FocusScope {
 
                     ListView {
                         id: list
-                        anchors.top: root.currentTab === 0 ? search.bottom : root.currentTab === 2 ? probeBar.bottom : tabRow.bottom
+                        anchors.top: root.listTop.bottom
                         anchors.topMargin: CortetsuDesign.spacingCompact
                         anchors.bottom: parent.bottom
                         width: parent.width

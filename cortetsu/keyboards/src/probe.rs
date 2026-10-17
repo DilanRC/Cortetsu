@@ -12,13 +12,10 @@
 
 use crate::inventory::{self, Keyboard};
 use crate::protocol::Error;
-use crate::store::{Paths, atomic_write, refuse_symlink};
-use crate::{hypr, keymap, keys, lua};
+use crate::store::Paths;
+use crate::{hypr, keys, lua, prefs};
 use serde::Serialize;
-use serde_json::{Map, Value, json};
 use std::collections::BTreeSet;
-use std::fs;
-use std::path::PathBuf;
 use std::time::Duration;
 
 const TIMEOUT: Duration = Duration::from_secs(5);
@@ -61,59 +58,6 @@ fn call(code: &str) -> Result<(bool, Vec<u16>), Error> {
     })
 }
 
-/// Where verified keys are remembered, next to the keybind store.
-fn prefs_path() -> PathBuf {
-    Paths::from_env().store.with_file_name("keyboards.json")
-}
-
-fn codes_of(data: &Map<String, Value>, model: &str) -> BTreeSet<u16> {
-    let codes = data.get("verified").and_then(|models| models.get(model)).and_then(Value::as_array);
-    codes.into_iter().flatten().filter_map(Value::as_u64).filter_map(|c| u16::try_from(c).ok()).collect()
-}
-
-fn read_prefs() -> Option<Map<String, Value>> {
-    match serde_json::from_str(&fs::read_to_string(prefs_path()).ok()?) {
-        Ok(Value::Object(data)) => Some(data),
-        _ => None,
-    }
-}
-
-/// Codes verified for a keyboard model (`Keyboard::model`): a key exists on
-/// every keyboard of the model, whatever port it is plugged into.
-pub fn verified(model: &str) -> BTreeSet<u16> {
-    read_prefs().map(|data| codes_of(&data, model)).unwrap_or_default()
-}
-
-/// Add `hits` to the model's verified codes; other fields are kept.
-fn remember(model: &str, hits: &[u16]) -> Result<Vec<u16>, Error> {
-    let path = prefs_path();
-    let failed = |e: String| Error::new("prefs", format!("No se pudo guardar la prueba: {e}"));
-    let mut data = match read_prefs() {
-        Some(data) => data,
-        None if path.exists() => return Err(failed(format!("{} no es JSON válido", path.display()))),
-        None => Map::new(),
-    };
-    let mut all = codes_of(&data, model);
-    all.extend(hits.iter().copied());
-    let all: Vec<u16> = all.into_iter().collect();
-    if hits.is_empty() {
-        return Ok(all);
-    }
-    data.insert("schema".into(), json!(1));
-    let models = data.entry("verified").or_insert_with(|| json!({}));
-    if !models.is_object() {
-        *models = json!({});
-    }
-    models[model] = json!(all);
-    refuse_symlink(&path).map_err(failed)?;
-    if let Some(parent) = path.parent() {
-        fs::create_dir_all(parent).map_err(|e| failed(e.to_string()))?;
-    }
-    let text = serde_json::to_string_pretty(&Value::Object(data)).map_err(|e| failed(e.to_string()))?;
-    atomic_write(&path, &(text + "\n")).map_err(failed)?;
-    Ok(all)
-}
-
 fn keyboard(id: &str) -> Result<Keyboard, Error> {
     inventory::now()
         .keyboards
@@ -125,9 +69,7 @@ fn keyboard(id: &str) -> Result<Keyboard, Error> {
 /// The keys a test asks for: the keyboard's spare keys, which have no
 /// action to swallow while the test binds them.
 pub fn testable(keyboard: &Keyboard) -> Vec<u16> {
-    let keymap = keyboard.interfaces.iter().find_map(|i| i.layout.clone()).and_then(|l| keymap::compile(&l));
-    let binds = hypr::binds();
-    keys::classify(keyboard, keymap.as_ref(), binds.as_deref(), &BTreeSet::new())
+    keys::of_keyboard(keyboard, &mut keys::Keymaps::new(), hypr::binds().as_deref(), &BTreeSet::new())
         .into_iter()
         .filter(|k| k.has(keys::State::Candidate))
         .map(|k| k.code)
@@ -174,7 +116,8 @@ pub fn end(device: &str) -> Result<Status, Error> {
     // of another model.
     let declared = keyboard.codes();
     let hits: Vec<u16> = hits.into_iter().filter(|c| declared.contains(c)).collect();
-    let verified = remember(&keyboard.model, &hits)?;
+    let verified = prefs::remember(&Paths::from_env(), &keyboard.model, &hits)
+        .map_err(|e| Error::new("prefs", format!("No se pudo guardar la prueba: {e}")))?;
     Ok(Status { active, hits, codes: Vec::new(), verified: Some(verified) })
 }
 

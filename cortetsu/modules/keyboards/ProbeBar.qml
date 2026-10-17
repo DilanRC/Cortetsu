@@ -54,7 +54,7 @@ Rectangle {
             color: root.error ? CortetsuDesign.colorWarning : CortetsuDesign.colorOnSurface
             text: root.error ? root.error
                 : root.summary && !root.running ? root.summary
-                : root.running ? qsTr("Pulsa las teclas libres de %1. Ahora solo registran la pulsación · pulsadas %2 de %3")
+                : root.running ? qsTr("Pulsa las teclas libres de %1. Solo registran la pulsación · %2 de %3")
                     .arg(root.keyboard?.label ?? "").arg(root.hits).arg(root.total)
                 : root.keyboard ? qsTr("Comprueba qué teclas libres existen de verdad en %1: el controlador declara más de las que hay.")
                     .arg(root.keyboard.label)

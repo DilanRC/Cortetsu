@@ -13,11 +13,11 @@
 //! - UNKNOWN is anything this table does not classify, or without a keysym.
 
 use crate::hypr;
-use crate::inventory::{Keyboard, Kind};
+use crate::inventory::{Keyboard, Kind, Layout};
 use crate::keycodes;
-use crate::keymap::Keymap;
+use crate::keymap::{self, Keymap};
 use serde::Serialize;
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 pub const KEY_SYSRQ: u16 = 99;
 pub const KEY_POWER: u16 = 116;
@@ -351,6 +351,25 @@ fn bind_hits(bind: &hypr::Bind, code: u16, keysym: Option<&str>) -> bool {
         || keysym.is_some_and(|sym| bind.key.eq_ignore_ascii_case(sym))
 }
 
+/// Keymaps by layout, compiled once per command.
+pub type Keymaps = BTreeMap<Layout, Option<Keymap>>;
+
+/// Every declared key of `keyboard`, classified. Hyprland gives every node
+/// of a keyboard the same layout, so the first one is the keyboard's.
+pub fn of_keyboard(
+    keyboard: &Keyboard,
+    keymaps: &mut Keymaps,
+    binds: Option<&[hypr::Bind]>,
+    verified: &BTreeSet<u16>,
+) -> Vec<Key> {
+    let keymap = keyboard
+        .interfaces
+        .iter()
+        .find_map(|i| i.layout.clone())
+        .and_then(|layout| keymaps.entry(layout.clone()).or_insert_with(|| keymap::compile(&layout)).clone());
+    classify(keyboard, keymap.as_ref(), binds, verified)
+}
+
 pub fn classify(
     keyboard: &Keyboard,
     keymap: Option<&Keymap>,
@@ -420,7 +439,7 @@ pub fn classify(
         } else {
             Confidence::Declared
         };
-        let proposed = keysym.as_deref().filter(|_| candidate).and_then(suggestion);
+        let proposed = if candidate { keysym.as_deref().and_then(suggestion) } else { None };
         keys.push(Key {
             code,
             name: name.to_owned(),
