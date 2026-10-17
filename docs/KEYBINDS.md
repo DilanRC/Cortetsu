@@ -43,6 +43,57 @@ snapshot y recarga.
   `CTRL + Down`), F1–F12 solas, AltGr (escribe caracteres en latam) y las que ya
   usa otra acción.
 
+## Teclas del HP Victus
+
+| Tecla | Evento | Acción por defecto |
+|---|---|---|
+| OMEN | `KEY_PROG2` en «HP WMI hotkeys» → `XF86Launch2` (latam) | Hardware Center (`cortetsu:hardware`) |
+| Copilot | Super+Shift+`KEY_F23` en el teclado AT | Panel de acciones rápidas (`cortetsu:osd`) |
+| Calculadora | `KEY_CALC` → `XF86Calculator` | Sin asignar: no hay calculadora gráfica instalada; el cálculo del lanzador es `>calc` |
+| Fn+Esc | `KEY_FN_ESC` (465) en «HP WMI hotkeys» → `XF86Fn_Esc` (latam) | Sin asignar |
+
+- Los binds viven en `config/hypr-user.lua`; el editor (Hardware > Teclas) los
+  muestra como editables: cambiarlos o quitarlos es la reversión de cada uno.
+- Eventos comprobados por capacidad del dispositivo y keymap latam; la
+  pulsación física está pendiente (abajo).
+- Fn+Esc: `libinput debug-events` registró `KEY_FN_ESC (465)` en el
+  dispositivo HP WMI (2026-10-14). Otra comprobación no vio nada porque buscaba
+  `hp_wmi: Unknown key code` en el journal, y ese mensaje solo sale para
+  códigos sin mapear; Fn+Esc está mapeado. Las dos observaciones son
+  compatibles. El keymap latam lo traduce a `XF86Fn_Esc`, así que se podría
+  enlazar; no se asigna hasta confirmar que llega en cada arranque y elegir
+  una acción.
+- `F23` y `Shift+F23` solos no se capturan; quedan para las aplicaciones, y
+  Copilot no dispara el lanzador de la liberación de Super.
+- OMEN abre el Hardware Center también sobre una ventana a pantalla completa,
+  igual que `SUPER + H` (mismo global). Copilot no: el atajo `osd` de
+  `cortetsu/modules/Shortcuts.qml` no hace nada si hay una ventana a pantalla
+  completa.
+- Regresión: `scripts/integration/test-hp-keys.py` pulsa esos códigos con un
+  teclado virtual `latam` contra un Hyprland anidado con los mismos binds.
+
+### Gestos del touchpad ELAN
+
+Sin cambios: tres dedos arriba/abajo abren o alternan el workspace especial,
+cuatro en horizontal cambian de workspace y cuatro hacia abajo abren el menú de
+sesión (nunca suspenden directamente). No se añade un gesto de cinco dedos sin
+comprobar que el touchpad lo reporta.
+
+### Pruebas físicas pendientes (PENDING_PHYSICAL)
+
+1. OMEN: pulsarla abre el Hardware Center; otra vez lo cierra.
+2. Copilot: abre el panel de acciones rápidas; con un juego en primer plano no
+   debe interferir con el juego.
+3. Fn+Esc: `sudo libinput debug-events` y pulsar Fn+Esc en dos arranques
+   distintos; anotar si aparece `KEY_FN_ESC (465)` en el dispositivo «HP WMI
+   hotkeys» (el número `eventN` cambia entre arranques; búscalo en
+   `/proc/bus/input/devices`). Si no aparece, mirar `journalctl -kf` por
+   `hp_wmi: Unknown key code`.
+4. Calculadora: `KEY_CALC` en el teclado AT; sin acción hasta elegir una.
+5. Cinco dedos: `sudo libinput debug-events` con el touchpad ELAN y apoyar
+   cinco dedos; si aparece `GESTURE_SWIPE_BEGIN ... 5`, el gesto es viable. En
+   la sesión del 2026-10-14 solo se vieron gestos de 2, 3 y 4 dedos.
+
 ## Migración
 
 `~/.config/hypr/hypr-vars.lua`, donde escribía el editor anterior, nunca se

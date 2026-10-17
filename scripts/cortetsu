@@ -447,6 +447,7 @@ test_cmd() {
         "scripts/features/eval-launcher-focus-runtime-contract.py"
         "scripts/integration/test-launcher-dismiss.py"
         "scripts/integration/test-bottomhub-hover-close-race.py"
+        "scripts/integration/test-hp-keys.py"
         "scripts/features/test-launcher-process-scope.py"
         "scripts/features/eval-cortetsu-process-launcher.py"
         "scripts/features/test-cortetsu-scheme.py"
