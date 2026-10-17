@@ -16,7 +16,7 @@ Actualizado el 2026-10-03, rama `elevation/phase-1-behaviour`.
 | H-02 Recarga al cambiar esquema | Hecho | `test-cortetsu-theme-reactive-runtime.py`: sin recarga, sin recrear componentes, generación intacta |
 | H-03 Dos mundos de color | Hecho | misma prueba; 143 archivos migrados al singleton `theme/CortetsuDesign.qml` |
 | H-04 Orbital pierde la selección | Hecho | `test-cortetsu-wallpaper-catalog-runtime.py`; falla contra el código anterior |
-| H-05 Grabación de atajos | Hecho salvo el submapa | `tst_KeyCapture.qml`, `test-cortetsu-keybind-capture-runtime.py`, render fuera de pantalla revisado |
+| H-05 Grabación de atajos | Hecho, con submapa de captura, en «Atajos y teclados» (`modules/keyboards`) | `tst_KeyCapture.qml`, `tst_CaptureFlow.qml`, `test-cortetsu-keyboards-runtime.py`, `test-keyboards-capture.py` (anidado) |
 | H-06 Estado de teclado | Hecho | `test-cortetsu-keyboard-state-runtime.py` |
 | H-07 Telemetría permanente | Hecho para el Dashboard | en reposo, 0 `nvidia-smi` en 15 s (antes 7 en 20 s) |
 | H-12 Popouts y exclusividad | Hecho | IPC en vivo: abrir, alternar, cerrar y cierre al abrir el portapapeles |
@@ -250,7 +250,7 @@ Evidencia: **V** verificado en ejecución, **K** deducido del código.
 | H-15 | U | El atajo `showall` abre a la vez launcher, Dashboard, OSD y Ajustes, contra la política de exclusividad del propio archivo | `Shortcuts.qml:25-37` |
 | H-16 | U | Hardware Center mezcla dominios y nombres: 10 pestañas con mínimo de 92 px, entre ellas "Energía" (`PowerPage`), "Energy" (`EnergyPage`) y "Automático", más "Keys" e "Inicio", que no son hardware. "Inicio" es el inventario de arranque, pero se lee como página principal | `hardware/Content.qml:309-320` |
 | H-17 | U | La página principal de Hardware es una rejilla de seis tarjetas iguales y una fila de cuatro datos. No da veredicto de salud, no marca qué necesita atención y no lleva a la pestaña de detalle | `hardware/OverviewPage.qml` |
-| H-18 | U | En Hardware, el error se pinta en rojo solo si el texto contiene "already" o "could not". Los mensajes en español y el resto de errores salen en gris | `KeybindsPage.qml:446-448` |
+| H-18 | U | En Hardware, el error se pinta en rojo solo si el texto contiene "already" o "could not". Los mensajes en español y el resto de errores salen en gris | `KeybindsPage.qml:446-448` (página retirada; el editor vive en `modules/keyboards`) |
 | H-19 | U/D | Wallpaper Orbital: el octágono central mide hasta 330 x 340 px y recorta a casi cuadrado una imagen 16:9; los satélites son 12 como máximo, de 78 px con miniaturas de 128 px. No hay búsqueda, ni rejilla, ni conteo por categoría, ni indicador de monitor destino. `Arriba`/`Abajo` no hacen nada aunque `docs/design/CORTETSU-PRODUCT-REBUILD.md` lo afirma. Un clic fuera cancela sin confirmar | `wallpaper/Content.qml:42,322,491-492,589-590` |
 | H-20 | U/D | Ajustes: dos encabezados seguidos sin contenido entre ellos; "N familias" cuenta variantes; cada sección repite el dato en un `DomainHero` y en la `StatusCard` de debajo; "Atajos" es una lista fija de 6 filas con el texto "6 accesos" mientras el editor real vive en Hardware; "Acerca de" no muestra revisión ni generación; el buscador solo filtra categorías | `settings/Content.qml:384,587-595,782`; `ShortcutsSection.qml:24-35`; `PowerSection.qml:24-51` |
 | H-21 | U/D | Pantalla de bloqueo: nueve elementos centrados apilados y dos instrucciones que dicen lo mismo. No hay estado "verificando", ni feedback de huella o rostro aunque `Pam` los expone, ni aviso de intentos agotados, ni sacudida al fallar. Lanza `hyprctl -j devices` cada 2 s por monitor mientras está bloqueado. Debajo deja ver, muy atenuada y sin desenfoque, la captura del escritorio | `lock/LockSurface.qml:81-90,107-121,185,299` |
@@ -472,7 +472,9 @@ Una muestra nueva actualiza las filas que cambian, no la tabla.
   Migración de `preferences.json` con el esquema actual y prueba de ida y vuelta.
   Se retira `patchBottomHubAfterSave`.
 - Controladores: un componente `RetainedSurfaceController { flag; ipcTarget;
-  shortcutName }` y una sola política de exclusividad.
+  shortcutName }` y una sola política de exclusividad. Existe
+  (`modules/RetainedSurfaceController.qml`) y lo usa «Atajos y teclados»;
+  falta migrar `DisplayController`, que tiene tests de cadenas propios.
 - Hyprland: confiar en el seguimiento propio de `Quickshell.Hyprland` y
   refrescar solo lo que cada evento invalida.
 - Ajustes: un `Loader` por página con `active` ligado a la categoría, y una sola
@@ -580,7 +582,8 @@ Atajos. Mientras se graba no hay duda de que se está grabando, qué se ha pulsa
 y cómo salir.
 
 **Propuesta técnica.**
-- Mover `KeybindsPage` a Ajustes > Atajos y `StartupPage` a Ajustes > Inicio
+- ~~Mover `KeybindsPage` a Ajustes > Atajos~~: sustituida por la superficie propia «Atajos y teclados»; Ajustes > Atajos la abre.
+- Mover `StartupPage` a Ajustes > Inicio
   automático. Hardware queda con hardware.
 - Captura como máquina de estados: `reposo`, `escuchando`, `capturado`,
   `conflicto`, `guardando`, `error`.

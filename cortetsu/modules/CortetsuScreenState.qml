@@ -14,15 +14,17 @@ QtObject {
     readonly property bool hardware: !!legacyState.hardware
     readonly property bool displayManager: !!legacyState.displayManager
     readonly property bool wallpaperManager: !!legacyState.wallpaperManager
+    readonly property bool keyboards: !!legacyState.keyboards
 
-    readonly property bool retainedOverlayOpen: overview || calendar || clipboard || hardware || displayManager || wallpaperManager
+    readonly property bool retainedOverlayOpen: overview || calendar || clipboard || hardware || displayManager || wallpaperManager || keyboards
     readonly property bool requiresOverlayLayer: retainedOverlayOpen || !!legacyState.launcher || !!legacyState.session
-    readonly property bool requiresFullInputMask: overview || calendar || clipboard || hardware || displayManager || wallpaperManager
+    readonly property bool requiresFullInputMask: overview || calendar || clipboard || hardware || displayManager || wallpaperManager || keyboards
     readonly property bool requiresWindowKeyboardFocus: requiresFullInputMask || !!legacyState.launcher || !!legacyState.session
 
     function setFlag(flag: string, value: bool): bool {
         if (flag === "overview" || flag === "calendar" || flag === "clipboard"
-                || flag === "hardware" || flag === "displayManager" || flag === "wallpaperManager")
+                || flag === "hardware" || flag === "displayManager" || flag === "wallpaperManager"
+                || flag === "keyboards")
             return setRetained(flag, value);
         if (["launcher", "session", "dashboard", "utilities", "settings", "sidebar", "osd"].indexOf(flag) < 0
                 || legacyState[flag] === undefined)
@@ -38,10 +40,11 @@ QtObject {
         legacyState.hardware = false;
         legacyState.displayManager = false;
         legacyState.wallpaperManager = false;
+        legacyState.keyboards = false;
     }
 
     function closeRetainedOverlaysExcept(exceptFlag: string): void {
-        for (const flag of ["overview", "calendar", "clipboard", "hardware", "displayManager", "wallpaperManager"]) {
+        for (const flag of ["overview", "calendar", "clipboard", "hardware", "displayManager", "wallpaperManager", "keyboards"]) {
             if (flag !== exceptFlag)
                 setRetained(flag, false);
         }
@@ -49,7 +52,8 @@ QtObject {
 
     function setRetained(flag: string, value: bool): bool {
         if (flag !== "overview" && flag !== "calendar" && flag !== "clipboard"
-                && flag !== "hardware" && flag !== "displayManager" && flag !== "wallpaperManager")
+                && flag !== "hardware" && flag !== "displayManager" && flag !== "wallpaperManager"
+                && flag !== "keyboards")
             return false;
         legacyState[flag] = value;
         return true;

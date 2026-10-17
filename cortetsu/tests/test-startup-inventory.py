@@ -383,7 +383,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-startup-test-") as temp:
         "cortetsu:launcher-scheme-list", "cortetsu:calendar-sync",
         "cortetsu:display-presets", "cortetsu:display-preview-status", "cortetsu:hardware-probe",
         "cortetsu:hardware-power-probe", "cortetsu:hardware-power-automation-status",
-        "cortetsu:hardware-keybind-list", "cortetsu:settings-keybind-list", "cortetsu:hardware-energy-probe", "cortetsu:hardware-startup-scan",
+        "cortetsu:keyboards-watch", "cortetsu:settings-keybind-list", "cortetsu:hardware-energy-probe", "cortetsu:hardware-startup-scan",
         "cortetsu:display-calibration-control",
         "cortetsu:session-sleep-monitor", "cortetsu:session-sleep-capability", "cortetsu:session-sleep-lock",
         "cortetsu:keyboard-state", "cortetsu:window-list",

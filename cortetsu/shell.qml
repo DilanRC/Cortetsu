@@ -41,6 +41,7 @@ ShellRoot {
     CalendarController {}
     ClipboardController {}
     HardwareController {}
+    KeyboardsController {}
     DisplayController {}
     IdleMonitors { lock: lock }
 }

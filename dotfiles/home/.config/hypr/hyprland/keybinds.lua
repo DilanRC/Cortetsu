@@ -250,3 +250,41 @@ create_bind(
         " -a 'Shell' -A 'Test1=I got it!' -A 'Test2=Another action'"
     )
 )
+
+-- Shortcut capture («Atajos y teclados»). While the editor records a chord,
+-- Hyprland sits in this submap and no global bind fires, so SUPER + I reaches
+-- the editor instead of opening Settings. cortetsu-keybinds capture enters and
+-- leaves it; the timer leaves it on its own if the editor dies, so a crash
+-- never strands the keyboard. The token lives in _G so a timer from an older
+-- capture, or from before a reload, cannot end a newer one.
+-- SUPER + CTRL + ALT + SHIFT + Escape is the manual way out.
+local CAPTURE = "cortetsu-capture"
+hl.define_submap(CAPTURE, function()
+    hl.bind("SUPER + CTRL + ALT + SHIFT + Escape", hl.dsp.submap("reset"), { description = "cortetsu-capture:exit" })
+end)
+_G.cortetsu_capture_token = _G.cortetsu_capture_token or 0
+-- A reload drops pending timers but keeps the current submap: a capture
+-- running now would lose its fail-safe, so the reload ends it.
+if hl.get_current_submap() == CAPTURE then
+    _G.cortetsu_capture_token = _G.cortetsu_capture_token + 1
+    hl.dispatch(hl.dsp.submap("reset"))
+end
+
+function _G.cortetsu_capture_begin(ms)
+    ms = math.max(1000, math.min(tonumber(ms) or 15000, 60000))
+    _G.cortetsu_capture_token = _G.cortetsu_capture_token + 1
+    local token = _G.cortetsu_capture_token
+    hl.dispatch(hl.dsp.submap(CAPTURE))
+    hl.timer(function()
+        if token == _G.cortetsu_capture_token and hl.get_current_submap() == CAPTURE then
+            hl.dispatch(hl.dsp.submap("reset"))
+        end
+    end, { timeout = ms, type = "oneshot" })
+end
+
+function _G.cortetsu_capture_end()
+    _G.cortetsu_capture_token = _G.cortetsu_capture_token + 1
+    if hl.get_current_submap() == CAPTURE then
+        hl.dispatch(hl.dsp.submap("reset"))
+    end
+end

@@ -191,11 +191,11 @@ fn title(name: &str) -> String {
     out
 }
 
-fn digest(parts: &[&str]) -> String {
+pub fn digest(parts: &[&str]) -> String {
     sha256::hex(parts.join("\0").as_bytes())[..16].to_owned()
 }
 
-const GONE: &str = "Ese atajo ya no existe";
+pub const GONE: &str = "Ese atajo ya no existe";
 
 /// One row of `list`. Optional fields are absent from the JSON, exactly where
 /// the Python helper left them out of its dicts.
@@ -532,14 +532,56 @@ fn bind_object(value: Value) -> Map<String, Value> {
     }
 }
 
-pub fn set_binding(paths: &Paths, identifier: &str, raw_chord: &str) -> Result<Value> {
-    let chord = validate_chord(raw_chord)?;
-    let (entry, items) = find(identifier, list_bindings(paths)?)?;
-    if !entry.editable {
-        return Err(entry.note.clone().unwrap_or_else(|| "Este atajo no se puede cambiar desde aquí".into()));
+/// Why a chord cannot be written. The message is the one the Python helper
+/// gave; the kind tells a preview whether another action holds the chord.
+#[derive(Debug, Clone, PartialEq)]
+pub enum Refusal {
+    /// Not a chord Hyprland and the editor accept.
+    Invalid(String),
+    /// The shortcut is fixed or no longer exists.
+    Locked(String),
+    /// Another action holds the chord.
+    Taken(String),
+}
+
+impl Refusal {
+    pub fn message(&self) -> &str {
+        match self {
+            Refusal::Invalid(m) | Refusal::Locked(m) | Refusal::Taken(m) => m,
+        }
     }
+}
+
+impl From<Refusal> for String {
+    fn from(refusal: Refusal) -> String {
+        refusal.message().to_owned()
+    }
+}
+
+/// Every check `set` makes before it writes, against the rows already read:
+/// the chord as stored and the row it changes.
+pub fn plan_set(
+    items: &[Binding],
+    identifier: &str,
+    raw_chord: &str,
+) -> std::result::Result<(String, Binding), Refusal> {
+    let chord = validate_chord(raw_chord).map_err(Refusal::Invalid)?;
+    let entry = items.iter().find(|e| e.id == identifier).cloned().ok_or_else(|| Refusal::Locked(GONE.into()))?;
+    if !entry.editable {
+        return Err(Refusal::Locked(
+            entry.note.clone().unwrap_or_else(|| "Este atajo no se puede cambiar desde aquí".into()),
+        ));
+    }
+    ensure_free(&chord, &[normalise(&entry.chord)], items).map_err(Refusal::Taken)?;
+    if identifier.starts_with("user:") && (!entry.conflicts.is_empty() || live_on(&entry.chord).len() > 1) {
+        return Err(Refusal::Taken(format!("{} también lo usa otra acción; cámbiala primero", entry.chord)));
+    }
+    Ok((chord, entry))
+}
+
+pub fn set_binding(paths: &Paths, identifier: &str, raw_chord: &str) -> Result<Value> {
+    let (chord, entry) = plan_set(&list_bindings(paths)?, identifier, raw_chord)?;
     let mut store = load_store(&paths.store)?;
-    ensure_free(&chord, &[normalise(&entry.chord)], &items)?;
     let saved = if identifier.starts_with("var:") {
         let (name, index) = parse_var_id(identifier)?;
         let mut current = variable_slot(&store, &defaults(paths)?, &name);
@@ -547,9 +589,6 @@ pub fn set_binding(paths: &Paths, identifier: &str, raw_chord: &str) -> Result<V
         store.variables.insert(name.clone(), current);
         commit(paths, &store, &[(chord.clone(), format!("{VAR_TAG}{name}"))], &vacated(&entry, &chord))?
     } else if identifier.starts_with("user:") {
-        if !entry.conflicts.is_empty() || live_on(&entry.chord).len() > 1 {
-            return Err(format!("{} también lo usa otra acción; cámbiala primero", entry.chord));
-        }
         // Keyed by the chord it replaces, which is also what unbind stores, so
         // an edit of the line in hypr-user.lua does not orphan it.
         let replacement = format!("edit:{}", digest(&[&normalise(&entry.chord)]));
@@ -663,6 +702,13 @@ fn without_field_codes(command: &str) -> String {
     out.replace("%%", "%").trim().to_owned()
 }
 
+/// The checks `add-app` makes on its chord, against the rows already read.
+pub fn plan_add(items: &[Binding], raw_chord: &str) -> std::result::Result<String, Refusal> {
+    let chord = validate_chord(raw_chord).map_err(Refusal::Invalid)?;
+    ensure_free(&chord, &[], items).map_err(Refusal::Taken)?;
+    Ok(chord)
+}
+
 pub fn add_app(paths: &Paths, app_id: &str, name: &str, command: &str, raw_chord: &str) -> Result<Value> {
     if app_id.is_empty() || name.is_empty() || command.is_empty() {
         return Err("La aplicación elegida no tiene datos de lanzamiento completos".into());
@@ -671,8 +717,7 @@ pub fn add_app(paths: &Paths, app_id: &str, name: &str, command: &str, raw_chord
     if command.contains('\n') || command.contains('\0') {
         return Err("El comando de la aplicación no se puede guardar de forma segura".into());
     }
-    let chord = validate_chord(raw_chord)?;
-    ensure_free(&chord, &[], &list_bindings(paths)?)?;
+    let chord = plan_add(&list_bindings(paths)?, raw_chord)?;
     let mut store = load_store(&paths.store)?;
     let identifier = format!("app:{}", digest(&[app_id, &chord]));
     store.binds.retain(|bind| text(bind, "id") != Some(identifier.as_str()));

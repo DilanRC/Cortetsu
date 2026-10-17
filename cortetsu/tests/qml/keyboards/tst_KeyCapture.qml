@@ -1,6 +1,6 @@
 import QtQuick
 import QtTest
-import "../../../modules/hardware/KeyCapture.js" as KeyCapture
+import "../../../modules/keyboards/KeyCapture.js" as KeyCapture
 
 TestCase {
     name: "KeyCapture"
@@ -39,5 +39,19 @@ TestCase {
     function test_parts_split_a_stored_chord() {
         compare(KeyCapture.parts("SUPER + SHIFT + D"), ["SUPER", "SHIFT", "D"]);
         compare(KeyCapture.parts(""), []);
+    }
+
+    function test_device_keysym_names_keys_qt_cannot() {
+        // KEY_F13 under latam: Qt has no name for XF86Tools.
+        compare(KeyCapture.resolve(Qt.Key_Tools, Qt.NoModifier, "XF86Tools").chord, "XF86Tools");
+        compare(KeyCapture.resolve(0, Qt.MetaModifier, "XF86Launch5").chord, "SUPER + XF86Launch5");
+        compare(KeyCapture.resolve(0, Qt.NoModifier, "F19").chord, "F19");
+        compare(KeyCapture.resolve(0, Qt.NoModifier, "ntilde").kind, "bare");
+        compare(KeyCapture.resolve(0, Qt.NoModifier, "NoSymbol").kind, "unsupported");
+    }
+
+    function test_altgr_is_never_part_of_a_chord() {
+        compare(KeyCapture.resolve(Qt.Key_At, Qt.GroupSwitchModifier, "q").kind, "altgr");
+        compare(KeyCapture.resolve(0, Qt.NoModifier, "ISO_Level3_Shift").kind, "modifier");
     }
 }

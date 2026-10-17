@@ -9,11 +9,14 @@ var pages = {
     power: 5
 };
 
+// Index of the last tab (Arranque); 0 on the number row selects it.
+var lastPage = 8;
+
 function pageForKey(key, currentPage, key1, key9, key0) {
     if (key >= key1 && key <= key9)
         return key - key1;
     if (key === key0)
-        return 9;
+        return lastPage;
     return currentPage;
 }
 

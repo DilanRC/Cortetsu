@@ -24,6 +24,9 @@ combinación: [KEYBINDS.md](KEYBINDS.md).
 | `inventory` | Teclados conectados, sus interfaces y su nombre en Hyprland |
 | `keys [--device ID]` | Cada tecla declarada con sus estados, y `spare` («Teclas por aprovechar») |
 | `watch` | Una línea `inventory` al empezar (`event: "initial"`) y otra por cada cambio (`"changed"`) |
+| `bindings` | La lista del editor con `version`, el resumen de la configuración leída |
+| `preview set ID CHORD` / `preview add-app CHORD` | `before`, `after`, `valid`, `conflict`, `problem` y `version`, sin escribir nada |
+| `capture begin [MS]` / `capture end` / `capture status` | Entra o sale del submapa `cortetsu-capture` (`active`, `submap`) |
 
 Cada respuesta es una línea JSON con `protocol: 2`, `kind` y `ok`. Un error
 lleva `error.code` estable (`usage`, `unknown-device`, `watch-unavailable`) y
@@ -119,6 +122,38 @@ versiona para que la compilación no dependa de las cabeceras instaladas.
 | Procesos tras matar `watch` con SIGKILL | ninguno |
 | Binario | 617 KB |
 
+## Escritura revisada
+
+`--expect VERSION` delante de un comando de escritura (`set`, `delete`,
+`reset`, `add-app`) lo rechaza con `"stale": true` si la configuración cambió
+desde la vista previa que mostró esa versión. La superficie aplica siempre con
+la versión que el usuario revisó. Toda escritura toma antes un bloqueo
+exclusivo (`keybinds.lock` junto al almacén), así que la comprobación y la
+escritura no se intercalan con otro helper (`src/editor.rs`).
+
+## Captura de atajos
+
+Mientras se graba un atajo, Hyprland entra en el submapa `cortetsu-capture`
+para que ningún bind global se dispare. Las salidas, en orden de seguridad:
+
+1. la superficie llama a `capture end` al recibir el atajo, al cancelar, al
+   cerrarse o perder el foco, y al destruirse;
+2. un temporizador de Hyprland (`MS`, entre 1 y 60 s) sale solo si nadie lo
+   hizo, y una captura nueva invalida el temporizador de la anterior;
+3. recargar la configuración de Hyprland sale también, porque la recarga
+   descarta el temporizador pero conserva el submapa;
+4. `SUPER + CTRL + ALT + SHIFT + Escape` sale a mano.
+
+## Superficie «Atajos y teclados»
+
+Superficie retenida propia (`modules/keyboards`, IPC `keyboards`, atajo global
+`keyboards`), fuera de Hardware Center. Tres zonas: teclados conectados,
+pestañas (Atajos, Teclas especiales, Por aprovechar) y el editor. El flujo de
+edición es un reductor puro (`CaptureFlow.js`): reposo, grabando, revisión,
+aplicando, verificado, y conflicto, fallo, cancelado o recuperando. Nada se
+escribe sin «Confirmar y aplicar». `watch` solo corre con la superficie
+abierta.
+
 ## Pruebas
 
 ```bash
@@ -133,6 +168,15 @@ de tres interfaces, dos teclados idénticos, Bluetooth detrás de un adaptador
 USB, un dispositivo virtual y la conexión/desconexión. `tests/watch.rs` prueba
 el hotplug, que `udevadm` muere con el helper aunque se mate con SIGKILL, y
 que cerrar la salida de `watch` lo termina.
+
+- `scripts/features/test-keybinds-preview.py`: vista previa y `--expect`.
+- `scripts/integration/test-keyboards-capture.py` (Hyprland anidado): el
+  submapa retiene los binds, se suelta, el temporizador libera y un token
+  viejo no corta una captura nueva.
+- `scripts/features/test-cortetsu-keyboards-runtime.py`: la superficie real
+  con un helper simulado recorre grabar, conflicto, aplicar, cancelar,
+  cerrar, tiempo agotado y fallo de `capture begin`.
+- `cortetsu/tests/qml/keyboards/`: reductor, modelo y lectura de teclas.
 
 ## Migración desde Python
 

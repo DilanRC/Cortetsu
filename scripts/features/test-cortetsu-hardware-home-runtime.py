@@ -141,9 +141,9 @@ ShellRoot {
                 process: find(content, "processRows").itemAt(0),
                 cpu: find(content, "cpuBlock")
             };
-            // Header, the ten tabs, then the page top to bottom and left to right.
+            // Header, the nine tabs, then the page top to bottom and left to right.
             const order = tabOrder().join(",");
-            verify(order === "hardwareRefresh,hardwareClose,-,-,-,-,-,-,-,-,-,-,cpuBlock,-,-,memoryBlock,diskBlock,processBlock,powerLink,networkLink,coolingLink",
+            verify(order === "hardwareRefresh,hardwareClose,-,-,-,-,-,-,-,-,-,cpuBlock,-,-,memoryBlock,diskBlock,processBlock,powerLink,networkLink,coolingLink",
                 `Tab follows the visual order (${order})`);
         }],
         [() => waitedMs >= 400, () => {
@@ -156,7 +156,7 @@ ShellRoot {
             verify(find(content, "gpuRows").itemAt(0) === kept.gpu, "a new reading keeps the GPU rows");
             verify(find(content, "processRows").itemAt(0) === kept.process, "a new reading keeps the process rows");
             verify(find(content, "cpuBlock") === kept.cpu, "a new reading keeps the page");
-            verify(tabOrder().indexOf("cpuBlock") === 14, "the two flagged rows come before the meters in the Tab order");
+            verify(tabOrder().indexOf("cpuBlock") === 13, "the two flagged rows come before the meters in the Tab order");
         }],
         [() => waitedMs >= 400, () => {
             render("attention");
