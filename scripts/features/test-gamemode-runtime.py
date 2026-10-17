@@ -307,8 +307,17 @@ exit $code
                 assert depth <= 1, f"helpers overlapped: {calls.read_text()}"
             ipc("gameMode", "disable")
             wait_view("INACTIVE false false false", "final disable")
+
+            # A helper that cannot start leaves the toggle UNKNOWN, not busy.
+            (fake / "cortetsu-gamemode").rename(base / "parked")
+            ipc("gameMode", "enable")
+            wait_view("UNKNOWN false false false", "a helper that never started kept the toggle busy")
+            (base / "parked").rename(fake / "cortetsu-gamemode")
+            ipc("gameMode", "disable")
+            wait_view("INACTIVE false false false", "disable after UNKNOWN")
             assert effective() == before
-            log_text = (base / "qs.log").read_text()
+            log_text = "\n".join(line for line in (base / "qs.log").read_text().splitlines()
+                                  if "Process failed to start" not in line)  # the parked helper, on purpose
             assert "WARN" not in log_text and "ERROR" not in log_text, log_text
         finally:
             os.killpg(qs.pid, 15)

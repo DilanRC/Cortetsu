@@ -23,6 +23,7 @@ disable  ACTIVE: write back the originals, but only for options that still
          hold the game value, so changes made from Settings meanwhile survive.
          In a pending state it recovers. INACTIVE: no-op.
 recover  finish an interrupted APPLYING/RESTORING or retry RECOVERY_REQUIRED.
+         Unlike disable it never touches an ACTIVE game mode.
 status   read only.
 --keyword  use `hyprctl keyword` for a hyprlang (non-Lua) config.
 
@@ -53,6 +54,7 @@ GAME = {
 }
 HYPRCTL = os.environ.get("CORTETSU_HYPRCTL", "hyprctl")
 SCHEMA = 2
+USAGE = "usage: cortetsu-gamemode enable|disable|recover|status [--keyword]"
 PENDING = ("APPLYING", "RESTORING", "RECOVERY_REQUIRED")
 
 
@@ -104,17 +106,23 @@ def read(option: str):
 def same(current, wanted) -> bool:
     if isinstance(current, list) and not isinstance(wanted, list):
         return all(side == wanted for side in current)
-    if isinstance(wanted, list) and not isinstance(current, list):
-        return all(side == current for side in wanted)
     return current == wanted
+
+
+def text(value) -> str:
+    """Value as hyprlang text: 1/0, 5, or "4 8 12 16" for per-side gaps."""
+    if isinstance(value, bool):
+        return str(int(value))
+    if isinstance(value, list):
+        return str(value[0]) if len(set(value)) == 1 else " ".join(map(str, value))
+    return str(value)
 
 
 def lua(value) -> str:
     if isinstance(value, bool):
         return "true" if value else "false"
-    if isinstance(value, list):
-        return str(value[0]) if len(set(value)) == 1 else json.dumps(" ".join(map(str, value)))
-    return str(value)
+    value = text(value)
+    return value if value.isdigit() else json.dumps(value)
 
 
 def lua_config(values: dict) -> str:
@@ -143,7 +151,7 @@ def write(values: dict, backend: str) -> None:
             hyprctl("eval", lua_config(values))
         else:
             for option, value in values.items():
-                hyprctl("keyword", option, lua(int(value) if isinstance(value, bool) else value).strip('"'))
+                hyprctl("keyword", option, text(value))
     except Failure as failure:
         error = failure  # a partial write is still checked below
     wrong = [option for option, value in values.items() if not same(read(option), value)]
@@ -153,13 +161,13 @@ def write(values: dict, backend: str) -> None:
 
 def load(path: Path) -> dict | None:
     try:
-        text = path.read_text(encoding="utf-8")
+        raw = path.read_text(encoding="utf-8")
     except FileNotFoundError:
         return None
     except OSError as error:
         raise Unreadable(f"{path}: {error}") from error
     try:
-        data = json.loads(text)
+        data = json.loads(raw)
         valid = (data.get("schema") == SCHEMA and data.get("instance") == instance()
                  and data.get("state") in ("ACTIVE", *PENDING) and data.get("backend") in ("lua", "keyword")
                  and set(data.get("original", {})) == set(GAME) and set(data.get("target", {})) == set(GAME))
@@ -172,11 +180,14 @@ def load(path: Path) -> dict | None:
 
 def save(path: Path, data: dict) -> None:
     tmp = path.with_suffix(".tmp")
-    with tmp.open("w", encoding="utf-8") as stream:
-        json.dump(data, stream)
-        stream.flush()
-        os.fsync(stream.fileno())
-    tmp.replace(path)
+    try:
+        with tmp.open("w", encoding="utf-8") as stream:
+            json.dump(data, stream)
+            stream.flush()
+            os.fsync(stream.fileno())
+        tmp.replace(path)
+    except OSError as error:
+        raise Failure(f"cannot write {path}: {error}") from error
 
 
 def restore(path: Path, data: dict) -> None:
@@ -241,7 +252,7 @@ def report(path: Path, ok: bool, error: str | None) -> dict:
         if data and not error:
             error = data.get("last_error")
         if data:
-            hyprctl("getoption", "general:border_size", "-j")  # stored state only counts for a live Hyprland
+            hyprctl("version")  # a stored state only counts while Hyprland answers
     except (Unreadable, Failure) as unknown:
         state, error = "UNKNOWN", error or str(unknown)
     return {"state": state, "enabled": state == "ACTIVE", "ok": ok, "error": error}
@@ -252,7 +263,7 @@ def main() -> int:
     backend = "keyword" if "--keyword" in args else "lua"
     commands = [arg for arg in args if arg != "--keyword"] or ["status"]
     if commands[0] not in ("enable", "disable", "recover", "status") or len(commands) > 1:
-        print(__doc__.splitlines()[2], file=sys.stderr)
+        print(USAGE, file=sys.stderr)
         return 2
     path = state_path()
     ok, error = True, None

@@ -20,9 +20,16 @@ import json, os, re, sys, time
 store, plan_path = os.environ["FAKE_HYPR_STORE"], os.environ["FAKE_HYPR_PLAN"]
 options, plan = json.load(open(store)), json.load(open(plan_path))
 cmd = sys.argv[1]
-if cmd == "getoption":
-    if plan.get("getoption") == "fail":
-        sys.exit("socket closed")
+if plan.get("getoption") == "fail" and cmd != "eval":
+    sys.exit("socket closed")
+if cmd == "keyword":
+    value = sys.argv[3]
+    options[sys.argv[2]] = (value == "1" if isinstance(options[sys.argv[2]], bool)
+                            else value if " " in value or sys.argv[2].startswith("general:gaps_") else int(value))
+    if sys.argv[2].startswith("general:gaps_") and " " not in value:
+        options[sys.argv[2]] = " ".join([value] * 4)
+    json.dump(options, open(store, "w"))
+elif cmd == "getoption":
     value = options[sys.argv[2]]
     key = "bool" if isinstance(value, bool) else "css" if isinstance(value, str) else "int"
     print(json.dumps({"option": sys.argv[2], key: value, "set": True}))
@@ -72,8 +79,9 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-gamemode-helper-") as tmp:
     def faults(**kwargs) -> None:
         plan.write_text(json.dumps(kwargs))
 
-    def run(action: str, ok: bool = True) -> dict:
-        done = subprocess.run(["python3", str(HELPER), action], env=env, capture_output=True, text=True, timeout=30)
+    def run(action: str, ok: bool = True, *flags: str) -> dict:
+        done = subprocess.run(["python3", str(HELPER), action, *flags], env=env, capture_output=True, text=True,
+                              timeout=30)
         reply = json.loads(done.stdout)
         assert (done.returncode == 0) == ok == reply["ok"], (action, done)
         assert reply["enabled"] == (reply["state"] == "ACTIVE"), reply
@@ -85,7 +93,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-gamemode-helper-") as tmp:
     def is_game() -> bool:
         return all(options()[name] == value for name, value in GAME_VALUES.items())
 
-    # 1, 2, 12: enable writes the game values and nothing else; disable restores all.
+    # Enable writes the game values and nothing else; disable restores all.
     reset()
     assert run("status")["state"] == "INACTIVE" and run("disable")["state"] == "INACTIVE"
     assert run("enable") == {"state": "ACTIVE", "enabled": True, "ok": True, "error": None}
@@ -95,27 +103,27 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-gamemode-helper-") as tmp:
     assert json.loads(state.read_text())["original"]["decoration:rounding"] == 15, "first snapshot kept"
     assert run("disable")["state"] == "INACTIVE" and options() == USER and not state.exists()
 
-    # 3: eval fails outright: nothing changed, so INACTIVE with the error.
+    # Eval fails outright: nothing changed, so INACTIVE with the error.
     reset()
     faults(eval=["fail"])
     reply = run("enable", ok=False)
     assert reply["state"] == "INACTIVE" and "unknown config key" in reply["error"], reply
     assert options() == USER and not state.exists()
 
-    # 4: half the options written, then an error: rolled back to the user's values.
+    # Half the options written, then an error: rolled back to the user's values.
     reset()
     faults(eval=["partial"])
     reply = run("enable", ok=False)
     assert reply["state"] == "INACTIVE" and "rolled back" in reply["error"], reply
     assert options() == USER and not state.exists()
 
-    # 5: originals cannot be read: nothing is written, no transaction left.
+    # Originals cannot be read: nothing is written, no transaction left.
     reset()
     faults(getoption="fail")
     assert run("enable", ok=False)["state"] == "INACTIVE"
     assert options() == USER and not state.exists()
 
-    # 6, 7: partial apply and the rollback fails too: RECOVERY_REQUIRED keeps
+    # Partial apply and the rollback fails too: RECOVERY_REQUIRED keeps
     # the originals, enable refuses, recover retries and restores them.
     reset()
     faults(eval=["partial", "fail"])
@@ -128,7 +136,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-gamemode-helper-") as tmp:
     assert run("recover", ok=False)["state"] == "RECOVERY_REQUIRED" and state.exists()
     assert run("recover")["state"] == "INACTIVE" and options() == USER and not state.exists()
 
-    # 6: restore fails on disable: kept for retry; a later disable finishes.
+    # Restore fails on disable: kept for retry; a later disable finishes.
     reset()
     run("enable")
     faults(eval=["fail"])
@@ -159,14 +167,19 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-gamemode-helper-") as tmp:
     faults()
     run("disable")
 
-    # 11: rounding changed from Settings while on is kept; the rest is restored.
+    # The hyprlang backend (--keyword) follows the same contract.
+    reset()
+    assert run("enable", True, "--keyword")["state"] == "ACTIVE" and is_game() and options()["misc:vrr"] == 1
+    assert run("disable", True, "--keyword")["state"] == "INACTIVE" and options() == USER
+
+    # Rounding changed from Settings while on is kept; the rest is restored.
     reset()
     run("enable")
     store.write_text(json.dumps(dict(options(), **{"decoration:rounding": 7})))
     run("disable")
     assert options() == dict(USER, **{"decoration:rounding": 7})
 
-    # 8, 9: disable starts while enable is inside its slow eval; the lock
+    # Disable starts while enable is inside its slow eval; the lock
     # orders them and the user's values come back.
     reset()
     faults(eval=["slow"])
@@ -180,7 +193,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-gamemode-helper-") as tmp:
     enabling.communicate(timeout=30)
     assert disabled["state"] == "INACTIVE" and options() == USER, f"an overlapping disable lost values: {options()}"
 
-    # 8: quick on/off/on/off bursts end consistent: ACTIVE with game values or INACTIVE with the user's.
+    # Quick on/off/on/off bursts end consistent: ACTIVE with game values or INACTIVE with the user's.
     for _ in range(4):
         racers = [subprocess.Popen(["python3", str(HELPER), action], env=env, stdout=subprocess.PIPE, text=True)
                   for action in ("enable", "disable", "enable", "disable")]

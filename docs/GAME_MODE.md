@@ -37,6 +37,10 @@ es `INACTIVE`.
 | `RECOVERY_REQUIRED` | Una reversión o restauración no se pudo confirmar; los originales se conservan |
 | `UNKNOWN` | Solo informativo: archivo ilegible o Hyprland no responde. No se borra nada |
 
+Con `UNKNOWN` por archivo ilegible, el helper rechaza toda orden. Comprueba
+las opciones a mano (paso 1 de la prueba física) y, si son las tuyas, borra
+`$XDG_RUNTIME_DIR/cortetsu-gamemode-$HYPRLAND_INSTANCE_SIGNATURE.json`.
+
 Cada orden imprime `{"state", "enabled", "ok", "error"}`. `enabled` es `true`
 solo en `ACTIVE`; la existencia del archivo no basta.
 
@@ -48,6 +52,7 @@ solo en `ACTIVE`; la existencia del archivo no basta.
 | `disable` | `ACTIVE` o pendiente | Restaura y relee |
 | `disable` | `INACTIVE` | Nada |
 | `recover` | `APPLYING`, `RESTORING` interrumpidos o `RECOVERY_REQUIRED` | Restaura y relee |
+| `recover` | `ACTIVE` o `INACTIVE` | Nada (a diferencia de `disable`, nunca apaga un modo activo) |
 | `status` | cualquiera | Solo lectura |
 
 Al restaurar, una opción vuelve a su original solo si todavía tiene el valor de
@@ -70,8 +75,10 @@ Desde terminal: `cortetsu shell ipc gameMode status` y
 ## Pruebas
 
 - `scripts/features/test-gamemode-helper.py` (CI): máquina de estados con un
-  `hyprctl` falso que falla entero, a medias, al leer o al restaurar.
-- `scripts/features/test-gamemode-runtime.py` (local, Hyprland anidado): compara
+  `hyprctl` falso que falla entero, a medias, al leer o al restaurar; también
+  el backend `--keyword` (hyprlang).
+- `scripts/features/test-gamemode-runtime.py` (local, Hyprland anidado; el
+  gemelo real del anterior): compara
   el valor vivo de todas las opciones (`hyprctl descriptions`) antes de activar
   y después de desactivar, provoca fallos parciales reales del `eval`, carreras
   entre helpers, reinicio y recarga del shell, y comprueba el botón QML con el

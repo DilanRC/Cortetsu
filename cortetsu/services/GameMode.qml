@@ -19,7 +19,8 @@ Singleton {
     property string error: ""
     readonly property bool enabled: status === "ACTIVE"
     readonly property bool busy: helper.running || helper.awaiting
-    // A pending state seen while no helper of ours runs was interrupted.
+    // A pending state (cortetsu-gamemode PENDING) seen while no helper of
+    // ours runs was interrupted.
     readonly property bool needsRecovery: !busy && ["APPLYING", "RESTORING", "RECOVERY_REQUIRED"].includes(status)
     property var desired: null
     property int request: 0
@@ -41,7 +42,7 @@ Singleton {
     function sync(): void {
         if (busy || desired === null)
             return;
-        if (desired === enabled && (status === "ACTIVE" || status === "INACTIVE")) {
+        if (status === (desired ? "ACTIVE" : "INACTIVE")) {
             desired = null;
             return;
         }
@@ -86,7 +87,10 @@ Singleton {
         property bool awaiting: true
         running: true
         command: ["cortetsu-gamemode", "status"]
-        onRunningChanged: if (!running) Qt.callLater(root.sync)
+        // A helper that never started (missing from PATH) closes no stream;
+        // without this the toggle would stay busy. streamFinished comes
+        // before running turns false, so a real reply is never cut short.
+        onRunningChanged: if (!running) Qt.callLater(() => helper.awaiting ? root.finish("") : root.sync())
         stdout: StdioCollector {
             onStreamFinished: root.finish(text)
         }
@@ -99,6 +103,6 @@ Singleton {
         function toggle(): void { root.toggle(); }
         function enable(): void { root.setEnabled(true); }
         function disable(): void { root.setEnabled(false); }
-        function recover(): void { root.setEnabled(false); }
+        function recover(): void { if (root.needsRecovery) root.setEnabled(false); }  // never turns ACTIVE off
     }
 }
