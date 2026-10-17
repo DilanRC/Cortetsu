@@ -45,6 +45,10 @@ pub struct Interface {
     /// eventN: changes between boots, shown only to help diagnose.
     pub event: String,
     pub name: String,
+    /// The name exactly as the kernel gives it. Hyprland derives its device
+    /// name from it, so a trailing space there is a trailing dash in Hyprland.
+    #[serde(skip)]
+    pub kernel_name: String,
     #[serde(skip)]
     pub phys: String,
     pub bus: u16,
@@ -136,6 +140,7 @@ struct Node {
     event: String,
     device_dir: PathBuf,
     name: String,
+    kernel_name: String,
     phys: String,
     bus: u16,
     vendor: u16,
@@ -204,6 +209,9 @@ fn nodes(sys: &Path, udev_data: &Path) -> Vec<Node> {
         result.push(Node {
             event,
             name: read(&device_dir.join("name")),
+            kernel_name: fs::read_to_string(device_dir.join("name"))
+                .map(|s| s.strip_suffix('\n').unwrap_or(&s).to_owned())
+                .unwrap_or_default(),
             phys: read(&device_dir.join("phys")),
             bus: hex(&device_dir.join("id/bustype")),
             vendor: hex(&device_dir.join("id/vendor")),
@@ -339,6 +347,7 @@ pub fn scan(sys: &Path, udev_data: &Path, hyprland: Option<&[hypr::Keyboard]>) -
             .map(|(node, usb_interface)| Interface {
                 event: node.event.clone(),
                 name: node.name.clone(),
+                kernel_name: node.kernel_name.clone(),
                 phys: node.phys.clone(),
                 bus: node.bus,
                 vendor: node.vendor,
@@ -397,7 +406,7 @@ fn link_hyprland(keyboards: &mut [Keyboard], hyprland: Option<&[hypr::Keyboard]>
     let mut owners: BTreeMap<String, (BTreeSet<usize>, usize)> = BTreeMap::new();
     for (index, keyboard) in keyboards.iter().enumerate() {
         for interface in &keyboard.interfaces {
-            let entry = owners.entry(hypr::internal_name(&interface.name)).or_default();
+            let entry = owners.entry(hypr::internal_name(&interface.kernel_name)).or_default();
             entry.0.insert(index);
             entry.1 += 1;
         }
@@ -406,7 +415,7 @@ fn link_hyprland(keyboards: &mut [Keyboard], hyprland: Option<&[hypr::Keyboard]>
     for keyboard in keyboards.iter_mut() {
         let mut taken: BTreeSet<String> = BTreeSet::new();
         for interface in &mut keyboard.interfaces {
-            let base = hypr::internal_name(&interface.name);
+            let base = hypr::internal_name(&interface.kernel_name);
             let matches: Vec<&hypr::Keyboard> =
                 hyprland.iter().filter(|k| hypr::is_instance_of(&k.name, &base)).collect();
             let (devices, nodes) = &owners[&base];
@@ -486,6 +495,28 @@ mod tests {
         let wmi = &inventory.keyboards[1];
         assert!(wmi.codes().contains(&149) && wmi.codes().contains(&465), "KEY_PROG2 and KEY_FN_ESC");
         assert!(wmi.hyprland_linked && !wmi.ambiguous);
+    }
+
+    #[test]
+    fn a_trailing_space_in_the_kernel_name_is_a_trailing_dash_in_hyprland() {
+        // Real: SINO WEALTH Gaming KB (258a:002a), read on 2026-10-17.
+        let mut sys = FakeSys::new();
+        for (name, event) in [("SINO WEALTH Gaming KB ", "input0"), ("SINO WEALTH Gaming KB  Keyboard", "input1")] {
+            sys.input(FakeNode {
+                path: &format!("pci0000:00/usb5/5-1/5-1:1.0/0003:258A:002A.0001/{event}"),
+                name,
+                phys: "usb-0000:08:00.3-1/input0",
+                id: (0x3, 0x258a, 0x2a),
+                ev: "120013",
+                key: encode(TYPING),
+            });
+        }
+        let names = hypr(&["sino-wealth-gaming-kb-", "sino-wealth-gaming-kb--keyboard"]);
+        let inventory = scan(sys.path(), &sys.udev_data(), Some(&names));
+        let keyboard = &inventory.keyboards[0];
+        assert!(keyboard.hyprland_linked, "{:?}", keyboard.interfaces);
+        assert_eq!(keyboard.interfaces[0].name, "SINO WEALTH Gaming KB", "shown trimmed");
+        assert!(inventory.hyprland_only.is_empty());
     }
 
     #[test]
