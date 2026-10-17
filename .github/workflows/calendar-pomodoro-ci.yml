@@ -69,6 +69,7 @@ jobs:
       - name: Validate Ascension hardware and shell contracts
         run: |
           python3 scripts/features/test-hardware-design.py
+          python3 scripts/features/test-gamemode-helper.py
           python3 cortetsu/tests/test-gpu-passive.py
           python3 scripts/features/test-cortetsu-quality.py
           python3 scripts/features/test-native-bottom-hub.py
