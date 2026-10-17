@@ -288,3 +288,65 @@ function _G.cortetsu_capture_end()
         hl.dispatch(hl.dsp.submap("reset"))
     end
 end
+
+-- Key test («Probar teclas»). cortetsu-keybinds probe binds each spare key of
+-- one keyboard, by keycode and on that keyboard alone, to a function that
+-- only records the press. The binds go on end, on the timer if the editor
+-- dies, or with a reload, which starts a new Lua state without them.
+-- Unbound by keycode: Hyprland 0.56.2 crashes when HL.Keybind:remove() runs
+-- on a bind that has fired. The keys under test have no other bind. A test
+-- the timer stopped stays in _G.cortetsu_probe_last until `end` reads it.
+local function probe_stop()
+    local probe = _G.cortetsu_probe
+    _G.cortetsu_probe = nil
+    for _, code in ipairs(probe and probe.codes or {}) do
+        hl.unbind("code:" .. (code + 8))
+    end
+    _G.cortetsu_probe_last = probe or _G.cortetsu_probe_last
+end
+
+-- "A=1 H=code,code": whether a test is running and the codes pressed.
+local function probe_report(probe, active)
+    local hits = {}
+    for code in pairs(probe and probe.hits or {}) do
+        hits[#hits + 1] = tostring(code)
+    end
+    table.sort(hits)
+    return "A=" .. (active and "1" or "0") .. " H=" .. table.concat(hits, ",")
+end
+
+-- devices: Hyprland names of the keyboard; codes: evdev codes to test.
+function _G.cortetsu_probe_begin(devices, codes, ms)
+    ms = math.max(1000, math.min(tonumber(ms) or 30000, 120000))
+    probe_stop()
+    _G.cortetsu_probe_last = nil
+    _G.cortetsu_probe_token = (_G.cortetsu_probe_token or 0) + 1
+    local token = _G.cortetsu_probe_token
+    local probe = { codes = codes, hits = {} }
+    for _, code in ipairs(codes) do
+        local function hit()
+            probe.hits[code] = true
+        end
+        local options = { device = { inclusive = true, list = devices }, description = "cortetsu-probe:" .. code }
+        hl.bind("code:" .. (code + 8), hit, options)
+    end
+    _G.cortetsu_probe = probe
+    hl.timer(function()
+        if token == _G.cortetsu_probe_token then
+            probe_stop()
+        end
+    end, { timeout = ms, type = "oneshot" })
+    return probe_report(probe, true)
+end
+
+function _G.cortetsu_probe_status()
+    return probe_report(_G.cortetsu_probe, _G.cortetsu_probe ~= nil)
+end
+
+function _G.cortetsu_probe_end()
+    _G.cortetsu_probe_token = (_G.cortetsu_probe_token or 0) + 1
+    probe_stop()
+    local last = _G.cortetsu_probe_last
+    _G.cortetsu_probe_last = nil
+    return probe_report(last, false)
+end

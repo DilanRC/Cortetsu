@@ -6,6 +6,8 @@
 //! atomically, reload Hyprland, check `hyprctl binds -j` by description, and
 //! restore the snapshot (and reload again) on any failure.
 
+use crate::legacy::EDIT_TAG;
+use crate::scope::Scope;
 use crate::{hypr, lua};
 use serde::Serialize;
 use serde_json::{Map, Value};
@@ -157,6 +159,7 @@ pub fn compile_store(store: &Store) -> Result<String> {
             Some(command) => fields.push(format!("exec = {}", lua::quote(command))),
             None => fields.push(format!("global = {}", lua::quote(text(bind, "global").unwrap_or("")))),
         }
+        fields.extend(Scope::of(bind).to_lua());
         lines.push(format!("        {{ {} }},", fields.join(", ")));
     }
     lines.extend(["    },".into(), "}".into(), String::new()]);
@@ -272,6 +275,34 @@ fn luac_check(compiled: &str) -> Result<()> {
     }
 }
 
+/// Each store bind must listen to the same keyboards in Hyprland as in the
+/// store. Without a readable report that is only an error when some bind is
+/// limited: a loader that predates the report binds everything everywhere.
+fn verify_scopes(store: &Store) -> Result<()> {
+    let wanted: Vec<(&str, Scope)> =
+        store.binds.iter().map(|bind| (text(bind, "id").unwrap_or(""), Scope::of(bind))).collect();
+    let limited = wanted.iter().any(|(_, scope)| *scope != Scope::All);
+    if wanted.is_empty() {
+        return Ok(());
+    }
+    let live = match hypr::live_scopes() {
+        Some(Some(live)) => live,
+        _ if !limited => return Ok(()),
+        None => return Err("No se pudo leer de Hyprland a qué teclados responde cada atajo".into()),
+        Some(None) => {
+            return Err(
+                "La configuración cargada de Hyprland no admite atajos por teclado; actualiza hyprland.lua".into()
+            );
+        }
+    };
+    for (id, scope) in wanted {
+        if live.get(id) != Some(&scope) {
+            return Err(format!("Hyprland no tiene {id} {} tras recargar", scope.describe()));
+        }
+    }
+    Ok(())
+}
+
 /// Write the store, reload Hyprland and check the result, or roll back.
 /// `present`: (chord, description) pairs that must be bound afterwards.
 /// `absent`: chords that must have no bind afterwards.
@@ -300,11 +331,18 @@ pub fn commit(paths: &Paths, store: &Store, present: &[(String, String)], absent
             }
         }
         for chord in absent {
-            if bound.contains_key(&chord_parts(chord)) {
+            // Another store bind may keep the chord on other keyboards.
+            let kept: Vec<String> = store
+                .binds
+                .iter()
+                .filter(|bind| text(bind, "chord").is_some_and(|c| chord_parts(c) == chord_parts(chord)))
+                .map(|bind| format!("{EDIT_TAG}{}", text(bind, "id").unwrap_or("")))
+                .collect();
+            if bound.get(&chord_parts(chord)).is_some_and(|d| d.iter().any(|d| !kept.contains(d))) {
                 return Err(format!("{chord} sigue activo tras recargar"));
             }
         }
-        Ok(())
+        verify_scopes(store)
     })();
     match applied {
         Ok(()) => Ok(saved),

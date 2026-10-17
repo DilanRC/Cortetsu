@@ -46,6 +46,9 @@ FocusScope {
     readonly property var specialRows: Model.specialKeys(backend.deviceKeys, deviceId)
     readonly property var spareRows: Model.spareFor(backend.spare, deviceId)
     readonly property bool listening: Flow.holdsKeyboard(flow)
+    // The key test and a change never run together: both rebind keys.
+    readonly property bool probing: backend.probe !== null
+    readonly property var probeHits: probing && backend.probe.device === deviceId ? backend.probe.hits : []
 
     // A write's error: a string from the editor commands, an object from v2.
     function errorText(result): string {
@@ -86,21 +89,21 @@ FocusScope {
     }
 
     function startCapture(): void {
-        if (!selectedBinding?.editable)
+        if (!selectedBinding?.editable || probing)
             return;
         lastKeyDetail = "";
         dispatch({ type: "start", change: { kind: "set", id: selectedBinding.id } });
     }
 
     function assignApp(app): void {
-        if (!selectedKey?.keysym)
+        if (!selectedKey?.keysym || probing)
             return;
         dispatch({ type: "propose", chord: selectedKey.keysym,
                    change: { kind: "add-app", app: { id: app.id, name: app.name, execString: app.execString } } });
     }
 
     function runChange(args): void {
-        if (!Flow.busy(flow))
+        if (args && !Flow.busy(flow) && !probing)
             backend.apply(args, backend.version);
     }
 
@@ -362,7 +365,7 @@ FocusScope {
                         loaded: backend.inventory !== null
                         error: backend.inventoryError
                         selectedId: root.deviceId
-                        onSelected: id => { if (!root.listening) root.deviceId = id; }
+                        onSelected: id => { if (!root.listening && !root.probing) root.deviceId = id; }
                     }
                 }
 
@@ -413,9 +416,24 @@ FocusScope {
                         onTextChanged: root.query = text
                     }
 
+                    ProbeBar {
+                        id: probeBar
+                        anchors.top: tabRow.bottom
+                        anchors.topMargin: CortetsuDesign.spacingCompact
+                        width: parent.width
+                        visible: root.currentTab === 2
+                        keyboard: root.selectedKeyboard
+                        probe: backend.probe
+                        error: backend.probeError
+                        summary: backend.probeSummary
+                        disabled: root.listening || Flow.busy(root.flow)
+                        onStartRequested: backend.startProbe(root.deviceId)
+                        onEndRequested: backend.endProbe()
+                    }
+
                     ListView {
                         id: list
-                        anchors.top: root.currentTab === 0 ? search.bottom : tabRow.bottom
+                        anchors.top: root.currentTab === 0 ? search.bottom : root.currentTab === 2 ? probeBar.bottom : tabRow.bottom
                         anchors.topMargin: CortetsuDesign.spacingCompact
                         anchors.bottom: parent.bottom
                         width: parent.width
@@ -472,6 +490,7 @@ FocusScope {
                             SelectableRow {
                                 id: keyItem
                                 required property var modelData
+                                readonly property bool pressed: root.probeHits.indexOf(keyItem.modelData.code) >= 0
                                 readonly property var states: keyItem.modelData.states ?? []
                                 width: list.width
                                 icon: Model.kindIcon(backend.keyboards.find(k => k.id === keyItem.modelData.device)?.kind ?? "")
@@ -484,7 +503,8 @@ FocusScope {
                                 onClicked: root.selectKey(keyItem.modelData)
 
                                 CortetsuText {
-                                    text: keyItem.states.filter(s => s !== "DECLARED").map(s => Model.stateLabel(s)).join(" · ")
+                                    text: keyItem.pressed ? qsTr("Pulsada")
+                                        : keyItem.states.filter(s => s !== "DECLARED").map(s => Model.stateLabel(s)).join(" · ")
                                     textSize: CortetsuTypography.labelSmallPx
                                     color: keyItem.states.indexOf("CANDIDATE") >= 0 ? CortetsuDesign.colorPrimary
                                         : CortetsuDesign.colorOnSurfaceVariant
@@ -500,17 +520,21 @@ FocusScope {
                     height: parent.height
                     binding: root.selectedBinding
                     key: root.selectedKey
+                    keyboards: backend.keyboards
+                    selectedKeyboard: root.selectedKeyboard
+                    suggestedApps: Model.suggestedApps(root.selectedKey?.suggestion, [...DesktopEntries.applications.values])
                     flow: root.flow
                     targetLabel: root.targetLabel
                     remaining: root.captureRemaining
                     lastKeyDetail: root.lastKeyDetail
-                    busy: Flow.busy(root.flow) || backend.writing
+                    busy: Flow.busy(root.flow) || backend.writing || root.probing
                     onEditRequested: root.startCapture()
                     onConfirmRequested: root.dispatch({ type: "confirm" })
                     onCancelRequested: root.cancel(qsTr("Cambio cancelado; el atajo no cambió"))
                     onResetRequested: root.runChange(["reset", root.selectedBinding.id])
                     onDeleteRequested: root.runChange(["delete", root.selectedBinding.id])
                     onAssignRequested: app => root.assignApp(app)
+                    onScopeRequested: mode => root.runChange(Model.scopeArgs(root.selectedBinding, root.selectedKeyboard, mode))
                 }
             }
         }

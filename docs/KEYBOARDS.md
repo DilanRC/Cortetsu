@@ -26,10 +26,16 @@ combinación: [KEYBINDS.md](KEYBINDS.md).
 | `watch` | Una línea `inventory` al empezar (`event: "initial"`) y otra por cada cambio (`"changed"`) |
 | `bindings` | La lista del editor con `version`, el resumen de la configuración leída |
 | `preview set ID CHORD` / `preview add-app CHORD` | `before`, `after`, `valid`, `conflict`, `problem` y `version`, sin escribir nada |
-| `capture begin [MS]` / `capture end` / `capture status` | Entra o sale del submapa `cortetsu-capture` (`active`, `submap`) |
+| `capture begin MS` / `capture end` / `capture status` | Entra o sale del submapa `cortetsu-capture` (`active`, `submap`) |
+| `probe begin DEVICE MS` / `probe status` / `probe end DEVICE` | La prueba de teclas: `active`, `hits`, `codes` (al empezar) y `verified` (al terminar) |
+
+`scope ID only|except|all [NAME…]` es un comando de escritura del editor
+(responde como los de protocolo 1 y admite `--expect`); ver «Atajos por
+teclado».
 
 Cada respuesta es una línea JSON con `protocol: 2`, `kind` y `ok`. Un error
-lleva `error.code` estable (`usage`, `unknown-device`, `watch-unavailable`) y
+lleva `error.code` estable (`usage`, `unknown-device`, `watch-unavailable`,
+`not-linked`, `nothing-to-test`, `probe-unavailable`…) y
 `error.message` en castellano. Los comandos heredados conservarán la forma de
 la versión 1.
 
@@ -65,7 +71,7 @@ Los estados se combinan; una tecla puede ser VERIFIED, ASSIGNED y RESERVED.
 | Estado | Regla |
 |---|---|
 | DECLARED | El bitmap `capabilities/key` del controlador incluye el código |
-| VERIFIED | La persona la pulsó en una prueba explícita (PR por dispositivo) |
+| VERIFIED | La persona la pulsó en la prueba de teclas («Probar teclas») |
 | ASSIGNED | Un bind efectivo usa su keysym o `code:N`, sola; o es una tecla dedicada usada en una combinación |
 | CANDIDATE | Tecla dedicada (multimedia, lanzamiento, programable, F13–F24, fabricante) con keysym, sin acción y no reservada |
 | RESERVED | Escritura, modificadores, navegación, F1–F12, AltGr, sistema (encendido, brillo, radio), capa Fn, o un keysym de esas funciones |
@@ -122,10 +128,19 @@ versiona para que la compilación no dependa de las cabeceras instaladas.
 | Procesos tras matar `watch` con SIGKILL | ninguno |
 | Binario | 617 KB |
 
+En Hyprland anidado (configuración del repositorio, sysfs simulado):
+
+| Medida | Valor |
+|---|---|
+| `bindings` | 3 ms |
+| `keys` | 24–26 ms |
+| `scope` (snapshot, escritura, recarga y verificación por `repl`) | 60–68 ms |
+| `probe begin` / `status` / `end` | 32 / 10 / 18 ms |
+
 ## Escritura revisada
 
 `--expect VERSION` delante de un comando de escritura (`set`, `delete`,
-`reset`, `add-app`) lo rechaza con `"stale": true` si la configuración cambió
+`reset`, `add-app`, `scope`) lo rechaza con `"stale": true` si la configuración cambió
 desde la vista previa que mostró esa versión. La superficie aplica siempre con
 la versión que el usuario revisó. Toda escritura toma antes un bloqueo
 exclusivo (`keybinds.lock` junto al almacén), así que la comprobación y la
@@ -140,9 +155,68 @@ para que ningún bind global se dispare. Las salidas, en orden de seguridad:
    cerrarse o perder el foco, y al destruirse;
 2. un temporizador de Hyprland (`MS`, entre 1 y 60 s) sale solo si nadie lo
    hizo, y una captura nueva invalida el temporizador de la anterior;
-3. recargar la configuración de Hyprland sale también, porque la recarga
-   descarta el temporizador pero conserva el submapa;
+3. recargar la configuración de Hyprland sale también: la recarga empieza un
+   estado Lua nuevo, sin el temporizador, pero conserva el submapa, así que
+   `keybinds.lua` sale de él al cargarse;
 4. `SUPER + CTRL + ALT + SHIFT + Escape` sale a mano.
+
+## Atajos por teclado
+
+Un atajo que el editor guarda (`app:` y `edit:`) puede limitarse a unos
+teclados. Los de la configuración base (`var:`, `user:`, `fixed:`) los pone
+Lua que el editor no escribe: se cambian primero y la edición resultante sí
+se limita.
+
+- Almacén: `"devices": {"only": true|false, "names": [...]}` en el bind.
+  `only` lo deja solo en esos teclados; `false`, en todos salvo esos. Sin el
+  campo, en todos. Los nombres son los de `hyprctl devices`.
+- Lua compilado: `device = { inclusive = …, list = { … } }`, que
+  `hyprland.lua` pasa a `hl.bind` como la opción `device` de Hyprland 0.56.
+  Guarda además cada objeto `HL.Keybind` en `_G.cortetsu_binds[id]`.
+- `scope` solo acepta nombres que `hyprctl devices` lista ahora, salvo los que
+  el atajo ya tenía: un teclado desenchufado no se pierde al editar.
+- Conflictos: dos atajos chocan si algún teclado dispararía los dos. Dos
+  listas `only` disjuntas no chocan; `only A` contra `except B` choca salvo
+  que A esté dentro de B; todo lo demás choca (una lista `except` nunca se da
+  por completa: se puede enchufar otro teclado). Así dos aplicaciones pueden
+  compartir combinación en teclados distintos.
+- Verificación: `hyprctl binds -j` no muestra el ámbito, así que tras recargar
+  el helper pregunta por `repl` a `_G.cortetsu_binds` qué teclados tiene cada
+  atajo y restaura el snapshot si alguno no coincide. Con un `hyprland.lua`
+  anterior, que no guarda esa tabla, un atajo limitado se rechaza
+  (`actualiza hyprland.lua`) en vez de quedar global sin aviso.
+- `list` (protocolo 1) no cambia; `bindings` añade `scopable` y `devices`.
+- La superficie muestra el ámbito con el nombre del teclado y marca
+  «(desconectado)» el que no está. «Solo este» y «Todos salvo este» usan el
+  teclado elegido a la izquierda; dos teclados idénticos que Hyprland no
+  distingue (`hyprlandLinked: false`) no se pueden elegir.
+
+## Prueba de teclas
+
+La única vía a VERIFIED. `probe begin` liga cada tecla CANDIDATE del teclado,
+por keycode (`code:N`) y solo en ese teclado, a una función Lua que anota la
+pulsación y nada más (`cortetsu_probe_begin` en `hyprland/keybinds.lua`).
+Las teclas probadas no tienen otra acción, así que no se pierde nada mientras
+dura. `probe end` quita los binds y guarda los códigos pulsados por modelo de
+teclado (`model`, sin puerto) en `~/.config/cortetsu/keyboards.json`; `keys`
+los lee. Solo se guardan códigos que ese teclado declara.
+
+Los binds se van al terminar, con el temporizador (`MS`, 1–120 s; lo pulsado
+se conserva hasta `end`) o con una recarga, que empieza un estado Lua sin
+ellos. Se quitan con `hl.unbind("code:N")`: en Hyprland 0.56.2,
+`HL.Keybind:remove()` sobre un bind que ya se disparó cierra el compositor.
+Mientras dura la prueba la superficie no permite grabar ni aplicar cambios, y
+al cerrarse la termina.
+
+## Sugerencias
+
+Cada tecla CANDIDATE con un keysym conocido lleva `suggestion`
+(`{category, label}`): una tabla fija de keysym a categoría freedesktop
+(`XF86Calculator` → `Calculator`, `XF86Mail` → `Email`, `XF86Tools` →
+`Settings`…). La superficie propone las aplicaciones instaladas de esa
+categoría; elegir una abre la revisión normal, que hay que confirmar. Nunca
+se aplica sola. Las teclas reservadas (OMEN abre Hardware Center, Copilot las
+acciones rápidas) ni son CANDIDATE ni reciben sugerencia.
 
 ## Superficie «Atajos y teclados»
 
@@ -170,6 +244,18 @@ el hotplug, que `udevadm` muere con el helper aunque se mate con SIGKILL, y
 que cerrar la salida de `watch` lo termina.
 
 - `scripts/features/test-keybinds-preview.py`: vista previa y `--expect`.
+- `scripts/features/test-keybinds-scope.py`: `scope`, conflictos entre
+  ámbitos, restauración si Hyprland no tiene el ámbito, `--expect`.
+- `scripts/integration/test-keyboards-scope.py` (Hyprland anidado, dos
+  teclados virtuales): cada teclado dispara solo su atajo sobre la misma
+  combinación, y `hyprland.lua` real informa los ámbitos.
+- `scripts/integration/test-keyboards-probe.py` (Hyprland anidado, sysfs
+  simulado): solo cuentan las pulsaciones del teclado probado, `end` las
+  guarda como VERIFIED, y no queda ningún bind al terminar, con el
+  temporizador ni tras recargar.
+- `scripts/features/test-cortetsu-keyboards-devices-runtime.py`: la
+  superficie con un helper simulado limita un atajo, prueba teclas, impide
+  cambios durante la prueba, la termina al cerrarse y propone sin aplicar.
 - `scripts/integration/test-keyboards-capture.py` (Hyprland anidado): el
   submapa retiene los binds, se suelta, el temporizador libera y un token
   viejo no corta una captura nueva.
@@ -219,3 +305,9 @@ que cerrar la salida de `watch` lo termina.
 
 - Teclado USB externo real: verlo en `inventory` con sus interfaces agrupadas
   y su nombre de Hyprland, y conectarlo/desconectarlo con `watch` abierto.
+- Atajo limitado a ese teclado: que dispare en él y no en el integrado, y que
+  siga limitado tras desconectarlo y volver a conectarlo (mismo nombre en
+  Hyprland).
+- «Probar teclas» en el teclado integrado: pulsar la calculadora y ver que
+  pasa a «Comprobada»; comprobar que una tecla declarada que el portátil no
+  tiene sigue sin comprobar.

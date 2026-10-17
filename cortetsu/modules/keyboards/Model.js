@@ -154,3 +154,72 @@ function appMatch(binding, apps) {
     var byId = apps.find(function (app) { return idOf(app) === query || idOf(app).endsWith("." + query); });
     return { entry: byId || null, executable: byId ? "" : executable };
 }
+
+// --- which keyboards a shortcut listens to ----------------------------------
+
+// The Hyprland names a keyboard answers to; empty when Hyprland cannot tell
+// it from another identical one, which then cannot be targeted.
+function hyprlandNames(keyboard) {
+    if (!keyboard || !keyboard.hyprlandLinked)
+        return [];
+    return (keyboard.interfaces || []).map(function (i) { return i.hyprlandName; }).filter(Boolean);
+}
+
+// A Hyprland name as a person knows it: its keyboard's label, or the name
+// itself marked disconnected (it comes back when the keyboard does).
+function nameLabel(name, keyboards) {
+    var owner = keyboards.find(function (k) { return hyprlandNames(k).indexOf(name) >= 0; });
+    return owner ? owner.label : name + " (desconectado)";
+}
+
+// Labels of the keyboards a `devices` field names, each once.
+function scopeLabels(devices, keyboards) {
+    var labels = [];
+    (devices.names || []).forEach(function (name) {
+        var label = nameLabel(name, keyboards);
+        if (labels.indexOf(label) < 0)
+            labels.push(label);
+    });
+    return labels;
+}
+
+function scopeText(devices, keyboards) {
+    if (!devices)
+        return "Todos los teclados";
+    var labels = scopeLabels(devices, keyboards).join(", ");
+    return devices.only ? "Solo en " + labels : "Todos salvo " + labels;
+}
+
+// Whether `devices` already is `mode` ("only", "except", "all") on exactly
+// this keyboard's names.
+function scopeIs(devices, mode, names) {
+    if (mode === "all")
+        return !devices;
+    if (!devices || devices.only !== (mode === "only"))
+        return false;
+    var current = (devices.names || []).slice().sort();
+    var wanted = names.slice().sort();
+    return current.length === wanted.length && current.every(function (n, i) { return n === wanted[i]; });
+}
+
+// The `scope` command for one choice, or null when it cannot be asked.
+function scopeArgs(binding, keyboard, mode) {
+    if (!binding || !binding.scopable)
+        return null;
+    if (mode === "all")
+        return ["scope", binding.id, "all"];
+    var names = hyprlandNames(keyboard);
+    return names.length ? ["scope", binding.id, mode].concat(names) : null;
+}
+
+// --- spare keys ---------------------------------------------------------------
+
+// Installed applications of a key's suggested category, by name. Proposals
+// only: picking one starts the usual review.
+function suggestedApps(suggestion, apps, limit) {
+    if (!suggestion)
+        return [];
+    return apps.filter(function (app) { return (app.categories || []).indexOf(suggestion.category) >= 0; })
+        .sort(function (a, b) { return a.name.localeCompare(b.name); })
+        .slice(0, limit || 3);
+}

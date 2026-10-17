@@ -166,6 +166,8 @@ jobs:
         run: |
           python3 scripts/features/test-keybinds.py
           python3 scripts/features/test-keybinds-equivalence.py
+          python3 scripts/features/test-keybinds-preview.py
+          python3 scripts/features/test-keybinds-scope.py
       - name: The committed key table matches the kernel header
         run: |
           python3 tools/gen-keycodes.py /usr/include/linux/input-event-codes.h

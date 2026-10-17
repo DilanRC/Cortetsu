@@ -4,7 +4,9 @@
 //! for tests). `None` means Hyprland could not be asked, which callers must
 //! keep distinct from "asked and found nothing".
 
+use crate::scope::Scope;
 use serde::Deserialize;
+use std::collections::BTreeMap;
 use std::time::Duration;
 
 #[derive(Debug, Clone, Deserialize, PartialEq, Eq, Default)]
@@ -63,6 +65,25 @@ pub fn binds() -> Option<Vec<Bind>> {
     let text = run(&["binds", "-j"], Duration::from_secs(10))?;
     let entries: Vec<serde_json::Value> = serde_json::from_str(&text).ok()?;
     Some(entries.into_iter().filter_map(|entry| serde_json::from_value(entry).ok()).collect())
+}
+
+const LIVE_SCOPES: &str = r#"if type(_G.cortetsu_binds) ~= "table" then return "N" end
+local out = {}
+for id, bind in pairs(_G.cortetsu_binds) do
+    out[#out + 1] = table.concat({ id, tostring(bind.device_inclusive), table.concat(bind.devices or {}, "\t") }, "\t")
+end
+return "S=" .. table.concat(out, "\n")"#;
+
+/// The keyboards each store bind listens to, as Hyprland holds them.
+/// `Some(None)`: the loaded hyprland.lua predates per-keyboard binds.
+pub fn live_scopes() -> Option<Option<BTreeMap<String, Scope>>> {
+    let text = run(&["repl", LIVE_SCOPES], Duration::from_secs(5))?;
+    let text = text.trim_end_matches('\n');
+    if text.trim() == "N" {
+        return Some(None);
+    }
+    let report = text.strip_prefix("S=")?;
+    Some(Some(report.lines().filter_map(Scope::parse_live).collect()))
 }
 
 /// Hyprland's internal device name: lowercase, spaces and newlines as dashes.

@@ -95,6 +95,38 @@ pub struct Key {
     pub assignments: Vec<Assignment>,
     /// Interface names that declare it (a USB keyboard's consumer interface).
     pub declared_by: Vec<String>,
+    /// CANDIDATE keys only: the kind of application its keysym names.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub suggestion: Option<Suggestion>,
+}
+
+/// What a spare key is printed for, as a freedesktop category the editor
+/// looks up among the installed applications. Only a proposal: assigning it
+/// still goes through the review and an explicit confirmation.
+#[derive(Debug, Clone, Copy, Serialize, PartialEq, Eq)]
+pub struct Suggestion {
+    pub category: &'static str,
+    pub label: &'static str,
+}
+
+/// Fixed table, keysym to category: the same key always suggests the same
+/// kind of application. Media, system and programmable keys suggest none.
+pub fn suggestion(keysym: &str) -> Option<Suggestion> {
+    let (category, label) = match keysym {
+        "XF86Calculator" => ("Calculator", "Calculadora"),
+        "XF86Mail" => ("Email", "Correo"),
+        "XF86WWW" | "XF86HomePage" => ("WebBrowser", "Navegador"),
+        "XF86Explorer" | "XF86MyComputer" | "XF86Documents" => ("FileManager", "Archivos"),
+        "XF86Music" | "XF86AudioMedia" => ("Audio", "Reproductor de música"),
+        "XF86Video" => ("Video", "Reproductor de vídeo"),
+        "XF86Pictures" => ("Viewer", "Visor de imágenes"),
+        "XF86Calendar" => ("Calendar", "Calendario"),
+        "XF86Messenger" => ("InstantMessaging", "Mensajería"),
+        "XF86Terminal" => ("TerminalEmulator", "Terminal"),
+        "XF86Tools" => ("Settings", "Ajustes"),
+        _ => return None,
+    };
+    Some(Suggestion { category, label })
 }
 
 impl Key {
@@ -374,7 +406,8 @@ pub fn classify(
         if reserved.is_some() {
             states.push(State::Reserved);
         }
-        if dedicated && keysym.is_some() && !assigned && reserved.is_none() {
+        let candidate = dedicated && keysym.is_some() && !assigned && reserved.is_none();
+        if candidate {
             states.push(State::Candidate);
         }
         if (reserved.is_none() && !dedicated) || unknown.is_some() || code == KEY_FN_ESC {
@@ -387,6 +420,7 @@ pub fn classify(
         } else {
             Confidence::Declared
         };
+        let proposed = keysym.as_deref().filter(|_| candidate).and_then(suggestion);
         keys.push(Key {
             code,
             name: name.to_owned(),
@@ -407,6 +441,7 @@ pub fn classify(
                 .filter(|i| i.codes.binary_search(&code).is_ok())
                 .map(|i| i.name.clone())
                 .collect(),
+            suggestion: proposed,
         });
     }
     keys
@@ -487,6 +522,16 @@ mod tests {
         assert_eq!(omen.label, "OMEN");
         assert_eq!(omen.states, vec![State::Declared, State::Verified, State::Assigned]);
         assert_eq!(omen.confidence, Confidence::Verified);
+    }
+
+    #[test]
+    fn spare_keys_suggest_by_keysym_and_others_do_not() {
+        let (_sys, keyboards) = victus();
+        let keys = classify(&keyboards[0], Some(&parse(LATAM_EXCERPT)), Some(&[]), &BTreeSet::new());
+        let calc = key(&keys, 140);
+        assert_eq!(calc.suggestion, Some(Suggestion { category: "Calculator", label: "Calculadora" }));
+        assert!(keys.iter().filter(|k| !k.has(State::Candidate)).all(|k| k.suggestion.is_none()));
+        assert_eq!(suggestion("XF86Launch1"), None, "a programmable key is the user's to choose");
     }
 
     #[test]

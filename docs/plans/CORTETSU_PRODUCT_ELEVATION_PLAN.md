@@ -17,6 +17,7 @@ Actualizado el 2026-10-03, rama `elevation/phase-1-behaviour`.
 | H-03 Dos mundos de color | Hecho | misma prueba; 143 archivos migrados al singleton `theme/CortetsuDesign.qml` |
 | H-04 Orbital pierde la selección | Hecho | `test-cortetsu-wallpaper-catalog-runtime.py`; falla contra el código anterior |
 | H-05 Grabación de atajos | Hecho, con submapa de captura, en «Atajos y teclados» (`modules/keyboards`) | `tst_KeyCapture.qml`, `tst_CaptureFlow.qml`, `test-cortetsu-keyboards-runtime.py`, `test-keyboards-capture.py` (anidado) |
+| Atajos por teclado y prueba de teclas («Atajos y teclados») | Hecho; falta la comprobación física con un teclado USB (`docs/KEYBOARDS.md`, «Pendiente físico») | `test-keybinds-scope.py`, `test-keyboards-scope.py` y `test-keyboards-probe.py` (anidados), `test-cortetsu-keyboards-devices-runtime.py`, `tst_Model.qml` |
 | H-06 Estado de teclado | Hecho | `test-cortetsu-keyboard-state-runtime.py` |
 | H-07 Telemetría permanente | Hecho para el Dashboard | en reposo, 0 `nvidia-smi` en 15 s (antes 7 en 20 s) |
 | H-12 Popouts y exclusividad | Hecho | IPC en vivo: abrir, alternar, cerrar y cierre al abrir el portapapeles |

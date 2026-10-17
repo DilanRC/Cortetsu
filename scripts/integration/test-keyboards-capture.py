@@ -48,8 +48,9 @@ def main() -> int:
         fired = base / "fired"
         parent = os.environ["WAYLAND_DISPLAY"]
         parent = parent if parent.startswith("/") else str(Path(os.environ["XDG_RUNTIME_DIR"]) / parent)
-        env = {"HOME": str(base / "home"), "PATH": os.environ["PATH"], "LANG": "C.UTF-8",
-               "XDG_RUNTIME_DIR": str(runtime)}
+        # XDG_CONFIG_HOME too: the session's own would point the helper at the real store.
+        env = {"HOME": str(base / "home"), "XDG_CONFIG_HOME": str(base / "home/.config"), "PATH": os.environ["PATH"],
+               "LANG": "C.UTF-8", "XDG_RUNTIME_DIR": str(runtime)}
         compositor = subprocess.Popen(["Hyprland"], cwd=base, env=compositor_env(dict(env, WAYLAND_DISPLAY=parent), base),
                                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
         keyboard = None

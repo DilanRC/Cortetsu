@@ -66,4 +66,37 @@ TestCase {
         compare(unknown.executable, "spotify-launcher", "looked up by name next");
         compare(Model.appMatch({ command: "" }, apps), { entry: null, executable: "" });
     }
+
+    readonly property var keyboards: [
+        { id: "at", label: "Teclado del portátil", hyprlandLinked: true,
+          interfaces: [{ hyprlandName: "at-translated-set-2-keyboard" }] },
+        { id: "twin", label: "Gemelo", hyprlandLinked: false, interfaces: [{ hyprlandCandidates: ["a", "a-1"] }] },
+        { id: "usb", label: "Teclado USB", hyprlandLinked: true,
+          interfaces: [{ hyprlandName: "usb-kbd" }, { hyprlandName: "usb-kbd-consumer-control" }] }
+    ]
+
+    function test_scope_text_names_keyboards_and_marks_absent_ones() {
+        compare(Model.scopeText(undefined, keyboards), "Todos los teclados");
+        compare(Model.scopeText({ only: true, names: ["usb-kbd", "usb-kbd-consumer-control"] }, keyboards),
+                "Solo en Teclado USB", "one label per keyboard");
+        compare(Model.scopeText({ only: false, names: ["gone-kbd"] }, keyboards), "Todos salvo gone-kbd (desconectado)");
+    }
+
+    function test_scope_args_need_a_targetable_keyboard() {
+        const own = { id: "app:1", scopable: true };
+        compare(Model.scopeArgs(own, keyboards[2], "only"), ["scope", "app:1", "only", "usb-kbd", "usb-kbd-consumer-control"]);
+        compare(Model.scopeArgs(own, null, "all"), ["scope", "app:1", "all"]);
+        compare(Model.scopeArgs(own, keyboards[1], "except"), null, "Hyprland cannot tell twins apart");
+        compare(Model.scopeArgs({ id: "var:kbBrowser:0", scopable: false }, keyboards[0], "only"), null);
+        verify(Model.scopeIs({ only: true, names: ["usb-kbd-consumer-control", "usb-kbd"] }, "only", Model.hyprlandNames(keyboards[2])));
+        verify(!Model.scopeIs({ only: true, names: ["usb-kbd"] }, "except", ["usb-kbd"]));
+        verify(Model.scopeIs(undefined, "all", []));
+    }
+
+    function test_suggested_apps_by_category() {
+        const apps = [{ name: "Qalculate", categories: ["Utility", "Calculator"] }, { name: "Firefox", categories: ["WebBrowser"] },
+                      { name: "Calculadora", categories: ["Calculator"] }];
+        compare(Model.suggestedApps({ category: "Calculator" }, apps).map(a => a.name), ["Calculadora", "Qalculate"]);
+        compare(Model.suggestedApps(undefined, apps), []);
+    }
 }

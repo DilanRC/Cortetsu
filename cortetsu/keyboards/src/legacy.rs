@@ -12,6 +12,7 @@
 //! rolling back if Hyprland does not show the expected result.
 
 use crate::lua::{self, Action};
+use crate::scope::Scope;
 use crate::store::{Paths, Result, Store, chord_parts, commit, load_store, split_chord, text};
 use crate::{hypr, sha256};
 use serde::Serialize;
@@ -230,6 +231,13 @@ pub struct Binding {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reserved: Option<bool>,
     pub conflicts: Vec<String>,
+    /// Whether `scope` can limit it to some keyboards, and the keyboards it
+    /// listens to. Not in `list`, whose rows stay those of the Python helper:
+    /// `bindings` adds them (`editor::rows`).
+    #[serde(skip)]
+    pub scopable: bool,
+    #[serde(skip)]
+    pub scope: Scope,
 }
 
 impl Binding {
@@ -254,6 +262,8 @@ impl Binding {
             note: None,
             reserved: None,
             conflicts: Vec::new(),
+            scopable: false,
+            scope: Scope::All,
         }
     }
 }
@@ -438,21 +448,28 @@ pub fn list_bindings(paths: &Paths) -> Result<Vec<Binding>> {
         entry.editable = true;
         entry.deletable = true;
         entry.resettable = Some(text(bind, "replaces").is_some_and(|r| !r.is_empty()));
+        entry.scope = Scope::of(bind);
+        entry.scopable = true;
         result.push(entry);
     }
     result.extend(first_party_literals(paths));
 
-    let mut owners: BTreeMap<String, Vec<(String, String)>> = BTreeMap::new();
+    // Two rows conflict when some keyboard would fire both.
+    let mut owners: BTreeMap<String, Vec<(String, String, Scope)>> = BTreeMap::new();
     for entry in result.iter().filter(|e| e.active && !e.chord.is_empty()) {
-        owners.entry(normalise(&entry.chord)).or_default().push((entry.id.clone(), entry.label.clone()));
+        owners.entry(normalise(&entry.chord)).or_default().push((
+            entry.id.clone(),
+            entry.label.clone(),
+            entry.scope.clone(),
+        ));
     }
     for entry in result.iter_mut().filter(|e| e.active) {
         entry.conflicts = owners
             .get(&normalise(&entry.chord))
             .into_iter()
             .flatten()
-            .filter(|(id, _)| *id != entry.id)
-            .map(|(_, label)| label.clone())
+            .filter(|(id, _, scope)| *id != entry.id && scope.overlaps(&entry.scope))
+            .map(|(_, label, _)| label.clone())
             .collect();
     }
     result.sort_by(|a, b| (a.group, &a.label, &a.chord).cmp(&(b.group, &b.label, &b.chord)));
@@ -465,9 +482,19 @@ fn live_on(chord: &str) -> Vec<hypr::Bind> {
     hypr::binds().unwrap_or_default().into_iter().filter(|b| b.modmask == mask && b.key.to_uppercase() == key).collect()
 }
 
-fn ensure_free(chord: &str, own: &[String], items: &[Binding]) -> Result<()> {
+/// Whether `chord`, bound on `scope`, would share a keyboard with another
+/// action. `own`: chords the row being changed may keep. `row`: the store
+/// bind being changed in place, whose current bind is not "another action".
+pub(crate) fn ensure_free(
+    chord: &str,
+    scope: &Scope,
+    own: &[String],
+    row: Option<&str>,
+    items: &[Binding],
+) -> Result<()> {
     let wanted = normalise(chord);
-    for entry in items.iter().filter(|e| e.active && !e.chord.is_empty()) {
+    let others = items.iter().filter(|e| e.active && !e.chord.is_empty() && Some(e.id.as_str()) != row);
+    for entry in others.filter(|e| e.scope.overlaps(scope)) {
         let other = normalise(&entry.chord);
         if other == wanted && !own.contains(&other) {
             return Err(format!("{chord} ya es «{}»", entry.label));
@@ -477,7 +504,14 @@ fn ensure_free(chord: &str, own: &[String], items: &[Binding]) -> Result<()> {
         return Ok(());
     }
     // Workspace binds are generated in Lua and only Hyprland knows them all.
-    if !live_on(chord).is_empty() {
+    // Store binds, the row itself or on other keyboards, were checked above.
+    let checked = |bind: &hypr::Bind| {
+        bind.description.strip_prefix(EDIT_TAG).is_some_and(|id| {
+            Some(id) == row
+                || items.iter().any(|e| e.id == id && normalise(&e.chord) == wanted && !e.scope.overlaps(scope))
+        })
+    };
+    if live_on(chord).iter().any(|bind| !checked(bind)) {
         return Err(format!("{chord} ya lo usa otra acción de Hyprland"));
     }
     Ok(())
@@ -515,7 +549,7 @@ fn unrestricted(store: &mut Store, chord: &str) {
     store.binds.retain(|bind| normalise(text(bind, "replaces").unwrap_or("")) != wanted);
 }
 
-fn saved_reply(saved: &Path, extra: Value) -> Value {
+pub(crate) fn saved_reply(saved: &Path, extra: Value) -> Value {
     let mut reply = Map::new();
     reply.insert("ok".into(), json!(true));
     reply.insert("snapshot".into(), json!(saved.display().to_string()));
@@ -572,7 +606,7 @@ pub fn plan_set(
             entry.note.clone().unwrap_or_else(|| "Este atajo no se puede cambiar desde aquí".into()),
         ));
     }
-    ensure_free(&chord, &[normalise(&entry.chord)], items).map_err(Refusal::Taken)?;
+    ensure_free(&chord, &entry.scope, &[normalise(&entry.chord)], None, items).map_err(Refusal::Taken)?;
     if identifier.starts_with("user:") && (!entry.conflicts.is_empty() || live_on(&entry.chord).len() > 1) {
         return Err(Refusal::Taken(format!("{} también lo usa otra acción; cámbiala primero", entry.chord)));
     }
@@ -705,7 +739,7 @@ fn without_field_codes(command: &str) -> String {
 /// The checks `add-app` makes on its chord, against the rows already read.
 pub fn plan_add(items: &[Binding], raw_chord: &str) -> std::result::Result<String, Refusal> {
     let chord = validate_chord(raw_chord).map_err(Refusal::Invalid)?;
-    ensure_free(&chord, &[], items).map_err(Refusal::Taken)?;
+    ensure_free(&chord, &Scope::All, &[], None, items).map_err(Refusal::Taken)?;
     Ok(chord)
 }
 

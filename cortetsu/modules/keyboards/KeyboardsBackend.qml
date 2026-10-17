@@ -1,7 +1,6 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import QtCore
 import Quickshell
 import Quickshell.Io
 
@@ -16,9 +15,12 @@ Item {
     // releases the keyboard a little later, in case the shell never does.
     readonly property int captureTimeoutMs: 15000
     readonly property int captureFailSafeMs: captureTimeoutMs + 5000
+    // The key test ends itself in Hyprland after this, if the shell never does.
+    readonly property int probeTimeoutMs: 60000
 
-    readonly property string helper:
-        StandardPaths.writableLocation(StandardPaths.HomeLocation) + "/.local/bin/cortetsu-keybinds"
+    // A plain path: StandardPaths gives a file:// URL, which Process accepts
+    // but Quickshell.execDetached does not.
+    readonly property string helper: Quickshell.env("HOME") + "/.local/bin/cortetsu-keybinds"
 
     property var inventory: null
     property var keysData: null
@@ -30,6 +32,11 @@ Item {
     readonly property bool loading: bindingsProcess.running || keysProcess.running
     readonly property bool writing: applyProcess.running
     readonly property bool capturing: captureProcess.running
+    // The running key test: {device, codes, hits}, or null.
+    property var probe: null
+    property string probeError: ""
+    // What the last test verified, until another starts.
+    property string probeSummary: ""
 
     readonly property var keyboards: inventory?.keyboards ?? []
     readonly property var deviceKeys: keysData?.devices ?? []
@@ -70,7 +77,7 @@ Item {
         previewProcess.running = true;
     }
 
-    // `args` is a writing command (set, delete, reset, add-app); `reviewed`
+    // `args` is a writing command (set, delete, reset, add-app, scope); `reviewed`
     // is the version the person saw in the preview. A change in between is
     // refused by the helper with nothing written.
     function apply(args: var, reviewed: string): void {
@@ -100,7 +107,85 @@ Item {
         Quickshell.execDetached([helper, "capture", "end"]);
     }
 
-    onActiveChanged: if (active) refresh()
+    // `probe begin DEVICE MS`, then `status` twice a second until `end`.
+    function startProbe(device: string): void {
+        if (probeProcess.running || probe)
+            return;
+        probeError = "";
+        probeSummary = "";
+        probeProcess.verb = "begin";
+        probeProcess.device = device;
+        probeProcess.command = [helper, "probe", "begin", device, String(probeTimeoutMs)];
+        probeProcess.running = true;
+    }
+
+    function endProbe(): void {
+        if (!probe)
+            return;
+        probeTicker.stop();
+        endProbeProcess.command = [helper, "probe", "end", probe.device];
+        endProbeProcess.running = true;
+    }
+
+    onActiveChanged: {
+        if (active)
+            refresh();
+        else if (probe)
+            Quickshell.execDetached([helper, "probe", "end", probe.device]);
+        if (!active)
+            probe = null;
+    }
+
+    Timer {
+        id: probeTicker
+        interval: 500
+        repeat: true
+        running: root.probe !== null && !endProbeProcess.running
+        onTriggered: if (!probeProcess.running) {
+            probeProcess.verb = "status";
+            probeProcess.command = [root.helper, "probe", "status"];
+            probeProcess.running = true;
+        }
+    }
+
+    Process {
+        id: probeProcess
+        property string verb: ""
+        property string device: ""
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const message = root.parse(text);
+                if (!message?.ok) {
+                    root.probeError = message?.error?.message ?? qsTr("Hyprland no respondió a la prueba de teclas");
+                    if (probeProcess.verb === "begin")
+                        root.probe = null;
+                    return;
+                }
+                if (probeProcess.verb === "begin")
+                    root.probe = { device: probeProcess.device, codes: message.codes ?? [], hits: message.hits ?? [] };
+                else if (root.probe && !message.active)
+                    // Hyprland's timer, or a reload, ended it: keep what was pressed.
+                    root.endProbe();
+                else if (root.probe)
+                    root.probe = Object.assign({}, root.probe, { hits: message.hits ?? [] });
+            }
+        }
+    }
+
+    Process {
+        id: endProbeProcess
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const message = root.parse(text);
+                root.probe = null;
+                root.probeError = message?.ok ? "" : (message?.error?.message ?? qsTr("No se pudo terminar la prueba de teclas"));
+                if (message?.ok)
+                    root.probeSummary = qsTr("Prueba terminada · teclas comprobadas ahora: %1").arg(message.hits?.length ?? 0);
+                if (!keysProcess.running)
+                    keysProcess.running = true;
+            }
+        }
+    }
 
     // startup inventory: cortetsu:keyboards-watch
     Process {
