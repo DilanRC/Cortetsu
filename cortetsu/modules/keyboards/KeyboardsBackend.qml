@@ -132,6 +132,7 @@ Item {
             refresh();
             return;
         }
+        probeTicker.stop();
         if (probe)
             Quickshell.execDetached([helper, "probe", "end", probe.device]);
         probe = null;
@@ -141,7 +142,6 @@ Item {
         id: probeTicker
         interval: 500
         repeat: true
-        running: root.probe !== null && !endProbeProcess.running
         onTriggered: if (!probeProcess.running) {
             probeProcess.verb = "status";
             probeProcess.command = [root.helper, "probe", "status"];
@@ -165,8 +165,11 @@ Item {
                 if (probeProcess.verb === "begin" && !root.active)
                     // Closed while starting: end it rather than test unseen.
                     Quickshell.execDetached([root.helper, "probe", "end", probeProcess.device]);
-                else if (probeProcess.verb === "begin")
+                else if (probeProcess.verb === "begin") {
                     root.probe = { device: probeProcess.device, codes: message.codes ?? [], hits: message.hits ?? [] };
+                    // Started here, not bound: it only runs after «Probar teclas».
+                    probeTicker.start();
+                }
                 else if (root.probe && !message.active)
                     // Hyprland's timer, or a reload, ended it: keep what was pressed.
                     root.endProbe();
