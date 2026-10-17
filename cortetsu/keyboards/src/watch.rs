@@ -17,13 +17,13 @@ use crate::protocol::{self, Error};
 use std::io::{BufRead, BufReader, Write};
 use std::process::{Command, Stdio};
 use std::sync::mpsc;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 const QUIET: Duration = Duration::from_millis(250);
 const LINK_RETRY: Duration = Duration::from_millis(150);
 const LINK_ATTEMPTS: u32 = 10;
 const TICK: Duration = Duration::from_secs(1);
-const HEARTBEAT_TICKS: u32 = 5;
+const HEARTBEAT: Duration = Duration::from_secs(5);
 
 fn write_line(text: &str) -> bool {
     let mut out = std::io::stdout().lock();
@@ -79,20 +79,21 @@ pub fn run() -> Result<serde_json::Value, Error> {
     let parent = std::os::unix::process::parent_id();
     let mut last = inventory::now();
     let mut alive = emit(&last, "initial");
-    let mut quiet_ticks = 0;
+    let mut last_write = Instant::now();
     while alive {
-        match received.recv_timeout(TICK) {
-            Ok(()) => quiet_ticks = 0,
-            Err(mpsc::RecvTimeoutError::Timeout) => {
-                quiet_ticks += 1;
-                if std::os::unix::process::parent_id() != parent {
-                    break;
-                }
-                if quiet_ticks % HEARTBEAT_TICKS == 0 {
-                    alive = write_line("");
-                }
-                continue;
-            }
+        let event = received.recv_timeout(TICK);
+        if std::os::unix::process::parent_id() != parent {
+            break;
+        }
+        // Timed from the last write, so a stream of udev events that change
+        // nothing cannot starve it.
+        if last_write.elapsed() >= HEARTBEAT {
+            alive = write_line("");
+            last_write = Instant::now();
+        }
+        match event {
+            Ok(()) => {}
+            Err(mpsc::RecvTimeoutError::Timeout) => continue,
             Err(mpsc::RecvTimeoutError::Disconnected) => break,
         }
         if child.try_wait().ok().flatten().is_some() {
@@ -108,8 +109,9 @@ pub fn run() -> Result<serde_json::Value, Error> {
             std::thread::sleep(LINK_RETRY);
             current = inventory::now();
         }
-        if current.fingerprint != last.fingerprint {
+        if alive && current.fingerprint != last.fingerprint {
             alive = emit(&current, "changed");
+            last_write = Instant::now();
             last = current;
         }
     }
