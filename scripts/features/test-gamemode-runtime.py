@@ -3,8 +3,10 @@
 
 Compares every option's live value (`hyprctl getoption`, all names) before
 enable and after disable, and covers: a repeated enable, an option changed by
-Settings while game mode is on, a shell restart in the middle (recovery from
-the snapshot), and a disable with nothing to restore.
+Settings while game mode is on, a shell restart in the middle, real partial
+applies and failed restores (a hyprctl wrapper makes Hyprland reject part of
+the eval), concurrent helpers, and the QML contract: the toggle only shows
+on after the helper confirms ACTIVE.
 """
 from __future__ import annotations
 
@@ -21,12 +23,7 @@ REPO = Path(__file__).resolve().parents[2]
 HELPER = REPO / "cortetsu/bin/cortetsu-gamemode"
 GAME = runpy.run_path(str(HELPER))["GAME"]
 sys.path.insert(0, str(REPO / "scripts/integration"))
-try:
-    from nested_gpu import compositor_env  # keeps a suspended dGPU asleep
-# TODO(#34): drop this fallback once nested_gpu.py is on main.
-except ImportError:
-    def compositor_env(env: dict, base: Path) -> dict:
-        return env
+from nested_gpu import compositor_env  # keeps a suspended dGPU asleep  # noqa: E402
 
 CONFIG = """hl.config({
     general = { gaps_in = 5, gaps_out = "4 8 12 16", border_size = 2, allow_tearing = false },
@@ -81,10 +78,35 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-gamemode-") as tmp:
                 values[name] = next(iter(data.values()), None)
             return values
 
-        def gamemode(action: str) -> dict:
-            out = subprocess.run(["python3", str(HELPER), action], env=env, text=True, capture_output=True,
-                                 check=True, timeout=20).stdout
-            return json.loads(out)
+        # Fault injection on the real compositor. partial: the game values are
+        # evaluated, then a bad key makes Hyprland return an error. fail: the
+        # eval never reaches Hyprland.
+        fault = base / "fault"
+        wrapper = base / "hyprctl-faulty"
+        wrapper.write_text(f"""#!/bin/sh
+mode=$(head -n1 {fault} 2>/dev/null)
+if [ "$1" = eval ] && [ -n "$mode" ]; then
+  sed -i 1d {fault}
+  case "$mode" in
+    fail) echo "error: injected" >&2; exit 7 ;;
+    partial) hyprctl eval "$2" >/dev/null; exec hyprctl eval 'hl.config({{ cortetsu_injected = 1 }})' ;;
+  esac
+fi
+exec hyprctl "$@"
+""")
+        wrapper.chmod(0o755)
+        faulty = dict(env, CORTETSU_HYPRCTL=str(wrapper))
+
+        def gamemode(action: str, ok: bool = True) -> dict:
+            done = subprocess.run(["python3", str(HELPER), action], env=faulty, text=True, capture_output=True,
+                                  timeout=20)
+            reply = json.loads(done.stdout)
+            assert (done.returncode == 0) == ok == reply["ok"], (action, done)
+            assert reply["enabled"] == (reply["state"] == "ACTIVE"), reply
+            return reply
+
+        def inject(*modes: str) -> None:
+            fault.write_text("".join(f"{mode}\n" for mode in modes))
 
         def option(name: str):
             return effective()[name]
@@ -100,11 +122,11 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-gamemode-") as tmp:
         before = effective()
         assert before["general:gaps_out"] != before["general:gaps_in"], before["general:gaps_out"]
         assert before["general:border_size"] == 2 and before["decoration:rounding"] == 15, {k: before.get(k) for k in ("general:border_size", "decoration:rounding", "general:gaps_in")}
-        assert gamemode("status") == {"enabled": False}
-        assert gamemode("disable") == {"enabled": False}, "disable with nothing to restore is a no-op"
+        assert gamemode("status")["state"] == "INACTIVE"
+        assert gamemode("disable")["state"] == "INACTIVE", "disable with nothing to restore is a no-op"
         assert effective() == before
 
-        assert gamemode("enable") == {"enabled": True}
+        assert gamemode("enable")["state"] == "ACTIVE"
         on = effective()
         assert on["animations:enabled"] in (0, False) and on["decoration:blur:enabled"] in (0, False)
         assert on["decoration:rounding"] == 0 and on["general:border_size"] == 1
@@ -112,8 +134,8 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-gamemode-") as tmp:
         changed = {name for name in before if before[name] != on[name]}
         assert changed <= set(GAME), f"game mode touched more than it owns: {sorted(changed)}"
 
-        assert gamemode("enable") == {"enabled": True}, "a repeated enable keeps the first snapshot"
-        assert gamemode("disable") == {"enabled": False}
+        assert gamemode("enable")["state"] == "ACTIVE", "a repeated enable keeps the first snapshot"
+        assert gamemode("disable")["state"] == "INACTIVE"
         after = effective()
         assert after == before, {name: (before[name], after[name]) for name in before if before[name] != after.get(name)}
 
@@ -129,25 +151,57 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-gamemode-") as tmp:
         # The shell restarts in the middle: status recovers, disable restores.
         hyprctl("eval", "hl.config({ decoration = { rounding = 15 } })")
         gamemode("enable")
-        assert gamemode("status") == {"enabled": True}, "a restarted shell sees game mode on"
+        assert gamemode("status")["state"] == "ACTIVE", "a restarted shell sees game mode on"
         gamemode("disable")
         assert effective() == before
-        assert not list(runtime.glob("cortetsu-gamemode-*.json")), "no snapshot left behind"
+        assert not list(runtime.glob("cortetsu-gamemode-*.json")), "no transaction left behind"
+
+        # Hyprland rejects the eval outright: nothing moved, INACTIVE.
+        inject("fail")
+        reply = gamemode("enable", ok=False)
+        assert reply["state"] == "INACTIVE" and "injected" in reply["error"], reply
+        assert effective() == before
+
+        # Hyprland applies the game values, then errors: rolled back for real.
+        inject("partial")
+        assert effective()["decoration:rounding"] == 15
+        reply = gamemode("enable", ok=False)
+        assert reply["state"] == "INACTIVE" and "rolled back" in reply["error"], reply
+        assert effective() == before, "a partial apply was not rolled back"
+
+        # Partial apply and the rollback fails: RECOVERY_REQUIRED, the live
+        # options still differ, the originals stay on disk; recover fixes it.
+        inject("partial", "fail")
+        reply = gamemode("enable", ok=False)
+        assert reply["state"] == "RECOVERY_REQUIRED" and not reply["enabled"], reply
+        assert effective()["decoration:rounding"] == 0 and list(runtime.glob("cortetsu-gamemode-*.json"))
+        assert gamemode("enable", ok=False)["state"] == "RECOVERY_REQUIRED"
+        inject("fail")
+        assert gamemode("recover", ok=False)["state"] == "RECOVERY_REQUIRED"
+        assert gamemode("recover")["state"] == "INACTIVE"
+        assert effective() == before
+
+        # A restore fails on disable: kept for retry, the next disable ends it.
+        gamemode("enable")
+        inject("fail")
+        assert gamemode("disable", ok=False)["state"] == "RECOVERY_REQUIRED"
+        assert effective()["decoration:rounding"] == 0
+        assert gamemode("disable")["state"] == "INACTIVE" and effective() == before
 
         # A quick on/off starts two helpers at once. Whatever order they run
-        # in, the snapshot exists exactly when the game values are live.
+        # in, ACTIVE holds exactly when the game values are live.
         for _ in range(6):
             racers = [subprocess.Popen(["python3", str(HELPER), action], env=env, stdout=subprocess.PIPE, text=True)
                       for action in ("enable", "disable")]
             for racer in racers:
                 racer.communicate(timeout=30)
             if gamemode("status")["enabled"]:
-                assert option("decoration:rounding") == 0, "snapshot kept but game values missing"
+                assert option("decoration:rounding") == 0, "ACTIVE reported but game values missing"
                 gamemode("disable")
             assert effective() == before, "an interleaved enable/disable lost the user's values"
 
-        # QML wiring: a shell that starts while the snapshot exists shows game
-        # mode on without applying it again; turning it off calls disable.
+        # QML contract with the real helper on this Hyprland. The wrapper only
+        # logs start/end (to catch overlapping helpers) and slows each run.
         shell = base / "shell"
         (shell / "modules").mkdir(parents=True)
         (shell / "services").mkdir()
@@ -158,24 +212,27 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-gamemode-") as tmp:
             "pragma Singleton\nimport Quickshell\nSingleton { property bool usingLua: true }\n")
         (shell / "shell.qml").write_text(
             'import Quickshell\nimport Quickshell.Io\nimport "services"\nShellRoot {\n'
-            '    IpcHandler { target: "harness"; function enabled(): bool { return GameMode.enabled } }\n}\n')
+            '    IpcHandler { target: "harness"\n'
+            '        function view(): string { return [GameMode.status, GameMode.enabled, GameMode.busy,'
+            ' GameMode.needsRecovery].join(" ") }\n'
+            '        function reload(): void { Quickshell.reload(false) } }\n}\n')
         fake = base / "fakebin"
         fake.mkdir()
         calls = base / "gamemode-calls"
-        flag = base / "fake-on"
-        flag.touch()
+        calls.touch()
+        (fake / "notify-send").write_text(f"#!/bin/sh\necho \"$@\" >> {base}/notifications\n")
         (fake / "cortetsu-gamemode").write_text(f"""#!/bin/sh
 echo "start $1" >> {calls}
 sleep 0.3
-case "$1" in
-  enable) [ -f {base}/fail-enable ] || touch {flag} ;;
-  disable) rm -f {flag} ;;
-esac
+python3 {HELPER} "$@"
+code=$?
 echo "end $1" >> {calls}
-[ -f {flag} ] && echo '{{"enabled": true}}' || echo '{{"enabled": false}}'
+exit $code
 """)
-        (fake / "cortetsu-gamemode").chmod(0o755)
-        nested = dict(env, PATH=f"{fake}:{env['PATH']}", WAYLAND_DISPLAY=next(
+        for tool in fake.iterdir():
+            tool.chmod(0o755)
+        gamemode("enable")  # on before the shell starts: it must adopt it, not re-apply
+        nested = dict(faulty, PATH=f"{fake}:{env['PATH']}", WAYLAND_DISPLAY=next(
             p.name for p in runtime.glob("wayland-*[0-9]")), QT_QPA_PLATFORM="wayland")
         log = (base / "qs.log").open("w")
         qs = subprocess.Popen(["qs", "-p", str(shell), "-n"], env=nested, stdout=log, stderr=subprocess.STDOUT,
@@ -184,49 +241,73 @@ echo "end $1" >> {calls}
             def ipc(*args: str) -> str:
                 return subprocess.run(["qs", "ipc", "--pid", str(qs.pid), "call", *args], env=nested, text=True,
                                       capture_output=True, timeout=10).stdout.strip()
-            deadline = time.monotonic() + 20
-            while ipc("harness", "enabled") != "true":
-                assert qs.poll() is None, (base / "qs.log").read_text()
-                assert time.monotonic() < deadline, "the shell did not recover game mode from status"
-                time.sleep(0.2)
+
             def runs() -> list[str]:
                 return [line.split()[1] for line in calls.read_text().splitlines() if line.startswith("start")]
 
-            def settle(expected: list[str]) -> None:
-                deadline = time.monotonic() + 15
-                while runs() != expected or calls.read_text().count("start") != calls.read_text().count("end"):
-                    assert time.monotonic() < deadline, calls.read_text()
+            def idle() -> bool:
+                text = calls.read_text()
+                return text.count("start") == text.count("end") and ipc("harness", "view").split()[2] == "false"
+
+            def wait_view(expected: str, message: str) -> None:
+                deadline = time.monotonic() + 20
+                while ipc("harness", "view") != expected or not idle():
+                    assert qs.poll() is None, (base / "qs.log").read_text()
+                    assert time.monotonic() < deadline, f"{message}: {ipc('harness', 'view')} {calls.read_text()}"
                     time.sleep(0.1)
 
-            assert runs() == ["status"], "recovery must not re-apply game mode"
-            ipc("gameMode", "disable")
-            settle(["status", "disable"])
-            assert ipc("harness", "enabled") == "false"
+            wait_view("ACTIVE true false false", "the shell did not adopt ACTIVE from status")
+            assert runs() == ["status"], "a starting shell must not re-apply game mode"
 
-            # A failed enable must not read as on.
-            (base / "fail-enable").touch()
-            ipc("gameMode", "enable")
-            settle(["status", "disable", "enable"])
-            deadline = time.monotonic() + 5
-            while ipc("harness", "enabled") != "false":
-                assert time.monotonic() < deadline, "a failed enable still shows game mode on"
+            # A QML reload asks status again and applies nothing.
+            ipc("harness", "reload")
+            deadline = time.monotonic() + 20
+            while runs().count("status") < 2:
+                ipc("harness", "view")  # singletons are created on first use, as the UI would
+                assert time.monotonic() < deadline, f"no reload: {calls.read_text()}"
                 time.sleep(0.1)
-            (base / "fail-enable").unlink()
+            wait_view("ACTIVE true false false", "reload lost the state")
+            assert "enable" not in runs(), runs()
+
+            ipc("gameMode", "disable")
+            wait_view("INACTIVE false false false", "disable")
+            assert effective() == before
+
+            # The toggle shows "busy", never "on", while the helper is applying.
+            ipc("gameMode", "enable")
+            assert ipc("harness", "view").split()[1:3] == ["false", "true"], ipc("harness", "view")
+            wait_view("ACTIVE true false false", "enable")
+            ipc("gameMode", "disable")
+            wait_view("INACTIVE false false false", "disable")
+
+            # A rejected enable never reads as on and leaves Hyprland untouched.
+            inject("fail")
+            ipc("gameMode", "enable")
+            wait_view("INACTIVE false false false", "a failed enable shows game mode on")
+            assert effective() == before and runs()[-1] == "enable"
+            assert "error" in (base / "notifications").read_text(), "the failure is reported"
+
+            # Partial apply plus failed rollback: the UI offers recovery; the
+            # toggle recovers instead of enabling, and Hyprland is restored.
+            inject("partial", "fail")
+            ipc("gameMode", "enable")
+            wait_view("RECOVERY_REQUIRED false false true", "recovery state not shown")
+            ipc("gameMode", "toggle")
+            wait_view("INACTIVE false false false", "toggle did not recover")
+            assert runs()[-1] == "disable" and effective() == before
 
             # Five quick toggles: helpers never overlap and the last request wins.
             for _ in range(5):
                 ipc("gameMode", "toggle")
-            deadline = time.monotonic() + 15
-            while calls.read_text().count("start") != calls.read_text().count("end") or len(runs()) < 4:
-                assert time.monotonic() < deadline, calls.read_text()
-                time.sleep(0.1)
-            time.sleep(1)
-            lines = calls.read_text().splitlines()
+            wait_view("ACTIVE true false false", "odd number of toggles from off ends on")
+            assert option("decoration:rounding") == 0
             depth = 0
-            for line in lines:
+            for line in calls.read_text().splitlines():
                 depth += 1 if line.startswith("start") else -1
-                assert depth <= 1, f"helpers overlapped: {lines}"
-            assert ipc("harness", "enabled") == "true" and flag.exists(), "odd number of toggles from off ends on"
+                assert depth <= 1, f"helpers overlapped: {calls.read_text()}"
+            ipc("gameMode", "disable")
+            wait_view("INACTIVE false false false", "final disable")
+            assert effective() == before
             log_text = (base / "qs.log").read_text()
             assert "WARN" not in log_text and "ERROR" not in log_text, log_text
         finally:
@@ -240,4 +321,4 @@ echo "end $1" >> {calls}
         except subprocess.TimeoutExpired:
             compositor.kill()
 
-print("PASS: game mode restores every effective Hyprland option, keeps changes made meanwhile and recovers after a shell restart")
+print("PASS: game mode is ACTIVE only after a verified apply, rolls back real partial applies, stays recoverable and keeps Settings changes")

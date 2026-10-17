@@ -206,10 +206,12 @@ Item {
                 Layout.columnSpan: 2
                 Layout.fillWidth: true
                 label: GameMode.enabled ? qsTr("Desactivar modo juego") : qsTr("Activar modo juego")
-                detail: GameMode.enabled ? qsTr("Efectos reducidos") : qsTr("Menos animaciones y efectos")
+                detail: GameMode.busy ? qsTr("Aplicando…")
+                    : GameMode.needsRecovery ? qsTr("Error al aplicar: pulsa para restaurar")
+                    : GameMode.enabled ? qsTr("Efectos reducidos") : qsTr("Menos animaciones y efectos")
                 icon: GameMode.enabled ? "sports_esports" : "videogame_asset"
                 highlighted: GameMode.enabled
-                warning: false
+                warning: GameMode.needsRecovery
                 onActivated: GameMode.toggle()
             }
         }
