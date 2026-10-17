@@ -47,6 +47,11 @@ FocusScope {
     readonly property var spareRows: Model.spareFor(backend.spare, deviceId)
     readonly property bool listening: Flow.holdsKeyboard(flow)
 
+    // A write's error: a string from the editor commands, an object from v2.
+    function errorText(result): string {
+        return String(result?.error?.message ?? result?.error ?? "");
+    }
+
     function dispatch(event): void {
         const before = flow;
         flow = Flow.next(before, event);
@@ -189,8 +194,9 @@ FocusScope {
         if (!activeFocus && listening && surfaceVisible)
             dispatch({ type: "cancel", message: qsTr("Se perdió el foco; la grabación se canceló") });
     }
+    // Also while recovering: Hyprland may not have left the submap yet.
     Component.onDestruction: {
-        if (listening)
+        if (listening || flow.phase === "recovering")
             backend.releaseDetached();
     }
 
@@ -213,11 +219,11 @@ FocusScope {
             if (Flow.busy(root.flow))
                 root.dispatch({ type: "applied", ok: !!result?.ok, stale: !!result?.stale,
                                 message: result?.ok ? qsTr("Aplicado y comprobado en Hyprland · %1").arg(result.chord ?? result.message ?? "")
-                                                    : result?.error ?? "" });
+                                                    : root.errorText(result) });
             else
                 // Reset and delete apply straight from their buttons.
                 root.dispatch({ type: "changed", ok: !!result?.ok,
-                                message: result?.ok ? qsTr("%1 · comprobado en Hyprland").arg(result.message ?? "") : (result?.error ?? "") });
+                                message: result?.ok ? qsTr("%1 · comprobado en Hyprland").arg(result.message ?? "") : root.errorText(result) });
         }
         onBindingsChanged: {
             // Keep the selection on the same row after a refresh.
