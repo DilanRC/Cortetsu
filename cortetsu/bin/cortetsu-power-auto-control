@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -115,11 +116,27 @@ def recent_events(limit: int = 12) -> list[dict]:
     return list(reversed(out))
 
 
+def current_profile() -> str:
+    exe = shutil.which("powerprofilesctl")
+    if not exe:
+        return ""
+    try:
+        cp = subprocess.run([exe, "get"], text=True, capture_output=True, timeout=3, check=False)
+    except (OSError, subprocess.SubprocessError):
+        return ""
+    return cp.stdout.strip() if cp.returncode == 0 else ""
+
+
 def status() -> dict:
     cfg = load_config()
     active_cp = systemctl("is-active", SERVICE)
     enabled_cp = systemctl("is-enabled", SERVICE)
     state = load_json(STATE_PATH, {})
+    # The watcher only asks power-profiles-daemon on rule transitions, so a
+    # profile picked by hand since then is read here, when the page asks.
+    live = current_profile()
+    if live:
+        state["profile"] = live
     return {
         "config": cfg,
         "service": {
