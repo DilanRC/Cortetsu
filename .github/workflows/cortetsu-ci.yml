@@ -148,6 +148,9 @@ jobs:
         working-directory: cortetsu/keyboards
     steps:
       - uses: actions/checkout@v6
+        with:
+          # The equivalence test reads the retired Python helper from history.
+          fetch-depth: 0
       - name: Install the Rust toolchain
         run: rustup toolchain install stable --profile minimal --component rustfmt,clippy && rustup default stable
       - name: Install xkbcli for the keymap test
@@ -158,6 +161,11 @@ jobs:
         run: cargo clippy --all-targets --locked -- -D warnings
       - name: Test
         run: cargo test --locked
+      - name: Same behaviour as the Python helper it replaced
+        working-directory: .
+        run: |
+          python3 scripts/features/test-keybinds.py
+          python3 scripts/features/test-keybinds-equivalence.py
       - name: The committed key table matches the kernel header
         run: |
           python3 tools/gen-keycodes.py /usr/include/linux/input-event-codes.h

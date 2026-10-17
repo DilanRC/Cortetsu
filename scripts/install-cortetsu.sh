@@ -44,6 +44,9 @@ else
     printf 'Migración legacy: no hay estado anterior; se omite.\n'
 fi
 
+printf '==> Atajos y teclados: helper Rust\n'
+cargo build --release --locked --manifest-path "$REPO/cortetsu/keyboards/Cargo.toml"
+
 printf '==> Cortetsu: validación y construcción aislada\n'
 "$REPO/cortetsu/bin/check-package-updates.sh" || true
 "$REPO/cortetsu/bin/build-runtime.sh"
@@ -54,6 +57,9 @@ while IFS= read -r -d '' source; do
     name="$(basename "$source")"
     install -m 0755 "$source" "$BIN_DIR/$name"
 done < <(find "$REPO/cortetsu/bin" -maxdepth 1 -type f -name 'cortetsu-*' -print0 | sort -z)
+# Same name and commands as the Python helper it replaced (list, set, delete,
+# reset, add-app), plus inventory, keys and watch.
+install -m 0755 "$REPO/cortetsu/keyboards/target/release/cortetsu-keybinds" "$BIN_DIR/cortetsu-keybinds"
 
 mkdir -p "$SYSTEMD_USER_DIR"
 install -m 0644 "$REPO/config/systemd/user/$WALLPAPER_COLOR_UNIT" "$SYSTEMD_USER_DIR/$WALLPAPER_COLOR_UNIT"

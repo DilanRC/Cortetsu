@@ -16,7 +16,10 @@ import sys
 import tempfile
 
 REPO = Path(__file__).resolve().parents[2]
-HELPER = REPO / "cortetsu/bin/cortetsu-keybinds"
+sys.path.insert(0, str(REPO / "scripts/lib"))
+import keybinds_helper  # noqa: E402
+
+HELPER = keybinds_helper.command()
 
 FAKE_HYPRCTL = r'''#!/usr/bin/env python3
 import json, os, re, sys
@@ -68,7 +71,7 @@ hl.bind("SUPER + J", hl.dsp.exec_cmd("xdg-open ~/Música/canción.flac"))
 
 
 def run(home: Path, *args: str, **env: str) -> dict:
-    result = subprocess.run([sys.executable, str(HELPER), *args], text=True, capture_output=True,
+    result = subprocess.run([*HELPER, *args], text=True, capture_output=True,
                             env=dict(os.environ, HOME=str(home), XDG_CONFIG_HOME=str(home / ".config"),
                                      CORTETSU_HYPRCTL=str(home / "hyprctl"), **env), timeout=30)
     return json.loads(result.stdout)

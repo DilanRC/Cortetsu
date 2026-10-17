@@ -1,15 +1,23 @@
 # Atajos y teclados: backend Rust
 
-`cortetsu/keyboards/` es el backend de «Atajos y teclados»: inventario de
-teclados, teclas declaradas con su estado y, en los PR siguientes, el editor
-transaccional de atajos que sustituye a `cortetsu/bin/cortetsu-keybinds`
-(Python). El binario se llama igual, `cortetsu-keybinds`, para conservar el
-contrato de los comandos `list`, `set`, `delete`, `reset` y `add-app`.
+`cortetsu/keyboards/` compila `cortetsu-keybinds`, el backend de «Atajos y
+teclados»: inventario de teclados, teclas declaradas con su estado y el editor
+transaccional de atajos. Sustituyó al helper Python del mismo nombre
+(`cortetsu/bin/cortetsu-keybinds`, último commit 6e3fdaf) con el mismo
+contrato de comandos; ver «Migración desde Python».
 
 Se ejecuta bajo demanda y termina. No hay daemon ni servicio: `watch` solo
 vive mientras el editor lo mantiene abierto. No lee pulsaciones.
 
-## Comandos (protocolo 2)
+## Comandos del editor (protocolo 1)
+
+`list`, `set ID CHORD`, `delete ID`, `reset ID` y
+`add-app APP_ID NAME COMMAND CHORD` responden `{"ok": …}` como el helper
+Python: mismos campos, ids (`var:`, `user:`, `app:`, `edit:`, `fixed:` con el
+mismo SHA-256), mensajes y códigos de salida. Capas, precedencia y reglas de
+combinación: [KEYBINDS.md](KEYBINDS.md).
+
+## Comandos de teclados (protocolo 2)
 
 | Comando | Respuesta (`kind`) |
 |---|---|
@@ -125,6 +133,43 @@ de tres interfaces, dos teclados idénticos, Bluetooth detrás de un adaptador
 USB, un dispositivo virtual y la conexión/desconexión. `tests/watch.rs` prueba
 el hotplug, que `udevadm` muere con el helper aunque se mate con SIGKILL, y
 que cerrar la salida de `watch` lo termina.
+
+## Migración desde Python
+
+- Equivalencia: `scripts/features/test-keybinds-equivalence.py` toma el
+  helper Python de Git (6e3fdaf) y ejecuta con él y con el Rust las mismas 85
+  operaciones en dos HOME idénticos, sobre la fixture de `test-keybinds.py` y
+  sobre la configuración Lua real del repositorio. Exige respuestas, códigos
+  de salida, `keybinds.json` y `cortetsu-keybinds.lua` iguales en cada paso.
+  Corre en CI (con historial completo) y al construir una generación; en una
+  copia sin ese commit la construcción la salta y lo dice.
+- `test-keybinds.py`, `test-keybind-editor-runtime.py` (Hyprland anidado:
+  reasignar, borrar, restablecer, reinicio, promoción y rollback de
+  generación) y `test-hp-keys.py` corren contra el binario Rust. Las pruebas lo
+  encuentran con `scripts/lib/keybinds_helper.py`, que lo recompila de forma
+  incremental; `CORTETSU_KEYBINDS_HELPER` lo sustituye por otra orden.
+- `keybinds.json`, `cortetsu-keybinds.lua`, los snapshots y su retención (20)
+  no cambian de formato. Dos diferencias deliberadas, sin efecto en ningún
+  archivo que Cortetsu instala:
+  - Los snapshots nuevos se nombran en UTC (`AAAAMMDD-HHMMSS-micro`); los del
+    Python usaban hora local. Siguen ordenándose por fecha.
+  - En `variables.lua`, `--` dentro de una cadena ya no se toma por comentario.
+  - En `hypr-user.lua`, `hl.dsp.exec_cmd([[a]] .. [[b]])` es una acción Lua
+    (no editable); el Python lo leía como el comando `a]] .. [[b`.
+  - Con un número de argumentos incorrecto responde JSON
+    (`Argumentos incorrectos`, código 2) en vez del uso de argparse.
+  - Los nombres de tecla solo aceptan ASCII; el Python aceptaba algunos
+    caracteres Unicode equivalentes por `re.I`.
+  - Las claves de los objetos JSON salen en orden alfabético; los valores son
+    los mismos. Quien lee el JSON (QML) no depende del orden.
+  - `hyprctl binds -j` se lee entrada a entrada: un campo nuevo o con otro tipo
+    no invalida la lista.
+- `install-cortetsu.sh` compila con `cargo build --release --locked` e instala
+  el binario en `~/.local/bin/cortetsu-keybinds`. Abrir el editor no compila
+  nada. El grupo `keyboards` de `packages/arch.toml` (rust, libxkbcommon,
+  systemd) lo comprueba `cortetsu doctor`.
+- Reversión: `git revert` del PR y `cortetsu install` reinstalan el helper
+  Python; el almacén de ediciones es el mismo, así que no hay que migrar nada.
 
 ## Pendiente físico (PENDING_PHYSICAL)
 

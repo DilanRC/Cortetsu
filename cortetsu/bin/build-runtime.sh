@@ -97,7 +97,15 @@ python3 "$REPO/scripts/features/eval-cortetsu-wall-utility-contract.py"
 python3 "$REPO/scripts/features/test-cortetsu-branding.py"
 python3 "$REPO/scripts/features/test-cortetsu-evolving-branding.py"
 python3 "$REPO/scripts/features/eval-cortetsu-evolving-branding.py"
+cargo test --release --locked --quiet --manifest-path "$REPO/cortetsu/keyboards/Cargo.toml"
 python3 "$REPO/scripts/features/test-keybinds.py"
+# The Python reference comes from Git history; a shallow copy cannot run it
+# and CI (full history) always does.
+if git -C "$REPO" cat-file -e 6e3fdaf^{commit} 2>/dev/null; then
+    python3 "$REPO/scripts/features/test-keybinds-equivalence.py"
+else
+    printf 'SKIP: test-keybinds-equivalence sin el historial de 6e3fdaf (CI lo ejecuta)\n'
+fi
 python3 "$REPO/scripts/features/test-shell-normalizer.py"
 python3 "$REPO/scripts/features/test-shell-lifecycle.py"
 python3 "$REPO/scripts/features/eval-shell-application-safety.py"

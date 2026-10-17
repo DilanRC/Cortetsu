@@ -20,10 +20,12 @@ import tempfile
 import time
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "integration"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "lib"))
 from nested_gpu import MESA_ONLY, compositor_env  # noqa: E402
+import keybinds_helper  # noqa: E402
 
 REPO = Path(__file__).resolve().parents[2]
-HELPER = REPO / "cortetsu/bin/cortetsu-keybinds"
+HELPER = keybinds_helper.command()
 
 
 def tree_hash(root: Path) -> str:
@@ -103,7 +105,7 @@ class Nested:
         return [bind["description"] for bind in self.binds() if bind["modmask"] == mask and bind["key"].upper() == key.upper()]
 
     def helper(self, *args: str, **extra: str) -> dict:
-        result = subprocess.run([sys.executable, str(HELPER), *args], text=True, capture_output=True,
+        result = subprocess.run([*HELPER, *args], text=True, capture_output=True,
                                 env=dict(self.env(), **extra), timeout=60)
         return json.loads(result.stdout)
 

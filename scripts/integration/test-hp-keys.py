@@ -23,6 +23,8 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
 sys.path.insert(0, str(HERE))
+sys.path.insert(0, str(HERE.parent / "lib"))
+import keybinds_helper  # noqa: E402
 from launcher_harness import build_vinput, wait_for  # noqa: E402
 from nested_gpu import compositor_env  # keeps a suspended dGPU asleep  # noqa: E402
 
@@ -64,7 +66,7 @@ def main() -> int:
         shutil.copytree(REPO / "dotfiles/home/.config/hypr", hypr, symlinks=True)
         shutil.copy(REPO / "config/hypr-user.lua", hypr / "hypr-user.lua")
         listed = json.loads(subprocess.run(
-            ["python3", str(REPO / "cortetsu/bin/cortetsu-keybinds"), "list"], env=dict(os.environ, HOME=str(base / "home")),
+            [*keybinds_helper.command(), "list"], env=dict(os.environ, HOME=str(base / "home")),
             text=True, capture_output=True, check=True, timeout=30).stdout)
         rows = {row["chord"]: row for row in _rows(listed)}
         for chord, (target, _) in HP_BINDS.items():

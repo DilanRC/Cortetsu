@@ -3,12 +3,14 @@
 //! Runs on demand and exits; `watch` lives only while the editor keeps it
 //! open. Nothing here reads key presses.
 //!
+//!   list | set ID CHORD | delete ID | reset ID | add-app APP_ID NAME COMMAND CHORD
+//!                           the keybind editor (protocol 1, see legacy.rs)
 //!   inventory               keyboards present now (protocol 2)
 //!   keys [--device ID]      every declared key with its states (protocol 2)
 //!   watch                   inventory again on every keyboard hotplug
 
 use cortetsu_keyboards::protocol::{self, Error};
-use cortetsu_keyboards::{hypr, inventory, keymap, keys, watch};
+use cortetsu_keyboards::{hypr, inventory, keymap, keys, legacy, watch};
 use serde::Serialize;
 use std::collections::{BTreeMap, BTreeSet};
 use std::time::Instant;
@@ -102,10 +104,15 @@ fn inventory_command() -> serde_json::Value {
     value
 }
 
-const USAGE: &str = "uso: cortetsu-keybinds inventory | keys [--device ID] | watch";
+const USAGE: &str =
+    "uso: cortetsu-keybinds list | set | delete | reset | add-app | inventory | keys [--device ID] | watch";
 
 fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
+    if let Some((value, code)) = legacy::dispatch(&args) {
+        println!("{value}");
+        std::process::exit(code);
+    }
     let command = args.first().map(String::as_str).unwrap_or("");
     let result = match (command, args.get(1..).unwrap_or_default()) {
         ("inventory", []) => Ok(inventory_command()),
