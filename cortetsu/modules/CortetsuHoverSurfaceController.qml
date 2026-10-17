@@ -30,10 +30,19 @@ Item {
         const samePending = pendingScreen === screen
             && pendingMode === mode
             && pendingAnchor === anchorCenter;
+        const popouts = CortetsuShellState.componentsFor(screen)?.popouts;
+        const sameCurrent = popouts?.hasCurrent
+            && popouts.bottomAttached
+            && popouts.currentName === mode;
         pendingScreen = screen;
         pendingMode = mode;
         pendingAnchor = anchorCenter;
         closeTimer.stop();
+        if (sameCurrent) {
+            openTimer.stop();
+            popouts.cancelClose();
+            return;
+        }
         // Crossing adjacent controls keeps the original dwell. A real mode
         // change while a popup is open gets a bounded handoff delay.
         if (openTimer.running || (samePending && hasPendingPopup()))

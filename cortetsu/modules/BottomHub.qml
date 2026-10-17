@@ -226,6 +226,14 @@ Scope {
 
         closeAllLaunchers();
         closeAllPanels();
+        // One attached control at a time: the hover controller is shared by
+        // every screen, so entering another screen's hub stops the close that
+        // would have dismissed this one.
+        for (const other of CortetsuScreens.screens) {
+            const otherPopouts = CortetsuShellState.componentsFor(other)?.popouts;
+            if (other !== screen && otherPopouts?.hasCurrent)
+                otherPopouts.close();
+        }
         popouts.cancelClose();
         popouts.detachedMode = "";
         popouts.bottomAnchorCenter = anchorCenter;
