@@ -1,7 +1,8 @@
 # Atajos editables
 
 Un único editor (Hardware › Teclas) y una lista de solo lectura en Ajustes ›
-Atajos leen el mismo helper, `cortetsu-keybinds`.
+Atajos leen el mismo helper, `cortetsu-keybinds` (Rust, `cortetsu/keyboards`;
+ver [KEYBOARDS.md](KEYBOARDS.md)).
 
 ## Capas y precedencia
 
@@ -28,7 +29,8 @@ Hyprland lo ignora, avisa y carga el resto.
 - Aplicaciones: añadir y quitar.
 - Teclas fijas de `keybinds.lua` (brillo, volumen, multimedia): solo lectura.
 
-Cada cambio guarda un snapshot en `~/.local/share/cortetsu/snapshots/keybinds/`,
+Cada cambio guarda un snapshot (nombre en UTC; se conservan 20) en
+`~/.local/share/cortetsu/snapshots/keybinds/`,
 escribe de forma atómica, valida el Lua con `luac`, recarga Hyprland y
 comprueba en `hyprctl binds -j` la combinación nueva con su descripción
 (`cortetsu:<variable>` o `cortetsu-keybinds:<id>`). Si no coincide, restaura el

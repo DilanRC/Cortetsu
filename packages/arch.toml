@@ -10,6 +10,14 @@ required = true
 packages = ["hyprland", "quickshell-git"]
 commands = ["hyprctl", "qs"]
 
+# «Atajos y teclados»: the Rust helper is built at install time; at run time
+# it reads keymaps with xkbcli, hotplug with udevadm and ties udevadm to its
+# own life with setpriv (util-linux, in core).
+[group.keyboards]
+required = true
+packages = ["rust", "libxkbcommon", "systemd"]
+commands = ["cargo", "xkbcli", "udevadm", "setpriv"]
+
 [group.personal-shell]
 required = true
 packages = ["fish"]

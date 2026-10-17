@@ -46,14 +46,10 @@ fn settled(inventory: &Inventory) -> bool {
         })
 }
 
-fn on_path(program: &str) -> bool {
-    std::env::var_os("PATH").is_some_and(|path| std::env::split_paths(&path).any(|dir| dir.join(program).is_file()))
-}
-
 /// Runs until the editor goes away. Returns `Null` after a normal end (the
 /// lines were already printed) or an error before anything was printed.
 pub fn run() -> Result<serde_json::Value, Error> {
-    if !on_path("setpriv") {
+    if !crate::on_path("setpriv") {
         return Err(Error::new("watch-unavailable", "Falta setpriv (util-linux): no se vigilan conexiones"));
     }
     let udevadm = crate::env_or("CORTETSU_UDEVADM", "udevadm");

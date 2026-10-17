@@ -7,7 +7,11 @@ pub mod inventory;
 pub mod keycodes;
 pub mod keymap;
 pub mod keys;
+pub mod legacy;
+pub mod lua;
 pub mod protocol;
+pub mod sha256;
+pub mod store;
 pub mod testing;
 pub mod watch;
 
@@ -18,6 +22,10 @@ use std::time::{Duration, Instant};
 /// An environment override (tests point these at fixtures) or the default.
 pub fn env_or(var: &str, default: &str) -> String {
     std::env::var(var).unwrap_or_else(|_| default.to_owned())
+}
+
+pub fn on_path(program: &str) -> bool {
+    std::env::var_os("PATH").is_some_and(|path| std::env::split_paths(&path).any(|dir| dir.join(program).is_file()))
 }
 
 /// Run a program with a timeout; stdout on success, None on failure or
