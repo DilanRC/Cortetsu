@@ -15,6 +15,10 @@ Item {
 
     property var binding: null
     property var key: null
+    property var keyboards: []
+    // The keyboard chosen in the list: what «Solo en…» and «Salvo en…» target.
+    property var selectedKeyboard: null
+    property var suggestedApps: []
     property var flow: ({ phase: "idle", held: [], chord: "", message: "", preview: null })
     property string targetLabel: qsTr("Todos los teclados")
     property real remaining: 1
@@ -27,6 +31,7 @@ Item {
     signal resetRequested()
     signal deleteRequested()
     signal assignRequested(var app)
+    signal scopeRequested(string mode)
 
     readonly property string phase: flow.phase
     readonly property bool inFlow: ["listening", "recovering", "review", "conflict", "applying"].indexOf(phase) >= 0
@@ -292,7 +297,7 @@ Item {
                     value: ({ default: qsTr("Cortetsu (predeterminado)"), edited: qsTr("Cambiado por ti"), user: qsTr("hypr-user.lua"),
                               fixed: qsTr("Fijo en Cortetsu") })[root.binding?.origin ?? ""] ?? ""
                 }
-                FactLine { label: qsTr("Ámbito"); value: qsTr("Todos los teclados") }
+                FactLine { label: qsTr("Ámbito"); value: Model.scopeText(root.binding?.devices, root.keyboards) }
                 FactLine {
                     label: qsTr("Conflicto")
                     value: (root.binding?.conflicts ?? []).join(", ")
@@ -334,6 +339,58 @@ Item {
                 }
             }
 
+            // --- which keyboards ----------------------------------------------------
+            Column {
+                visible: (root.binding?.scopable ?? false) && !root.inFlow
+                width: parent.width
+                spacing: CortetsuDesign.spacingCompact
+
+                CortetsuText {
+                    width: parent.width
+                    topPadding: CortetsuDesign.spacingCompact
+                    text: qsTr("Teclados que lo usan")
+                    textSize: CortetsuTypography.labelMediumPx
+                    font.weight: Font.DemiBold
+                }
+
+                Flow {
+                    width: parent.width
+                    spacing: CortetsuDesign.spacingCompact
+
+                    Repeater {
+                        model: [
+                            { mode: "all", label: qsTr("Todos"), icon: "keyboard" },
+                            { mode: "only", label: qsTr("Solo este"), icon: "filter_1" },
+                            { mode: "except", label: qsTr("Todos salvo este"), icon: "block" }
+                        ]
+                        delegate: CortetsuButton {
+                            id: scopeButton
+                            required property var modelData
+                            readonly property var args: Model.scopeArgs(root.binding, root.selectedKeyboard, scopeButton.modelData.mode)
+                            readonly property bool current:
+                                Model.scopeIs(root.binding?.devices, scopeButton.modelData.mode, Model.hyprlandNames(root.selectedKeyboard))
+                            objectName: "scope-" + scopeButton.modelData.mode
+                            compact: true
+                            active: scopeButton.current
+                            disabled: root.busy || scopeButton.current || scopeButton.args === null
+                            icon: scopeButton.modelData.icon
+                            label: scopeButton.modelData.label
+                            onClicked: root.scopeRequested(scopeButton.modelData.mode)
+                        }
+                    }
+                }
+
+                CortetsuText {
+                    width: parent.width
+                    wrapMode: Text.WordWrap
+                    textSize: CortetsuTypography.labelSmallPx
+                    color: CortetsuDesign.colorOnSurfaceVariant
+                    text: !root.selectedKeyboard ? qsTr("Elige un teclado a la izquierda para limitarlo a él.")
+                        : !root.selectedKeyboard.hyprlandLinked ? qsTr("Hyprland no distingue %1 de otro igual; desconecta uno para elegirlo.").arg(root.selectedKeyboard.label)
+                        : qsTr("«Este» es %1. El cambio se aplica y se comprueba en Hyprland.").arg(root.selectedKeyboard.label)
+                }
+            }
+
             // --- key details --------------------------------------------------------
             Column {
                 visible: !!root.key && !root.binding && !root.inFlow
@@ -347,6 +404,24 @@ Item {
                 FactLine { label: qsTr("Estado"); value: (root.key?.states ?? []).map(s => Model.stateLabel(s)).join(" · ") }
                 FactLine { label: qsTr("Función actual"); value: root.key ? Model.currentFunction(root.key) : "" }
                 FactLine { label: qsTr("Nota"); value: root.key?.note ?? "" }
+                FactLine {
+                    label: qsTr("Sugerencia")
+                    value: root.key?.suggestion ? qsTr("%1, por su keysym %2").arg(root.key.suggestion.label).arg(root.key.keysym) : ""
+                }
+
+                Repeater {
+                    model: root.suggestedApps
+                    delegate: CortetsuListRow {
+                        id: suggestedRow
+                        required property DesktopEntry modelData
+                        width: parent.width
+                        compact: false
+                        title: qsTr("Proponer %1").arg(suggestedRow.modelData.name)
+                        subtitle: qsTr("Se revisa antes de aplicar")
+                        disabled: root.busy
+                        onClicked: root.assignRequested(suggestedRow.modelData)
+                    }
+                }
 
                 CortetsuText {
                     visible: (root.key?.states ?? []).indexOf("CANDIDATE") >= 0

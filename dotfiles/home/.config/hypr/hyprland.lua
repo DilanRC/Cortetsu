@@ -157,12 +157,20 @@ for _, chord in ipairs(keybind_edits.unbind or {}) do
         hl.unbind(chord)
     end
 end
+-- Every edit by id, so cortetsu-keybinds can read back which keyboards each
+-- one listens to: `hyprctl binds` does not show it.
+_G.cortetsu_binds = {}
 for _, bind in ipairs(keybind_edits.binds or {}) do
     local action = type(bind.exec) == "string" and hl.dsp.exec_cmd(bind.exec)
         or type(bind.global) == "string" and hl.dsp.global(bind.global)
         or nil
     if action and type(bind.chord) == "string" and type(bind.id) == "string" then
         -- cortetsu-keybinds verifies this tag (EDIT_TAG there) after a reload.
-        hl.bind(bind.chord, action, { description = "cortetsu-keybinds:" .. bind.id })
+        local options = { description = "cortetsu-keybinds:" .. bind.id }
+        local device = bind.device
+        if type(device) == "table" and type(device.inclusive) == "boolean" and type(device.list) == "table" then
+            options.device = { inclusive = device.inclusive, list = device.list }
+        end
+        _G.cortetsu_binds[bind.id] = hl.bind(bind.chord, action, options)
     end
 end

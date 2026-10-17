@@ -6,6 +6,8 @@
 //! atomically, reload Hyprland, check `hyprctl binds -j` by description, and
 //! restore the snapshot (and reload again) on any failure.
 
+use crate::legacy::EDIT_TAG;
+use crate::scope::Scope;
 use crate::{hypr, lua};
 use serde::Serialize;
 use serde_json::{Map, Value};
@@ -26,6 +28,8 @@ pub struct Paths {
     pub store: PathBuf,
     pub compiled: PathBuf,
     pub snapshots: PathBuf,
+    /// Key-test results (`prefs`).
+    pub keyboards: PathBuf,
 }
 
 impl Paths {
@@ -40,6 +44,7 @@ impl Paths {
             store: config.join("cortetsu/keybinds.json"),
             compiled: hypr.join("cortetsu-keybinds.lua"),
             snapshots: home.join(".local/share/cortetsu/snapshots/keybinds"),
+            keyboards: config.join("cortetsu/keyboards.json"),
         }
     }
 }
@@ -157,6 +162,7 @@ pub fn compile_store(store: &Store) -> Result<String> {
             Some(command) => fields.push(format!("exec = {}", lua::quote(command))),
             None => fields.push(format!("global = {}", lua::quote(text(bind, "global").unwrap_or("")))),
         }
+        fields.extend(Scope::of(bind).to_lua());
         lines.push(format!("        {{ {} }},", fields.join(", ")));
     }
     lines.extend(["    },".into(), "}".into(), String::new()]);
@@ -272,6 +278,37 @@ fn luac_check(compiled: &str) -> Result<()> {
     }
 }
 
+/// Each store bind must listen to the same keyboards in Hyprland as in the
+/// store. Without a readable report that is only an error when some bind is
+/// limited: a loader that predates the report binds everything everywhere.
+fn verify_scopes(store: &Store) -> Result<()> {
+    let wanted: Vec<(&str, Scope)> =
+        store.binds.iter().filter_map(|bind| Some((text(bind, "id")?, Scope::of(bind)))).collect();
+    if wanted.is_empty() {
+        return Ok(());
+    }
+    let limited = wanted.iter().any(|(_, scope)| *scope != Scope::All);
+    let live = match hypr::live_scopes() {
+        Some(Some(live)) => live,
+        _ if !limited => return Ok(()),
+        None => return Err("No se pudo leer de Hyprland a qué teclados responde cada atajo".into()),
+        Some(None) => {
+            return Err(
+                "La configuración cargada de Hyprland no admite atajos por teclado; actualiza hyprland.lua".into()
+            );
+        }
+    };
+    for (id, scope) in wanted {
+        // A bind Hyprland did not take (none in the report) only matters if
+        // it was limited: unlimited, it has nothing to leak.
+        let held = live.get(id).cloned().or((scope == Scope::All).then_some(Scope::All));
+        if held.as_ref() != Some(&scope) {
+            return Err(format!("Hyprland no tiene {id} {} tras recargar", scope.describe()));
+        }
+    }
+    Ok(())
+}
+
 /// Write the store, reload Hyprland and check the result, or roll back.
 /// `present`: (chord, description) pairs that must be bound afterwards.
 /// `absent`: chords that must have no bind afterwards.
@@ -299,12 +336,21 @@ pub fn commit(paths: &Paths, store: &Store, present: &[(String, String)], absent
                 return Err(format!("Hyprland no muestra {chord} con su acción tras recargar"));
             }
         }
+        // Another store bind may keep an absent chord on other keyboards.
+        let mut kept: BTreeMap<(u32, String), Vec<String>> = BTreeMap::new();
+        for bind in &store.binds {
+            if let (Some(chord), Some(id)) = (text(bind, "chord"), text(bind, "id")) {
+                kept.entry(chord_parts(chord)).or_default().push(format!("{EDIT_TAG}{id}"));
+            }
+        }
         for chord in absent {
-            if bound.contains_key(&chord_parts(chord)) {
+            let parts = chord_parts(chord);
+            let ours = kept.get(&parts).map(Vec::as_slice).unwrap_or_default();
+            if bound.get(&parts).is_some_and(|d| d.iter().any(|d| !ours.contains(d))) {
                 return Err(format!("{chord} sigue activo tras recargar"));
             }
         }
-        Ok(())
+        verify_scopes(store)
     })();
     match applied {
         Ok(()) => Ok(saved),
@@ -382,6 +428,7 @@ mod tests {
             store: root.join("keybinds.json"),
             compiled: root.join("cortetsu-keybinds.lua"),
             snapshots: root.join("snapshots"),
+            keyboards: root.join("keyboards.json"),
         };
         fs::write(&paths.store, "{}").unwrap();
         for n in 0..25 {

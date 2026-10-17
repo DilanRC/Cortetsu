@@ -6,9 +6,8 @@
 //! The commands are listed once, in `USAGE`.
 
 use cortetsu_keyboards::protocol::{self, Error};
-use cortetsu_keyboards::{capture, editor, hypr, inventory, keymap, keys, legacy, store, watch};
+use cortetsu_keyboards::{capture, editor, hypr, inventory, keys, legacy, prefs, probe, store, watch};
 use serde::Serialize;
-use std::collections::{BTreeMap, BTreeSet};
 use std::time::Instant;
 
 #[derive(Serialize)]
@@ -61,19 +60,13 @@ fn keys_command(device: Option<&str>) -> Result<serde_json::Value, Error> {
     if let (Some(id), true) = (device, selected.is_empty()) {
         return Err(Error::new("unknown-device", format!("El teclado {id} no está conectado")));
     }
-    let mut keymaps: BTreeMap<inventory::Layout, Option<keymap::Keymap>> = BTreeMap::new();
+    let paths = store::Paths::from_env();
+    let mut keymaps = keys::Keymaps::new();
     let mut devices = Vec::new();
     let mut spare = Vec::new();
     for keyboard in selected {
-        // Hyprland gives every node of a keyboard the same layout.
-        let keymap = keyboard
-            .interfaces
-            .iter()
-            .find_map(|i| i.layout.clone())
-            .and_then(|layout| keymaps.entry(layout.clone()).or_insert_with(|| keymap::compile(&layout)).clone());
-        // ponytail: no key is VERIFIED until the explicit key test lands with
-        // the per-device editor; the parameter is already threaded through.
-        let device_keys = keys::classify(keyboard, keymap.as_ref(), binds.as_deref(), &BTreeSet::new());
+        let verified = prefs::verified(&paths, &keyboard.model);
+        let device_keys = keys::of_keyboard(keyboard, &mut keymaps, binds.as_deref(), &verified);
         for key in device_keys.iter().filter(|k| k.has(keys::State::Candidate)) {
             spare.push(Spare { device: keyboard.id.clone(), device_label: keyboard.label.clone(), key: key.clone() });
         }
@@ -103,7 +96,10 @@ fn inventory_command() -> serde_json::Value {
 fn bindings_command() -> Result<serde_json::Value, Error> {
     let paths = store::Paths::from_env();
     let bindings = legacy::list_bindings(&paths).map_err(|e| Error::new("config", e))?;
-    Ok(protocol::ok("bindings", serde_json::json!({ "bindings": bindings, "version": editor::version(&paths) })))
+    Ok(protocol::ok(
+        "bindings",
+        serde_json::json!({ "bindings": editor::rows(&bindings), "version": editor::version(&paths) }),
+    ))
 }
 
 fn preview_command(verb: &str, rest: &[String]) -> Result<serde_json::Value, Error> {
@@ -114,6 +110,16 @@ fn preview_command(verb: &str, rest: &[String]) -> Result<serde_json::Value, Err
         _ => return Err(Error::new("usage", USAGE)),
     }?;
     Ok(protocol::ok("preview", preview))
+}
+
+fn probe_command(verb: &str, rest: &[String]) -> Result<serde_json::Value, Error> {
+    let status = match (verb, rest) {
+        ("begin", [device, ms]) => probe::begin(device, ms.parse().map_err(|_| Error::new("usage", USAGE))?),
+        ("status", []) => probe::status(),
+        ("end", [device]) => probe::end(device),
+        _ => return Err(Error::new("usage", USAGE)),
+    }?;
+    Ok(protocol::ok("probe", status))
 }
 
 fn capture_command(verb: &str, rest: &[String]) -> Result<serde_json::Value, Error> {
@@ -130,7 +136,9 @@ const USAGE: &str = "\
 uso: cortetsu-keybinds COMANDO
   list | set ID CHORD | delete ID | reset ID | add-app APP_ID NAME COMMAND CHORD
                           el editor de atajos (protocolo 1)
-  [--expect VERSION] set|delete|reset|add-app …
+  scope ID only|except|all [NAME…]
+                          limita un atajo del editor a unos teclados
+  [--expect VERSION] set|delete|reset|add-app|scope …
                           rechaza el cambio si la configuración cambió
   inventory               teclados conectados ahora
   keys [--device ID]      cada tecla declarada con sus estados
@@ -139,7 +147,9 @@ uso: cortetsu-keybinds COMANDO
   preview set ID CHORD | preview add-app CHORD
                           lo que haría un cambio, sin escribir
   capture begin MS | capture end | capture status
-                          el submapa que retiene los atajos mientras se graba";
+                          el submapa que retiene los atajos mientras se graba
+  probe begin DEVICE MS | probe status | probe end DEVICE
+                          la prueba de teclas: lo pulsado queda VERIFIED";
 
 fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
@@ -154,6 +164,7 @@ fn main() {
         ("keys", [flag, id]) if flag == "--device" => keys_command(Some(id)),
         ("watch", []) => watch::run(),
         ("capture", [verb, rest @ ..]) => capture_command(verb, rest),
+        ("probe", [verb, rest @ ..]) => probe_command(verb, rest),
         ("bindings", []) => bindings_command(),
         ("preview", [verb, rest @ ..]) => preview_command(verb, rest),
         _ => Err(Error::new("usage", USAGE)),

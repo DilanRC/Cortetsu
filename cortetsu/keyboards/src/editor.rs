@@ -7,13 +7,14 @@
 
 use crate::legacy::{self, Refusal};
 use crate::protocol::Error;
+use crate::scope;
 use crate::store::{Paths, Result};
 use serde::Serialize;
 use serde_json::{Value, json};
 use std::fs::{self, File, OpenOptions};
 use std::path::Path;
 
-const WRITES: [&str; 4] = ["set", "delete", "reset", "add-app"];
+const WRITES: [&str; 5] = ["set", "delete", "reset", "add-app", "scope"];
 const STALE: &str = "La configuración cambió desde la vista previa; revisa el cambio otra vez";
 
 /// A digest of every file the editor's answers are computed from.
@@ -69,6 +70,22 @@ pub fn preview(paths: &Paths, identifier: Option<&str>, raw_chord: &str) -> std:
     })
 }
 
+/// The rows of `bindings`: those of `list`, plus `scopable` and, for a
+/// shortcut limited to some keyboards, `devices` as the store keeps it.
+pub fn rows(bindings: &[legacy::Binding]) -> Vec<Value> {
+    bindings
+        .iter()
+        .map(|binding| {
+            let mut row = json!(binding);
+            row["scopable"] = json!(binding.scopable);
+            if let Some(devices) = binding.scope.to_json() {
+                row["devices"] = devices;
+            }
+            row
+        })
+        .collect()
+}
+
 /// Hold the editor lock for as long as the returned file lives.
 fn lock(paths: &Paths) -> Result<File> {
     let path = paths.store.with_extension("lock");
@@ -108,5 +125,16 @@ pub fn dispatch(args: &[String]) -> Option<(Value, i32)> {
     if expected.is_some_and(|v| v != version(&paths)) {
         return Some((json!({ "ok": false, "error": STALE, "stale": true }), 1));
     }
-    legacy::dispatch(command)
+    match command {
+        [verb, id, mode, names @ ..] if verb == "scope" => Some(reply(scope::set_scope(&paths, id, mode, names))),
+        [verb, ..] if verb == "scope" => Some((json!({ "ok": false, "error": "Argumentos incorrectos" }), 2)),
+        _ => legacy::dispatch(command),
+    }
+}
+
+fn reply(result: Result<Value>) -> (Value, i32) {
+    match result {
+        Ok(value) => (value, 0),
+        Err(error) => (json!({ "ok": false, "error": error }), 1),
+    }
 }

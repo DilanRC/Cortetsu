@@ -13,11 +13,11 @@
 //! - UNKNOWN is anything this table does not classify, or without a keysym.
 
 use crate::hypr;
-use crate::inventory::{Keyboard, Kind};
+use crate::inventory::{Keyboard, Kind, Layout};
 use crate::keycodes;
-use crate::keymap::Keymap;
+use crate::keymap::{self, Keymap};
 use serde::Serialize;
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 pub const KEY_SYSRQ: u16 = 99;
 pub const KEY_POWER: u16 = 116;
@@ -95,6 +95,38 @@ pub struct Key {
     pub assignments: Vec<Assignment>,
     /// Interface names that declare it (a USB keyboard's consumer interface).
     pub declared_by: Vec<String>,
+    /// CANDIDATE keys only: the kind of application its keysym names.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub suggestion: Option<Suggestion>,
+}
+
+/// What a spare key is printed for, as a freedesktop category the editor
+/// looks up among the installed applications. Only a proposal: assigning it
+/// still goes through the review and an explicit confirmation.
+#[derive(Debug, Clone, Copy, Serialize, PartialEq, Eq)]
+pub struct Suggestion {
+    pub category: &'static str,
+    pub label: &'static str,
+}
+
+/// Fixed table, keysym to category: the same key always suggests the same
+/// kind of application. Media, system and programmable keys suggest none.
+pub fn suggestion(keysym: &str) -> Option<Suggestion> {
+    let (category, label) = match keysym {
+        "XF86Calculator" => ("Calculator", "Calculadora"),
+        "XF86Mail" => ("Email", "Correo"),
+        "XF86WWW" | "XF86HomePage" => ("WebBrowser", "Navegador"),
+        "XF86Explorer" | "XF86MyComputer" | "XF86Documents" => ("FileManager", "Archivos"),
+        "XF86Music" | "XF86AudioMedia" => ("Audio", "Reproductor de música"),
+        "XF86Video" => ("Video", "Reproductor de vídeo"),
+        "XF86Pictures" => ("Viewer", "Visor de imágenes"),
+        "XF86Calendar" => ("Calendar", "Calendario"),
+        "XF86Messenger" => ("InstantMessaging", "Mensajería"),
+        "XF86Terminal" => ("TerminalEmulator", "Terminal"),
+        "XF86Tools" => ("Settings", "Ajustes"),
+        _ => return None,
+    };
+    Some(Suggestion { category, label })
 }
 
 impl Key {
@@ -319,6 +351,25 @@ fn bind_hits(bind: &hypr::Bind, code: u16, keysym: Option<&str>) -> bool {
         || keysym.is_some_and(|sym| bind.key.eq_ignore_ascii_case(sym))
 }
 
+/// Keymaps by layout, compiled once per command.
+pub type Keymaps = BTreeMap<Layout, Option<Keymap>>;
+
+/// Every declared key of `keyboard`, classified. Hyprland gives every node
+/// of a keyboard the same layout, so the first one is the keyboard's.
+pub fn of_keyboard(
+    keyboard: &Keyboard,
+    keymaps: &mut Keymaps,
+    binds: Option<&[hypr::Bind]>,
+    verified: &BTreeSet<u16>,
+) -> Vec<Key> {
+    let keymap = keyboard
+        .interfaces
+        .iter()
+        .find_map(|i| i.layout.clone())
+        .and_then(|layout| keymaps.entry(layout.clone()).or_insert_with(|| keymap::compile(&layout)).clone());
+    classify(keyboard, keymap.as_ref(), binds, verified)
+}
+
 pub fn classify(
     keyboard: &Keyboard,
     keymap: Option<&Keymap>,
@@ -374,7 +425,8 @@ pub fn classify(
         if reserved.is_some() {
             states.push(State::Reserved);
         }
-        if dedicated && keysym.is_some() && !assigned && reserved.is_none() {
+        let candidate = dedicated && keysym.is_some() && !assigned && reserved.is_none();
+        if candidate {
             states.push(State::Candidate);
         }
         if (reserved.is_none() && !dedicated) || unknown.is_some() || code == KEY_FN_ESC {
@@ -387,6 +439,7 @@ pub fn classify(
         } else {
             Confidence::Declared
         };
+        let proposed = if candidate { keysym.as_deref().and_then(suggestion) } else { None };
         keys.push(Key {
             code,
             name: name.to_owned(),
@@ -407,6 +460,7 @@ pub fn classify(
                 .filter(|i| i.codes.binary_search(&code).is_ok())
                 .map(|i| i.name.clone())
                 .collect(),
+            suggestion: proposed,
         });
     }
     keys
@@ -487,6 +541,16 @@ mod tests {
         assert_eq!(omen.label, "OMEN");
         assert_eq!(omen.states, vec![State::Declared, State::Verified, State::Assigned]);
         assert_eq!(omen.confidence, Confidence::Verified);
+    }
+
+    #[test]
+    fn spare_keys_suggest_by_keysym_and_others_do_not() {
+        let (_sys, keyboards) = victus();
+        let keys = classify(&keyboards[0], Some(&parse(LATAM_EXCERPT)), Some(&[]), &BTreeSet::new());
+        let calc = key(&keys, 140);
+        assert_eq!(calc.suggestion, Some(Suggestion { category: "Calculator", label: "Calculadora" }));
+        assert!(keys.iter().filter(|k| !k.has(State::Candidate)).all(|k| k.suggestion.is_none()));
+        assert_eq!(suggestion("XF86Launch1"), None, "a programmable key is the user's to choose");
     }
 
     #[test]
