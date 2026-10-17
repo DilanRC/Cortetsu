@@ -88,6 +88,8 @@ create_bind(
     hl.dsp.global("cortetsu:osd")
 )
 create_bind("SUPER + I", hl.dsp.global("cortetsu:settings"))
+-- «Atajos y teclados»: opens or closes the surface.
+create_bind(vars.kbKeyboards, hl.dsp.global("cortetsu:keyboards"))
 -- Restore lock
 create_bind(vars.kbRestoreLock, function()
     hl.dispatch(hl.dsp.exec_cmd("systemctl --user start cortetsu-shell.service"))
