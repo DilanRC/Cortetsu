@@ -52,6 +52,9 @@ jobs:
           python3 cortetsu/tests/test-calendar-polish.py
           python3 cortetsu/tests/test-pomodoro.py
           python3 cortetsu/tests/test-runtime-contract.py
+          python3 scripts/features/test-wallpaper-color-daemon.py
+          python3 scripts/features/test-power-auto-transitions.py
+          python3 scripts/features/test-nested-gpu-quiet.py
       - name: Validate Ascension launcher contracts
         run: |
           python3 scripts/features/test-cortetsu-launcher.py

@@ -18,6 +18,9 @@ import tempfile
 import time
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "integration"))
+from nested_gpu import MESA_ONLY, compositor_env  # noqa: E402
+
 ROOT = Path(__file__).resolve().parents[2]
 
 SHELL_QML = """
@@ -167,8 +170,8 @@ def main() -> int:
         (shell / "services/CortetsuPower.qml").write_text(POWER_STUB, encoding="utf-8")
 
         env = {"HOME": str(base), "PATH": f"{tools}:{os.environ['PATH']}", "LANG": "C.UTF-8", "XDG_RUNTIME_DIR": str(runtime),
-               "XDG_CONFIG_HOME": str(base / "cfg"), "FAKE_SYSTEMCTL_LOG": str(calls)}
-        compositor = subprocess.Popen(["Hyprland"], cwd=base, env=dict(env, WAYLAND_DISPLAY=parent_socket),
+               "XDG_CONFIG_HOME": str(base / "cfg"), "FAKE_SYSTEMCTL_LOG": str(calls), **MESA_ONLY}
+        compositor = subprocess.Popen(["Hyprland"], cwd=base, env=compositor_env(dict(env, WAYLAND_DISPLAY=parent_socket), base),
                                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         log = (base / "qs.log").open("w")
         proc = None
