@@ -141,7 +141,8 @@ que cerrar la salida de `watch` lo termina.
   operaciones en dos HOME idénticos, sobre la fixture de `test-keybinds.py` y
   sobre la configuración Lua real del repositorio. Exige respuestas, códigos
   de salida, `keybinds.json` y `cortetsu-keybinds.lua` iguales en cada paso.
-  Corre en CI (con historial completo) y al construir una generación.
+  Corre en CI (con historial completo) y al construir una generación; en una
+  copia sin ese commit la construcción la salta y lo dice.
 - `test-keybinds.py`, `test-keybind-editor-runtime.py` (Hyprland anidado:
   reasignar, borrar, restablecer, reinicio, promoción y rollback de
   generación) y `test-hp-keys.py` corren contra el binario Rust. Las pruebas lo
@@ -153,6 +154,16 @@ que cerrar la salida de `watch` lo termina.
   - Los snapshots nuevos se nombran en UTC (`AAAAMMDD-HHMMSS-micro`); los del
     Python usaban hora local. Siguen ordenándose por fecha.
   - En `variables.lua`, `--` dentro de una cadena ya no se toma por comentario.
+  - En `hypr-user.lua`, `hl.dsp.exec_cmd([[a]] .. [[b]])` es una acción Lua
+    (no editable); el Python lo leía como el comando `a]] .. [[b`.
+  - Con un número de argumentos incorrecto responde JSON
+    (`Argumentos incorrectos`, código 2) en vez del uso de argparse.
+  - Los nombres de tecla solo aceptan ASCII; el Python aceptaba algunos
+    caracteres Unicode equivalentes por `re.I`.
+  - Las claves de los objetos JSON salen en orden alfabético; los valores son
+    los mismos. Quien lee el JSON (QML) no depende del orden.
+  - `hyprctl binds -j` se lee entrada a entrada: un campo nuevo o con otro tipo
+    no invalida la lista.
 - `install-cortetsu.sh` compila con `cargo build --release --locked` e instala
   el binario en `~/.local/bin/cortetsu-keybinds`. Abrir el editor no compila
   nada. El grupo `keyboards` de `packages/arch.toml` (rust, libxkbcommon,

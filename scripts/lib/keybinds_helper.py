@@ -1,8 +1,8 @@
 """The keybind helper the tests run: the Rust `cortetsu-keybinds`.
 
-CORTETSU_KEYBINDS_HELPER overrides it with a command line (the equivalence
-test runs the retired Python helper that way). Otherwise the release binary
-is rebuilt incrementally first, so a test never runs a stale build.
+CORTETSU_KEYBINDS_HELPER overrides it with a command line. Otherwise the
+release binary is rebuilt incrementally first, so a test does not run a stale
+build; without cargo on PATH the existing binary is used as it is.
 """
 from __future__ import annotations
 

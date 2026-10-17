@@ -38,10 +38,6 @@ pub struct Bind {
     pub mouse: bool,
     #[serde(default)]
     pub release: bool,
-    #[serde(default)]
-    pub dispatcher: String,
-    #[serde(default)]
-    pub arg: String,
 }
 
 pub fn hyprctl() -> String {
@@ -61,9 +57,12 @@ pub fn keyboards() -> Option<Vec<Keyboard>> {
     serde_json::from_str::<Devices>(&text).ok().map(|devices| devices.keyboards)
 }
 
+/// The effective binds. Each entry is read on its own and only the fields
+/// above are used, so a field Hyprland adds or retypes cannot hide the rest.
 pub fn binds() -> Option<Vec<Bind>> {
-    let text = run(&["binds", "-j"], Duration::from_secs(5))?;
-    serde_json::from_str(&text).ok()
+    let text = run(&["binds", "-j"], Duration::from_secs(10))?;
+    let entries: Vec<serde_json::Value> = serde_json::from_str(&text).ok()?;
+    Some(entries.into_iter().filter_map(|entry| serde_json::from_value(entry).ok()).collect())
 }
 
 /// Hyprland's internal device name: lowercase, spaces and newlines as dashes.

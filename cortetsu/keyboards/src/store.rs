@@ -6,7 +6,6 @@
 //! atomically, reload Hyprland, check `hyprctl binds -j` by description, and
 //! restore the snapshot (and reload again) on any failure.
 
-use crate::legacy::{Paths, Result, chord_parts, live_binds};
 use crate::{hypr, lua};
 use serde::Serialize;
 use serde_json::{Map, Value};
@@ -16,6 +15,60 @@ use std::io::Write;
 use std::os::unix::fs::OpenOptionsExt;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
+
+pub type Result<T> = std::result::Result<T, String>;
+
+/// Where the editor reads and writes; HOME and XDG_CONFIG_HOME decide.
+pub struct Paths {
+    pub defaults: PathBuf,
+    pub first_party: PathBuf,
+    pub user: PathBuf,
+    pub store: PathBuf,
+    pub compiled: PathBuf,
+    pub snapshots: PathBuf,
+}
+
+impl Paths {
+    pub fn from_env() -> Self {
+        let home = PathBuf::from(crate::env_or("HOME", "/"));
+        let config = std::env::var_os("XDG_CONFIG_HOME").map(PathBuf::from).unwrap_or_else(|| home.join(".config"));
+        let hypr = home.join(".config/hypr");
+        Paths {
+            defaults: hypr.join("variables.lua"),
+            first_party: hypr.join("hyprland/keybinds.lua"),
+            user: hypr.join("hypr-user.lua"),
+            store: config.join("cortetsu/keybinds.json"),
+            compiled: hypr.join("cortetsu-keybinds.lua"),
+            snapshots: home.join(".local/share/cortetsu/snapshots/keybinds"),
+        }
+    }
+}
+
+pub(crate) fn split_chord(chord: &str) -> Vec<&str> {
+    chord.split('+').map(str::trim).filter(|part| !part.is_empty()).collect()
+}
+
+/// (modmask, KEY) as `hyprctl binds -j` reports them; unknown modifiers add nothing.
+pub fn chord_parts(chord: &str) -> (u32, String) {
+    let parts = split_chord(chord);
+    let Some((key, mods)) = parts.split_last() else { return (0, String::new()) };
+    let mask = mods.iter().map(|m| mod_bit(m).unwrap_or(0)).fold(0, |a, b| a | b);
+    (mask, key.to_uppercase())
+}
+
+fn mod_bit(name: &str) -> Option<u32> {
+    Some(match name.to_ascii_uppercase().as_str() {
+        "SHIFT" => hypr::MOD_SHIFT,
+        "CAPS" => 2,
+        "CTRL" | "CONTROL" => hypr::MOD_CTRL,
+        "ALT" => hypr::MOD_ALT,
+        "MOD2" => 16,
+        "MOD3" => 32,
+        "SUPER" | "WIN" | "MOD4" => hypr::MOD_SUPER,
+        "MOD5" => hypr::MOD_MOD5,
+        _ => return None,
+    })
+}
 
 #[derive(Debug, Clone, Default, Serialize, PartialEq)]
 pub struct Store {
@@ -158,7 +211,12 @@ fn snapshot_name() -> String {
 fn snapshot(paths: &Paths) -> Result<PathBuf> {
     // The latest 20 are enough to undo by hand; older ones are dropped.
     if let Ok(entries) = fs::read_dir(&paths.snapshots) {
-        let mut old: Vec<PathBuf> = entries.flatten().map(|e| e.path()).collect();
+        // Snapshot directories only, like the Python helper's glob("*").
+        let mut old: Vec<PathBuf> = entries
+            .flatten()
+            .filter(|e| !e.file_name().to_string_lossy().starts_with('.') && e.path().is_dir())
+            .map(|e| e.path())
+            .collect();
         old.sort();
         let excess = old.len().saturating_sub(19);
         for path in &old[..excess] {
@@ -195,7 +253,13 @@ fn restore(paths: &Paths, saved: &Path) {
 fn luac_check(compiled: &str) -> Result<()> {
     let Some(luac) = ["luac", "luac5.4"].into_iter().find(|tool| crate::on_path(tool)) else { return Ok(()) };
     let probe = std::env::temp_dir().join(format!("cortetsu-keybinds-{}-{}.lua", std::process::id(), unique()));
-    fs::write(&probe, compiled).map_err(|e| e.to_string())?;
+    fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .mode(0o600)
+        .open(&probe)
+        .and_then(|mut file| file.write_all(compiled.as_bytes()))
+        .map_err(|e| e.to_string())?;
     let output = std::process::Command::new(luac).args(["-p"]).arg(&probe).output();
     let _ = fs::remove_file(&probe);
     match output {
@@ -225,7 +289,7 @@ pub fn commit(paths: &Paths, store: &Store, present: &[(String, String)], absent
         if !reload() {
             return Err("Hyprland no pudo recargar la configuración".into());
         }
-        let active = live_binds().ok_or("No se pudo leer la configuración de Hyprland tras recargar")?;
+        let active = hypr::binds().ok_or("No se pudo leer la configuración de Hyprland tras recargar")?;
         let mut bound: BTreeMap<(u32, String), Vec<String>> = BTreeMap::new();
         for bind in active {
             bound.entry((bind.modmask, bind.key.to_uppercase())).or_default().push(bind.description);
@@ -305,5 +369,31 @@ mod tests {
             .filter(|e| e.file_name().to_string_lossy().starts_with('.'))
             .collect();
         assert!(leftovers.is_empty());
+    }
+
+    #[test]
+    fn retention_keeps_twenty_snapshot_directories_and_ignores_other_entries() {
+        let dir = crate::testing::FakeSys::new();
+        let root = dir.path();
+        let paths = Paths {
+            defaults: root.join("variables.lua"),
+            first_party: root.join("keybinds.lua"),
+            user: root.join("hypr-user.lua"),
+            store: root.join("keybinds.json"),
+            compiled: root.join("cortetsu-keybinds.lua"),
+            snapshots: root.join("snapshots"),
+        };
+        fs::write(&paths.store, "{}").unwrap();
+        for n in 0..25 {
+            fs::create_dir_all(paths.snapshots.join(format!("20260101-0000{n:02}-000000"))).unwrap();
+        }
+        fs::write(paths.snapshots.join(".hidden"), "").unwrap();
+        fs::write(paths.snapshots.join("notes.txt"), "").unwrap();
+        let saved = snapshot(&paths).unwrap();
+        assert!(saved.join("keybinds.json").is_file());
+        let dirs = fs::read_dir(&paths.snapshots).unwrap().flatten().filter(|e| e.path().is_dir()).count();
+        assert_eq!(dirs, 20);
+        assert!(paths.snapshots.join(".hidden").exists() && paths.snapshots.join("notes.txt").exists());
+        assert!(!paths.snapshots.join("20260101-000000-000000").exists(), "the oldest go first");
     }
 }
