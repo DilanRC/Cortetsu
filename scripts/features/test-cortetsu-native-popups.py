@@ -64,7 +64,7 @@ assert "scannerEnabled" not in network_service
 for token in ('setScanOwner("explicit-refresh", true)', 'setScanOwner("explicit-refresh", false)', "device.scannerEnabled = scanning"):
     assert token in wifi_service, token
 assert "Timer {" not in network_service
-assert "function closeAllPopouts(): void" in hub
+assert "function closeAllPopouts(hover = false): void" in hub
 assert "closeAllPopouts();" in hub
 assert "id: hideTimer" in hub and "interval: 500" in hub
 assert "hideTimer.restart();" in hub

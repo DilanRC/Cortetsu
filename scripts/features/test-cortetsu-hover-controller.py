@@ -21,6 +21,8 @@ assert "hoverSurfaceController.leaveTrigger()" in hub
 assert "openAttachedControlNow" in hub
 assert "function cancelPending(): void" in controller
 assert "function hasPendingPopup(): bool" in controller
+assert "popouts.cancelClose();" in controller
+assert "if (sameCurrent)" in controller
 assert "const samePending = pendingScreen === screen" in controller
 assert "openTimer.running || (samePending && hasPendingPopup())" in controller
 assert "hoverSurfaceController.cancelPending();" in hub

@@ -24,7 +24,7 @@ Scope {
 
         onOpenRequested: (screen, mode, anchorCenter) =>
             hubRoot.openAttachedControlNow(screen, mode, anchorCenter)
-        onCloseRequested: hubRoot.closeAllPopouts()
+        onCloseRequested: hubRoot.closeAllPopouts(true)
     }
 
     Connections {
@@ -56,10 +56,12 @@ Scope {
         }
     }
 
-    function closeAllPopouts(): void {
+    // A hover close leaves a Wi-Fi password being typed alone: the pointer
+    // leaving it (for another screen, say) must not drop the typed text.
+    function closeAllPopouts(hover = false): void {
         for (const screen of CortetsuScreens.screens) {
             const popouts = CortetsuShellState.componentsFor(screen)?.popouts;
-            if (popouts)
+            if (popouts && !(hover && popouts.currentName === "wirelesspassword"))
                 popouts.close();
         }
     }
@@ -226,6 +228,16 @@ Scope {
 
         closeAllLaunchers();
         closeAllPanels();
+        // One attached control at a time: the hover controller is shared by
+        // every screen, so entering the hub of another screen stops the close
+        // that would have dismissed this one. Detached popouts and a Wi-Fi
+        // password being typed (attached, but holding the keyboard) stay.
+        for (const other of CortetsuScreens.screens) {
+            const otherPopouts = CortetsuShellState.componentsFor(other)?.popouts;
+            if (other !== screen && otherPopouts?.hasCurrent && otherPopouts.bottomAttached
+                    && otherPopouts.currentName !== "wirelesspassword")
+                otherPopouts.close();
+        }
         popouts.cancelClose();
         popouts.detachedMode = "";
         popouts.bottomAnchorCenter = anchorCenter;

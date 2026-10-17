@@ -30,10 +30,23 @@ Item {
         const samePending = pendingScreen === screen
             && pendingMode === mode
             && pendingAnchor === anchorCenter;
+        const popouts = CortetsuShellState.componentsFor(screen)?.popouts;
+        const sameCurrent = popouts?.hasCurrent
+            && popouts.bottomAttached
+            && popouts.currentName === mode;
         pendingScreen = screen;
         pendingMode = mode;
         pendingAnchor = anchorCenter;
         closeTimer.stop();
+        // Modes are unique per control, so the same mode is the same popup;
+        // keep it where the trigger is now in case the hub reflowed.
+        if (sameCurrent) {
+            openTimer.stop();
+            popouts.cancelClose();
+            if (anchorCenter >= 0)
+                popouts.bottomAnchorCenter = anchorCenter;
+            return;
+        }
         // Crossing adjacent controls keeps the original dwell. A real mode
         // change while a popup is open gets a bounded handoff delay.
         if (openTimer.running || (samePending && hasPendingPopup()))
