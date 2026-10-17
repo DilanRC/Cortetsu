@@ -15,18 +15,11 @@ import signal
 import subprocess
 import time
 
+from nested_gpu import MESA_ONLY, compositor_env
+
 REPO = Path(__file__).resolve().parents[2]
 HERE = Path(__file__).resolve().parent
 HYPRCTL = os.environ.get("CORTETSU_TEST_HYPRCTL") or shutil.which("hyprctl") or "hyprctl"
-# glvnd and the Vulkan loader would otherwise load the NVIDIA vendor while
-# enumerating devices and keep a runtime-suspended dGPU awake for the whole
-# run. Rendering stays on Mesa, like the desktop's iGPU.
-MESA_ONLY = {
-    key: value for key, value in (
-        ("__EGL_VENDOR_LIBRARY_FILENAMES", "/usr/share/glvnd/egl_vendor.d/50_mesa.json"),
-        ("VK_ICD_FILENAMES", "/usr/share/vulkan/icd.d/radeon_icd.json"),
-    ) if Path(value).is_file()
-}
 
 # evdev codes
 KEY_LEFTMETA, KEY_ESC, KEY_A, KEY_E, KEY_DOWN, KEY_RIGHT, KEY_RETURN = 125, 1, 30, 18, 108, 106, 28
@@ -178,8 +171,8 @@ class Session:
         parent = os.environ["WAYLAND_DISPLAY"]
         parent_socket = parent if parent.startswith("/") else str(Path(os.environ["XDG_RUNTIME_DIR"]) / parent)
         env = {"HOME": str(self.home), "PATH": os.environ["PATH"], "LANG": "C.UTF-8",
-               "XDG_RUNTIME_DIR": str(self.runtime), "WAYLAND_DISPLAY": parent_socket, **MESA_ONLY}
-        self.compositor = subprocess.Popen(["Hyprland"], cwd=self.base, env=env, start_new_session=True,
+               "XDG_RUNTIME_DIR": str(self.runtime), "WAYLAND_DISPLAY": parent_socket}
+        self.compositor = subprocess.Popen(["Hyprland"], cwd=self.base, env=compositor_env(env, self.base), start_new_session=True,
                                            stdout=(self.logs / "hyprland.log").open("w"), stderr=subprocess.STDOUT)
         self.socket = wait_for(lambda: next((p.name for p in self.runtime.glob("wayland-*[0-9]")), None),
                                "socket del Hyprland anidado")
