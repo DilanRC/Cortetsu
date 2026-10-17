@@ -10,6 +10,7 @@ nothing. This proves the keysym match; physical presses stay PENDING_PHYSICAL.
 """
 from __future__ import annotations
 
+import json
 import os
 import re
 import shutil
@@ -23,16 +24,21 @@ HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
 sys.path.insert(0, str(HERE))
 from launcher_harness import build_vinput, wait_for  # noqa: E402
-try:
-    from nested_gpu import compositor_env  # keeps a suspended dGPU asleep
-except ImportError:  # TODO(#34): drop once nested_gpu.py is on main
-    def compositor_env(env: dict, base: Path) -> dict:
-        return env
+from nested_gpu import compositor_env  # keeps a suspended dGPU asleep  # noqa: E402
 
 KEY_LEFTMETA, KEY_LEFTSHIFT, KEY_PROG2, KEY_F23 = 125, 42, 149, 193
 # chord as shipped -> (global it must dispatch, marker the nested bind writes)
 HP_BINDS = {"XF86Launch2": ("cortetsu:hardware", "omen"),
             "SUPER + SHIFT + F23": ("cortetsu:osd", "copilot")}
+
+
+def _rows(node) -> list[dict]:
+    """Every bind row in the editor's JSON, whatever its grouping."""
+    if isinstance(node, dict):
+        return [node] if "chord" in node else [row for value in node.values() for row in _rows(value)]
+    if isinstance(node, list):
+        return [row for value in node for row in _rows(value)]
+    return []
 
 
 def main() -> int:
@@ -48,6 +54,19 @@ def main() -> int:
 
     with tempfile.TemporaryDirectory(prefix="cortetsu-hp-keys-") as tmp:
         base = Path(tmp)
+        # The shortcut editor (Hardware > Teclas) lists both as editable and
+        # deletable with no conflicts: that is each bind's way back.
+        hypr = base / "home/.config/hypr"
+        shutil.copytree(REPO / "dotfiles/home/.config/hypr", hypr, symlinks=True)
+        shutil.copy(REPO / "config/hypr-user.lua", hypr / "hypr-user.lua")
+        listed = json.loads(subprocess.run(
+            ["python3", str(REPO / "cortetsu/bin/cortetsu-keybinds"), "list"], env=dict(os.environ, HOME=str(base / "home")),
+            text=True, capture_output=True, check=True, timeout=30).stdout)
+        rows = {row["chord"]: row for row in _rows(listed)}
+        for chord, (target, _) in HP_BINDS.items():
+            row = rows.get(chord)
+            assert row and row["action"] == {"global": target}, f"editor does not list {chord}: {row}"
+            assert row["editable"] and row["deletable"] and not row["conflicts"], row
         runtime = base / "run"
         runtime.mkdir(mode=0o700)
         (base / "cfg/hypr").mkdir(parents=True)
