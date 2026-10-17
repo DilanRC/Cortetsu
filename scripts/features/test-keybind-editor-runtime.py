@@ -19,6 +19,9 @@ import sys
 import tempfile
 import time
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "integration"))
+from nested_gpu import MESA_ONLY, compositor_env  # noqa: E402
+
 REPO = Path(__file__).resolve().parents[2]
 HELPER = REPO / "cortetsu/bin/cortetsu-keybinds"
 
@@ -65,7 +68,7 @@ class Nested:
         self.runtime.mkdir(mode=0o700)
         env = {"HOME": str(self.base / "home"), "PATH": os.environ["PATH"], "LANG": "C.UTF-8", "XDG_RUNTIME_DIR": str(self.runtime),
                "WAYLAND_DISPLAY": self.parent}
-        self.process = subprocess.Popen(["Hyprland"], cwd=self.base, env=env,
+        self.process = subprocess.Popen(["Hyprland"], cwd=self.base, env=compositor_env(env, self.base),
                                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         deadline = time.monotonic() + 20
         while time.monotonic() < deadline:
@@ -84,7 +87,7 @@ class Nested:
 
     def env(self) -> dict:
         instance = next((self.runtime / "hypr").iterdir()).name
-        return dict(os.environ, HOME=str(self.base / "home"), XDG_RUNTIME_DIR=str(self.runtime),
+        return dict(os.environ, **MESA_ONLY, HOME=str(self.base / "home"), XDG_RUNTIME_DIR=str(self.runtime),
                     HYPRLAND_INSTANCE_SIGNATURE=instance, XDG_CONFIG_HOME=str(self.base / "home/.config"))
 
     def hyprctl(self, *args: str) -> str:

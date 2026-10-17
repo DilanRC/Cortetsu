@@ -1,0 +1,289 @@
+#!/usr/bin/env python3
+"""Reversible Cortetsu game mode for the running Hyprland instance.
+
+usage: cortetsu-gamemode enable|disable|recover|status [--keyword]
+
+Every command prints one JSON line:
+  {"state": ..., "enabled": bool, "ok": bool, "error": str|null}
+and exits 1 when the requested change did not happen. `enabled` is true only
+in state ACTIVE, never because a file exists.
+
+States (stored in the transaction file; INACTIVE means there is none):
+  APPLYING           originals saved, game values being written
+  ACTIVE             game values written and read back
+  RESTORING          originals being written back
+  RECOVERY_REQUIRED  a rollback or restore could not be confirmed; the
+                     originals are kept until `recover` (or `disable`) works
+  UNKNOWN            reported only: unreadable file or Hyprland not answering
+
+enable   INACTIVE: save the effective values, write the game values, read them
+         back. On any failure roll back; INACTIVE again if that is confirmed,
+         RECOVERY_REQUIRED if not. ACTIVE: no-op, the first snapshot stays.
+disable  ACTIVE: write back the originals, but only for options that still
+         hold the game value, so changes made from Settings meanwhile survive.
+         In a pending state it recovers. INACTIVE: no-op.
+recover  finish an interrupted APPLYING/RESTORING or retry RECOVERY_REQUIRED.
+         Unlike disable it never touches an ACTIVE game mode.
+status   read only.
+--keyword  use `hyprctl keyword` for a hyprlang (non-Lua) config.
+
+No `hyprctl reload`: nothing outside the options below moves. The file lives in
+XDG_RUNTIME_DIR and is keyed by HYPRLAND_INSTANCE_SIGNATURE, so a new Hyprland
+or a reboot starts INACTIVE. One flock serialises every command.
+"""
+from __future__ import annotations
+
+import fcntl
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+# option -> value while game mode is on. allow_tearing only lets windows
+# tagged as games (rules.lua: immediate = true) tear; it is not global.
+GAME = {
+    "animations:enabled": False,
+    "decoration:shadow:enabled": False,
+    "decoration:blur:enabled": False,
+    "general:gaps_in": 0,
+    "general:gaps_out": 0,
+    "general:border_size": 1,
+    "decoration:rounding": 0,
+    "general:allow_tearing": True,
+}
+HYPRCTL = os.environ.get("CORTETSU_HYPRCTL", "hyprctl")
+SCHEMA = 2
+USAGE = "usage: cortetsu-gamemode enable|disable|recover|status [--keyword]"
+PENDING = ("APPLYING", "RESTORING", "RECOVERY_REQUIRED")
+
+
+class Failure(Exception):
+    """A hyprctl call failed or a written value did not read back."""
+
+
+class Unreadable(Exception):
+    """The transaction file exists but cannot be trusted; it is never deleted."""
+
+
+def instance() -> str:
+    value = os.environ.get("HYPRLAND_INSTANCE_SIGNATURE", "")
+    if not value:
+        raise SystemExit("cortetsu-gamemode: HYPRLAND_INSTANCE_SIGNATURE is not set")
+    return value
+
+
+def state_path() -> Path:
+    runtime = Path(os.environ.get("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}"))
+    return runtime / f"cortetsu-gamemode-{instance()}.json"
+
+
+def hyprctl(*args: str) -> str:
+    try:
+        result = subprocess.run([HYPRCTL, *args], text=True, capture_output=True, timeout=5, check=False)
+    except (OSError, subprocess.TimeoutExpired) as error:
+        raise Failure(f"hyprctl {args[0]}: {error}") from error
+    if result.returncode != 0:
+        raise Failure(f"hyprctl {args[0]} failed: {(result.stderr or result.stdout).strip()}")
+    return result.stdout
+
+
+def read(option: str):
+    """Effective value as bool, int or a 4-side gap list."""
+    try:
+        data = json.loads(hyprctl("getoption", option, "-j"))
+    except ValueError as error:
+        raise Failure(f"hyprctl getoption {option}: no JSON") from error
+    if "bool" in data:
+        return bool(data["bool"])
+    if "int" in data:
+        return int(data["int"])
+    if "css" in data:
+        return [int(side) for side in data["css"].split()]
+    raise Failure(f"unsupported option type for {option}: {data}")
+
+
+def same(current, wanted) -> bool:
+    if isinstance(current, list) and not isinstance(wanted, list):
+        return all(side == wanted for side in current)
+    return current == wanted
+
+
+def text(value) -> str:
+    """Value as hyprlang text: 1/0, 5, or "4 8 12 16" for per-side gaps."""
+    if isinstance(value, bool):
+        return str(int(value))
+    if isinstance(value, list):
+        return str(value[0]) if len(set(value)) == 1 else " ".join(map(str, value))
+    return str(value)
+
+
+def lua(value) -> str:
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    value = text(value)
+    return value if value.isdigit() else json.dumps(value)
+
+
+def lua_config(values: dict) -> str:
+    tree: dict = {}
+    for option, value in values.items():
+        *parents, leaf = option.split(":")
+        node = tree
+        for part in parents:
+            node = node.setdefault(part, {})
+        node[leaf] = value
+
+    def render(node) -> str:
+        return "{ " + ", ".join(
+            f"{key} = {render(value) if isinstance(value, dict) else lua(value)}" for key, value in node.items()
+        ) + " }"
+    return f"hl.config({render(tree)})"
+
+
+def write(values: dict, backend: str) -> None:
+    """Write, then read every value back. Raises Failure on either step."""
+    if not values:
+        return
+    error = None
+    try:
+        if backend == "lua":
+            hyprctl("eval", lua_config(values))
+        else:
+            for option, value in values.items():
+                hyprctl("keyword", option, text(value))
+    except Failure as failure:
+        error = failure  # a partial write is still checked below
+    wrong = [option for option, value in values.items() if not same(read(option), value)]
+    if error or wrong:
+        raise Failure(str(error) if error else f"not applied: {', '.join(wrong)}")
+
+
+def load(path: Path) -> dict | None:
+    try:
+        raw = path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        return None
+    except OSError as error:
+        raise Unreadable(f"{path}: {error}") from error
+    try:
+        data = json.loads(raw)
+        valid = (data.get("schema") == SCHEMA and data.get("instance") == instance()
+                 and data.get("state") in ("ACTIVE", *PENDING) and data.get("backend") in ("lua", "keyword")
+                 and set(data.get("original", {})) == set(GAME) and set(data.get("target", {})) == set(GAME))
+    except (ValueError, AttributeError, TypeError):
+        valid = False
+    if not valid:
+        raise Unreadable(f"{path}: not a game mode transaction; left untouched")
+    return data
+
+
+def save(path: Path, data: dict) -> None:
+    tmp = path.with_suffix(".tmp")
+    try:
+        with tmp.open("w", encoding="utf-8") as stream:
+            json.dump(data, stream)
+            stream.flush()
+            os.fsync(stream.fileno())
+        tmp.replace(path)
+    except OSError as error:
+        raise Failure(f"cannot write {path}: {error}") from error
+
+
+def restore(path: Path, data: dict) -> None:
+    """Put back the originals of options still holding the game value.
+
+    The same rule covers disable, a rollback after a partial enable (options
+    not yet written still hold their original) and recovery of either. An
+    option holding anything else was changed meanwhile and is kept.
+    """
+    data["state"], data["desired"] = "RESTORING", "off"
+    save(path, data)
+    try:
+        current = {option: read(option) for option in data["target"]}
+        values = {option: original for option, original in data["original"].items()
+                  if same(current[option], data["target"][option]) and not same(current[option], original)}
+        write(values, data["backend"])
+    except Failure as error:
+        data["state"], data["last_error"] = "RECOVERY_REQUIRED", str(error)
+        save(path, data)
+        raise
+    path.unlink()
+
+
+def enable(path: Path, backend: str) -> None:
+    data = load(path)
+    if data and data["state"] == "ACTIVE":
+        return
+    if data:
+        raise Failure(f"game mode is {data['state']}; run recover first")
+    original = {option: read(option) for option in GAME}  # nothing written yet on failure
+    data = {"schema": SCHEMA, "instance": instance(), "state": "APPLYING", "backend": backend,
+            "desired": "on", "original": original, "target": GAME, "last_error": None}
+    save(path, data)  # the originals are on disk before Hyprland changes
+    try:
+        write(GAME, backend)
+    except Failure as error:
+        try:
+            restore(path, data)
+        except Failure as rollback:
+            raise Failure(f"{error}; rollback failed: {rollback}") from rollback
+        raise Failure(f"{error}; rolled back") from error
+    data["state"] = "ACTIVE"
+    save(path, data)
+
+
+def disable(path: Path) -> None:
+    data = load(path)
+    if data:
+        restore(path, data)
+
+
+def recover(path: Path) -> None:
+    data = load(path)
+    if data and data["state"] in PENDING:
+        restore(path, data)
+
+
+def report(path: Path, ok: bool, error: str | None) -> dict:
+    try:
+        data = load(path)
+        state = data["state"] if data else "INACTIVE"
+        if data and not error:
+            error = data.get("last_error")
+        if data:
+            hyprctl("version")  # a stored state only counts while Hyprland answers
+    except (Unreadable, Failure) as unknown:
+        state, error = "UNKNOWN", error or str(unknown)
+    return {"state": state, "enabled": state == "ACTIVE", "ok": ok, "error": error}
+
+
+def main() -> int:
+    args = sys.argv[1:]
+    backend = "keyword" if "--keyword" in args else "lua"
+    commands = [arg for arg in args if arg != "--keyword"] or ["status"]
+    if commands[0] not in ("enable", "disable", "recover", "status") or len(commands) > 1:
+        print(USAGE, file=sys.stderr)
+        return 2
+    path = state_path()
+    ok, error = True, None
+    # One operation at a time: a quick on/off from the shell starts two
+    # processes, and an unordered disable could restore before enable applies.
+    with path.with_suffix(".lock").open("a") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        try:
+            if commands[0] == "enable":
+                enable(path, backend)
+            elif commands[0] == "disable":
+                disable(path)
+            elif commands[0] == "recover":
+                recover(path)
+        except (Failure, Unreadable) as failure:
+            ok, error = False, str(failure)
+            print(f"cortetsu-gamemode: {failure}", file=sys.stderr)
+        print(json.dumps(report(path, ok, error)))
+    return 0 if ok else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
