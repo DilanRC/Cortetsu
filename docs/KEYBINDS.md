@@ -47,7 +47,7 @@ snapshot y recarga.
 
 | Tecla | Evento | Acción por defecto |
 |---|---|---|
-| OMEN | `KEY_PROG2` en «HP WMI hotkeys» → `XF86Launch2` (latam) | Hardware Center (`cortetsu:hardware`) |
+| OMEN | `KEY_PROG2` en «HP WMI hotkeys» → `XF86Launch2` (latam) | Hardware Center salvo con pantalla completa (`cortetsu:hardwareKey`) |
 | Copilot | Super+Shift+`KEY_F23` en el teclado AT | Panel de acciones rápidas (`cortetsu:osd`) |
 | Calculadora | `KEY_CALC` → `XF86Calculator` | Sin asignar: no hay calculadora gráfica instalada; el cálculo del lanzador es `>calc` |
 | Fn+Esc | `KEY_FN_ESC` (465) en «HP WMI hotkeys» → `XF86Fn_Esc` (latam) | Sin asignar |
@@ -65,10 +65,14 @@ snapshot y recarga.
   una acción.
 - `F23` y `Shift+F23` solos no se capturan; quedan para las aplicaciones, y
   Copilot no dispara el lanzador de la liberación de Super.
-- OMEN abre el Hardware Center también sobre una ventana a pantalla completa,
-  igual que `SUPER + H` (mismo global). Copilot no: el atajo `osd` de
-  `cortetsu/modules/Shortcuts.qml` no hace nada si hay una ventana a pantalla
-  completa.
+- OMEN no hace nada si el monitor enfocado muestra una ventana a pantalla
+  completa (un juego, un vídeo): una pulsación accidental no le quita el foco
+  ni el teclado. Un fullscreen en otro monitor no la bloquea, y una ventana
+  maximizada tampoco. `SUPER + H` (`cortetsu:hardware`) abre el Hardware Center
+  siempre. La regla está en `cortetsu/modules/CortetsuFullscreen.js` y la prueba
+  `cortetsu/tests/qml/hardware/tst_OmenFullscreen.qml`. Copilot tampoco abre
+  nada sobre pantalla completa: el atajo `osd` de
+  `cortetsu/modules/Shortcuts.qml` lo ignora.
 - Regresión: `scripts/integration/test-hp-keys.py` pulsa esos códigos con un
   teclado virtual `latam` contra un Hyprland anidado con los mismos binds.
 
@@ -81,7 +85,8 @@ comprobar que el touchpad lo reporta.
 
 ### Pruebas físicas pendientes (PENDING_PHYSICAL)
 
-1. OMEN: pulsarla abre el Hardware Center; otra vez lo cierra.
+1. OMEN: pulsarla abre el Hardware Center; otra vez lo cierra. Con Core Keeper
+   a pantalla completa no debe pasar nada; `SUPER + H` sí lo abre.
 2. Copilot: abre el panel de acciones rápidas; con un juego en primer plano no
    debe interferir con el juego.
 3. Fn+Esc: `sudo libinput debug-events` y pulsar Fn+Esc en dos arranques

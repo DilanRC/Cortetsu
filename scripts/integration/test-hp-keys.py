@@ -28,7 +28,7 @@ from nested_gpu import compositor_env  # keeps a suspended dGPU asleep  # noqa: 
 
 KEY_LEFTMETA, KEY_LEFTSHIFT, KEY_PROG2, KEY_F23 = 125, 42, 149, 193
 # chord as shipped -> (global it must dispatch, marker the nested bind writes)
-HP_BINDS = {"XF86Launch2": ("cortetsu:hardware", "omen"),
+HP_BINDS = {"XF86Launch2": ("cortetsu:hardwareKey", "omen"),
             "SUPER + SHIFT + F23": ("cortetsu:osd", "copilot")}
 
 

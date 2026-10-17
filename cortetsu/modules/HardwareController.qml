@@ -4,6 +4,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import "OverlayPolicy.js" as OverlayPolicy
+import "CortetsuFullscreen.js" as Fullscreen
 
 Scope {
     id: root
@@ -56,6 +57,21 @@ Scope {
         name: "hardware"
         description: "Toggle Cortetsu Hardware Center"
         onPressed: root.toggle()
+    }
+
+    // The OMEN key (XF86Launch2) is easy to hit by accident, so it does
+    // nothing over a fullscreen game or video; SUPER+H stays the explicit way.
+    CortetsuShortcut {
+        name: "hardwareKey"
+        description: "Toggle Cortetsu Hardware Center unless a window is fullscreen"
+        onPressed: {
+            const monitors = CortetsuHypr.monitors.values.map(monitor => ({
+                focused: monitor?.focused,
+                activeWorkspace: { toplevels: monitor?.activeWorkspace?.toplevels?.values?.map(toplevel => toplevel.lastIpcObject) ?? [] }
+            }));
+            if (!Fullscreen.focusedHasFullscreen(monitors))
+                root.toggle();
+        }
     }
 
     IpcHandler {
