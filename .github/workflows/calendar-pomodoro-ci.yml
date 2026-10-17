@@ -18,7 +18,8 @@ jobs:
     container: archlinux:latest
     steps:
       - name: Install runtime test dependencies
-        run: pacman -Syu --noconfirm git python python-gobject libnm nodejs qt6-declarative quickshell
+        # rust and libxkbcommon (xkbcli): the build compiles and tests cortetsu-keybinds.
+        run: pacman -Syu --noconfirm git python python-gobject libnm nodejs qt6-declarative quickshell rust libxkbcommon
       - uses: actions/checkout@v6
         with:
           fetch-depth: 2
