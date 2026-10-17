@@ -227,11 +227,12 @@ Scope {
         closeAllLaunchers();
         closeAllPanels();
         // One attached control at a time: the hover controller is shared by
-        // every screen, so entering another screen's hub stops the close that
-        // would have dismissed this one.
+        // every screen, so entering the hub of another screen stops the close
+        // that would have dismissed this one. Detached popouts (a password
+        // being typed) are left alone.
         for (const other of CortetsuScreens.screens) {
             const otherPopouts = CortetsuShellState.componentsFor(other)?.popouts;
-            if (other !== screen && otherPopouts?.hasCurrent)
+            if (other !== screen && otherPopouts?.hasCurrent && otherPopouts.bottomAttached)
                 otherPopouts.close();
         }
         popouts.cancelClose();

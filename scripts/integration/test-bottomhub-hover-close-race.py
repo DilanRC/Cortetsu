@@ -157,7 +157,7 @@ def main() -> int:
             finally:
                 os.environ["PATH"] = old_path
 
-    print("PASS: re-entering the active attached popout cancels its close without a blank frame")
+    print("PASS: re-entering the active attached popout cancels its close; one attached popup across outputs")
     return 0
 
 

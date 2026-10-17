@@ -38,9 +38,13 @@ Item {
         pendingMode = mode;
         pendingAnchor = anchorCenter;
         closeTimer.stop();
+        // Modes are unique per control, so the same mode is the same popup;
+        // keep it where the trigger is now in case the hub reflowed.
         if (sameCurrent) {
             openTimer.stop();
             popouts.cancelClose();
+            if (anchorCenter >= 0)
+                popouts.bottomAnchorCenter = anchorCenter;
             return;
         }
         // Crossing adjacent controls keeps the original dwell. A real mode
