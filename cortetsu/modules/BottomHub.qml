@@ -24,7 +24,7 @@ Scope {
 
         onOpenRequested: (screen, mode, anchorCenter) =>
             hubRoot.openAttachedControlNow(screen, mode, anchorCenter)
-        onCloseRequested: hubRoot.closeAllPopouts()
+        onCloseRequested: hubRoot.closeAllPopouts(true)
     }
 
     Connections {
@@ -56,10 +56,12 @@ Scope {
         }
     }
 
-    function closeAllPopouts(): void {
+    // A hover close leaves a Wi-Fi password being typed alone: the pointer
+    // leaving it (for another screen, say) must not drop the typed text.
+    function closeAllPopouts(hover = false): void {
         for (const screen of CortetsuScreens.screens) {
             const popouts = CortetsuShellState.componentsFor(screen)?.popouts;
-            if (popouts)
+            if (popouts && !(hover && popouts.currentName === "wirelesspassword"))
                 popouts.close();
         }
     }
