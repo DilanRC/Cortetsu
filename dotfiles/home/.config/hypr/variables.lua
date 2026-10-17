@@ -142,6 +142,7 @@ return {
     kbFocusToast               = "SUPER + ALT + N",
     kbClearNotifs              = "CTRL + ALT + C",
     kbShowPanels               = "SUPER + K",
+    kbKeyboards                = "SUPER + CTRL + K",
     kbLock                     = "SUPER + L",
     kbRestoreLock              = "SUPER + ALT + L",
     kbSleep                    = "SUPER + SHIFT + L",

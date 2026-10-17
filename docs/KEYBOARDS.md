@@ -225,7 +225,9 @@ acciones rápidas) ni son CANDIDATE ni reciben sugerencia.
 ## Superficie «Atajos y teclados»
 
 Superficie retenida propia (`modules/keyboards`, IPC `keyboards`, atajo global
-`keyboards`), fuera de Hardware Center. Tres zonas: teclados conectados,
+`cortetsu:keyboards`), fuera de Hardware Center. `SUPER + CTRL + K` la abre y
+la cierra (`kbKeyboards` en `variables.lua`, editable desde la propia
+superficie). Tres zonas: teclados conectados,
 pestañas (Atajos, Teclas especiales, Por aprovechar) y el editor. El flujo de
 edición es un reductor puro (`CaptureFlow.js`): reposo, grabando, revisión,
 aplicando, verificado, y conflicto, fallo, cancelado o recuperando. Nada se
