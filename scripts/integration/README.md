@@ -122,3 +122,16 @@ prints SKIP otherwise. `cortetsu test` runs it with the default two cycles.
 
 The real Super key cannot be replaced fully: a physical check on the laptop
 keyboard is listed in the PR.
+
+## HP Victus keys
+
+```sh
+python3 scripts/integration/test-hp-keys.py
+```
+
+Checks that `cortetsu-keybinds list` shows the OMEN (`XF86Launch2`) and
+Copilot (`SUPER + SHIFT + F23`) binds of `config/hypr-user.lua` as editable,
+deletable and conflict-free, then sends their evdev codes with `vinput` in a
+nested Hyprland using the latam layout (`VINPUT_LAYOUT=latam`; `vinput.c`
+defaults to `us`). Copilot must not fire the launcher's Super-release bind;
+plain `F23` and `Shift+F23` must fire nothing.

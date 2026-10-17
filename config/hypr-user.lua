@@ -89,6 +89,19 @@ hl.bind(
     hl.dsp.global("cortetsu:hardware")
 )
 
+-- HP Victus: OMEN (KEY_PROG2 from HP WMI hotkeys) opens the Hardware Center;
+-- Copilot sends Super+Shift+F23 and opens the quick-actions panel. Plain F23
+-- and Shift+F23 stay with applications. Editable in Hardware > Teclas.
+hl.bind(
+    "XF86Launch2",
+    hl.dsp.global("cortetsu:hardware")
+)
+
+hl.bind(
+    "SUPER + SHIFT + F23",
+    hl.dsp.global("cortetsu:osd")
+)
+
 hl.bind(
     "SUPER + SHIFT + C",
     hl.dsp.global("cortetsu:calendar")
