@@ -6,9 +6,8 @@
 //! "System Control" nodes are one keyboard), else their HID device, else the
 //! node itself. `eventN` is reported for diagnostics only; identities come
 //! from the bus, the vendor/product and the port path, which survive reboots.
-//! Serial numbers (`uniq`) are never read: the port tells two identical
-//! keyboards apart, and the data stays free of identifiers that follow a
-//! person between machines.
+//! Serial numbers (`uniq`) are never read, and `phys` is not emitted: for a
+//! Bluetooth keyboard it is the adapter's hardware address.
 
 use crate::bitmap;
 use crate::hypr;
@@ -18,13 +17,16 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 
-pub const BUS_USB: u16 = 0x03;
-pub const BUS_BLUETOOTH: u16 = 0x05;
-pub const BUS_VIRTUAL: u16 = 0x06;
-pub const BUS_I8042: u16 = 0x11;
-pub const BUS_I2C: u16 = 0x18;
-pub const BUS_HOST: u16 = 0x19;
+const BUS_USB: u16 = 0x03;
+const BUS_BLUETOOTH: u16 = 0x05;
+const BUS_VIRTUAL: u16 = 0x06;
+const BUS_I8042: u16 = 0x11;
+const BUS_I2C: u16 = 0x18;
+const BUS_HOST: u16 = 0x19;
 
+/// Declaration order is priority: a group of nodes takes the first kind any
+/// of them has (an HP WMI node next to a USB one would make the group
+/// vendor-hotkeys). Keep new variants in that order.
 #[derive(Debug, Clone, Copy, Serialize, PartialEq, Eq, PartialOrd, Ord)]
 #[serde(rename_all = "kebab-case")]
 pub enum Kind {
@@ -43,6 +45,7 @@ pub struct Interface {
     /// eventN: changes between boots, shown only to help diagnose.
     pub event: String,
     pub name: String,
+    #[serde(skip)]
     pub phys: String,
     pub bus: u16,
     pub vendor: u16,
@@ -84,9 +87,12 @@ pub struct Keyboard {
     pub kind: Kind,
     pub label: String,
     pub detail: String,
-    /// Two connected devices share `model` and nothing tells them apart.
+    /// Another connected keyboard has the same identity (two Bluetooth
+    /// keyboards of one model): its preferences cannot be told apart, and
+    /// `id` carries a `#n` suffix that is only valid while both stay.
     pub ambiguous: bool,
-    /// Every interface has a Hyprland name, so a per-device bind can target it.
+    /// Every interface has a Hyprland name, so a per-device bind can target
+    /// it. False with candidates when two identical keyboards share names.
     pub hyprland_linked: bool,
     pub interfaces: Vec<Interface>,
 }
@@ -98,6 +104,10 @@ impl Keyboard {
 
     pub fn hyprland_names(&self) -> Vec<String> {
         self.interfaces.iter().filter_map(|i| i.hyprland_name.clone()).collect()
+    }
+
+    pub fn is_hp_wmi(&self) -> bool {
+        self.kind == Kind::VendorHotkeys && self.interfaces.iter().any(|i| i.name == "HP WMI hotkeys")
     }
 }
 
@@ -112,6 +122,14 @@ pub struct Inventory {
     pub hyprland_available: bool,
     /// Changes whenever a keyboard appears, disappears or changes identity.
     pub fingerprint: String,
+}
+
+/// The keyboards connected now, as `CORTETSU_SYSFS`/`CORTETSU_UDEV_DATA`
+/// (tests) or the real /sys and /run/udev/data show them.
+pub fn now() -> Inventory {
+    let sys = crate::env_or("CORTETSU_SYSFS", "/sys");
+    let udev = crate::env_or("CORTETSU_UDEV_DATA", "/run/udev/data");
+    scan(Path::new(&sys), Path::new(&udev), hypr::keyboards().as_deref())
 }
 
 struct Node {
@@ -136,6 +154,12 @@ fn hex(path: &Path) -> u16 {
 
 fn is_button(code: u16) -> bool {
     keycodes::name(code).is_some_and(|name| name.starts_with("BTN_"))
+}
+
+/// aa:bb:cc:dd:ee:ff, the shape of a Bluetooth address.
+fn looks_like_address(text: &str) -> bool {
+    let parts: Vec<&str> = text.split(':').collect();
+    parts.len() == 6 && parts.iter().all(|p| p.len() == 2 && p.chars().all(|c| c.is_ascii_hexdigit()))
 }
 
 /// KEYBOARD_KEY_<scancode>=<name> lines of the node's udev database entry.
@@ -219,10 +243,9 @@ fn physical(node: &Node, sys: &Path) -> (PathBuf, Option<String>) {
         if dir.join("idVendor").is_file() {
             return (dir.to_path_buf(), interface);
         }
-        if interface.is_none() && dir.join("bInterfaceNumber").is_file() {
-            let number = read(&dir.join("bInterfaceNumber"));
-            interface =
-                Some(number.trim_start_matches('0').to_owned()).map(|n| if n.is_empty() { "0".into() } else { n });
+        if interface.is_none() {
+            // sysfs prints bInterfaceNumber as two hex digits.
+            interface = u8::from_str_radix(&read(&dir.join("bInterfaceNumber")), 16).ok().map(|n| n.to_string());
         }
         if hid.is_none() && dir.file_name().is_some_and(|n| is_hid_dir(&n.to_string_lossy())) {
             hid = Some(dir.to_path_buf());
@@ -257,6 +280,26 @@ fn relative(path: &Path, sys: &Path) -> String {
     path.strip_prefix(sys.join("devices")).unwrap_or(path).to_string_lossy().into_owned()
 }
 
+/// (model, id). USB keeps its port in the id. Bluetooth has no port and its
+/// address is a serial number in all but name, so its id is the model.
+fn identity(kind: Kind, group: &Path, first: &Node, sys: &Path) -> (String, String) {
+    let ids = format!("{:04x}:{:04x}", first.vendor, first.product);
+    match kind {
+        Kind::Usb => (format!("usb:{ids}"), format!("usb:{ids}@{}", relative(group, sys))),
+        Kind::Bluetooth => (format!("bluetooth:{ids}"), format!("bluetooth:{ids}")),
+        Kind::Virtual => (format!("virtual:{}", first.name), format!("virtual:{}", first.name)),
+        _ => {
+            let model = format!("{:04x}:{ids}:{}", first.bus, first.name);
+            let place = if first.phys.is_empty() || looks_like_address(&first.phys) {
+                relative(group, sys)
+            } else {
+                first.phys.clone()
+            };
+            (model.clone(), format!("{model}@{place}"))
+        }
+    }
+}
+
 fn labels(kind: Kind, group: &Path, first: &Node) -> (String, String) {
     let usb_name = || {
         let maker = read(&group.join("manufacturer"));
@@ -289,23 +332,7 @@ pub fn scan(sys: &Path, udev_data: &Path, hyprland: Option<&[hypr::Keyboard]>) -
     for (group, members) in &groups {
         let first = &members[0].0;
         let kind = members.iter().map(|(n, _)| kind_of(n, sys)).min().unwrap_or(Kind::Other);
-        let model = match kind {
-            Kind::Usb | Kind::Bluetooth => {
-                let bus = if kind == Kind::Usb { "usb" } else { "bluetooth" };
-                format!("{bus}:{:04x}:{:04x}", first.vendor, first.product)
-            }
-            Kind::Virtual => format!("virtual:{}", first.name),
-            _ => format!("{:04x}:{:04x}:{:04x}:{}", first.bus, first.vendor, first.product, first.name),
-        };
-        // USB: the port path. Bluetooth has no port and the address is a
-        // serial number in all but name, so it stays at the model.
-        let id = match kind {
-            Kind::Usb => format!("{model}@{}", relative(group, sys)),
-            Kind::Internal | Kind::VendorHotkeys | Kind::SystemButtons | Kind::Other => {
-                format!("{model}@{}", if first.phys.is_empty() { relative(group, sys) } else { first.phys.clone() })
-            }
-            Kind::Bluetooth | Kind::Virtual => model.clone(),
-        };
+        let (model, id) = identity(kind, group, first, sys);
         let (label, detail) = labels(kind, group, first);
         let interfaces = members
             .iter()
@@ -336,8 +363,7 @@ pub fn scan(sys: &Path, udev_data: &Path, hyprland: Option<&[hypr::Keyboard]>) -
         });
     }
 
-    // Same id twice (two Bluetooth keyboards of one model): number them so
-    // each row is addressable, and mark both as ambiguous.
+    // Same id twice: number them so each row is addressable.
     let mut seen: BTreeMap<String, usize> = BTreeMap::new();
     for keyboard in &keyboards {
         *seen.entry(keyboard.id.clone()).or_default() += 1;
@@ -358,65 +384,51 @@ pub fn scan(sys: &Path, udev_data: &Path, hyprland: Option<&[hypr::Keyboard]>) -
     Inventory { keyboards, hyprland_only, hyprland_available: hyprland.is_some(), fingerprint }
 }
 
-/// Fill each interface's Hyprland name and layout. A name is assigned only
-/// when one physical device owns every node with that base name: Hyprland
-/// numbers duplicates in creation order, which sysfs cannot reproduce.
+/// Fill each interface's Hyprland name and layout. Names are assigned only
+/// when one physical device owns every node with that base name, and then
+/// any order will do (a bind on the device lists them all). Across devices
+/// Hyprland numbers duplicates in creation order, which sysfs cannot
+/// reproduce, so those nodes get candidates instead of a guess.
 fn link_hyprland(keyboards: &mut [Keyboard], hyprland: Option<&[hypr::Keyboard]>) -> Vec<String> {
     let Some(hyprland) = hyprland else {
         return Vec::new();
     };
-    let mut owners: BTreeMap<String, BTreeSet<usize>> = BTreeMap::new();
-    let mut count: BTreeMap<String, usize> = BTreeMap::new();
+    // base name -> (owning keyboards, nodes with that name)
+    let mut owners: BTreeMap<String, (BTreeSet<usize>, usize)> = BTreeMap::new();
     for (index, keyboard) in keyboards.iter().enumerate() {
         for interface in &keyboard.interfaces {
-            let base = hypr::internal_name(&interface.name);
-            owners.entry(base.clone()).or_default().insert(index);
-            *count.entry(base).or_default() += 1;
+            let entry = owners.entry(hypr::internal_name(&interface.name)).or_default();
+            entry.0.insert(index);
+            entry.1 += 1;
         }
     }
     let mut used = BTreeSet::new();
     for keyboard in keyboards.iter_mut() {
-        let mut linked = true;
-        let mut assigned_in_group: BTreeSet<String> = BTreeSet::new();
+        let mut taken: BTreeSet<String> = BTreeSet::new();
         for interface in &mut keyboard.interfaces {
             let base = hypr::internal_name(&interface.name);
             let matches: Vec<&hypr::Keyboard> =
                 hyprland.iter().filter(|k| hypr::is_instance_of(&k.name, &base)).collect();
-            let single_owner = owners.get(&base).is_some_and(|o| o.len() == 1);
-            if single_owner && count[&base] == 1 && matches.len() == 1 {
-                interface.hyprland_name = Some(matches[0].name.clone());
-            } else if single_owner && matches.len() == count[&base] {
-                // One device with several same-named nodes: which is which
-                // does not matter for a bind on the device, so give each a
-                // distinct name of the set.
-                interface.hyprland_name =
-                    matches.iter().map(|k| k.name.clone()).find(|name| !assigned_in_group.contains(name));
+            let (devices, nodes) = &owners[&base];
+            let chosen = if devices.len() == 1 && matches.len() == *nodes {
+                matches.iter().copied().find(|k| !taken.contains(&k.name))
             } else {
                 interface.hyprland_candidates = matches.iter().map(|k| k.name.clone()).collect();
+                None
+            };
+            if let Some(found) = chosen {
+                interface.hyprland_name = Some(found.name.clone());
+                taken.insert(found.name.clone());
             }
-            if let Some(name) = &interface.hyprland_name {
-                assigned_in_group.insert(name.clone());
-                used.insert(name.clone());
-            } else {
-                linked = false;
-                used.extend(interface.hyprland_candidates.iter().cloned());
-            }
-            let layout_source = interface
-                .hyprland_name
-                .as_ref()
-                .and_then(|name| hyprland.iter().find(|k| &k.name == name))
-                .or_else(|| matches.first().copied());
-            interface.layout = layout_source.map(|k| Layout {
+            used.extend(matches.iter().map(|k| k.name.clone()));
+            interface.layout = chosen.or(matches.first().copied()).map(|k| Layout {
                 layout: k.layout.clone(),
                 variant: k.variant.clone(),
                 options: k.options.clone(),
                 model: k.model.clone(),
             });
         }
-        keyboard.hyprland_linked = linked;
-        if !linked && keyboard.interfaces.iter().any(|i| !i.hyprland_candidates.is_empty()) {
-            keyboard.ambiguous = true;
-        }
+        keyboard.hyprland_linked = keyboard.interfaces.iter().all(|i| i.hyprland_name.is_some());
     }
     hyprland.iter().filter(|k| !used.contains(&k.name)).map(|k| k.name.clone()).collect()
 }
@@ -440,183 +452,9 @@ fn fingerprint(keyboards: &[Keyboard]) -> String {
 }
 
 #[cfg(test)]
-pub mod fixtures {
-    //! Fake sysfs trees. Bitmaps marked "real" were read on the HP Victus
-    //! reference laptop on 2026-10-17.
-    use std::fs;
-    use std::path::{Path, PathBuf};
-    use std::sync::atomic::{AtomicUsize, Ordering};
-
-    pub struct FakeSys {
-        pub root: PathBuf,
-        next_event: usize,
-    }
-
-    impl Drop for FakeSys {
-        fn drop(&mut self) {
-            let _ = fs::remove_dir_all(&self.root);
-        }
-    }
-
-    pub fn encode(codes: &[u16]) -> String {
-        let max = codes.iter().copied().max().unwrap_or(0) as usize;
-        let mut words = vec![0u64; max / 64 + 1];
-        for &code in codes {
-            words[code as usize / 64] |= 1 << (code % 64);
-        }
-        words.iter().rev().map(|w| format!("{w:x}")).collect::<Vec<_>>().join(" ")
-    }
-
-    pub struct FakeNode<'a> {
-        pub path: &'a str,
-        pub name: &'a str,
-        pub phys: &'a str,
-        pub id: (u16, u16, u16),
-        pub ev: &'a str,
-        pub key: String,
-    }
-
-    impl FakeSys {
-        pub fn new() -> Self {
-            static COUNTER: AtomicUsize = AtomicUsize::new(0);
-            let root = std::env::temp_dir().join(format!(
-                "cortetsu-keyboards-sys-{}-{}",
-                std::process::id(),
-                COUNTER.fetch_add(1, Ordering::SeqCst)
-            ));
-            let _ = fs::remove_dir_all(&root);
-            fs::create_dir_all(root.join("class/input")).unwrap();
-            FakeSys { root, next_event: 0 }
-        }
-
-        pub fn file(&self, relative: &str, contents: &str) {
-            let path = self.root.join("devices").join(relative);
-            fs::create_dir_all(path.parent().unwrap()).unwrap();
-            fs::write(path, format!("{contents}\n")).unwrap();
-        }
-
-        /// An input node at devices/<path>; returns its eventN.
-        pub fn input(&mut self, node: FakeNode) -> String {
-            let event = format!("event{}", self.next_event);
-            self.next_event += 1;
-            let dir = format!("{}/{}", node.path, event.replace("event", "input"));
-            self.file(&format!("{dir}/name"), node.name);
-            self.file(&format!("{dir}/phys"), node.phys);
-            self.file(&format!("{dir}/uniq"), "");
-            self.file(&format!("{dir}/id/bustype"), &format!("{:04x}", node.id.0));
-            self.file(&format!("{dir}/id/vendor"), &format!("{:04x}", node.id.1));
-            self.file(&format!("{dir}/id/product"), &format!("{:04x}", node.id.2));
-            self.file(&format!("{dir}/capabilities/ev"), node.ev);
-            self.file(&format!("{dir}/capabilities/key"), &node.key);
-            let event_dir = self.root.join("devices").join(&dir).join(&event);
-            fs::create_dir_all(&event_dir).unwrap();
-            fs::write(event_dir.join("dev"), format!("13:{}\n", 64 + self.next_event)).unwrap();
-            std::os::unix::fs::symlink(&event_dir, self.root.join("class/input").join(&event)).unwrap();
-            event
-        }
-
-        /// udev's database entry for a node, as /run/udev/data/c13:N.
-        pub fn udev(&self, event: &str, lines: &str) {
-            let dev = fs::read_to_string(self.root.join("class/input").join(event).join("dev")).unwrap();
-            let data = self.udev_data();
-            fs::create_dir_all(&data).unwrap();
-            fs::write(data.join(format!("c{}", dev.trim())), lines).unwrap();
-        }
-
-        pub fn udev_data(&self) -> PathBuf {
-            self.root.join("run-udev-data")
-        }
-
-        pub fn remove(&self, event: &str) {
-            fs::remove_file(self.root.join("class/input").join(event)).unwrap();
-        }
-
-        pub fn path(&self) -> &Path {
-            &self.root
-        }
-    }
-
-    pub const AT_KEY: &str =
-        "20000 6000000000000020 0 0 10500f02100007 ff803078f900d401 feffffdfffcfffff fffffffffffffffe";
-    /// Real udev database lines of the AT keyboard (HP hwdb entries).
-    pub const AT_UDEV: &str = "E:KEYBOARD_KEY_81=fn_esc\nE:KEYBOARD_KEY_8b=camera\nE:KEYBOARD_KEY_92=brightnessdown\n\
-        E:KEYBOARD_KEY_a1=!calc\nE:KEYBOARD_KEY_d7=wlan\nE:ID_INPUT_KEYBOARD=1\n";
-    pub const HP_WMI_KEY: &str = "180000 20000 0 4000000000 0 101000700000000 2302400 0 0";
-
-    /// The reference laptop as read from /sys (real bitmaps).
-    pub fn hp_victus(sys: &mut FakeSys) {
-        let at = sys.input(FakeNode {
-            path: "platform/i8042/serio0/input",
-            name: "AT Translated Set 2 keyboard",
-            phys: "isa0060/serio0/input0",
-            id: (0x11, 0x1, 0x1),
-            ev: "120013",
-            key: AT_KEY.into(),
-        });
-        sys.udev(&at, AT_UDEV);
-        sys.input(FakeNode {
-            path: "virtual/input",
-            name: "HP WMI hotkeys",
-            phys: "wmi/input0",
-            id: (0x19, 0, 0),
-            ev: "33",
-            key: HP_WMI_KEY.into(),
-        });
-        sys.input(FakeNode {
-            path: "platform/PNP0C0C:00/input",
-            name: "Power Button",
-            phys: "PNP0C0C/button/input0",
-            id: (0x19, 0, 1),
-            ev: "3",
-            key: "8000 10000000000000 0".into(),
-        });
-        sys.input(FakeNode {
-            path: "platform/AMDI0010:03/i2c-0/i2c-ELAN07FB:00/0018:04F3:321A.0005/input",
-            name: "ELAN07FB:00 04F3:321A Touchpad",
-            phys: "i2c-ELAN07FB:00",
-            id: (0x18, 0x4f3, 0x321a),
-            ev: "1b",
-            key: "e520 10000 0 0 0 0".into(),
-        });
-    }
-
-    pub const TYPING: &[u16] = &[1, 2, 3, 14, 15, 16, 17, 28, 29, 30, 42, 56, 57, 59, 87, 88, 97, 100, 103, 125];
-    pub const CONSUMER: &[u16] = &[113, 114, 115, 140, 148, 150, 155, 163, 164, 165, 166, 172, 183, 184];
-    pub const SYSTEM: &[u16] = &[116, 142, 143];
-
-    /// A full-size USB keyboard with three HID interfaces on one port.
-    /// Returns the eventN of each node.
-    pub fn usb_keyboard(sys: &mut FakeSys, port: &str, product: &str) -> Vec<String> {
-        let usb = format!("pci0000:00/0000:00:14.0/usb1/{port}");
-        sys.file(&format!("{usb}/idVendor"), "1a2c");
-        sys.file(&format!("{usb}/idProduct"), "2124");
-        sys.file(&format!("{usb}/manufacturer"), "SEMICO");
-        sys.file(&format!("{usb}/product"), product);
-        let mut events = Vec::new();
-        for (iface, hid, name, codes) in [
-            ("1.0", "0003:1A2C:2124.0001", "SEMICO USB Keyboard", TYPING),
-            ("1.1", "0003:1A2C:2124.0002", "SEMICO USB Keyboard Consumer Control", CONSUMER),
-            ("1.1", "0003:1A2C:2124.0002", "SEMICO USB Keyboard System Control", SYSTEM),
-        ] {
-            let interface = format!("{usb}/{port}:{iface}");
-            sys.file(&format!("{interface}/bInterfaceNumber"), &format!("0{}", &iface[2..]));
-            events.push(sys.input(FakeNode {
-                path: &format!("{interface}/{hid}/input"),
-                name,
-                phys: &format!("usb-0000:00:14.0-{port}/input{}", &iface[2..]),
-                id: (0x3, 0x1a2c, 0x2124),
-                ev: "120013",
-                key: super::fixtures::encode(codes),
-            }));
-        }
-        events
-    }
-}
-
-#[cfg(test)]
 mod tests {
-    use super::fixtures::*;
     use super::*;
+    use crate::testing::*;
 
     fn hypr(names: &[&str]) -> Vec<hypr::Keyboard> {
         names
@@ -691,7 +529,8 @@ mod tests {
         assert_eq!(inventory.keyboards.len(), 2);
         assert_ne!(inventory.keyboards[0].id, inventory.keyboards[1].id);
         for keyboard in &inventory.keyboards {
-            assert!(keyboard.ambiguous && !keyboard.hyprland_linked);
+            assert!(!keyboard.ambiguous, "the port tells them apart");
+            assert!(!keyboard.hyprland_linked);
             assert!(keyboard.hyprland_names().is_empty(), "never guess which -1 is which");
             assert_eq!(keyboard.interfaces[0].hyprland_candidates.len(), 2);
         }
@@ -756,5 +595,26 @@ mod tests {
         let bluetooth = &inventory.keyboards[0];
         assert_eq!(bluetooth.interfaces.len(), 2, "two nodes of one HID device");
         assert!(!bluetooth.id.contains("aa:bb"), "no Bluetooth address in the identity");
+        let json = serde_json::to_string(&inventory).unwrap();
+        assert!(!json.contains("aa:bb"), "phys of a uhid node is the adapter address: {json}");
+    }
+
+    #[test]
+    fn two_bluetooth_keyboards_of_one_model_are_ambiguous() {
+        let mut sys = FakeSys::new();
+        for (connection, hid) in [("hci0:256", "0005:046D:B342.0006"), ("hci0:512", "0005:046D:B342.0007")] {
+            sys.input(FakeNode {
+                path: &format!("pci0000:00/0000:00:14.0/usb1/1-4/1-4:1.0/bluetooth/hci0/{connection}/{hid}/input"),
+                name: "Keyboard K380",
+                phys: "aa:bb:cc:dd:ee:ff",
+                id: (0x5, 0x46d, 0xb342),
+                ev: "12001f",
+                key: encode(TYPING),
+            });
+        }
+        let inventory = scan(sys.path(), &sys.udev_data(), None);
+        let ids: Vec<&str> = inventory.keyboards.iter().map(|k| k.id.as_str()).collect();
+        assert_eq!(ids, vec!["bluetooth:046d:b342#1", "bluetooth:046d:b342#2"]);
+        assert!(inventory.keyboards.iter().all(|k| k.ambiguous));
     }
 }

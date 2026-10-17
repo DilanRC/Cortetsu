@@ -32,12 +32,17 @@ la versión 1.
   se muestra para diagnóstico.
 - `model` es lo mismo sin puerto: reconoce un teclado movido de puerto solo
   cuando ningún otro dispositivo comparte modelo.
-- No se lee `uniq` (número de serie) ni la dirección Bluetooth: el puerto
-  distingue dos teclados iguales y los datos no identifican a la persona.
-- Dos teclados idénticos tienen `id` distinto pero Hyprland los llama `x` y
-  `x-1` según el orden de conexión, que sysfs no reproduce. Entonces
-  `ambiguous: true`, `hyprlandName` queda vacío y `hyprlandCandidates` lista
-  los dos nombres: un atajo por dispositivo no se construye sobre una suposición.
+- No se lee `uniq` (número de serie) ni se emite `phys`, que en un teclado
+  Bluetooth (uhid) es la dirección del adaptador: el puerto distingue dos
+  teclados iguales y los datos no identifican a la persona.
+- Dos teclados USB idénticos tienen `id` distinto, pero Hyprland los llama
+  `x` y `x-1` según el orden de conexión, que sysfs no reproduce. Entonces
+  `hyprlandLinked: false`, `hyprlandName` queda vacío y `hyprlandCandidates`
+  lista los dos nombres: un atajo por dispositivo no se construye sobre una
+  suposición.
+- `ambiguous: true` solo cuando dos teclados conectados tienen la misma
+  identidad (dos Bluetooth del mismo modelo). Su `id` lleva `#1`, `#2`, válido
+  mientras sigan los dos, y sus preferencias no se recuperan.
 - Tipos: `internal`, `vendor-hotkeys` (HP WMI), `usb`, `bluetooth`,
   `virtual`, `system-buttons` (botón de encendido, Video Bus), `other`.
   Ratones y touchpads (solo declaran `BTN_*`) no aparecen.
@@ -79,7 +84,8 @@ real, y F20 queda reservada porque compartiría acción con el micrófono.
 `watch` lanza `setpriv --pdeathsig TERM -- udevadm monitor --udev
 --subsystem-match=input`. El kernel termina `udevadm` cuando el helper muere,
 incluso por SIGKILL. El helper termina cuando su padre desaparece o se cierra
-su salida. Sin `setpriv` no arranca (`watch-unavailable`) antes que arriesgar
+su salida: escribe una línea vacía cada 5 s para notarlo, y quien lee ignora
+las líneas vacías. Sin `setpriv` no arranca (`watch-unavailable`) antes que arriesgar
 un huérfano. Un enchufado produce varios eventos: se agrupan 250 ms y, si
 Hyprland aún no registró el teclado, se reintenta hasta 1,5 s.
 
@@ -117,7 +123,8 @@ cargo test --locked
 Las fixtures reproducen el HP Victus con sus bitmaps reales, un teclado USB
 de tres interfaces, dos teclados idénticos, Bluetooth detrás de un adaptador
 USB, un dispositivo virtual y la conexión/desconexión. `tests/watch.rs` prueba
-el hotplug y que `udevadm` muere con el helper.
+el hotplug, que `udevadm` muere con el helper aunque se mate con SIGKILL, y
+que cerrar la salida de `watch` lo termina.
 
 ## Pendiente físico (PENDING_PHYSICAL)
 

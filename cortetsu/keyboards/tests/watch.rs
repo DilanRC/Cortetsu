@@ -4,29 +4,16 @@
 //! the test to plug a keyboard into a fake sysfs, prints one udev line and
 //! then blocks like the real monitor does.
 
+use cortetsu_keyboards::testing::{FakeNode, FakeSys, TYPING, encode};
 use std::fs;
 use std::io::{BufRead, BufReader};
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::process::{Command, Stdio};
 use std::time::{Duration, Instant};
 
 fn write(path: &Path, contents: &str) {
     fs::create_dir_all(path.parent().unwrap()).unwrap();
     fs::write(path, contents).unwrap();
-}
-
-fn plug(sys: &Path, port: &str, event: &str) {
-    let input = sys.join(format!("devices/pci0000:00/usb1/{port}/{port}:1.0/0003:1A2C:2124.0001/input/input9"));
-    write(&sys.join(format!("devices/pci0000:00/usb1/{port}/idVendor")), "1a2c\n");
-    write(&input.join("name"), "SEMICO USB Keyboard\n");
-    write(&input.join("phys"), "usb-0000:00:14.0-2/input0\n");
-    write(&input.join("id/bustype"), "0003\n");
-    write(&input.join("id/vendor"), "1a2c\n");
-    write(&input.join("id/product"), "2124\n");
-    write(&input.join("capabilities/ev"), "120013\n");
-    write(&input.join("capabilities/key"), "fffffffe\n");
-    fs::create_dir_all(input.join(event)).unwrap();
-    std::os::unix::fs::symlink(input.join(event), sys.join("class/input").join(event)).unwrap();
 }
 
 fn alive(pid: &str) -> bool {
@@ -38,10 +25,8 @@ fn alive(pid: &str) -> bool {
 
 #[test]
 fn hotplug_is_reported_and_udevadm_dies_with_the_watcher() {
-    let base = std::env::temp_dir().join(format!("cortetsu-watch-{}", std::process::id()));
-    let _ = fs::remove_dir_all(&base);
-    let sys = base.join("sys");
-    fs::create_dir_all(sys.join("class/input")).unwrap();
+    let mut sys = FakeSys::new();
+    let base = sys.path().to_path_buf();
     let go = base.join("go");
     let pidfile = base.join("udevadm.pid");
     let fake = base.join("udevadm");
@@ -58,8 +43,8 @@ fn hotplug_is_reported_and_udevadm_dies_with_the_watcher() {
 
     let mut watcher = Command::new(env!("CARGO_BIN_EXE_cortetsu-keybinds"))
         .arg("watch")
-        .env("CORTETSU_SYSFS", &sys)
-        .env("CORTETSU_UDEV_DATA", base.join("udev"))
+        .env("CORTETSU_SYSFS", sys.path())
+        .env("CORTETSU_UDEV_DATA", sys.udev_data())
         .env("CORTETSU_UDEVADM", &fake)
         .env("CORTETSU_HYPRCTL", "false")
         .stdout(Stdio::piped())
@@ -71,7 +56,15 @@ fn hotplug_is_reported_and_udevadm_dies_with_the_watcher() {
     assert_eq!(initial["keyboards"].as_array().unwrap().len(), 0);
 
     let started = Instant::now();
-    plug(&sys, "1-2", "event9");
+    sys.file("pci0000:00/usb1/1-2/idVendor", "1a2c");
+    sys.input(FakeNode {
+        path: "pci0000:00/usb1/1-2/1-2:1.0/0003:1A2C:2124.0001/input",
+        name: "SEMICO USB Keyboard",
+        phys: "usb-0000:00:14.0-2/input0",
+        id: (0x3, 0x1a2c, 0x2124),
+        ev: "120013",
+        key: encode(TYPING),
+    });
     write(&go, "");
     let changed: serde_json::Value = serde_json::from_str(&lines.next().unwrap().unwrap()).unwrap();
     let latency = started.elapsed();
@@ -90,5 +83,49 @@ fn hotplug_is_reported_and_udevadm_dies_with_the_watcher() {
         std::thread::sleep(Duration::from_millis(20));
     }
     assert!(!alive(&udevadm), "udevadm {udevadm} outlived the watcher");
-    let _ = fs::remove_dir_all(PathBuf::from(&base));
+}
+
+#[test]
+fn a_closed_stdout_ends_the_watcher_and_its_udevadm() {
+    let sys = FakeSys::new();
+    let pidfile = sys.path().join("udevadm.pid");
+    let fake = sys.path().join("udevadm");
+    write(&fake, &format!("#!/bin/sh\necho $$ > {}\nexec sleep 60\n", pidfile.display()));
+    Command::new("chmod").arg("+x").arg(&fake).status().unwrap();
+    let mut watcher = Command::new(env!("CARGO_BIN_EXE_cortetsu-keybinds"))
+        .arg("watch")
+        .env("CORTETSU_SYSFS", sys.path())
+        .env("CORTETSU_UDEV_DATA", sys.udev_data())
+        .env("CORTETSU_UDEVADM", &fake)
+        .env("CORTETSU_HYPRCTL", "false")
+        .stdout(Stdio::piped())
+        .spawn()
+        .unwrap();
+    let mut reader = BufReader::new(watcher.stdout.take().unwrap());
+    let mut first = String::new();
+    reader.read_line(&mut first).unwrap();
+    assert!(first.contains("\"initial\""));
+    let deadline = Instant::now() + Duration::from_secs(3);
+    while !pidfile.exists() && Instant::now() < deadline {
+        std::thread::sleep(Duration::from_millis(20));
+    }
+    let udevadm = fs::read_to_string(&pidfile).unwrap().trim().to_owned();
+    drop(reader); // the editor stops reading but stays alive
+    let deadline = Instant::now() + Duration::from_secs(10);
+    let status = loop {
+        if let Some(status) = watcher.try_wait().unwrap() {
+            break Some(status);
+        }
+        if Instant::now() > deadline {
+            let _ = watcher.kill();
+            break None;
+        }
+        std::thread::sleep(Duration::from_millis(50));
+    };
+    assert!(status.is_some(), "watch kept running with nobody reading");
+    let deadline = Instant::now() + Duration::from_secs(3);
+    while alive(&udevadm) && Instant::now() < deadline {
+        std::thread::sleep(Duration::from_millis(20));
+    }
+    assert!(!alive(&udevadm), "udevadm {udevadm} outlived the watcher");
 }

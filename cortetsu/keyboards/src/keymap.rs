@@ -8,7 +8,7 @@
 
 use crate::inventory::Layout;
 use std::collections::BTreeMap;
-use std::process::{Command, Stdio};
+use std::time::Duration;
 
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub struct Keymap {
@@ -16,13 +16,8 @@ pub struct Keymap {
     pub levels: BTreeMap<u16, Vec<String>>,
 }
 
-pub fn xkbcli() -> String {
-    std::env::var("CORTETSU_XKBCLI").unwrap_or_else(|_| "xkbcli".into())
-}
-
 pub fn compile(layout: &Layout) -> Option<Keymap> {
-    let mut command = Command::new(xkbcli());
-    command.arg("compile-keymap");
+    let mut args = vec!["compile-keymap"];
     for (flag, value) in [
         ("--layout", &layout.layout),
         ("--variant", &layout.variant),
@@ -30,14 +25,11 @@ pub fn compile(layout: &Layout) -> Option<Keymap> {
         ("--model", &layout.model),
     ] {
         if !value.is_empty() {
-            command.args([flag, value]);
+            args.extend([flag, value.as_str()]);
         }
     }
-    let output = command.stdin(Stdio::null()).stderr(Stdio::null()).output().ok()?;
-    if !output.status.success() {
-        return None;
-    }
-    let keymap = parse(&String::from_utf8_lossy(&output.stdout));
+    let text = crate::run(&crate::env_or("CORTETSU_XKBCLI", "xkbcli"), &args, Duration::from_secs(5))?;
+    let keymap = parse(&text);
     (!keymap.levels.is_empty()).then_some(keymap)
 }
 
@@ -188,12 +180,11 @@ mod tests {
     }
 
     #[test]
-    fn real_xkbcli_agrees_when_installed() {
+    fn real_xkbcli_agrees() {
         let layout = Layout { layout: "latam".into(), ..Default::default() };
-        let Some(keymap) = compile(&layout) else {
-            eprintln!("SKIP: xkbcli not available");
-            return;
-        };
+        // CI installs xkbcli (libxkbcommon-tools); a missing tool fails here
+        // instead of passing silently.
+        let keymap = compile(&layout).expect("xkbcli compile-keymap --layout latam");
         assert_eq!(keymap.keysym(140), Some("XF86Calculator"));
         assert_eq!(keymap.keysym(149), Some("XF86Launch2"));
         assert_eq!(keymap.levels[&3][2], "at");

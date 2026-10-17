@@ -9,7 +9,7 @@
 //!   use them), system keys the firmware or logind handle, and Fn-layer codes.
 //! - CANDIDATE is a dedicated key (media, launch, programmable, F13–F24,
 //!   vendor) with a keysym and no global action. No bind in Hyprland does not
-//!   prove the key is unused elsewhere, so the UI keeps "declared" visible.
+//!   prove the key is unused elsewhere, so the UI keeps the evidence visible.
 //! - UNKNOWN is anything this table does not classify, or without a keysym.
 
 use crate::hypr;
@@ -18,6 +18,15 @@ use crate::keycodes;
 use crate::keymap::Keymap;
 use serde::Serialize;
 use std::collections::BTreeSet;
+
+pub const KEY_SYSRQ: u16 = 99;
+pub const KEY_POWER: u16 = 116;
+pub const KEY_PROG2: u16 = 149;
+pub const KEY_SLEEP: u16 = 142;
+pub const KEY_WAKEUP: u16 = 143;
+pub const KEY_SUSPEND: u16 = 205;
+pub const KEY_F23: u16 = 193;
+pub const KEY_FN_ESC: u16 = 0x1d1;
 
 #[derive(Debug, Clone, Copy, Serialize, PartialEq, Eq, PartialOrd, Ord)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
@@ -28,6 +37,18 @@ pub enum State {
     Candidate,
     Reserved,
     Unknown,
+}
+
+/// How sure we are that the key physically exists.
+#[derive(Debug, Clone, Copy, Serialize, PartialEq, Eq, PartialOrd, Ord)]
+#[serde(rename_all = "lowercase")]
+pub enum Confidence {
+    /// Pressed during an explicit test.
+    Verified,
+    /// udev's hardware database maps it for this model.
+    Model,
+    /// Only the driver's bitmap lists it.
+    Declared,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, PartialEq, Eq, PartialOrd, Ord)]
@@ -65,10 +86,8 @@ pub struct Key {
     pub levels: Vec<String>,
     pub category: Category,
     pub states: Vec<State>,
-    /// "verified" after an explicit test, "model" when udev's hardware
-    /// database maps it for this model, else "declared".
-    pub confidence: &'static str,
-    /// Why the key is RESERVED or UNKNOWN, in words.
+    pub confidence: Confidence,
+    /// What the key is on this device, or why it is RESERVED or UNKNOWN.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub note: Option<String>,
     /// Effective binds on this key: alone, or as the key of a combination.
@@ -86,37 +105,85 @@ impl Key {
 
 pub fn category(code: u16) -> Category {
     use Category::*;
-    // Arms are tried in order: modifiers and F1–F12 sit inside the typing
-    // range and must win over it.
+    // Arms are tried in order: modifiers, F1–F12 and Print sit inside the
+    // typing range and must win over it.
     match code {
         29 | 42 | 54 | 56 | 58 | 69 | 70 | 97 | 100 | 125 | 126 => Modifier,
         59..=68 | 87 | 88 => Function,
         183..=194 => ExtraFunction,
         102..=111 | 119 => Navigation,
-        99 => Launch, // Print
-        1..=83 | 85 | 86 | 89..=96 | 98 | 101 | 117 | 118 | 121..=124 | 127 => Typing,
-        113..=115 | 163..=168 | 200 | 201 | 207 | 208 | 226 | 0x18a | 0x18b | 0x19c | 0x19d | 0x1a3 => Media,
-        140
+        // Print; calc, file, www, screenlock, mail, bookmarks, computer,
+        // back, forward; config, homepage, refresh; all apps, print, camera;
+        // email…shop; send…documents; info, favorites, keyboard, text,
+        // calendar; office apps; notification centre; task manager…assistant;
+        // emoji, dictate; selection actions; selective screenshot.
+        KEY_SYSRQ
+        | 140
         | 144
         | 150
         | 152
         | 155..=159
         | 171..=173
+        | 204
+        | 210
         | 212
-        | 216..=220
-        | 222
-        | 0x16c
-        | 0x16d
-        | 0x170
-        | 0x174
-        | 0x176
-        | 0x18c
-        | 0x18d
-        | 0x1a0..=0x1ad
-        | 0x1b0..=0x1ba
-        | 0x247 => Launch,
-        112 | 148 | 149 | 202 | 203 | 0x290..=0x2b7 => Programmable,
-        116 | 142 | 143 | 153 | 205 | 224 | 225 | 227..=230 | 236..=248 | 0x212..=0x214 | 0x230..=0x23f => System,
+        | 215..=221
+        | 231..=235
+        | 358
+        | 364
+        | 374
+        | 388
+        | 397
+        | 421..=430
+        | 444
+        | 577
+        | 579..=581
+        | 583
+        | 585
+        | 586
+        | 596..=598
+        | 634 => Launch,
+        1..=83 | 85 | 86 | 89..=96 | 98 | 101 | 117 | 118 | 121..=124 | 127 => Typing,
+        // Volume; eject…rewind; CD play/pause; play, fast forward, bass
+        // boost; media; CD, radio, tuner, player, DVD, MP3, audio, video;
+        // next, slow, shuffle, previous; frame back/forward, repeat.
+        113..=115
+        | 160..=168
+        | 200
+        | 201
+        | 207..=209
+        | 226
+        | 383
+        | 385..=387
+        | 389
+        | 391..=393
+        | 407
+        | 409
+        | 410
+        | 412
+        | 436
+        | 437
+        | 439 => Media,
+        112 | 148 | KEY_PROG2 | 202 | 203 | 656..=695 => Programmable,
+        // Power, sleep, wake, rotate, suspend, brightness, video mode, keyboard
+        // light, battery, radios, display switches, mic mute, touchpad,
+        // sensors and toggles, lights, accessibility, privacy screen.
+        KEY_POWER
+        | KEY_SLEEP
+        | KEY_WAKEUP
+        | 153
+        | KEY_SUSPEND
+        | 224
+        | 225
+        | 227..=230
+        | 236..=239
+        | 241..=248
+        | 530..=532
+        | 560..=575
+        | 542
+        | 590
+        | 633
+        | 649 => System,
         0x1d0..=0x1e4 => Firmware,
         _ => Other,
     }
@@ -129,7 +196,7 @@ fn label(code: u16, name: &str) -> String {
         115 => "Subir volumen",
         140 => "Calculadora",
         148 => "Programable 1",
-        149 => "Programable 2",
+        KEY_PROG2 => "Programable 2",
         150 => "Navegador",
         155 => "Correo",
         156 => "Marcadores",
@@ -146,7 +213,7 @@ fn label(code: u16, name: &str) -> String {
         224 => "Bajar brillo",
         225 => "Subir brillo",
         248 => "Silenciar micrófono",
-        0x1d1 => "Fn + Esc",
+        KEY_FN_ESC => "Fn + Esc",
         _ => "",
     };
     if !fixed.is_empty() {
@@ -155,37 +222,38 @@ fn label(code: u16, name: &str) -> String {
     match code {
         183..=194 => format!("F{}", code - 170),
         _ => {
-            let bare = name.trim_start_matches("KEY_").trim_start_matches("BTN_").replace('_', " ").to_lowercase();
+            let bare = name.trim_start_matches("KEY_").replace('_', " ").to_lowercase();
             let mut chars = bare.chars();
             chars.next().map(|c| c.to_uppercase().collect::<String>() + chars.as_str()).unwrap_or_default()
         }
     }
 }
 
-/// Labels that depend on the device: the OMEN key is KEY_PROG2 on HP WMI,
-/// the Copilot key is Super+Shift+F23 on the laptop keyboard.
-fn device_label(keyboard: &Keyboard, code: u16) -> Option<(&'static str, &'static str)> {
-    let hp_wmi = keyboard.kind == Kind::VendorHotkeys && keyboard.label.ends_with("HP");
-    match (hp_wmi, keyboard.kind, code) {
-        (true, _, 149) => Some(("OMEN", "Tecla OMEN del HP Victus (KEY_PROG2 en «HP WMI hotkeys»)")),
-        (_, Kind::Internal, 193) => {
-            Some(("Copilot", "Las teclas Copilot envían Super + Shift + F23; F23 sola queda para las aplicaciones"))
+/// What a code is on this particular device: (label, note, reserved).
+fn on_device(keyboard: &Keyboard, code: u16) -> Option<(&'static str, &'static str, bool)> {
+    match code {
+        KEY_PROG2 if keyboard.is_hp_wmi() => {
+            Some(("OMEN", "Tecla OMEN del HP Victus (KEY_PROG2 en «HP WMI hotkeys»)", false))
+        }
+        // Copilot keys send Super+Shift+F23; F23 alone stays for applications.
+        KEY_F23 if keyboard.kind == Kind::Internal => {
+            Some(("Copilot", "La tecla Copilot envía Super + Shift + F23; F23 sola queda para las aplicaciones", true))
         }
         _ => None,
     }
 }
 
-fn reserved_note(category: Category, code: u16) -> Option<&'static str> {
+fn reserved_reason(category: Category, code: u16) -> Option<&'static str> {
     Some(match category {
         Category::Typing => "Escribe texto: no se reasigna como tecla independiente",
         Category::Modifier => "Modificador: se combina con otras teclas",
         Category::Navigation => "Navegación de las aplicaciones",
         Category::Function => "F1–F12 pertenecen a las aplicaciones",
-        Category::System if code == 116 || code == 142 || code == 143 || code == 205 => {
+        Category::System if matches!(code, KEY_POWER | KEY_SLEEP | KEY_WAKEUP | KEY_SUSPEND) => {
             "La gestiona el sistema (logind o el firmware)"
         }
         Category::System => "Función del equipo: brillo, radio, pantalla o batería",
-        Category::Firmware if code == 0x1d1 => {
+        Category::Firmware if code == KEY_FN_ESC => {
             "Capa Fn del firmware: queda sin asignar hasta confirmar qué envía en cada arranque"
         }
         Category::Firmware => "Capa Fn del firmware",
@@ -222,22 +290,27 @@ fn system_keysym(sym: &str) -> bool {
 
 /// The chord Hyprland would show for a bind, for display only.
 pub fn chord_of(bind: &hypr::Bind) -> String {
-    let mut parts: Vec<&str> = Vec::new();
-    for (bit, name) in [
+    let mut parts: Vec<String> = [
         (hypr::MOD_SUPER, "SUPER"),
         (hypr::MOD_CTRL, "CTRL"),
         (hypr::MOD_ALT, "ALT"),
         (hypr::MOD_SHIFT, "SHIFT"),
         (hypr::MOD_MOD5, "MOD5"),
-    ] {
-        if bind.modmask & bit != 0 {
-            parts.push(name);
-        }
-    }
-    let key = if bind.key.is_empty() && bind.keycode > 0 { format!("code:{}", bind.keycode) } else { bind.key.clone() };
-    parts.iter().map(|s| (*s).to_owned()).chain([key]).collect::<Vec<_>>().join(" + ")
+    ]
+    .iter()
+    .filter(|(bit, _)| bind.modmask & bit != 0)
+    .map(|(_, name)| (*name).to_owned())
+    .collect();
+    parts.push(if bind.key.is_empty() && bind.keycode > 0 {
+        format!("code:{}", bind.keycode)
+    } else {
+        bind.key.clone()
+    });
+    parts.join(" + ")
 }
 
+/// A bind on this key: by keysym (Hyprland compares names case-insensitively)
+/// or by `code:N`, where N is the XKB keycode, Linux code + 8.
 fn bind_hits(bind: &hypr::Bind, code: u16, keysym: Option<&str>) -> bool {
     if !bind.submap.is_empty() || bind.mouse {
         return false;
@@ -261,75 +334,73 @@ pub fn classify(
         let category = category(code);
         let levels = keymap.and_then(|k| k.levels.get(&code)).cloned().unwrap_or_default();
         let keysym = levels.first().filter(|s| *s != "NoSymbol" && *s != "VoidSymbol").cloned();
-        let altgr = keysym.as_deref() == Some("ISO_Level3_Shift");
-        let assignments: Vec<Assignment> = binds
-            .unwrap_or_default()
-            .iter()
-            .filter(|bind| bind_hits(bind, code, keysym.as_deref()))
-            .map(|bind| Assignment { chord: chord_of(bind), description: bind.description.clone() })
-            .collect();
-        let solo =
-            binds.unwrap_or_default().iter().any(|bind| bind.modmask == 0 && bind_hits(bind, code, keysym.as_deref()));
+        let device = on_device(keyboard, code);
+        let hits: Vec<&hypr::Bind> =
+            binds.unwrap_or_default().iter().filter(|bind| bind_hits(bind, code, keysym.as_deref())).collect();
 
-        let mut states = vec![State::Declared];
-        if verified.contains(&code) {
-            states.push(State::Verified);
-        }
+        let reserved: Option<String> = if keysym.as_deref() == Some("ISO_Level3_Shift") {
+            Some("AltGr escribe caracteres en esta distribución".into())
+        } else if let Some(reason) = reserved_reason(category, code) {
+            Some(reason.into())
+        } else if let Some(sym) = keysym.as_deref().filter(|sym| system_keysym(sym)) {
+            // Under evdev rules F20 produces XF86AudioMicMute: binding it
+            // would also catch the microphone key.
+            Some(format!("En esta distribución produce {sym}, una función del equipo"))
+        } else if let Some((_, note, true)) = device {
+            Some(note.into())
+        } else {
+            None
+        };
+        let unknown: Option<&str> = match (keysym.is_some(), keymap.is_some()) {
+            (false, false) => Some("No se pudo leer la distribución del teclado"),
+            (false, true) => Some("La distribución no le asigna ningún keysym"),
+            _ => None,
+        };
         let dedicated =
             matches!(category, Category::ExtraFunction | Category::Media | Category::Launch | Category::Programmable)
                 || (keyboard.kind == Kind::VendorHotkeys && category == Category::Other);
         let typing_like =
             matches!(category, Category::Typing | Category::Modifier | Category::Navigation | Category::Function);
         // A typing key used inside SUPER + Q is not "a key with an action".
-        if solo || (!typing_like && !assignments.is_empty()) {
+        let assigned = hits.iter().any(|bind| bind.modmask == 0) || (!typing_like && !hits.is_empty());
+
+        let mut states = vec![State::Declared];
+        if verified.contains(&code) {
+            states.push(State::Verified);
+        }
+        if assigned {
             states.push(State::Assigned);
         }
-        let mut note = reserved_note(category, code).map(str::to_owned);
-        if altgr {
-            note = Some("AltGr escribe caracteres en esta distribución".into());
-        } else if let Some(sym) = keysym.as_deref().filter(|sym| note.is_none() && system_keysym(sym)) {
-            // Under evdev rules F20 produces XF86AudioMicMute: binding it
-            // would also catch the microphone key.
-            note = Some(format!("En esta distribución produce {sym}, una función del equipo"));
-        }
-        let reserved = note.is_some();
-        if reserved {
+        if reserved.is_some() {
             states.push(State::Reserved);
         }
-        if keysym.is_none() && !reserved {
-            note = Some(if keymap.is_none() {
-                "No se pudo leer la distribución del teclado".into()
-            } else {
-                "La distribución no le asigna ningún keysym".into()
-            });
-        }
-        if dedicated && keysym.is_some() && !states.contains(&State::Assigned) && !reserved {
+        if dedicated && keysym.is_some() && !assigned && reserved.is_none() {
             states.push(State::Candidate);
         }
-        if (!reserved && !dedicated) || keysym.is_none() || code == 0x1d1 {
+        if (reserved.is_none() && !dedicated) || unknown.is_some() || code == KEY_FN_ESC {
             states.push(State::Unknown);
         }
-        let (label, device_note) = match device_label(keyboard, code) {
-            Some((label, note)) => (label.to_owned(), Some(note.to_owned())),
-            None => (label(code, name), None),
+        let confidence = if verified.contains(&code) {
+            Confidence::Verified
+        } else if keyboard.interfaces.iter().any(|i| i.model_codes.contains(&code)) {
+            Confidence::Model
+        } else {
+            Confidence::Declared
         };
         keys.push(Key {
             code,
             name: name.to_owned(),
-            label,
+            label: device.map(|(label, _, _)| label.to_owned()).unwrap_or_else(|| label(code, name)),
             keysym,
             levels,
             category,
             states,
-            confidence: if verified.contains(&code) {
-                "verified"
-            } else if keyboard.interfaces.iter().any(|i| i.model_codes.contains(&code)) {
-                "model"
-            } else {
-                "declared"
-            },
-            note: device_note.or(note),
-            assignments,
+            confidence,
+            note: device.map(|(_, note, _)| note.to_owned()).or(reserved).or(unknown.map(str::to_owned)),
+            assignments: hits
+                .iter()
+                .map(|bind| Assignment { chord: chord_of(bind), description: bind.description.clone() })
+                .collect(),
             declared_by: keyboard
                 .interfaces
                 .iter()
@@ -344,9 +415,9 @@ pub fn classify(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::inventory::fixtures::*;
     use crate::inventory::scan;
     use crate::keymap::{LATAM_EXCERPT, parse};
+    use crate::testing::*;
 
     fn bind(modmask: u32, key: &str, description: &str) -> hypr::Bind {
         hypr::Bind { modmask, key: key.into(), description: description.into(), ..Default::default() }
@@ -397,12 +468,12 @@ mod tests {
         assert!(calc.has(State::Candidate) && !calc.has(State::Verified));
         assert_eq!(
             (calc.confidence, calc.keysym.as_deref()),
-            ("model", Some("XF86Calculator")),
+            (Confidence::Model, Some("XF86Calculator")),
             "HP hwdb maps a1=calc"
         );
         let mail = key(&keys, 155);
         assert!(mail.has(State::Candidate));
-        assert_eq!(mail.confidence, "declared", "atkbd declares KEY_MAIL on every laptop");
+        assert_eq!(mail.confidence, Confidence::Declared, "atkbd declares KEY_MAIL on every laptop");
     }
 
     #[test]
@@ -415,7 +486,7 @@ mod tests {
         let omen = key(&keys, 149);
         assert_eq!(omen.label, "OMEN");
         assert_eq!(omen.states, vec![State::Declared, State::Verified, State::Assigned]);
-        assert_eq!(omen.confidence, "verified");
+        assert_eq!(omen.confidence, Confidence::Verified);
     }
 
     #[test]
@@ -436,7 +507,7 @@ mod tests {
         let keys = classify(&keyboards[0], Some(&keymap), Some(&binds), &BTreeSet::new());
         let copilot = key(&keys, 193);
         assert_eq!(copilot.label, "Copilot");
-        assert!(copilot.has(State::Assigned) && !copilot.has(State::Candidate));
+        assert!(copilot.has(State::Assigned) && copilot.has(State::Reserved) && !copilot.has(State::Candidate));
         assert_eq!(copilot.assignments[0].chord, "SUPER + SHIFT + F23");
     }
 
@@ -466,6 +537,14 @@ mod tests {
     }
 
     #[test]
+    fn unbound_copilot_f23_is_still_not_offered() {
+        let (_sys, keyboards) = victus();
+        let keys = classify(&keyboards[0], Some(&parse(LATAM_EXCERPT)), Some(&[]), &BTreeSet::new());
+        let copilot = key(&keys, KEY_F23);
+        assert!(copilot.has(State::Reserved) && !copilot.has(State::Candidate), "{:?}", copilot.states);
+    }
+
+    #[test]
     fn without_a_keymap_nothing_is_a_candidate() {
         let (_sys, keyboards) = victus();
         let keys = classify(&keyboards[0], None, None, &BTreeSet::new());
@@ -477,6 +556,7 @@ mod tests {
     fn keycode_binds_count_as_assignments() {
         let (_sys, keyboards) = victus();
         let keymap = parse(LATAM_EXCERPT);
+        // XKB keycode 148 is Linux KEY_CALC (140) + 8.
         let binds = [hypr::Bind { keycode: 148, ..Default::default() }];
         let keys = classify(&keyboards[0], Some(&keymap), Some(&binds), &BTreeSet::new());
         assert!(key(&keys, 140).has(State::Assigned), "code:148 is KEY_CALC");

@@ -30,13 +30,15 @@ impl std::fmt::Display for Error {
     }
 }
 
+/// `payload` must serialize to an object; its fields join the envelope.
 pub fn ok(kind: &str, payload: impl Serialize) -> Value {
     let mut object = Map::new();
     object.insert("protocol".into(), json!(VERSION));
     object.insert("kind".into(), json!(kind));
     object.insert("ok".into(), json!(true));
-    if let Ok(Value::Object(fields)) = serde_json::to_value(payload) {
-        object.extend(fields);
+    match serde_json::to_value(payload) {
+        Ok(Value::Object(fields)) => object.extend(fields),
+        other => debug_assert!(false, "protocol payload is not an object: {other:?}"),
     }
     Value::Object(object)
 }

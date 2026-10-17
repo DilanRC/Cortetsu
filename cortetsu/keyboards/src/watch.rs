@@ -4,14 +4,16 @@
 //! - `udevadm monitor` is a child started through `setpriv --pdeathsig TERM`,
 //!   so the kernel stops it when this process dies, even by SIGKILL.
 //! - This process exits when its parent goes away (Quickshell crashed and it
-//!   was reparented) or when stdout is closed.
+//!   was reparented) or when stdout is closed. An empty line every few
+//!   seconds is what notices a closed stdout; readers skip empty lines.
 //! - Without setpriv it refuses to start rather than risk an orphan.
 //!
 //! udev sees a device before Hyprland's libinput does, so a rescan whose
 //! nodes lack a Hyprland name is retried briefly; each change of the
 //! inventory fingerprint is printed once.
 
-use crate::{inventory, inventory_now, protocol};
+use crate::inventory::{self, Inventory};
+use crate::protocol::{self, Error};
 use std::io::{BufRead, BufReader, Write};
 use std::process::{Command, Stdio};
 use std::sync::mpsc;
@@ -20,44 +22,48 @@ use std::time::Duration;
 const QUIET: Duration = Duration::from_millis(250);
 const LINK_RETRY: Duration = Duration::from_millis(150);
 const LINK_ATTEMPTS: u32 = 10;
+const TICK: Duration = Duration::from_secs(1);
+const HEARTBEAT_TICKS: u32 = 5;
 
-fn emit(inventory: &inventory::Inventory, event: &str) -> bool {
+fn write_line(text: &str) -> bool {
+    let mut out = std::io::stdout().lock();
+    writeln!(out, "{text}").and_then(|()| out.flush()).is_ok()
+}
+
+fn emit(inventory: &Inventory, event: &str) -> bool {
     let mut value = protocol::ok("inventory", inventory);
     value["event"] = serde_json::json!(event);
-    let mut out = std::io::stdout().lock();
-    writeln!(out, "{value}").and_then(|()| out.flush()).is_ok()
+    write_line(&value.to_string())
 }
 
-fn fully_linked(inventory: &inventory::Inventory) -> bool {
+/// Every keyboard Hyprland could know by name has one.
+fn settled(inventory: &Inventory) -> bool {
     !inventory.hyprland_available
-        || inventory.keyboards.iter().all(|k| k.hyprland_linked || k.ambiguous || k.kind == inventory::Kind::Virtual)
+        || inventory.keyboards.iter().all(|k| {
+            k.hyprland_linked
+                || k.kind == inventory::Kind::Virtual
+                || k.interfaces.iter().any(|i| !i.hyprland_candidates.is_empty())
+        })
 }
 
-fn found(program: &str) -> bool {
+fn on_path(program: &str) -> bool {
     std::env::var_os("PATH").is_some_and(|path| std::env::split_paths(&path).any(|dir| dir.join(program).is_file()))
 }
 
-pub fn run() {
-    let udevadm = std::env::var("CORTETSU_UDEVADM").unwrap_or_else(|_| "udevadm".into());
-    if !found("setpriv") {
-        let error = protocol::Error::new("watch-unavailable", "Falta setpriv (util-linux): no se vigilan conexiones");
-        println!("{}", protocol::failure("inventory", &error));
-        std::process::exit(1);
+/// Runs until the editor goes away. Returns `Null` after a normal end (the
+/// lines were already printed) or an error before anything was printed.
+pub fn run() -> Result<serde_json::Value, Error> {
+    if !on_path("setpriv") {
+        return Err(Error::new("watch-unavailable", "Falta setpriv (util-linux): no se vigilan conexiones"));
     }
-    let child = Command::new("setpriv")
+    let udevadm = crate::env_or("CORTETSU_UDEVADM", "udevadm");
+    let mut child = Command::new("setpriv")
         .args(["--pdeathsig", "TERM", "--", &udevadm, "monitor", "--udev", "--subsystem-match=input"])
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::null())
-        .spawn();
-    let mut child = match child {
-        Ok(child) => child,
-        Err(error) => {
-            let error = protocol::Error::new("watch-unavailable", format!("No se pudo vigilar udev: {error}"));
-            println!("{}", protocol::failure("inventory", &error));
-            std::process::exit(1);
-        }
-    };
+        .spawn()
+        .map_err(|error| Error::new("watch-unavailable", format!("No se pudo vigilar udev: {error}")))?;
     let (events, received) = mpsc::channel();
     let stdout = child.stdout.take().expect("piped stdout");
     std::thread::spawn(move || {
@@ -71,16 +77,19 @@ pub fn run() {
     });
 
     let parent = std::os::unix::process::parent_id();
-    let mut last = inventory_now();
-    if !emit(&last, "initial") {
-        return;
-    }
-    loop {
-        match received.recv_timeout(Duration::from_secs(1)) {
-            Ok(()) => {}
+    let mut last = inventory::now();
+    let mut alive = emit(&last, "initial");
+    let mut quiet_ticks = 0;
+    while alive {
+        match received.recv_timeout(TICK) {
+            Ok(()) => quiet_ticks = 0,
             Err(mpsc::RecvTimeoutError::Timeout) => {
+                quiet_ticks += 1;
                 if std::os::unix::process::parent_id() != parent {
                     break;
+                }
+                if quiet_ticks % HEARTBEAT_TICKS == 0 {
+                    alive = write_line("");
                 }
                 continue;
             }
@@ -91,21 +100,20 @@ pub fn run() {
         }
         // One plug is several udev events (each interface, then its eventN).
         while received.recv_timeout(QUIET).is_ok() {}
-        let mut current = inventory_now();
+        let mut current = inventory::now();
         for _ in 0..LINK_ATTEMPTS {
-            if fully_linked(&current) {
+            if settled(&current) {
                 break;
             }
             std::thread::sleep(LINK_RETRY);
-            current = inventory_now();
+            current = inventory::now();
         }
         if current.fingerprint != last.fingerprint {
-            if !emit(&current, "changed") {
-                break;
-            }
+            alive = emit(&current, "changed");
             last = current;
         }
     }
     let _ = child.kill();
     let _ = child.wait();
+    Ok(serde_json::Value::Null)
 }

@@ -5,7 +5,6 @@
 //! keep distinct from "asked and found nothing".
 
 use serde::Deserialize;
-use std::process::Command;
 use std::time::Duration;
 
 #[derive(Debug, Clone, Deserialize, PartialEq, Eq, Default)]
@@ -46,40 +45,11 @@ pub struct Bind {
 }
 
 pub fn hyprctl() -> String {
-    std::env::var("CORTETSU_HYPRCTL").unwrap_or_else(|_| "hyprctl".into())
+    crate::env_or("CORTETSU_HYPRCTL", "hyprctl")
 }
 
-/// Run hyprctl with a timeout; stdout on success. stdout is drained on a
-/// thread: `binds -j` is larger than a pipe buffer and would otherwise block
-/// hyprctl until the timeout.
 pub fn run(args: &[&str], timeout: Duration) -> Option<String> {
-    use std::io::Read;
-    let mut child = Command::new(hyprctl())
-        .args(args)
-        .stdin(std::process::Stdio::null())
-        .stdout(std::process::Stdio::piped())
-        .stderr(std::process::Stdio::null())
-        .spawn()
-        .ok()?;
-    let mut stdout = child.stdout.take()?;
-    let reader = std::thread::spawn(move || {
-        let mut text = String::new();
-        stdout.read_to_string(&mut text).map(|_| text)
-    });
-    let started = std::time::Instant::now();
-    let status = loop {
-        match child.try_wait() {
-            Ok(Some(status)) => break status,
-            Ok(None) if started.elapsed() < timeout => std::thread::sleep(Duration::from_millis(2)),
-            _ => {
-                let _ = child.kill();
-                let _ = child.wait();
-                return None;
-            }
-        }
-    };
-    let text = reader.join().ok()?.ok()?;
-    status.success().then_some(text)
+    crate::run(&hyprctl(), args, timeout)
 }
 
 pub fn keyboards() -> Option<Vec<Keyboard>> {
