@@ -53,18 +53,12 @@ def main() -> int:
     old_path = os.environ["PATH"]
     with tempfile.TemporaryDirectory(prefix="cz-hover-race-", dir="/tmp") as tmp:
         session = H.Session(Path(tmp))
-        # Hyprland probes PCI inventory at startup. A test-local no-op keeps
-        # that unrelated probe from waking the laptop's runtime-suspended GPU.
-        lspci = session.base / "bin/lspci"
-        lspci.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
-        lspci.chmod(0o755)
         hypr_config = session.home / ".config/hypr/hyprland.lua"
         config = hypr_config.read_text(encoding="utf-8")
         scale_one = 'hl.monitor({ output = "HEADLESS-2", mode = "1280x720", position = "auto-right", scale = 1 })'
         scale_two = 'hl.monitor({ output = "HEADLESS-2", mode = "1280x720", position = "auto-right", scale = 1.25 })'
         assert scale_one in config, "nested test config no longer declares HEADLESS-2 at scale 1"
         hypr_config.write_text(config.replace(scale_one, scale_two, 1), encoding="utf-8")
-        os.environ["PATH"] = f"{session.base / 'bin'}:{old_path}"
         try:
             session.start(outputs=3)
             session.start_client()
@@ -73,7 +67,10 @@ def main() -> int:
             session.focus_monitor(monitor)
             find_network_trigger(session, monitor)
             active = (session.hjson("activewindow") or {}).get("class")
-            assert active == "cortetsu-probe", f"hover changed keyboard focus from the client: {active}"
+            assert active == "cortetsu-probe", (
+                f"hover changed keyboard focus from the client: {active}; focused={session.focused_monitor()} "
+                f"cursor={session.hyprctl('cursorpos').strip()} layer={session.keyboard_layer()} "
+                f"popup={popup_state(session, monitor)}")
             first_state = popup_state(session, monitor)
             output = next(item for item in session.monitors() if item["name"] == monitor)
 
@@ -145,6 +142,7 @@ def main() -> int:
             time.sleep(0.25)
             settled = popup_state(session, monitor)
             assert settled["popup"] == "network" and settled["open"] and not settled["closing"], settled
+
         except BaseException:
             log_path = Path(tmp) / "logs/qs.log"
             log = log_path.read_text(errors="replace") if log_path.exists() else ""
