@@ -17,6 +17,7 @@ bottom_hub_target = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(bottom_hub_target)
 
 from wire_sad_shell import ensure_or_member, ensure_statement
+import surface_registry  # noqa: E402
 
 
 def base_content() -> str:
@@ -141,8 +142,11 @@ def main() -> None:
     policy = (MODULES / "OverlayPolicy.js").read_text(encoding="utf-8")
     wrapper = (MODULES / "wallpaper/Wrapper.qml").read_text(encoding="utf-8")
     controller = (MODULES / "WallpaperController.qml").read_text(encoding="utf-8")
+    competing = surface_registry.group("competingWithWallpaper")
     for flag in ("launcher", "session", "dashboard", "utilities", "sidebar", "overview", "clipboard", "hardware", "displayManager"):
-        assert flag in policy, flag
+        assert flag in competing, flag
+    assert "wallpaperManager" not in competing
+    assert "Surfaces.competingWithWallpaper" in policy
     assert "function closeForWallpaper" in policy and "function hasCompetingPanel" in policy
     assert "globalOtherOverlayOpen" in wrapper
     assert "for (const candidate of CortetsuScreens.screens)" in wrapper

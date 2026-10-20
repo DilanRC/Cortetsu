@@ -1,50 +1,38 @@
 .pragma library
+.import "SurfaceRegistry.js" as Surfaces
+.import "OverlayPolicy.js" as Exclusion
 
 // Public policy contract. It deliberately changes state only. Geometry,
 // popouts, tray ownership and wallpaper side effects stay in their callers.
-const retainedFlags = ["overview", "calendar", "clipboard", "hardware", "displayManager", "wallpaperManager", "keyboards"];
+const retainedFlags = Surfaces.retained;
 
 function isRetainedFlag(flag) {
-    return retainedFlags.indexOf(flag) >= 0;
+    return Surfaces.isRetained(flag);
 }
 
 function closeRetained(state) {
-    if (!state)
-        return;
-    for (const flag of retainedFlags) {
-        if (state[flag] !== undefined)
-            state[flag] = false;
-    }
+    Exclusion.closeFlags(state, retainedFlags);
 }
 
 function closeOtherRetained(state, exceptFlag) {
     if (!state || !isRetainedFlag(exceptFlag))
         return false;
-    for (const flag of retainedFlags) {
-        if (flag !== exceptFlag && state[flag] !== undefined)
-            state[flag] = false;
-    }
+    Exclusion.closeFlags(state, retainedFlags.filter(flag => flag !== exceptFlag));
     return true;
 }
 
+// Same group as OverlayPolicy.closeOtherPanels: every exclusive surface.
 function closeAll(state) {
-    if (!state)
-        return;
-    closeRetained(state);
-    for (const flag of ["launcher", "session", "dashboard", "utilities", "settings", "sidebar"]) {
-        if (state[flag] !== undefined)
-            state[flag] = false;
-    }
+    Exclusion.closeOtherPanels(state);
 }
 
 function openExclusive(state, flag) {
     if (!state || !isRetainedFlag(flag))
         return false;
     closeAll(state);
-    state[flag] = true;
-    return true;
+    return Exclusion.setFlag(state, flag, true);
 }
 
 function retainedOverlayOpen(state) {
-    return !!state && retainedFlags.some(flag => !!state[flag]);
+    return Surfaces.anyOpen(state?.legacyState ?? state, retainedFlags);
 }

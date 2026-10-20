@@ -5,6 +5,7 @@ import "../components/misc"
 import "../services"
 import "."
 import "CortetsuOverlayPolicy.js" as OverlayPolicy
+import "SurfaceRegistry.js" as Surfaces
 
 Scope {
     id: root
@@ -12,7 +13,7 @@ Scope {
     readonly property bool hasFullscreen: CortetsuHypr.focusedWorkspace?.toplevels.values.some(t => t.lastIpcObject.fullscreen > 1) ?? false
 
     function toggleExclusive(state, flag: string): bool {
-        if (!state || typeof state[flag] !== "boolean")
+        if (!state || !Surfaces.isKnown(flag) || typeof state[flag] !== "boolean")
             return false;
         const opening = !state[flag];
         if (opening)
@@ -114,18 +115,20 @@ Scope {
         function toggle(drawer: string): void {
             const state = CortetsuShellState.forActive();
             const target = drawer === "qsd" ? "osd" : drawer;
-            if (!state || typeof state[target] !== "boolean") return;
-            if (root.hasFullscreen && ["launcher", "session", "dashboard", "utilities", "settings"].includes(target)) return;
+            if (!state || !Surfaces.isKnown(target)) return;
+            if (root.hasFullscreen && Surfaces.isIpcExclusive(target)) return;
             if (target === "launcher" && CortetsuShellState.launcherOpenAnywhere())
                 CortetsuShellState.closeLaunchers(null);
-            else if (["launcher", "session", "dashboard", "utilities", "settings"].includes(target))
+            else if (Surfaces.isIpcExclusive(target))
                 root.toggleExclusive(state, target);
+            else if (Surfaces.isSettable(target))
+                state.cortetsuState?.setFlag(target, !state[target]);
             else
-                state[target] = !state[target];
+                state[target] = !state[target]; // bar: chrome, outside the overlay policy
         }
-        function list(): string { const state = CortetsuShellState.forActive(); return state ? Object.keys(state).filter(k => typeof state[k] === "boolean").join("\n") : ""; }
+        function list(): string { const state = CortetsuShellState.forActive(); return state ? Object.keys(state).filter(k => Surfaces.isKnown(k)).join("\n") : ""; }
         // Screens whose launcher is open; the single-state contract keeps it to one line at most.
         function launcherScreens(): string { return CortetsuShellState.states.filter(entry => !!entry.state?.launcher).map(entry => entry.screen?.name ?? "").join("\n"); }
-        function isOpen(drawer: string): string { const state = CortetsuShellState.forActive(); return !state || typeof state[drawer] !== "boolean" ? "unknown" : state[drawer] ? "1" : "0"; }
+        function isOpen(drawer: string): string { const state = CortetsuShellState.forActive(); return !state || !Surfaces.isKnown(drawer) ? "unknown" : state[drawer] ? "1" : "0"; }
     }
 }

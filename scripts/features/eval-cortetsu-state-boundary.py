@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """Deterministic eval for state ownership and overlay-policy compatibility."""
 from pathlib import Path
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import surface_registry  # noqa: E402
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -12,7 +15,7 @@ controllers = [path.read_text(encoding="utf-8") for path in (ROOT / "cortetsu/mo
 checks = {
     "typed boundary owns retained writes": all(marker in state for marker in (
         "function setFlag(flag: string, value: bool): bool",
-        'if (flag === "overview" || flag === "calendar" || flag === "clipboard"',
+        "if (Surfaces.isRetained(flag))",
         "return setRetained(flag, value);",
     )),
     "policy supports typed and compatibility state": all(marker in policy for marker in (
@@ -28,11 +31,10 @@ checks = {
         "screenState?.cortetsuState?.requiresFullInputMask",
         "root.screenState?.cortetsuState?.overview",
     )),
-    "wallpaper close preserves its retained owner": all(marker in policy for marker in (
-        "function closeForWallpaper(state)",
-        '"displayManager"',
-        '"hardware"',
-    )),
+    "wallpaper close preserves its retained owner": "function closeForWallpaper(state)" in policy
+        and "closeFlags(state, Surfaces.competingWithWallpaper)" in policy
+        and {"displayManager", "hardware", "keyboards"} <= set(surface_registry.group("competingWithWallpaper"))
+        and "wallpaperManager" not in surface_registry.group("competingWithWallpaper"),
 }
 
 assert all(checks.values()), [name for name, passed in checks.items() if not passed]

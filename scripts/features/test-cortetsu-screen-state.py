@@ -1,4 +1,7 @@
 from pathlib import Path
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import surface_registry  # noqa: E402
 
 repo = Path(__file__).resolve().parents[2]
 state = (repo / "cortetsu/modules/CortetsuScreenState.qml").read_text(encoding="utf-8")
@@ -26,18 +29,22 @@ controllers = {
 }
 hub = (repo / "cortetsu/modules/BottomHub.qml").read_text(encoding="utf-8")
 
-for flag in ("overview", "calendar", "clipboard", "hardware", "displayManager", "wallpaperManager"):
+for flag in ("overview", "calendar", "clipboard", "hardware", "displayManager", "wallpaperManager", "keyboards"):
     assert f"property bool {flag}" in state, flag
-    assert flag in policy, flag
+    assert flag in surface_registry.group("retained"), flag
+assert "const retainedFlags = Surfaces.retained;" in policy
+# The derived input flags have one definition, in the typed state. The copy
+# ScreenState kept had no reader and disagreed about settings.
 for derived in ("retainedOverlayOpen", "requiresOverlayLayer", "requiresFullInputMask", "requiresWindowKeyboardFocus"):
-    assert derived in state and derived in screen_component, derived
+    assert f"readonly property bool {derived}:" in state, derived
+    assert derived not in screen_component, derived
 assert "required property QtObject legacyState" in state
 assert "function closeRetainedOverlays" in state
 assert "function closeRetainedOverlaysExcept(exceptFlag: string): void" in state
 assert "function setRetained(flag: string, value: bool): bool" in state
 assert "function resetTransientState(): void" in screen_component
 assert "root.resetTransientState();" in screen_component
-assert '"launcher", "dashboard", "utilities"' in screen_component
+assert "for (const flag of Surfaces.names)" in screen_component
 assert "function openExclusive" in policy
 assert "function isRetainedFlag(flag)" in policy
 assert "function closeOtherRetained(state, exceptFlag)" in policy

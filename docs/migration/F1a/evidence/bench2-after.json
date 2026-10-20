@@ -1,0 +1,350 @@
+{
+ "date": "2026-10-20T12:26:08-0600",
+ "head": "898024ddc4e5a77bf977959a156a88e90fe09d06",
+ "dirty": true,
+ "isolation": {
+  "HOME": "/tmp/czfswyu23ja/home",
+  "XDG_RUNTIME_DIR": "/tmp/czrg1c6orkt",
+  "XDG_CONFIG_HOME": "/tmp/czfswyu23ja/home/.config",
+  "WAYLAND_DISPLAY": "wayland-1",
+  "HYPRLAND_INSTANCE_SIGNATURE": "efb50993780079460b0cbed1363e2166a2de1d9f_1792520768_802311886",
+  "DBUS_SESSION_BUS_ADDRESS": "unix:path=/tmp/czfswyu23ja/bus,guid=9bae54636c6184ad46245db96ad7b240",
+  "PATH": "/tmp/czfswyu23ja/bin:/usr/bin",
+  "nested_his_differs_from_desktop": true,
+  "shell_environ_runtime": true
+ },
+ "monitors": [
+  "WAYLAND-1",
+  "HEADLESS-1",
+  "HEADLESS-2"
+ ],
+ "gamemode": {
+  "status_without_helper": "UNKNOWN",
+  "helper_calls_recorded": 0
+ },
+ "surfaces": {
+  "hardware": {
+   "open_first_changed_frame": {
+    "n": 8,
+    "p50_ms": 77.8,
+    "p95_ms": 81.7,
+    "min_ms": 75.5,
+    "max_ms": 81.7,
+    "stdev_ms": 2.2
+   },
+   "close_frame_restored": {
+    "n": 8,
+    "p50_ms": 78.1,
+    "p95_ms": 79.3,
+    "min_ms": 74.5,
+    "max_ms": 79.3,
+    "stdev_ms": 1.4
+   },
+   "diag": {
+    "unsettled": 2,
+    "no_change": 0,
+    "not_open": 0,
+    "not_restored": 0
+   }
+  },
+  "display": {
+   "open_first_changed_frame": {
+    "n": 10,
+    "p50_ms": 79.4,
+    "p95_ms": 81.8,
+    "min_ms": 75.4,
+    "max_ms": 81.8,
+    "stdev_ms": 1.9
+   },
+   "close_frame_restored": {
+    "n": 10,
+    "p50_ms": 77.9,
+    "p95_ms": 83.4,
+    "min_ms": 73.6,
+    "max_ms": 83.4,
+    "stdev_ms": 2.6
+   },
+   "diag": {
+    "unsettled": 0,
+    "no_change": 0,
+    "not_open": 0,
+    "not_restored": 0
+   }
+  },
+  "clipboard": {
+   "open_first_changed_frame": {
+    "n": 10,
+    "p50_ms": 83.6,
+    "p95_ms": 87.6,
+    "min_ms": 79.0,
+    "max_ms": 87.6,
+    "stdev_ms": 3.1
+   },
+   "close_frame_restored": {
+    "n": 10,
+    "p50_ms": 79.0,
+    "p95_ms": 84.0,
+    "min_ms": 76.7,
+    "max_ms": 84.0,
+    "stdev_ms": 2.4
+   },
+   "diag": {
+    "unsettled": 0,
+    "no_change": 0,
+    "not_open": 0,
+    "not_restored": 0
+   }
+  },
+  "keyboards": {
+   "open_first_changed_frame": {
+    "n": 10,
+    "p50_ms": 79.4,
+    "p95_ms": 100.1,
+    "min_ms": 77.0,
+    "max_ms": 100.1,
+    "stdev_ms": 6.7
+   },
+   "close_frame_restored": {
+    "n": 10,
+    "p50_ms": 79.2,
+    "p95_ms": 81.5,
+    "min_ms": 73.1,
+    "max_ms": 81.5,
+    "stdev_ms": 2.7
+   },
+   "diag": {
+    "unsettled": 0,
+    "no_change": 0,
+    "not_open": 0,
+    "not_restored": 0
+   }
+  },
+  "wallpapermanager": {
+   "open_first_changed_frame": {
+    "n": 10,
+    "p50_ms": 92.2,
+    "p95_ms": 177.0,
+    "min_ms": 87.1,
+    "max_ms": 177.0,
+    "stdev_ms": 27.2
+   },
+   "close_frame_restored": {
+    "n": 10,
+    "p50_ms": 280.8,
+    "p95_ms": 300.3,
+    "min_ms": 277.3,
+    "max_ms": 300.3,
+    "stdev_ms": 7.2
+   },
+   "diag": {
+    "unsettled": 0,
+    "no_change": 0,
+    "not_open": 0,
+    "not_restored": 0
+   }
+  },
+  "overview": {
+   "open_first_changed_frame": {
+    "n": 10,
+    "p50_ms": 115.6,
+    "p95_ms": 164.1,
+    "min_ms": 110.8,
+    "max_ms": 164.1,
+    "stdev_ms": 16.8
+   },
+   "close_frame_restored": {
+    "n": 10,
+    "p50_ms": 252.8,
+    "p95_ms": 271.2,
+    "min_ms": 230.2,
+    "max_ms": 271.2,
+    "stdev_ms": 11.7
+   },
+   "diag": {
+    "unsettled": 0,
+    "no_change": 0,
+    "not_open": 0,
+    "not_restored": 0
+   }
+  },
+  "calendar": {
+   "open_first_changed_frame": {
+    "n": 10,
+    "p50_ms": 82.1,
+    "p95_ms": 115.3,
+    "min_ms": 78.0,
+    "max_ms": 115.3,
+    "stdev_ms": 11.0
+   },
+   "close_frame_restored": {
+    "n": 9,
+    "p50_ms": 250.7,
+    "p95_ms": 320.5,
+    "min_ms": 225.1,
+    "max_ms": 320.5,
+    "stdev_ms": 32.4
+   },
+   "diag": {
+    "unsettled": 0,
+    "no_change": 0,
+    "not_open": 0,
+    "not_restored": 1
+   }
+  }
+ },
+ "ipc_roundtrip": {
+  "n": 206,
+  "p50_ms": 22.9,
+  "p95_ms": 33.5,
+  "min_ms": 19.3,
+  "max_ms": 79.8,
+  "stdev_ms": 6.5
+ },
+ "grim_capture": {
+  "n": 468,
+  "p50_ms": 48.3,
+  "p95_ms": 54.9,
+  "min_ms": 38.0,
+  "max_ms": 87.6,
+  "stdev_ms": 6.6
+ },
+ "shell_start_configuration_loaded": {
+  "n": 20,
+  "p50_ms": 1053.2,
+  "p95_ms": 1104.1,
+  "min_ms": 953.4,
+  "max_ms": 1354.2,
+  "stdev_ms": 83.7
+ },
+ "shell_start_ready": {
+  "n": 20,
+  "p50_ms": 1804.7,
+  "p95_ms": 1938.5,
+  "min_ms": 1740.5,
+  "max_ms": 2140.6,
+  "stdev_ms": 91.2
+ },
+ "soak": {
+  "cycles": 40,
+  "surfaces": [
+   "hardware",
+   "display",
+   "clipboard",
+   "keyboards",
+   "wallpapermanager",
+   "overview",
+   "calendar"
+  ],
+  "samples": [
+   {
+    "cycle": 0,
+    "pss_mib": 456.1,
+    "rss_mib": 542.2,
+    "threads": 49,
+    "fds": 113,
+    "cpu_s": 1.53,
+    "descendants": 1,
+    "descendant_cmds": [
+     "dbus-monitor"
+    ]
+   },
+   {
+    "cycle": 10,
+    "pss_mib": 459.0,
+    "rss_mib": 545.9,
+    "threads": 49,
+    "fds": 113,
+    "cpu_s": 5.78,
+    "descendants": 1,
+    "descendant_cmds": [
+     "dbus-monitor"
+    ]
+   },
+   {
+    "cycle": 20,
+    "pss_mib": 459.2,
+    "rss_mib": 545.7,
+    "threads": 49,
+    "fds": 113,
+    "cpu_s": 9.92,
+    "descendants": 1,
+    "descendant_cmds": [
+     "dbus-monitor"
+    ]
+   },
+   {
+    "cycle": 30,
+    "pss_mib": 459.4,
+    "rss_mib": 546.1,
+    "threads": 49,
+    "fds": 113,
+    "cpu_s": 13.97,
+    "descendants": 1,
+    "descendant_cmds": [
+     "dbus-monitor"
+    ]
+   },
+   {
+    "cycle": 40,
+    "pss_mib": 459.4,
+    "rss_mib": 546.3,
+    "threads": 49,
+    "fds": 113,
+    "cpu_s": 17.97,
+    "descendants": 1,
+    "descendant_cmds": [
+     "dbus-monitor"
+    ]
+   }
+  ],
+  "state_failures": [],
+  "new_qml_warnings": 647,
+  "new_qml_warning_classes": {
+   "harness": 442,
+   "historical": 205,
+   "other": 0
+  },
+  "new_qml_warning_kinds": {
+   "WARN: Process failed to start, likely because the binary could not be found. Command: QList(\"/tmp/czfswyuNja/home/.local/bin/cortetsu-hardware-probe\", \"--top-pr": 80,
+   "WARN qml: Hardware Center: probe returned no reading": 2,
+   "WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputvN::disableSurface(wl_surface*) Trying to disable N but N is focused": 205,
+   "WARN: Process failed to start, likely because the binary could not be found. Command: QList(\"/tmp/czfswyuNja/home/.local/bin/cortetsu-display-probe\")": 80,
+   ": Read of /tmp/czfswyuNja/home/.config/clipse/clipboard_history.json failed: File does not exist.": 80,
+   "WARN: Process failed to start, likely because the binary could not be found. Command: QList(\"/tmp/czfswyuNja/home/.local/bin/cortetsu-keybinds\", \"bindings\")": 40,
+   "WARN: Process failed to start, likely because the binary could not be found. Command: QList(\"/tmp/czfswyuNja/home/.local/bin/cortetsu-keybinds\", \"keys\")": 40,
+   "WARN: Process failed to start, likely because the binary could not be found. Command: QList(\"/tmp/czfswyuNja/home/.local/bin/cortetsu-keybinds\", \"watch\")": 40,
+   "WARN: Process failed to start, likely because the binary could not be found. Command: QList(\"/tmp/czfswyuNja/home/.local/bin/cortetsu-calendar\", \"sync\")": 80
+  }
+ },
+ "qml_startup_warning_kinds": [
+  ": Read of N failed: File does not exist.",
+  "ERROR quickshell.service.pipewire.loop: Failed to connect pipewire context. Errno: N",
+  "WARN qml: Hardware Center: probe returned no reading",
+  "WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputvN::disableSurface(wl_surface*) Trying to disable N but N is focused",
+  "WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputvN::enableSurface(wl_surface*) Trying to enable N but N has focus",
+  "WARN quickshell.io.fileview: got operation finished from dropped operation qs::io::FileViewOperation(N)",
+  "WARN: Could not load icon \"application-x-executable?fallback=image-missing\" at size QSize(N, N) from request",
+  "WARN: Process failed to start, likely because the binary could not be found. Command: QList(\"N",
+  "WARN: Process failed to start, likely because the binary could not be found. Command: QList(\"N \"--top-processes\", \"N\")",
+  "WARN: Process failed to start, likely because the binary could not be found. Command: QList(\"N \"bindings\")",
+  "WARN: Process failed to start, likely because the binary could not be found. Command: QList(\"N \"daemon\")",
+  "WARN: Process failed to start, likely because the binary could not be found. Command: QList(\"N \"keys\")",
+  "WARN: Process failed to start, likely because the binary could not be found. Command: QList(\"N \"list\")",
+  "WARN: Process failed to start, likely because the binary could not be found. Command: QList(\"N \"status\")",
+  "WARN: Process failed to start, likely because the binary could not be found. Command: QList(\"N \"sync\")",
+  "WARN: Process failed to start, likely because the binary could not be found. Command: QList(\"N \"watch\")",
+  "WARN: Process failed to start, likely because the binary could not be found. Command: QList(\"cortetsu-gamemode\", \"status\")"
+ ],
+ "stub_calls": {
+  "brightnessctl": 21,
+  "busctl": 79,
+  "nmcli": 128,
+  "notify-send": 21,
+  "systemd-inhibit": 21
+ },
+ "hyprctl_binds_count": 186,
+ "cleanup": {
+  "leftover_pids_after_stop": [],
+  "runtime_dir_removed": true
+ }
+}

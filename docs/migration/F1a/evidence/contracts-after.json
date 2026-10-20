@@ -1,0 +1,2245 @@
+{
+ "checkout": "/home/dilan/Documentos/GitHub/Cortetsu",
+ "date": "2026-10-20T11:58:58-0600",
+ "monitors": {
+  "client": "WAYLAND-1",
+  "m1": "HEADLESS-1",
+  "m2": "HEADLESS-2"
+ },
+ "checks": [
+  {
+   "scenario": "open-escape",
+   "check": "hardware@HEADLESS-1 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "hardware@HEADLESS-1 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "hardware@HEADLESS-1 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "hardware@HEADLESS-1 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "hardware@HEADLESS-1 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "hardware@HEADLESS-2 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "hardware@HEADLESS-2 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "hardware@HEADLESS-2 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "hardware"
+    ]
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "hardware@HEADLESS-2 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "hardware@HEADLESS-2 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "display@HEADLESS-1 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "display@HEADLESS-1 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "display@HEADLESS-1 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "displayManager"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "display@HEADLESS-1 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "display@HEADLESS-1 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "display@HEADLESS-2 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "display@HEADLESS-2 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "display@HEADLESS-2 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "displayManager"
+    ]
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "display@HEADLESS-2 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "display@HEADLESS-2 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "clipboard@HEADLESS-1 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "clipboard@HEADLESS-1 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "clipboard@HEADLESS-1 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "clipboard"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "clipboard@HEADLESS-1 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "clipboard@HEADLESS-1 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "clipboard@HEADLESS-2 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "clipboard@HEADLESS-2 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "clipboard@HEADLESS-2 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "clipboard"
+    ]
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "clipboard@HEADLESS-2 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "clipboard@HEADLESS-2 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "keyboards@HEADLESS-1 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "keyboards@HEADLESS-1 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "keyboards@HEADLESS-1 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "keyboards"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "keyboards@HEADLESS-1 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "keyboards@HEADLESS-1 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "keyboards@HEADLESS-2 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "keyboards@HEADLESS-2 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "keyboards@HEADLESS-2 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "keyboards"
+    ]
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "keyboards@HEADLESS-2 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "keyboards@HEADLESS-2 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "wallpapermanager@HEADLESS-1 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "wallpapermanager@HEADLESS-1 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "wallpapermanager@HEADLESS-1 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "wallpaperManager"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "wallpapermanager@HEADLESS-1 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "wallpapermanager@HEADLESS-1 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "wallpapermanager@HEADLESS-2 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "wallpapermanager@HEADLESS-2 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "wallpapermanager@HEADLESS-2 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "wallpaperManager"
+    ]
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "wallpapermanager@HEADLESS-2 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "wallpapermanager@HEADLESS-2 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "overview@HEADLESS-1 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "overview@HEADLESS-1 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "overview@HEADLESS-1 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "overview"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "overview@HEADLESS-1 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "overview@HEADLESS-1 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "overview@HEADLESS-2 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "overview@HEADLESS-2 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "overview@HEADLESS-2 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "overview"
+    ]
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "overview@HEADLESS-2 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "overview@HEADLESS-2 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "calendar@HEADLESS-1 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "calendar@HEADLESS-1 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "calendar@HEADLESS-1 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "calendar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "calendar@HEADLESS-1 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "calendar@HEADLESS-1 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "calendar@HEADLESS-2 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "calendar@HEADLESS-2 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "calendar@HEADLESS-2 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "calendar"
+    ]
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "calendar@HEADLESS-2 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "calendar@HEADLESS-2 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "exclusive",
+   "check": "hardware then display, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "displayManager"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "hardware then display, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "displayManager"
+    ]
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "hardware then clipboard, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "clipboard"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "hardware then clipboard, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "clipboard"
+    ]
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "hardware then keyboards, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "keyboards"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "hardware then keyboards, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "keyboards"
+    ]
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "hardware then wallpapermanager, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "wallpaperManager"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "hardware then wallpapermanager, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "wallpaperManager"
+    ]
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "hardware then overview, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "overview"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "hardware then overview, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "overview"
+    ]
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "hardware then calendar, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "calendar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "hardware then calendar, other screen",
+   "result": "FAIL",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware"
+    ],
+    "HEADLESS-2": [
+     "calendar"
+    ]
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "display then hardware, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "display then hardware, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "hardware"
+    ]
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "display then clipboard, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "clipboard"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "display then clipboard, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "clipboard"
+    ]
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "display then keyboards, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "keyboards"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "display then keyboards, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "keyboards"
+    ]
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "display then wallpapermanager, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "wallpaperManager"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "display then wallpapermanager, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "wallpaperManager"
+    ]
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "display then overview, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "overview"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "display then overview, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "overview"
+    ]
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "display then calendar, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "calendar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "display then calendar, other screen",
+   "result": "FAIL",
+   "seen": {
+    "HEADLESS-1": [
+     "displayManager"
+    ],
+    "HEADLESS-2": [
+     "calendar"
+    ]
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "clipboard then hardware, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "clipboard then hardware, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "hardware"
+    ]
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "clipboard then display, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "displayManager"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "clipboard then display, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "displayManager"
+    ]
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "clipboard then keyboards, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "keyboards"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "clipboard then keyboards, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "keyboards"
+    ]
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "clipboard then wallpapermanager, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "wallpaperManager"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "clipboard then wallpapermanager, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "wallpaperManager"
+    ]
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "clipboard then overview, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "overview"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "clipboard then overview, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "overview"
+    ]
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "clipboard then calendar, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "calendar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "clipboard then calendar, other screen",
+   "result": "FAIL",
+   "seen": {
+    "HEADLESS-1": [
+     "clipboard"
+    ],
+    "HEADLESS-2": [
+     "calendar"
+    ]
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "keyboards then hardware, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "keyboards then hardware, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "hardware"
+    ]
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "keyboards then display, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "displayManager"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "keyboards then display, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "displayManager"
+    ]
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "keyboards then clipboard, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "clipboard"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "keyboards then clipboard, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "clipboard"
+    ]
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "keyboards then wallpapermanager, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "wallpaperManager"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "keyboards then wallpapermanager, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "wallpaperManager"
+    ]
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "keyboards then overview, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "overview"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "keyboards then overview, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "overview"
+    ]
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "keyboards then calendar, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "calendar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "keyboards then calendar, other screen",
+   "result": "FAIL",
+   "seen": {
+    "HEADLESS-1": [
+     "keyboards"
+    ],
+    "HEADLESS-2": [
+     "calendar"
+    ]
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "wallpapermanager then hardware, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "wallpapermanager then hardware, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "hardware"
+    ]
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "wallpapermanager then display, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "displayManager"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "wallpapermanager then display, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "displayManager"
+    ]
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "wallpapermanager then clipboard, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "clipboard"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "wallpapermanager then clipboard, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "clipboard"
+    ]
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "wallpapermanager then keyboards, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "keyboards"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "wallpapermanager then keyboards, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "keyboards"
+    ]
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "wallpapermanager then overview, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "overview"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "wallpapermanager then overview, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "overview"
+    ]
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "wallpapermanager then calendar, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "calendar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "wallpapermanager then calendar, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "calendar"
+    ]
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "overview then hardware, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "overview then hardware, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "hardware"
+    ]
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "overview then display, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "displayManager"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "overview then display, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "displayManager"
+    ]
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "overview then clipboard, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "clipboard"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "overview then clipboard, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "clipboard"
+    ]
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "overview then keyboards, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "keyboards"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "overview then keyboards, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "keyboards"
+    ]
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "overview then wallpapermanager, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "wallpaperManager"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "overview then wallpapermanager, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "wallpaperManager"
+    ]
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "overview then calendar, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "calendar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "overview then calendar, other screen",
+   "result": "FAIL",
+   "seen": {
+    "HEADLESS-1": [
+     "overview"
+    ],
+    "HEADLESS-2": [
+     "calendar"
+    ]
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "calendar then hardware, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "calendar then hardware, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "hardware"
+    ]
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "calendar then display, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "displayManager"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "calendar then display, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "displayManager"
+    ]
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "calendar then clipboard, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "clipboard"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "calendar then clipboard, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "clipboard"
+    ]
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "calendar then keyboards, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "keyboards"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "calendar then keyboards, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "keyboards"
+    ]
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "calendar then wallpapermanager, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "wallpaperManager"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "calendar then wallpapermanager, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "wallpaperManager"
+    ]
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "calendar then overview, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "overview"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "exclusive",
+   "check": "calendar then overview, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "overview"
+    ]
+   }
+  },
+  {
+   "scenario": "cross-kind",
+   "check": "hardware then drawers toggle launcher",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "launcher"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "cross-kind",
+   "check": "drawers toggle launcher then hardware",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "cross-kind",
+   "check": "hardware then drawers toggle session",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "session"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "cross-kind",
+   "check": "drawers toggle session then hardware",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "cross-kind",
+   "check": "hardware then drawers toggle dashboard",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "dashboard"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "cross-kind",
+   "check": "drawers toggle dashboard then hardware",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "cross-kind",
+   "check": "hardware then drawers toggle utilities",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "utilities"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "cross-kind",
+   "check": "drawers toggle utilities then hardware",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "cross-kind",
+   "check": "hardware then drawers toggle settings",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "settings"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "cross-kind",
+   "check": "drawers toggle settings then hardware",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "cross-kind",
+   "check": "hardware then drawers toggle sidebar",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar",
+     "hardware"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "cross-kind",
+   "check": "drawers toggle sidebar then hardware",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "cross-kind",
+   "check": "hardware then drawers toggle osd",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware",
+     "osd"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "cross-kind",
+   "check": "drawers toggle osd then hardware",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware",
+     "osd"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "wallpaper",
+   "check": "wallpaper then hardware on the other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "hardware"
+    ]
+   }
+  },
+  {
+   "scenario": "wallpaper",
+   "check": "wallpaper then overview on the other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "overview"
+    ]
+   }
+  },
+  {
+   "scenario": "wallpaper",
+   "check": "sidebar closes the wallpaper manager",
+   "result": "FAIL",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "monitor",
+   "check": "toggle from the other screen closes it",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "monitor",
+   "check": "open on the newly focused screen moves it",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "hardware"
+    ]
+   }
+  },
+  {
+   "scenario": "monitor",
+   "check": "overview toggle from the other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "overview"
+    ]
+   }
+  },
+  {
+   "scenario": "shortcut",
+   "check": "SUPER+CTRL+K opens keyboards",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "keyboards"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "shortcut",
+   "check": "SUPER+CTRL+K closes keyboards",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "shortcut",
+   "check": "SUPER+CTRL+K keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "shortcut",
+   "check": "SUPER+H opens hardware",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "shortcut",
+   "check": "SUPER+H closes hardware",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "shortcut",
+   "check": "SUPER+H keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "outside-click",
+   "check": "hardware after a click at the screen edge",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "outside-click",
+   "check": "clipboard after a click at the screen edge",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "outside-click",
+   "check": "calendar after a click at the screen edge",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "calendar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "fullscreen",
+   "check": "fullscreen closes the retained surface",
+   "result": "PASS",
+   "seen": {
+    "client_fullscreen": true,
+    "hardware_open": false
+   }
+  },
+  {
+   "scenario": "names",
+   "check": "drawers list",
+   "result": "PASS",
+   "seen": [
+    "bar",
+    "calendar",
+    "clipboard",
+    "dashboard",
+    "displayManager",
+    "hardware",
+    "keyboards",
+    "launcher",
+    "osd",
+    "overview",
+    "session",
+    "settings",
+    "sidebar",
+    "utilities",
+    "wallpaperManager"
+   ]
+  },
+  {
+   "scenario": "names",
+   "check": "drawers isOpen bogus",
+   "result": "PASS",
+   "seen": "unknown"
+  },
+  {
+   "scenario": "names",
+   "check": "drawers toggle bogus leaves every flag closed",
+   "result": "PASS",
+   "seen": {
+    "rc": 0,
+    "stderr": ""
+   }
+  },
+  {
+   "scenario": "names",
+   "check": "drawers isOpen retainedOverlayOpen",
+   "result": "PASS",
+   "seen": "unknown"
+  },
+  {
+   "scenario": "names",
+   "check": "drawers toggle retainedOverlayOpen leaves every flag closed",
+   "result": "PASS",
+   "seen": {
+    "rc": 0,
+    "stderr": ""
+   }
+  },
+  {
+   "scenario": "names",
+   "check": "drawers isOpen requiresFullInputMask",
+   "result": "PASS",
+   "seen": "unknown"
+  },
+  {
+   "scenario": "names",
+   "check": "drawers toggle requiresFullInputMask leaves every flag closed",
+   "result": "PASS",
+   "seen": {
+    "rc": 0,
+    "stderr": ""
+   }
+  },
+  {
+   "scenario": "names",
+   "check": "drawers isOpen dashboardTab",
+   "result": "PASS",
+   "seen": "unknown"
+  },
+  {
+   "scenario": "names",
+   "check": "drawers toggle dashboardTab leaves every flag closed",
+   "result": "PASS",
+   "seen": {
+    "rc": 0,
+    "stderr": ""
+   }
+  },
+  {
+   "scenario": "final",
+   "check": "every flag closed on every screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "final",
+   "check": "keyboard in the client",
+   "result": "PASS",
+   "seen": ""
+  }
+ ],
+ "qml_warnings_startup": [
+  " ERROR quickshell.service.pipewire.loop: Failed to connect pipewire context. Errno: 112",
+  "  WARN: Could not load icon \"application-x-executable?fallback=image-missing\" at size QSize(52, 52) from request",
+  "  WARN quickshell.io.fileview: got operation finished from dropped operation qs::io::FileViewOperation(0x7f21e3d794c0)",
+  "  WARN quickshell.io.fileview: got operation finished from dropped operation qs::io::FileViewOperation(0x7f21df8627e0)",
+  "  WARN scene: @services/GameMode.qml[68:-1]: Error: Cannot assign [undefined] to QString",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def62a00 but 0x0 is focused",
+  "  WARN: Could not load icon \"cortetsu-probe?fallback=image-missing\" at size QSize(100, 100) from request",
+  " ERROR quickshell.wayland.buffer.dmabuf: Failed to query render formats: No GL context.",
+  "  WARN quickshell.wayland.buffer: Render format initialization failed. All buffers will fall back to SHM.",
+  "  WARN: Could not load icon \"cortetsu-probe?fallback=image-missing\" at size QSize(64, 64) from request"
+ ],
+ "qml_warnings_during_run": [
+  "  WARN qml: Hardware Center: probe returned no reading",
+  "  WARN qml: Hardware Center: probe returned no reading",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qml: Hardware Center: probe returned no reading",
+  "  WARN qml: Hardware Center: probe returned no reading",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::enableSurface(wl_surface*) Trying to enable 0x7f21dcdf94e0 but 0x7f21dcddb280 has focus",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x7f21dcdf94e0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def4b340 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def4b340 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x7f21dcdf94e0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x7f21dcdf94e0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x7f21dcdf94e0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x7f21dcdf94e0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x7f21dcdf94e0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x7f21dcdf94e0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x7f21dcddb280 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x7f21dcddb280 is focused",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::enableSurface(wl_surface*) Trying to enable 0x7f21dcddb280 but 0x7f21dcddb280 has focus",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x7f21dcddb280 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x7f21dcddb280 is focused",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::enableSurface(wl_surface*) Trying to enable 0x7f21dcddb280 but 0x7f21dcddb280 has focus",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x7f21dcddb280 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x7f21dcddb280 is focused",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::enableSurface(wl_surface*) Trying to enable 0x7f21dcddb280 but 0x7f21dcddb280 has focus",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x7f21dcddb280 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x7f21dcddb280 is focused",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::enableSurface(wl_surface*) Trying to enable 0x7f21dcddb280 but 0x7f21dcddb280 has focus",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x0 is focused",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x7f21dcddb280 is focused",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::enableSurface(wl_surface*) Trying to enable 0x7f21dcddb280 but 0x7f21dcddb280 has focus",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x7f21dcddb280 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x7f21dcddb280 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x7f21dcddb280 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x7f21dcddb280 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x7f21dcdf94e0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x7f21dcdf94e0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x7f21dcdf94e0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x7f21dcdf94e0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x7f21dcdf94e0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x7f21dcdf94e0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x7f21dcddb280 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x7f21dcddb280 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x7f21dcddb280 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x7f21dcdf94e0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x7f21dcdf94e0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x7f21dcdf94e0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x7f21dcdf94e0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x7f21dcdf94e0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x7f21dcdf94e0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x7f21dcdf94e0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x7f21dcdf94e0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x7f21dcdf94e0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdc2ea0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::enableSurface(wl_surface*) Trying to enable 0x7f21dcdc2ea0 but 0x7f21dcdc2ea0 has focus",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdcf620 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdcf620 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdcf620 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21defa3240 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21defa3240 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x7f21dcdc2ea0 is focused",
+  "  WARN: Could not load icon \"org.quickshell?fallback=image-missing\" at size QSize(100, 100) from request",
+  "  WARN: Could not load icon \"org.quickshell?fallback=image-missing\" at size QSize(64, 64) from request",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21def42100 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdf94e0 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x7f21dcdc2ea0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcddb280 but 0x7f21dcdc2ea0 is focused",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czfkhdt4h69/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::enableSurface(wl_surface*) Trying to enable 0x7f21dcddb280 but 0x7f21dcdc2ea0 has focus",
+  "  WARN qml: Hardware Center: probe returned no reading",
+  "  WARN qml: Hardware Center: probe returned no reading",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f21dcdda020 but 0x0 is focused"
+ ],
+ "leftover_pids": [],
+ "runtime_dir_removed": true
+}

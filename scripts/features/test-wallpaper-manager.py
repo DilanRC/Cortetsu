@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 from pathlib import Path
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import surface_registry  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 MODULES = ROOT / "cortetsu/modules"
@@ -75,10 +78,11 @@ assert "OverlayPolicy.hasCompetingPanel" in wrapper and "closeCompetingPanels();
 
 # One policy covers both orders, including notification/sidebar and all retained overlays.
 for other in ("launcher", "session", "dashboard", "utilities", "sidebar", "overview", "clipboard", "hardware", "displayManager", "wallpaperManager"):
-    assert other in policy, f"policy does not exclude {other}"
+    assert other in surface_registry.group("exclusive"), f"policy does not exclude {other}"
+assert "closeFlags(state, Surfaces.exclusive)" in policy
 for controller_file in ("OverviewController.qml", "ClipboardController.qml", "HardwareController.qml", "DisplayController.qml"):
     controller = (MODULES / controller_file).read_text(encoding="utf-8")
-assert "OverlayPolicy.closeOtherPanels" in controller and "for (const screen of CortetsuScreens.screens)" in controller
+    assert "OverlayPolicy.closeOtherPanels" in controller and "for (const screen of CortetsuScreens.screens)" in controller, controller_file
 assert "OverlayPolicy.closeForWallpaper" in wallpaper_controller and "for (const screen of CortetsuScreens.screens)" in wallpaper_controller
 assert "OverlayPolicy.closeOtherPanels(state);" in hub
 assert "toggleSidebarFor" in hub and "state.sidebar = !wasOpen;" in hub
