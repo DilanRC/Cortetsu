@@ -1,0 +1,268 @@
+{
+ "date": "2026-10-20T08:59:30-0600",
+ "window_s": 120.0,
+ "dgpu_end": {
+  "0000:01:00.0": "suspended",
+  "0000:01:00.1": "suspended"
+ },
+ "runs": [
+  {
+   "elapsed_s": 120.0,
+   "loadavg_end": [
+    "2.81",
+    "3.85",
+    "3.75"
+   ],
+   "units": {
+    "cortetsu-shell.service": {
+     "cpu_s": 0.435,
+     "cpu_pct_one_core": 0.36,
+     "memory_current_mib": 165.8,
+     "pids_seen": 6,
+     "pids_resident_end": 6,
+     "transient_pids": 0,
+     "procs": {
+      "2041": {
+       "rss_mib": 151.4,
+       "pss_mib": 134.3,
+       "comm": "qs"
+      },
+      "2134": {
+       "rss_mib": 2.4,
+       "pss_mib": 0.0,
+       "comm": "dbus-monitor"
+      },
+      "2144": {
+       "rss_mib": 4.8,
+       "pss_mib": 1.1,
+       "comm": "nmcli"
+      },
+      "2159": {
+       "rss_mib": 2.9,
+       "pss_mib": 0.1,
+       "comm": "systemd-inhibit"
+      },
+      "2160": {
+       "rss_mib": 8.1,
+       "pss_mib": 3.5,
+       "comm": "python3"
+      },
+      "2219": {
+       "rss_mib": 2.4,
+       "pss_mib": 0.0,
+       "comm": "sleep"
+      }
+     },
+     "main_pid": "2041",
+     "started": "Mon 2026-10-19 22:19:36 CST"
+    },
+    "cortetsu-power-auto.service": {
+     "cpu_s": 0.068,
+     "cpu_pct_one_core": 0.06,
+     "memory_current_mib": 6.4,
+     "pids_seen": 1,
+     "pids_resident_end": 1,
+     "transient_pids": 0,
+     "procs": {
+      "935": {
+       "rss_mib": 8.7,
+       "pss_mib": 3.8,
+       "comm": "python3"
+      }
+     },
+     "main_pid": "935",
+     "started": "Mon 2026-10-19 22:19:28 CST"
+    },
+    "cortetsu-wallpaper-color.service": {
+     "cpu_s": 0.318,
+     "cpu_pct_one_core": 0.27,
+     "memory_current_mib": 32.3,
+     "pids_seen": 1,
+     "pids_resident_end": 1,
+     "transient_pids": 0,
+     "procs": {
+      "2042": {
+       "rss_mib": 14.0,
+       "pss_mib": 6.6,
+       "comm": "python3"
+      }
+     },
+     "main_pid": "2042",
+     "started": "Mon 2026-10-19 22:19:36 CST"
+    }
+   }
+  },
+  {
+   "elapsed_s": 120.0,
+   "loadavg_end": [
+    "2.14",
+    "3.26",
+    "3.54"
+   ],
+   "units": {
+    "cortetsu-shell.service": {
+     "cpu_s": 0.416,
+     "cpu_pct_one_core": 0.35,
+     "memory_current_mib": 165.8,
+     "pids_seen": 6,
+     "pids_resident_end": 6,
+     "transient_pids": 0,
+     "procs": {
+      "2041": {
+       "rss_mib": 151.5,
+       "pss_mib": 134.3,
+       "comm": "qs"
+      },
+      "2134": {
+       "rss_mib": 2.4,
+       "pss_mib": 0.0,
+       "comm": "dbus-monitor"
+      },
+      "2144": {
+       "rss_mib": 4.8,
+       "pss_mib": 1.1,
+       "comm": "nmcli"
+      },
+      "2159": {
+       "rss_mib": 2.9,
+       "pss_mib": 0.1,
+       "comm": "systemd-inhibit"
+      },
+      "2160": {
+       "rss_mib": 8.1,
+       "pss_mib": 3.5,
+       "comm": "python3"
+      },
+      "2219": {
+       "rss_mib": 2.4,
+       "pss_mib": 0.0,
+       "comm": "sleep"
+      }
+     },
+     "main_pid": "2041",
+     "started": "Mon 2026-10-19 22:19:36 CST"
+    },
+    "cortetsu-power-auto.service": {
+     "cpu_s": 0.065,
+     "cpu_pct_one_core": 0.05,
+     "memory_current_mib": 6.4,
+     "pids_seen": 1,
+     "pids_resident_end": 1,
+     "transient_pids": 0,
+     "procs": {
+      "935": {
+       "rss_mib": 8.7,
+       "pss_mib": 3.8,
+       "comm": "python3"
+      }
+     },
+     "main_pid": "935",
+     "started": "Mon 2026-10-19 22:19:28 CST"
+    },
+    "cortetsu-wallpaper-color.service": {
+     "cpu_s": 1.337,
+     "cpu_pct_one_core": 1.11,
+     "memory_current_mib": 33.5,
+     "pids_seen": 5,
+     "pids_resident_end": 1,
+     "transient_pids": 4,
+     "procs": {
+      "2042": {
+       "rss_mib": 14.0,
+       "pss_mib": 6.6,
+       "comm": "python3"
+      }
+     },
+     "main_pid": "2042",
+     "started": "Mon 2026-10-19 22:19:36 CST"
+    }
+   }
+  },
+  {
+   "elapsed_s": 120.0,
+   "loadavg_end": [
+    "2.79",
+    "3.18",
+    "3.48"
+   ],
+   "units": {
+    "cortetsu-shell.service": {
+     "cpu_s": 0.537,
+     "cpu_pct_one_core": 0.45,
+     "memory_current_mib": 167.4,
+     "pids_seen": 6,
+     "pids_resident_end": 6,
+     "transient_pids": 0,
+     "procs": {
+      "2041": {
+       "rss_mib": 151.9,
+       "pss_mib": 134.3,
+       "comm": "qs"
+      },
+      "2134": {
+       "rss_mib": 2.4,
+       "pss_mib": 0.0,
+       "comm": "dbus-monitor"
+      },
+      "2144": {
+       "rss_mib": 4.8,
+       "pss_mib": 1.1,
+       "comm": "nmcli"
+      },
+      "2159": {
+       "rss_mib": 2.9,
+       "pss_mib": 0.1,
+       "comm": "systemd-inhibit"
+      },
+      "2160": {
+       "rss_mib": 8.1,
+       "pss_mib": 3.5,
+       "comm": "python3"
+      },
+      "2219": {
+       "rss_mib": 2.4,
+       "pss_mib": 0.0,
+       "comm": "sleep"
+      }
+     },
+     "main_pid": "2041",
+     "started": "Mon 2026-10-19 22:19:36 CST"
+    },
+    "cortetsu-power-auto.service": {
+     "cpu_s": 0.071,
+     "cpu_pct_one_core": 0.06,
+     "memory_current_mib": 6.6,
+     "pids_seen": 1,
+     "pids_resident_end": 1,
+     "transient_pids": 0,
+     "procs": {
+      "935": {
+       "rss_mib": 8.7,
+       "pss_mib": 3.8,
+       "comm": "python3"
+      }
+     },
+     "main_pid": "935",
+     "started": "Mon 2026-10-19 22:19:28 CST"
+    },
+    "cortetsu-wallpaper-color.service": {
+     "cpu_s": 0.34,
+     "cpu_pct_one_core": 0.28,
+     "memory_current_mib": 33.8,
+     "pids_seen": 1,
+     "pids_resident_end": 1,
+     "transient_pids": 0,
+     "procs": {
+      "2042": {
+       "rss_mib": 14.0,
+       "pss_mib": 6.6,
+       "comm": "python3"
+      }
+     },
+     "main_pid": "2042",
+     "started": "Mon 2026-10-19 22:19:36 CST"
+    }
+   }
+  }
+ ]
+}

@@ -135,3 +135,22 @@ deletable and conflict-free, then sends their evdev codes with `vinput` in a
 nested Hyprland using the latam layout (`VINPUT_LAYOUT=latam`; `vinput.c`
 defaults to `us`). Copilot must not fire the launcher's Super-release bind;
 plain `F23` and `Shift+F23` must fire nothing.
+
+# Nested windows on one workspace
+
+```sh
+python3 scripts/integration/ws2_run.py [--workspace 2] LOG -- python3 scripts/integration/test-launcher-dismiss.py
+```
+
+Runs any command with a `Hyprland` shim first on `PATH`: each nested
+compositor is spawned by the desktop's own Hyprland with the exec rule
+`workspace = "<N> silent"`, so it is born on that workspace without moving
+focus, ahead of window rules. Nothing is added to the desktop config.
+
+`Session` keeps `XDG_RUNTIME_DIR` in a short `/tmp/czr…` directory of its own:
+Hyprland's socket path must fit in `sun_path` (107 bytes) or Quickshell cannot
+reach its IPC and QML sees no monitors. `start()` asserts both sockets exist.
+
+`f0_session.py` (`F0Session`) adds stubs for every host command the shell
+could run (`systemctl`, `nmcli`, `busctl`, `brightnessctl`, every
+`cortetsu-*`…), logging argv. It backs `docs/migration/F0/tools/nested_bench.py`.

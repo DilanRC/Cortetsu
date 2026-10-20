@@ -1,0 +1,5 @@
+1: 11580 i8042
+48: 1305 xhci_hcd
+50: 0 xhci_hcd
+52: 0 xhci_hcd
+54: 214066 xhci_hcd

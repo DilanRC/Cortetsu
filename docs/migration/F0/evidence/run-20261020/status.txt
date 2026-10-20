@@ -1,0 +1,55 @@
+Cortetsu
+Root: .
+Stage: unified-system-generations
+
+Shell base contract:
+  # Cortetsu base runtime provenance
+
+  This directory is the vendored source baseline used by the Cortetsu runtime
+  builder. It was materialized from the exact `v2.4.0` source revision
+  `24aa15eefdb146350d2548c0a015b04eddbd1008` during the Zero-Caelestia source
+  ownership migration.
+
+  The files are being migrated into Cortetsu-owned modules. Until each file is
+  replaced, its original upstream license and attribution remain part of the
+  source tree. The build must copy this directory only from the repository and
+  must not fetch or use an external checkout.
+
+Git:
+  branch=docs/f0-baseline-2026-10-20
+  revision=0a803e7
+  dirty=yes
+
+Shell generations:
+  root=~/.config/quickshell/cortetsu
+  current=~/.local/share/cortetsu/builds/20261017-160736-98327
+  current_build_id=20261017-160736-98327
+  current_source=Cortetsu@71e13b4e89eea4a3527002dcac3700182701c363
+  current_revision=71e13b4e89eea4a3527002dcac3700182701c363
+  previous=~/.local/share/cortetsu/builds/20261017-154533-53190
+  previous_build_id=20261017-154533-53190
+  previous_source=Cortetsu@e444b4a217da2daf5ec684ba9ddca546c559bcde
+  previous_revision=e444b4a217da2daf5ec684ba9ddca546c559bcde
+  archived_previous=missing
+
+Dotfiles generations:
+  profile=personal
+  current=~/.local/share/cortetsu/dotfiles/builds/20261017-220914-104263-71e13b4e
+  previous=~/.local/share/cortetsu/dotfiles/builds/20261017-214702-57304-e444b4a2
+  managed_targets=40/40
+
+System generations:
+  current=~/.local/share/cortetsu/system/builds/20261017-220915-104304
+  current_shell=~/.local/share/cortetsu/builds/20261017-160736-98327
+  current_dotfiles=~/.local/share/cortetsu/dotfiles/builds/20261017-220914-104263-71e13b4e
+  current_revision=71e13b4e89eea4a3527002dcac3700182701c363
+  previous=~/.local/share/cortetsu/system/builds/20261017-214703-57331
+  previous_shell=~/.local/share/cortetsu/builds/20261017-154533-53190
+  previous_dotfiles=~/.local/share/cortetsu/dotfiles/builds/20261017-214702-57304-e444b4a2
+  previous_revision=e444b4a217da2daf5ec684ba9ddca546c559bcde
+
+Canonical namespace:
+  commands=cortetsu-*
+  config=~/.config/cortetsu
+  state=~/.local/state/cortetsu
+  data=~/.local/share/cortetsu

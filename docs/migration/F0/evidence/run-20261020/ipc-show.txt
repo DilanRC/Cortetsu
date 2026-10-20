@@ -1,0 +1,112 @@
+target customDock
+  function hide(): void
+  function toggle(): void
+  function isShown(): bool
+  function launcher(): void
+  function show(): void
+target cortetsu-shell
+  function reload(): void
+target lock
+  function lock(): void
+  function isLocked(): bool
+target wallpapermanager
+  function toggle(): void
+  function isOpen(): bool
+  function close(): void
+  function open(): void
+target cortetsu-wallpaper
+  function get(): string
+  function set(path: string): void
+  function list(): string
+target gameMode
+  function enable(): void
+  function isEnabled(): bool
+  function recover(): void
+  function toggle(): void
+  function status(): string
+  function disable(): void
+target keepAwake
+  function enable(): void
+  function isEnabled(): bool
+  function toggle(): bool
+  function disable(): void
+target drawers
+  function launcherScreens(): string
+  function toggle(drawer: string): void
+  function isOpen(drawer: string): string
+  function list(): string
+target bottomHub
+  function hide(): void
+  function quickSettings(): void
+  function inspect(): string
+  function notifications(): void
+  function toggle(): void
+  function isShown(): bool
+  function control(mode: string): bool
+  function closeControl(): void
+  function detachedControl(mode: string): bool
+  function launcher(): void
+  function show(): void
+target calendar
+  function toggle(): void
+  function isOpen(): bool
+  function close(): void
+  function open(): void
+target clipboard
+  function toggle(): void
+  function isOpen(): bool
+  function close(): void
+  function open(): void
+target mpris
+  function play(): void
+  function stop(): void
+  function previous(): void
+  function next(): void
+  function playPause(): void
+  function getActive(prop: string): string
+  function pause(): void
+  function list(): string
+target notifs
+  function inspect(): string
+  function disableDnd(): void
+  function toggleDnd(): void
+  function clear(): void
+  function enableDnd(): void
+  function isDndEnabled(): bool
+target keyboards
+  function toggle(): void
+  function isOpen(): bool
+  function close(): void
+  function open(): void
+target hardware
+  function toggle(): void
+  function isOpen(): bool
+  function close(): void
+  function open(): void
+target display
+  function toggle(): void
+  function isOpen(): bool
+  function close(): void
+  function open(): void
+target cortetsu-notifications
+  function dismiss(id: string): void
+  function toggleDnd(): void
+  function clear(): void
+  function count(): int
+  function isDndEnabled(): bool
+target overview
+  function toggle(): void
+  function isOpen(): bool
+  function close(): void
+  function open(): void
+target picker
+  function openFreeze(): void
+  function openFreezeClip(): void
+  function openClip(): void
+  function open(): void
+target brightness
+  function getFor(query: string): real
+  function get(): real
+  function set(value: string): string
+  function status(): string
+  function setFor(query: string, value: string): string

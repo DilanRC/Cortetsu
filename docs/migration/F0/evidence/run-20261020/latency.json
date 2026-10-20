@@ -1,0 +1,131 @@
+{
+ "meta": {
+  "date": "2026-10-20T08:53:29-0600",
+  "kernel": "7.2.10-1-cachyos",
+  "dgpu_before": {
+   "0000:01:00.0": "suspended",
+   "0000:01:00.1": "suspended"
+  },
+  "dgpu_after": {
+   "0000:01:00.0": "suspended",
+   "0000:01:00.1": "suspended"
+  },
+  "state_changed_during_run": [
+   "~/.config/cortetsu/power-auto.json",
+   "~/.local/state/cortetsu/pomodoro-state.lock"
+  ],
+  "governor": "powersave",
+  "power_profile": "balanced",
+  "ac_online": [
+   "0",
+   "1"
+  ],
+  "loadavg_before": [
+   "4.85",
+   "4.49",
+   "3.91"
+  ]
+ },
+ "results": {
+  "python3 -c pass (interpreter floor)": {
+   "n": 30,
+   "p50_ms": 11.0,
+   "p95_ms": 14.3,
+   "min_ms": 8.4,
+   "max_ms": 18.4,
+   "exit_codes": [
+    0
+   ]
+  },
+  "cortetsu-gamemode status": {
+   "n": 30,
+   "p50_ms": 26.9,
+   "p95_ms": 30.3,
+   "min_ms": 22.3,
+   "max_ms": 32.1,
+   "exit_codes": [
+    0
+   ]
+  },
+  "cortetsu-keybinds list (Rust)": {
+   "n": 30,
+   "p50_ms": 2.0,
+   "p95_ms": 2.6,
+   "min_ms": 1.3,
+   "max_ms": 3.1,
+   "exit_codes": [
+    0
+   ]
+  },
+  "cortetsu-scheme list": {
+   "n": 30,
+   "p50_ms": 33.5,
+   "p95_ms": 39.9,
+   "min_ms": 27.7,
+   "max_ms": 41.5,
+   "exit_codes": [
+    0
+   ]
+  },
+  "cortetsu-record status": {
+   "n": 30,
+   "p50_ms": 54.4,
+   "p95_ms": 75.1,
+   "min_ms": 41.2,
+   "max_ms": 81.9,
+   "exit_codes": [
+    1
+   ]
+  },
+  "cortetsu-display-probe": {
+   "n": 30,
+   "p50_ms": 52.5,
+   "p95_ms": 64.8,
+   "min_ms": 48.5,
+   "max_ms": 68.6,
+   "exit_codes": [
+    0
+   ]
+  },
+  "cortetsu-hardware-probe": {
+   "n": 30,
+   "p50_ms": 112.3,
+   "p95_ms": 124.4,
+   "min_ms": 100.4,
+   "max_ms": 132.1,
+   "exit_codes": [
+    0
+   ]
+  },
+  "cortetsu-power-auto-control status": {
+   "n": 30,
+   "p50_ms": 152.3,
+   "p95_ms": 178.6,
+   "min_ms": 142.5,
+   "max_ms": 224.4,
+   "exit_codes": [
+    0
+   ]
+  },
+  "cortetsu status (CLI)": {
+   "n": 30,
+   "p50_ms": 195.9,
+   "p95_ms": 216.2,
+   "min_ms": 180.5,
+   "max_ms": 222.4,
+   "exit_codes": [
+    0
+   ]
+  },
+  "cortetsu system verify (CLI)": {
+   "n": 30,
+   "p50_ms": 64.7,
+   "p95_ms": 76.3,
+   "min_ms": 59.8,
+   "max_ms": 78.7,
+   "exit_codes": [
+    0
+   ]
+  }
+ }
+}
