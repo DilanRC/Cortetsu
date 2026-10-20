@@ -1,5 +1,5 @@
   UNIT                                                LOAD   ACTIVE SUB     DESCRIPTION
-  cortetsu-app-chatgpt-1792469986742370637-3149.scope loaded active running [systemd-run] ~/.local/bin/chatgpt
+  cortetsu-app-<redacted>.scope  loaded active running [systemd-run] <aplicación del usuario, omitida>
   cortetsu-power-auto.service                         loaded active running Cortetsu automatic AC/battery power profiles
   cortetsu-shell.service                              loaded active running Cortetsu Quickshell desktop shell
   cortetsu-wallpaper-color.service                    loaded active running Cortetsu wallpaper colour synchronization

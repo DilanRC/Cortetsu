@@ -21,8 +21,7 @@ Estados posibles: `OPEN` (requiere una decisión), `NOT_TESTED` (no se puede rep
 |---|---|---|
 | H-01 | `launcher_harness.Session` dejaba el QML anidado sin IPC de Hyprland cuando la ruta del socket superaba `sun_path`. `test-bottomhub-hover-close-race.py` pasaba con 5 errores `ServerNotFound` | corregido, con aserción de regresión y mutante (TESTS.md §2) |
 | H-02 | Las ventanas de los compositores anidados se colocaban según la regla personal `cortetsu-nested-tests` (WS 11), no en el WS 2 pedido | `ws2_run.py` (shim de Hyprland), auditado por muestreo (TESTS.md §3) |
-| H-03 | Las pruebas con su propio `XDG_RUNTIME_DIR` largo (`test-hp-keys.py`, `test-clipboard-sensitive-history.py`) siguen truncando el socket | **residual**: no arrancan `qs` y `hyprctl` trunca igual que Hyprland, así que hoy no fallan. Cualquier prueba nueva que arranque QML con ese patrón quedaría ciega. Recomendación para F1: usar `Session` o un runtime corto |
-
+| H-03 | Las pruebas con su propio `XDG_RUNTIME_DIR` largo (`test-hp-keys.py`, `test-clipboard-sensitive-history.py`, `test-keyboards-{scope,probe,capture}.py`) siguen truncando el socket | **residual**: no arrancan `qs` y `hyprctl` trunca igual que Hyprland, así que hoy no fallan. Cualquier prueba nueva que arranque QML con ese patrón quedaría ciega. Recomendación para F1: usar `Session` o un runtime corto |
 | H-04 | Arranque del Hyprland anidado colgado de forma intermitente: se queda en la negociación `zwp_linux_dmabuf_v1` con el escritorio y no crea su socket | **residual**: 2 cuelgues seguidos (2026-10-20, con el juego del WS 3 en pantalla completa y `ai-review` en marcha) y después 6 arranques correctos con las mismas versiones; ninguno en las pasadas completas. Las pruebas lo reportan como FAIL por timeout (20 s), nunca como PASS. Si reaparece en CI local, repetir antes de investigar el código |
 
 ## 3. Decisiones abiertas (bloquean fases posteriores, no F0)

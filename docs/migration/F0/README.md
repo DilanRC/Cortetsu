@@ -1,7 +1,8 @@
 # Cortetsu 2.0 · F0: baseline del sistema actual
 
 **Veredicto: `F0_COMPLETE`.** El inventario, los contratos y el baseline funcional y de rendimiento están medidos sobre `0a803e7`,
-son reproducibles con una sola orden (`tools/reproduce.sh`, rc=0) y el aislamiento está verificado. La sesión anidada visible
+se regeneran con una sola orden (`tools/reproduce.sh`; su rc=0 indica que terminó, no que todo pasó: cada paso guarda
+su resultado y el veredicto sale de `suite.json`, `real-diff.txt` y `baseline.json`) y el aislamiento está verificado. La sesión anidada visible
 en el WS 2 funciona con la interfaz de Cortetsu renderizada, y el escritorio real no cambió. Las pruebas físicas siguen en
 `NOT_TESTED`, clasificadas en RISKS.md §4: el encargo pide expresamente dejarlas pendientes cuando no se pueden reproducir de
 forma segura. F1 no se ha iniciado.

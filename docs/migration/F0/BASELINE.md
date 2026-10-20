@@ -1,6 +1,6 @@
 # F0 · Baseline de rendimiento y metodología
 
-Pasada de referencia: **2026-10-20**, `0a803e7` + esta rama (solo arnés y herramientas), `evidence/run-20261020/` (rc=0),
+Pasada de referencia: **2026-10-20**, `0a803e7` + esta rama (solo arnés y herramientas), `evidence/run-20261020/` (`reproduce.sh` terminó con rc=0; el resultado de cada paso está en sus archivos),
 agregada en `evidence/run-20261020/baseline.json`. Reproducir: `docs/migration/F0/tools/reproduce.sh [<out>]`.
 
 Hay dos entornos, y **sus números no se comparan entre sí**:
