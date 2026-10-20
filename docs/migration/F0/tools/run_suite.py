@@ -9,8 +9,6 @@ repo, lst, out = Path(sys.argv[1]), sys.argv[2], sys.argv[3]
 here = Path(__file__).parent
 EXCLUDE = {"scripts/features/eval-cortetsu-process-launcher.py": "creates a transient scope in the real user systemd manager"}
 snap = lambda: subprocess.run([str(here / "real_snapshot.sh")], capture_output=True, text=True).stdout
-qml_dirs = {"cortetsu/tests/qml/focus", "cortetsu/tests/qml/components", "cortetsu/tests/qml/hardware", "cortetsu/tests/qml/keyboards",
-            "cortetsu/tests/qml/settings", "cortetsu/modules/wallpaper/tests", "cortetsu/tests/qml/bottomhub"}
 entries = [l.strip() for l in open(lst) if l.strip()]
 fixtures = {"cortetsu/tests/qml/bottomhub/fixture_ScriptModelIdentity.qml": "SCRIPT_MODEL_IDENTITY_PASS", "cortetsu/StartupPageFixture.qml": "STARTUP_PAGE_PASS"}
 rows = []
@@ -18,7 +16,8 @@ base = snap()
 for e in entries:
     if e in EXCLUDE:
         rows.append({"test": e, "result": "NOT_RUN", "reason": EXCLUDE[e]}); continue
-    if e in qml_dirs: cmd, env = ["/usr/lib/qt6/bin/qmltestrunner", "-input", str(repo / e)], {"QT_QPA_PLATFORM": "offscreen"}
+    # A directory is a Qt Quick Test suite, as in `run_qml_test` of scripts/cortetsu.
+    if (repo / e).is_dir(): cmd, env = ["/usr/lib/qt6/bin/qmltestrunner", "-input", str(repo / e)], {"QT_QPA_PLATFORM": "offscreen"}
     elif e in fixtures: cmd, env = ["qs", "-p", str(repo / e), "--no-color"], {}
     elif e.endswith(".js"): cmd, env = ["node", str(repo / e)], {}
     elif e.endswith(".sh"): cmd, env = ["bash", str(repo / e)], {}
