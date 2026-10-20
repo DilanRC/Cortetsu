@@ -1,0 +1,7 @@
+boot -4: start@2370.3s loaded_ms=904
+boot -4: start@2388.6s loaded_ms=872
+boot -3: start@19.8s loaded_ms=1127
+boot -2: start@133.3s loaded_ms=1110
+boot -1: start@51.4s loaded_ms=1159
+boot 0: start@20.0s loaded_ms=1142
+n=6 p50=1118.5 p95=1142 min=872 max=1159

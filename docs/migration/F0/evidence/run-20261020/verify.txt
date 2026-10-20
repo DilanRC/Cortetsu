@@ -1,0 +1,1 @@
+PASS: system generation ~/.local/share/cortetsu/system/builds/20261017-220915-104304

@@ -13,6 +13,7 @@ from pathlib import Path
 import shutil
 import signal
 import subprocess
+import tempfile
 import time
 
 from nested_gpu import MESA_ONLY, compositor_env
@@ -104,8 +105,6 @@ class Session:
     def __init__(self, base: Path):
         self.base = base
         self.home = base / "home"
-        self.runtime = base / "run"
-        self.runtime.mkdir(mode=0o700)
         self.logs = base / "logs"
         self.logs.mkdir()
         write_hypr_config(self.home)
@@ -116,6 +115,13 @@ class Session:
         self.launches = base / "launches.log"
         self.write_fixtures()
         self.compositor = self.shell = self.input = self.bus = self.client = None
+        # Hyprland's sockets live at $XDG_RUNTIME_DIR/hypr/<62-char signature>/
+        # .socket2.sock and sun_path holds 107 bytes. A longer path is
+        # truncated: both sockets collapse into ".socket.so", hyprctl still
+        # works, and Quickshell never connects, so QML sees no monitors and no
+        # focus. A short directory of its own keeps any caller's base valid;
+        # created last, so a failed __init__ leaves nothing behind (stop() removes it).
+        self.runtime = Path(tempfile.mkdtemp(prefix="czr", dir="/tmp"))
 
     def write_fixtures(self) -> None:
         """Fixture applications and a launcher stub that only records argv.
@@ -178,6 +184,8 @@ class Session:
                                "socket del Hyprland anidado")
         wait_for(lambda: (self.runtime / "hypr").is_dir() and any((self.runtime / "hypr").iterdir())
                  and self.monitors(), "IPC del Hyprland anidado")
+        sockets = {p.name for p in next((self.runtime / "hypr").iterdir()).iterdir()}
+        assert {".socket.sock", ".socket2.sock"} <= sockets, f"sockets de Hyprland truncados: {sorted(sockets)}"
         for _ in range(outputs - 1):
             self.hyprctl("output", "create", "headless")
         wait_for(lambda: len(self.monitors()) == outputs, f"{outputs} salidas")
@@ -202,6 +210,7 @@ class Session:
                 except subprocess.TimeoutExpired:
                     os.killpg(process.pid, signal.SIGKILL)
         self.sweep()
+        shutil.rmtree(self.runtime, ignore_errors=True)
 
     def sweep(self) -> list[int]:
         """Kill anything still running with this test's runtime directory.

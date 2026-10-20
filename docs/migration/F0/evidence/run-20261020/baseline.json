@@ -1,0 +1,463 @@
+{
+ "preflight": [
+  "## docs/f0-baseline-2026-10-20",
+  " M scripts/integration/launcher_harness.py",
+  "?? docs/migration/",
+  "?? scripts/integration/f0_session.py",
+  "?? scripts/integration/ws2_run.py",
+  "0a803e7d38be342ece302bb1ae94b0d08a0cf88e",
+  "7.2.10-1-cachyos",
+  "hyprland 0.56.2-4.1",
+  "quickshell-git 0.3.2.r0.g4f508be-1",
+  "qt6-base 6.12.0-3",
+  "qt6-declarative 6.12.0-1.1",
+  "kitty 0.49.2-1.1"
+ ],
+ "real_session": {
+  "conditions": {
+   "date": "2026-10-20T08:53:29-0600",
+   "kernel": "7.2.10-1-cachyos",
+   "dgpu_before": {
+    "0000:01:00.0": "suspended",
+    "0000:01:00.1": "suspended"
+   },
+   "dgpu_after": {
+    "0000:01:00.0": "suspended",
+    "0000:01:00.1": "suspended"
+   },
+   "state_changed_during_run": [
+    "~/.config/cortetsu/power-auto.json",
+    "~/.local/state/cortetsu/pomodoro-state.lock"
+   ],
+   "governor": "powersave",
+   "power_profile": "balanced",
+   "ac_online": [
+    "0",
+    "1"
+   ],
+   "loadavg_before": [
+    "4.85",
+    "4.49",
+    "3.91"
+   ]
+  },
+  "helper_latency_ms": {
+   "python3 -c pass (interpreter floor)": {
+    "n": 30,
+    "p50_ms": 11.0,
+    "p95_ms": 14.3,
+    "min_ms": 8.4,
+    "max_ms": 18.4,
+    "exit_codes": [
+     0
+    ]
+   },
+   "cortetsu-gamemode status": {
+    "n": 30,
+    "p50_ms": 26.9,
+    "p95_ms": 30.3,
+    "min_ms": 22.3,
+    "max_ms": 32.1,
+    "exit_codes": [
+     0
+    ]
+   },
+   "cortetsu-keybinds list (Rust)": {
+    "n": 30,
+    "p50_ms": 2.0,
+    "p95_ms": 2.6,
+    "min_ms": 1.3,
+    "max_ms": 3.1,
+    "exit_codes": [
+     0
+    ]
+   },
+   "cortetsu-scheme list": {
+    "n": 30,
+    "p50_ms": 33.5,
+    "p95_ms": 39.9,
+    "min_ms": 27.7,
+    "max_ms": 41.5,
+    "exit_codes": [
+     0
+    ]
+   },
+   "cortetsu-record status": {
+    "n": 30,
+    "p50_ms": 54.4,
+    "p95_ms": 75.1,
+    "min_ms": 41.2,
+    "max_ms": 81.9,
+    "exit_codes": [
+     1
+    ]
+   },
+   "cortetsu-display-probe": {
+    "n": 30,
+    "p50_ms": 52.5,
+    "p95_ms": 64.8,
+    "min_ms": 48.5,
+    "max_ms": 68.6,
+    "exit_codes": [
+     0
+    ]
+   },
+   "cortetsu-hardware-probe": {
+    "n": 30,
+    "p50_ms": 112.3,
+    "p95_ms": 124.4,
+    "min_ms": 100.4,
+    "max_ms": 132.1,
+    "exit_codes": [
+     0
+    ]
+   },
+   "cortetsu-power-auto-control status": {
+    "n": 30,
+    "p50_ms": 152.3,
+    "p95_ms": 178.6,
+    "min_ms": 142.5,
+    "max_ms": 224.4,
+    "exit_codes": [
+     0
+    ]
+   },
+   "cortetsu status (CLI)": {
+    "n": 30,
+    "p50_ms": 195.9,
+    "p95_ms": 216.2,
+    "min_ms": 180.5,
+    "max_ms": 222.4,
+    "exit_codes": [
+     0
+    ]
+   },
+   "cortetsu system verify (CLI)": {
+    "n": 30,
+    "p50_ms": 64.7,
+    "p95_ms": 76.3,
+    "min_ms": 59.8,
+    "max_ms": 78.7,
+    "exit_codes": [
+     0
+    ]
+   }
+  },
+  "resident": {
+   "cortetsu-shell.service": {
+    "windows": 3,
+    "window_s": 120.0,
+    "cpu_pct_one_core_median": 0.36,
+    "cpu_pct_min_max": [
+     0.35,
+     0.45
+    ],
+    "pss_sum_mib_median": 139.0,
+    "transient_pids": [
+     0,
+     0,
+     0
+    ]
+   },
+   "cortetsu-power-auto.service": {
+    "windows": 3,
+    "window_s": 120.0,
+    "cpu_pct_one_core_median": 0.06,
+    "cpu_pct_min_max": [
+     0.05,
+     0.06
+    ],
+    "pss_sum_mib_median": 3.8,
+    "transient_pids": [
+     0,
+     0,
+     0
+    ]
+   },
+   "cortetsu-wallpaper-color.service": {
+    "windows": 3,
+    "window_s": 120.0,
+    "cpu_pct_one_core_median": 0.28,
+    "cpu_pct_min_max": [
+     0.27,
+     1.11
+    ],
+    "pss_sum_mib_median": 6.6,
+    "transient_pids": [
+     0,
+     4,
+     0
+    ]
+   }
+  },
+  "shell_start_journal": "n=6 p50=1118.5 p95=1142 min=872 max=1159"
+ },
+ "suite": {
+  "entries": 183,
+  "by_result": {
+   "PASS": 182,
+   "NOT_RUN": 1
+  },
+  "fail": [],
+  "skip": [],
+  "not_run": [
+   "scripts/features/eval-cortetsu-process-launcher.py"
+  ],
+  "real_session_changed": [],
+  "seconds": 362.5
+ },
+ "nested": {
+  "head": "0a803e7d38be342ece302bb1ae94b0d08a0cf88e",
+  "dirty": true,
+  "monitors": [
+   "WAYLAND-1",
+   "HEADLESS-1",
+   "HEADLESS-2"
+  ],
+  "shell_start_configuration_loaded": {
+   "n": 20,
+   "p50_ms": 1053.7,
+   "p95_ms": 1103.9,
+   "min_ms": 1003.4,
+   "max_ms": 1153.8,
+   "stdev_ms": 29.4
+  },
+  "shell_start_ready": {
+   "n": 20,
+   "p50_ms": 1838.8,
+   "p95_ms": 1893.0,
+   "min_ms": 1803.7,
+   "max_ms": 1906.5,
+   "stdev_ms": 28.8
+  },
+  "surfaces": {
+   "hardware": {
+    "open_first_changed_frame": {
+     "n": 8,
+     "p50_ms": 80.5,
+     "p95_ms": 88.6,
+     "min_ms": 77.8,
+     "max_ms": 88.6,
+     "stdev_ms": 3.5
+    },
+    "close_frame_restored": {
+     "n": 8,
+     "p50_ms": 117.4,
+     "p95_ms": 125.1,
+     "min_ms": 114.2,
+     "max_ms": 125.1,
+     "stdev_ms": 4.1
+    },
+    "diag": {
+     "unsettled": 2,
+     "no_change": 0,
+     "not_open": 0,
+     "not_restored": 0
+    }
+   },
+   "display": {
+    "open_first_changed_frame": {
+     "n": 10,
+     "p50_ms": 80.1,
+     "p95_ms": 82.8,
+     "min_ms": 78.0,
+     "max_ms": 82.8,
+     "stdev_ms": 1.6
+    },
+    "close_frame_restored": {
+     "n": 10,
+     "p50_ms": 78.9,
+     "p95_ms": 84.0,
+     "min_ms": 77.1,
+     "max_ms": 84.0,
+     "stdev_ms": 2.5
+    },
+    "diag": {
+     "unsettled": 0,
+     "no_change": 0,
+     "not_open": 0,
+     "not_restored": 0
+    }
+   },
+   "clipboard": {
+    "open_first_changed_frame": {
+     "n": 10,
+     "p50_ms": 86.2,
+     "p95_ms": 119.2,
+     "min_ms": 81.0,
+     "max_ms": 119.2,
+     "stdev_ms": 11.1
+    },
+    "close_frame_restored": {
+     "n": 10,
+     "p50_ms": 81.3,
+     "p95_ms": 90.0,
+     "min_ms": 77.4,
+     "max_ms": 90.0,
+     "stdev_ms": 4.2
+    },
+    "diag": {
+     "unsettled": 0,
+     "no_change": 0,
+     "not_open": 0,
+     "not_restored": 0
+    }
+   },
+   "keyboards": {
+    "open_first_changed_frame": {
+     "n": 10,
+     "p50_ms": 82.2,
+     "p95_ms": 130.5,
+     "min_ms": 77.9,
+     "max_ms": 130.5,
+     "stdev_ms": 15.7
+    },
+    "close_frame_restored": {
+     "n": 10,
+     "p50_ms": 79.7,
+     "p95_ms": 82.6,
+     "min_ms": 76.9,
+     "max_ms": 82.6,
+     "stdev_ms": 1.7
+    },
+    "diag": {
+     "unsettled": 0,
+     "no_change": 0,
+     "not_open": 0,
+     "not_restored": 0
+    }
+   },
+   "wallpapermanager": {
+    "open_first_changed_frame": {
+     "n": 10,
+     "p50_ms": 91.7,
+     "p95_ms": 134.9,
+     "min_ms": 75.3,
+     "max_ms": 134.9,
+     "stdev_ms": 19.1
+    },
+    "close_frame_restored": {
+     "n": 10,
+     "p50_ms": 280.2,
+     "p95_ms": 295.9,
+     "min_ms": 277.9,
+     "max_ms": 295.9,
+     "stdev_ms": 5.2
+    },
+    "diag": {
+     "unsettled": 0,
+     "no_change": 0,
+     "not_open": 0,
+     "not_restored": 0
+    }
+   },
+   "overview": {
+    "open_first_changed_frame": {
+     "n": 10,
+     "p50_ms": 112.7,
+     "p95_ms": 131.6,
+     "min_ms": 109.8,
+     "max_ms": 131.6,
+     "stdev_ms": 7.5
+    },
+    "close_frame_restored": {
+     "n": 8,
+     "p50_ms": 258.0,
+     "p95_ms": 273.9,
+     "min_ms": 248.5,
+     "max_ms": 273.9,
+     "stdev_ms": 8.8
+    },
+    "diag": {
+     "unsettled": 0,
+     "no_change": 0,
+     "not_open": 0,
+     "not_restored": 2
+    }
+   },
+   "calendar": {
+    "open_first_changed_frame": {
+     "n": 10,
+     "p50_ms": 81.1,
+     "p95_ms": 114.6,
+     "min_ms": 77.8,
+     "max_ms": 114.6,
+     "stdev_ms": 10.9
+    },
+    "close_frame_restored": {
+     "n": 10,
+     "p50_ms": 230.2,
+     "p95_ms": 290.5,
+     "min_ms": 228.1,
+     "max_ms": 290.5,
+     "stdev_ms": 27.0
+    },
+    "diag": {
+     "unsettled": 0,
+     "no_change": 0,
+     "not_open": 0,
+     "not_restored": 0
+    }
+   }
+  },
+  "ipc_roundtrip": {
+   "n": 206,
+   "p50_ms": 24.6,
+   "p95_ms": 33.2,
+   "min_ms": 21.9,
+   "max_ms": 39.4,
+   "stdev_ms": 3.1
+  },
+  "grim_capture": {
+   "n": 460,
+   "p50_ms": 47.9,
+   "p95_ms": 54.8,
+   "min_ms": 38.8,
+   "max_ms": 59.4,
+   "stdev_ms": 5.0
+  },
+  "gamemode": {
+   "status_without_helper": "UNKNOWN",
+   "helper_calls_recorded": 0
+  },
+  "cleanup": {
+   "leftover_pids_after_stop": [],
+   "runtime_dir_removed": true
+  },
+  "soak": {
+   "cycles": 40,
+   "first": {
+    "cycle": 0,
+    "pss_mib": 456.5,
+    "rss_mib": 542.0,
+    "threads": 48,
+    "fds": 112,
+    "cpu_s": 1.57,
+    "descendants": 1,
+    "descendant_cmds": [
+     "dbus-monitor"
+    ]
+   },
+   "last": {
+    "cycle": 40,
+    "pss_mib": 446.1,
+    "rss_mib": 525.3,
+    "threads": 48,
+    "fds": 112,
+    "cpu_s": 29.16,
+    "descendants": 1,
+    "descendant_cmds": [
+     "dbus-monitor"
+    ]
+   },
+   "pss_growth_mib": -10.4,
+   "state_failures": [],
+   "new_qml_warnings": 643,
+   "new_qml_warning_classes": {
+    "harness": 442,
+    "historical": 201,
+    "other": 0
+   }
+  }
+ }
+}

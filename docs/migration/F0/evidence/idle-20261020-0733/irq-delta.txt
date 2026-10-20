@@ -1,0 +1,5 @@
+1: i8042 0 input IRQs during window
+48: xhci_hcd 0 input IRQs during window
+50: xhci_hcd 0 input IRQs during window
+52: xhci_hcd 0 input IRQs during window
+54: xhci_hcd 0 input IRQs during window
