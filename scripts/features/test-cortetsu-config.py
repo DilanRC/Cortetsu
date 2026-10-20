@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 
 repo = Path(__file__).resolve().parents[2]
 modules = repo / "cortetsu/modules"
@@ -152,6 +153,12 @@ for filename, markers in metrics.items():
     service_text = (repo / "cortetsu/services" / filename).read_text(encoding="utf-8")
     for marker in markers:
         assert marker in service_text, (filename, marker)
+# StandardPaths lives in QtCore; without the import QML only fails at run time
+# (ReferenceError), as services/Gpu.qml did after 9317563.
+for qml in (repo / "cortetsu").rglob("*.qml"):
+    qml_text = qml.read_text(encoding="utf-8")
+    if "StandardPaths." in qml_text:
+        assert re.search(r"^import QtCore\s*$", qml_text, re.M), f"{qml}: StandardPaths without import QtCore"
 storage = (repo / "cortetsu/services/Storage.qml").read_text(encoding="utf-8")
 assert "match[4].startsWith(\"/\")" in storage
 assert "match[5].startsWith(\"/\")" not in storage
