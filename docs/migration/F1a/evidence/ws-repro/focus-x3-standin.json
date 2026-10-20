@@ -1,0 +1,1593 @@
+{
+ "checkout": "<repo>",
+ "date": "2026-10-20T13:44:38-0600",
+ "monitors": {
+  "client": "WAYLAND-1",
+  "m1": "HEADLESS-1",
+  "m2": "HEADLESS-2"
+ },
+ "checks": [
+  {
+   "scenario": "open-escape",
+   "check": "hardware@HEADLESS-1 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "hardware@HEADLESS-1 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "hardware@HEADLESS-1 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "hardware@HEADLESS-1 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "hardware@HEADLESS-1 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "hardware@HEADLESS-2 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "hardware@HEADLESS-2 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "hardware@HEADLESS-2 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "hardware"
+    ]
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "hardware@HEADLESS-2 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "hardware@HEADLESS-2 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "display@HEADLESS-1 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "display@HEADLESS-1 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "display@HEADLESS-1 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "displayManager"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "display@HEADLESS-1 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "display@HEADLESS-1 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "display@HEADLESS-2 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "display@HEADLESS-2 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "display@HEADLESS-2 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "displayManager"
+    ]
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "display@HEADLESS-2 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "display@HEADLESS-2 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "clipboard@HEADLESS-1 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "clipboard@HEADLESS-1 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "clipboard@HEADLESS-1 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "clipboard"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "clipboard@HEADLESS-1 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "clipboard@HEADLESS-1 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "clipboard@HEADLESS-2 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "clipboard@HEADLESS-2 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "clipboard@HEADLESS-2 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "clipboard"
+    ]
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "clipboard@HEADLESS-2 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "clipboard@HEADLESS-2 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "keyboards@HEADLESS-1 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "keyboards@HEADLESS-1 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "keyboards@HEADLESS-1 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "keyboards"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "keyboards@HEADLESS-1 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "keyboards@HEADLESS-1 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "keyboards@HEADLESS-2 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "keyboards@HEADLESS-2 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "keyboards@HEADLESS-2 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "keyboards"
+    ]
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "keyboards@HEADLESS-2 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "keyboards@HEADLESS-2 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "wallpapermanager@HEADLESS-1 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "wallpapermanager@HEADLESS-1 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "wallpapermanager@HEADLESS-1 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "wallpaperManager"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "wallpapermanager@HEADLESS-1 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "wallpapermanager@HEADLESS-1 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "wallpapermanager@HEADLESS-2 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "wallpapermanager@HEADLESS-2 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "wallpapermanager@HEADLESS-2 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "wallpaperManager"
+    ]
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "wallpapermanager@HEADLESS-2 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "wallpapermanager@HEADLESS-2 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "overview@HEADLESS-1 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "overview@HEADLESS-1 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "overview@HEADLESS-1 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "overview"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "overview@HEADLESS-1 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "overview@HEADLESS-1 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "overview@HEADLESS-2 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "overview@HEADLESS-2 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "overview@HEADLESS-2 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "overview"
+    ]
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "overview@HEADLESS-2 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "overview@HEADLESS-2 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "calendar@HEADLESS-1 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "calendar@HEADLESS-1 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "calendar@HEADLESS-1 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "calendar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "calendar@HEADLESS-1 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "calendar@HEADLESS-1 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "calendar@HEADLESS-2 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "calendar@HEADLESS-2 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "calendar@HEADLESS-2 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "calendar"
+    ]
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "calendar@HEADLESS-2 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "calendar@HEADLESS-2 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "final",
+   "check": "every flag closed on every screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "final",
+   "check": "keyboard in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "hardware@HEADLESS-1 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "hardware@HEADLESS-1 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "hardware@HEADLESS-1 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "hardware@HEADLESS-1 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "hardware@HEADLESS-1 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "hardware@HEADLESS-2 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "hardware@HEADLESS-2 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "hardware@HEADLESS-2 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "hardware"
+    ]
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "hardware@HEADLESS-2 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "hardware@HEADLESS-2 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "display@HEADLESS-1 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "display@HEADLESS-1 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "display@HEADLESS-1 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "displayManager"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "display@HEADLESS-1 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "display@HEADLESS-1 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "display@HEADLESS-2 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "display@HEADLESS-2 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "display@HEADLESS-2 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "displayManager"
+    ]
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "display@HEADLESS-2 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "display@HEADLESS-2 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "clipboard@HEADLESS-1 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "clipboard@HEADLESS-1 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "clipboard@HEADLESS-1 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "clipboard"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "clipboard@HEADLESS-1 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "clipboard@HEADLESS-1 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "clipboard@HEADLESS-2 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "clipboard@HEADLESS-2 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "clipboard@HEADLESS-2 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "clipboard"
+    ]
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "clipboard@HEADLESS-2 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "clipboard@HEADLESS-2 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "keyboards@HEADLESS-1 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "keyboards@HEADLESS-1 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "keyboards@HEADLESS-1 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "keyboards"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "keyboards@HEADLESS-1 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "keyboards@HEADLESS-1 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "keyboards@HEADLESS-2 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "keyboards@HEADLESS-2 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "keyboards@HEADLESS-2 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "keyboards"
+    ]
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "keyboards@HEADLESS-2 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "keyboards@HEADLESS-2 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "wallpapermanager@HEADLESS-1 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "wallpapermanager@HEADLESS-1 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "wallpapermanager@HEADLESS-1 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "wallpaperManager"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "wallpapermanager@HEADLESS-1 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "wallpapermanager@HEADLESS-1 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "wallpapermanager@HEADLESS-2 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "wallpapermanager@HEADLESS-2 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "wallpapermanager@HEADLESS-2 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "wallpaperManager"
+    ]
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "wallpapermanager@HEADLESS-2 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "wallpapermanager@HEADLESS-2 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "overview@HEADLESS-1 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "overview@HEADLESS-1 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "overview@HEADLESS-1 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "overview"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "overview@HEADLESS-1 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "overview@HEADLESS-1 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "overview@HEADLESS-2 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "overview@HEADLESS-2 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "overview@HEADLESS-2 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "overview"
+    ]
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "overview@HEADLESS-2 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "overview@HEADLESS-2 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "calendar@HEADLESS-1 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "calendar@HEADLESS-1 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "calendar@HEADLESS-1 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "calendar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "calendar@HEADLESS-1 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "calendar@HEADLESS-1 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "calendar@HEADLESS-2 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "calendar@HEADLESS-2 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "calendar@HEADLESS-2 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "calendar"
+    ]
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "calendar@HEADLESS-2 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "calendar@HEADLESS-2 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "final",
+   "check": "every flag closed on every screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "final",
+   "check": "keyboard in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "hardware@HEADLESS-1 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "hardware@HEADLESS-1 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "hardware@HEADLESS-1 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "hardware@HEADLESS-1 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "hardware@HEADLESS-1 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "hardware@HEADLESS-2 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "hardware@HEADLESS-2 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "hardware@HEADLESS-2 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "hardware"
+    ]
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "hardware@HEADLESS-2 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "hardware@HEADLESS-2 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "display@HEADLESS-1 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "display@HEADLESS-1 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "display@HEADLESS-1 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "displayManager"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "display@HEADLESS-1 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "display@HEADLESS-1 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "display@HEADLESS-2 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "display@HEADLESS-2 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "display@HEADLESS-2 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "displayManager"
+    ]
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "display@HEADLESS-2 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "display@HEADLESS-2 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "clipboard@HEADLESS-1 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "clipboard@HEADLESS-1 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "clipboard@HEADLESS-1 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "clipboard"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "clipboard@HEADLESS-1 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "clipboard@HEADLESS-1 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "clipboard@HEADLESS-2 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "clipboard@HEADLESS-2 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "clipboard@HEADLESS-2 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "clipboard"
+    ]
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "clipboard@HEADLESS-2 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "clipboard@HEADLESS-2 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "keyboards@HEADLESS-1 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "keyboards@HEADLESS-1 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "keyboards@HEADLESS-1 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "keyboards"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "keyboards@HEADLESS-1 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "keyboards@HEADLESS-1 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "keyboards@HEADLESS-2 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "keyboards@HEADLESS-2 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "keyboards@HEADLESS-2 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "keyboards"
+    ]
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "keyboards@HEADLESS-2 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "keyboards@HEADLESS-2 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "wallpapermanager@HEADLESS-1 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "wallpapermanager@HEADLESS-1 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "wallpapermanager@HEADLESS-1 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "wallpaperManager"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "wallpapermanager@HEADLESS-1 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "wallpapermanager@HEADLESS-1 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "wallpapermanager@HEADLESS-2 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "wallpapermanager@HEADLESS-2 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "wallpapermanager@HEADLESS-2 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "wallpaperManager"
+    ]
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "wallpapermanager@HEADLESS-2 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "wallpapermanager@HEADLESS-2 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "overview@HEADLESS-1 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "overview@HEADLESS-1 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "overview@HEADLESS-1 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "overview"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "overview@HEADLESS-1 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "overview@HEADLESS-1 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "overview@HEADLESS-2 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "overview@HEADLESS-2 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "overview@HEADLESS-2 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "overview"
+    ]
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "overview@HEADLESS-2 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "overview@HEADLESS-2 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "calendar@HEADLESS-1 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "calendar@HEADLESS-1 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "calendar@HEADLESS-1 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "calendar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "calendar@HEADLESS-1 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "calendar@HEADLESS-1 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "open-escape",
+   "check": "calendar@HEADLESS-2 opens",
+   "result": "PASS",
+   "seen": true
+  },
+  {
+   "scenario": "focus",
+   "check": "calendar@HEADLESS-2 holds the keyboard (a key does not reach the client)",
+   "result": "PASS",
+   "seen": "key reached the client"
+  },
+  {
+   "scenario": "monitor",
+   "check": "calendar@HEADLESS-2 only on its screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "calendar"
+    ]
+   }
+  },
+  {
+   "scenario": "open-escape",
+   "check": "calendar@HEADLESS-2 Escape closes",
+   "result": "PASS",
+   "seen": false
+  },
+  {
+   "scenario": "focus",
+   "check": "calendar@HEADLESS-2 keyboard back in the client",
+   "result": "PASS",
+   "seen": ""
+  },
+  {
+   "scenario": "final",
+   "check": "every flag closed on every screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "final",
+   "check": "keyboard in the client",
+   "result": "PASS",
+   "seen": ""
+  }
+ ],
+ "qml_warnings_startup": [
+  " ERROR quickshell.service.pipewire.loop: Failed to connect pipewire context. Errno: 112",
+  "  WARN: Could not load icon \"application-x-executable?fallback=image-missing\" at size QSize(52, 52) from request",
+  "  WARN quickshell.io.fileview: got operation finished from dropped operation qs::io::FileViewOperation(0x7f12b2f324c0)",
+  "  WARN quickshell.io.fileview: got operation finished from dropped operation qs::io::FileViewOperation(0x7f12aec617e0)",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f12ad35ba60 but 0x0 is focused",
+  "  WARN: Could not load icon \"cortetsu-probe?fallback=image-missing\" at size QSize(100, 100) from request",
+  " ERROR quickshell.wayland.buffer.dmabuf: Failed to query render formats: No GL context.",
+  "  WARN quickshell.wayland.buffer: Render format initialization failed. All buffers will fall back to SHM.",
+  "  WARN: Could not load icon \"cortetsu-probe?fallback=image-missing\" at size QSize(64, 64) from request"
+ ],
+ "qml_warnings_during_run": [
+  "  WARN qml: Hardware Center: probe returned no reading",
+  "  WARN qml: Hardware Center: probe returned no reading",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f12ab1cc2e0 but 0x0 is focused",
+  "  WARN qml: Hardware Center: probe returned no reading",
+  "  WARN qml: Hardware Center: probe returned no reading",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f12ab1d6540 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f12ab1cc2e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f12ab1d6540 but 0x0 is focused",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czf33oketw7/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czf33oketw7/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czf33oketw7/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czf33oketw7/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::enableSurface(wl_surface*) Trying to enable 0x7f12ab1d6540 but 0x7f12ab1cc2e0 has focus",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f12ab1cc2e0 but 0x7f12ab1d6540 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f12ab1cc2e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f12ab1d6540 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f12ab1cc2e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f12ab1d6540 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f12ab1cc2e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f12ab1d6540 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f12ab1cc2e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f12ab1d6540 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f12ab1cc2e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f12ab1d6540 but 0x0 is focused",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czf33oketw7/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czf33oketw7/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czf33oketw7/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czf33oketw7/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::enableSurface(wl_surface*) Trying to enable 0x7f12ab1d6540 but 0x7f12ab1cc2e0 has focus",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f12ab1cc2e0 but 0x7f12ab1d6540 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f12ab1cc2e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f12ab1d6540 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f12ab1cc2e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f12ab1d6540 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f12ab1cc2e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f12ab1d6540 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f12ab1cc2e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f12ab1d6540 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f12ab1cc2e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f12ab1d6540 but 0x0 is focused",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czf33oketw7/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czf33oketw7/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czf33oketw7/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN scene: QML FileView at @modules/clipboard/Content.qml[274:5]: Read of /tmp/czf33oketw7/home/.config/clipse/clipboard_history.json failed: File does not exist.",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::enableSurface(wl_surface*) Trying to enable 0x7f12ab1d6540 but 0x7f12ab1cc2e0 has focus",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f12ab1cc2e0 but 0x7f12ab1d6540 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f12ab1cc2e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f12ab1d6540 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f12ab1cc2e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f12ab1d6540 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f12ab1cc2e0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f12ab1d6540 but 0x0 is focused"
+ ],
+ "leftover_pids": [],
+ "runtime_dir_removed": true
+}

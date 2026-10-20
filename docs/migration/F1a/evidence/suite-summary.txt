@@ -1,7 +1,7 @@
 ['rc', 'real_session_changed', 'result', 'seconds', 'skip_lines', 'tail', 'test']
 185 Counter({'PASS': 183, 'NOT_RUN': 1, 'FAIL': 1})
 NOT_RUN {'test': 'scripts/features/eval-cortetsu-process-launcher.py', 'reason': 'creates a transient scope in the real user systemd manager'}
-FAIL {'test': 'cortetsu/tests/qml/surfaces', 'rc': '1', 'seconds': '0.01', 'skip_lines': '[]', 'tail': '["/usr/bin/python3: can\'t find \'__main__\' module in \'/home/dilan/Documentos/GitHub/Cortetsu/cortetsu/tests/qml/surfaces\'"]', 'real_session_changed': 'False'}
+FAIL {'test': 'cortetsu/tests/qml/surfaces', 'rc': '1', 'seconds': '0.01', 'skip_lines': '[]', 'tail': '["/usr/bin/python3: can\'t find \'__main__\' module in \'<repo>/cortetsu/tests/qml/surfaces\'"]', 'real_session_changed': 'False'}
 real_session_changed: []
 rerun of the QML entries after the run_suite.py directory fix:
   PASS cortetsu/tests/qml/focus
@@ -13,3 +13,7 @@ rerun of the QML entries after the run_suite.py directory fix:
   PASS cortetsu/tests/qml/bottomhub
   PASS cortetsu/tests/qml/bottomhub/fixture_ScriptModelIdentity.qml
   PASS cortetsu/StartupPageFixture.qml
+
+full rerun 2026-10-20 with the fixed run_suite.py (rerun-20261020/suite.json):
+185 Counter({PASS: 184, NOT_RUN: 1})
+real_session_changed: []  (fingerprint now includes active workspace and focused monitor)

@@ -1,0 +1,39 @@
+{"t": 54256.969, "wall": 1792524213.179, "kind": "start", "ws": 3, "monitor": "WAYLAND-1", "monitors": {"WAYLAND-1": 3, "HEADLESS-1": 4}}
+{"t": 54257.479, "wall": 1792524213.69, "kind": "poll", "ws": 3, "monitor": "WAYLAND-1", "monitors": {"WAYLAND-1": 3, "HEADLESS-1": 4}}
+{"t": 54345.145, "wall": 1792524301.355, "kind": "event", "name": "openwindow", "arg": "55f6da8c3810,2,aquamarine"}
+{"t": 54345.145, "wall": 1792524301.355, "kind": "event", "name": "activewindow", "arg": "user-term"}
+{"t": 54345.145, "wall": 1792524301.355, "kind": "event", "name": "activewindowv2", "arg": "55f6db84d810"}
+{"t": 54368.106, "wall": 1792524324.317, "kind": "event", "name": "closewindow", "arg": "55f6da8c3810"}
+{"t": 54368.411, "wall": 1792524324.622, "kind": "event", "name": "openwindow", "arg": "55f6db98f4a0,2,aquamarine"}
+{"t": 54368.411, "wall": 1792524324.622, "kind": "event", "name": "activewindow", "arg": "user-term"}
+{"t": 54368.411, "wall": 1792524324.622, "kind": "event", "name": "activewindowv2", "arg": "55f6db84d810"}
+{"t": 54424.302, "wall": 1792524380.513, "kind": "event", "name": "closewindow", "arg": "55f6db98f4a0"}
+{"t": 54476.209, "wall": 1792524432.42, "kind": "event", "name": "openwindow", "arg": "55f6da8b02a0,2,aquamarine"}
+{"t": 54476.209, "wall": 1792524432.42, "kind": "event", "name": "activewindow", "arg": "user-term"}
+{"t": 54476.209, "wall": 1792524432.42, "kind": "event", "name": "activewindowv2", "arg": "55f6db84d810"}
+{"t": 54558.2, "wall": 1792524514.411, "kind": "event", "name": "closewindow", "arg": "55f6da8b02a0"}
+{"t": 54559.103, "wall": 1792524515.314, "kind": "event", "name": "openwindow", "arg": "55f6da8b02a0,2,aquamarine"}
+{"t": 54559.103, "wall": 1792524515.314, "kind": "event", "name": "activewindow", "arg": "user-term"}
+{"t": 54559.103, "wall": 1792524515.314, "kind": "event", "name": "activewindowv2", "arg": "55f6db84d810"}
+{"t": 54568.946, "wall": 1792524525.157, "kind": "event", "name": "closewindow", "arg": "55f6da8b02a0"}
+{"t": 54569.388, "wall": 1792524525.599, "kind": "event", "name": "openwindow", "arg": "55f6da8b02a0,2,aquamarine"}
+{"t": 54569.388, "wall": 1792524525.599, "kind": "event", "name": "activewindow", "arg": "user-term"}
+{"t": 54569.388, "wall": 1792524525.599, "kind": "event", "name": "activewindowv2", "arg": "55f6db84d810"}
+{"t": 54572.538, "wall": 1792524528.749, "kind": "event", "name": "closewindow", "arg": "55f6da8b02a0"}
+{"t": 54572.89, "wall": 1792524529.101, "kind": "event", "name": "openwindow", "arg": "55f6da8b02a0,2,aquamarine"}
+{"t": 54572.89, "wall": 1792524529.101, "kind": "event", "name": "activewindow", "arg": "user-term"}
+{"t": 54572.89, "wall": 1792524529.101, "kind": "event", "name": "activewindowv2", "arg": "55f6db84d810"}
+{"t": 54581.908, "wall": 1792524538.119, "kind": "event", "name": "closewindow", "arg": "55f6da8b02a0"}
+{"t": 54582.267, "wall": 1792524538.477, "kind": "event", "name": "openwindow", "arg": "55f6da8b02a0,2,aquamarine"}
+{"t": 54582.267, "wall": 1792524538.477, "kind": "event", "name": "activewindow", "arg": "user-term"}
+{"t": 54582.267, "wall": 1792524538.477, "kind": "event", "name": "activewindowv2", "arg": "55f6db84d810"}
+{"t": 54584.766, "wall": 1792524540.976, "kind": "event", "name": "closewindow", "arg": "55f6da8b02a0"}
+{"t": 54585.136, "wall": 1792524541.346, "kind": "event", "name": "openwindow", "arg": "55f6da8b02a0,2,aquamarine"}
+{"t": 54585.136, "wall": 1792524541.346, "kind": "event", "name": "activewindow", "arg": "user-term"}
+{"t": 54585.136, "wall": 1792524541.346, "kind": "event", "name": "activewindowv2", "arg": "55f6db84d810"}
+{"t": 54588.852, "wall": 1792524545.063, "kind": "event", "name": "closewindow", "arg": "55f6da8b02a0"}
+{"t": 54598.986, "wall": 1792524555.197, "kind": "event", "name": "openwindow", "arg": "55f6da8b02a0,2,aquamarine"}
+{"t": 54598.986, "wall": 1792524555.197, "kind": "event", "name": "activewindow", "arg": "user-term"}
+{"t": 54598.986, "wall": 1792524555.197, "kind": "event", "name": "activewindowv2", "arg": "55f6db84d810"}
+{"t": 54602.121, "wall": 1792524558.332, "kind": "event", "name": "closewindow", "arg": "55f6da8b02a0"}
+{"t": 54607.634, "wall": 1792524563.845, "kind": "stop", "ws": 3, "monitor": "WAYLAND-1", "monitors": {"WAYLAND-1": 3, "HEADLESS-1": 4}}

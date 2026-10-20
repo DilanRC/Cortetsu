@@ -1,0 +1,24 @@
+{
+ "command": {
+  "before": {
+   "ws": 3,
+   "monitor": "WAYLAND-1",
+   "window": "user-term"
+  },
+  "during_distinct": [
+   {
+    "ws": 3,
+    "monitor": "WAYLAND-1",
+    "window": "user-term"
+   }
+  ],
+  "after": {
+   "ws": 3,
+   "monitor": "WAYLAND-1",
+   "window": "user-term"
+  },
+  "rc": 0,
+  "t0": 54257.939,
+  "ws_moved": false
+ }
+}

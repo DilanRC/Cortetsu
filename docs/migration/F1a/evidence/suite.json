@@ -1980,7 +1980,7 @@
   "seconds": 0.01,
   "skip_lines": [],
   "tail": [
-   "/usr/bin/python3: can't find '__main__' module in '/home/dilan/Documentos/GitHub/Cortetsu/cortetsu/tests/qml/surfaces'"
+   "/usr/bin/python3: can't find '__main__' module in '<repo>/cortetsu/tests/qml/surfaces'"
   ],
   "real_session_changed": false
  },

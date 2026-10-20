@@ -98,13 +98,21 @@ F1a centraliza la clasificación; no cambia quién abre qué. Estas rutas existe
 | O-4 | Unos 60 puntos de los cajones heredados (launcher, session, dashboard, Interactions, ContentWindow…) escriben flags transitorios directamente en `ScreenState`. Son cierres o aperturas propias del cajón; pasarlos por `setFlag` no cambia el resultado y no se hizo para no tocar código upstream sin necesidad | `grep` en §2 de la investigación |
 | O-5 | `hyprctl activelayer` no existe en Hyprland 0.56: `launcher_harness.Session.keyboard_layer()` siempre devuelve `""`. Ninguna prueba existente lo usa para afirmar nada; el script de F1a mide el foco por dónde cae una tecla | `unknown request` |
 
+O-1, O-2 y O-3 son defectos heredados de `main`, fuera de F1a. Siguen presentes en el HEAD (2026-10-20: O-1 5/5 FAIL, O-2 igual, O-3 intermitente). Reproducirlos, en `main` o en la rama:
+
+```sh
+ONLY=retained_exclusive python3 scripts/integration/ws2_run.py L -- python3 docs/migration/F1a/tools/nested_contracts.py <checkout> o1.json  # O-1: 5 FAIL «… then calendar, other screen»
+ONLY=cross_kind         python3 scripts/integration/ws2_run.py L -- python3 docs/migration/F1a/tools/nested_contracts.py <checkout> o2.json  # O-2: «seen» con sidebar y hardware abiertos
+ONLY=wallpaper REPEAT=10 python3 scripts/integration/ws2_run.py L -- python3 docs/migration/F1a/tools/nested_contracts.py <checkout> o3.json # O-3: ~1/10 FAIL «sidebar closes the wallpaper manager»
+```
+
 ## 4. Gates ejecutados
 
 | Gate | Resultado |
 |---|---|
 | Qt Quick Test: `surfaces` (nuevo), `bottomhub`, `components`, `focus`, `hardware`, `hypr`, `keyboards`, `settings`, `wallpaper/tests` | 15, 49, 15, 10, 31, 7, 34, 9, 19 PASS |
 | Estáticos de screen state, retenidas, wallpaper, atajos, foco, popouts, OSD (20 scripts) | PASS |
-| `cortetsu test` completo en el WS 2 (`run_suite.py`, 185 entradas) | **184 PASS, 0 FAIL, 1 NOT_RUN** (el mismo que F0: crea un scope en el systemd real). La primera pasada dio 1 FAIL de aparato: `run_suite.py` tenía fija la lista de directorios QML y ejecutó `tests/qml/surfaces` como Python; ahora trata cualquier directorio como Qt Quick Test, igual que `run_qml_test`, y la nueva pasada de las entradas QML dio 9/9 PASS. Ninguna entrada cambió la huella de la sesión real. H-05 no apareció |
+| `cortetsu test` completo en el WS 2 (`run_suite.py`, 185 entradas) | **184 PASS, 0 FAIL, 1 NOT_RUN** (`evidence/rerun-20261020/`, pasada completa del 2026-10-20 con el `run_suite.py` corregido). El NOT_RUN es el mismo que en F0: crea un scope en el systemd real. La primera pasada (`evidence/suite.json`, se conserva) dio 183 PASS, 1 FAIL y 1 NOT_RUN: `run_suite.py` tenía fija la lista de directorios QML y ejecutó `tests/qml/surfaces` como Python. Ninguna entrada cambió la huella de la sesión real, que ahora incluye el workspace y el monitor enfocado. H-05 no apareció |
 | Construcción aislada de dos generaciones y rollback (`test-cortetsu-build.py`, el job de runtime de la CI) | PASS, con `tests/qml/surfaces` y el gate nuevo dentro de `build-runtime.sh` |
 | Mutantes | 12/12 |
 | CI de GitHub | ver la PR |
@@ -135,10 +143,46 @@ F1a no añade ningún tipo de aviso y elimina los dos únicos `TypeError` que pr
 - Kitty propia `Cortetsu-F1a-Debug` (clase `cortetsu-f1a-debug`) en el WS 2 con `exec_cmd(…, { workspace = "2 silent" })`, con
   pestañas de logs, procesos y contratos (procedimiento de `docs/migration/F0/DEBUG-SESSION.md`). La instancia `rice` no se tocó.
 - Cada sesión anidada se lanzó con `ws2_run.py` y `F0Session` (shell compuesto desde el checkout, `XDG_RUNTIME_DIR` corto
-  propio, D-Bus privado, stubs para toda orden que toca el host, solo Mesa). Las ventanas `aquamarine` aparecieron en el WS 2; el
-  workspace activo del escritorio siguió en el 3.
+  propio, D-Bus privado, stubs para toda orden que toca el host, solo Mesa). Las ventanas `aquamarine` aparecieron en el WS 2.
+  Al terminar aquella sesión el escritorio estaba en el WS 2 y no en el 3; ver §6.1.
 - `real_snapshot.sh` antes y después de la suite: `unchanged` (`evidence/real-diff.txt`). dGPU NVIDIA: `suspended`. Ningún `/tmp/czr*`
   ni proceso con su runtime tras cada pasada (`leftover_pids = []`, `runtime_dir_removed = true`).
+
+### 6.1 Workspace activo: investigación
+
+`real_snapshot.sh` no miraba el workspace activo, así que el cambio del WS 3 al WS 2 no quedó registrado ni fechado, y el log
+de Hyprland real no anota cambios de workspace. Ahora la huella incluye, por monitor, el workspace que muestra y si tiene el foco,
+y `tools/ws_watch.py` registra los eventos de socket2 (workspace, monitor, foco, ventanas; sin títulos) y el estado cada 0,5 s. Un cambio de workspace hecho a mano durante una pasada también marca la entrada como
+`real_session_changed`; el registro de `ws_watch.py` dice entonces qué evento fue y cuándo.
+
+Reproducción controlada con `tools/ws_repro.py`: un Hyprland anidado hace de escritorio (dos salidas, `focus_on_activate = true`
+como en `misc.lua`, WS 3 activo con un terminal enfocado, WS 2 oculto) y recibe cada paso de la sesión F1a. Resultados
+(`evidence/ws-repro/`):
+
+| Paso contra el escritorio sustituto | WS / monitor antes → durante → después | ¿Se movió? |
+|---|---|---|
+| shim de `ws2_run.py` lanzando un Hyprland anidado | 3 / WAYLAND-1 → 3 → 3 | no |
+| Kitty de depuración con `exec_cmd(…, { workspace = "2 silent" })` | 3 → 3 → 3 | no |
+| Pestaña por control remoto (`kitty @ launch --type=tab`), con y sin `--keep-focus` | 3 → 3 → 3 | no |
+| Suite completa (185 entradas) bajo `ws2_run.py` | 3 → 3 → 3, el foco nunca salió del terminal | no |
+| Matriz de contratos `nested_contracts.py` bajo `ws2_run.py` | 3 → 3 → 3 | no |
+
+La matriz en el sustituto dio los 5 FAIL de O-1 y uno más, `final: keyboard in the client`. Repetidos allí los escenarios de foco tres veces (`ONLY=retained_open_close,final_state REPEAT=3`): 216 comprobaciones, 0 FAIL (`ws-repro/focus-x3-*.json`). En la configuración normal (sesión real, WS 2) la matriz sobre el HEAD coincide con `contracts-after.json` salvo O-3, que esta vez pasó (`rerun-20261020/contracts.json`). Se trata como transitorio del triple anidamiento, no como regresión.
+
+En la sesión real, durante la pasada oficial de la suite (`rerun-20261020/ws-real.jsonl`), las 9 ventanas `aquamarine` nacieron
+en el WS 2 y ninguna recibió el foco (ningún `activewindow` hacia ellas). La única diferencia de la suite en el sustituto es
+`eval-cortetsu-shell-ipc.py`, que consulta al shell Cortetsu del escritorio y allí no hay ninguno.
+
+**Conclusión:** ningún paso del arnés ni del procedimiento F1a cambia el workspace activo, por lo que no hay nada que corregir en el
+arnés. La causa del cambio de aquella sesión no se puede determinar: no quedó registro. No se atribuye al usuario ni al arnés.
+Pasos no repetidos en el sustituto: el banco de rendimiento (`nested_bench.py`, 50 min), que usa el mismo `F0Session` y
+`ws2_run.py` que las pruebas ya medidas. Una próxima sesión puede dejar `ws_watch.py` corriendo para fecharlo si se repite.
+
+```sh
+python3 scripts/integration/ws2_run.py LOG -- python3 docs/migration/F1a/tools/ws_repro.py <salida>            # pasos sueltos
+python3 scripts/integration/ws2_run.py LOG -- python3 docs/migration/F1a/tools/ws_repro.py <salida> \
+    python3 scripts/integration/ws2_run.py LOG2 -- python3 -I docs/migration/F0/tools/run_suite.py . <entradas> <salida>/suite.json
+```
 
 Reproducir:
 
@@ -175,3 +219,22 @@ El cambio es solo de QML/JS del shell y de pruebas; no toca servicios, helpers n
 - Desplegado: `cortetsu rollback` vuelve a la generación anterior (valida shell y hashes antes de mover los symlinks); `cortetsu
   system verify` confirma. No hay estado persistente que migrar: los flags de superficie se reinician en cada arranque
   (`resetTransientState`).
+
+## 9. Privacidad de la evidencia
+
+`tools/sanitize_evidence.py` sustituye en `evidence/` la ruta del checkout por `<repo>` y el scratchpad de la sesión de Claude
+(que llevaba su UUID) por `<main-worktree>` o `<scratch>`. Para cada JSON comprueba que solo cambió el texto: claves, números,
+booleanos y longitudes son idénticos, así que ninguna medición se alteró. Seis archivos tenían una ruta así, una línea cada uno.
+`<repo>` es este checkout en la rama; `<main-worktree>`, un worktree de `main` en `898024d`.
+
+`--check` sale con 1 si queda un directorio personal, un scratchpad de Claude, `/run/user/<uid>`, el nombre del equipo o el
+login. Revisado además a mano: las siete capturas solo muestran datos de prueba y `HOME` temporales (`/tmp/czf…`), sin metadatos
+PNG; los JSON no tienen PIDs del escritorio, seriales, MAC, SSID ni correos; `ws_watch.py` no graba títulos de ventana. Las fechas
+conservan la zona horaria (`-0600`), que se considera necesaria para fechar las pasadas.
+
+Las rutas originales siguen en el historial de la rama (`31b4751`). Un merge con squash deja `main` limpio; borrarlas de la rama
+exigiría reescribir y forzar el push, lo cual no se hizo.
+
+```sh
+python3 -I docs/migration/F1a/tools/sanitize_evidence.py --check docs/migration/F1a
+```

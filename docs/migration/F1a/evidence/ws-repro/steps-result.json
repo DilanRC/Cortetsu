@@ -1,0 +1,90 @@
+{
+ "shim": {
+  "before": {
+   "ws": 3,
+   "monitor": "WAYLAND-1",
+   "window": "user-term"
+  },
+  "during_distinct": [
+   {
+    "ws": 3,
+    "monitor": "WAYLAND-1",
+    "window": "user-term"
+   }
+  ],
+  "after": {
+   "ws": 3,
+   "monitor": "WAYLAND-1",
+   "window": "user-term"
+  },
+  "rc": 0,
+  "t0": 53787.978,
+  "ws_moved": false
+ },
+ "debug": {
+  "before": {
+   "ws": 3,
+   "monitor": "WAYLAND-1",
+   "window": "user-term"
+  },
+  "during_distinct": [
+   {
+    "ws": 3,
+    "monitor": "WAYLAND-1",
+    "window": "user-term"
+   }
+  ],
+  "after": {
+   "ws": 3,
+   "monitor": "WAYLAND-1",
+   "window": "user-term"
+  },
+  "rc": 0,
+  "t0": 53800.564,
+  "ws_moved": false
+ },
+ "tab": {
+  "before": {
+   "ws": 3,
+   "monitor": "WAYLAND-1",
+   "window": "user-term"
+  },
+  "during_distinct": [
+   {
+    "ws": 3,
+    "monitor": "WAYLAND-1",
+    "window": "user-term"
+   }
+  ],
+  "after": {
+   "ws": 3,
+   "monitor": "WAYLAND-1",
+   "window": "user-term"
+  },
+  "rc": 0,
+  "t0": 53813.18,
+  "ws_moved": false
+ },
+ "tab_keep_focus": {
+  "before": {
+   "ws": 3,
+   "monitor": "WAYLAND-1",
+   "window": "user-term"
+  },
+  "during_distinct": [
+   {
+    "ws": 3,
+    "monitor": "WAYLAND-1",
+    "window": "user-term"
+   }
+  ],
+  "after": {
+   "ws": 3,
+   "monitor": "WAYLAND-1",
+   "window": "user-term"
+  },
+  "rc": 0,
+  "t0": 53825.784,
+  "ws_moved": false
+ }
+}
