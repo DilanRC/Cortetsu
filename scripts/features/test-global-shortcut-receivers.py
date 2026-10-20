@@ -2,7 +2,9 @@
 """Every cortetsu:<name> global that Hyprland dispatches has exactly one QML receiver.
 
 CortetsuShortcut and CustomShortcut are both GlobalShortcut with appid
-"cortetsu", so either one receives a cortetsu:<name> dispatch.
+"cortetsu", so either one receives a cortetsu:<name> dispatch. A component
+whose receiver takes `name: root.<prop>` (RetainedSurfaceController) receives
+once per instance that sets `<prop>: "<name>"`.
 """
 from __future__ import annotations
 
@@ -16,6 +18,7 @@ EMIT = re.compile(r'hl\.dsp\.global\(\s*"cortetsu:([\w-]+)"\s*\)')
 RECEIVER = re.compile(r'\b(?:CortetsuShortcut|CustomShortcut)\s*\{')
 NAME = re.compile(r'\bname\s*:\s*"([\w-]+)"')
 NAME_VALUE = re.compile(r'"[\w-]+"')
+FORWARDED = re.compile(r'\bname\s*:\s*root\.(\w+)\b')
 
 
 def strip_lua_comments(text: str) -> str:
@@ -49,20 +52,43 @@ def top_level(text: str, start: int) -> str:
     return "".join(body)
 
 
-def receivers() -> Counter:
+def receivers(root: Path = REPO / "cortetsu") -> Counter:
     names: Counter = Counter()
-    for path in (REPO / "cortetsu").rglob("*.qml"):
-        if "tests" in path.parts:
-            continue
-        text = strip_qml_comments_and_strings(path.read_text(encoding="utf-8"))
+    texts = {path: strip_qml_comments_and_strings(path.read_text(encoding="utf-8"))
+             for path in root.rglob("*.qml") if "tests" not in path.relative_to(root).parts}
+    forwarding: dict[str, str] = {}  # component name -> property its receiver takes the name from
+    for path, text in texts.items():
         for block in RECEIVER.finditer(text):
-            match = NAME.search(top_level(text, block.end()))
-            if match:
+            body = top_level(text, block.end())
+            if match := NAME.search(body):
                 names[match.group(1)] += 1
+            elif match := FORWARDED.search(body):
+                forwarding[path.stem] = match.group(1)
+    for component, prop in forwarding.items():
+        instance = re.compile(r'\b%s\s*\{' % re.escape(component))
+        value = re.compile(r'\b%s\s*:\s*"([\w-]+)"' % re.escape(prop))
+        for text in texts.values():
+            for block in instance.finditer(text):
+                if match := value.search(top_level(text, block.end())):
+                    names[match.group(1)] += 1
     return names
 
 
+def self_check() -> None:
+    """A forwarded name counts once per instance that sets it, never for the component alone."""
+    import tempfile
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        (root / "Base.qml").write_text('Item {\n    required property string shortcutName\n'
+                                       '    CortetsuShortcut { name: root.shortcutName }\n}\n')
+        (root / "Uses.qml").write_text('Base {\n    shortcutName: "alpha"\n}\n')
+        (root / "Plain.qml").write_text('CortetsuShortcut { name: "beta" }\n')
+        found = receivers(root)
+        assert found == Counter({"alpha": 1, "beta": 1}), found
+
+
 if __name__ == "__main__":
+    self_check()
     sent, received = emitted(), receivers()
     assert sent, "no cortetsu globals found; the Lua layout changed"
     missing = {name: files for name, files in sent.items() if received[name] == 0}
