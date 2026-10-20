@@ -1,6 +1,7 @@
 import QtQml
 import Quickshell
 import "../modules"
+import "../modules/SurfaceRegistry.js" as Surfaces
 
 PersistentProperties {
     id: root
@@ -29,15 +30,9 @@ PersistentProperties {
     property bool wallpaperManager
     property bool keyboards
 
-    readonly property bool retainedOverlayOpen: overview || calendar || clipboard || hardware || displayManager || wallpaperManager || keyboards
-    readonly property bool requiresOverlayLayer: retainedOverlayOpen || launcher || session || settings
-    readonly property bool requiresFullInputMask: retainedOverlayOpen
-    readonly property bool requiresWindowKeyboardFocus: requiresFullInputMask || launcher || session || settings
-
+    // Derived input/layer flags live only in cortetsuState.
     function resetTransientState(): void {
-        for (const flag of ["bar", "osd", "session", "launcher", "dashboard", "utilities",
-                            "settings", "sidebar", "overview", "calendar", "clipboard",
-                            "hardware", "displayManager", "wallpaperManager", "keyboards"])
+        for (const flag of Surfaces.names)
             root[flag] = false;
     }
 

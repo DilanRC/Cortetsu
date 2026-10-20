@@ -1,0 +1,101 @@
+[
+ {
+  "test": "cortetsu/tests/qml/focus",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.06,
+  "skip_lines": [],
+  "tail": [
+   "********* Finished testing of qmltestrunner *********"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "cortetsu/tests/qml/components",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.63,
+  "skip_lines": [],
+  "tail": [
+   "********* Finished testing of qmltestrunner *********"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "cortetsu/tests/qml/hardware",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.08,
+  "skip_lines": [],
+  "tail": [
+   "********* Finished testing of qmltestrunner *********"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "cortetsu/tests/qml/keyboards",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.05,
+  "skip_lines": [],
+  "tail": [
+   "********* Finished testing of qmltestrunner *********"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "cortetsu/tests/qml/settings",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.04,
+  "skip_lines": [],
+  "tail": [
+   "********* Finished testing of qmltestrunner *********"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "cortetsu/tests/qml/surfaces",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.06,
+  "skip_lines": [],
+  "tail": [
+   "********* Finished testing of qmltestrunner *********"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "cortetsu/tests/qml/bottomhub",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.12,
+  "skip_lines": [],
+  "tail": [
+   "********* Finished testing of qmltestrunner *********"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "cortetsu/tests/qml/bottomhub/fixture_ScriptModelIdentity.qml",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.16,
+  "skip_lines": [],
+  "tail": [
+   " DEBUG qml: SCRIPT_MODEL_IDENTITY_PASS created=2 destroyed=0 data=updated"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "cortetsu/StartupPageFixture.qml",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.38,
+  "skip_lines": [],
+  "tail": [
+   " DEBUG qml: STARTUP_PAGE_PASS search=1 source-filter=1 state-filter=1 stop-confirmation=1"
+  ],
+  "real_session_changed": false
+ }
+]

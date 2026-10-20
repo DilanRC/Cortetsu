@@ -1,38 +1,42 @@
 .pragma library
+.import "SurfaceRegistry.js" as Surfaces
 
 // One policy keeps large Cortetsu surfaces mutually exclusive. Retained and
 // transient first-party surfaces must not be able to stack into competing
-// input owners.
+// input owners. The flag sets come from SurfaceRegistry.js.
+
+// Writes go through CortetsuScreenState.setFlag, so the retained invariants
+// (setRetained) apply whether the caller holds the typed state or the legacy
+// ScreenState. Plain objects (QML unit tests) are written directly.
 function setFlag(state, flag, value) {
-    if (!state)
+    if (!state || !Surfaces.isKnown(flag))
         return false;
-    if (typeof state.setFlag === "function")
-        return state.setFlag(flag, value);
+    const typed = typeof state.setFlag === "function" ? state : state.cortetsuState;
+    if (typed && typeof typed.setFlag === "function")
+        return typed.setFlag(flag, value);
     if (state[flag] === undefined)
         return false;
     state[flag] = value;
     return true;
 }
 
-function closeOtherPanels(state) {
+function closeFlags(state, flags) {
     if (!state)
         return;
-    for (const flag of ["launcher", "session", "dashboard", "utilities", "settings", "sidebar",
-                        "overview", "calendar", "wallpaperManager", "clipboard", "hardware", "displayManager",
-                        "keyboards"])
+    for (const flag of flags)
         setFlag(state, flag, false);
+}
+
+function closeOtherPanels(state) {
+    closeFlags(state, Surfaces.exclusive);
 }
 
 function closeForWallpaper(state) {
-    if (!state)
-        return;
-    for (const flag of ["launcher", "session", "dashboard", "utilities", "settings", "sidebar",
-                        "overview", "calendar", "clipboard", "hardware", "displayManager", "keyboards"])
-        setFlag(state, flag, false);
+    closeFlags(state, Surfaces.competingWithWallpaper);
 }
 
+// Reads the legacy object when given the typed state: CortetsuScreenState
+// exposes only the retained flags.
 function hasCompetingPanel(state) {
-    return !!state && (state.launcher || state.session || state.dashboard || state.utilities
-        || state.settings || state.sidebar || state.overview || state.calendar
-        || state.clipboard || state.hardware || state.displayManager || state.keyboards);
+    return Surfaces.anyOpen(state?.legacyState ?? state, Surfaces.competingWithWallpaper);
 }
