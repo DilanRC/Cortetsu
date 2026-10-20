@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
-"""Compose Cortetsu-owned overlays into one staged Panels.qml."""
+"""Validate the staged drawer Panels.qml against the retained-surface host.
+
+Retained surfaces (overview, clipboard, hardware, display, wallpaper and
+calendar) are hosted once per screen by RetainedSurfacesHost.qml. This step
+used to inject hidden copies into Panels.qml; every copy loaded its content
+and ran its side effects a second time (double calendar syncs, a hidden
+wallpaper manager closing panels). The composed file must not contain them.
+"""
 from __future__ import annotations
 
 import sys
@@ -10,112 +17,30 @@ if len(sys.argv) != 2:
 
 root = Path(sys.argv[1])
 path = root / "modules/drawers/Panels.qml"
-if not path.is_file():
-    raise SystemExit(f"missing Panels.qml: {path}")
+host = root / "modules/RetainedSurfacesHost.qml"
+for required in (path, host):
+    if not required.is_file():
+        raise SystemExit(f"missing {required.name}: {required}")
 text = path.read_text(encoding="utf-8")
+host_text = host.read_text(encoding="utf-8")
 
-required_imports = (
-    'import "../../theme"',
-    "import qs.modules.overview as Overview",
-    "import qs.modules.clipboard as Clipboard",
-    "import qs.modules.hardware as Hardware",
-    "import qs.modules.display as Display",
-    "import qs.modules.wallpaper as Wallpaper",
-    "import qs.modules.calendar as Calendar",
+# Hosted once, in RetainedSurfacesHost; never in the drawer window.
+retained_wrappers = (
+    "Overview.Wrapper",
+    "Clipboard.Wrapper",
+    "Hardware.Wrapper",
+    "Display.Wrapper",
+    "Wallpaper.Wrapper",
+    "Calendar.Wrapper",
 )
-lines = text.splitlines()
-missing_imports = [line for line in required_imports if line not in lines]
-if missing_imports:
-    import_indexes = [index for index, line in enumerate(lines) if line.startswith("import ")]
-    if not import_indexes:
-        raise SystemExit("Panels.qml has no import block")
-    insert_at = import_indexes[-1] + 1
-    lines[insert_at:insert_at] = missing_imports
-    text = "\n".join(lines) + "\n"
-
-alias_anchor = "    readonly property alias overview: overview\n"
-required_aliases = (
-    "    readonly property alias clipboard: clipboard\n",
-    "    readonly property alias hardware: hardware\n",
-    "    readonly property alias displayManager: displayManager\n",
-    "    readonly property alias wallpaperManager: wallpaperManager\n",
-    "    readonly property alias calendar: calendar\n",
-)
-if alias_anchor not in text:
-    raise SystemExit("missing overview alias anchor")
-for alias in required_aliases:
-    if alias not in text:
-        text = text.replace(alias_anchor, alias_anchor + alias, 1)
-
-wrapper_anchor = "    Dashboard.Wrapper {\n"
-if wrapper_anchor not in text:
-    raise SystemExit("missing Dashboard.Wrapper anchor")
-wrappers = (
-    (
-        "id: clipboard",
-        "    Clipboard.Wrapper {\n"
-        "        id: clipboard\n"
-        "        screen: root.screen\n"
-        "        screenState: root.screenState\n"
-        "        anchors.fill: parent\n"
-        "    }\n\n",
-    ),
-    (
-        "id: hardware",
-        "    Hardware.Wrapper {\n"
-        "        id: hardware\n"
-        "        screen: root.screen\n"
-        "        screenState: root.screenState\n"
-        "        anchors.fill: parent\n"
-        "    }\n\n",
-    ),
-    (
-        "id: displayManager",
-        "    Display.Wrapper {\n"
-        "        id: displayManager\n"
-        "        screen: root.screen\n"
-        "        screenState: root.screenState\n"
-        "        anchors.fill: parent\n"
-        "    }\n\n",
-    ),
-    (
-        "id: wallpaperManager",
-        "    Wallpaper.Wrapper {\n"
-        "        id: wallpaperManager\n"
-        "        screen: root.screen\n"
-        "        screenState: root.screenState\n"
-        "        anchors.fill: parent\n"
-        "    }\n\n",
-    ),
-    (
-        "id: calendar",
-        "    Calendar.Wrapper {\n"
-        "        id: calendar\n"
-        "        screenState: root.screenState\n"
-        "        anchors.horizontalCenter: parent.horizontalCenter\n"
-        "        anchors.bottom: parent.bottom\n"
-        "        anchors.bottomMargin: bar.implicitHeight + CortetsuDesign.spacingStandard\n"
-        "    }\n\n",
-    ),
-)
-for marker, block in wrappers:
-    if marker not in text:
-        text = text.replace(wrapper_anchor, block + wrapper_anchor, 1)
+required_imports = ('import "../../theme"',)
+for required_import in required_imports:
+    if required_import not in text.splitlines():
+        raise SystemExit(f"missing import: {required_import}")
+for wrapper in retained_wrappers:
+    if text.count(wrapper) != 0 or host_text.count(wrapper + " {") != 1:
+        raise SystemExit(f"invalid composed marker count: {wrapper} must be hosted once by RetainedSurfacesHost")
 
 text = text.replace("        sidebar: sidebar\n", "")
 path.write_text(text, encoding="utf-8")
-
-for required_import in required_imports:
-    if text.count(required_import) != 1:
-        raise SystemExit(f"invalid import count: {required_import}")
-for marker in (
-    "id: overview",
-    "id: clipboard",
-    "id: hardware",
-    "id: displayManager",
-    "id: wallpaperManager",
-    "id: calendar",
-):
-    if text.count(marker) != 1:
-        raise SystemExit(f"invalid composed marker count: {marker}")
-print("PASS: unified Cortetsu panel composition")
+print("PASS: drawer panels composed; retained surfaces hosted once")
