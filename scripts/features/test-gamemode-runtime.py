@@ -13,6 +13,7 @@ from __future__ import annotations
 import json
 import os
 import runpy
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -32,6 +33,24 @@ CONFIG = """hl.config({
     misc = { disable_hyprland_logo = true },
 })
 """
+
+
+def without_helper(path: str) -> str:
+    """PATH minus every directory that holds a cortetsu-gamemode, so the
+    shell can only ever run the harness's fake (an installed copy in
+    ~/.local/bin would otherwise answer once the fake is parked)."""
+    return os.pathsep.join(d for d in path.split(os.pathsep)
+                           if d and not os.access(os.path.join(d, "cortetsu-gamemode"), os.X_OK))
+
+
+with tempfile.TemporaryDirectory() as tmp:  # runs even when the nested part skips
+    installed = Path(tmp, "installed")
+    installed.mkdir()
+    (installed / "cortetsu-gamemode").write_text("#!/bin/sh\n")
+    (installed / "cortetsu-gamemode").chmod(0o755)
+    clean = without_helper(f"{installed}{os.pathsep}/usr/bin")
+    assert str(installed) not in clean.split(os.pathsep) and "/usr/bin" in clean.split(os.pathsep), clean
+    assert shutil.which("cortetsu-gamemode", path=clean) is None, "an installed helper leaks through PATH"
 
 if not os.environ.get("WAYLAND_DISPLAY"):
     print("SKIP: requiere una sesión Wayland para anidar Hyprland")
@@ -232,7 +251,7 @@ exit $code
         for tool in fake.iterdir():
             tool.chmod(0o755)
         gamemode("enable")  # on before the shell starts: it must adopt it, not re-apply
-        nested = dict(faulty, PATH=f"{fake}:{env['PATH']}", WAYLAND_DISPLAY=next(
+        nested = dict(faulty, PATH=f"{fake}:{without_helper(env['PATH'])}", WAYLAND_DISPLAY=next(
             p.name for p in runtime.glob("wayland-*[0-9]")), QT_QPA_PLATFORM="wayland")
         log = (base / "qs.log").open("w")
         qs = subprocess.Popen(["qs", "-p", str(shell), "-n"], env=nested, stdout=log, stderr=subprocess.STDOUT,
@@ -256,6 +275,7 @@ exit $code
                     assert time.monotonic() < deadline, f"{message}: {ipc('harness', 'view')} {calls.read_text()}"
                     time.sleep(0.1)
 
+            assert shutil.which("cortetsu-gamemode", path=nested["PATH"]) == str(fake / "cortetsu-gamemode")
             wait_view("ACTIVE true false false", "the shell did not adopt ACTIVE from status")
             assert runs() == ["status"], "a starting shell must not re-apply game mode"
 
@@ -310,6 +330,7 @@ exit $code
 
             # A helper that cannot start leaves the toggle UNKNOWN, not busy.
             (fake / "cortetsu-gamemode").rename(base / "parked")
+            assert shutil.which("cortetsu-gamemode", path=nested["PATH"]) is None, "a real helper is reachable"
             ipc("gameMode", "enable")
             wait_view("UNKNOWN false false false", "a helper that never started kept the toggle busy")
             (base / "parked").rename(fake / "cortetsu-gamemode")
