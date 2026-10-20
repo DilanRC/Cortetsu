@@ -8,6 +8,7 @@ import "../../components"
 import ".."
 import "../../theme"
 import "../CortetsuTypography.js" as CortetsuTypography
+import "../CortetsuOverlayPolicy.js" as OverlayPolicy
 
 Item {
     id: root
@@ -66,11 +67,9 @@ Item {
         }
     }
 
+    // Same transition as the calendar shortcut; it closes this dashboard too.
     function openCalendar(): void {
-        if (!screenState)
-            return;
-        screenState.dashboard = false;
-        screenState.cortetsuState?.setRetained("calendar", true);
+        OverlayPolicy.open(CortetsuShellState.allStates(), screenState, "calendar");
     }
 
     Component.onCompleted: loadCalendar()
@@ -145,7 +144,7 @@ Item {
                     required property var modelData
                     Layout.fillWidth: true
                     icon: modelData.allDay ? "event" : "schedule"
-                    title: modelData.summary || qsTr("Evento sin título")
+                    title: modelData.title || qsTr("Evento sin título")
                     subtitle: root.eventTime(modelData)
                     selected: false
                     onClicked: root.openCalendar()

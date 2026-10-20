@@ -18,6 +18,9 @@ Singleton {
     readonly property var focusedWorkspace: Hyprland.focusedWorkspace
     readonly property var focusedMonitor: Hyprland.focusedMonitor
     readonly property int activeWsId: focusedWorkspace?.id ?? 1
+    // A fullscreen window on the focused workspace: shortcuts and IPC do not
+    // open guarded surfaces over it (SurfaceRegistry fullscreenGuard).
+    readonly property bool focusedFullscreen: focusedWorkspace?.toplevels.values.some(t => t.lastIpcObject.fullscreen > 1) ?? false
 
     // Keyboard state has one reader. The layout follows Hyprland's
     // `activelayout` event; Caps Lock and Num Lock have no event, so they are

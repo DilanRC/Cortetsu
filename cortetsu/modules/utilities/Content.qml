@@ -6,6 +6,7 @@ import "../../components"
 import "../../theme"
 import "../CortetsuTypography.js" as CortetsuTypography
 import "../../services"
+import "../CortetsuOverlayPolicy.js" as OverlayPolicy
 
 Item {
     id: root
@@ -145,10 +146,7 @@ Item {
                 icon: "notifications"
                 title: qsTr("Notificaciones")
                 subtitle: qsTr("Historial, acciones y controles de interrupción")
-                onClicked: {
-                    root.screenState.utilities = false;
-                    root.screenState.sidebar = true;
-                }
+                onClicked: OverlayPolicy.open(CortetsuShellState.allStates(), root.screenState, "sidebar")
             }
         }
     }

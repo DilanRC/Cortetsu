@@ -18,10 +18,12 @@ assert 'icon: "close"' in dash
 assert "onClicked: root.screenState.dashboard = false" in dash
 
 # Today is a live, read-only agenda projection over Cortetsu's calendar cache.
-for marker in ("calendar-events.json", "todayEvents", "eventOccursOnDay", "watchChanges: true", 'setRetained("calendar", true)'):
+for marker in ("calendar-events.json", "todayEvents", "eventOccursOnDay", "watchChanges: true", 'OverlayPolicy.open(CortetsuShellState.allStates(), screenState, "calendar")'):
     assert marker in today, marker
 assert "root.todayEvents.slice(0, 2)" in today
 assert "No hay eventos hoy" in today
+# Events carry `title` (cortetsu-calendar normalize_event); there is no `summary`.
+assert "modelData.title ||" in today and "modelData.summary" not in today
 
 # Focus reuses the persistent first-party Pomodoro state/helper instead of
 # inventing a dashboard-only timer.

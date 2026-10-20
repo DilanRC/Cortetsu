@@ -2,6 +2,7 @@ import QtQuick
 import ".."
 import "../../theme"
 import "../../services"
+import "../CortetsuOverlayPolicy.js" as OverlayPolicy
 
 Item {
     id: root
@@ -22,7 +23,7 @@ Item {
     function show(): void {
         if (!screenState)
             return;
-        screenState.osd = true;
+        OverlayPolicy.open(CortetsuShellState.allStates(), screenState, "osd");
         hideTimer.restart();
     }
 

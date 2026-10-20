@@ -41,7 +41,8 @@ def main() -> None:
     assert "visible: opacity > 0.001" in wrapper_text
     assert "active: root.shouldBeActive || root.opacity > 0.001" in wrapper_text
     assert "Qt.alpha(CortetsuDesign.colorScrim, 0.18)" in wrapper_text
-    require(ROOT / "cortetsu/modules/WallpaperController.qml", "wallpaperManager", "CortetsuShortcut", 'name: "wallpapermanager"')
+    require(ROOT / "cortetsu/modules/WallpaperController.qml", "wallpaperManager", "RetainedSurfaceController {", 'shortcutName: "wallpapermanager"')
+    require(ROOT / "cortetsu/modules/RetainedSurfaceController.qml", "CortetsuShortcut", "name: root.shortcutName")
     require(ROOT / "cortetsu/modules/BottomHub.qml", "openWallpaperFor")
     require(ROOT / "config/hypr-user.lua", "SUPER + SHIFT + W", "cortetsu:wallpapermanager")
     service = ROOT / "cortetsu/modules/CortetsuWallpapers.qml"

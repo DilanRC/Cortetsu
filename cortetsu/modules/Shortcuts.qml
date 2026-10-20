@@ -10,16 +10,12 @@ import "SurfaceRegistry.js" as Surfaces
 Scope {
     id: root
     property bool launcherInterrupted: false
-    readonly property bool hasFullscreen: CortetsuHypr.focusedWorkspace?.toplevels.values.some(t => t.lastIpcObject.fullscreen > 1) ?? false
+    readonly property bool hasFullscreen: CortetsuHypr.focusedFullscreen
 
-    function toggleExclusive(state, flag: string): bool {
-        if (!state || !Surfaces.isKnown(flag) || typeof state[flag] !== "boolean")
-            return false;
-        const opening = !state[flag];
-        if (opening)
-            OverlayPolicy.closeAll(state);
-        state[flag] = opening;
-        return opening;
+    // The one toggle for every shortcut and `drawers toggle`: the same
+    // operation follows the same policy whichever path asks for it.
+    function toggleSurface(state, flag: string): bool {
+        return OverlayPolicy.toggleGuarded(CortetsuShellState.allStates(), state, flag, root.hasFullscreen);
     }
 
     CustomShortcut {
@@ -29,6 +25,10 @@ Scope {
             const state = CortetsuShellState.forActive();
             if (!state) return;
             const open = !(state.launcher || state.dashboard || state.osd || state.utilities);
+            // Shows three panels together on purpose; they still close
+            // whatever exclusive surface is open on any screen.
+            if (open)
+                OverlayPolicy.closeExclusiveEverywhere(CortetsuShellState.allStates());
             state.launcher = open && CortetsuConfig.launcher.enabled;
             state.dashboard = open && CortetsuConfig.dashboard.enabled && CortetsuConfig.dashboard.showDashboard;
             state.osd = open;
@@ -37,12 +37,12 @@ Scope {
     }
     CustomShortcut {
         name: "dashboard"; description: "Alternar panel"
-        onPressed: if (!root.hasFullscreen && CortetsuConfig.dashboard.enabled && CortetsuConfig.dashboard.showDashboard)
-            root.toggleExclusive(CortetsuShellState.forActive(), "dashboard")
+        onPressed: if (CortetsuConfig.dashboard.enabled && CortetsuConfig.dashboard.showDashboard)
+            root.toggleSurface(CortetsuShellState.forActive(), "dashboard")
     }
     CustomShortcut {
         name: "session"; description: "Alternar menú de sesión"
-        onPressed: if (!root.hasFullscreen) root.toggleExclusive(CortetsuShellState.forActive(), "session")
+        onPressed: root.toggleSurface(CortetsuShellState.forActive(), "session")
     }
     CustomShortcut {
         name: "launcher"; description: "Alternar lanzador"
@@ -56,19 +56,9 @@ Scope {
     CustomShortcut { name: "launcherInterrupt"; description: "Interrumpir atajo del lanzador"; onPressed: root.launcherInterrupted = true }
     CustomShortcut {
         name: "sidebar"; description: "Alternar notificaciones"
-        onPressed: {
-            if (root.hasFullscreen) return;
-            const state = CortetsuShellState.forActive();
-            if (!state) return;
-            const open = !state.sidebar;
-            if (open)
-                OverlayPolicy.closeAll(state);
-            state.sidebar = open;
-            // Super+N is the notification center. Quick settings have their
-            // own surface and must not be forced open with notifications.
-            state.utilities = false;
-            state.cortetsuState?.setRetained("wallpaperManager", false);
-        }
+        // Super+N is the notification center. Opening it closes every
+        // exclusive surface (quick settings and Wallpaper Manager included).
+        onPressed: root.toggleSurface(CortetsuShellState.forActive(), "sidebar")
     }
     CustomShortcut {
         name: "focusToast"; description: "Enfocar la notificación más reciente"
@@ -76,39 +66,21 @@ Scope {
     }
     CustomShortcut {
         name: "utilities"; description: "Alternar utilidades"
-        onPressed: if (!root.hasFullscreen) root.toggleExclusive(CortetsuShellState.forActive(), "osd")
+        onPressed: root.toggleSurface(CortetsuShellState.forActive(), "osd")
     }
     CustomShortcut {
         name: "osd"; description: "Alternar OSD de acciones rápidas"
-        onPressed: {
-            if (root.hasFullscreen)
-                return;
-            root.toggleExclusive(CortetsuShellState.forActive(), "osd");
-        }
+        onPressed: root.toggleSurface(CortetsuShellState.forActive(), "osd")
     }
     CustomShortcut {
         name: "qsd"; description: "Alternar ajustes rápidos"
-        onPressed: {
-            if (root.hasFullscreen)
-                return;
-            const state = CortetsuShellState.forActive();
-            if (!state)
-                return;
-            // Compatibility name: the compact QSD was removed from the
-            // shell. Existing Hyprland bindings now open the full OSD.
-            root.toggleExclusive(state, "osd");
-        }
+        // Compatibility name: the compact QSD was removed from the shell.
+        // Existing Hyprland bindings now open the full OSD.
+        onPressed: root.toggleSurface(CortetsuShellState.forActive(), "osd")
     }
     CustomShortcut {
         name: "settings"; description: "Alternar centro de ajustes de Cortetsu"
-        onPressed: {
-            if (root.hasFullscreen)
-                return;
-            const state = CortetsuShellState.forActive();
-            if (!state)
-                return;
-            root.toggleExclusive(state, "settings");
-        }
+        onPressed: root.toggleSurface(CortetsuShellState.forActive(), "settings")
     }
     IpcHandler {
         target: "drawers"
@@ -116,13 +88,10 @@ Scope {
             const state = CortetsuShellState.forActive();
             const target = drawer === "qsd" ? "osd" : drawer;
             if (!state || !Surfaces.isKnown(target)) return;
-            if (root.hasFullscreen && Surfaces.isIpcExclusive(target)) return;
             if (target === "launcher" && CortetsuShellState.launcherOpenAnywhere())
                 CortetsuShellState.closeLaunchers(null);
-            else if (Surfaces.isIpcExclusive(target))
-                root.toggleExclusive(state, target);
             else if (Surfaces.isSettable(target))
-                state.cortetsuState?.setFlag(target, !state[target]);
+                root.toggleSurface(state, target);
             else
                 state[target] = !state[target]; // bar: chrome, outside the overlay policy
         }

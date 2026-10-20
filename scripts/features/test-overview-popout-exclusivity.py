@@ -11,6 +11,6 @@ assert "function closeAllPopouts()" in source
 assert "CortetsuShellState.componentsFor(screen)?.popouts" in source
 assert "popouts.close();" in source
 open_body = source.split("function open(): void", 1)[1].split("function close(): void", 1)[0]
-assert open_body.index("closeAllPopouts();") < open_body.index("state.setRetained(\"overview\", true);")
+assert open_body.index("closeAllPopouts();") < open_body.index("OverlayPolicy.open(CortetsuShellState.allStates(), state, \"overview\");")
 
 print("PASS: Overview closes all first-party popouts before opening")

@@ -49,7 +49,7 @@ assert "qsdEdgeHovered" not in state
 assert "qsdDrawerHovered" not in state
 assert "qsdOpenedByShortcut" not in state
 assert 'name: "qsd"' in shortcuts
-assert 'root.toggleExclusive(state, "osd")' in shortcuts
+assert 'root.toggleSurface(CortetsuShellState.forActive(), "osd")' in shortcuts
 assert 'const target = drawer === "qsd" ? "osd" : drawer;' in shortcuts
 assert 'onClicked: root.closeQsd()' in content
 assert 'hl.dsp.global("cortetsu:osd")' in hypr

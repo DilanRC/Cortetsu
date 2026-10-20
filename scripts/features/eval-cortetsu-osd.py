@@ -19,7 +19,7 @@ assert "onMoved: nextValue => root.brightnessMonitor?.setBrightness(nextValue)" 
 assert "onMoved: nextValue => CortetsuAudio.setVolume(nextValue)" in content
 assert "onMoved: root.brightnessMonitor?.setBrightness(value)" not in content
 assert "onMoved: CortetsuAudio.setVolume(value)" not in content
-assert "root.screenState.settings = true" in content
+assert 'OverlayPolicy.open(CortetsuShellState.allStates(), root.screenState, "settings")' in content
 assert '"qsd"' not in policy
 assert "import qs." not in content
 assert "CortetsuActionTile" in content

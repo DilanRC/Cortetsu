@@ -3,23 +3,13 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import "OverlayPolicy.js" as OverlayPolicy
+import "CortetsuOverlayPolicy.js" as OverlayPolicy
 
+// Window overview. Unlike the other retained surfaces it follows the focused
+// screen: toggling it from another screen moves it there (see the stabilization
+// contract), and opening it also closes Bottom Hub popouts.
 Scope {
     id: root
-
-    function closeAll(): void {
-        for (const screen of CortetsuScreens.screens) {
-            const state = CortetsuShellState.forScreen(screen)?.cortetsuState;
-            if (state)
-                state.setRetained("overview", false);
-        }
-    }
-
-    function closeOtherPanels(): void {
-        for (const screen of CortetsuScreens.screens)
-            OverlayPolicy.closeOtherPanels(CortetsuShellState.forScreen(screen)?.cortetsuState);
-    }
 
     function closeAllPopouts(): void {
         for (const screen of CortetsuScreens.screens) {
@@ -30,31 +20,25 @@ Scope {
     }
 
     function open(): void {
-        const state = CortetsuShellState.forActive()?.cortetsuState;
+        const state = CortetsuShellState.forActive();
         if (!state)
             return;
-
-        closeAll();
-        closeOtherPanels();
         closeAllPopouts();
-        state.setRetained("overview", true);
+        OverlayPolicy.open(CortetsuShellState.allStates(), state, "overview");
     }
 
     function close(): void {
-        closeAll();
+        OverlayPolicy.close(CortetsuShellState.allStates(), "overview");
     }
 
     function toggle(): void {
-        const state = CortetsuShellState.forActive()?.cortetsuState;
+        const state = CortetsuShellState.forActive();
         if (!state)
             return;
-
-        if (state.overview) {
-            closeAll();
-            return;
-        }
-
-        open();
+        if (state.overview)
+            close();
+        else
+            open();
     }
 
     // qmllint disable unresolved-type
@@ -81,8 +65,7 @@ Scope {
         }
 
         function isOpen(): bool {
-            const state = CortetsuShellState.forActive();
-            return state?.overview ?? false;
+            return CortetsuShellState.forActive()?.overview ?? false;
         }
     }
 }

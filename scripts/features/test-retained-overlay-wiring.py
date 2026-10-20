@@ -152,7 +152,13 @@ def main() -> None:
     assert "for (const candidate of CortetsuScreens.screens)" in wrapper
     assert "onGlobalOtherOverlayOpenChanged" in wrapper
     assert "closeCompetingPanels();" in wrapper
-    assert "CortetsuShortcut" in controller and "OverlayPolicy.closeForWallpaper" in controller
+    # The shortcut is the shared controller's; opening closes every exclusive
+    # surface on every screen through the policy.
+    shared = (MODULES / "RetainedSurfaceController.qml").read_text(encoding="utf-8")
+    transitions = (MODULES / "CortetsuOverlayPolicy.js").read_text(encoding="utf-8")
+    assert "RetainedSurfaceController {" in controller and 'shortcutName: "wallpapermanager"' in controller
+    assert "CortetsuShortcut" in shared and "OverlayPolicy.open(CortetsuShellState.allStates()" in shared
+    assert "closeExclusiveEverywhere(states);" in transitions
     print("PASS direct-shortcut-and-two-monitor-exclusivity")
 
     for relative, flag in (

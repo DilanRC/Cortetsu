@@ -1,63 +1,16 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import Quickshell
-import Quickshell.Io
-import "OverlayPolicy.js" as OverlayPolicy
 import "CortetsuFullscreen.js" as Fullscreen
 
-Scope {
+// Hardware Center: global shortcuts "hardware" and "hardwareKey", IPC target "hardware".
+RetainedSurfaceController {
     id: root
 
-    function anyOpen(): bool {
-        for (const screen of CortetsuScreens.screens) {
-            const state = CortetsuShellState.forScreen(screen)?.cortetsuState;
-            if (state?.hardware)
-                return true;
-        }
-        return false;
-    }
-
-    function closeAll(): void {
-        for (const screen of CortetsuScreens.screens) {
-            const state = CortetsuShellState.forScreen(screen)?.cortetsuState;
-            if (state)
-                state.setRetained("hardware", false);
-        }
-    }
-
-    function closeOtherPanels(): void {
-        for (const screen of CortetsuScreens.screens)
-            OverlayPolicy.closeOtherPanels(CortetsuShellState.forScreen(screen)?.cortetsuState);
-    }
-
-    function open(): void {
-        const state = CortetsuShellState.forActive()?.cortetsuState;
-        if (!state)
-            return;
-
-        closeAll();
-        closeOtherPanels();
-        state.setRetained("hardware", true);
-    }
-
-    function close(): void {
-        closeAll();
-    }
-
-    function toggle(): void {
-        if (anyOpen()) {
-            closeAll();
-            return;
-        }
-        open();
-    }
-
-    CortetsuShortcut {
-        name: "hardware"
-        description: "Toggle Cortetsu Hardware Center"
-        onPressed: root.toggle()
-    }
+    surfaceKey: "hardware"
+    ipcTarget: "hardware"
+    shortcutName: "hardware"
+    shortcutDescription: "Toggle Cortetsu Hardware Center"
 
     // The OMEN key (XF86Launch2) is easy to hit by accident, so it does
     // nothing over a fullscreen game or video; SUPER+H stays the explicit way.
@@ -71,26 +24,6 @@ Scope {
             }));
             if (!Fullscreen.focusedHasFullscreen(monitors))
                 root.toggle();
-        }
-    }
-
-    IpcHandler {
-        target: "hardware"
-
-        function toggle(): void {
-            root.toggle();
-        }
-
-        function open(): void {
-            root.open();
-        }
-
-        function close(): void {
-            root.close();
-        }
-
-        function isOpen(): bool {
-            return root.anyOpen();
         }
     }
 }

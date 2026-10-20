@@ -21,10 +21,14 @@ assert "if (!state)" in content_window
 assert "screenState?.cortetsuState?.requiresWindowKeyboardFocus" in content_window
 assert "screenState?.launcher" in content_window
 
+# Controllers write through CortetsuOverlayPolicy, whose OverlayPolicy.setFlag
+# routes every write through the typed setFlag (asserted above).
 for path in controller_paths:
     text = path.read_text(encoding="utf-8")
     assert ".legacyState" not in text, path
-    if "OverlayPolicy.close" in text:
-        assert "cortetsuState" in text, path
+    assert "setRetained(" not in text and ".legacyState[" not in text, path
+    # The hover controller times Bottom Hub popouts and owns no surface flag.
+    if path.name != "CortetsuHoverSurfaceController.qml":
+        assert "CortetsuOverlayPolicy.js" in text or "RetainedSurfaceController {" in text, path
 
 print("PASS: controllers consume CortetsuScreenState without leaking the legacy backing object")
