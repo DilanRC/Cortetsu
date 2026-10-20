@@ -125,7 +125,11 @@ for path in (
 assert "closeTimer" in wrapper
 assert "BarPopouts.CortetsuWindowInfoPopup" in panels
 assert 'visible: popoutsWrapper.content.detachedMode === "winfo"' in panels
-assert "focusable: panels.popouts.hasCurrent || ((screenState?.cortetsuState?.requiresWindowKeyboardFocus ?? false) && !(screenState?.launcher ?? false) && !(screenState?.session ?? false))" in content_window
+# An open popout keeps the drawer window keyboard-focusable. One binding owns
+# the mode: `focusable` writes the same Quickshell property, so it is not bound.
+assert "\n    focusable:" not in content_window
+assert ": (panels.popouts.hasCurrent || wantsFocusGrab\n" in content_window
+assert "? WlrKeyboardFocus.OnDemand" in content_window
 assert "!popouts.bottomAttached &&" in interactions
 assert "visible: (panel?.visible ?? false) && (panel?.width ?? 0) > 0 && (panel?.height ?? 0) > 0 && (panel?.offsetScale ?? 1) < 1" in content_window
 for token in ('function control(mode: string): bool', 'function detachedControl(mode: string): bool', 'componentsFor(screen)?.popouts', '"activewindow"', '"kblayout"', '"lockstatus"', '"winfo"'):

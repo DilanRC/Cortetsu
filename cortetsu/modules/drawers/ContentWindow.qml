@@ -73,15 +73,22 @@ StyledWindow {
     }
 
     name: "drawers"
-    focusable: panels.popouts.hasCurrent || ((screenState?.cortetsuState?.requiresWindowKeyboardFocus ?? false) && !(screenState?.launcher ?? false) && !(screenState?.session ?? false))
     WlrLayershell.exclusionMode: ExclusionMode.Ignore
     WlrLayershell.layer: screenState?.cortetsuState?.overview ? WlrLayer.Overlay : ((fsTransitionProg > 0 && CortetsuOverlayConfig.general.showOverFullscreen) || (hasSpecialWorkspace && hasFullscreenOnNormalWs) ? WlrLayer.Overlay : WlrLayer.Top)
+    // The one writer of this window's keyboard mode (`focusable` writes the
+    // same Quickshell property, so it is not bound as well).
     // Attached BottomHub popouts are mouse-owned. Giving the full-screen
     // drawer exclusive keyboard focus steals pointer hover from the trigger
     // window, which makes the shared hover controller close and reopen them.
+    // While the focus grab is wanted the window stays OnDemand: Hyprland drops
+    // a live grab when a layer of this client that holds the keyboard switches
+    // to `none` (LayerSurface::onCommit -> refocusLastWindow), which closed the
+    // sidebar when it opened in the same transition that closed a retained
+    // surface (O-3).
     WlrLayershell.keyboardFocus: (panels.popouts.isDetached || panels.popouts.currentName === "wirelesspassword")
         ? WlrKeyboardFocus.Exclusive
-        : (screenState?.cortetsuState?.requiresWindowKeyboardFocus && !(screenState?.launcher ?? false) && !(screenState?.session ?? false))
+        : (panels.popouts.hasCurrent || wantsFocusGrab
+           || (screenState?.cortetsuState?.requiresWindowKeyboardFocus && !(screenState?.launcher ?? false) && !(screenState?.session ?? false)))
             ? WlrKeyboardFocus.OnDemand
             : WlrKeyboardFocus.None
 
@@ -130,26 +137,29 @@ StyledWindow {
         win: root
     }
 
+    // Panels that close on a click outside, through the focus grab below.
+    readonly property bool wantsFocusGrab: {
+        const s = root.screenState;
+        if (!s)
+            return false;
+        const conf = root.CortetsuOverlayConfig;
+        if (panels.popouts.isDetached || panels.popouts.currentName === "wirelesspassword")
+            return true;
+        if (s.cortetsuState?.retainedOverlayOpen)
+            return false;
+        if ((s.sidebar && conf.sidebar.enabled) || (s.utilities && conf.utilities.enabled))
+            return true;
+        if (!conf.dashboard.showOnHover && s.dashboard && conf.dashboard.enabled)
+            return true;
+        if (panels.popouts.currentName.startsWith("traymenu") && (panels.popouts.current as StackView)?.depth > 1)
+            return true;
+        return false;
+    }
+
     HyprlandFocusGrab {
         id: focusGrab
 
-        active: {
-            const s = root.screenState;
-            if (!s)
-                return false;
-            const conf = root.CortetsuOverlayConfig;
-            if (panels.popouts.isDetached || panels.popouts.currentName === "wirelesspassword")
-                return true;
-            if (s.cortetsuState?.retainedOverlayOpen)
-                return false;
-            if ((s.sidebar && conf.sidebar.enabled) || (s.utilities && conf.utilities.enabled))
-                return true;
-            if (!conf.dashboard.showOnHover && s.dashboard && conf.dashboard.enabled)
-                return true;
-            if (panels.popouts.currentName.startsWith("traymenu") && (panels.popouts.current as StackView)?.depth > 1)
-                return true;
-            return false;
-        }
+        active: root.wantsFocusGrab
         windows: [root]
         onCleared: {
             root.screenState.launcher = false;

@@ -34,5 +34,9 @@ tray = (popouts / "CortetsuTrayMenu.qml").read_text(encoding="utf-8")
 assert all(token in tray for token in ("activeFocusOnTab", "Qt.Key_Right", "Qt.Key_Left", "Qt.Key_Escape", "focused: activeFocus", "outlined: activeFocus"))
 assert "CortetsuPopupSurface" in tray
 content_window = (ROOT / "cortetsu/modules/drawers/ContentWindow.qml").read_text(encoding="utf-8")
-assert "focusable: panels.popouts.hasCurrent || ((screenState?.cortetsuState?.requiresWindowKeyboardFocus ?? false) && !(screenState?.launcher ?? false) && !(screenState?.session ?? false))" in content_window
+# An open popout keeps the drawer window keyboard-focusable. One binding owns
+# the mode: `focusable` writes the same Quickshell property, so it is not bound.
+assert "\n    focusable:" not in content_window
+assert ": (panels.popouts.hasCurrent || wantsFocusGrab\n" in content_window
+assert "? WlrKeyboardFocus.OnDemand" in content_window
 print("PASS: native popup eval covers network, audio and Bluetooth hierarchy and states")
