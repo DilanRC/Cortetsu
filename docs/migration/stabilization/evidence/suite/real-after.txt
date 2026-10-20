@@ -1,0 +1,10 @@
+{"option":"general:border_size","int":1,"set":true}
+{"option":"general:gaps_in","css":"5555","set":true}
+{"option":"decoration:rounding","int":15,"set":true}
+{"option":"decoration:blur:enabled","bool":true,"set":true}
+{"option":"decoration:shadow:enabled","bool":true,"set":true}
+{"option":"animations:enabled","bool":true,"set":true}
+[('eDP-1', 1920, 1080, 144, 1, 2, True)]
+binds 187 19e5b6270a597b0f
+32901bcd8380ab2b
+no-real-gamemode-txn

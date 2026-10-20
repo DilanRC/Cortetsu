@@ -1,0 +1,189 @@
+{
+ "date": "2026-10-20T14:54:36-0600",
+ "repeats": 20,
+ "fail": 0,
+ "leftover_pids": [],
+ "runtime_dir_removed": true,
+ "rows": [
+  {
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  }
+ ]
+}

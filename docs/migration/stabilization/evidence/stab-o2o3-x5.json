@@ -1,0 +1,1866 @@
+{
+ "checkout": "<repo>",
+ "date": "2026-10-20T15:36:36-0600",
+ "monitors": {
+  "client": "WAYLAND-1",
+  "m1": "HEADLESS-1",
+  "m2": "HEADLESS-2"
+ },
+ "checks": [
+  {
+   "scenario": "o2",
+   "check": "hardware then sidebar by ipc, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "sidebar by ipc closes it again, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then sidebar by ipc, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "sidebar"
+    ]
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "sidebar by ipc closes it again, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then sidebar by super+n, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "sidebar by super+n closes it again, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then sidebar by super+n, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "sidebar"
+    ]
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "sidebar by super+n closes it again, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then sidebar by bottomhub, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "sidebar by bottomhub closes it again, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then sidebar by bottomhub, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "sidebar"
+    ]
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "sidebar by bottomhub closes it again, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then drawers toggle launcher",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "launcher"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "drawers toggle launcher then hardware",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then drawers toggle session",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "session"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "drawers toggle session then hardware",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then drawers toggle dashboard",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "dashboard"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "drawers toggle dashboard then hardware",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then drawers toggle utilities",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "utilities"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "drawers toggle utilities then hardware",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then drawers toggle settings",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "settings"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "drawers toggle settings then hardware",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then drawers toggle sidebar",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "drawers toggle sidebar then hardware",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "osd coexists with hardware",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware",
+     "osd"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "fullscreen: sidebar by ipc does not open",
+   "result": "PASS",
+   "seen": "0"
+  },
+  {
+   "scenario": "o2",
+   "check": "fullscreen: sidebar by super+n does not open",
+   "result": "PASS",
+   "seen": "0"
+  },
+  {
+   "scenario": "o2",
+   "check": "fullscreen: sidebar by bottomhub does not open",
+   "result": "PASS",
+   "seen": "0"
+  },
+  {
+   "scenario": "o3",
+   "check": "wallpaper then sidebar by ipc",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o3",
+   "check": "wallpaper then sidebar by super+n",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o3",
+   "check": "wallpaper then sidebar by bottomhub",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then sidebar by ipc, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "sidebar by ipc closes it again, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then sidebar by ipc, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "sidebar"
+    ]
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "sidebar by ipc closes it again, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then sidebar by super+n, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "sidebar by super+n closes it again, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then sidebar by super+n, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "sidebar"
+    ]
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "sidebar by super+n closes it again, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then sidebar by bottomhub, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "sidebar by bottomhub closes it again, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then sidebar by bottomhub, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "sidebar"
+    ]
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "sidebar by bottomhub closes it again, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then drawers toggle launcher",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "launcher"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "drawers toggle launcher then hardware",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then drawers toggle session",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "session"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "drawers toggle session then hardware",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then drawers toggle dashboard",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "dashboard"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "drawers toggle dashboard then hardware",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then drawers toggle utilities",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "utilities"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "drawers toggle utilities then hardware",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then drawers toggle settings",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "settings"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "drawers toggle settings then hardware",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then drawers toggle sidebar",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "drawers toggle sidebar then hardware",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "osd coexists with hardware",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware",
+     "osd"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "fullscreen: sidebar by ipc does not open",
+   "result": "PASS",
+   "seen": "0"
+  },
+  {
+   "scenario": "o2",
+   "check": "fullscreen: sidebar by super+n does not open",
+   "result": "PASS",
+   "seen": "0"
+  },
+  {
+   "scenario": "o2",
+   "check": "fullscreen: sidebar by bottomhub does not open",
+   "result": "PASS",
+   "seen": "0"
+  },
+  {
+   "scenario": "o3",
+   "check": "wallpaper then sidebar by ipc",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o3",
+   "check": "wallpaper then sidebar by super+n",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o3",
+   "check": "wallpaper then sidebar by bottomhub",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then sidebar by ipc, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "sidebar by ipc closes it again, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then sidebar by ipc, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "sidebar"
+    ]
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "sidebar by ipc closes it again, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then sidebar by super+n, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "sidebar by super+n closes it again, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then sidebar by super+n, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "sidebar"
+    ]
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "sidebar by super+n closes it again, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then sidebar by bottomhub, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "sidebar by bottomhub closes it again, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then sidebar by bottomhub, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "sidebar"
+    ]
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "sidebar by bottomhub closes it again, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then drawers toggle launcher",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "launcher"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "drawers toggle launcher then hardware",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then drawers toggle session",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "session"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "drawers toggle session then hardware",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then drawers toggle dashboard",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "dashboard"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "drawers toggle dashboard then hardware",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then drawers toggle utilities",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "utilities"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "drawers toggle utilities then hardware",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then drawers toggle settings",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "settings"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "drawers toggle settings then hardware",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then drawers toggle sidebar",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "drawers toggle sidebar then hardware",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "osd coexists with hardware",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware",
+     "osd"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "fullscreen: sidebar by ipc does not open",
+   "result": "PASS",
+   "seen": "0"
+  },
+  {
+   "scenario": "o2",
+   "check": "fullscreen: sidebar by super+n does not open",
+   "result": "PASS",
+   "seen": "0"
+  },
+  {
+   "scenario": "o2",
+   "check": "fullscreen: sidebar by bottomhub does not open",
+   "result": "PASS",
+   "seen": "0"
+  },
+  {
+   "scenario": "o3",
+   "check": "wallpaper then sidebar by ipc",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o3",
+   "check": "wallpaper then sidebar by super+n",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o3",
+   "check": "wallpaper then sidebar by bottomhub",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then sidebar by ipc, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "sidebar by ipc closes it again, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then sidebar by ipc, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "sidebar"
+    ]
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "sidebar by ipc closes it again, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then sidebar by super+n, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "sidebar by super+n closes it again, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then sidebar by super+n, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "sidebar"
+    ]
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "sidebar by super+n closes it again, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then sidebar by bottomhub, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "sidebar by bottomhub closes it again, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then sidebar by bottomhub, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "sidebar"
+    ]
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "sidebar by bottomhub closes it again, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then drawers toggle launcher",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "launcher"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "drawers toggle launcher then hardware",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then drawers toggle session",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "session"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "drawers toggle session then hardware",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then drawers toggle dashboard",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "dashboard"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "drawers toggle dashboard then hardware",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then drawers toggle utilities",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "utilities"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "drawers toggle utilities then hardware",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then drawers toggle settings",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "settings"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "drawers toggle settings then hardware",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then drawers toggle sidebar",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "drawers toggle sidebar then hardware",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "osd coexists with hardware",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware",
+     "osd"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "fullscreen: sidebar by ipc does not open",
+   "result": "PASS",
+   "seen": "0"
+  },
+  {
+   "scenario": "o2",
+   "check": "fullscreen: sidebar by super+n does not open",
+   "result": "PASS",
+   "seen": "0"
+  },
+  {
+   "scenario": "o2",
+   "check": "fullscreen: sidebar by bottomhub does not open",
+   "result": "PASS",
+   "seen": "0"
+  },
+  {
+   "scenario": "o3",
+   "check": "wallpaper then sidebar by ipc",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o3",
+   "check": "wallpaper then sidebar by super+n",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o3",
+   "check": "wallpaper then sidebar by bottomhub",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then sidebar by ipc, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "sidebar by ipc closes it again, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then sidebar by ipc, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "sidebar"
+    ]
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "sidebar by ipc closes it again, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then sidebar by super+n, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "sidebar by super+n closes it again, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then sidebar by super+n, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "sidebar"
+    ]
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "sidebar by super+n closes it again, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then sidebar by bottomhub, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "sidebar by bottomhub closes it again, same screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then sidebar by bottomhub, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": [
+     "sidebar"
+    ]
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "sidebar by bottomhub closes it again, other screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then drawers toggle launcher",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "launcher"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "drawers toggle launcher then hardware",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then drawers toggle session",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "session"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "drawers toggle session then hardware",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then drawers toggle dashboard",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "dashboard"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "drawers toggle dashboard then hardware",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then drawers toggle utilities",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "utilities"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "drawers toggle utilities then hardware",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then drawers toggle settings",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "settings"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "drawers toggle settings then hardware",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "hardware then drawers toggle sidebar",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "drawers toggle sidebar then hardware",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "osd coexists with hardware",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "hardware",
+     "osd"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o2",
+   "check": "fullscreen: sidebar by ipc does not open",
+   "result": "PASS",
+   "seen": "0"
+  },
+  {
+   "scenario": "o2",
+   "check": "fullscreen: sidebar by super+n does not open",
+   "result": "PASS",
+   "seen": "0"
+  },
+  {
+   "scenario": "o2",
+   "check": "fullscreen: sidebar by bottomhub does not open",
+   "result": "PASS",
+   "seen": "0"
+  },
+  {
+   "scenario": "o3",
+   "check": "wallpaper then sidebar by ipc",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o3",
+   "check": "wallpaper then sidebar by super+n",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "o3",
+   "check": "wallpaper then sidebar by bottomhub",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "final",
+   "check": "every flag closed on every screen",
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "scenario": "final",
+   "check": "keyboard in the client",
+   "result": "PASS",
+   "seen": ""
+  }
+ ],
+ "qml_warnings_startup": [
+  " ERROR quickshell.service.pipewire.loop: Failed to connect pipewire context. Errno: 112",
+  "  WARN: Could not load icon \"application-x-executable?fallback=image-missing\" at size QSize(52, 52) from request",
+  "  WARN quickshell.io.fileview: got operation finished from dropped operation qs::io::FileViewOperation(0x7f9263f66920)",
+  "  WARN quickshell.io.fileview: got operation finished from dropped operation qs::io::FileViewOperation(0x7f925fe02a00)",
+  "  WARN scene: @services/GameMode.qml[68:-1]: Error: Cannot assign [undefined] to QString",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f92602d6d80 but 0x0 is focused",
+  "  WARN: Could not load icon \"cortetsu-probe?fallback=image-missing\" at size QSize(100, 100) from request",
+  " ERROR quickshell.wayland.buffer.dmabuf: Failed to query render formats: No GL context.",
+  "  WARN quickshell.wayland.buffer: Render format initialization failed. All buffers will fall back to SHM.",
+  "  WARN: Could not load icon \"cortetsu-probe?fallback=image-missing\" at size QSize(64, 64) from request"
+ ],
+ "qml_warnings_during_run": [
+  "  WARN qml: Hardware Center: probe returned no reading",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f92602af480 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f92602af480 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f92602bc6c0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f92602bc6c0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f92602af480 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f92602af480 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f92602bc6c0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f92602bc6c0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f92602af480 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f92602af480 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f92602bc6c0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f92602bc6c0 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f9260309220 but 0x0 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f9260309220 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f9260309220 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f9260309220 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e8629a0 but 0x7f9260309220 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e8629a0 but 0x7f9260309220 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f9260309220 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f9260309220 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f92602af480 but 0x7f9260309220 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::enableSurface(wl_surface*) Trying to enable 0x7f92602af480 but 0x7f9260309220 has focus",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f92602f35c0 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f92602f35c0 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN: Could not load icon \"org.quickshell?fallback=image-missing\" at size QSize(100, 100) from request",
+  "  WARN: Could not load icon \"org.quickshell?fallback=image-missing\" at size QSize(64, 64) from request",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f92602bc6c0 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f92602bc6c0 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f92602bc6c0 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f92602bc6c0 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f92602bc6c0 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f92602bc6c0 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f9260309220 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::enableSurface(wl_surface*) Trying to enable 0x7f9260309220 but 0x7f92602af480 has focus",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f9260309220 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f9260309220 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f9260309220 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e8629a0 but 0x7f9260309220 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f9260309220 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f9260309220 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f92602af480 but 0x7f9260309220 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::enableSurface(wl_surface*) Trying to enable 0x7f92602af480 but 0x7f9260309220 has focus",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f92602f35c0 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f92602f35c0 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN: Could not load icon \"org.quickshell?fallback=image-missing\" at size QSize(100, 100) from request",
+  "  WARN: Could not load icon \"org.quickshell?fallback=image-missing\" at size QSize(64, 64) from request",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f92602bc6c0 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f92602bc6c0 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f92602bc6c0 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f92602bc6c0 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f92602bc6c0 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f92602bc6c0 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::enableSurface(wl_surface*) Trying to enable 0x7f9260309220 but 0x7f92602af480 has focus",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f9260309220 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f9260309220 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f9260309220 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e8629a0 but 0x7f9260309220 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f9260309220 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f9260309220 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f92602af480 but 0x7f9260309220 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::enableSurface(wl_surface*) Trying to enable 0x7f92602af480 but 0x7f9260309220 has focus",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f92602f35c0 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f92602f35c0 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN: Could not load icon \"org.quickshell?fallback=image-missing\" at size QSize(100, 100) from request",
+  "  WARN: Could not load icon \"org.quickshell?fallback=image-missing\" at size QSize(64, 64) from request",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e6d36a0 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e6d36a0 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f92602bc6c0 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f92602bc6c0 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f92602bc6c0 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f92602bc6c0 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f92602bc6c0 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f92602bc6c0 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::enableSurface(wl_surface*) Trying to enable 0x7f92602af480 but 0x7f92602af480 has focus",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f9260309220 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::enableSurface(wl_surface*) Trying to enable 0x7f9260309220 but 0x7f92602af480 has focus",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f9260309220 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f9260309220 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f92602af480 but 0x7f9260309220 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::enableSurface(wl_surface*) Trying to enable 0x7f92602af480 but 0x7f9260309220 has focus",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e8629a0 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e8629a0 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f92602f35c0 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f92602f35c0 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN: Could not load icon \"org.quickshell?fallback=image-missing\" at size QSize(100, 100) from request",
+  "  WARN: Could not load icon \"org.quickshell?fallback=image-missing\" at size QSize(64, 64) from request",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f92602bc6c0 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f92602bc6c0 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f92602bc6c0 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f92602bc6c0 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f92602bc6c0 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f92602bc6c0 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f9260309220 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::enableSurface(wl_surface*) Trying to enable 0x7f9260309220 but 0x7f92602af480 has focus",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f9260309220 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f9260309220 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f9260309220 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e8629a0 but 0x7f9260309220 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e8629a0 but 0x7f9260309220 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f9260309220 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f9260309220 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f92602af480 but 0x7f9260309220 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::enableSurface(wl_surface*) Trying to enable 0x7f92602af480 but 0x7f9260309220 has focus",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f92602f35c0 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f92602f35c0 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e6d36a0 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e6d36a0 but 0x7f92602af480 is focused",
+  "  WARN: Could not load icon \"org.quickshell?fallback=image-missing\" at size QSize(100, 100) from request",
+  "  WARN: Could not load icon \"org.quickshell?fallback=image-missing\" at size QSize(64, 64) from request",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e6d36a0 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused",
+  "  WARN qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::disableSurface(wl_surface*) Trying to disable 0x7f925e873600 but 0x7f92602af480 is focused"
+ ],
+ "leftover_pids": [],
+ "runtime_dir_removed": true
+}
