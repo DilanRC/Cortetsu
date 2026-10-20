@@ -238,3 +238,14 @@ exigiría reescribir y forzar el push, lo cual no se hizo.
 ```sh
 python3 -I docs/migration/F1a/tools/sanitize_evidence.py --check docs/migration/F1a
 ```
+
+## 10. Limitaciones de revisión externa
+
+La revisión externa de F1a está **incompleta**. No hay veredicto externo PASS.
+
+- `ai-review normal` agotó su límite de 15 minutos sin entregar respuesta ni veredicto. No se determinó la causa técnica.
+- `ai-review fast` confirmó las cifras que llegó a comprobar, pero no emitió veredicto final. No cuenta como revisión completa
+  ni como aprobación.
+- Las dos pasadas de revisión interna las hizo Claude directamente, sin revisores independientes.
+- El hallazgo previo de ai-review sobre `test-wallpaper-manager.py` (§2) está comprobado y corregido. Eso no completa la
+  revisión externa.
