@@ -11,7 +11,7 @@ assert component.count("Behavior on shownValue") == 1
 consumer_paths = [
     ROOT / "cortetsu/modules/dashboard/Focus.qml",
     ROOT / "cortetsu/modules/hardware/summary/CapacityBlock.qml",
-    ROOT / "cortetsu/modules/calendar/Content.qml",
+    ROOT / "cortetsu/modules/calendar/PomodoroCard.qml",
     ROOT / "cortetsu/modules/bar/popouts/CortetsuBatteryPopup.qml",
 ]
 assert all("CortetsuProgressBar" in path.read_text(encoding="utf-8") for path in consumer_paths)

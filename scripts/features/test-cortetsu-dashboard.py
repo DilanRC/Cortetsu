@@ -17,9 +17,14 @@ for marker in ("NOW", "NOW PLAYING", "SYSTEM", "Cpu.percentage", "Memory.percent
 assert 'icon: "close"' in dash
 assert "onClicked: root.screenState.dashboard = false" in dash
 
-# Today is a live, read-only agenda projection over Cortetsu's calendar cache.
-for marker in ("calendar-events.json", "todayEvents", "eventOccursOnDay", "watchChanges: true", 'OverlayPolicy.open(CortetsuShellState.allStates(), screenState, "calendar")'):
+# Today is a live, read-only agenda projection over Cortetsu's calendar cache,
+# through the Calendar's own service and date rules.
+service = (ROOT / "cortetsu/modules/calendar/CalendarService.qml").read_text(encoding="utf-8")
+for marker in ("CalendarService.events", "todayEvents", "CalendarModel.eventsOn",
+               'OverlayPolicy.open(CortetsuShellState.allStates(), screenState, "calendar")'):
     assert marker in today, marker
+assert "calendar-events.json" in service and "watchChanges: true" in service and "onFileChanged: reload()" in service
+assert "FileView" not in today
 assert "root.todayEvents.slice(0, 2)" in today
 assert "No hay eventos hoy" in today
 # Events carry `title` (cortetsu-calendar normalize_event); there is no `summary`.
@@ -27,11 +32,18 @@ assert "modelData.title ||" in today and "modelData.summary" not in today
 
 # Focus reuses the persistent first-party Pomodoro state/helper instead of
 # inventing a dashboard-only timer.
-for marker in ("pomodoro.json", "cortetsu-pomodoro", "targetEndTimestamp", "pausedRemainingMs", "completedSessions", "watchChanges: true"):
-    assert marker in focus, marker
-for command in ('runPomodoro("start")', 'runPomodoro("pause")', 'runPomodoro("resume")'):
-    assert command in focus, command
-assert 'runPomodoro(root.isBreakPhase(root.pomodoro.phase) ? "skip" : "reset")' in focus
+pomodoro_service = (ROOT / "cortetsu/modules/pomodoro/Pomodoro.qml").read_text(encoding="utf-8")
+pomodoro_model = (ROOT / "cortetsu/modules/pomodoro/PomodoroModel.js").read_text(encoding="utf-8")
+for marker in ("pomodoro.json", "cortetsu-pomodoro", "watchChanges: true"):
+    assert marker in pomodoro_service, marker
+for marker in ("targetEndTimestamp", "pausedRemainingMs"):
+    assert marker in pomodoro_model, marker
+assert "completedSessions" in focus and "Pomodoro.state" in focus
+for command in ('return state?.phase === "PAUSED" ? "resume" : "start";', 'return "pause";'):
+    assert command in pomodoro_model, command
+assert "Pomodoro.run(root.command)" in focus
+assert 'Pomodoro.run(Model.isBreak(root.pomodoro.phase) ? "skip" : "reset")' in focus
+assert "FileView" not in focus and "function runPomodoro" not in focus
 
 # Battery and network are distinct live-context contracts. The old dashboard
 # incorrectly used the active Wi-Fi SSID as the battery subtitle.

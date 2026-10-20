@@ -5,6 +5,8 @@ toaster = (repo / "cortetsu/services/CortetsuToaster.qml").read_text(encoding="u
 view = (repo / "cortetsu/modules/utilities/toasts/Toasts.qml").read_text(encoding="utf-8")
 item = (repo / "cortetsu/modules/utilities/toasts/ToastItem.qml").read_text(encoding="utf-8")
 bottom_hub = (repo / "cortetsu/modules/BottomHub.qml").read_text(encoding="utf-8")
+pomodoro = (repo / "cortetsu/modules/pomodoro/Pomodoro.qml").read_text(encoding="utf-8")
+pomodoro_model = (repo / "cortetsu/modules/pomodoro/PomodoroModel.js").read_text(encoding="utf-8")
 
 criteria = {
     "host has an effective width": "width: implicitWidth" in view,
@@ -16,12 +18,11 @@ criteria = {
     "toast shares the bar layer": 'import "utilities/toasts" as Toasts' in bottom_hub,
     "toast sits above the bar": "anchors.bottom: bottomHubView.top" in bottom_hub,
     "toast window expands for content": "toasts.implicitHeight" in bottom_hub,
-    "event watcher deduplicates per host": "property var consumed" in (repo / "cortetsu/modules/BottomHub.qml").read_text(encoding="utf-8"),
-    "file changes debounce event reload": "onFileChanged: pomodoroNotificationReload.restart()" in (repo / "cortetsu/modules/BottomHub.qml").read_text(encoding="utf-8"),
-    "event reload runs after debounce": "onTriggered: pomodoroNotification.reload()" in (repo / "cortetsu/modules/BottomHub.qml").read_text(encoding="utf-8"),
-    "loaded text is consumed": "onTextChanged: consumeEvent(text())" in (repo / "cortetsu/modules/BottomHub.qml").read_text(encoding="utf-8"),
-    "event parses after loading": "onLoaded" in (repo / "cortetsu/modules/BottomHub.qml").read_text(encoding="utf-8"),
-    "event duplicates are suppressed": "property var consumed" in (repo / "cortetsu/modules/BottomHub.qml").read_text(encoding="utf-8"),
+    "event watcher deduplicates per host": "property real consumed" in pomodoro,
+    "file changes reload the event": "onFileChanged: reload()" in pomodoro,
+    "event parses after loading": "onLoaded" in pomodoro and "root.parse(text())" in pomodoro,
+    "events from a previous shell are not repeated": "Model.announcement(event, consumed, root.startedNs)" in pomodoro,
+    "event duplicates are suppressed": "fresh && sequence > startedNs" in pomodoro_model,
     "toast list is capped": "slice(0, 5)" in view,
     "item has an effective height": "height: implicitHeight" in item,
     "item does not steal initial focus": "focus: false" in item,

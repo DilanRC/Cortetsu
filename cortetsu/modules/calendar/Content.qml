@@ -3,180 +3,47 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import Quickshell.Io
 import ".."
 import "../../components"
 import "../../theme"
 import "../CortetsuTypography.js" as CortetsuTypography
+import "CalendarModel.js" as CalendarModel
 
+// Calendar surface: month grid, agenda of the selected day and the Pomodoro
+// card. Presentation only: the data and its sync live in CalendarService, the
+// date logic in CalendarModel.js and Pomodoro in its own service. Escape is
+// handled by RetainedSurfacesHost for every retained surface.
 Item {
     id: root
     focus: true
     required property var screenState
-    property var payload: ({})
-    property var selection: ({})
-    property var pomodoro: ({})
-    property date selectedDate: new Date()
-    property double nowMs: Date.now()
-    property string syncStatus: ""
-    readonly property string cachePath: `${Quickshell.env("XDG_CACHE_HOME") || `${Quickshell.env("HOME")}/.cache`}/cortetsu/calendar-events.json`
-    readonly property string selectionPath: `${Quickshell.env("XDG_CONFIG_HOME") || `${Quickshell.env("HOME")}/.config`}/cortetsu/calendar-selection.json`
-    readonly property string pomodoroPath: `${Quickshell.env("XDG_STATE_HOME") || `${Quickshell.env("HOME")}/.local/state`}/cortetsu/pomodoro.json`
-    readonly property string calendarHelperPath: `${Quickshell.env("HOME")}/.local/bin/cortetsu-calendar`
-    readonly property string pomodoroHelperPath: `${Quickshell.env("HOME")}/.local/bin/cortetsu-pomodoro`
-    readonly property var selectedEvents: (payload.events || []).filter(event => eventOccursOnDate(event, selectedDate))
 
-    function eventDate(event): date {
-        if (event.allDay) {
-            const parts = event.start.split("-");
-            return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
-        }
-        return new Date(event.start);
-    }
-    function sameDay(a: date, b: date): bool {
-        return a.getFullYear() === b.getFullYear()
-            && a.getMonth() === b.getMonth()
-            && a.getDate() === b.getDate();
-    }
-    function daysInMonth(d: date): int { return new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate(); }
-    function firstOffset(d: date): int { return (new Date(d.getFullYear(), d.getMonth(), 1).getDay() + 6) % 7; }
-    function dayStart(value: date): date { return new Date(value.getFullYear(), value.getMonth(), value.getDate()); }
-    function eventEndDate(event): date {
-        if (event.allDay) {
-            const parts = event.end.split("-");
-            return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]), 0, 0, 0, -1);
-        }
-        return new Date(new Date(event.end).getTime() - 1);
-    }
-    function eventOccursOnDate(event, value: date): bool {
-        const target = dayStart(value).getTime();
-        return target >= dayStart(eventDate(event)).getTime()
-            && target <= dayStart(eventEndDate(event)).getTime();
-    }
-    function eventsForDay(day: int): var {
-        const target = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), day);
-        return (payload.events || []).filter(event => eventOccursOnDate(event, target));
-    }
-    function isToday(day: int): bool { return day > 0 && sameDay(new Date(), new Date(selectedDate.getFullYear(), selectedDate.getMonth(), day)); }
+    readonly property bool shown: screenState?.cortetsuState?.calendar ?? false
+    property date selectedDate: new Date()
+    // Start of the current day; follows midnight while the calendar is open.
+    property date today: CalendarModel.dayStart(new Date())
+    readonly property int year: selectedDate.getFullYear()
+    readonly property int month: selectedDate.getMonth()
+    readonly property var cells: CalendarModel.monthCells(year, month)
+    readonly property var monthEvents: CalendarModel.eventsByDay(CalendarService.events, year, month)
+    readonly property var selectedEvents: CalendarModel.eventsOn(CalendarService.events, selectedDate)
+
+    function isToday(day: int): bool { return day > 0 && CalendarModel.sameDay(today, new Date(year, month, day)); }
     function isSelected(day: int): bool { return day > 0 && day === selectedDate.getDate(); }
     function friendlyName(calendar): string { return calendar.primary ? qsTr("Personal") : calendar.calendarName; }
     function eventTime(event): string {
         if (event.allDay) return qsTr("Todo el día");
-        return `${Qt.formatTime(eventDate(event), "HH:mm")}–${Qt.formatTime(new Date(event.end), "HH:mm")}`;
+        return `${Qt.formatTime(new Date(event.start), "HH:mm")}–${Qt.formatTime(new Date(event.end), "HH:mm")}`;
     }
-    function isBreakPhase(phase): bool { return phase === "BREAK" || phase === "LONG_BREAK"; }
-    function isActivePhase(phase): bool { return phase === "FOCUS" || isBreakPhase(phase); }
-    function phaseDurationMs(phase): double {
-        if (phase === "LONG_BREAK") return Number(pomodoro.longBreakMinutes || 15) * 60000;
-        if (phase === "BREAK") return Number(pomodoro.shortBreakMinutes || 5) * 60000;
-        return Number(pomodoro.focusMinutes || 25) * 60000;
-    }
-    function remainingMs(): double {
-        if (pomodoro.phase === "PAUSED") return Math.max(0, Number(pomodoro.pausedRemainingMs || 0));
-        if (isActivePhase(pomodoro.phase)) return Math.max(0, Number(pomodoro.targetEndTimestamp || 0) * 1000 - nowMs);
-        return phaseDurationMs("FOCUS");
-    }
-    function timeLeft(): string {
-        const ms = remainingMs();
-        return `${String(Math.floor(ms / 60000)).padStart(2, "0")}:${String(Math.floor(ms / 1000) % 60).padStart(2, "0")}`;
-    }
-    function progress(): double {
-        const phase = pomodoro.phase === "PAUSED" ? (pomodoro.pausedPhase || "FOCUS") : pomodoro.phase;
-        if (!isActivePhase(phase)) return 0;
-        return Math.max(0, Math.min(1, 1 - remainingMs() / Math.max(1, phaseDurationMs(phase))));
-    }
-    function phaseLabel(): string {
-        if (pomodoro.phase === "FOCUS") return qsTr("Concentración");
-        if (pomodoro.phase === "BREAK") return qsTr("Descanso corto");
-        if (pomodoro.phase === "LONG_BREAK") return qsTr("Descanso largo");
-        if (pomodoro.phase === "PAUSED") return qsTr("En pausa");
-        return qsTr("Listo para concentrarse");
-    }
-    function runPomodoro(command: string): void {
-        if (pomoProcess.running) return;
-        const next = Object.assign({}, pomodoro);
-        const now = Date.now();
-        root.nowMs = now;
-        if (command === "start") {
-            next.phase = "FOCUS"; next.targetEndTimestamp = now / 1000 + Number(next.focusMinutes || 25) * 60;
-            next.pausedRemainingMs = 0; next.pausedPhase = "FOCUS";
-        } else if (command === "pause" && isActivePhase(next.phase)) {
-            next.pausedRemainingMs = Math.max(0, Number(next.targetEndTimestamp || 0) * 1000 - now);
-            next.pausedPhase = next.phase; next.targetEndTimestamp = 0; next.phase = "PAUSED";
-        } else if (command === "resume" && next.phase === "PAUSED") {
-            next.phase = next.pausedPhase || "FOCUS";
-            next.targetEndTimestamp = now / 1000 + Number(next.pausedRemainingMs || 0) / 1000;
-            next.pausedRemainingMs = 0;
-        } else if (command === "skip" && isBreakPhase(next.phase)) {
-            next.phase = "FOCUS"; next.targetEndTimestamp = now / 1000 + Number(next.focusMinutes || 25) * 60;
-            next.pausedRemainingMs = 0; next.pausedPhase = "FOCUS";
-        } else if (command === "reset") {
-            next.phase = "IDLE"; next.targetEndTimestamp = 0; next.pausedRemainingMs = 0;
-            next.pausedPhase = "FOCUS"; next.completedSessions = 0;
-        }
-        root.pomodoro = next;
-        pomoProcess.command = [root.pomodoroHelperPath, command];
-        pomoProcess.running = true;
-    }
-    function changeMonth(delta: int): void { selectedDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth() + delta, 1); }
-    function loadCalendar(): void { try { payload = JSON.parse(cache.text()); } catch (_) { payload = {}; } }
-    function loadSelection(): void { try { selection = JSON.parse(selectionFile.text()); } catch (_) { selection = {}; } }
-    function loadPomodoro(): void { try { pomodoro = JSON.parse(pomodoroFile.text()); } catch (_) { pomodoro = {}; } }
-    function load(): void { loadCalendar(); loadSelection(); loadPomodoro(); }
-    function requestCalendarSync(force = false): void {
-        if (calendarSync.running) return;
-        syncStatus = qsTr("Syncing…");
-        calendarSync.command = force ? [calendarHelperPath, "sync", "--force"] : [calendarHelperPath, "sync"];
-        calendarSync.running = true;
-    }
+    function eventCount(count: int): string { return count === 1 ? qsTr("1 evento") : qsTr("%1 eventos").arg(count); }
+    function changeMonth(delta: int): void { selectedDate = new Date(year, month + delta, 1); }
 
-    Component.onCompleted: {
-        load();
-        if (screenState && screenState.cortetsuState && screenState.cortetsuState.calendar)
-            requestCalendarSync();
+    // Minute precision is enough to notice midnight; off while closed.
+    SystemClock {
+        enabled: root.shown
+        precision: SystemClock.Minutes
+        onDateChanged: root.today = CalendarModel.dayStart(date)
     }
-    Connections {
-        target: root.screenState ? root.screenState.cortetsuState : null
-        function onCalendarChanged(): void {
-            if (root.screenState && root.screenState.cortetsuState && root.screenState.cortetsuState.calendar)
-                root.requestCalendarSync();
-        }
-    }
-    FileView { id: cache; path: root.cachePath; watchChanges: true; printErrors: false; onLoaded: root.loadCalendar(); onFileChanged: root.loadCalendar() }
-    FileView { id: selectionFile; path: root.selectionPath; watchChanges: true; printErrors: false; onLoaded: root.loadSelection(); onFileChanged: root.loadSelection() }
-    FileView { id: pomodoroFile; path: root.pomodoroPath; watchChanges: true; printErrors: false; onLoaded: root.loadPomodoro(); onFileChanged: pomodoroReload.restart() }
-    // startup inventory: cortetsu:calendar-sync
-    Process {
-        id: calendarSync
-        stdout: StdioCollector {
-            onStreamFinished: {
-                try {
-                    const result = JSON.parse(text.trim());
-                    syncStatus = result.status === "ok" ? qsTr("Actualizado")
-                        : result.status === "cached" ? qsTr("Recently synced")
-                        : result.status === "partial" ? qsTr("Partial sync")
-                        : result.status === "auth_required" ? qsTr("Sign-in required")
-                        : result.status === "sync_in_progress" ? qsTr("Sync already running")
-                        : qsTr("Sync failed");
-                } catch (_) { syncStatus = qsTr("Sync failed"); }
-                root.loadCalendar();
-            }
-        }
-    }
-    Process { id: selectionProcess; onExited: { root.loadSelection(); root.requestCalendarSync(true); } }
-    Process {
-        id: pomoProcess
-        stdout: StdioCollector {
-            onStreamFinished: {
-                try { root.pomodoro = JSON.parse(text.trim()); }
-                catch (_) { pomodoroReload.restart(); }
-            }
-        }
-        onExited: pomodoroReload.restart()
-    }
-    Timer { id: pomodoroReload; interval: 60; repeat: false; onTriggered: root.loadPomodoro() }
-    Timer { interval: 1000; repeat: true; running: root.isActivePhase(pomodoro.phase); onTriggered: root.nowMs = Date.now() }
-    Keys.onEscapePressed: root.screenState.cortetsuState?.setRetained("calendar", false)
 
     CortetsuSurface { outlined: false;
         anchors.fill: parent
@@ -190,10 +57,10 @@ Item {
 
             RowLayout {
                 Layout.fillWidth: true
-                CortetsuText { Layout.fillWidth: true; text: qsTr("Calendar"); textSize: CortetsuTypography.titleLargePx; color: CortetsuDesign.colorOnSurface }
-                CortetsuText { visible: root.syncStatus.length > 0; text: root.syncStatus; textSize: CortetsuTypography.labelSmallPx; color: CortetsuDesign.colorOnSurfaceVariant }
-                CortetsuButton { compact: true; icon: calendarSync.running ? "sync" : "refresh"; label: ""; tooltipText: qsTr("Sync calendar"); disabled: calendarSync.running; onClicked: root.requestCalendarSync(true) }
-                CortetsuButton { compact: true; icon: "close"; label: ""; tooltipText: qsTr("Close Calendar"); onClicked: root.screenState.cortetsuState?.setRetained("calendar", false) }
+                CortetsuText { Layout.fillWidth: true; text: qsTr("Calendario"); textSize: CortetsuTypography.titleLargePx; color: CortetsuDesign.colorOnSurface }
+                CortetsuText { visible: CalendarService.syncStatus.length > 0; text: CalendarService.syncStatus; textSize: CortetsuTypography.labelSmallPx; color: CortetsuDesign.colorOnSurfaceVariant }
+                CortetsuButton { compact: true; icon: CalendarService.syncing ? "sync" : "refresh"; label: ""; tooltipText: qsTr("Sincronizar calendario"); disabled: CalendarService.syncing; onClicked: CalendarService.requestSync(true) }
+                CortetsuButton { compact: true; icon: "close"; label: ""; tooltipText: qsTr("Cerrar calendario"); onClicked: root.screenState.cortetsuState?.setRetained("calendar", false) }
             }
 
             RowLayout {
@@ -211,7 +78,7 @@ Item {
                         Layout.fillWidth: true
                         CortetsuButton { compact: true; icon: "chevron_left"; label: ""; tooltipText: qsTr("Mes anterior"); onClicked: root.changeMonth(-1) }
                         CortetsuText { Layout.fillWidth: true; horizontalAlignment: Text.AlignHCenter; text: Qt.formatDate(root.selectedDate, "MMMM yyyy"); textSize: CortetsuTypography.titleMediumPx; color: CortetsuDesign.colorOnSurface }
-                        CortetsuButton { compact: true; icon: "today"; label: qsTr("Today"); onClicked: root.selectedDate = new Date() }
+                        CortetsuButton { compact: true; icon: "today"; label: qsTr("Hoy"); onClicked: root.selectedDate = root.today }
                         CortetsuButton { compact: true; icon: "chevron_right"; label: ""; tooltipText: qsTr("Mes siguiente"); onClicked: root.changeMonth(1) }
                     }
 
@@ -220,25 +87,26 @@ Item {
                         Layout.fillHeight: true
                         Layout.preferredHeight: 290
                         columns: 7
-                        Repeater { model: [qsTr("Mo"), qsTr("Tu"), qsTr("We"), qsTr("Th"), qsTr("Fr"), qsTr("Sa"), qsTr("Su")]; delegate: CortetsuText { required property var modelData; Layout.fillWidth: true; horizontalAlignment: Text.AlignHCenter; text: modelData; color: CortetsuDesign.colorOnSurfaceVariant; textSize: CortetsuTypography.labelSmallPx } }
+                        Repeater { model: [qsTr("Lu"), qsTr("Ma"), qsTr("Mi"), qsTr("Ju"), qsTr("Vi"), qsTr("Sá"), qsTr("Do")]; delegate: CortetsuText { required property var modelData; Layout.fillWidth: true; horizontalAlignment: Text.AlignHCenter; text: modelData; color: CortetsuDesign.colorOnSurfaceVariant; textSize: CortetsuTypography.labelSmallPx } }
                         Repeater {
                             model: 42
                             delegate: Item {
                                 id: dayCell
                                 required property int index
                                 Layout.fillWidth: true; Layout.fillHeight: true
-                                readonly property int day: { const value = index - root.firstOffset(root.selectedDate) + 1; return value > 0 && value <= root.daysInMonth(root.selectedDate) ? value : 0; }
-                                CortetsuSurface { outlined: false; anchors.centerIn: parent; width: 34; height: 34; radius: 17; color: root.isSelected(parent.day) ? CortetsuDesign.colorPrimary : (root.isToday(parent.day) ? CortetsuDesign.colorPrimaryContainer : "transparent") }
-                                CortetsuText { anchors.centerIn: parent; text: parent.day || ""; color: root.isSelected(parent.day) ? CortetsuDesign.colorOnPrimary : (root.isToday(parent.day) ? CortetsuDesign.colorOnPrimaryContainer : CortetsuDesign.colorOnSurface); textSize: CortetsuTypography.labelMediumPx }
+                                readonly property int day: root.cells[index]
+                                readonly property var events: day ? root.monthEvents[day] ?? [] : []
+                                CortetsuSurface { outlined: false; anchors.centerIn: parent; width: 34; height: 34; radius: 17; color: root.isSelected(dayCell.day) ? CortetsuDesign.colorPrimary : (root.isToday(dayCell.day) ? CortetsuDesign.colorPrimaryContainer : "transparent") }
+                                CortetsuText { anchors.centerIn: parent; text: dayCell.day || ""; color: root.isSelected(dayCell.day) ? CortetsuDesign.colorOnPrimary : (root.isToday(dayCell.day) ? CortetsuDesign.colorOnPrimaryContainer : CortetsuDesign.colorOnSurface); textSize: CortetsuTypography.labelMediumPx }
                                 Row {
                                     anchors.horizontalCenter: parent.horizontalCenter; anchors.bottom: parent.bottom; spacing: 2
                                     Repeater {
-                                        model: dayCell.day ? root.eventsForDay(dayCell.day).slice(0, 3) : []
+                                        model: dayCell.events.slice(0, 3)
                                         delegate: Rectangle { required property var modelData; width: 4; height: 4; radius: 2; color: modelData.calendarColor || CortetsuDesign.colorTertiary }
                                     }
-                                    CortetsuText { visible: dayCell.day && root.eventsForDay(dayCell.day).length > 3; text: "+"; color: CortetsuDesign.colorOnSurfaceVariant; textSize: CortetsuTypography.labelSmallPx }
+                                    CortetsuText { visible: dayCell.events.length > 3; text: "+"; color: CortetsuDesign.colorOnSurfaceVariant; textSize: CortetsuTypography.labelSmallPx }
                                 }
-                                MouseArea { anchors.fill: parent; enabled: parent.day > 0; hoverEnabled: true; onClicked: root.selectedDate = new Date(root.selectedDate.getFullYear(), root.selectedDate.getMonth(), parent.day) }
+                                MouseArea { anchors.fill: parent; enabled: dayCell.day > 0; hoverEnabled: true; onClicked: root.selectedDate = new Date(root.year, root.month, dayCell.day) }
                             }
                         }
                     }
@@ -247,19 +115,20 @@ Item {
                         Layout.fillWidth: true
                         spacing: CortetsuDesign.spacingCompact
                         Repeater {
-                            model: root.payload.calendars || []
+                            model: CalendarService.calendars
                             delegate: CortetsuSurface { outlined: false;
+                                id: chip
                                 required property var modelData
-                                readonly property bool enabled: (root.selection.enabled || []).includes(modelData.calendarId)
+                                readonly property bool chosen: CalendarService.enabledCalendars.includes(modelData.calendarId)
                                 implicitWidth: chipRow.implicitWidth + CortetsuDesign.spacingStandard * 2; implicitHeight: 30; radius: 999
-                                color: enabled ? CortetsuDesign.colorSecondaryContainer : CortetsuDesign.colorSurfaceHigh
+                                color: chosen ? CortetsuDesign.colorSecondaryContainer : CortetsuDesign.colorSurfaceHigh
                                 RowLayout {
                                     id: chipRow; anchors.centerIn: parent; spacing: CortetsuDesign.spacingCompact
-                                    Rectangle { implicitWidth: 8; implicitHeight: 8; radius: 4; color: modelData.calendarColor || CortetsuDesign.colorSecondary }
-                                    CortetsuText { text: root.friendlyName(modelData); color: parent.parent.enabled ? CortetsuDesign.colorOnSecondaryContainer : CortetsuDesign.colorOnSurfaceVariant; textSize: CortetsuTypography.labelMediumPx }
-                                    CortetsuText { text: parent.parent.enabled ? "✓" : "+"; color: parent.parent.enabled ? CortetsuDesign.colorOnSecondaryContainer : CortetsuDesign.colorOnSurfaceVariant; textSize: CortetsuTypography.labelMediumPx }
+                                    Rectangle { implicitWidth: 8; implicitHeight: 8; radius: 4; color: chip.modelData.calendarColor || CortetsuDesign.colorSecondary }
+                                    CortetsuText { text: root.friendlyName(chip.modelData); color: chip.chosen ? CortetsuDesign.colorOnSecondaryContainer : CortetsuDesign.colorOnSurfaceVariant; textSize: CortetsuTypography.labelMediumPx }
+                                    CortetsuText { text: chip.chosen ? "✓" : "+"; color: chip.chosen ? CortetsuDesign.colorOnSecondaryContainer : CortetsuDesign.colorOnSurfaceVariant; textSize: CortetsuTypography.labelMediumPx }
                                 }
-                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { selectionProcess.command = [Quickshell.env("HOME") + "/.local/bin/cortetsu-calendar", "set-selection", modelData.calendarId, parent.enabled ? "false" : "true"]; selectionProcess.running = true; } }
+                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: CalendarService.setCalendarEnabled(chip.modelData.calendarId, !chip.chosen) }
                             }
                         }
                     }
@@ -279,19 +148,20 @@ Item {
                         ColumnLayout {
                             anchors.fill: parent; anchors.margins: CortetsuDesign.spacingStandard; spacing: CortetsuDesign.spacingCompact
                             CortetsuText { Layout.fillWidth: true; text: Qt.formatDate(root.selectedDate, "dddd, MMMM d"); textSize: CortetsuTypography.titleMediumPx; color: CortetsuDesign.colorOnSurface }
-                            CortetsuText { text: root.selectedEvents.length ? `${root.selectedEvents.length} ${root.selectedEvents.length === 1 ? qsTr("event") : qsTr("events")}` : qsTr("Your day is clear"); color: CortetsuDesign.colorPrimary; textSize: CortetsuTypography.labelMediumPx }
+                            CortetsuText { text: root.selectedEvents.length ? root.eventCount(root.selectedEvents.length) : qsTr("Tu día está libre"); color: CortetsuDesign.colorPrimary; textSize: CortetsuTypography.labelMediumPx }
                             ColumnLayout {
                                 visible: !root.selectedEvents.length; Layout.fillWidth: true; Layout.fillHeight: true; spacing: CortetsuDesign.spacingCompact
                                 Item { Layout.fillHeight: true }
                                 CortetsuIcon { Layout.alignment: Qt.AlignHCenter; text: "event_available"; color: CortetsuDesign.colorOnSurfaceVariant; iconSize: CortetsuTypography.iconLargePx }
                                 CortetsuText { Layout.alignment: Qt.AlignHCenter; text: qsTr("No hay eventos"); color: CortetsuDesign.colorOnSurface; textSize: CortetsuTypography.titleSmallPx }
-                                CortetsuText { Layout.alignment: Qt.AlignHCenter; text: qsTr("Take the time for yourself."); color: CortetsuDesign.colorOnSurfaceVariant; textSize: CortetsuTypography.bodySmallPx }
+                                CortetsuText { Layout.alignment: Qt.AlignHCenter; text: qsTr("Tómate el tiempo para ti."); color: CortetsuDesign.colorOnSurfaceVariant; textSize: CortetsuTypography.bodySmallPx }
                                 Item { Layout.fillHeight: true }
                             }
                             ListView {
+                                id: agenda
                                 visible: root.selectedEvents.length > 0; Layout.fillWidth: true; Layout.fillHeight: true; clip: true; spacing: CortetsuDesign.spacingCompact; model: root.selectedEvents
                                 delegate: RowLayout {
-                                    required property var modelData; width: parent.width; spacing: CortetsuDesign.spacingCompact
+                                    required property var modelData; width: agenda.width; spacing: CortetsuDesign.spacingCompact
                                     Rectangle { implicitWidth: 5; implicitHeight: eventDetails.implicitHeight; radius: 3; color: modelData.calendarColor || CortetsuDesign.colorPrimary }
                                     ColumnLayout {
                                         id: eventDetails; Layout.fillWidth: true; spacing: 1
@@ -304,51 +174,9 @@ Item {
                         }
                     }
 
-                    CortetsuSurface { outlined: false;
+                    PomodoroCard {
                         Layout.fillWidth: true
                         Layout.preferredHeight: 154
-                        radius: CortetsuDesign.radiusMedium
-                        color: CortetsuDesign.colorSecondaryContainer
-                        ColumnLayout {
-                            anchors.fill: parent; anchors.margins: CortetsuDesign.spacingStandard; spacing: CortetsuDesign.spacingCompact
-                            RowLayout { Layout.fillWidth: true; CortetsuText { Layout.fillWidth: true; text: root.phaseLabel(); color: CortetsuDesign.colorOnSecondaryContainer; textSize: CortetsuTypography.labelLargePx } CortetsuText { text: qsTr("%1 sessions").arg(Number(pomodoro.completedSessions || 0)); color: CortetsuDesign.colorOnSecondaryContainer; textSize: CortetsuTypography.labelSmallPx } }
-                            CortetsuText { Layout.fillWidth: true; horizontalAlignment: Text.AlignHCenter; text: root.timeLeft(); color: CortetsuDesign.colorOnSecondaryContainer; textSize: CortetsuTypography.titleLargePx }
-                            CortetsuProgressBar {
-                                Layout.fillWidth: true
-                                value: root.progress()
-                                barHeight: 5
-                                barRadius: 3
-                                trackColor: CortetsuDesign.colorSecondary
-                                fillColor: CortetsuDesign.colorOnSecondaryContainer
-                                motionDuration: CortetsuDesign.motionFastMs
-                            }
-                            RowLayout {
-                                Layout.fillWidth: true
-                                Item { Layout.fillWidth: true }
-                                CortetsuButton {
-                                    visible: root.isBreakPhase(pomodoro.phase)
-                                    compact: true
-                                    icon: "skip_next"
-                                    label: qsTr("Saltar descanso")
-                                    onClicked: root.runPomodoro("skip")
-                                }
-                                CortetsuButton {
-                                    compact: true
-                                    icon: root.isActivePhase(pomodoro.phase) ? "pause" : "play_arrow"
-                                    label: root.isActivePhase(pomodoro.phase)
-                                        ? qsTr("Pausar")
-                                        : pomodoro.phase === "PAUSED" ? qsTr("Reanudar") : qsTr("Iniciar")
-                                    onClicked: root.runPomodoro(root.isActivePhase(pomodoro.phase)
-                                        ? "pause" : pomodoro.phase === "PAUSED" ? "resume" : "start")
-                                }
-                                CortetsuButton {
-                                    compact: true
-                                    icon: "restart_alt"
-                                    label: qsTr("Reiniciar")
-                                    onClicked: root.runPomodoro("reset")
-                                }
-                            }
-                        }
                     }
                 }
             }

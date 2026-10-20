@@ -5,6 +5,7 @@ toaster = (repo / "cortetsu/services/CortetsuToaster.qml").read_text(encoding="u
 view = (repo / "cortetsu/modules/utilities/toasts/Toasts.qml").read_text(encoding="utf-8")
 item = (repo / "cortetsu/modules/utilities/toasts/ToastItem.qml").read_text(encoding="utf-8")
 bottom_hub = (repo / "cortetsu/modules/BottomHub.qml").read_text(encoding="utf-8")
+pomodoro = (repo / "cortetsu/modules/pomodoro/Pomodoro.qml").read_text(encoding="utf-8")
 panels = (repo / "cortetsu/modules/drawers/Panels.qml").read_text(encoding="utf-8")
 hub = (repo / "cortetsu/modules/BottomHub.qml").read_text(encoding="utf-8")
 
@@ -39,13 +40,16 @@ assert "scale: 1" in item
 assert "running: !root.hovered && !root.activeFocus" in item
 assert 'objectProp: "id"' in view
 assert "onPressed: root.forceActiveFocus()" in item
-assert "pomodoroNotification" in hub
-assert "property var consumed" in hub
-assert "CortetsuToaster.toast(event.title, event.message, \"timer\")" in hub
-assert "onFileChanged: pomodoroNotificationReload.restart()" in hub
-assert "onTriggered: pomodoroNotification.reload()" in hub
-assert "onTextChanged: consumeEvent(text())" in hub
-assert "onLoaded" in hub
+# Pomodoro announcements are read by the Pomodoro service (one per shell).
+# Writes are atomic renames, so each change is reloaded at once; the sequence
+# and the shell start time keep a reload from repeating a toast.
+assert "property FileView announcements" in pomodoro
+assert "property real consumed" in pomodoro
+assert "CortetsuToaster.toast(event.title, event.message, \"timer\")" in pomodoro
+assert "onFileChanged: reload()" in pomodoro
+assert "Model.announcement(event, consumed, root.startedNs)" in pomodoro
+assert "onLoaded" in pomodoro
+assert "pomodoro" not in hub.lower(), "Bottom Hub no longer owns Pomodoro"
 assert 'import "utilities/toasts" as Toasts' in bottom_hub
 assert "anchors.bottom: bottomHubView.top" in bottom_hub
 assert "toasts.implicitHeight" in bottom_hub

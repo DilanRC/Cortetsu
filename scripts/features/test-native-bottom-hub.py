@@ -120,7 +120,10 @@ def assert_controller(text: str) -> None:
     )
 
     toaster = (repo / "cortetsu/services/CortetsuToaster.qml").read_text(encoding="utf-8")
-    assert "/cortetsu/pomodoro-notification.json" in text
+    # Pomodoro announcements belong to the Pomodoro service, not to the hub.
+    pomodoro = (repo / "cortetsu/modules/pomodoro/Pomodoro.qml").read_text(encoding="utf-8")
+    assert "/pomodoro-notification.json" in pomodoro and "}/cortetsu`" in pomodoro
+    assert "pomodoro-notification.json" not in text
     assert "/cortetsu/pomodoro-notification.json" not in toaster
     assert "/caelestia/pomodoro-notification.json" not in toaster
     assert "focusable: true" in text

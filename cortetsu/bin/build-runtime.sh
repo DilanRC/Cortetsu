@@ -82,6 +82,8 @@ python3 "$REPO/cortetsu/tests/test-startup-inventory.py"
 QT_QPA_PLATFORM=offscreen /usr/lib/qt6/bin/qmltestrunner -input "$REPO/cortetsu/tests/qml/hardware"
 QT_QPA_PLATFORM=offscreen /usr/lib/qt6/bin/qmltestrunner -input "$REPO/cortetsu/tests/qml/hypr"
 QT_QPA_PLATFORM=offscreen /usr/lib/qt6/bin/qmltestrunner -input "$REPO/cortetsu/tests/qml/surfaces"
+QT_QPA_PLATFORM=offscreen /usr/lib/qt6/bin/qmltestrunner -input "$REPO/cortetsu/tests/qml/calendar"
+QT_QPA_PLATFORM=offscreen /usr/lib/qt6/bin/qmltestrunner -input "$REPO/cortetsu/tests/qml/pomodoro"
 python3 "$REPO/scripts/features/test-cortetsu-surface-registry.py"
 python3 "$REPO/scripts/features/test-native-bottom-hub.py" --runtime "$STAGING/modules/BottomHub.qml"
 python3 "$REPO/scripts/features/test-bottom-hub-target.py"
@@ -123,6 +125,7 @@ python3 "$REPO/scripts/features/eval-cortetsu-progress-bar.py"
 python3 "$REPO/scripts/features/test-cortetsu-power.py"
 python3 "$REPO/scripts/features/eval-cortetsu-power.py"
 python3 "$REPO/cortetsu/tests/test-pomodoro.py"
+python3 "$REPO/cortetsu/tests/test-calendar-pomodoro-services.py"
 python3 "$REPO/cortetsu/tests/test-runtime-contract.py"
 python3 "$REPO/scripts/features/test-cortetsu-screen-state.py"
 python3 "$REPO/scripts/features/test-cortetsu-state-boundary.py"
@@ -223,6 +226,10 @@ for required in \
     modules/CortetsuStatusSegment.qml \
     modules/calendar/Content.qml \
     modules/calendar/Wrapper.qml \
+    modules/calendar/CalendarService.qml \
+    modules/calendar/CalendarModel.js \
+    modules/pomodoro/Pomodoro.qml \
+    modules/pomodoro/PomodoroModel.js \
     modules/CortetsuScreenState.qml \
     modules/CortetsuOverlayPolicy.js \
     modules/OverlayPolicy.js \

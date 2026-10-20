@@ -1,38 +1,69 @@
 #!/usr/bin/env python3
+"""Calendar surface: design markers, lifecycle wiring and module boundaries.
+
+The behaviour is tested by the QML engine (tests/qml/calendar, tests/qml/pomodoro)
+and by test-calendar-pomodoro-services.py; this gate keeps the structure:
+presentation in Content.qml and PomodoroCard.qml, data in CalendarService,
+date rules in CalendarModel.js, Pomodoro transitions in the helper only.
+"""
 from pathlib import Path
 
-content = (Path(__file__).resolve().parents[2] / "cortetsu/modules/calendar/Content.qml").read_text(encoding="utf-8")
+root = Path(__file__).resolve().parents[2] / "cortetsu/modules"
+content = (root / "calendar/Content.qml").read_text(encoding="utf-8")
+card = (root / "calendar/PomodoroCard.qml").read_text(encoding="utf-8")
+service = (root / "calendar/CalendarService.qml").read_text(encoding="utf-8")
+model = (root / "calendar/CalendarModel.js").read_text(encoding="utf-8")
+pomodoro = (root / "pomodoro/Pomodoro.qml").read_text(encoding="utf-8")
+view = content + card
+
 for expected in (
     'calendar.primary ? qsTr("Personal")',
-    'eventsForDay(dayCell.day).slice(0, 3)',
+    'dayCell.events.slice(0, 3)',
     'modelData.calendarColor || CortetsuDesign.colorTertiary',
     'label: qsTr("Saltar descanso")',
-    'root.runPomodoro("skip")',
+    'Pomodoro.run("skip")',
     'text: qsTr("No hay eventos")',
-    'text: qsTr("Take the time for yourself.")',
+    'text: qsTr("Tómate el tiempo para ti.")',
     'root.eventTime(modelData)',
     'modelData.location',
     'implicitWidth: chipRow.implicitWidth',
     'icon: "skip_next"',
     'icon: "restart_alt"',
-    'onClicked: root.runPomodoro("reset")',
-    'root.pomodoro = JSON.parse(text.trim())',
-    'function runPomodoro(command: string)',
-    'function onCalendarChanged()',
-    'root.requestCalendarSync()',
-    'root.requestCalendarSync(true)',
-    'onFileChanged: pomodoroReload.restart()',
-    'phase === "LONG_BREAK"',
+    'Pomodoro.run("reset")',
     'qsTr("Descanso largo")',
-    'eventOccursOnDate',
+    'CalendarModel.eventsOn(CalendarService.events, selectedDate)',
+    'CalendarModel.eventsByDay(CalendarService.events, year, month)',
+    'CalendarService.requestSync(true)',
+    'precision: SystemClock.Minutes',
+    'PomodoroCard {',
 ):
-    assert expected in content, expected
+    assert expected in view, expected
 assert 'CortetsuTypography.titleLargePx' in content
-assert 'CortetsuButton {' in content
-assert 'component FocusButton' not in content
-assert 'import QtQuick.Controls' not in content
-assert 'Tokens.font.display.small' not in content
+assert 'CortetsuButton {' in view
+assert 'component FocusButton' not in view
+assert 'import QtQuick.Controls' not in view
+assert 'Tokens.font.display.small' not in view
 for legacy in ('Caelestia.Config', 'qs.components', 'Colours.', 'Tokens.', 'StyledRect', 'StyledText', 'MaterialIcon'):
-    assert legacy not in content, legacy
-assert "delegate: CheckBox" not in content
-print("PASS: Calendar lifecycle sync, event design, and full Pomodoro phases are wired")
+    assert legacy not in view, legacy
+assert "delegate: CheckBox" not in view
+
+# Interface text is Spanish, like the rest of the shell.
+for english in ('"Calendar"', '"Today"', '"Sync calendar"', '"Close Calendar"', '"Your day is clear"',
+                '"Take the time for yourself."', '"Syncing…"', '"Sync failed"', '"%1 sessions"', '"event"', '"Mo"'):
+    assert english not in view + service, english
+
+# Boundaries: the view keeps no data, process or file of its own; the date
+# rules exist once; the card never recomputes a Pomodoro transition.
+for owned in ("FileView", "Process {", "JSON.parse", "cortetsu-calendar", "cortetsu-pomodoro", "Keys.onEscapePressed"):
+    assert owned not in view, owned
+assert "function eventOccursOnDate" not in content and "function occursOn" in model
+assert "targetEndTimestamp =" not in view + pomodoro, "the helper owns every Pomodoro transition"
+assert "function runPomodoro" not in view
+
+# Files are re-read when they change: FileView does not reload by itself.
+assert service.count("onFileChanged: reload()") == 2  # event cache, calendar selection
+assert pomodoro.count("onFileChanged: reload()") == 2  # state, announcements
+assert "onOpenChanged: if (open) requestSync(false)" in service
+assert "// startup inventory: cortetsu:calendar-sync" in service
+assert "// startup inventory: cortetsu:pomodoro" in pomodoro
+print("PASS: Calendar view, services and Pomodoro card keep their design and boundaries")

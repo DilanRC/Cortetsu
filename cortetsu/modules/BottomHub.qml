@@ -95,50 +95,10 @@ Scope {
         setShown(!shown);
     }
 
-    Process {
-        id: calendarSync
-        command: [Paths.home + "/.local/bin/cortetsu-calendar", "sync"]
-    }
-
-    // startup inventory: cortetsu:pomodoro (always-on with Bottom Hub)
-    Process {
-        id: pomodoroOwner
-        command: [Paths.home + "/.local/bin/cortetsu-pomodoro", "daemon"]
-        running: true
-    }
-
-    Timer {
-        id: pomodoroNotificationReload
-        interval: 120
-        repeat: false
-        onTriggered: pomodoroNotification.reload()
-    }
-
-    FileView {
-        id: pomodoroNotification
-        path: `${Quickshell.env("XDG_STATE_HOME") || `${Paths.home}/.local/state`}/cortetsu/pomodoro-notification.json`
-        watchChanges: true
-        printErrors: false
-        property var consumed: 0
-        onFileChanged: pomodoroNotificationReload.restart()
-        function consumeEvent(raw): void {
-            try {
-                const event = JSON.parse(raw);
-                if (event.sequence !== consumed) {
-                    consumed = event.sequence;
-                    if (event.title && event.message)
-                        CortetsuToaster.toast(event.title, event.message, "timer");
-                }
-            } catch (_) {}
-        }
-        onLoaded: consumeEvent(text())
-        onTextChanged: consumeEvent(text())
-    }
-
+    // Opening the calendar requests its sync (CalendarService).
     function openCalendarFor(screen): void {
         closeAllPopouts();
-        if (toggleSurfaceOn(screen, "calendar") && !calendarSync.running)
-            calendarSync.running = true;
+        toggleSurfaceOn(screen, "calendar");
         shown = true;
     }
 

@@ -2,7 +2,8 @@
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-content = (ROOT / "cortetsu/modules/calendar/Content.qml").read_text(encoding="utf-8")
+content = "".join((ROOT / "cortetsu/modules/calendar" / name).read_text(encoding="utf-8")
+                  for name in ("Content.qml", "PomodoroCard.qml"))
 
 checks = {
     "calendar imports the first-party component boundary": 'import "../../components"' in content,

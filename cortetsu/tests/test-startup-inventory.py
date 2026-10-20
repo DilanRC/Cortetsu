@@ -190,6 +190,20 @@ def qml_process_starts(path: Path) -> list[str]:
 
     startup_callbacks = [(offset, expanded(body)) for offset, body in startup_callbacks]
 
+    # A registered process may also be launched when a property changes (the
+    # Calendar sync runs when the surface opens). Unregistered launches from
+    # change handlers stay out of scope, as before.
+    for match in re.finditer(r"\bon[A-Z]\w*Changed\s*:", code):
+        cursor = match.end()
+        while cursor < len(code) and code[cursor].isspace():
+            cursor += 1
+        end = code.find("\n", cursor)
+        body = expanded(code[cursor:end if end >= 0 else len(code)])
+        for process_id, process_offset in processes.items():
+            if marker_at(process_offset) and re.search(
+                    rf"\b{re.escape(process_id)}\.(?:exec\s*\(|running\s*=\s*true)", body):
+                starts.append(marker_at(process_offset))
+
     for callback_offset, body in startup_callbacks:
         for process_id, process_offset in processes.items():
             if re.search(rf"\b{re.escape(process_id)}\.(?:exec\s*\(|running\s*=\s*true)", body):
@@ -220,6 +234,13 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-startup-test-") as temp:
     function armIndirectTimer(): void { indirectTimer.start(); }
     function launchFromHelper(): void { completed.exec(); }
     function onDemand(): void { completed.exec(); }
+    // startup inventory: cortetsu:fixture-changed
+    Process { id: changedProcess; command: indirectCommand }
+    property bool opened: false
+    onOpenedChanged: if (opened) launchChanged()
+    function launchChanged(): void { changedProcess.running = true; }
+    Process { id: unregisteredChanged; command: indirectCommand }
+    onIndirectCommandChanged: unregisteredChanged.running = true
     // startup inventory: cortetsu:fixture-detached
     Component.onCompleted: {
         completed.running = true
@@ -232,6 +253,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-startup-test-") as temp:
     assert sorted(qml_process_starts(startup_forms)) == sorted([
         "cortetsu:fixture-bound", "cortetsu:fixture-completed",
         "cortetsu:fixture-timer", "cortetsu:fixture-detached", "cortetsu:fixture-indirect",
+        "cortetsu:fixture-changed",
     ]), f"startup drift checks missed a launch form: {qml_process_starts(startup_forms)}"
     home = base / "home"
     user_config = home / ".config"

@@ -3,84 +3,40 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import Quickshell.Io
 import "../../components"
 import ".."
 import "../../theme"
+import "../calendar"
 import "../CortetsuTypography.js" as CortetsuTypography
 import "../CortetsuOverlayPolicy.js" as OverlayPolicy
+import "../calendar/CalendarModel.js" as CalendarModel
 
 Item {
     id: root
 
     required property var screenState
-    property var payload: ({})
     property date dayAnchor: new Date()
 
-    readonly property string cachePath: `${Quickshell.env("XDG_CACHE_HOME") || `${Quickshell.env("HOME")}/.cache`}/cortetsu/calendar-events.json`
-    readonly property var todayEvents: (payload.events || [])
-        .filter(event => eventOccursOnDay(event, dayAnchor))
+    // The cache and the date rules are the Calendar's own (CalendarService,
+    // CalendarModel.js): this card used to keep a third copy of both, and
+    // re-read the cache without reloading it.
+    readonly property var todayEvents: CalendarModel.eventsOn(CalendarService.events, dayAnchor)
         .slice()
-        .sort((a, b) => eventDate(a).getTime() - eventDate(b).getTime())
-
-    function eventDate(event): date {
-        if (event.allDay) {
-            const parts = String(event.start || "").split("-");
-            return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
-        }
-        return new Date(event.start);
-    }
-
-    function eventEndDate(event): date {
-        if (event.allDay) {
-            const parts = String(event.end || "").split("-");
-            return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]), 0, 0, 0, -1);
-        }
-        return new Date(new Date(event.end).getTime() - 1);
-    }
-
-    function dayStart(value: date): date {
-        return new Date(value.getFullYear(), value.getMonth(), value.getDate());
-    }
-
-    function eventOccursOnDay(event, value: date): bool {
-        const target = dayStart(value).getTime();
-        return target >= dayStart(eventDate(event)).getTime()
-            && target <= dayStart(eventEndDate(event)).getTime();
-    }
+        .sort((a, b) => CalendarModel.eventStart(a).getTime() - CalendarModel.eventStart(b).getTime())
 
     function eventTime(event): string {
         if (event.allDay)
             return qsTr("Todo el día");
-        const start = eventDate(event);
+        const start = CalendarModel.eventStart(event);
         const end = new Date(event.end);
         if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()))
             return qsTr("Programado");
         return `${Qt.formatTime(start, "HH:mm")}–${Qt.formatTime(end, "HH:mm")}`;
     }
 
-    function loadCalendar(): void {
-        try {
-            payload = JSON.parse(cache.text());
-        } catch (_) {
-            payload = {};
-        }
-    }
-
     // Same transition as the calendar shortcut; it closes this dashboard too.
     function openCalendar(): void {
         OverlayPolicy.open(CortetsuShellState.allStates(), screenState, "calendar");
-    }
-
-    Component.onCompleted: loadCalendar()
-
-    FileView {
-        id: cache
-        path: root.cachePath
-        watchChanges: true
-        printErrors: false
-        onLoaded: root.loadCalendar()
-        onFileChanged: root.loadCalendar()
     }
 
     Timer {
