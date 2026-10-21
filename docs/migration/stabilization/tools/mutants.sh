@@ -11,7 +11,7 @@ trap 'rm -rf "$work"' EXIT
 cp -a "$repo/cortetsu" "$repo/scripts" "$repo/dotfiles" "$repo/config" "$work/"
 bell() {
     timeout 900 python3 "$repo/scripts/integration/ws2_run.py" --timeout 800 "$work/bell.log" -- \
-        env ONLY=bell python3 "$repo/docs/migration/stabilization/tools/stab_contracts.py" "$work" "$work/bell.json" >/dev/null 2>&1
+        env ONLY=bell python3 "$repo/docs/migration/stabilization/tools/stab_contracts.py" "$work" "$work/bell.json" >/dev/null 2>&1 || true
     rm -f "$work/bell-qs.log"
     python3 -c 'import json, sys; sys.exit(any(c["result"] == "FAIL" for c in json.load(open(sys.argv[1]))["checks"]))' "$work/bell.json"
 }
@@ -19,7 +19,7 @@ bell() {
 # harness on 63bb651 too (stab_contracts.py, bellfs).
 bellfs() {
     timeout 900 python3 "$repo/scripts/integration/ws2_run.py" --timeout 800 "$work/bellfs.log" -- \
-        env ONLY=bellfs python3 "$repo/docs/migration/stabilization/tools/stab_contracts.py" "$work" "$work/bellfs.json" >/dev/null 2>&1
+        env ONLY=bellfs python3 "$repo/docs/migration/stabilization/tools/stab_contracts.py" "$work" "$work/bellfs.json" >/dev/null 2>&1 || true
     rm -f "$work/bellfs-qs.log"
     python3 -c 'import json, sys; sys.exit(any(c["result"] == "FAIL" and c["scenario"] == "bellfs" for c in json.load(open(sys.argv[1]))["checks"]))' "$work/bellfs.json"
 }

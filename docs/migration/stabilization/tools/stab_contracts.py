@@ -367,7 +367,7 @@ def main() -> int:
     print(f"{len(result.get('checks', []))} checks, {len(fails)} FAIL")
     for c in fails:
         print("FAIL", c["scenario"], c["check"], json.dumps(c["seen"], ensure_ascii=False)[:200])
-    return 0
+    return 1 if fails else 0
 
 
 if __name__ == "__main__":

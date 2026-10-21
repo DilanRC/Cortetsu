@@ -4,7 +4,7 @@ Fecha: 2026-10-20. Rama `fix/stabilization-surfaces-calendar-pomodoro` sobre `ma
 Hyprland 0.56.2 · Quickshell 0.3.2 (4f508be) · Qt 6.12.0 · Python 3.14.8. Generación instalada (sin tocar):
 `20261017-160736-98327`. F1b no se ha iniciado.
 
-**Veredicto: `STABILIZATION_WITH_CONCERNS`** (§11).
+**Veredicto: `STABILIZATION_WITH_CONCERNS`** (§11, actualizado en §12).
 
 ## 1. Causas raíz confirmadas
 
@@ -253,3 +253,83 @@ nuevos; persistencia compatible; rendimiento contrastado frente a F0/F1a; sesió
 Reservas, todas verificables: la revisión externa está incompleta (un revisor no se ejecutó, el otro solo leyó el
 código); la prueba física de suspensión dejó el HDMI congelado (plataforma, `PHYSICAL-QA.md` §4.4); el cambio de workspace
 del escritorio durante el suite no tiene causa determinada. El estado de la CI está en la PR.
+
+## 12. Cierre (2026-10-21): campana de Bottom Hub, SUPER+X, revisión externa y HDMI
+
+HEAD final en la PR; los commits de esta pasada van de `4aec446` en adelante. No se fusionó, no se desplegó y F1b no
+se empezó. No se suspendió el equipo ni se cambiaron drivers, kernel o energía.
+
+### 12.1 Un clic en la campana a través del scrim
+
+Causa: la ventana `retained-surfaces` (capa Overlay, máscara completa mientras hay una superficie) tapa Bottom Hub
+(capa Top). El clic sobre la campana caía en el área de «clic fuera» de la superficie y solo la cerraba.
+
+Solución (contrato en `SCREEN_STATE_MIGRATION.md`): un `MouseArea` de ventana completa sobre las superficies acepta la
+pulsación solo si cae en la campana de esa pantalla, ningún panel la cubre (`ScrimHit.backdropOnly`), no hay Overview,
+Teclados no está grabando ni escribiendo y no hay ventana a pantalla completa. Entonces ejecuta la acción de la
+campana (`toggleOn` del Sidebar, la misma regla que SUPER+N). Cualquier otra pulsación sigue a la superficie como
+antes. No cambian máscaras, capas, modos de teclado ni la excepción del OSD.
+
+| Verificación | Resultado |
+|---|---|
+| Qt Quick Test `surfaces` (nuevo `tst_ScrimHit`) | 126 PASS |
+| Anidado, escenario `bell` (puntero real del arnés, no IPC) | 29/29 en la rama; en `63bb651` y en `main` falla «un clic deja solo el Sidebar» en las 5 superficies |
+| Anidado, `bellfs` (pantalla completa) | la guarda pasa; el arnés deja el cliente sin teclado tras salir de pantalla completa, también en `63bb651` y sin el clic (observación, no contrato) |
+| Mutantes (`tools/mutants.sh`, `NESTED=1`) | 26/26 eliminados. El de «sin exclusión de Overview» se retiró: es equivalente en el arnés, porque el contenido de Overview ya cubre la campana |
+| Físico (`tools/physical_qa.py b1`, clics uinput, candidata de `22f2266` en eDP-1 y HDMI-A-1) | un clic deja solo el Sidebar: 12/12 (6 superficies × 2 monitores); OSD 2/2; guarda de pantalla completa 2/2; teclado en el cliente al final 2/2 (`evidence/physical/bell/`) |
+
+Defectos anteriores a la PR observados en la QA física (se reproducen igual con el shell instalado, `71e13b4`;
+`evidence/physical/bell/probes.txt`):
+
+- En eDP-1, un segundo clic en la campana no cierra el Sidebar; en HDMI-A-1 sí. Defecto de Cortetsu, no de la PR.
+- En HDMI-A-1 se pierde cerca del 40 % de los clics del scrim (`63bb651` 10/20, rama 9/20, instalado 4/10); con trazas
+  en el QML, en los clics perdidos no llega ningún evento al shell. Causa no determinada; este HDMI es la salida NVIDIA
+  del incidente de `s2idle` y la sesión no se reinició desde entonces.
+- Escape no cierra el Sidebar abierto por la campana, SUPER+N o IPC, en anidado y en físico, también en `main`: la ventana
+  de cajones solo toma el teclado bajo demanda. Ningún contrato lo promete; queda como decisión de diseño.
+
+### 12.2 SUPER+X abre el menú de sesión
+
+`kbSession` = `CTRL + ALT + Delete` y `SUPER + X`, el mismo `cortetsu:session` que el botón de apagado de Bottom Hub.
+SUPER+X era el alias de teclado para redimensionar; redimensionar sigue en SUPER + arrastre derecho (bind literal,
+para que el editor de atajos no ofrezca una combinación de ratón). `test-keybind-editor-runtime.py` (Hyprland anidado)
+comprueba SUPER+X, el arrastre y que editar o borrar una combinación de `kbSession` conserva la otra. En la sesión real
+llega al instalar la generación.
+
+### 12.3 Revisión externa por bloques
+
+`ai-review deep` sobre un árbol completo de la PR por bloque, con un commit temporal que contiene los demás bloques, de
+modo que el diff revisado es solo el del bloque y ninguno supera el límite de 128 KiB por argumento. Una primera tanda
+usó árboles con solo los archivos del bloque y produjo hallazgos falsos (faltaban `PomodoroCard` y `allStates`); se
+descartó y se repitió.
+
+| Bloque | OpenCode / Big Pickle | AGY / Gemini 3.8 Flash | Resultado |
+|---|---|---|---|
+| Superficies / Wayland | sin veredicto (salida degenerada; sin permiso de shell) | P1 `isOpen` siempre falso, P1 bucle de binding en la campana, P2 `OverviewController`, P3 test con estado ficticio: **refutados** (los flags retenidos están en `components/ScreenState.qml`; sin bucle en el log; toggles verificados en anidado y físico). Se renombró el id de la campana para evitar la duda | **INCOMPLETE** |
+| Calendario | P3: la sincronización al abrir solo se comprueba por cadena. Refutado: `stab_contracts.py` la cuenta en ejecución («una sincronización por apertura») | PASS estático | **INCOMPLETE** (ninguno ejecutó verificaciones) |
+| Pomodoro | cortado por límite de cuota | PASS estático | **INCOMPLETE** |
+| Integración (código y gates) | cortado por límite de cuota | PASS estático | **INCOMPLETE** |
+| Integración (documentación y herramientas) | cortado por límite de cuota | P2 válido: `stab_contracts.py` salía con 0 con FAIL. Corregido | **NEEDS_CHANGES → corregido**, sin segunda revisión: **INCOMPLETE** |
+
+Ningún bloque llega a PASS: ninguna revisión ejecutó pruebas.
+
+### 12.4 HDMI tras `s2idle`
+
+Incidencia de plataforma separada: `HDMI-S2IDLE.md`. `PHYSICAL-QA.md` conserva `PHYSICAL_SUSPEND_POMODORO_FAIL`.
+
+### 12.5 Verificación del HEAD final
+
+| | Resultado |
+|---|---|
+| `cortetsu test` en el WS 2 (`run_suite.py`, 188 entradas) | 186 PASS, 1 NOT_RUN (el de siempre), 1 FAIL transitorio (`test-cortetsu-idle-runtime.py`, inhibidores reales de logind; repetido: PASS). Dos gates de Bottom Hub fallaron en una pasada intermedia por este cambio y se corrigieron |
+| Construcción aislada y rollback (`test-cortetsu-build.py`) | PASS |
+| Candidata construida con `build-runtime.sh` en raíces temporales | todos los gates en verde; enlaces reales intactos; `system verify` PASS al restaurar |
+| CI | ver la PR |
+
+Riesgos residuales: la guarda de pantalla completa lee el monitor enfocado (un clic en otra pantalla con pantalla
+completa en la enfocada cae en la superficie como antes); una edición previa de `kbResizeWindow` en `keybinds.json`
+quedaría sin efecto (en esta máquina no hay ninguna).
+
+**Veredicto: `STABILIZATION_WITH_CONCERNS`.** Defectos de Cortetsu de la PR: ninguno abierto. Defectos de Cortetsu
+anteriores a la PR: segundo clic en eDP-1 y Escape en el Sidebar. Plataforma: HDMI tras `s2idle` y clics perdidos en
+HDMI. Proceso: revisión externa INCOMPLETE en todos los bloques.
