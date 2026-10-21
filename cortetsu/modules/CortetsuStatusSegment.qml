@@ -44,7 +44,7 @@ Item {
     signal sessionRequested()
 
     // Read by Bottom Hub to locate the bell for the retained-surfaces scrim.
-    readonly property Item notificationsButton: notificationsButton
+    readonly property Item notificationsButton: bellButton
 
     function centerFor(item): real {
         return statusRow.x + systemControls.x + item.x + item.width / 2;
@@ -181,7 +181,7 @@ Item {
         Hairline {}
 
         Item {
-            id: notificationsButton
+            id: bellButton
             implicitWidth: 44
             implicitHeight: 44
             width: implicitWidth

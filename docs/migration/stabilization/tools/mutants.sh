@@ -120,7 +120,8 @@ if [[ "${NESTED:-0}" == 1 ]]; then
         'onPressed: mouse => mouse.accepted = window.reachesBell(mouse.x, mouse.y)' 'onPressed: mouse => mouse.accepted = false' -- bell
     mutant "bell: the click is taken over a panel" $H \
         '                    && ScrimHit.backdropOnly(surfaces, x, y);' '                    ;' -- bell
-    mutant "bell: forwarded over Overview too" $H \
-        'enabled: window.surfaceOpen && !(window.screenState?.cortetsuState?.overview ?? false)' 'enabled: window.surfaceOpen' -- bell
+    # Not a mutant: without the Overview clause the click still does not
+    # reach the sidebar, because Overview's content covers the bell and
+    # ScrimHit keeps it (equivalent in the harness; README §12).
 fi
 [[ $failures -eq 0 ]] && echo "all mutants killed" || { echo "$failures mutant(s) survived"; exit 1; }
