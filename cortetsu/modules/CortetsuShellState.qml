@@ -33,6 +33,11 @@ QtObject {
             attachedPopupHoverOwner = null;
     }
 
+    // Every screen's state, the `states` argument of CortetsuOverlayPolicy.
+    function allStates(): var {
+        return states.map(entry => entry.state).filter(state => !!state);
+    }
+
     function forScreen(screen): var {
         if (!screen)
             return null;

@@ -109,11 +109,15 @@ assert "ln -sfn" not in rollback
 
 assert "required_imports" in composer and "invalid composed marker count" in composer
 
-for marker in (
-    "function onCalendarChanged()", "requestCalendarSync(true)",
-    'phase === "LONG_BREAK"', "eventOccursOnDate",
-):
-    assert marker in content, marker
+# Calendar view over its service and date model (stabilization): a sync on
+# opening, a manual forced sync, long breaks and multi-day events.
+calendar_service = (repo / "cortetsu/modules/calendar/CalendarService.qml").read_text(encoding="utf-8")
+calendar_model = (repo / "cortetsu/modules/calendar/CalendarModel.js").read_text(encoding="utf-8")
+pomodoro_model = (repo / "cortetsu/modules/pomodoro/PomodoroModel.js").read_text(encoding="utf-8")
+assert "onOpenChanged: if (open) requestSync(false)" in calendar_service
+assert "CalendarService.requestSync(true)" in content
+assert 'phase === "LONG_BREAK"' in pomodoro_model
+assert "function occursOn(event, day)" in calendar_model and "CalendarModel.eventsOn(" in content
 
 for marker in (
     "is_managed_generation", "verify_generation current", "CORTETSU_RUNTIME_ROOT",

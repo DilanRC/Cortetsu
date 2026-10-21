@@ -2,13 +2,14 @@
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-content = (ROOT / "cortetsu/modules/calendar/Content.qml").read_text(encoding="utf-8")
+content = "".join((ROOT / "cortetsu/modules/calendar" / name).read_text(encoding="utf-8")
+                  for name in ("Content.qml", "PomodoroCard.qml"))
 
 assert "CortetsuButton" in content
 assert "component FocusButton" not in content
 assert "import QtQuick.Controls" not in content
 for marker in (
-    'icon: calendarSync.running ? "sync" : "refresh"',
+    'icon: CalendarService.syncing ? "sync" : "refresh"',
     'icon: "chevron_left"',
     'icon: "chevron_right"',
     'icon: "today"',

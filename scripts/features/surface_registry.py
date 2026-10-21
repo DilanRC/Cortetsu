@@ -14,7 +14,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 REGISTRY = ROOT / "cortetsu/modules/SurfaceRegistry.js"
-GROUPS = ("names", "retained", "transient", "exclusive", "competingWithWallpaper", "keyboardOwners", "ipcExclusive")
+GROUPS = ("names", "retained", "transient", "exclusive", "competingWithWallpaper", "keyboardOwners", "fullscreenGuarded")
 
 
 @functools.cache

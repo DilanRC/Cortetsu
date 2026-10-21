@@ -31,9 +31,9 @@ TOGGLEABLE_UNIT_STATES = PERSISTENT_UNIT_STATES | RUNTIME_UNIT_STATES | DISABLED
 # Startup-owned processes are declared by component rather than reconstructed
 # from QML layout/line distance. Keep source and launch policy alongside each row.
 CORTETSU_STARTUP = [
-    {"id": "cortetsu:pomodoro", "name": "Pomodoro daemon", "source": "modules/BottomHub.qml",
+    {"id": "cortetsu:pomodoro", "name": "Pomodoro daemon", "source": "modules/pomodoro/Pomodoro.qml",
      "qmlId": "pomodoroOwner",
-     "startupPhase": "always-on", "condition": "Bottom Hub se carga junto al shell",
+     "startupPhase": "always-on", "condition": "Se inicia con el shell; espera sin despertar hasta el fin de la fase",
      "command": ["cortetsu-pomodoro", "daemon"], "manageable": False},
     {"id": "cortetsu:gamemode-control", "name": "Game mode state and control", "source": "services/GameMode.qml",
      "qmlId": "helper", "startupPhase": "conditional",
@@ -130,7 +130,7 @@ CORTETSU_STARTUP = [
     {"id": "cortetsu:launcher-scheme-list", "name": "Scheme list query", "source": "modules/launcher/services/Schemes.qml",
      "qmlId": "getSchemes", "startupPhase": "on-demand", "condition": "Al abrir el selector de esquemas",
      "command": ["cortetsu-scheme", "list"], "manageable": False},
-    {"id": "cortetsu:calendar-sync", "name": "Calendar synchronization", "source": "modules/calendar/Content.qml",
+    {"id": "cortetsu:calendar-sync", "name": "Calendar synchronization", "source": "modules/calendar/CalendarService.qml",
      "qmlId": "calendarSync", "startupPhase": "on-demand",
      "condition": "Al abrir Calendario si hay una cuenta conectada", "command": ["cortetsu-calendar", "sync"], "manageable": False},
     {"id": "cortetsu:display-presets", "name": "Display preset query", "source": "modules/display/DisplayPresets.qml",

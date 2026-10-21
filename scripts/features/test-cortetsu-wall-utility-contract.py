@@ -100,17 +100,19 @@ dashboard = (ROOT / "cortetsu/modules/dashboard/Dash.qml").read_text(encoding="u
 assert 'WALL_UTILITY_CONTRACT="$REPO/cortetsu/contracts/wall-utility.json"' in build
 assert 'install -m 0644 "$WALL_UTILITY_CONTRACT" "$STAGING/wall-utility.json"' in build
 assert "wall-utility.json" in build
+# Wallpaper and Display are the shared retained-surface controller: open(screen)
+# for Bottom Hub and Settings handoffs, openActive() for shortcuts and IPC.
+shared = (ROOT / "cortetsu/modules/RetainedSurfaceController.qml").read_text(encoding="utf-8")
 assert "pragma Singleton" in controller
-assert "function open(screen): void" in controller
-assert "function openActive(): void" in controller
+assert "RetainedSurfaceController {" in controller and "RetainedSurfaceController {" in display_controller
+assert "function open(screen): void" in shared
+assert "function openActive(): void" in shared
 assert "readonly property var wallpaperController: WallpaperController" in shell
-assert 'target: "wallpapermanager"' in controller
-assert "function open(screen): void" in display_controller
-assert "function openActive(): void" in display_controller
-assert "CortetsuShellState.forScreen(target)?.cortetsuState" in display_controller
-assert "CortetsuShellState.forScreen(target)?.cortetsuState" in controller
-assert "function toggle(): void { anyOpen() ? closeAll() : openActive(); }" in controller
-assert "function open(): void { root.openActive(); }" in controller
+assert 'ipcTarget: "wallpapermanager"' in controller
+assert 'surfaceKey: "displayManager"' in display_controller
+assert "CortetsuShellState.forScreen(screen) : CortetsuShellState.forActive()" in shared
+assert "if (anyOpen())\n            close();\n        else\n            openActive();" in shared
+assert "function open(): void { root.openActive(); }" in shared
 assert "WallpaperController.open(screen);" in hub
 assert "candidate === screen" not in hub
 assert "CortetsuShellState.forScreen(modelData)" in host

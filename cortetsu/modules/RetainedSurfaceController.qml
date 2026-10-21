@@ -3,10 +3,12 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import "OverlayPolicy.js" as OverlayPolicy
+import "CortetsuOverlayPolicy.js" as OverlayPolicy
 
-// Opens one retained surface on the focused screen and closes it on every
-// other: the shortcut and IPC target of a surface that has no extra policy.
+// Shortcut and IPC target of one retained surface. A retained surface is one
+// instance for the seat: it opens on the focused screen (or `screen`), closes
+// every exclusive surface on every screen first, and a toggle from any screen
+// closes it wherever it is. CortetsuOverlayPolicy holds the rules.
 Scope {
     id: root
 
@@ -16,52 +18,28 @@ Scope {
     required property string shortcutDescription
 
     function anyOpen(): bool {
-        for (const screen of CortetsuScreens.screens) {
-            const state = CortetsuShellState.forScreen(screen)?.cortetsuState;
-            if (state?.[root.surfaceKey])
-                return true;
-        }
-        return false;
-    }
-
-    function closeAll(): void {
-        for (const screen of CortetsuScreens.screens) {
-            const state = CortetsuShellState.forScreen(screen)?.cortetsuState;
-            if (state)
-                state.setRetained(root.surfaceKey, false);
-        }
-    }
-
-    function closeOtherPanels(): void {
-        for (const screen of CortetsuScreens.screens)
-            OverlayPolicy.closeOtherPanels(CortetsuShellState.forScreen(screen)?.cortetsuState);
+        return OverlayPolicy.openAnywhere(CortetsuShellState.allStates(), root.surfaceKey);
     }
 
     function open(screen): void {
-        const target = screen ?? CortetsuScreens.screens.find(candidate =>
-            CortetsuHypr.monitorFor(candidate) === CortetsuHypr.focusedMonitor);
-        const state = CortetsuShellState.forScreen(target)?.cortetsuState;
-        if (!state)
-            return;
-        closeAll();
-        closeOtherPanels();
-        state.setRetained(root.surfaceKey, true);
+        const target = screen ? CortetsuShellState.forScreen(screen) : CortetsuShellState.forActive();
+        OverlayPolicy.open(CortetsuShellState.allStates(), target, root.surfaceKey);
     }
 
     function openActive(): void {
-        open(undefined);
+        open(null);
     }
 
     function close(): void {
-        closeAll();
+        OverlayPolicy.close(CortetsuShellState.allStates(), root.surfaceKey);
     }
 
+    // Closing does not need a focused screen; opening does.
     function toggle(): void {
-        if (anyOpen()) {
-            closeAll();
-            return;
-        }
-        openActive();
+        if (anyOpen())
+            close();
+        else
+            openActive();
     }
 
     CortetsuShortcut {

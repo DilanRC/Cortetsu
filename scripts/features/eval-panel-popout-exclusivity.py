@@ -1,21 +1,23 @@
 #!/usr/bin/env python3
 from pathlib import Path
-import re
 
 
 ROOT = Path(__file__).resolve().parents[2]
 hub = (ROOT / "cortetsu/modules/BottomHub.qml").read_text(encoding="utf-8")
 overview = (ROOT / "cortetsu/modules/OverviewController.qml").read_text(encoding="utf-8")
-conditional_popout_closes = len(re.findall(
-    r"if \(!wasOpen\)\n\s+(?:hubRoot\.)?closeAllPopouts\(\);", hub
-))
+
+
+def body(name: str) -> str:
+    return hub.split(f"function {name}(", 1)[1].split("\n    }\n", 1)[0]
+
 
 checks = {
-    "launcher closes popouts": conditional_popout_closes >= 1,
-    "sidebar closes popouts": conditional_popout_closes >= 2,
-    "quick settings closes popouts": conditional_popout_closes >= 3,
-    "calendar closes popouts": "function openCalendarFor" in hub and "closeAllPopouts();" in hub,
-    "wallpaper closes popouts": "function openWallpaperFor" in hub and "closeAllPopouts();" in hub,
+    "launcher closes popouts": "closeAllPopouts();" in body("toggleLauncherFor"),
+    "sidebar closes popouts": "closeAllPopouts();" in body("toggleSidebarFor"),
+    "quick settings closes popouts": "closeAllPopouts();" in body("toggleUtilitiesFor"),
+    "session closes popouts": "hubRoot.closeAllPopouts();" in body("toggleSession"),
+    "calendar closes popouts": "closeAllPopouts();" in body("openCalendarFor"),
+    "wallpaper closes popouts": "closeAllPopouts();" in body("openWallpaperFor"),
     "overview closes popouts": "function closeAllPopouts(): void" in overview and "closeAllPopouts();" in overview,
 }
 

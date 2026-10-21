@@ -1,0 +1,128 @@
+[
+ {
+  "t": "21:05:00",
+  "scenario": "a3-bottomhub-click",
+  "check": "hardware@eDP-1 then Bottom Hub bell click x5",
+  "result": "FAIL",
+  "seen": [
+   {
+    "eDP-1": [],
+    "HDMI-A-1": []
+   },
+   {
+    "eDP-1": [],
+    "HDMI-A-1": []
+   },
+   {
+    "eDP-1": [],
+    "HDMI-A-1": []
+   },
+   {
+    "eDP-1": [],
+    "HDMI-A-1": []
+   },
+   {
+    "eDP-1": [],
+    "HDMI-A-1": []
+   }
+  ]
+ },
+ {
+  "t": "21:05:22",
+  "scenario": "a3-bottomhub-click",
+  "check": "wallpapermanager@eDP-1 then Bottom Hub bell click x5",
+  "result": "FAIL",
+  "seen": [
+   {
+    "eDP-1": [],
+    "HDMI-A-1": []
+   },
+   {
+    "eDP-1": [],
+    "HDMI-A-1": []
+   },
+   {
+    "eDP-1": [],
+    "HDMI-A-1": []
+   },
+   {
+    "eDP-1": [],
+    "HDMI-A-1": []
+   },
+   {
+    "eDP-1": [],
+    "HDMI-A-1": []
+   }
+  ]
+ },
+ {
+  "t": "21:05:24",
+  "scenario": "a3-bottomhub-click",
+  "check": "keyboard in client after clicks (eDP-1)",
+  "result": "PASS",
+  "seen": null
+ },
+ {
+  "t": "21:05:46",
+  "scenario": "a3-bottomhub-click",
+  "check": "hardware@HDMI-A-1 then Bottom Hub bell click x5",
+  "result": "FAIL",
+  "seen": [
+   {
+    "eDP-1": [],
+    "HDMI-A-1": []
+   },
+   {
+    "eDP-1": [],
+    "HDMI-A-1": []
+   },
+   {
+    "eDP-1": [],
+    "HDMI-A-1": []
+   },
+   {
+    "eDP-1": [],
+    "HDMI-A-1": []
+   },
+   {
+    "eDP-1": [],
+    "HDMI-A-1": []
+   }
+  ]
+ },
+ {
+  "t": "21:06:08",
+  "scenario": "a3-bottomhub-click",
+  "check": "wallpapermanager@HDMI-A-1 then Bottom Hub bell click x5",
+  "result": "FAIL",
+  "seen": [
+   {
+    "eDP-1": [],
+    "HDMI-A-1": []
+   },
+   {
+    "eDP-1": [],
+    "HDMI-A-1": []
+   },
+   {
+    "eDP-1": [],
+    "HDMI-A-1": []
+   },
+   {
+    "eDP-1": [],
+    "HDMI-A-1": []
+   },
+   {
+    "eDP-1": [],
+    "HDMI-A-1": []
+   }
+  ]
+ },
+ {
+  "t": "21:06:10",
+  "scenario": "a3-bottomhub-click",
+  "check": "keyboard in client after clicks (HDMI-A-1)",
+  "result": "PASS",
+  "seen": null
+ }
+]

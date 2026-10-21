@@ -10,6 +10,7 @@ import ".."
 import "../../services"
 import "../../theme"
 import "../CortetsuTypography.js" as CortetsuTypography
+import "../CortetsuOverlayPolicy.js" as OverlayPolicy
 
 Item {
     id: root
@@ -58,7 +59,7 @@ Item {
 
     function openSettings(): void {
         root.closeQsd();
-        root.screenState.settings = true;
+        OverlayPolicy.open(CortetsuShellState.allStates(), root.screenState, "settings");
     }
 
     ColumnLayout {

@@ -11,6 +11,8 @@ Item {
     required property var screenState
 
     readonly property bool shouldBeActive: screenState?.cortetsuState?.keyboards ?? false
+    // A capture or a write in progress keeps the surface open against clicks.
+    readonly property bool dismissBlocked: contentLoader.item?.pointerDismissBlocked ?? false
 
     visible: shouldBeActive
     opacity: shouldBeActive ? 1 : 0

@@ -43,6 +43,9 @@ Item {
     signal calendarRequested()
     signal sessionRequested()
 
+    // Read by Bottom Hub to locate the bell for the retained-surfaces scrim.
+    readonly property Item notificationsButton: bellButton
+
     function centerFor(item): real {
         return statusRow.x + systemControls.x + item.x + item.width / 2;
     }
@@ -178,10 +181,15 @@ Item {
         Hairline {}
 
         Item {
+            id: bellButton
             implicitWidth: 44
             implicitHeight: 44
             width: implicitWidth
             height: implicitHeight
+
+            // When the current pointer press began; 0 outside a pointer press
+            // and its click (keyboard activation never sets it).
+            property real pressedAt: 0
 
             HubButton {
                 anchors.fill: parent
@@ -190,6 +198,12 @@ Item {
                 icon: "notifications"
                 active: root.sidebarActive
                 tooltip: qsTr("Notificaciones")
+                onPressedChanged: {
+                    if (pressed)
+                        bellButton.pressedAt = Date.now();
+                    else
+                        Qt.callLater(() => bellButton.pressedAt = 0);
+                }
                 onClicked: root.notificationsRequested()
             }
 

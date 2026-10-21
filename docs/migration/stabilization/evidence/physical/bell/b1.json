@@ -1,0 +1,527 @@
+{
+ "shell": "/tmp/claude-1000/-home-dilan-Documentos-GitHub-Cortetsu/171e026b-3930-4adc-9d24-816fad1822e8/scratchpad/qa/data/builds/20261020-234230-493719",
+ "start": "2026-10-20T23:48:56-0600",
+ "monitors": [
+  "eDP-1",
+  "HDMI-A-1"
+ ],
+ "checks": [
+  {
+   "t": "23:48:56",
+   "scenario": "b1",
+   "check": "eDP-1: bell at (3682, 1048)",
+   "result": "PASS",
+   "seen": [
+    3682,
+    1048
+   ]
+  },
+  {
+   "t": "23:48:59",
+   "scenario": "b1",
+   "check": "hardware@eDP-1: one click on the bell leaves only the sidebar",
+   "result": "PASS",
+   "seen": {
+    "eDP-1": [
+     "sidebar"
+    ],
+    "HDMI-A-1": []
+   }
+  },
+  {
+   "t": "23:49:05",
+   "scenario": "b1",
+   "check": "hardware@eDP-1: a second click closes it",
+   "result": "FAIL",
+   "seen": {
+    "eDP-1": [
+     "sidebar"
+    ],
+    "HDMI-A-1": []
+   }
+  },
+  {
+   "t": "23:49:09",
+   "scenario": "b1",
+   "check": "hardware@eDP-1: keyboard back in the client",
+   "result": "FAIL",
+   "seen": null
+  },
+  {
+   "t": "23:49:12",
+   "scenario": "b1",
+   "check": "wallpapermanager@eDP-1: one click on the bell leaves only the sidebar",
+   "result": "PASS",
+   "seen": {
+    "eDP-1": [
+     "sidebar"
+    ],
+    "HDMI-A-1": []
+   }
+  },
+  {
+   "t": "23:49:18",
+   "scenario": "b1",
+   "check": "wallpapermanager@eDP-1: a second click closes it",
+   "result": "FAIL",
+   "seen": {
+    "eDP-1": [
+     "sidebar"
+    ],
+    "HDMI-A-1": []
+   }
+  },
+  {
+   "t": "23:49:22",
+   "scenario": "b1",
+   "check": "wallpapermanager@eDP-1: keyboard back in the client",
+   "result": "FAIL",
+   "seen": null
+  },
+  {
+   "t": "23:49:25",
+   "scenario": "b1",
+   "check": "clipboard@eDP-1: one click on the bell leaves only the sidebar",
+   "result": "PASS",
+   "seen": {
+    "eDP-1": [
+     "sidebar"
+    ],
+    "HDMI-A-1": []
+   }
+  },
+  {
+   "t": "23:49:31",
+   "scenario": "b1",
+   "check": "clipboard@eDP-1: a second click closes it",
+   "result": "FAIL",
+   "seen": {
+    "eDP-1": [
+     "sidebar"
+    ],
+    "HDMI-A-1": []
+   }
+  },
+  {
+   "t": "23:49:34",
+   "scenario": "b1",
+   "check": "clipboard@eDP-1: keyboard back in the client",
+   "result": "FAIL",
+   "seen": null
+  },
+  {
+   "t": "23:49:38",
+   "scenario": "b1",
+   "check": "display@eDP-1: one click on the bell leaves only the sidebar",
+   "result": "PASS",
+   "seen": {
+    "eDP-1": [
+     "sidebar"
+    ],
+    "HDMI-A-1": []
+   }
+  },
+  {
+   "t": "23:49:44",
+   "scenario": "b1",
+   "check": "display@eDP-1: a second click closes it",
+   "result": "FAIL",
+   "seen": {
+    "eDP-1": [
+     "sidebar"
+    ],
+    "HDMI-A-1": []
+   }
+  },
+  {
+   "t": "23:49:47",
+   "scenario": "b1",
+   "check": "display@eDP-1: keyboard back in the client",
+   "result": "FAIL",
+   "seen": null
+  },
+  {
+   "t": "23:49:50",
+   "scenario": "b1",
+   "check": "keyboards@eDP-1: one click on the bell leaves only the sidebar",
+   "result": "PASS",
+   "seen": {
+    "eDP-1": [
+     "sidebar"
+    ],
+    "HDMI-A-1": []
+   }
+  },
+  {
+   "t": "23:49:56",
+   "scenario": "b1",
+   "check": "keyboards@eDP-1: a second click closes it",
+   "result": "FAIL",
+   "seen": {
+    "eDP-1": [
+     "sidebar"
+    ],
+    "HDMI-A-1": []
+   }
+  },
+  {
+   "t": "23:50:00",
+   "scenario": "b1",
+   "check": "keyboards@eDP-1: keyboard back in the client",
+   "result": "FAIL",
+   "seen": null
+  },
+  {
+   "t": "23:50:03",
+   "scenario": "b1",
+   "check": "calendar@eDP-1: one click on the bell leaves only the sidebar",
+   "result": "PASS",
+   "seen": {
+    "eDP-1": [
+     "sidebar"
+    ],
+    "HDMI-A-1": []
+   }
+  },
+  {
+   "t": "23:50:09",
+   "scenario": "b1",
+   "check": "calendar@eDP-1: a second click closes it",
+   "result": "FAIL",
+   "seen": {
+    "eDP-1": [
+     "sidebar"
+    ],
+    "HDMI-A-1": []
+   }
+  },
+  {
+   "t": "23:50:13",
+   "scenario": "b1",
+   "check": "calendar@eDP-1: keyboard back in the client",
+   "result": "FAIL",
+   "seen": null
+  },
+  {
+   "t": "23:50:17",
+   "scenario": "b1",
+   "check": "hardware@eDP-1: a click elsewhere on the scrim only dismisses",
+   "result": "PASS",
+   "seen": {
+    "eDP-1": [],
+    "HDMI-A-1": []
+   }
+  },
+  {
+   "t": "23:50:20",
+   "scenario": "b1",
+   "check": "hardware@eDP-1: a click on the panel keeps it open",
+   "result": "PASS",
+   "seen": {
+    "eDP-1": [
+     "hardware"
+    ],
+    "HDMI-A-1": []
+   }
+  },
+  {
+   "t": "23:50:23",
+   "scenario": "b1",
+   "check": "hardware+osd@eDP-1: the bell leaves the sidebar, hardware closed",
+   "result": "PASS",
+   "seen": {
+    "eDP-1": [
+     "sidebar",
+     "osd"
+    ],
+    "HDMI-A-1": []
+   }
+  },
+  {
+   "t": "23:50:26",
+   "scenario": "b1",
+   "result": "INFO",
+   "check": "eDP-1: Escape after a bell click",
+   "seen": {
+    "opened": true,
+    "escape_closes": false
+   }
+  },
+  {
+   "t": "23:50:30",
+   "scenario": "b1",
+   "check": "fullscreen eDP-1: hardware open, bell-spot click does not open the sidebar",
+   "result": "PASS",
+   "seen": {
+    "hardware": true,
+    "sidebar": []
+   }
+  },
+  {
+   "t": "23:50:32",
+   "scenario": "b1",
+   "check": "after B1 keyboard in client (eDP-1)",
+   "result": "PASS",
+   "seen": null
+  },
+  {
+   "t": "23:50:32",
+   "scenario": "b1",
+   "check": "HDMI-A-1: bell at (1762, 1048)",
+   "result": "PASS",
+   "seen": [
+    1762,
+    1048
+   ]
+  },
+  {
+   "t": "23:50:36",
+   "scenario": "b1",
+   "check": "hardware@HDMI-A-1: one click on the bell leaves only the sidebar",
+   "result": "PASS",
+   "seen": {
+    "eDP-1": [],
+    "HDMI-A-1": [
+     "sidebar"
+    ]
+   }
+  },
+  {
+   "t": "23:50:38",
+   "scenario": "b1",
+   "check": "hardware@HDMI-A-1: a second click closes it",
+   "result": "PASS",
+   "seen": {
+    "eDP-1": [],
+    "HDMI-A-1": []
+   }
+  },
+  {
+   "t": "23:50:39",
+   "scenario": "b1",
+   "check": "hardware@HDMI-A-1: keyboard back in the client",
+   "result": "PASS",
+   "seen": null
+  },
+  {
+   "t": "23:50:42",
+   "scenario": "b1",
+   "check": "wallpapermanager@HDMI-A-1: one click on the bell leaves only the sidebar",
+   "result": "PASS",
+   "seen": {
+    "eDP-1": [],
+    "HDMI-A-1": [
+     "sidebar"
+    ]
+   }
+  },
+  {
+   "t": "23:50:45",
+   "scenario": "b1",
+   "check": "wallpapermanager@HDMI-A-1: a second click closes it",
+   "result": "PASS",
+   "seen": {
+    "eDP-1": [],
+    "HDMI-A-1": []
+   }
+  },
+  {
+   "t": "23:50:46",
+   "scenario": "b1",
+   "check": "wallpapermanager@HDMI-A-1: keyboard back in the client",
+   "result": "PASS",
+   "seen": null
+  },
+  {
+   "t": "23:50:49",
+   "scenario": "b1",
+   "check": "clipboard@HDMI-A-1: one click on the bell leaves only the sidebar",
+   "result": "PASS",
+   "seen": {
+    "eDP-1": [],
+    "HDMI-A-1": [
+     "sidebar"
+    ]
+   }
+  },
+  {
+   "t": "23:50:52",
+   "scenario": "b1",
+   "check": "clipboard@HDMI-A-1: a second click closes it",
+   "result": "PASS",
+   "seen": {
+    "eDP-1": [],
+    "HDMI-A-1": []
+   }
+  },
+  {
+   "t": "23:50:52",
+   "scenario": "b1",
+   "check": "clipboard@HDMI-A-1: keyboard back in the client",
+   "result": "PASS",
+   "seen": null
+  },
+  {
+   "t": "23:50:56",
+   "scenario": "b1",
+   "check": "display@HDMI-A-1: one click on the bell leaves only the sidebar",
+   "result": "PASS",
+   "seen": {
+    "eDP-1": [],
+    "HDMI-A-1": [
+     "sidebar"
+    ]
+   }
+  },
+  {
+   "t": "23:50:58",
+   "scenario": "b1",
+   "check": "display@HDMI-A-1: a second click closes it",
+   "result": "PASS",
+   "seen": {
+    "eDP-1": [],
+    "HDMI-A-1": []
+   }
+  },
+  {
+   "t": "23:50:59",
+   "scenario": "b1",
+   "check": "display@HDMI-A-1: keyboard back in the client",
+   "result": "PASS",
+   "seen": null
+  },
+  {
+   "t": "23:51:03",
+   "scenario": "b1",
+   "check": "keyboards@HDMI-A-1: one click on the bell leaves only the sidebar",
+   "result": "PASS",
+   "seen": {
+    "eDP-1": [],
+    "HDMI-A-1": [
+     "sidebar"
+    ]
+   }
+  },
+  {
+   "t": "23:51:06",
+   "scenario": "b1",
+   "check": "keyboards@HDMI-A-1: a second click closes it",
+   "result": "PASS",
+   "seen": {
+    "eDP-1": [],
+    "HDMI-A-1": []
+   }
+  },
+  {
+   "t": "23:51:06",
+   "scenario": "b1",
+   "check": "keyboards@HDMI-A-1: keyboard back in the client",
+   "result": "PASS",
+   "seen": null
+  },
+  {
+   "t": "23:51:10",
+   "scenario": "b1",
+   "check": "calendar@HDMI-A-1: one click on the bell leaves only the sidebar",
+   "result": "PASS",
+   "seen": {
+    "eDP-1": [],
+    "HDMI-A-1": [
+     "sidebar"
+    ]
+   }
+  },
+  {
+   "t": "23:51:13",
+   "scenario": "b1",
+   "check": "calendar@HDMI-A-1: a second click closes it",
+   "result": "PASS",
+   "seen": {
+    "eDP-1": [],
+    "HDMI-A-1": []
+   }
+  },
+  {
+   "t": "23:51:14",
+   "scenario": "b1",
+   "check": "calendar@HDMI-A-1: keyboard back in the client",
+   "result": "PASS",
+   "seen": null
+  },
+  {
+   "t": "23:51:18",
+   "scenario": "b1",
+   "check": "hardware@HDMI-A-1: a click elsewhere on the scrim only dismisses",
+   "result": "FAIL",
+   "seen": {
+    "eDP-1": [],
+    "HDMI-A-1": [
+     "hardware"
+    ]
+   }
+  },
+  {
+   "t": "23:51:21",
+   "scenario": "b1",
+   "check": "hardware@HDMI-A-1: a click on the panel keeps it open",
+   "result": "PASS",
+   "seen": {
+    "eDP-1": [],
+    "HDMI-A-1": [
+     "hardware"
+    ]
+   }
+  },
+  {
+   "t": "23:51:25",
+   "scenario": "b1",
+   "check": "hardware+osd@HDMI-A-1: the bell leaves the sidebar, hardware closed",
+   "result": "PASS",
+   "seen": {
+    "eDP-1": [],
+    "HDMI-A-1": [
+     "sidebar",
+     "osd"
+    ]
+   }
+  },
+  {
+   "t": "23:51:27",
+   "scenario": "b1",
+   "result": "INFO",
+   "check": "HDMI-A-1: Escape after a bell click",
+   "seen": {
+    "opened": true,
+    "escape_closes": false
+   }
+  },
+  {
+   "t": "23:51:31",
+   "scenario": "b1",
+   "check": "fullscreen HDMI-A-1: hardware open, bell-spot click does not open the sidebar",
+   "result": "PASS",
+   "seen": {
+    "hardware": true,
+    "sidebar": []
+   }
+  },
+  {
+   "t": "23:51:33",
+   "scenario": "b1",
+   "check": "after B1 keyboard in client (HDMI-A-1)",
+   "result": "PASS",
+   "seen": null
+  },
+  {
+   "t": "23:51:36",
+   "scenario": "final",
+   "check": "every flag closed on every screen",
+   "result": "PASS",
+   "seen": {
+    "eDP-1": [],
+    "HDMI-A-1": []
+   }
+  }
+ ],
+ "end": "2026-10-20T23:51:36-0600"
+}

@@ -1,0 +1,185 @@
+{"t": "20:47:03", "scenario": "a1", "check": "hardware@eDP-1 -> calendar@HDMI-A-1: SUPER+H opens hardware", "result": "PASS", "seen": {"eDP-1": ["hardware"], "HDMI-A-1": []}}
+{"t": "20:47:05", "scenario": "a1", "check": "hardware@eDP-1 -> calendar@HDMI-A-1: hardware holds the keyboard", "result": "PASS", "seen": null}
+{"t": "20:47:07", "scenario": "a1", "check": "hardware@eDP-1 -> calendar@HDMI-A-1: SUPER+SHIFT+C opens calendar", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["calendar"]}}
+{"t": "20:47:07", "scenario": "a1", "check": "hardware@eDP-1 -> calendar@HDMI-A-1: hardware closed, calendar only on HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["calendar"]}}
+{"t": "20:47:09", "scenario": "a1", "check": "hardware@eDP-1 -> calendar@HDMI-A-1: calendar holds the keyboard", "result": "PASS", "seen": null}
+{"t": "20:47:11", "scenario": "a1", "check": "hardware@eDP-1 -> calendar@HDMI-A-1: Escape closes calendar", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": []}}
+{"t": "20:47:12", "scenario": "a1", "check": "hardware@eDP-1 -> calendar@HDMI-A-1: keyboard back in the client (HDMI-A-1)", "result": "PASS", "seen": null}
+{"t": "20:47:12", "scenario": "a1", "check": "hardware@eDP-1 -> calendar@HDMI-A-1: keyboard back in the client (eDP-1)", "result": "PASS", "seen": null}
+{"t": "20:47:16", "scenario": "a1", "check": "hardware@HDMI-A-1 -> calendar@eDP-1: SUPER+H opens hardware", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["hardware"]}}
+{"t": "20:47:18", "scenario": "a1", "check": "hardware@HDMI-A-1 -> calendar@eDP-1: hardware holds the keyboard", "result": "PASS", "seen": null}
+{"t": "20:47:20", "scenario": "a1", "check": "hardware@HDMI-A-1 -> calendar@eDP-1: SUPER+SHIFT+C opens calendar", "result": "PASS", "seen": {"eDP-1": ["calendar"], "HDMI-A-1": []}}
+{"t": "20:47:20", "scenario": "a1", "check": "hardware@HDMI-A-1 -> calendar@eDP-1: hardware closed, calendar only on eDP-1", "result": "PASS", "seen": {"eDP-1": ["calendar"], "HDMI-A-1": []}}
+{"t": "20:47:22", "scenario": "a1", "check": "hardware@HDMI-A-1 -> calendar@eDP-1: calendar holds the keyboard", "result": "PASS", "seen": null}
+{"t": "20:47:23", "scenario": "a1", "check": "hardware@HDMI-A-1 -> calendar@eDP-1: Escape closes calendar", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": []}}
+{"t": "20:47:24", "scenario": "a1", "check": "hardware@HDMI-A-1 -> calendar@eDP-1: keyboard back in the client (eDP-1)", "result": "PASS", "seen": null}
+{"t": "20:47:24", "scenario": "a1", "check": "hardware@HDMI-A-1 -> calendar@eDP-1: keyboard back in the client (HDMI-A-1)", "result": "PASS", "seen": null}
+{"t": "20:47:27", "scenario": "final", "check": "every flag closed on every screen", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": []}}
+{"t": "20:47:38", "scenario": "a2", "check": "hardware@eDP-1 then display@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["displayManager"]}}
+{"t": "20:47:40", "scenario": "a2", "check": "hardware@eDP-1 then clipboard@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["clipboard"]}}
+{"t": "20:47:43", "scenario": "a2", "check": "hardware@eDP-1 then keyboards@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["keyboards"]}}
+{"t": "20:47:46", "scenario": "a2", "check": "hardware@eDP-1 then wallpapermanager@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["wallpaperManager"]}}
+{"t": "20:47:49", "scenario": "a2", "check": "hardware@eDP-1 then overview@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["overview"]}}
+{"t": "20:47:52", "scenario": "a2", "check": "hardware@eDP-1 then calendar@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["calendar"]}}
+{"t": "20:47:55", "scenario": "a2", "check": "display@eDP-1 then hardware@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["hardware"]}}
+{"t": "20:47:58", "scenario": "a2", "check": "display@eDP-1 then clipboard@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["clipboard"]}}
+{"t": "20:48:01", "scenario": "a2", "check": "display@eDP-1 then keyboards@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["keyboards"]}}
+{"t": "20:48:03", "scenario": "a2", "check": "display@eDP-1 then wallpapermanager@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["wallpaperManager"]}}
+{"t": "20:48:09", "scenario": "a2", "check": "display@eDP-1 then overview@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["overview"]}}
+{"t": "20:48:12", "scenario": "a2", "check": "display@eDP-1 then calendar@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["calendar"]}}
+{"t": "20:48:15", "scenario": "a2", "check": "clipboard@eDP-1 then hardware@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["hardware"]}}
+{"t": "20:48:18", "scenario": "a2", "check": "clipboard@eDP-1 then display@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["displayManager"]}}
+{"t": "20:48:21", "scenario": "a2", "check": "clipboard@eDP-1 then keyboards@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["keyboards"]}}
+{"t": "20:48:24", "scenario": "a2", "check": "clipboard@eDP-1 then wallpapermanager@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["wallpaperManager"]}}
+{"t": "20:48:30", "scenario": "a2", "check": "clipboard@eDP-1 then overview@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["overview"]}}
+{"t": "20:48:32", "scenario": "a2", "check": "clipboard@eDP-1 then calendar@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["calendar"]}}
+{"t": "20:48:35", "scenario": "a2", "check": "keyboards@eDP-1 then hardware@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["hardware"]}}
+{"t": "20:48:38", "scenario": "a2", "check": "keyboards@eDP-1 then display@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["displayManager"]}}
+{"t": "20:48:41", "scenario": "a2", "check": "keyboards@eDP-1 then clipboard@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["clipboard"]}}
+{"t": "20:48:44", "scenario": "a2", "check": "keyboards@eDP-1 then wallpapermanager@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["wallpaperManager"]}}
+{"t": "20:48:50", "scenario": "a2", "check": "keyboards@eDP-1 then overview@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["overview"]}}
+{"t": "20:48:53", "scenario": "a2", "check": "keyboards@eDP-1 then calendar@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["calendar"]}}
+{"t": "20:48:55", "scenario": "a2", "check": "wallpapermanager@eDP-1 then hardware@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["hardware"]}}
+{"t": "20:48:58", "scenario": "a2", "check": "wallpapermanager@eDP-1 then display@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["displayManager"]}}
+{"t": "20:49:01", "scenario": "a2", "check": "wallpapermanager@eDP-1 then clipboard@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["clipboard"]}}
+{"t": "20:49:04", "scenario": "a2", "check": "wallpapermanager@eDP-1 then keyboards@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["keyboards"]}}
+{"t": "20:49:07", "scenario": "a2", "check": "wallpapermanager@eDP-1 then overview@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["overview"]}}
+{"t": "20:49:10", "scenario": "a2", "check": "wallpapermanager@eDP-1 then calendar@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["calendar"]}}
+{"t": "20:49:12", "scenario": "a2", "check": "overview@eDP-1 then hardware@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["hardware"]}}
+{"t": "20:49:15", "scenario": "a2", "check": "overview@eDP-1 then display@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["displayManager"]}}
+{"t": "20:49:18", "scenario": "a2", "check": "overview@eDP-1 then clipboard@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["clipboard"]}}
+{"t": "20:49:21", "scenario": "a2", "check": "overview@eDP-1 then keyboards@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["keyboards"]}}
+{"t": "20:49:24", "scenario": "a2", "check": "overview@eDP-1 then wallpapermanager@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["wallpaperManager"]}}
+{"t": "20:49:27", "scenario": "a2", "check": "overview@eDP-1 then calendar@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["calendar"]}}
+{"t": "20:49:30", "scenario": "a2", "check": "calendar@eDP-1 then hardware@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["hardware"]}}
+{"t": "20:49:32", "scenario": "a2", "check": "calendar@eDP-1 then display@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["displayManager"]}}
+{"t": "20:49:35", "scenario": "a2", "check": "calendar@eDP-1 then clipboard@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["clipboard"]}}
+{"t": "20:49:38", "scenario": "a2", "check": "calendar@eDP-1 then keyboards@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["keyboards"]}}
+{"t": "20:49:41", "scenario": "a2", "check": "calendar@eDP-1 then wallpapermanager@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["wallpaperManager"]}}
+{"t": "20:49:44", "scenario": "a2", "check": "calendar@eDP-1 then overview@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["overview"]}}
+{"t": "20:49:48", "scenario": "a2", "check": "hardware@eDP-1 then drawers toggle launcher@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["launcher"]}}
+{"t": "20:49:49", "scenario": "a2", "check": "launcher@HDMI-A-1 then hardware@eDP-1", "result": "PASS", "seen": {"eDP-1": ["hardware"], "HDMI-A-1": []}}
+{"t": "20:49:52", "scenario": "a2", "check": "hardware@eDP-1 then drawers toggle session@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["session"]}}
+{"t": "20:49:54", "scenario": "a2", "check": "session@HDMI-A-1 then hardware@eDP-1", "result": "PASS", "seen": {"eDP-1": ["hardware"], "HDMI-A-1": []}}
+{"t": "20:49:57", "scenario": "a2", "check": "hardware@eDP-1 then drawers toggle dashboard@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["dashboard"]}}
+{"t": "20:49:59", "scenario": "a2", "check": "dashboard@HDMI-A-1 then hardware@eDP-1", "result": "PASS", "seen": {"eDP-1": ["hardware"], "HDMI-A-1": []}}
+{"t": "20:50:02", "scenario": "a2", "check": "hardware@eDP-1 then drawers toggle utilities@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["utilities"]}}
+{"t": "20:50:03", "scenario": "a2", "check": "utilities@HDMI-A-1 then hardware@eDP-1", "result": "PASS", "seen": {"eDP-1": ["hardware"], "HDMI-A-1": []}}
+{"t": "20:50:07", "scenario": "a2", "check": "hardware@eDP-1 then drawers toggle settings@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["settings"]}}
+{"t": "20:50:08", "scenario": "a2", "check": "settings@HDMI-A-1 then hardware@eDP-1", "result": "PASS", "seen": {"eDP-1": ["hardware"], "HDMI-A-1": []}}
+{"t": "20:50:11", "scenario": "a2", "check": "hardware@eDP-1 then drawers toggle sidebar@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["sidebar"]}}
+{"t": "20:50:13", "scenario": "a2", "check": "sidebar@HDMI-A-1 then hardware@eDP-1", "result": "PASS", "seen": {"eDP-1": ["hardware"], "HDMI-A-1": []}}
+{"t": "20:50:16", "scenario": "a2", "check": "osd coexists with hardware on eDP-1", "result": "PASS", "seen": {"eDP-1": ["hardware", "osd"], "HDMI-A-1": []}}
+{"t": "20:50:19", "scenario": "a2", "check": "hardware reopened on HDMI-A-1 moves it", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["hardware"]}}
+{"t": "20:50:21", "scenario": "a2", "check": "hardware moved to HDMI-A-1 holds the keyboard there", "result": "PASS", "seen": null}
+{"t": "20:50:23", "scenario": "a2", "check": "after reset keyboard in client (eDP-1)", "result": "PASS", "seen": null}
+{"t": "20:50:26", "scenario": "a2", "check": "hardware@HDMI-A-1 then display@eDP-1", "result": "PASS", "seen": {"eDP-1": ["displayManager"], "HDMI-A-1": []}}
+{"t": "20:50:29", "scenario": "a2", "check": "hardware@HDMI-A-1 then clipboard@eDP-1", "result": "PASS", "seen": {"eDP-1": ["clipboard"], "HDMI-A-1": []}}
+{"t": "20:50:33", "scenario": "a2", "check": "hardware@HDMI-A-1 then keyboards@eDP-1", "result": "PASS", "seen": {"eDP-1": ["keyboards"], "HDMI-A-1": []}}
+{"t": "20:50:36", "scenario": "a2", "check": "hardware@HDMI-A-1 then wallpapermanager@eDP-1", "result": "PASS", "seen": {"eDP-1": ["wallpaperManager"], "HDMI-A-1": []}}
+{"t": "20:50:39", "scenario": "a2", "check": "hardware@HDMI-A-1 then overview@eDP-1", "result": "PASS", "seen": {"eDP-1": ["overview"], "HDMI-A-1": []}}
+{"t": "20:50:42", "scenario": "a2", "check": "hardware@HDMI-A-1 then calendar@eDP-1", "result": "PASS", "seen": {"eDP-1": ["calendar"], "HDMI-A-1": []}}
+{"t": "20:50:45", "scenario": "a2", "check": "display@HDMI-A-1 then hardware@eDP-1", "result": "PASS", "seen": {"eDP-1": ["hardware"], "HDMI-A-1": []}}
+{"t": "20:50:47", "scenario": "a2", "check": "display@HDMI-A-1 then clipboard@eDP-1", "result": "PASS", "seen": {"eDP-1": ["clipboard"], "HDMI-A-1": []}}
+{"t": "20:50:51", "scenario": "a2", "check": "display@HDMI-A-1 then keyboards@eDP-1", "result": "PASS", "seen": {"eDP-1": ["keyboards"], "HDMI-A-1": []}}
+{"t": "20:50:54", "scenario": "a2", "check": "display@HDMI-A-1 then wallpapermanager@eDP-1", "result": "PASS", "seen": {"eDP-1": ["wallpaperManager"], "HDMI-A-1": []}}
+{"t": "20:51:00", "scenario": "a2", "check": "display@HDMI-A-1 then overview@eDP-1", "result": "PASS", "seen": {"eDP-1": ["overview"], "HDMI-A-1": []}}
+{"t": "20:51:03", "scenario": "a2", "check": "display@HDMI-A-1 then calendar@eDP-1", "result": "PASS", "seen": {"eDP-1": ["calendar"], "HDMI-A-1": []}}
+{"t": "20:51:06", "scenario": "a2", "check": "clipboard@HDMI-A-1 then hardware@eDP-1", "result": "PASS", "seen": {"eDP-1": ["hardware"], "HDMI-A-1": []}}
+{"t": "20:51:09", "scenario": "a2", "check": "clipboard@HDMI-A-1 then display@eDP-1", "result": "PASS", "seen": {"eDP-1": ["displayManager"], "HDMI-A-1": []}}
+{"t": "20:51:12", "scenario": "a2", "check": "clipboard@HDMI-A-1 then keyboards@eDP-1", "result": "PASS", "seen": {"eDP-1": ["keyboards"], "HDMI-A-1": []}}
+{"t": "20:51:15", "scenario": "a2", "check": "clipboard@HDMI-A-1 then wallpapermanager@eDP-1", "result": "PASS", "seen": {"eDP-1": ["wallpaperManager"], "HDMI-A-1": []}}
+{"t": "20:51:21", "scenario": "a2", "check": "clipboard@HDMI-A-1 then overview@eDP-1", "result": "PASS", "seen": {"eDP-1": ["overview"], "HDMI-A-1": []}}
+{"t": "20:51:24", "scenario": "a2", "check": "clipboard@HDMI-A-1 then calendar@eDP-1", "result": "PASS", "seen": {"eDP-1": ["calendar"], "HDMI-A-1": []}}
+{"t": "20:51:27", "scenario": "a2", "check": "keyboards@HDMI-A-1 then hardware@eDP-1", "result": "PASS", "seen": {"eDP-1": ["hardware"], "HDMI-A-1": []}}
+{"t": "20:51:30", "scenario": "a2", "check": "keyboards@HDMI-A-1 then display@eDP-1", "result": "PASS", "seen": {"eDP-1": ["displayManager"], "HDMI-A-1": []}}
+{"t": "20:51:33", "scenario": "a2", "check": "keyboards@HDMI-A-1 then clipboard@eDP-1", "result": "PASS", "seen": {"eDP-1": ["clipboard"], "HDMI-A-1": []}}
+{"t": "20:51:36", "scenario": "a2", "check": "keyboards@HDMI-A-1 then wallpapermanager@eDP-1", "result": "PASS", "seen": {"eDP-1": ["wallpaperManager"], "HDMI-A-1": []}}
+{"t": "20:51:40", "scenario": "a2", "check": "keyboards@HDMI-A-1 then overview@eDP-1", "result": "PASS", "seen": {"eDP-1": ["overview"], "HDMI-A-1": []}}
+{"t": "20:51:43", "scenario": "a2", "check": "keyboards@HDMI-A-1 then calendar@eDP-1", "result": "PASS", "seen": {"eDP-1": ["calendar"], "HDMI-A-1": []}}
+{"t": "20:51:46", "scenario": "a2", "check": "wallpapermanager@HDMI-A-1 then hardware@eDP-1", "result": "PASS", "seen": {"eDP-1": ["hardware"], "HDMI-A-1": []}}
+{"t": "20:51:48", "scenario": "a2", "check": "wallpapermanager@HDMI-A-1 then display@eDP-1", "result": "PASS", "seen": {"eDP-1": ["displayManager"], "HDMI-A-1": []}}
+{"t": "20:51:51", "scenario": "a2", "check": "wallpapermanager@HDMI-A-1 then clipboard@eDP-1", "result": "PASS", "seen": {"eDP-1": ["clipboard"], "HDMI-A-1": []}}
+{"t": "20:51:54", "scenario": "a2", "check": "wallpapermanager@HDMI-A-1 then keyboards@eDP-1", "result": "PASS", "seen": {"eDP-1": ["keyboards"], "HDMI-A-1": []}}
+{"t": "20:51:57", "scenario": "a2", "check": "wallpapermanager@HDMI-A-1 then overview@eDP-1", "result": "PASS", "seen": {"eDP-1": ["overview"], "HDMI-A-1": []}}
+{"t": "20:52:00", "scenario": "a2", "check": "wallpapermanager@HDMI-A-1 then calendar@eDP-1", "result": "PASS", "seen": {"eDP-1": ["calendar"], "HDMI-A-1": []}}
+{"t": "20:52:02", "scenario": "a2", "check": "overview@HDMI-A-1 then hardware@eDP-1", "result": "PASS", "seen": {"eDP-1": ["hardware"], "HDMI-A-1": []}}
+{"t": "20:52:05", "scenario": "a2", "check": "overview@HDMI-A-1 then display@eDP-1", "result": "PASS", "seen": {"eDP-1": ["displayManager"], "HDMI-A-1": []}}
+{"t": "20:52:08", "scenario": "a2", "check": "overview@HDMI-A-1 then clipboard@eDP-1", "result": "PASS", "seen": {"eDP-1": ["clipboard"], "HDMI-A-1": []}}
+{"t": "20:52:11", "scenario": "a2", "check": "overview@HDMI-A-1 then keyboards@eDP-1", "result": "PASS", "seen": {"eDP-1": ["keyboards"], "HDMI-A-1": []}}
+{"t": "20:52:14", "scenario": "a2", "check": "overview@HDMI-A-1 then wallpapermanager@eDP-1", "result": "PASS", "seen": {"eDP-1": ["wallpaperManager"], "HDMI-A-1": []}}
+{"t": "20:52:17", "scenario": "a2", "check": "overview@HDMI-A-1 then calendar@eDP-1", "result": "PASS", "seen": {"eDP-1": ["calendar"], "HDMI-A-1": []}}
+{"t": "20:52:20", "scenario": "a2", "check": "calendar@HDMI-A-1 then hardware@eDP-1", "result": "PASS", "seen": {"eDP-1": ["hardware"], "HDMI-A-1": []}}
+{"t": "20:52:23", "scenario": "a2", "check": "calendar@HDMI-A-1 then display@eDP-1", "result": "PASS", "seen": {"eDP-1": ["displayManager"], "HDMI-A-1": []}}
+{"t": "20:52:25", "scenario": "a2", "check": "calendar@HDMI-A-1 then clipboard@eDP-1", "result": "PASS", "seen": {"eDP-1": ["clipboard"], "HDMI-A-1": []}}
+{"t": "20:52:28", "scenario": "a2", "check": "calendar@HDMI-A-1 then keyboards@eDP-1", "result": "PASS", "seen": {"eDP-1": ["keyboards"], "HDMI-A-1": []}}
+{"t": "20:52:31", "scenario": "a2", "check": "calendar@HDMI-A-1 then wallpapermanager@eDP-1", "result": "PASS", "seen": {"eDP-1": ["wallpaperManager"], "HDMI-A-1": []}}
+{"t": "20:52:34", "scenario": "a2", "check": "calendar@HDMI-A-1 then overview@eDP-1", "result": "PASS", "seen": {"eDP-1": ["overview"], "HDMI-A-1": []}}
+{"t": "20:52:37", "scenario": "a2", "check": "hardware@HDMI-A-1 then drawers toggle launcher@eDP-1", "result": "PASS", "seen": {"eDP-1": ["launcher"], "HDMI-A-1": []}}
+{"t": "20:52:38", "scenario": "a2", "check": "launcher@eDP-1 then hardware@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["hardware"]}}
+{"t": "20:52:42", "scenario": "a2", "check": "hardware@HDMI-A-1 then drawers toggle session@eDP-1", "result": "PASS", "seen": {"eDP-1": ["session"], "HDMI-A-1": []}}
+{"t": "20:52:43", "scenario": "a2", "check": "session@eDP-1 then hardware@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["hardware"]}}
+{"t": "20:52:46", "scenario": "a2", "check": "hardware@HDMI-A-1 then drawers toggle dashboard@eDP-1", "result": "PASS", "seen": {"eDP-1": ["dashboard"], "HDMI-A-1": []}}
+{"t": "20:52:47", "scenario": "a2", "check": "dashboard@eDP-1 then hardware@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["hardware"]}}
+{"t": "20:52:50", "scenario": "a2", "check": "hardware@HDMI-A-1 then drawers toggle utilities@eDP-1", "result": "PASS", "seen": {"eDP-1": ["utilities"], "HDMI-A-1": []}}
+{"t": "20:52:51", "scenario": "a2", "check": "utilities@eDP-1 then hardware@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["hardware"]}}
+{"t": "20:52:55", "scenario": "a2", "check": "hardware@HDMI-A-1 then drawers toggle settings@eDP-1", "result": "PASS", "seen": {"eDP-1": ["settings"], "HDMI-A-1": []}}
+{"t": "20:52:56", "scenario": "a2", "check": "settings@eDP-1 then hardware@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["hardware"]}}
+{"t": "20:52:59", "scenario": "a2", "check": "hardware@HDMI-A-1 then drawers toggle sidebar@eDP-1", "result": "PASS", "seen": {"eDP-1": ["sidebar"], "HDMI-A-1": []}}
+{"t": "20:53:00", "scenario": "a2", "check": "sidebar@eDP-1 then hardware@HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["hardware"]}}
+{"t": "20:53:03", "scenario": "a2", "check": "osd coexists with hardware on HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["hardware", "osd"]}}
+{"t": "20:53:06", "scenario": "a2", "check": "hardware reopened on eDP-1 moves it", "result": "PASS", "seen": {"eDP-1": ["hardware"], "HDMI-A-1": []}}
+{"t": "20:53:08", "scenario": "a2", "check": "hardware moved to eDP-1 holds the keyboard there", "result": "PASS", "seen": null}
+{"t": "20:53:10", "scenario": "a2", "check": "after reset keyboard in client (HDMI-A-1)", "result": "PASS", "seen": null}
+{"t": "20:53:21", "scenario": "a3", "check": "hardware@eDP-1 then sidebar by ipc x3", "result": "PASS", "seen": []}
+{"t": "20:53:23", "scenario": "a3", "check": "sidebar by ipc closes it on eDP-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": []}}
+{"t": "20:53:23", "scenario": "a3", "check": "keyboard in the client after sidebar by ipc (eDP-1)", "result": "PASS", "seen": null}
+{"t": "20:53:35", "scenario": "a3", "check": "hardware@eDP-1 then sidebar by super+n x3", "result": "PASS", "seen": []}
+{"t": "20:53:37", "scenario": "a3", "check": "sidebar by super+n closes it on eDP-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": []}}
+{"t": "20:53:38", "scenario": "a3", "check": "keyboard in the client after sidebar by super+n (eDP-1)", "result": "PASS", "seen": null}
+{"t": "20:53:49", "scenario": "a3", "check": "hardware@eDP-1 then sidebar by bottomhub-ipc x3", "result": "PASS", "seen": []}
+{"t": "20:53:50", "scenario": "a3", "check": "sidebar by bottomhub-ipc closes it on eDP-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": []}}
+{"t": "20:53:51", "scenario": "a3", "check": "keyboard in the client after sidebar by bottomhub-ipc (eDP-1)", "result": "PASS", "seen": null}
+{"t": "20:55:03", "scenario": "a3", "check": "wallpapermanager@eDP-1 then sidebar by ipc x20", "result": "PASS", "seen": []}
+{"t": "20:55:05", "scenario": "a3", "check": "sidebar by ipc closes it on eDP-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": []}}
+{"t": "20:55:05", "scenario": "a3", "check": "keyboard in the client after sidebar by ipc (eDP-1)", "result": "PASS", "seen": null}
+{"t": "20:56:26", "scenario": "a3", "check": "wallpapermanager@eDP-1 then sidebar by super+n x20", "result": "PASS", "seen": []}
+{"t": "20:56:28", "scenario": "a3", "check": "sidebar by super+n closes it on eDP-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": []}}
+{"t": "20:56:29", "scenario": "a3", "check": "keyboard in the client after sidebar by super+n (eDP-1)", "result": "PASS", "seen": null}
+{"t": "20:57:43", "scenario": "a3", "check": "wallpapermanager@eDP-1 then sidebar by bottomhub-ipc x20", "result": "PASS", "seen": []}
+{"t": "20:57:45", "scenario": "a3", "check": "sidebar by bottomhub-ipc closes it on eDP-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": []}}
+{"t": "20:57:46", "scenario": "a3", "check": "keyboard in the client after sidebar by bottomhub-ipc (eDP-1)", "result": "PASS", "seen": null}
+{"t": "20:57:56", "scenario": "a3", "check": "hardware@HDMI-A-1 then sidebar by ipc x3", "result": "PASS", "seen": []}
+{"t": "20:57:58", "scenario": "a3", "check": "sidebar by ipc closes it on HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": []}}
+{"t": "20:57:58", "scenario": "a3", "check": "keyboard in the client after sidebar by ipc (HDMI-A-1)", "result": "PASS", "seen": null}
+{"t": "20:58:11", "scenario": "a3", "check": "hardware@HDMI-A-1 then sidebar by super+n x3", "result": "PASS", "seen": []}
+{"t": "20:58:13", "scenario": "a3", "check": "sidebar by super+n closes it on HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": []}}
+{"t": "20:58:13", "scenario": "a3", "check": "keyboard in the client after sidebar by super+n (HDMI-A-1)", "result": "PASS", "seen": null}
+{"t": "20:58:24", "scenario": "a3", "check": "hardware@HDMI-A-1 then sidebar by bottomhub-ipc x3", "result": "PASS", "seen": []}
+{"t": "20:58:26", "scenario": "a3", "check": "sidebar by bottomhub-ipc closes it on HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": []}}
+{"t": "20:58:26", "scenario": "a3", "check": "keyboard in the client after sidebar by bottomhub-ipc (HDMI-A-1)", "result": "PASS", "seen": null}
+{"t": "20:59:41", "scenario": "a3", "check": "wallpapermanager@HDMI-A-1 then sidebar by ipc x20", "result": "PASS", "seen": []}
+{"t": "20:59:43", "scenario": "a3", "check": "sidebar by ipc closes it on HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": []}}
+{"t": "20:59:43", "scenario": "a3", "check": "keyboard in the client after sidebar by ipc (HDMI-A-1)", "result": "PASS", "seen": null}
+{"t": "21:01:04", "scenario": "a3", "check": "wallpapermanager@HDMI-A-1 then sidebar by super+n x20", "result": "PASS", "seen": []}
+{"t": "21:01:06", "scenario": "a3", "check": "sidebar by super+n closes it on HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": []}}
+{"t": "21:01:07", "scenario": "a3", "check": "keyboard in the client after sidebar by super+n (HDMI-A-1)", "result": "PASS", "seen": null}
+{"t": "21:02:23", "scenario": "a3", "check": "wallpapermanager@HDMI-A-1 then sidebar by bottomhub-ipc x20", "result": "PASS", "seen": []}
+{"t": "21:02:24", "scenario": "a3", "check": "sidebar by bottomhub-ipc closes it on HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": []}}
+{"t": "21:02:25", "scenario": "a3", "check": "keyboard in the client after sidebar by bottomhub-ipc (HDMI-A-1)", "result": "PASS", "seen": null}
+{"t": "21:02:27", "scenario": "a4", "check": "fullscreen on (eDP-1)", "result": "PASS", "seen": null}
+{"t": "21:02:28", "scenario": "a4", "check": "fullscreen eDP-1: sidebar by ipc does not open", "result": "FAIL", "seen": ["sidebar"]}
+{"t": "21:02:29", "scenario": "a4", "check": "fullscreen eDP-1: sidebar by super+n does not open", "result": "FAIL", "seen": ["sidebar"]}
+{"t": "21:02:30", "scenario": "a4", "check": "fullscreen eDP-1: sidebar by bottomhub-ipc does not open", "result": "FAIL", "seen": ["sidebar"]}
+{"t": "21:02:31", "scenario": "a4", "check": "fullscreen eDP-1: drawers toggle osd is guarded", "result": "FAIL", "seen": ["osd"]}
+{"t": "21:02:32", "scenario": "a4", "check": "fullscreen eDP-1: SUPER+H (always allowed) opens hardware", "result": "PASS", "seen": ["hardware"]}
+{"t": "21:02:32", "scenario": "a4", "check": "fullscreen eDP-1: closing hardware works", "result": "PASS", "seen": null}
+{"t": "21:02:33", "scenario": "a4", "check": "fullscreen eDP-1: keyboard in the client", "result": "PASS", "seen": null}
+{"t": "21:02:36", "scenario": "a4", "check": "fullscreen off (eDP-1)", "result": "FAIL", "seen": null}
+{"t": "21:02:41", "scenario": "a4", "check": "fullscreen eDP-1: sidebar open before fullscreen closes by ipc", "result": "FAIL", "seen": {"opened": false, "after_fs": false, "after": []}}
+{"t": "21:02:45", "scenario": "a4", "check": "fullscreen eDP-1: sidebar open before fullscreen closes by super+n", "result": "PASS", "seen": {"opened": true, "after_fs": true, "after": []}}
+{"t": "21:02:50", "scenario": "a4", "check": "fullscreen eDP-1: sidebar open before fullscreen closes by bottomhub-ipc", "result": "PASS", "seen": {"opened": true, "after_fs": true, "after": []}}
+{"t": "21:02:52", "scenario": "a4", "check": "osd coexists with calendar on eDP-1", "result": "PASS", "seen": ["calendar", "osd"]}
+{"t": "21:02:54", "scenario": "a4", "check": "after A4 keyboard in client (eDP-1)", "result": "PASS", "seen": null}
+{"t": "21:02:56", "scenario": "a4", "check": "fullscreen on (HDMI-A-1)", "result": "PASS", "seen": null}
+{"t": "21:02:57", "scenario": "a4", "check": "fullscreen HDMI-A-1: sidebar by ipc does not open", "result": "FAIL", "seen": ["sidebar"]}

@@ -59,6 +59,9 @@ Solo hay zram como swap y ninguna configuración `resume=`, así que logind
 responde `na` a hibernar y a suspend-then-hibernate. `SUPER + SHIFT + L`
 suspende a RAM. Cuatro dedos hacia abajo abren el menú de sesión en lugar de
 suspender, para que un gesto accidental, también jugando, no duerma el equipo.
+El mismo menú, el del botón de apagado de Bottom Hub, se abre con `SUPER + X`
+o `CTRL + ALT + Delete` (`kbSession`). Redimensionar ventanas queda en
+`SUPER` + arrastre con el botón derecho.
 
 ## Migración y reversión
 

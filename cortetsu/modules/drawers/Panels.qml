@@ -3,7 +3,6 @@ import Quickshell
 import "../bar" as Bar
 import "../dashboard" as Dashboard
 import "../launcher" as Launcher
-import "../overview" as Overview
 import "../notifications" as Notifications
 import "../osd" as Osd
 import "../session" as Session
@@ -13,11 +12,6 @@ import "../../components"
 import "../utilities" as Utilities
 import "../bar/popouts" as BarPopouts
 import "../../theme"
-import "../clipboard" as Clipboard
-import "../hardware" as Hardware
-import "../display" as Display
-import "../wallpaper" as Wallpaper
-import "../calendar" as Calendar
 
 Item {
     id: root
@@ -32,12 +26,6 @@ Item {
     readonly property alias session: session
     readonly property alias sessionWrapper: sessionWrapper
     readonly property alias launcher: launcher
-    readonly property alias overview: overview
-    readonly property alias calendar: calendar
-    readonly property alias wallpaperManager: wallpaperManager
-    readonly property alias displayManager: displayManager
-    readonly property alias hardware: hardware
-    readonly property alias clipboard: clipboard
     readonly property alias dashboard: dashboard
     readonly property alias popouts: popoutsWrapper.content
     readonly property alias popoutsWrapper: popoutsWrapper
@@ -108,21 +96,6 @@ Item {
         panels: root
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.verticalCenter: parent.verticalCenter
-    }
-    // Retained surfaces are rendered by RetainedSurfacesHost. These aliases
-    // remain as compatibility handles for the shared drawer contract.
-    Overview.Wrapper { id: overview; visible: false; screen: root.screen; screenState: root.screenState; anchors.fill: parent }
-    Clipboard.Wrapper { id: clipboard; visible: false; screen: root.screen; screenState: root.screenState; anchors.fill: parent }
-    Hardware.Wrapper { id: hardware; visible: false; screen: root.screen; screenState: root.screenState; anchors.fill: parent }
-    Display.Wrapper { id: displayManager; visible: false; screen: root.screen; screenState: root.screenState; anchors.fill: parent }
-    Wallpaper.Wrapper { id: wallpaperManager; visible: false; screen: root.screen; screenState: root.screenState; anchors.fill: parent }
-    Calendar.Wrapper {
-        id: calendar
-        visible: false
-        screenState: root.screenState
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.bottom: parent.bottom
-        anchors.bottomMargin: bar.implicitHeight + CortetsuDesign.spacingStandard
     }
     Dashboard.Wrapper {
         id: dashboard

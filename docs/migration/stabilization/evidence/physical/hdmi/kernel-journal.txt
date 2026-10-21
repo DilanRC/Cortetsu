@@ -1,0 +1,104 @@
+oct 20 21:21:04.087246 stelar kernel: PM: suspend entry (s2idle)
+oct 20 21:21:04.179193 stelar kernel: Filesystems sync: 0.091 seconds
+oct 20 21:21:15.509453 stelar kernel: Freezing user space processes
+oct 20 21:21:15.510835 stelar kernel: Freezing user space processes completed (elapsed 0.007 seconds)
+oct 20 21:21:15.511279 stelar kernel: OOM killer disabled.
+oct 20 21:21:15.511307 stelar kernel: Freezing remaining freezable tasks
+oct 20 21:21:15.511335 stelar kernel: Freezing remaining freezable tasks completed (elapsed 0.001 seconds)
+oct 20 21:21:15.511369 stelar kernel: printk: Suspending console(s) (use no_console_suspend to debug)
+oct 20 21:21:15.511384 stelar kernel: ACPI: EC: interrupt blocked
+oct 20 21:21:15.511408 stelar kernel: ACPI: button: [Firmware Bug]: Unexpected lid state reported by firmware
+oct 20 21:21:15.511435 stelar kernel: ACPI: EC: interrupt unblocked
+oct 20 21:21:15.511459 stelar kernel: pci 0000:00:00.0: enhanced atomics disabled
+oct 20 21:21:15.513436 stelar kernel: nvme nvme0: D3 entry latency set to 10 seconds
+oct 20 21:21:15.516850 stelar kernel: amdgpu 0000:06:00.0: [drm] PCIE GART of 512M enabled (table at 0x000000801FD00000).
+oct 20 21:21:15.517331 stelar kernel: amdgpu 0000:06:00.0: SMU is resuming...
+oct 20 21:21:15.517594 stelar kernel: amdgpu 0000:06:00.0: SMU is resumed successfully!
+oct 20 21:21:15.518228 stelar kernel: nvme nvme0: 12/0/0 default/read/poll queues
+oct 20 21:21:15.520522 stelar kernel: usb 1-4: reset full-speed USB device number 3 using xhci_hcd
+oct 20 21:21:15.521188 stelar kernel: amdgpu 0000:06:00.0: ring gfx_0.0.0 uses VM inv eng 0 on hub 0
+oct 20 21:21:15.521707 stelar kernel: amdgpu 0000:06:00.0: ring comp_1.0.0 uses VM inv eng 1 on hub 0
+oct 20 21:21:15.523417 stelar kernel: amdgpu 0000:06:00.0: ring comp_1.1.0 uses VM inv eng 4 on hub 0
+oct 20 21:21:15.524057 stelar kernel: amdgpu 0000:06:00.0: ring comp_1.2.0 uses VM inv eng 6 on hub 0
+oct 20 21:21:15.524318 stelar kernel: amdgpu 0000:06:00.0: ring comp_1.3.0 uses VM inv eng 7 on hub 0
+oct 20 21:21:15.524582 stelar kernel: amdgpu 0000:06:00.0: ring comp_1.0.1 uses VM inv eng 8 on hub 0
+oct 20 21:21:15.524859 stelar kernel: amdgpu 0000:06:00.0: ring comp_1.1.1 uses VM inv eng 9 on hub 0
+oct 20 21:21:15.525231 stelar kernel: amdgpu 0000:06:00.0: ring comp_1.2.1 uses VM inv eng 10 on hub 0
+oct 20 21:21:15.525556 stelar kernel: amdgpu 0000:06:00.0: ring comp_1.3.1 uses VM inv eng 11 on hub 0
+oct 20 21:21:15.525872 stelar kernel: amdgpu 0000:06:00.0: ring sdma0 uses VM inv eng 12 on hub 0
+oct 20 21:21:15.526172 stelar kernel: amdgpu 0000:06:00.0: ring vcn_unified_0 uses VM inv eng 0 on hub 8
+oct 20 21:21:15.526445 stelar kernel: amdgpu 0000:06:00.0: ring jpeg_dec uses VM inv eng 1 on hub 8
+oct 20 21:21:15.526727 stelar kernel: amdgpu 0000:06:00.0: ring mes_kiq_3.1.0 uses VM inv eng 13 on hub 0
+oct 20 21:21:15.526982 stelar kernel: OOM killer enabled.
+oct 20 21:21:15.527008 stelar kernel: Restarting tasks: Starting
+oct 20 21:21:15.527028 stelar kernel: Bluetooth: hci0: RTL: examining hci_ver=0c hci_rev=0087 lmp_ver=0c lmp_subver=8852
+oct 20 21:21:15.527048 stelar kernel: Bluetooth: hci0: RTL: rom_version status=0 version=0
+oct 20 21:21:15.527072 stelar kernel: Restarting tasks: Done
+oct 20 21:21:15.527095 stelar kernel: efivarfs: resyncing variable state
+oct 20 21:21:15.527108 stelar kernel: Bluetooth: hci0: RTL: btrtl_initialize: key id 0
+oct 20 21:21:15.527134 stelar kernel: Bluetooth: hci0: RTL: loading rtl_bt/rtl8852btu_fw.bin
+oct 20 21:21:15.527620 stelar kernel: Bluetooth: hci0: RTL: loading rtl_bt/rtl8852btu_config.bin
+oct 20 21:21:15.527649 stelar kernel: Bluetooth: hci0: RTL: cfg_sz 6, total sz 128087
+oct 20 21:21:15.542084 stelar kernel: efivarfs: finished resyncing variable state
+oct 20 21:21:15.542112 stelar kernel: random: crng reseeded on system resumption
+oct 20 21:21:15.554676 stelar kernel: [drm:__nv_drm_semsurf_wait_fence_work_cb [nvidia_drm]] *ERROR* [nvidia-drm] [GPU ID 0x00000100] Failed to register auto-value-update on pre-wait value for sync FD semaphore surface
+oct 20 21:21:16.261652 stelar kernel: nvidia-modeset: WARNING: GPU:0: RLD advertized maximum pixel clock 300000 KHz violates maximum pixel clock constraint for HDMI
+oct 20 21:21:16.347636 stelar kernel: PM: suspend exit
+oct 20 21:21:16.387637 stelar kernel: Generic FE-GE Realtek PHY r8169-0-200:00: attached PHY driver (mii_bus:phy_addr=r8169-0-200:00, irq=MAC)
+oct 20 21:21:16.542656 stelar kernel: r8169 0000:02:00.0 eno1: Link is Down
+oct 20 21:21:17.085685 stelar kernel: Bluetooth: hci0: RTL: fw version 0x06ebc65f
+oct 20 21:21:17.272197 stelar kernel: Bluetooth: hci0: AOSP extensions version v1.00
+oct 20 21:21:17.272233 stelar kernel: Bluetooth: hci0: AOSP quality report is supported
+oct 20 21:21:17.272299 stelar kernel: Bluetooth: MGMT ver 1.23
+oct 20 21:22:32.730640 stelar kernel: PM: suspend entry (s2idle)
+oct 20 21:22:32.892652 stelar kernel: Filesystems sync: 0.161 seconds
+oct 20 21:22:33.617649 stelar kernel: [drm:__nv_drm_semsurf_wait_fence_work_cb [nvidia_drm]] *ERROR* [nvidia-drm] [GPU ID 0x00000100] Failed to register auto-value-update on pre-wait value for sync FD semaphore surface
+oct 20 21:53:47.508148 stelar kernel: Freezing user space processes
+oct 20 21:53:47.509119 stelar kernel: Freezing user space processes completed (elapsed 0.002 seconds)
+oct 20 21:53:47.509637 stelar kernel: OOM killer disabled.
+oct 20 21:53:47.511286 stelar kernel: Freezing remaining freezable tasks
+oct 20 21:53:47.512170 stelar kernel: Freezing remaining freezable tasks completed (elapsed 0.001 seconds)
+oct 20 21:53:47.512316 stelar kernel: printk: Suspending console(s) (use no_console_suspend to debug)
+oct 20 21:53:47.512380 stelar kernel: ACPI: EC: interrupt blocked
+oct 20 21:53:47.512540 stelar kernel: ACPI: EC: interrupt unblocked
+oct 20 21:53:47.512592 stelar kernel: pci 0000:00:00.0: enhanced atomics disabled
+oct 20 21:53:47.513068 stelar kernel: nvme nvme0: D3 entry latency set to 10 seconds
+oct 20 21:53:47.513360 stelar kernel: amdgpu 0000:06:00.0: [drm] PCIE GART of 512M enabled (table at 0x000000801FD00000).
+oct 20 21:53:47.514217 stelar kernel: amdgpu 0000:06:00.0: SMU is resuming...
+oct 20 21:53:47.520412 stelar kernel: amdgpu 0000:06:00.0: SMU is resumed successfully!
+oct 20 21:53:47.521136 stelar kernel: nvme nvme0: 12/0/0 default/read/poll queues
+oct 20 21:53:47.521390 stelar kernel: usb 1-4: reset full-speed USB device number 3 using xhci_hcd
+oct 20 21:53:47.524013 stelar kernel: amdgpu 0000:06:00.0: ring gfx_0.0.0 uses VM inv eng 0 on hub 0
+oct 20 21:53:47.524627 stelar kernel: amdgpu 0000:06:00.0: ring comp_1.0.0 uses VM inv eng 1 on hub 0
+oct 20 21:53:47.524935 stelar kernel: amdgpu 0000:06:00.0: ring comp_1.1.0 uses VM inv eng 4 on hub 0
+oct 20 21:53:47.525215 stelar kernel: amdgpu 0000:06:00.0: ring comp_1.2.0 uses VM inv eng 6 on hub 0
+oct 20 21:53:47.525492 stelar kernel: amdgpu 0000:06:00.0: ring comp_1.3.0 uses VM inv eng 7 on hub 0
+oct 20 21:53:47.525785 stelar kernel: amdgpu 0000:06:00.0: ring comp_1.0.1 uses VM inv eng 8 on hub 0
+oct 20 21:53:47.526097 stelar kernel: amdgpu 0000:06:00.0: ring comp_1.1.1 uses VM inv eng 9 on hub 0
+oct 20 21:53:47.526433 stelar kernel: amdgpu 0000:06:00.0: ring comp_1.2.1 uses VM inv eng 10 on hub 0
+oct 20 21:53:47.526721 stelar kernel: amdgpu 0000:06:00.0: ring comp_1.3.1 uses VM inv eng 11 on hub 0
+oct 20 21:53:47.527328 stelar kernel: amdgpu 0000:06:00.0: ring sdma0 uses VM inv eng 12 on hub 0
+oct 20 21:53:47.527580 stelar kernel: amdgpu 0000:06:00.0: ring vcn_unified_0 uses VM inv eng 0 on hub 8
+oct 20 21:53:47.527939 stelar kernel: amdgpu 0000:06:00.0: ring jpeg_dec uses VM inv eng 1 on hub 8
+oct 20 21:53:47.528209 stelar kernel: amdgpu 0000:06:00.0: ring mes_kiq_3.1.0 uses VM inv eng 13 on hub 0
+oct 20 21:53:47.528706 stelar kernel: OOM killer enabled.
+oct 20 21:53:47.528733 stelar kernel: Restarting tasks: Starting
+oct 20 21:53:47.528749 stelar kernel: Bluetooth: hci0: RTL: examining hci_ver=0c hci_rev=0087 lmp_ver=0c lmp_subver=8852
+oct 20 21:53:47.528779 stelar kernel: Restarting tasks: Done
+oct 20 21:53:47.528792 stelar kernel: efivarfs: resyncing variable state
+oct 20 21:53:47.528813 stelar kernel: Bluetooth: hci0: RTL: rom_version status=0 version=0
+oct 20 21:53:47.528833 stelar kernel: Bluetooth: hci0: RTL: btrtl_initialize: key id 0
+oct 20 21:53:47.528853 stelar kernel: Bluetooth: hci0: RTL: loading rtl_bt/rtl8852btu_fw.bin
+oct 20 21:53:47.528883 stelar kernel: Bluetooth: hci0: RTL: loading rtl_bt/rtl8852btu_config.bin
+oct 20 21:53:47.528908 stelar kernel: Bluetooth: hci0: RTL: cfg_sz 6, total sz 128087
+oct 20 21:53:47.530819 stelar kernel: efivarfs: finished resyncing variable state
+oct 20 21:53:47.530911 stelar kernel: random: crng reseeded on system resumption
+oct 20 21:53:48.237815 stelar kernel: nvidia-modeset: WARNING: GPU:0: RLD advertized maximum pixel clock 300000 KHz violates maximum pixel clock constraint for HDMI
+oct 20 21:53:48.324812 stelar kernel: PM: suspend exit
+oct 20 21:53:48.367840 stelar kernel: Generic FE-GE Realtek PHY r8169-0-200:00: attached PHY driver (mii_bus:phy_addr=r8169-0-200:00, irq=MAC)
+oct 20 21:53:48.522829 stelar kernel: r8169 0000:02:00.0 eno1: Link is Down
+oct 20 21:53:49.083843 stelar kernel: Bluetooth: hci0: RTL: fw version 0x06ebc65f
+oct 20 21:53:49.270090 stelar kernel: Bluetooth: hci0: AOSP extensions version v1.00
+oct 20 21:53:49.270107 stelar kernel: Bluetooth: hci0: AOSP quality report is supported
+oct 20 21:53:49.270123 stelar kernel: Bluetooth: MGMT ver 1.23
+oct 20 21:54:26.806851 stelar kernel: nvidia-modeset: WARNING: GPU:0: RLD advertized maximum pixel clock 300000 KHz violates maximum pixel clock constraint for HDMI

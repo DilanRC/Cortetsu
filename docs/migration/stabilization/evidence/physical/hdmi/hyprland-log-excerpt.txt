@@ -1,0 +1,337 @@
+# Hyprland log efb50993780079460b0cbed1363e2166a2de1d9f_1792548273_1039460117 (no timestamps); line ranges from the file, collected 2026-10-20T22:56:21-06:00
+# commit failures 'atomic drm request: failed to commit: Invalid argument' per range:
+#   lines 1,1189: 39
+#   lines 1190,7626: 6314
+#   lines 7627,84560: 76892
+#   lines 84561,84650: 2
+#   lines 84651,85610: 0
+# --- lines 245-375 (outputs at start) ---
+DEBUG from aquamarine ]: drm: Plane 782 has type 0
+DEBUG from aquamarine ]: drm: Plane 782 has 23 formats
+DEBUG from aquamarine ]: drm: Plane: checking for modifiers
+DEBUG from aquamarine ]: drm: Basic init pass for gpu /dev/dri/card1
+DEBUG from aquamarine ]: drm: Scanning connectors for /dev/dri/card1
+DEBUG from aquamarine ]: drm: Scanning connector id 828
+DEBUG from aquamarine ]: drm: Initializing connector id 828
+DEBUG from aquamarine ]: drm: Connector gets name HDMI-A-1
+DEBUG from aquamarine ]: drm: Connector 828 connection state: 1
+DEBUG from aquamarine ]: drm: Rechecking CRTCs
+DEBUG from aquamarine ]: drm: Skipping connector HDMI-A-1, has crtc 205 and is connected
+DEBUG from aquamarine ]: drm: slot 0 crtc 205 taken by HDMI-A-1, skipping
+DEBUG from aquamarine ]: drm: slot 1 crtc 397 unassigned
+DEBUG from aquamarine ]: drm: slot 2 crtc 589 unassigned
+DEBUG from aquamarine ]: drm: slot 3 crtc 781 unassigned
+DEBUG from aquamarine ]: drm: Connector HDMI-A-1 connected
+DEBUG from aquamarine ]: drm: Connecting connector HDMI-A-1, CRTC ID 205
+DEBUG from aquamarine ]: drm: Dumping detected modes:
+DEBUG from aquamarine ]: drm: Mode 0: 1366x768@59.79Hz  (preferred)
+DEBUG from aquamarine ]: drm: Mode 1: 1920x1080@60.00Hz
+DEBUG from aquamarine ]: drm: Mode 2: 1920x1080@59.94Hz
+DEBUG from aquamarine ]: drm: Mode 3: 1920x1080@50.00Hz
+DEBUG from aquamarine ]: drm: Mode 4: 1920x1080@23.98Hz
+DEBUG from aquamarine ]: drm: Mode 5: 1280x720@60.00Hz
+DEBUG from aquamarine ]: drm: Mode 6: 1280x720@59.94Hz
+DEBUG from aquamarine ]: drm: Mode 7: 1280x720@50.00Hz
+DEBUG from aquamarine ]: drm: Mode 8: 1024x768@60.00Hz
+DEBUG from aquamarine ]: drm: Mode 9: 800x600@60.32Hz
+DEBUG from aquamarine ]: drm: Mode 10: 800x600@56.25Hz
+DEBUG from aquamarine ]: drm: Mode 11: 720x576@50.00Hz
+DEBUG from aquamarine ]: drm: Mode 12: 720x480@59.94Hz
+DEBUG from aquamarine ]: drm: Mode 13: 640x480@59.94Hz
+DEBUG from aquamarine ]: drm: Mode 14: 640x480@59.93Hz
+DEBUG from aquamarine ]: drm: Physical size [Vector2D: x: 0, y: 0] (mm)
+DEBUG from aquamarine ]: drm: Description XXX AAA  (HDMI-A-1)
+DEBUG from aquamarine ]: drm: connector HDMI-A-1 crtc is incapable of vrr: props.vrr_capable -> 832, crtc->props.vrr_enabled -> 25
+DEBUG from aquamarine ]: drm: Explicit sync supported
+DEBUG from aquamarine ]: drm: connector HDMI-A-1 crtc supports CTM
+DEBUG from aquamarine ]: drm: connector HDMI-A-1 crtc supports HDR (8)
+DEBUG from aquamarine ]: drm: connector HDMI-A-1 crtc supports Colorspace (831)
+DEBUG from aquamarine ]: DRM Dumb: created a dumb allocator
+DEBUG from aquamarine ]: Starting the Aquamarine backend!
+DEBUG from aquamarine ]: Starting the Wayland backend!
+ERR from aquamarine ]: Wayland backend cannot start: wl_display_connect failed (is a wayland compositor running?)
+ERR from aquamarine ]: Requested backend (wayland) could not start, enabling fallbacks
+ERR from aquamarine ]: Implementation wayland failed, erasing.
+DEBUG from aquamarine ]: Created a GBM allocator with drm fd 41
+DEBUG from aquamarine ]: drm: Connectors size2 9
+DEBUG from aquamarine ]: Created a GBM allocator with drm fd 44
+DEBUG from aquamarine ]: Supported EGL client extensions: (16) EGL_EXT_platform_base EGL_EXT_device_base EGL_EXT_device_query EGL_EXT_device_enumeration EGL_KHR_client_get_all_proc_addresses EGL_EXT_client_extensions EGL_KHR_debug EGL_KHR_platform_x11 EGL_EXT_platform_x11 EGL_EXT_platform_device EGL_MESA_platform_surfaceless EGL_EXT_explicit_device EGL_KHR_platform_wayland EGL_EXT_platform_wayland EGL_KHR_platform_gbm EGL_MESA_platform_gbm EGL_EXT_platform_xcb
+DEBUG from aquamarine ]: CDRMRenderer(drm): Using device /dev/dri/card2
+DEBUG from aquamarine ]: CDRMRenderer: IMG_context_priority supported, requesting high
+DEBUG from aquamarine ]: CDRMRenderer: EXT_create_context_robustness supported, requesting lose on reset
+DEBUG from aquamarine ]: CDRMRenderer: Using KHR_context_flush_control
+DEBUG from aquamarine ]: CDRMRenderer: Got a high priority context
+DEBUG from aquamarine ]: Creating CDRMRenderer on gpu /dev/dri/renderD129
+DEBUG from aquamarine ]: Using: OpenGL ES 3.2 Mesa 26.2.4-arch3.1
+DEBUG from aquamarine ]: Vendor: AMD
+DEBUG from aquamarine ]: Renderer: AMD Radeon 740M Graphics (radeonsi, phoenix2, ACO, DRM 3.64, 7.2.10-1-cachyos)
+DEBUG from aquamarine ]: Supported context extensions: (164) GL_EXT_blend_minmax GL_EXT_multi_draw_arrays GL_EXT_texture_filter_anisotropic GL_EXT_texture_compression_s3tc GL_EXT_texture_compression_dxt1 GL_EXT_texture_compression_rgtc GL_EXT_texture_format_BGRA8888 GL_OES_compressed_ETC1_RGB8_texture GL_OES_depth24 GL_OES_element_index_uint GL_OES_fbo_render_mipmap GL_OES_mapbuffer GL_OES_rgb8_rgba8 GL_OES_standard_derivatives GL_OES_stencil8 GL_OES_texture_3D GL_OES_texture_float GL_OES_texture_float_linear GL_OES_texture_half_float GL_OES_texture_half_float_linear GL_OES_texture_npot GL_OES_vertex_half_float GL_EXT_draw_instanced GL_EXT_texture_sRGB_decode GL_OES_EGL_image GL_OES_depth_texture GL_OES_packed_depth_stencil GL_EXT_texture_type_2_10_10_10_REV GL_NV_conditional_render GL_OES_get_program_binary GL_APPLE_texture_max_level GL_EXT_discard_framebuffer GL_EXT_read_format_bgra GL_EXT_texture_storage GL_NV_pack_subimage GL_NV_texture_barrier GL_EXT_frag_depth GL_NV_fbo_color_attachments GL_OES_EGL_image_external GL_OES_EGL_sync GL_OES_vertex_array_object GL_OES_viewport_array GL_ANGLE_pack_reverse_row_order GL_ANGLE_texture_compression_dxt3 GL_ANGLE_texture_compression_dxt5 GL_EXT_occlusion_query_boolean GL_EXT_robustness GL_EXT_sRGB GL_EXT_texture_rg GL_EXT_unpack_subimage GL_NV_draw_buffers GL_NV_read_buffer GL_NV_read_depth GL_NV_read_depth_stencil GL_NV_read_stencil GL_APPLE_sync GL_EXT_draw_buffers GL_EXT_instanced_arrays GL_EXT_map_buffer_range GL_EXT_shadow_samplers GL_KHR_debug GL_KHR_robustness GL_KHR_texture_compression_astc_ldr GL_NV_generate_mipmap_sRGB GL_NV_pixel_buffer_object GL_OES_depth_texture_cube_map GL_OES_required_internalformat GL_OES_surfaceless_context GL_EXT_color_buffer_float GL_EXT_debug_label GL_EXT_sRGB_write_control GL_EXT_separate_shader_objects GL_EXT_shader_group_vote GL_EXT_shader_implicit_conversions GL_EXT_shader_integer_mix GL_EXT_tessellation_point_size GL_EXT_tessellation_shader GL_ANDROID_extension_pack_es31a GL_EXT_base_instance GL_EXT_compressed_ETC1_RGB8_sub_texture GL_EXT_copy_image GL_EXT_draw_buffers_indexed GL_EXT_draw_elements_base_vertex GL_EXT_gpu_shader5 GL_EXT_multi_draw_indirect GL_EXT_polygon_offset_clamp GL_EXT_primitive_bounding_box GL_EXT_render_snorm GL_EXT_shader_io_blocks GL_EXT_texture_border_clamp GL_EXT_texture_buffer GL_EXT_texture_cube_map_array GL_EXT_texture_norm16 GL_EXT_texture_view GL_KHR_blend_equation_advanced GL_KHR_context_flush_control GL_KHR_robust_buffer_access_behavior GL_NV_image_formats GL_NV_shader_noperspective_interpolation GL_OES_copy_image GL_OES_draw_buffers_indexed GL_OES_draw_elements_base_vertex GL_OES_gpu_shader5 GL_OES_primitive_bounding_box GL_OES_sample_shading GL_OES_sample_variables GL_OES_shader_io_blocks GL_OES_shader_multisample_interpolation GL_OES_tessellation_point_size GL_OES_tessellation_shader GL_OES_texture_border_clamp GL_OES_texture_buffer GL_OES_texture_cube_map_array GL_OES_texture_stencil8 GL_OES_texture_storage_multisample_2d_array GL_OES_texture_view GL_EXT_blend_func_extended GL_EXT_buffer_storage GL_EXT_float_blend GL_EXT_geometry_point_size GL_EXT_geometry_shader GL_EXT_texture_filter_minmax GL_EXT_texture_sRGB_R8 GL_EXT_texture_sRGB_RG8 GL_KHR_no_error GL_KHR_texture_compression_astc_sliced_3d GL_OES_EGL_image_external_essl3 GL_OES_geometry_point_size GL_OES_geometry_shader GL_OES_shader_image_atomic GL_EXT_clear_texture GL_EXT_clip_cull_distance GL_EXT_conservative_depth GL_EXT_disjoint_timer_query GL_EXT_texture_compression_s3tc_srgb GL_EXT_window_rectangles GL_MESA_shader_integer_functions GL_EXT_clip_control GL_EXT_color_buffer_half_float GL_EXT_memory_object GL_EXT_memory_object_fd GL_EXT_semaphore GL_EXT_semaphore_fd GL_EXT_texture_compression_bptc GL_EXT_texture_mirror_clamp_to_edge GL_KHR_parallel_shader_compile GL_NV_alpha_to_coverage_dither_control GL_EXT_EGL_image_storage GL_EXT_texture_shadow_lod GL_INTEL_blackhole_render GL_MESA_framebuffer_flip_y GL_NV_compute_shader_derivatives GL_EXT_demote_to_helper_invocation GL_EXT_depth_clamp GL_EXT_texture_query_lod GL_KHR_shader_subgroup GL_MESA_sampler_objects GL_NV_timeline_semaphore GL_EXT_EGL_image_storage_compression GL_EXT_texture_storage_compression GL_MESA_bgra GL_MESA_texture_const_bandwidth GL_EXT_mesh_shader GL_EXT_shader_clock
+DEBUG from aquamarine ]: drm: onReady: connector 393
+DEBUG from aquamarine ]: drm: onReady: connector 393 has output name eDP-1
+DEBUG from aquamarine ]: Swapchain: Clearing
+DEBUG from aquamarine ]: drm: onReady: connector 401
+DEBUG from aquamarine ]: drm: onReady: connector 408
+DEBUG from aquamarine ]: drm: onReady: connector 414
+DEBUG from aquamarine ]: drm: onReady: connector 420
+DEBUG from aquamarine ]: drm: onReady: connector 426
+DEBUG from aquamarine ]: drm: onReady: connector 432
+DEBUG from aquamarine ]: drm: onReady: connector 438
+DEBUG from aquamarine ]: drm: onReady: connector 444
+DEBUG from aquamarine ]: Supported EGL client extensions: (16) EGL_EXT_platform_base EGL_EXT_device_base EGL_EXT_device_query EGL_EXT_device_enumeration EGL_KHR_client_get_all_proc_addresses EGL_EXT_client_extensions EGL_KHR_debug EGL_KHR_platform_x11 EGL_EXT_platform_x11 EGL_EXT_platform_device EGL_MESA_platform_surfaceless EGL_EXT_explicit_device EGL_KHR_platform_wayland EGL_EXT_platform_wayland EGL_KHR_platform_gbm EGL_MESA_platform_gbm EGL_EXT_platform_xcb
+DEBUG from aquamarine ]: CDRMRenderer(drm): Using device /dev/dri/card2
+DEBUG from aquamarine ]: CDRMRenderer: IMG_context_priority supported, requesting high
+DEBUG from aquamarine ]: CDRMRenderer: EXT_create_context_robustness supported, requesting lose on reset
+DEBUG from aquamarine ]: CDRMRenderer: Using KHR_context_flush_control
+DEBUG from aquamarine ]: CDRMRenderer: Got a high priority context
+DEBUG from aquamarine ]: Creating CDRMRenderer on gpu /dev/dri/renderD129
+DEBUG from aquamarine ]: Using: OpenGL ES 3.2 Mesa 26.2.4-arch3.1
+DEBUG from aquamarine ]: Vendor: AMD
+DEBUG from aquamarine ]: Renderer: AMD Radeon 740M Graphics (radeonsi, phoenix2, ACO, DRM 3.64, 7.2.10-1-cachyos)
+DEBUG from aquamarine ]: Supported context extensions: (164) GL_EXT_blend_minmax GL_EXT_multi_draw_arrays GL_EXT_texture_filter_anisotropic GL_EXT_texture_compression_s3tc GL_EXT_texture_compression_dxt1 GL_EXT_texture_compression_rgtc GL_EXT_texture_format_BGRA8888 GL_OES_compressed_ETC1_RGB8_texture GL_OES_depth24 GL_OES_element_index_uint GL_OES_fbo_render_mipmap GL_OES_mapbuffer GL_OES_rgb8_rgba8 GL_OES_standard_derivatives GL_OES_stencil8 GL_OES_texture_3D GL_OES_texture_float GL_OES_texture_float_linear GL_OES_texture_half_float GL_OES_texture_half_float_linear GL_OES_texture_npot GL_OES_vertex_half_float GL_EXT_draw_instanced GL_EXT_texture_sRGB_decode GL_OES_EGL_image GL_OES_depth_texture GL_OES_packed_depth_stencil GL_EXT_texture_type_2_10_10_10_REV GL_NV_conditional_render GL_OES_get_program_binary GL_APPLE_texture_max_level GL_EXT_discard_framebuffer GL_EXT_read_format_bgra GL_EXT_texture_storage GL_NV_pack_subimage GL_NV_texture_barrier GL_EXT_frag_depth GL_NV_fbo_color_attachments GL_OES_EGL_image_external GL_OES_EGL_sync GL_OES_vertex_array_object GL_OES_viewport_array GL_ANGLE_pack_reverse_row_order GL_ANGLE_texture_compression_dxt3 GL_ANGLE_texture_compression_dxt5 GL_EXT_occlusion_query_boolean GL_EXT_robustness GL_EXT_sRGB GL_EXT_texture_rg GL_EXT_unpack_subimage GL_NV_draw_buffers GL_NV_read_buffer GL_NV_read_depth GL_NV_read_depth_stencil GL_NV_read_stencil GL_APPLE_sync GL_EXT_draw_buffers GL_EXT_instanced_arrays GL_EXT_map_buffer_range GL_EXT_shadow_samplers GL_KHR_debug GL_KHR_robustness GL_KHR_texture_compression_astc_ldr GL_NV_generate_mipmap_sRGB GL_NV_pixel_buffer_object GL_OES_depth_texture_cube_map GL_OES_required_internalformat GL_OES_surfaceless_context GL_EXT_color_buffer_float GL_EXT_debug_label GL_EXT_sRGB_write_control GL_EXT_separate_shader_objects GL_EXT_shader_group_vote GL_EXT_shader_implicit_conversions GL_EXT_shader_integer_mix GL_EXT_tessellation_point_size GL_EXT_tessellation_shader GL_ANDROID_extension_pack_es31a GL_EXT_base_instance GL_EXT_compressed_ETC1_RGB8_sub_texture GL_EXT_copy_image GL_EXT_draw_buffers_indexed GL_EXT_draw_elements_base_vertex GL_EXT_gpu_shader5 GL_EXT_multi_draw_indirect GL_EXT_polygon_offset_clamp GL_EXT_primitive_bounding_box GL_EXT_render_snorm GL_EXT_shader_io_blocks GL_EXT_texture_border_clamp GL_EXT_texture_buffer GL_EXT_texture_cube_map_array GL_EXT_texture_norm16 GL_EXT_texture_view GL_KHR_blend_equation_advanced GL_KHR_context_flush_control GL_KHR_robust_buffer_access_behavior GL_NV_image_formats GL_NV_shader_noperspective_interpolation GL_OES_copy_image GL_OES_draw_buffers_indexed GL_OES_draw_elements_base_vertex GL_OES_gpu_shader5 GL_OES_primitive_bounding_box GL_OES_sample_shading GL_OES_sample_variables GL_OES_shader_io_blocks GL_OES_shader_multisample_interpolation GL_OES_tessellation_point_size GL_OES_tessellation_shader GL_OES_texture_border_clamp GL_OES_texture_buffer GL_OES_texture_cube_map_array GL_OES_texture_stencil8 GL_OES_texture_storage_multisample_2d_array GL_OES_texture_view GL_EXT_blend_func_extended GL_EXT_buffer_storage GL_EXT_float_blend GL_EXT_geometry_point_size GL_EXT_geometry_shader GL_EXT_texture_filter_minmax GL_EXT_texture_sRGB_R8 GL_EXT_texture_sRGB_RG8 GL_KHR_no_error GL_KHR_texture_compression_astc_sliced_3d GL_OES_EGL_image_external_essl3 GL_OES_geometry_point_size GL_OES_geometry_shader GL_OES_shader_image_atomic GL_EXT_clear_texture GL_EXT_clip_cull_distance GL_EXT_conservative_depth GL_EXT_disjoint_timer_query GL_EXT_texture_compression_s3tc_srgb GL_EXT_window_rectangles GL_MESA_shader_integer_functions GL_EXT_clip_control GL_EXT_color_buffer_half_float GL_EXT_memory_object GL_EXT_memory_object_fd GL_EXT_semaphore GL_EXT_semaphore_fd GL_EXT_texture_compression_bptc GL_EXT_texture_mirror_clamp_to_edge GL_KHR_parallel_shader_compile GL_NV_alpha_to_coverage_dither_control GL_EXT_EGL_image_storage GL_EXT_texture_shadow_lod GL_INTEL_blackhole_render GL_MESA_framebuffer_flip_y GL_NV_compute_shader_derivatives GL_EXT_demote_to_helper_invocation GL_EXT_depth_clamp GL_EXT_texture_query_lod GL_KHR_shader_subgroup GL_MESA_sampler_objects GL_NV_timeline_semaphore GL_EXT_EGL_image_storage_compression GL_EXT_texture_storage_compression GL_MESA_bgra GL_MESA_texture_const_bandwidth GL_EXT_mesh_shader GL_EXT_shader_clock
+DEBUG from aquamarine ]: drm: Connectors size2 1
+DEBUG from aquamarine ]: drm: onReady: connector 828
+DEBUG from aquamarine ]: drm: onReady: connector 828 has output name HDMI-A-1
+DEBUG from aquamarine ]: Swapchain: Clearing
+DEBUG from aquamarine ]: drm: Initializing secondary renderer on /dev/dri/card1, has enabled outputs
+DEBUG from aquamarine ]: Created a GBM allocator with drm fd 44
+DEBUG from aquamarine ]: Supported EGL client extensions: (16) EGL_EXT_platform_base EGL_EXT_device_base EGL_EXT_device_query EGL_EXT_device_enumeration EGL_KHR_client_get_all_proc_addresses EGL_EXT_client_extensions EGL_KHR_debug EGL_KHR_platform_x11 EGL_EXT_platform_x11 EGL_EXT_platform_device EGL_MESA_platform_surfaceless EGL_EXT_explicit_device EGL_KHR_platform_wayland EGL_EXT_platform_wayland EGL_KHR_platform_gbm EGL_MESA_platform_gbm EGL_EXT_platform_xcb
+DEBUG from aquamarine ]: CDRMRenderer(drm): Using device /dev/dri/card1
+DEBUG from aquamarine ]: CDRMRenderer: IMG_context_priority supported, requesting high
+DEBUG from aquamarine ]: CDRMRenderer: EXT_create_context_robustness supported, requesting lose on reset
+DEBUG from aquamarine ]: CDRMRenderer: Using KHR_context_flush_control
+DEBUG from aquamarine ]: CDRMRenderer: Got a high priority context
+DEBUG from aquamarine ]: Creating CDRMRenderer on gpu /dev/dri/renderD128
+DEBUG from aquamarine ]: Using: OpenGL ES 3.2 NVIDIA 615.78.08
+DEBUG from aquamarine ]: Vendor: NVIDIA Corporation
+DEBUG from aquamarine ]: Renderer: NVIDIA GeForce RTX 3050 6GB Laptop GPU/PCIe/SSE2
+DEBUG from aquamarine ]: Supported context extensions: (220) GL_EXT_shader_clock GL_EXT_shader_realtime_clock GL_EXT_base_instance GL_EXT_blend_func_extended GL_EXT_blend_minmax GL_EXT_buffer_storage GL_EXT_clear_texture GL_EXT_clip_control GL_EXT_clip_cull_distance GL_EXT_color_buffer_float GL_EXT_color_buffer_half_float GL_EXT_conservative_depth GL_EXT_copy_image GL_EXT_depth_clamp GL_EXT_debug_label GL_EXT_discard_framebuffer GL_EXT_disjoint_timer_query GL_EXT_draw_buffers_indexed GL_EXT_draw_elements_base_vertex GL_EXT_EGL_image_array GL_EXT_EGL_image_storage GL_EXT_EGL_image_external_wrap_modes GL_EXT_float_blend GL_EXT_frag_depth GL_EXT_geometry_point_size GL_EXT_geometry_shader GL_EXT_gpu_shader5 GL_EXT_map_buffer_range GL_EXT_multi_draw_indirect GL_EXT_multisample_compatibility GL_EXT_multisampled_render_to_texture GL_EXT_multisampled_render_to_texture2 GL_EXT_multiview_texture_multisample GL_EXT_multiview_timer_query GL_EXT_occlusion_query_boolean GL_EXT_polygon_offset_clamp GL_EXT_post_depth_coverage GL_EXT_primitive_bounding_box GL_EXT_raster_multisample GL_EXT_render_snorm GL_EXT_robustness GL_EXT_separate_shader_objects GL_EXT_shader_group_vote GL_EXT_shader_implicit_conversions GL_EXT_shader_integer_mix GL_EXT_shader_io_blocks GL_EXT_shader_non_constant_global_initializers GL_EXT_shader_texture_lod GL_EXT_shader_texture_samples GL_EXT_shadow_samplers GL_EXT_sparse_texture GL_EXT_sparse_texture2 GL_EXT_sRGB GL_EXT_sRGB_write_control GL_EXT_tessellation_point_size GL_EXT_tessellation_shader GL_EXT_texture_border_clamp GL_EXT_texture_buffer GL_EXT_texture_compression_bptc GL_EXT_texture_compression_dxt1 GL_EXT_texture_compression_rgtc GL_EXT_texture_compression_s3tc GL_EXT_texture_cube_map_array GL_EXT_texture_filter_anisotropic GL_EXT_texture_filter_minmax GL_EXT_texture_format_BGRA8888 GL_EXT_texture_mirror_clamp_to_edge GL_EXT_texture_norm16 GL_EXT_texture_query_lod GL_EXT_texture_rg GL_EXT_texture_shadow_lod GL_EXT_texture_sRGB_R8 GL_EXT_texture_sRGB_decode GL_EXT_texture_storage GL_EXT_texture_view GL_EXT_draw_transform_feedback GL_EXT_unpack_subimage GL_EXT_window_rectangles GL_KHR_context_flush_control GL_KHR_debug GL_EXT_memory_object GL_EXT_memory_object_fd GL_NV_memory_object_sparse GL_KHR_parallel_shader_compile GL_KHR_no_error GL_KHR_robust_buffer_access_behavior GL_KHR_robustness GL_EXT_semaphore GL_EXT_semaphore_fd GL_NV_timeline_semaphore GL_KHR_shader_subgroup GL_KHR_texture_compression_astc_ldr GL_KHR_texture_compression_astc_sliced_3d GL_KHR_texture_compression_astc_hdr GL_NV_bgr GL_NV_bindless_texture GL_NV_blend_equation_advanced GL_NV_blend_equation_advanced_coherent GL_NVX_blend_equation_advanced_multi_draw_buffers GL_NV_blend_minmax_factor GL_NV_clip_space_w_scaling GL_NV_compute_shader_derivatives GL_NV_conditional_render GL_NV_conservative_raster GL_NV_conservative_raster_pre_snap_triangles GL_NV_copy_buffer GL_NV_copy_image GL_NV_draw_buffers GL_NV_draw_instanced GL_NV_draw_texture GL_NV_draw_vulkan_image GL_NV_EGL_stream_consumer_external GL_NV_explicit_attrib_location GL_NV_fbo_color_attachments GL_NV_fill_rectangle GL_NV_fragment_coverage_to_color GL_NV_fragment_shader_barycentric GL_NV_fragment_shader_interlock GL_NV_framebuffer_blit GL_NV_framebuffer_mixed_samples GL_NV_framebuffer_multisample GL_NV_generate_mipmap_sRGB GL_NV_geometry_shader_passthrough GL_NV_instanced_arrays GL_NV_internalformat_sample_query GL_NV_gpu_shader5 GL_NV_image_formats GL_NV_memory_attachment GL_NV_mesh_shader GL_NV_occlusion_query_samples GL_NV_non_square_matrices GL_NV_pack_subimage GL_NV_packed_float GL_NV_packed_float_linear GL_NV_path_rendering GL_NV_path_rendering_shared_edge GL_NV_pixel_buffer_object GL_NV_polygon_mode GL_NV_primitive_shading_rate GL_NV_read_buffer GL_NV_read_depth GL_NV_read_depth_stencil GL_NV_read_stencil GL_NV_representative_fragment_test GL_NV_sample_locations GL_NV_sample_mask_override_coverage GL_NV_scissor_exclusive GL_NV_shader_atomic_fp16_vector GL_NV_shader_noperspective_interpolation GL_NV_shader_subgroup_partitioned GL_NV_shader_texture_footprint GL_NV_shading_rate_image GL_NV_shadow_samplers_array GL_NV_shadow_samplers_cube GL_NV_sRGB_formats GL_NV_stereo_view_rendering GL_NV_texture_array GL_NV_texture_barrier GL_NV_texture_border_clamp GL_NV_texture_compression_latc GL_NV_texture_compression_s3tc GL_NV_texture_compression_s3tc_update GL_NV_texture_dirty_tile_map GL_NV_timer_query GL_NV_viewport_array GL_NV_viewport_array2 GL_NV_viewport_swizzle GL_KHR_blend_equation_advanced GL_KHR_blend_equation_advanced_coherent GL_OES_compressed_ETC1_RGB8_texture GL_EXT_compressed_ETC1_RGB8_sub_texture GL_OES_depth24 GL_OES_depth32 GL_OES_depth_texture GL_OES_depth_texture_cube_map GL_OES_copy_image GL_OES_draw_buffers_indexed GL_OES_draw_elements_base_vertex GL_OES_texture_border_clamp GL_OES_tessellation_point_size GL_OES_tessellation_shader GL_OES_texture_buffer GL_OES_geometry_point_size GL_OES_geometry_shader GL_OES_gpu_shader5 GL_OES_shader_io_blocks GL_OES_texture_view GL_OES_primitive_bounding_box GL_OES_EGL_image GL_OES_EGL_image_external GL_OES_EGL_image_external_essl3 GL_OES_EGL_sync GL_OES_element_index_uint GL_OES_fbo_render_mipmap GL_OES_get_program_binary GL_OES_mapbuffer GL_OES_packed_depth_stencil GL_OES_rgb8_rgba8 GL_EXT_read_format_bgra GL_OES_sample_shading GL_OES_sample_variables GL_OES_shader_image_atomic GL_OES_shader_multisample_interpolation GL_OES_standard_derivatives GL_OES_surfaceless_context GL_OES_texture_cube_map_array GL_OES_texture_npot GL_OES_texture_float GL_OES_texture_float_linear GL_OES_texture_half_float GL_OES_texture_half_float_linear GL_OES_texture_stencil8 GL_OES_texture_storage_multisample_2d_array GL_OES_vertex_array_object GL_OES_vertex_half_float GL_OES_viewport_array GL_OVR_multiview GL_OVR_multiview2 GL_OVR_multiview_multisampled_render_to_texture GL_ANDROID_extension_pack_es31a
+DEBUG from aquamarine ]: GBM: Allocated a new buffer with size [Vector2D: x: 1920, y: 1080] and format XR24 with modifier 0x200000008467b04 : GFX11,64KB_R_X,PIPE_XOR_BITS=2,PACKERS=1,DCC,DCC_MAX_COMPRESSED_BLOCK=128B,DCC_INDEPENDENT_128B,DCC_RETILE
+DEBUG from aquamarine ]: GBM: Allocated a new buffer with size [Vector2D: x: 1920, y: 1080] and format XR24 with modifier 0x200000008467b04 : GFX11,64KB_R_X,PIPE_XOR_BITS=2,PACKERS=1,DCC,DCC_MAX_COMPRESSED_BLOCK=128B,DCC_INDEPENDENT_128B,DCC_RETILE
+DEBUG from aquamarine ]: GBM: Allocated a new buffer with size [Vector2D: x: 1920, y: 1080] and format XR24 with modifier 0x200000008467b04 : GFX11,64KB_R_X,PIPE_XOR_BITS=2,PACKERS=1,DCC,DCC_MAX_COMPRESSED_BLOCK=128B,DCC_INDEPENDENT_128B,DCC_RETILE
+DEBUG from aquamarine ]: Swapchain: Reconfigured a swapchain to [Vector2D: x: 1920, y: 1080] XR24 of length 3
+DEBUG from aquamarine ]: drm: Modesetting eDP-1 with 1920x1080@144.00Hz
+ERR from aquamarine ]: drm: Cannot commit when a page-flip is awaiting
+ERR from aquamarine ]: drm: Cannot commit when a page-flip is awaiting
+DEBUG from aquamarine ]: GBM: Buffer is marked as multigpu, forcing linear
+DEBUG from aquamarine ]: GBM: Allocated a new buffer with size [Vector2D: x: 1920, y: 1080] and format XR24 with modifier 0x0 : LINEAR
+DEBUG from aquamarine ]: GBM: Buffer is marked as multigpu, forcing linear
+DEBUG from aquamarine ]: GBM: Allocated a new buffer with size [Vector2D: x: 1920, y: 1080] and format XR24 with modifier 0x0 : LINEAR
+DEBUG from aquamarine ]: GBM: Buffer is marked as multigpu, forcing linear
+DEBUG from aquamarine ]: GBM: Allocated a new buffer with size [Vector2D: x: 1920, y: 1080] and format XR24 with modifier 0x0 : LINEAR
+DEBUG from aquamarine ]: Swapchain: Reconfigured a swapchain to [Vector2D: x: 1920, y: 1080] XR24 of length 3
+DEBUG from aquamarine ]: drm: Modesetting HDMI-A-1 with 1920x1080@60.00Hz
+DEBUG from aquamarine ]: GBM: Allocated a new buffer with size [Vector2D: x: 1920, y: 1080] and format XR24 with modifier 0x300000000606014 : BLOCK_LINEAR_2D,HEIGHT=4,KIND=6,GEN=2,SECTOR=1,COMPRESSION=0
+DEBUG from aquamarine ]: GBM: Allocated a new buffer with size [Vector2D: x: 1920, y: 1080] and format XR24 with modifier 0x300000000606014 : BLOCK_LINEAR_2D,HEIGHT=4,KIND=6,GEN=2,SECTOR=1,COMPRESSION=0
+DEBUG from aquamarine ]: GBM: Allocated a new buffer with size [Vector2D: x: 1920, y: 1080] and format XR24 with modifier 0x300000000606014 : BLOCK_LINEAR_2D,HEIGHT=4,KIND=6,GEN=2,SECTOR=1,COMPRESSION=0
+DEBUG from aquamarine ]: Swapchain: Reconfigured a swapchain to [Vector2D: x: 1920, y: 1080] XR24 of length 3
+DEBUG from aquamarine ]: EGL (blit): No attachment in from, creating a new image
+DEBUG from aquamarine ]: CDRMRenderer::glTex: found format+mod, external = true
+DEBUG from aquamarine ]: EGL (blit): No attachment in to, creating a new image
+ERR from aquamarine ]: drm: Cannot commit when a page-flip is awaiting
+ERR from aquamarine ]: drm: Cannot commit when a page-flip is awaiting
+DEBUG from aquamarine ]: backend: poll fd 13 for implementation headless
+DEBUG from aquamarine ]: backend: poll fd 37 for implementation drm
+DEBUG from aquamarine ]: backend: poll fd 38 for implementation drm
+DEBUG from aquamarine ]: backend: poll fd 35 for implementation drm
+DEBUG from aquamarine ]: backend: poll fd 39 for implementation drm
+DEBUG from aquamarine ]: backend: poll fd 14 for session
+DEBUG from aquamarine ]: backend: poll fd 16 for session
+DEBUG from aquamarine ]: backend: poll fd 17 for session
+# --- lines 1185-1210 ---
+DEBUG from aquamarine ]: drm: connector DP-8, has crtc -1, will be rechecked
+DEBUG from aquamarine ]: drm: slot 0 crtc 376 taken by eDP-1, skipping
+DEBUG from aquamarine ]: drm: slot 1 crtc 381 unassigned
+DEBUG from aquamarine ]: drm: slot 2 crtc 386 unassigned
+DEBUG from aquamarine ]: drm: slot 3 crtc 391 unassigned
+ERR from aquamarine ]: atomic drm request: failed to commit: Invalid argument, flags: ATOMIC_NONBLOCK PAGE_FLIP_EVENT
+ERR from aquamarine ]: atomic drm request: failed to commit: Invalid argument, flags: ATOMIC_NONBLOCK PAGE_FLIP_EVENT
+DEBUG from aquamarine ]: udev: new udev change event for card1
+DEBUG from aquamarine ]: udev: DRM device card1 changed
+DEBUG from aquamarine ]: drm: Got a hotplug event for /dev/dri/card1
+DEBUG from aquamarine ]: drm: Scanning connectors for /dev/dri/card1
+DEBUG from aquamarine ]: drm: Scanning connector id 828
+DEBUG from aquamarine ]: drm: Connector id 828 already initialized
+DEBUG from aquamarine ]: drm: connector HDMI-A-1 crtc is incapable of vrr: props.vrr_capable -> 832, crtc->props.vrr_enabled -> 25
+DEBUG from aquamarine ]: drm: Explicit sync supported
+DEBUG from aquamarine ]: drm: connector HDMI-A-1 crtc supports CTM
+DEBUG from aquamarine ]: drm: connector HDMI-A-1 crtc supports HDR (8)
+DEBUG from aquamarine ]: drm: connector HDMI-A-1 crtc supports Colorspace (831)
+DEBUG from aquamarine ]: drm: Connector 828 connection state: 1
+DEBUG from aquamarine ]: drm: Rechecking CRTCs
+DEBUG from aquamarine ]: drm: Skipping connector HDMI-A-1, has crtc 205 and is connected
+DEBUG from aquamarine ]: drm: slot 0 crtc 205 taken by HDMI-A-1, skipping
+DEBUG from aquamarine ]: drm: slot 1 crtc 397 unassigned
+DEBUG from aquamarine ]: drm: slot 2 crtc 589 unassigned
+DEBUG from aquamarine ]: drm: slot 3 crtc 781 unassigned
+ERR from aquamarine ]: atomic drm request: failed to commit: Invalid argument, flags: ATOMIC_NONBLOCK PAGE_FLIP_EVENT
+# --- lines 84540-84720 (DPMS off/on cycle) ---
+ERR from aquamarine ]: atomic drm request: failed to commit: Invalid argument, flags: ATOMIC_NONBLOCK PAGE_FLIP_EVENT
+ERR from aquamarine ]: atomic drm request: failed to commit: Invalid argument, flags: ATOMIC_NONBLOCK PAGE_FLIP_EVENT
+ERR from aquamarine ]: atomic drm request: failed to commit: Invalid argument, flags: ATOMIC_NONBLOCK PAGE_FLIP_EVENT
+ERR from aquamarine ]: atomic drm request: failed to commit: Invalid argument, flags: ATOMIC_NONBLOCK PAGE_FLIP_EVENT
+ERR from aquamarine ]: atomic drm request: failed to commit: Invalid argument, flags: ATOMIC_NONBLOCK PAGE_FLIP_EVENT
+ERR from aquamarine ]: atomic drm request: failed to commit: Invalid argument, flags: ATOMIC_NONBLOCK PAGE_FLIP_EVENT
+ERR from aquamarine ]: atomic drm request: failed to commit: Invalid argument, flags: ATOMIC_NONBLOCK PAGE_FLIP_EVENT
+ERR from aquamarine ]: atomic drm request: failed to commit: Invalid argument, flags: ATOMIC_NONBLOCK PAGE_FLIP_EVENT
+ERR from aquamarine ]: atomic drm request: failed to commit: Invalid argument, flags: ATOMIC_NONBLOCK PAGE_FLIP_EVENT
+ERR from aquamarine ]: atomic drm request: failed to commit: Invalid argument, flags: ATOMIC_NONBLOCK PAGE_FLIP_EVENT
+ERR from aquamarine ]: atomic drm request: failed to commit: Invalid argument, flags: ATOMIC_NONBLOCK PAGE_FLIP_EVENT
+ERR from aquamarine ]: atomic drm request: failed to commit: Invalid argument, flags: ATOMIC_NONBLOCK PAGE_FLIP_EVENT
+ERR from aquamarine ]: atomic drm request: failed to commit: Invalid argument, flags: ATOMIC_NONBLOCK PAGE_FLIP_EVENT
+ERR from aquamarine ]: atomic drm request: failed to commit: Invalid argument, flags: ATOMIC_NONBLOCK PAGE_FLIP_EVENT
+ERR from aquamarine ]: atomic drm request: failed to commit: Invalid argument, flags: ATOMIC_NONBLOCK PAGE_FLIP_EVENT
+ERR from aquamarine ]: atomic drm request: failed to commit: Invalid argument, flags: ATOMIC_NONBLOCK PAGE_FLIP_EVENT
+ERR from aquamarine ]: atomic drm request: failed to commit: Invalid argument, flags: ATOMIC_NONBLOCK PAGE_FLIP_EVENT
+ERR from aquamarine ]: atomic drm request: failed to commit: Invalid argument, flags: ATOMIC_NONBLOCK PAGE_FLIP_EVENT
+ERR from aquamarine ]: atomic drm request: failed to commit: Invalid argument, flags: ATOMIC_NONBLOCK PAGE_FLIP_EVENT
+ERR from aquamarine ]: atomic drm request: failed to commit: Invalid argument, flags: ATOMIC_NONBLOCK PAGE_FLIP_EVENT
+ERR from aquamarine ]: atomic drm request: failed to commit: Invalid argument, flags: ATOMIC_NONBLOCK PAGE_FLIP_EVENT
+ERR from aquamarine ]: atomic drm request: failed to commit: Invalid argument, flags: ATOMIC_NONBLOCK PAGE_FLIP_EVENT
+ERR from aquamarine ]: atomic drm request: failed to commit: Invalid argument, flags: ATOMIC_NONBLOCK PAGE_FLIP_EVENT
+DEBUG from aquamarine ]: drm: Modesetting HDMI-A-1 with 1920x1080@60.00Hz
+DEBUG from aquamarine ]: drm: Disabling output eDP-1
+DEBUG from aquamarine ]: drm: Connector eDP-1 enabledState changed true -> false
+DEBUG from aquamarine ]: drm: Disabling output HDMI-A-1
+DEBUG from aquamarine ]: drm: Deinitializing secondary renderer on /dev/dri/card1, no enabled outputs
+DEBUG from aquamarine ]: Swapchain: Clearing
+DEBUG from aquamarine ]: drm: Connector HDMI-A-1 enabledState changed true -> false
+DEBUG from aquamarine ]: drm: Ignoring a stale pf event, flip 185127 on crtc 205
+DEBUG from aquamarine ]: drm: Ignoring a stale pf event, flip 207193 on crtc 376
+DEBUG from aquamarine ]: drm: Scanning connectors for /dev/dri/card2
+DEBUG from aquamarine ]: drm: Scanning connector id 393
+DEBUG from aquamarine ]: drm: Connector id 393 already initialized
+DEBUG from aquamarine ]: drm: connector eDP-1 crtc is capable of vrr: props.vrr_capable -> 396, crtc->props.vrr_enabled -> 25
+DEBUG from aquamarine ]: drm: Explicit sync supported
+DEBUG from aquamarine ]: drm: connector eDP-1 crtc supports CTM
+DEBUG from aquamarine ]: drm: connector eDP-1 crtc supports HDR (8)
+DEBUG from aquamarine ]: drm: connector eDP-1 crtc supports Colorspace (395)
+DEBUG from aquamarine ]: drm: Connector 393 connection state: 1
+DEBUG from aquamarine ]: drm: Scanning connector id 401
+DEBUG from aquamarine ]: drm: Connector id 401 already initialized
+DEBUG from aquamarine ]: drm: Connector 401 connection state: 2
+DEBUG from aquamarine ]: drm: Scanning connector id 408
+DEBUG from aquamarine ]: drm: Connector id 408 already initialized
+DEBUG from aquamarine ]: drm: Connector 408 connection state: 2
+DEBUG from aquamarine ]: drm: Scanning connector id 414
+DEBUG from aquamarine ]: drm: Connector id 414 already initialized
+DEBUG from aquamarine ]: drm: Connector 414 connection state: 2
+DEBUG from aquamarine ]: drm: Scanning connector id 420
+DEBUG from aquamarine ]: drm: Connector id 420 already initialized
+DEBUG from aquamarine ]: drm: Connector 420 connection state: 2
+DEBUG from aquamarine ]: drm: Scanning connector id 426
+DEBUG from aquamarine ]: drm: Connector id 426 already initialized
+DEBUG from aquamarine ]: drm: Connector 426 connection state: 2
+DEBUG from aquamarine ]: drm: Scanning connector id 432
+DEBUG from aquamarine ]: drm: Connector id 432 already initialized
+DEBUG from aquamarine ]: drm: Connector 432 connection state: 2
+DEBUG from aquamarine ]: drm: Scanning connector id 438
+DEBUG from aquamarine ]: drm: Connector id 438 already initialized
+DEBUG from aquamarine ]: drm: Connector 438 connection state: 2
+DEBUG from aquamarine ]: drm: Scanning connector id 444
+DEBUG from aquamarine ]: drm: Connector id 444 already initialized
+DEBUG from aquamarine ]: drm: Connector 444 connection state: 2
+DEBUG from aquamarine ]: drm: Rechecking CRTCs
+DEBUG from aquamarine ]: drm: eDP-1 is disabled, releasing crtc 376
+DEBUG from aquamarine ]: drm: connector eDP-1, has crtc -1, will be rechecked
+DEBUG from aquamarine ]: drm: connector DP-1, has crtc -1, will be rechecked
+DEBUG from aquamarine ]: drm: connector DP-2, has crtc -1, will be rechecked
+DEBUG from aquamarine ]: drm: connector DP-3, has crtc -1, will be rechecked
+DEBUG from aquamarine ]: drm: connector DP-4, has crtc -1, will be rechecked
+DEBUG from aquamarine ]: drm: connector DP-5, has crtc -1, will be rechecked
+DEBUG from aquamarine ]: drm: connector DP-6, has crtc -1, will be rechecked
+DEBUG from aquamarine ]: drm: connector DP-7, has crtc -1, will be rechecked
+DEBUG from aquamarine ]: drm: connector DP-8, has crtc -1, will be rechecked
+DEBUG from aquamarine ]: drm: slot 0 crtc 376 unassigned
+DEBUG from aquamarine ]: drm: slot 1 crtc 381 unassigned
+DEBUG from aquamarine ]: drm: slot 2 crtc 386 unassigned
+DEBUG from aquamarine ]: drm: slot 3 crtc 391 unassigned
+DEBUG from aquamarine ]: drm: backup slot 0 crtc 376 assigned to disabled eDP-1
+DEBUG from aquamarine ]: drm: Scanning connectors for /dev/dri/card1
+DEBUG from aquamarine ]: drm: Scanning connector id 828
+DEBUG from aquamarine ]: drm: Connector id 828 already initialized
+DEBUG from aquamarine ]: drm: connector HDMI-A-1 crtc is incapable of vrr: props.vrr_capable -> 832, crtc->props.vrr_enabled -> 25
+DEBUG from aquamarine ]: drm: Explicit sync supported
+DEBUG from aquamarine ]: drm: connector HDMI-A-1 crtc supports CTM
+DEBUG from aquamarine ]: drm: connector HDMI-A-1 crtc supports HDR (8)
+DEBUG from aquamarine ]: drm: connector HDMI-A-1 crtc supports Colorspace (831)
+DEBUG from aquamarine ]: drm: Connector 828 connection state: 1
+DEBUG from aquamarine ]: drm: Rechecking CRTCs
+DEBUG from aquamarine ]: drm: HDMI-A-1 is disabled, releasing crtc 205
+DEBUG from aquamarine ]: drm: connector HDMI-A-1, has crtc -1, will be rechecked
+DEBUG from aquamarine ]: drm: slot 0 crtc 205 unassigned
+DEBUG from aquamarine ]: drm: slot 1 crtc 397 unassigned
+DEBUG from aquamarine ]: drm: slot 2 crtc 589 unassigned
+DEBUG from aquamarine ]: drm: slot 3 crtc 781 unassigned
+DEBUG from aquamarine ]: drm: backup slot 0 crtc 205 assigned to disabled HDMI-A-1
+DEBUG from aquamarine ]: udev: new udev change event for card1
+DEBUG from aquamarine ]: udev: DRM device card1 changed
+DEBUG from aquamarine ]: drm: Got a hotplug event for /dev/dri/card1
+DEBUG from aquamarine ]: drm: Scanning connectors for /dev/dri/card1
+DEBUG from aquamarine ]: drm: Scanning connector id 828
+DEBUG from aquamarine ]: drm: Connector id 828 already initialized
+DEBUG from aquamarine ]: drm: connector HDMI-A-1 crtc is incapable of vrr: props.vrr_capable -> 832, crtc->props.vrr_enabled -> 25
+DEBUG from aquamarine ]: drm: Explicit sync supported
+DEBUG from aquamarine ]: drm: connector HDMI-A-1 crtc supports CTM
+DEBUG from aquamarine ]: drm: connector HDMI-A-1 crtc supports HDR (8)
+DEBUG from aquamarine ]: drm: connector HDMI-A-1 crtc supports Colorspace (831)
+DEBUG from aquamarine ]: drm: Connector 828 connection state: 1
+DEBUG from aquamarine ]: drm: Rechecking CRTCs
+DEBUG from aquamarine ]: drm: HDMI-A-1 is disabled, releasing crtc 205
+DEBUG from aquamarine ]: drm: connector HDMI-A-1, has crtc -1, will be rechecked
+DEBUG from aquamarine ]: drm: slot 0 crtc 205 unassigned
+DEBUG from aquamarine ]: drm: slot 1 crtc 397 unassigned
+DEBUG from aquamarine ]: drm: slot 2 crtc 589 unassigned
+DEBUG from aquamarine ]: drm: slot 3 crtc 781 unassigned
+DEBUG from aquamarine ]: drm: backup slot 0 crtc 205 assigned to disabled HDMI-A-1
+DEBUG from aquamarine ]: udev: new udev change event for card1
+DEBUG from aquamarine ]: udev: DRM device card1 changed
+DEBUG from aquamarine ]: drm: Got a lease event for /dev/dri/card1
+DEBUG from aquamarine ]: drm: Modesetting eDP-1 with 1920x1080@144.00Hz
+DEBUG from aquamarine ]: drm: Connector eDP-1 enabledState changed false -> true
+DEBUG from aquamarine ]: GBM: Buffer is marked as multigpu, forcing linear
+DEBUG from aquamarine ]: GBM: Allocated a new buffer with size [Vector2D: x: 1920, y: 1080] and format XR24 with modifier 0x0 : LINEAR
+DEBUG from aquamarine ]: GBM: Buffer is marked as multigpu, forcing linear
+DEBUG from aquamarine ]: GBM: Allocated a new buffer with size [Vector2D: x: 1920, y: 1080] and format XR24 with modifier 0x0 : LINEAR
+DEBUG from aquamarine ]: GBM: Buffer is marked as multigpu, forcing linear
+DEBUG from aquamarine ]: GBM: Allocated a new buffer with size [Vector2D: x: 1920, y: 1080] and format XR24 with modifier 0x0 : LINEAR
+DEBUG from aquamarine ]: Swapchain: Resized a [Vector2D: x: 1920, y: 1080] XR24 swapchain to length 3
+DEBUG from aquamarine ]: drm: Modesetting HDMI-A-1 with 1920x1080@60.00Hz
+DEBUG from aquamarine ]: drm: No renderer attached to backend when required for blitting, initializing
+DEBUG from aquamarine ]: Created a GBM allocator with drm fd 66
+DEBUG from aquamarine ]: Supported EGL client extensions: (16) EGL_EXT_platform_base EGL_EXT_device_base EGL_EXT_device_query EGL_EXT_device_enumeration EGL_KHR_client_get_all_proc_addresses EGL_EXT_client_extensions EGL_KHR_debug EGL_KHR_platform_x11 EGL_EXT_platform_x11 EGL_EXT_platform_device EGL_MESA_platform_surfaceless EGL_EXT_explicit_device EGL_KHR_platform_wayland EGL_EXT_platform_wayland EGL_KHR_platform_gbm EGL_MESA_platform_gbm EGL_EXT_platform_xcb
+DEBUG from aquamarine ]: CDRMRenderer(drm): Using device /dev/dri/card1
+DEBUG from aquamarine ]: CDRMRenderer: IMG_context_priority supported, requesting high
+DEBUG from aquamarine ]: CDRMRenderer: EXT_create_context_robustness supported, requesting lose on reset
+DEBUG from aquamarine ]: CDRMRenderer: Using KHR_context_flush_control
+DEBUG from aquamarine ]: CDRMRenderer: Got a high priority context
+DEBUG from aquamarine ]: Creating CDRMRenderer on gpu /dev/dri/renderD128
+DEBUG from aquamarine ]: Using: OpenGL ES 3.2 NVIDIA 615.78.08
+DEBUG from aquamarine ]: Vendor: NVIDIA Corporation
+DEBUG from aquamarine ]: Renderer: NVIDIA GeForce RTX 3050 6GB Laptop GPU/PCIe/SSE2
+DEBUG from aquamarine ]: Supported context extensions: (220) GL_EXT_shader_clock GL_EXT_shader_realtime_clock GL_EXT_base_instance GL_EXT_blend_func_extended GL_EXT_blend_minmax GL_EXT_buffer_storage GL_EXT_clear_texture GL_EXT_clip_control GL_EXT_clip_cull_distance GL_EXT_color_buffer_float GL_EXT_color_buffer_half_float GL_EXT_conservative_depth GL_EXT_copy_image GL_EXT_depth_clamp GL_EXT_debug_label GL_EXT_discard_framebuffer GL_EXT_disjoint_timer_query GL_EXT_draw_buffers_indexed GL_EXT_draw_elements_base_vertex GL_EXT_EGL_image_array GL_EXT_EGL_image_storage GL_EXT_EGL_image_external_wrap_modes GL_EXT_float_blend GL_EXT_frag_depth GL_EXT_geometry_point_size GL_EXT_geometry_shader GL_EXT_gpu_shader5 GL_EXT_map_buffer_range GL_EXT_multi_draw_indirect GL_EXT_multisample_compatibility GL_EXT_multisampled_render_to_texture GL_EXT_multisampled_render_to_texture2 GL_EXT_multiview_texture_multisample GL_EXT_multiview_timer_query GL_EXT_occlusion_query_boolean GL_EXT_polygon_offset_clamp GL_EXT_post_depth_coverage GL_EXT_primitive_bounding_box GL_EXT_raster_multisample GL_EXT_render_snorm GL_EXT_robustness GL_EXT_separate_shader_objects GL_EXT_shader_group_vote GL_EXT_shader_implicit_conversions GL_EXT_shader_integer_mix GL_EXT_shader_io_blocks GL_EXT_shader_non_constant_global_initializers GL_EXT_shader_texture_lod GL_EXT_shader_texture_samples GL_EXT_shadow_samplers GL_EXT_sparse_texture GL_EXT_sparse_texture2 GL_EXT_sRGB GL_EXT_sRGB_write_control GL_EXT_tessellation_point_size GL_EXT_tessellation_shader GL_EXT_texture_border_clamp GL_EXT_texture_buffer GL_EXT_texture_compression_bptc GL_EXT_texture_compression_dxt1 GL_EXT_texture_compression_rgtc GL_EXT_texture_compression_s3tc GL_EXT_texture_cube_map_array GL_EXT_texture_filter_anisotropic GL_EXT_texture_filter_minmax GL_EXT_texture_format_BGRA8888 GL_EXT_texture_mirror_clamp_to_edge GL_EXT_texture_norm16 GL_EXT_texture_query_lod GL_EXT_texture_rg GL_EXT_texture_shadow_lod GL_EXT_texture_sRGB_R8 GL_EXT_texture_sRGB_decode GL_EXT_texture_storage GL_EXT_texture_view GL_EXT_draw_transform_feedback GL_EXT_unpack_subimage GL_EXT_window_rectangles GL_KHR_context_flush_control GL_KHR_debug GL_EXT_memory_object GL_EXT_memory_object_fd GL_NV_memory_object_sparse GL_KHR_parallel_shader_compile GL_KHR_no_error GL_KHR_robust_buffer_access_behavior GL_KHR_robustness GL_EXT_semaphore GL_EXT_semaphore_fd GL_NV_timeline_semaphore GL_KHR_shader_subgroup GL_KHR_texture_compression_astc_ldr GL_KHR_texture_compression_astc_sliced_3d GL_KHR_texture_compression_astc_hdr GL_NV_bgr GL_NV_bindless_texture GL_NV_blend_equation_advanced GL_NV_blend_equation_advanced_coherent GL_NVX_blend_equation_advanced_multi_draw_buffers GL_NV_blend_minmax_factor GL_NV_clip_space_w_scaling GL_NV_compute_shader_derivatives GL_NV_conditional_render GL_NV_conservative_raster GL_NV_conservative_raster_pre_snap_triangles GL_NV_copy_buffer GL_NV_copy_image GL_NV_draw_buffers GL_NV_draw_instanced GL_NV_draw_texture GL_NV_draw_vulkan_image GL_NV_EGL_stream_consumer_external GL_NV_explicit_attrib_location GL_NV_fbo_color_attachments GL_NV_fill_rectangle GL_NV_fragment_coverage_to_color GL_NV_fragment_shader_barycentric GL_NV_fragment_shader_interlock GL_NV_framebuffer_blit GL_NV_framebuffer_mixed_samples GL_NV_framebuffer_multisample GL_NV_generate_mipmap_sRGB GL_NV_geometry_shader_passthrough GL_NV_instanced_arrays GL_NV_internalformat_sample_query GL_NV_gpu_shader5 GL_NV_image_formats GL_NV_memory_attachment GL_NV_mesh_shader GL_NV_occlusion_query_samples GL_NV_non_square_matrices GL_NV_pack_subimage GL_NV_packed_float GL_NV_packed_float_linear GL_NV_path_rendering GL_NV_path_rendering_shared_edge GL_NV_pixel_buffer_object GL_NV_polygon_mode GL_NV_primitive_shading_rate GL_NV_read_buffer GL_NV_read_depth GL_NV_read_depth_stencil GL_NV_read_stencil GL_NV_representative_fragment_test GL_NV_sample_locations GL_NV_sample_mask_override_coverage GL_NV_scissor_exclusive GL_NV_shader_atomic_fp16_vector GL_NV_shader_noperspective_interpolation GL_NV_shader_subgroup_partitioned GL_NV_shader_texture_footprint GL_NV_shading_rate_image GL_NV_shadow_samplers_array GL_NV_shadow_samplers_cube GL_NV_sRGB_formats GL_NV_stereo_view_rendering GL_NV_texture_array GL_NV_texture_barrier GL_NV_texture_border_clamp GL_NV_texture_compression_latc GL_NV_texture_compression_s3tc GL_NV_texture_compression_s3tc_update GL_NV_texture_dirty_tile_map GL_NV_timer_query GL_NV_viewport_array GL_NV_viewport_array2 GL_NV_viewport_swizzle GL_KHR_blend_equation_advanced GL_KHR_blend_equation_advanced_coherent GL_OES_compressed_ETC1_RGB8_texture GL_EXT_compressed_ETC1_RGB8_sub_texture GL_OES_depth24 GL_OES_depth32 GL_OES_depth_texture GL_OES_depth_texture_cube_map GL_OES_copy_image GL_OES_draw_buffers_indexed GL_OES_draw_elements_base_vertex GL_OES_texture_border_clamp GL_OES_tessellation_point_size GL_OES_tessellation_shader GL_OES_texture_buffer GL_OES_geometry_point_size GL_OES_geometry_shader GL_OES_gpu_shader5 GL_OES_shader_io_blocks GL_OES_texture_view GL_OES_primitive_bounding_box GL_OES_EGL_image GL_OES_EGL_image_external GL_OES_EGL_image_external_essl3 GL_OES_EGL_sync GL_OES_element_index_uint GL_OES_fbo_render_mipmap GL_OES_get_program_binary GL_OES_mapbuffer GL_OES_packed_depth_stencil GL_OES_rgb8_rgba8 GL_EXT_read_format_bgra GL_OES_sample_shading GL_OES_sample_variables GL_OES_shader_image_atomic GL_OES_shader_multisample_interpolation GL_OES_standard_derivatives GL_OES_surfaceless_context GL_OES_texture_cube_map_array GL_OES_texture_npot GL_OES_texture_float GL_OES_texture_float_linear GL_OES_texture_half_float GL_OES_texture_half_float_linear GL_OES_texture_stencil8 GL_OES_texture_storage_multisample_2d_array GL_OES_vertex_array_object GL_OES_vertex_half_float GL_OES_viewport_array GL_OVR_multiview GL_OVR_multiview2 GL_OVR_multiview_multisampled_render_to_texture GL_ANDROID_extension_pack_es31a
+DEBUG from aquamarine ]: GBM: Allocated a new buffer with size [Vector2D: x: 1920, y: 1080] and format XR24 with modifier 0x300000000606014 : BLOCK_LINEAR_2D,HEIGHT=4,KIND=6,GEN=2,SECTOR=1,COMPRESSION=0
+DEBUG from aquamarine ]: GBM: Allocated a new buffer with size [Vector2D: x: 1920, y: 1080] and format XR24 with modifier 0x300000000606014 : BLOCK_LINEAR_2D,HEIGHT=4,KIND=6,GEN=2,SECTOR=1,COMPRESSION=0
+DEBUG from aquamarine ]: GBM: Allocated a new buffer with size [Vector2D: x: 1920, y: 1080] and format XR24 with modifier 0x300000000606014 : BLOCK_LINEAR_2D,HEIGHT=4,KIND=6,GEN=2,SECTOR=1,COMPRESSION=0
+DEBUG from aquamarine ]: Swapchain: Reconfigured a swapchain to [Vector2D: x: 1920, y: 1080] XR24 of length 3
+DEBUG from aquamarine ]: EGL (blit): No attachment in from, creating a new image
+DEBUG from aquamarine ]: CDRMRenderer::glTex: found format+mod, external = true
+DEBUG from aquamarine ]: EGL (blit): No attachment in to, creating a new image
+DEBUG from aquamarine ]: drm: Connector HDMI-A-1 enabledState changed false -> true
+DEBUG from aquamarine ]: drm: Scanning connectors for /dev/dri/card2
+DEBUG from aquamarine ]: drm: Scanning connector id 393
+DEBUG from aquamarine ]: drm: Connector id 393 already initialized
+DEBUG from aquamarine ]: drm: connector eDP-1 crtc is capable of vrr: props.vrr_capable -> 396, crtc->props.vrr_enabled -> 25
+DEBUG from aquamarine ]: drm: Explicit sync supported
+DEBUG from aquamarine ]: drm: connector eDP-1 crtc supports CTM
+DEBUG from aquamarine ]: drm: connector eDP-1 crtc supports HDR (8)
+DEBUG from aquamarine ]: drm: connector eDP-1 crtc supports Colorspace (395)
+DEBUG from aquamarine ]: drm: Connector 393 connection state: 1
+DEBUG from aquamarine ]: drm: Scanning connector id 401
+DEBUG from aquamarine ]: drm: Connector id 401 already initialized
+DEBUG from aquamarine ]: drm: Connector 401 connection state: 2
+DEBUG from aquamarine ]: drm: Scanning connector id 408
+DEBUG from aquamarine ]: drm: Connector id 408 already initialized
+DEBUG from aquamarine ]: drm: Connector 408 connection state: 2
+DEBUG from aquamarine ]: drm: Scanning connector id 414
+DEBUG from aquamarine ]: drm: Connector id 414 already initialized
+DEBUG from aquamarine ]: drm: Connector 414 connection state: 2

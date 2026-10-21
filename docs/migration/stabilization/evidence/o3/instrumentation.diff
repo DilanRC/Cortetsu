@@ -1,0 +1,65 @@
+diff --git a/cortetsu/components/ScreenState.qml b/cortetsu/components/ScreenState.qml
+index d565ea4..b710058 100644
+--- a/cortetsu/components/ScreenState.qml
++++ b/cortetsu/components/ScreenState.qml
+@@ -19,6 +19,7 @@ PersistentProperties {
+     property bool utilities
+     property bool settings
+     property bool sidebar
++    onSidebarChanged: console.info(`O3DBG sidebar=${sidebar} t=${Date.now()}\n${new Error().stack}`)
+     property int dashboardTab
+     property date dashboardDate: new Date()
+
+diff --git a/cortetsu/modules/drawers/ContentWindow.qml b/cortetsu/modules/drawers/ContentWindow.qml
+index b3b2ac2..3166f87 100644
+--- a/cortetsu/modules/drawers/ContentWindow.qml
++++ b/cortetsu/modules/drawers/ContentWindow.qml
+@@ -73,7 +73,6 @@ StyledWindow {
+     }
+
+     name: "drawers"
+-    focusable: panels.popouts.hasCurrent || ((screenState?.cortetsuState?.requiresWindowKeyboardFocus ?? false) && !(screenState?.launcher ?? false) && !(screenState?.session ?? false))
+     WlrLayershell.exclusionMode: ExclusionMode.Ignore
+     WlrLayershell.layer: screenState?.cortetsuState?.overview ? WlrLayer.Overlay : ((fsTransitionProg > 0 && CortetsuOverlayConfig.general.showOverFullscreen) || (hasSpecialWorkspace && hasFullscreenOnNormalWs) ? WlrLayer.Overlay : WlrLayer.Top)
+     // Attached BottomHub popouts are mouse-owned. Giving the full-screen
+@@ -81,7 +80,7 @@ StyledWindow {
+     // window, which makes the shared hover controller close and reopen them.
+     WlrLayershell.keyboardFocus: (panels.popouts.isDetached || panels.popouts.currentName === "wirelesspassword")
+         ? WlrKeyboardFocus.Exclusive
+-        : (screenState?.cortetsuState?.requiresWindowKeyboardFocus && !(screenState?.launcher ?? false) && !(screenState?.session ?? false))
++        : (panels.popouts.hasCurrent || focusGrab.wanted || (screenState?.cortetsuState?.requiresWindowKeyboardFocus && !(screenState?.launcher ?? false) && !(screenState?.session ?? false)))
+             ? WlrKeyboardFocus.OnDemand
+             : WlrKeyboardFocus.None
+
+@@ -133,7 +132,8 @@ StyledWindow {
+     HyprlandFocusGrab {
+         id: focusGrab
+
+-        active: {
++        active: wanted
++        readonly property bool wanted: {
+             const s = root.screenState;
+             if (!s)
+                 return false;
+@@ -151,7 +151,9 @@ StyledWindow {
+             return false;
+         }
+         windows: [root]
++        onActiveChanged: console.info(`O3DBG grab active=${active} t=${Date.now()} sidebar=${root.screenState?.sidebar} retained=${root.screenState?.cortetsuState?.retainedOverlayOpen}`)
+         onCleared: {
++            console.info(`O3DBG grab cleared t=${Date.now()} sidebar=${root.screenState?.sidebar}`);
+             root.screenState.launcher = false;
+             root.screenState.session = false;
+             root.screenState.sidebar = false;
+diff --git a/cortetsu/modules/wallpaper/Wrapper.qml b/cortetsu/modules/wallpaper/Wrapper.qml
+index 3154051..4ee9da2 100644
+--- a/cortetsu/modules/wallpaper/Wrapper.qml
++++ b/cortetsu/modules/wallpaper/Wrapper.qml
+@@ -61,6 +61,7 @@ Item {
+     }
+
+     onGlobalOtherOverlayOpenChanged: {
++        console.info(`O3DBG wrapper(${root.visible}) other=${globalOtherOverlayOpen} active=${shouldBeActive} t=${Date.now()}`);
+         if (shouldBeActive && globalOtherOverlayOpen) {
+             if (screenState?.cortetsuState)
+                 screenState.cortetsuState.setRetained("wallpaperManager", false);

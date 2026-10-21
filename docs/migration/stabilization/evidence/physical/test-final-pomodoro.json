@@ -1,0 +1,12 @@
+{
+  "schema": 2,
+  "phase": "PAUSED",
+  "targetEndTimestamp": 0.0,
+  "pausedRemainingMs": 52737,
+  "pausedPhase": "FOCUS",
+  "completedSessions": 9,
+  "focusMinutes": 1,
+  "shortBreakMinutes": 1,
+  "longBreakMinutes": 1,
+  "sessionsBeforeLongBreak": 4
+}

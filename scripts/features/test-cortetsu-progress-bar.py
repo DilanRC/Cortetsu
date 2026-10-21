@@ -21,9 +21,9 @@ for token in (
     assert token in text, f"progress primitive contract missing: {token}"
 
 consumers = {
-    "cortetsu/modules/dashboard/Focus.qml": "value: root.progress()",
+    "cortetsu/modules/dashboard/Focus.qml": "value: Model.progress(root.pomodoro, root.nowMs)",
     "cortetsu/modules/hardware/summary/CapacityBlock.qml": "value: Format.fraction(root.usage)",
-    "cortetsu/modules/calendar/Content.qml": "value: root.progress()",
+    "cortetsu/modules/calendar/PomodoroCard.qml": "value: Model.progress(card.pomodoroState, card.nowMs)",
     "cortetsu/modules/bar/popouts/CortetsuBatteryPopup.qml": "value: CortetsuPower.value",
 }
 for name, token in consumers.items():

@@ -80,19 +80,24 @@ assert "OverlayPolicy.hasCompetingPanel" in wrapper and "closeCompetingPanels();
 for other in ("launcher", "session", "dashboard", "utilities", "sidebar", "overview", "clipboard", "hardware", "displayManager", "wallpaperManager"):
     assert other in surface_registry.group("exclusive"), f"policy does not exclude {other}"
 assert "closeFlags(state, Surfaces.exclusive)" in policy
-for controller_file in ("OverviewController.qml", "ClipboardController.qml", "HardwareController.qml", "DisplayController.qml"):
-    controller = (MODULES / controller_file).read_text(encoding="utf-8")
-    assert "OverlayPolicy.closeOtherPanels" in controller and "for (const screen of CortetsuScreens.screens)" in controller, controller_file
-assert "OverlayPolicy.closeForWallpaper" in wallpaper_controller and "for (const screen of CortetsuScreens.screens)" in wallpaper_controller
-assert "OverlayPolicy.closeOtherPanels(state);" in hub
-assert "toggleSidebarFor" in hub and "state.sidebar = !wasOpen;" in hub
-assert "function open(screen): void" in wallpaper_controller
-assert "function openActive(): void" in wallpaper_controller
-assert "CortetsuShellState.forScreen(target)?.cortetsuState" in wallpaper_controller
-assert "open(undefined);" in wallpaper_controller
-assert "CortetsuShellState.forActive()?.modelData" not in wallpaper_controller
-assert "closeOtherPanels();\n        state.setRetained(\"wallpaperManager\", true);" in wallpaper_controller
-assert "function open(): void { root.openActive(); }" in wallpaper_controller
+# Every opener goes through CortetsuOverlayPolicy.open, which closes the
+# exclusive group on every screen before opening (both orders, both screens).
+transitions = (MODULES / "CortetsuOverlayPolicy.js").read_text(encoding="utf-8")
+shared = (MODULES / "RetainedSurfaceController.qml").read_text(encoding="utf-8")
+assert "for (const state of states ?? [])\n        Exclusion.closeOtherPanels(state);" in transitions
+assert "if (Surfaces.find(flag).exclusive)\n        closeExclusiveEverywhere(states);" in transitions
+for controller_file in ("ClipboardController.qml", "HardwareController.qml", "DisplayController.qml", "WallpaperController.qml"):
+    assert "RetainedSurfaceController {" in (MODULES / controller_file).read_text(encoding="utf-8"), controller_file
+assert 'OverlayPolicy.open(CortetsuShellState.allStates(), state, "overview")' in (MODULES / "OverviewController.qml").read_text(encoding="utf-8")
+assert "OverlayPolicy.open(CortetsuShellState.allStates(), target, root.surfaceKey)" in shared
+assert "OverlayPolicy.closeExclusiveEverywhere(CortetsuShellState.allStates());" in hub
+assert "function toggleSidebarFor" in hub and 'toggleSurfaceOn(screen, "sidebar");' in hub
+assert "function open(screen): void" in shared
+assert "function openActive(): void" in shared
+assert "CortetsuShellState.forScreen(screen) : CortetsuShellState.forActive()" in shared
+assert "open(null);" in shared
+assert "CortetsuShellState.forActive()?.modelData" not in wallpaper_controller + shared
+assert "function open(): void { root.openActive(); }" in shared
 assert "WallpaperController.open(screen);" in hub
 assert "candidate === screen" not in hub
 

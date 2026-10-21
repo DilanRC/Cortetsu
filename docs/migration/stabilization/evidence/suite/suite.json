@@ -1,0 +1,2066 @@
+[
+ {
+  "test": "scripts/features/test-native-bottom-hub.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.03,
+  "skip_lines": [],
+  "tail": [
+   "PASS: Bottom Hub presentation is fully first-party; BottomHub.qml is controller-only and compiler-free"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/eval-bottom-hub-design.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "BottomHub design eval: 34/34 (100%)"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-bottom-hub-target.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.03,
+  "skip_lines": [],
+  "tail": [
+   "BottomHub semantic target tests: OK"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-bottom-hub-v3.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "BottomHub v3 semantic tests: OK"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-bottom-hub-v4.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "BottomHub v4 architecture tests: OK"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-retained-overlay-wiring.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.07,
+  "skip_lines": [],
+  "tail": [
+   "Retained overlay wiring tests: OK"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-contentwindow-overview-base.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.03,
+  "skip_lines": [],
+  "tail": [
+   "ContentWindow Overview base tests: OK"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-contentwindow-focusgrab-parity.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "ContentWindow focus-grab parity tests: OK"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-wallpaper-manager.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.05,
+  "skip_lines": [],
+  "tail": [
+   "test-wallpaper-manager: OK (neutral open, final-candidate debounce, cancellation, wheel reversal, canonical retained wiring, and two-way overlay exclusion)"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-cortetsu-wall-utility-contract.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.04,
+  "skip_lines": [],
+  "tail": [
+   "PASS: Wall Utility BCDE source contract and ownership are valid"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/eval-cortetsu-wall-utility-contract.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "Wall Utility BCDE eval: 14/14"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-cortetsu-launcher-wallpaper-apply.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "test-cortetsu-launcher-wallpaper-apply: OK"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/eval-cortetsu-launcher-wallpaper-apply.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "Cortetsu Launcher wallpaper apply eval: 25/25"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/eval-wallpaper-orbital.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "Wallpaper orbital product eval: 12/12"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-overview-design.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "PASS: Overview wrapper and window cards use Cortetsu visual primitives"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/eval-overview-spatial-bounds.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "Overview spatial bounds eval: 4/4 (100%)"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-cortetsu-wallpaper-palette.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "PASS: wallpaper scheme state is reactive, validated, previewable and safely reset"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/eval-cortetsu-wallpaper-palette.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "Wallpaper palette eval: 11/11"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-keybinds.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 14.71,
+  "skip_lines": [],
+  "tail": [
+   "PASS: keybind helper validates chords, edits only its store, compiles data-only Lua and rolls back"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-notification-owner.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.08,
+  "skip_lines": [],
+  "tail": [
+   "PASS: installer masks only mako.service and reports failure and restart; live bus owned by cortetsu-shell"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/validate-wallpaper-manager.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "validate-wallpaper-manager: OK (first-party service and native manager contracts)"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/eval-keybind-editor.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "Keybind editor eval: 18/18 (100%)"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-shell-normalizer.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.03,
+  "skip_lines": [],
+  "tail": [
+   "Shell normalizer tests: OK"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-cortetsu-quality.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.03,
+  "skip_lines": [],
+  "tail": [
+   "PASS: Cortetsu quality gate: cold hidden pages, native visual primitives, canonical state, no QML shell pipelines"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-first-party-host-boundaries.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.03,
+  "skip_lines": [],
+  "tail": [
+   "PASS: 4 layer hosts and Settings FloatingWindow use explicit Cortetsu boundaries"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/eval-first-party-host-boundaries.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "PASS: host boundary eval covers 4 monitor-local first-party surfaces"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-first-party-surface-imports.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.03,
+  "skip_lines": [],
+  "tail": [
+   "PASS: 201 active Cortetsu QML files use local import boundaries"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/eval-first-party-surface-imports.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "PASS: first-party surface import eval covers 201 active QML files"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-overview-popout-exclusivity.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "PASS: Overview closes all first-party popouts before opening"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/eval-overview-popout-exclusivity.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "Overview popout exclusivity eval: 3/3 (100%)"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-panel-popout-exclusivity.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "PASS: retained panels close first-party popouts before opening"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/eval-panel-popout-exclusivity.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "Panel/popout exclusivity eval: 7/7 (100%)"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-cortetsu-wave0-foundations.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "PASS: Wave 0 primitives expose keyboard focus and activation; surface inventory is present"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/eval-cortetsu-wave0-foundations.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.03,
+  "skip_lines": [],
+  "tail": [
+   "Wave 0 foundations eval: 31/31 (100%)"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-cortetsu-wave4-quick-settings-osd.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "PASS: Wave 4 Quick Settings and OSD stay first-party and state-legible"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/eval-cortetsu-wave4-quick-settings-osd.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "Wave 4 Quick Settings/OSD eval: 8/8 (100%)"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-display-footer-layout.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "PASS: display dry-run card reserves footer space at 1920x1080"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/eval-display-footer-layout.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "Display footer layout eval: 4/4 (100%)"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-display-transaction-lua.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.03,
+  "skip_lines": [],
+  "tail": [
+   "PASS: display preview translates monitor plans to Lua eval"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/eval-display-transaction-lua.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "Display transaction eval: 4/4 (100%)"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-cortetsu-recorder.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "PASS: recorder status and stop use the owned exact-process contract"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/eval-cortetsu-recorder.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "Cortetsu recorder keybind eval: 7/7 (100%)"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-hypr-keybind-conflicts.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "PASS: browser, calendar, OSD, Settings, screenshot and clipboard keybind ownership is single-layer"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/eval-hypr-keybind-conflicts.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "PASS: keybind conflict eval has one owner per migrated chord"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-osd-hover-contract.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "PASS: OSD hover assignment crosses a declared wrapper alias"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/eval-osd-hover-contract.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "OSD hover eval: 6/6 (shared indicator island, hover bridge, restart, timeout guard)"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-cortetsu-native-design-system.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "PASS: Cortetsu design primitives expose shared tokens, states and popup focus contract"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/eval-cortetsu-native-design-system.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.03,
+  "skip_lines": [],
+  "tail": [
+   "PASS: native design eval covers 19 first-party QML primitives and documentation"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-hardware-design.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.04,
+  "skip_lines": [],
+  "tail": [
+   "PASS: Hardware Center uses Cortetsu visual primitives"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "cortetsu/tests/test-hardware-probe.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.28,
+  "skip_lines": [],
+  "tail": [
+   "PASS: the probe trims the process list on request (80847 -> 4204 bytes)"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "cortetsu/tests/test-gpu-passive.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 1.08,
+  "skip_lines": [],
+  "tail": [
+   "PASS: a suspended dGPU is reported from runtime_status without nvidia-smi; an active one is queried"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-cortetsu-hardware-home-runtime.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 16.9,
+  "skip_lines": [],
+  "tail": [
+   "PASS: the Hardware summary reports its verdict, updates in place, links to each page and survives a failing probe"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-cortetsu-settings.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.07,
+  "skip_lines": [],
+  "tail": [
+   "PASS: 14 destinations each open a page, 45 preferences written by Settings all have a reader, and SUPER+I has one owner"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-cortetsu-settings-runtime.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 39.45,
+  "skip_lines": [],
+  "tail": [
+   "PASS: Settings keeps its objects through colour, scheme and preference changes, shows pending, failed and unavailable states truthfully, and is fully usable from the keyboard"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/eval-cortetsu-hardware-tabs.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.03,
+  "skip_lines": [],
+  "tail": [
+   "PASS: Hardware tabs share selected, hover, focus and arrow-key behavior"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-display-design.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.04,
+  "skip_lines": [],
+  "tail": [
+   "PASS: Display Manager uses Cortetsu visual primitives"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/eval-cortetsu-display-controls.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.03,
+  "skip_lines": [],
+  "tail": [
+   "PASS: Display controls share CortetsuButton focus, tooltip and semantic states"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-cortetsu-progress-bar.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "PASS: Dashboard, Hardware, Calendar and Battery feedback use shared progress primitive"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/eval-cortetsu-progress-bar.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "PASS: progress feedback has one bounded fill, one motion contract and no consumer-owned duplicate"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-cortetsu-power.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "PASS: first-party surfaces share the CortetsuPower capability contract"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/eval-cortetsu-power.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "CortetsuPower eval: 8/8"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-cortetsu-calendar-controls.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.03,
+  "skip_lines": [],
+  "tail": [
+   "PASS: Calendar header, navigation and Pomodoro actions use the shared CortetsuButton interaction contract"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/eval-cortetsu-calendar-controls.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.03,
+  "skip_lines": [],
+  "tail": [
+   "Calendar controls eval: 6/6 (100%)"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-cortetsu-button-tooltip.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "PASS: shared CortetsuButton owns hover/focus tooltips across first-party icon controls"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/eval-cortetsu-button-tooltip.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.03,
+  "skip_lines": [],
+  "tail": [
+   "Cortetsu button tooltip eval: 9/9 (100%)"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-stable-interaction-bounds.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.03,
+  "skip_lines": [],
+  "tail": [
+   "PASS: dense first-party controls keep stable pointer bounds"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/eval-stable-interaction-bounds.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.03,
+  "skip_lines": [],
+  "tail": [
+   "Stable interaction bounds eval: 4/4 (100%)"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-cortetsu-wallpaper-controls.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.03,
+  "skip_lines": [],
+  "tail": [
+   "PASS: Wallpaper Manager actions use the shared CortetsuButton interaction contract"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/eval-cortetsu-wallpaper-controls.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.03,
+  "skip_lines": [],
+  "tail": [
+   "Wallpaper controls eval: 7/7 (100%)"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-cortetsu-product-design-foundation.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.03,
+  "skip_lines": [],
+  "tail": [
+   "PASS: Cortetsu product foundation defines brand mark, tokens, motion, and design record"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/eval-cortetsu-product-design-foundation.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.03,
+  "skip_lines": [],
+  "tail": [
+   "PASS: product foundation eval preserves Cortetsu semantic palette and scale"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-cortetsu-branding.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.03,
+  "skip_lines": [],
+  "tail": [
+   "PASS: Cortetsu branding uses the CT identity and product-semantic palette"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-cortetsu-evolving-branding.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.03,
+  "skip_lines": [],
+  "tail": [
+   "PASS: five approved phases, fixed renderer, semantic isolation and real apply acknowledgement are wired"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/eval-cortetsu-evolving-branding.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.03,
+  "skip_lines": [],
+  "tail": [
+   "Cortetsu Evolving Mark product eval: 11/11"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-cortetsu-static-brand-surfaces.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.03,
+  "skip_lines": [],
+  "tail": [
+   "PASS: static and contextual product surfaces share the fixed-size mark renderer"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/eval-cortetsu-static-brand-surfaces.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.03,
+  "skip_lines": [],
+  "tail": [
+   "Cortetsu static/contextual brand surfaces eval: 15/15"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-cortetsu-native-popups.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.03,
+  "skip_lines": [],
+  "tail": [
+   "PASS: Wi-Fi, audio and Bluetooth popouts are first-party views over owned services"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/eval-cortetsu-native-popups.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.08,
+  "skip_lines": [],
+  "tail": [
+   "PASS: native popup eval covers network, audio and Bluetooth hierarchy and states"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-cortetsu-tray-menu.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "PASS: tray menu keeps the live ObjectModel and sizes from rendered content"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/eval-cortetsu-tray-menu.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.03,
+  "skip_lines": [],
+  "tail": [
+   "Tray menu data-boundary eval: 15/15"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "cortetsu/tests/test-startup-inventory.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 4.43,
+  "skip_lines": [],
+  "tail": [
+   "PASS: XDG overrides and user systemd toggles use isolated fixtures"
+  ],
+  "real_session_changed": true
+ },
+ {
+  "test": "scripts/features/test-cortetsu-native-notification-center.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "PASS: notification center owns live, history, DND, clear and empty states"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/eval-cortetsu-native-notification-center.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.03,
+  "skip_lines": [],
+  "tail": [
+   "PASS: notification center eval covers hierarchy, empty states and visual token use"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-notification-dismiss-popup.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.03,
+  "skip_lines": [],
+  "tail": [
+   "PASS: notification close removes popup before model destruction"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/eval-notification-dismiss-popup.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.04,
+  "skip_lines": [],
+  "tail": [
+   "Notification dismissal eval: 6/6 (100%)"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-cortetsu-toasts.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "PASS: Cortetsu owns toast state, rendering, and event calls"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/eval-cortetsu-toasts.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.07,
+  "skip_lines": [],
+  "tail": [
+   "Toast eval: 29/29 (100%)"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-native-theme.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.73,
+  "skip_lines": [],
+  "tail": [
+   "PASS: ui.toml owns Cortetsu shell/Kitty/GTK/KDE palette; kdeglobals stays editable and migrates safely"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-dotfiles-platform.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 1.86,
+  "skip_lines": [],
+  "tail": [
+   "PASS: immutable dotfiles plan/apply/backup/doctor/verify/rollback/gc contract"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-system-generations.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.58,
+  "skip_lines": [],
+  "tail": [
+   "PASS: unified system promotion/verify/rollback/gc keeps shell and dotfiles coherent"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-cortetsu-generation-gc.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.63,
+  "skip_lines": [],
+  "tail": [
+   "PASS: GC is inspection-only by default; deletion needs a fresh approved plan id, holds every generation lock, archives verifiably and keeps rollback"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-shell-lifecycle.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.26,
+  "skip_lines": [],
+  "tail": [
+   "PASS: systemd owns foreground Quickshell; Hyprland lifecycle migration is backed up and idempotent"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/eval-shell-application-safety.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.04,
+  "skip_lines": [],
+  "tail": [
+   "Shell application safety eval: 7/7"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/eval-cortetsu-shell-ipc.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.09,
+  "skip_lines": [],
+  "tail": [
+   "Shell IPC eval: clipboard isOpen=false via live MainPID"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-shell-state-screens.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "PASS: ShellState compatibility service delegates to Cortetsu state"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "cortetsu/tests/test-calendar-credentials.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.25,
+  "skip_lines": [],
+  "tail": [
+   "PASS: Calendar credentials, OAuth state, Cortetsu XDG paths, timezone, and secret errors"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "cortetsu/tests/test-calendar-polish.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "PASS: Calendar view, services and Pomodoro card keep their design and boundaries"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "cortetsu/tests/test-regional.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.1,
+  "skip_lines": [],
+  "tail": [
+   "test-regional: OK (mocked-HTTP JS logic + patch/singleton static contract)"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "cortetsu/tests/test-pomodoro.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 2.79,
+  "skip_lines": [],
+  "tail": [
+   "PASS: Pomodoro phases, reset, clock changes, single notifications, persistence and idle daemon"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "cortetsu/tests/test-notifications.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.32,
+  "skip_lines": [],
+  "tail": [
+   "PASS: cortetsu-notifications owns history dismiss/clear and DND state deterministically"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "cortetsu/tests/test-runtime-contract.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "PASS: Cortetsu v2 canonical namespace, self-healing upstream, staged runtime, native theme ownership, migration, helpers and rollback contract"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-wallpaper-color-daemon.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.38,
+  "skip_lines": [],
+  "tail": [
+   "PASS: the wallpaper colour watcher re-colours exactly on source changes and spawns nothing otherwise"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-power-auto-transitions.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.07,
+  "skip_lines": [],
+  "tail": [
+   "PASS: power-auto spawns powerprofilesctl only on rule transitions and keeps a hand-picked profile"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-nested-gpu-quiet.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.05,
+  "skip_lines": [],
+  "tail": [
+   "PASS: 10 nested Hyprland launches use the Mesa-only, lspci-free environment"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-cortetsu-screen-state.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.05,
+  "skip_lines": [],
+  "tail": [
+   "PASS: Cortetsu screen state and overlay policy preserve monitor-local ownership and the legacy boundary"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-cortetsu-surface-registry.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.06,
+  "skip_lines": [],
+  "tail": [
+   "PASS: 15 surfaces in one registry (7 retained); no parallel lists in 5 consumers"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "cortetsu/tests/test-calendar-pomodoro-services.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 2.41,
+  "skip_lines": [],
+  "tail": [
+   "PASS: Calendar and Pomodoro services re-read their files, sync once, toast once and own one daemon"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-cortetsu-state-boundary.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "PASS: controllers consume CortetsuScreenState without leaking the legacy backing object"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/eval-cortetsu-state-boundary.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.06,
+  "skip_lines": [],
+  "tail": [
+   "Cortetsu state boundary eval: 7/7"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/eval-cortetsu-screen-ownership.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "Cortetsu screen ownership eval: 6/6"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-cortetsu-config.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.05,
+  "skip_lines": [],
+  "tail": [
+   "PASS: Cortetsu functional preferences use an XDG-owned contract"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/eval-cortetsu-config.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "PASS: persisted preferences and storage parsing use stable source contracts"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-cortetsu-idle.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "PASS: Cortetsu owns idle monitor policy and lock actions"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-cortetsu-idle-runtime.py",
+  "result": "FAIL",
+  "rc": 1,
+  "seconds": 12.53,
+  "skip_lines": [],
+  "tail": [
+   "    assert logind_inhibitors() == before, \"keep-awake no debe a\u00f1adir inhibidores de logind\"",
+   "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+   "AssertionError: keep-awake no debe a\u00f1adir inhibidores de logind"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-gamemode-runtime.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 65.66,
+  "skip_lines": [],
+  "tail": [
+   "PASS: game mode is ACTIVE only after a verified apply, rolls back real partial applies, stays recoverable and keeps Settings changes"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-gamemode-helper.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 13.11,
+  "skip_lines": [],
+  "tail": [
+   "PASS: game mode only reports ACTIVE after a verified apply; failures roll back or stay recoverable"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-cortetsu-session-runtime.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.19,
+  "skip_lines": [],
+  "tail": [
+   "PASS: session lock uses the shell lock, logout uses the Lua dispatcher, failures stay visible"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-cortetsu-keyboards-runtime.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 8.83,
+  "skip_lines": [],
+  "tail": [
+   "PASS: \u00abAtajos y teclados\u00bb graba, revisa, rechaza conflictos, aplica solo tras confirmar con la versi\u00f3n revisada y suelta el teclado al cancelar, cerrar, agotar el tiempo o fallar"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-keybinds-preview.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 15.59,
+  "skip_lines": [],
+  "tail": [
+   "PASS: preview no escribe y separa conflicto de combinaci\u00f3n no v\u00e1lida; --expect rechaza una vista previa obsoleta sin escribir nada; las escrituras esperan al bloqueo"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-keybinds-scope.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 1.22,
+  "skip_lines": [],
+  "tail": [
+   "PASS: scope limits app shortcuts to keyboards, shares chords only across disjoint keyboards and verifies Hyprland"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-cortetsu-keyboards-devices-runtime.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 5.38,
+  "skip_lines": [],
+  "tail": [
+   "PASS: \u00abAtajos y teclados\u00bb limita atajos a un teclado por su nombre en Hyprland, prueba teclas sin permitir cambios a la vez, las marca comprobadas y propone aplicaciones sin aplicarlas"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-cortetsu-keyboard-state-runtime.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 2.14,
+  "skip_lines": [],
+  "tail": [
+   "PASS: keyboard lock and layout state come from the compositor, and unknown stays unknown"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-cortetsu-wallpaper-catalog-runtime.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 1.69,
+  "skip_lines": [],
+  "tail": [
+   "PASS: the wallpaper catalog is replaced only when the folder contents change"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-cortetsu-wallpaper-orbital-runtime.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 17.5,
+  "skip_lines": [],
+  "tail": [
+   "PASS: the Wallpaper Orbital browses, filters, previews, keeps its selection and reports every state"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/eval-cortetsu-idle.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "Cortetsu idle power eval: 4/4"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-cortetsu-launcher.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "PASS: launcher is fully first-party (0 GlobalConfig, 8/8 patches retired)"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-cortetsu-launcher-apps-runtime.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.84,
+  "skip_lines": [],
+  "tail": [
+   "PASS: launcher application grid runtime"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/eval-cortetsu-launcher.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "Launcher eval: 4/4 (100%)"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-cortetsu-dashboard-typography.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "PASS: Launcher and Dashboard share semantic typography and density roles"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/eval-cortetsu-dashboard-typography.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "Dashboard typography eval: 6/6"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-launcher-focus-runtime-contract.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "PASS: launcher has explicit focus restoration on open and activation"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/eval-launcher-focus-runtime-contract.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "Launcher focus eval: 3/3 (open signal, loaded item, TextField focus)"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/integration/test-launcher-dismiss.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 81.95,
+  "skip_lines": [],
+  "tail": [
+   "PASS: launcher closes with Super, Escape and outside click in 2 cycles on two headless monitors; keyboard returned to the application after every close (25 checks)"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/integration/test-bottomhub-hover-close-race.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 10.53,
+  "skip_lines": [],
+  "tail": [
+   "PASS: re-entering the active attached popout cancels its close; one attached popup across outputs"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/integration/test-hp-keys.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 3.68,
+  "skip_lines": [],
+  "tail": [
+   "PASS: OMEN and Copilot binds fire from their key codes under latam; Copilot leaves the launcher closed; F23 and Shift+F23 stay with applications"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/integration/test-keyboards-capture.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 9.4,
+  "skip_lines": [],
+  "tail": [
+   "PASS: la captura retiene los binds de Hyprland, los devuelve al terminar o al agotar su tiempo, un temporizador viejo no corta una captura nueva y recargar Hyprland no deja el teclado retenido"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/integration/test-keyboards-scope.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 3.01,
+  "skip_lines": [],
+  "tail": [
+   "PASS: un atajo limitado a un teclado solo responde en ese teclado; dos atajos comparten combinaci\u00f3n en teclados distintos y Hyprland confirma a qu\u00e9 teclados responde cada uno"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/integration/test-keyboards-probe.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 4.16,
+  "skip_lines": [],
+  "tail": [
+   "PASS: la prueba de teclas solo cuenta pulsaciones del teclado probado, recuerda lo pulsado como VERIFIED y no deja binds al terminar, al agotar su tiempo ni al recargar Hyprland"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-launcher-process-scope.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "PASS: launcher desktop entries use isolated persistent user scopes"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/eval-cortetsu-process-launcher.py",
+  "result": "NOT_RUN",
+  "reason": "creates a transient scope in the real user systemd manager"
+ },
+ {
+  "test": "scripts/features/test-cortetsu-scheme.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.23,
+  "skip_lines": [],
+  "tail": [
+   "PASS: Cortetsu scheme state is first-party and XDG-scoped"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-cortetsu-theme-reactive-runtime.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 1.35,
+  "skip_lines": [],
+  "tail": [
+   "PASS: scheme changes repaint live surfaces in place and never touch the promoted generation"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-scheme-catalog.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.05,
+  "skip_lines": [],
+  "tail": [
+   "PASS: scheme catalog exposes all 24 shipped families/flavours"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/eval-scheme-catalog.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.09,
+  "skip_lines": [],
+  "tail": [
+   "Scheme catalog eval: 24/24 (100%)"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-super-e-dolphin.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "PASS: SUPER+E effective source target is Dolphin"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/eval-super-e-dolphin.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "SUPER+E eval: 2/2 (Dolphin target and variable-driven dispatcher)"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-cortetsu-time.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "PASS: Cortetsu owns the Time service"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-cortetsu-brightness.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 5.08,
+  "skip_lines": [],
+  "tail": [
+   "PASS: brightness keys have receivers; eDP drives its own backlight, HDMI is unsupported, hotplug is clean"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-global-shortcut-receivers.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.11,
+  "skip_lines": [],
+  "tail": [
+   "PASS: 26 dispatched cortetsu globals each have exactly one QML receiver"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-cortetsu-osd.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "PASS: OSD is a first-party right-side surface with brightness, audio, DND, Bluetooth, power and network context"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/eval-cortetsu-osd.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "PASS: OSD eval covers lateral motion, semantic tiles, real levels, Bluetooth, power, settings handoff and overlay exclusion"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-cortetsu-players.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "PASS: Cortetsu owns the MPRIS player service contract"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-config-migration.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.1,
+  "skip_lines": [],
+  "tail": [
+   "PASS: functional preference migration is backed up and idempotent"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-legacy-process-migration.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.16,
+  "skip_lines": [],
+  "tail": [
+   "PASS: legacy process migration is backed up, idempotent, and signal-free"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-hyprland-import.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.35,
+  "skip_lines": [],
+  "tail": [
+   "PASS: Hyprland core-scope importer captures the loader/variables/utils/scheme set without live theme state"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-hyprland-import-ci.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "PASS: Hyprland CI isolates Ubuntu package indexes from third-party runner repos"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/eval-hyprland-import-ci.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "Hyprland import CI eval: 5/5"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-hyprland-self-contained.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.06,
+  "skip_lines": [],
+  "tail": [
+   "PASS: ~/.config/hypr is a self-contained Lua module root; the deleted Caelestia hyprland tree is not required"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-zero-caelestia-gate.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.04,
+  "skip_lines": [],
+  "tail": [
+   "PASS: Zero-Caelestia gate detects active dependencies and excludes history only"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-shortcut-namespace.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "PASS: global shortcuts use the Cortetsu application namespace"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-cortetsu-screenshot.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.04,
+  "skip_lines": [],
+  "tail": [
+   "PASS: screenshot keybind targets the Cortetsu runtime IPC"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/eval-cortetsu-screenshot.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "Screenshot eval: 7/7 (100%)"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-cortetsu-emoji.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.09,
+  "skip_lines": [],
+  "tail": [
+   "PASS: emoji keybind and CLI are first-party; no caelestia caller remains"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-cortetsu-network-idle.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "PASS: Bottom Hub network and idle state use Cortetsu contracts"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-cortetsu-network-dbus.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "PASS: CortetsuNetwork is DBus-driven (Quickshell.Networking), zero Caelestia coupling"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-patch-debt-audit.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "PASS: 0 remaining audited patches confirmed ACTIVE"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-design-system-migration-status.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.13,
+  "skip_lines": [],
+  "tail": [
+   "PASS: cortetsu/modules/ has 0 legacy design tokens, 145 files on CortetsuDesign.js first-party primitives"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-cortetsu-notifications.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "PASS: Bottom Hub notification state is Cortetsu-owned and XDG-backed"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-notification-backend-boundary.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.01,
+  "skip_lines": [],
+  "tail": [
+   "PASS: notification backend uses Cortetsu Hyprland and screen-state contracts"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-cortetsu-notification-actions.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.02,
+  "skip_lines": [],
+  "tail": [
+   "PASS: CortetsuNotifications exposes history/dismiss/clear/DND through a deterministic, GlobalConfig-free helper"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-notification-history-runtime.py",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 3.5,
+  "skip_lines": [],
+  "tail": [
+   "dbus-daemon[2777169]: [session uid=1000 pid=2777169 pidfd=4] Successfully activated service 'ca.desrt.dconf'"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "cortetsu/tests/test-wallpaper-search.node.js",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.03,
+  "skip_lines": [],
+  "tail": [
+   "test-wallpaper-search.node: OK (exact and fuzzy wallpaper search contracts)"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-ascension-motion.js",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.04,
+  "skip_lines": [],
+  "tail": [
+   "PASS: actual opening functions cancel stale close for network, audio and tray; anchors and bounded motion preserved"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "scripts/features/test-v2-migration-unreadable.sh",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.05,
+  "skip_lines": [],
+  "tail": [
+   "Cortetsu v2 migration warnings: /tmp/cortetsu-migration-test-c1K2Sm/home/.local/share/cortetsu/migrations/20261020-155048/COPY_WARNINGS.log"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "cortetsu/tests/test-calendar-readonly.sh",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.03,
+  "skip_lines": [],
+  "tail": [
+   "PASS: Calendar integration remains read-only, paginated, recurring-aware, and composite-keyed"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "cortetsu/tests/test-legacy-process-migration-eval.sh",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.04,
+  "skip_lines": [],
+  "tail": [
+   "PASS: legacy migration eval"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "cortetsu/tests/qml/focus",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.08,
+  "skip_lines": [],
+  "tail": [
+   "********* Finished testing of qmltestrunner *********"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "cortetsu/tests/qml/components",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.65,
+  "skip_lines": [],
+  "tail": [
+   "********* Finished testing of qmltestrunner *********"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "cortetsu/tests/qml/hardware",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.08,
+  "skip_lines": [],
+  "tail": [
+   "********* Finished testing of qmltestrunner *********"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "cortetsu/tests/qml/keyboards",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.06,
+  "skip_lines": [],
+  "tail": [
+   "********* Finished testing of qmltestrunner *********"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "cortetsu/tests/qml/settings",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.04,
+  "skip_lines": [],
+  "tail": [
+   "********* Finished testing of qmltestrunner *********"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "cortetsu/tests/qml/surfaces",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.17,
+  "skip_lines": [],
+  "tail": [
+   "********* Finished testing of qmltestrunner *********"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "cortetsu/tests/qml/calendar",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.08,
+  "skip_lines": [],
+  "tail": [
+   "********* Finished testing of qmltestrunner *********"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "cortetsu/tests/qml/pomodoro",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.05,
+  "skip_lines": [],
+  "tail": [
+   "********* Finished testing of qmltestrunner *********"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "cortetsu/modules/wallpaper/tests",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.05,
+  "skip_lines": [],
+  "tail": [
+   "********* Finished testing of qmltestrunner *********"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "cortetsu/tests/qml/bottomhub",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.13,
+  "skip_lines": [],
+  "tail": [
+   "********* Finished testing of qmltestrunner *********"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "cortetsu/tests/qml/bottomhub/fixture_ScriptModelIdentity.qml",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.17,
+  "skip_lines": [],
+  "tail": [
+   " DEBUG qml: SCRIPT_MODEL_IDENTITY_PASS created=2 destroyed=0 data=updated"
+  ],
+  "real_session_changed": false
+ },
+ {
+  "test": "cortetsu/StartupPageFixture.qml",
+  "result": "PASS",
+  "rc": 0,
+  "seconds": 0.39,
+  "skip_lines": [],
+  "tail": [
+   " DEBUG qml: STARTUP_PAGE_PASS search=1 source-filter=1 state-filter=1 stop-confirmation=1"
+  ],
+  "real_session_changed": false
+ }
+]

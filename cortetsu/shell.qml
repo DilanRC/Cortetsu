@@ -10,6 +10,7 @@ import "modules/drawers"
 import "modules/background"
 import "modules/areapicker"
 import "modules/lock"
+import "modules/pomodoro"
 import "services"
 
 ShellRoot {
@@ -20,6 +21,8 @@ ShellRoot {
     readonly property var wallpaperController: WallpaperController
     // Owns the active scheme and feeds it to the design tokens from startup.
     readonly property var colours: CortetsuColours
+    // Owns the Pomodoro daemon and its phase-end toasts from startup.
+    readonly property var pomodoro: Pomodoro
     // Restores a saved display colour filter at start.
     readonly property var displayCalibration: DisplayCalibration
     Binding { target: ShellState; property: "shellRoot"; value: root }

@@ -63,7 +63,7 @@ TestCase {
         compare(Surfaces.transient.slice().sort(), transientPanels.concat(["osd"]).sort());
         compare(Surfaces.exclusive.slice().sort(), transientPanels.concat(retainedSurfaces).sort());
         compare(Surfaces.keyboardOwners.slice().sort(), ["launcher", "session"].concat(retainedSurfaces).sort());
-        compare(Surfaces.ipcExclusive.slice().sort(), ["dashboard", "launcher", "session", "settings", "utilities"]);
+        compare(Surfaces.fullscreenGuarded.slice().sort(), ["dashboard", "launcher", "osd", "session", "settings", "sidebar", "utilities"]);
         verify(Surfaces.competingWithWallpaper.indexOf("wallpaperManager") < 0);
         compare(Surfaces.competingWithWallpaper.length, Surfaces.exclusive.length - 1);
         for (const flag of Surfaces.names)
@@ -146,29 +146,32 @@ TestCase {
         compare(spy.writes, Surfaces.exclusive.map(flag => flag + "=false"));
         verify(spy.launcher && spy.overview, "the policy wrote around setFlag");
         spy.writes = [];
-        CortetsuOverlayPolicy.closeRetained({ cortetsuState: spy });
-        compare(spy.writes, Surfaces.retained.map(flag => flag + "=false"));
+        CortetsuOverlayPolicy.closeExclusiveEverywhere([{ cortetsuState: spy }]);
+        compare(spy.writes, Surfaces.exclusive.map(flag => flag + "=false"));
+        spy.writes = [];
+        CortetsuOverlayPolicy.open([{ cortetsuState: spy }], { cortetsuState: spy }, "hardware");
+        compare(spy.writes, Surfaces.exclusive.map(flag => flag + "=false").concat(["hardware=true"]));
     }
 
     function test_open_exclusive_is_idempotent() {
         screenA.launcher = true;
         screenA.hardware = true;
         screenA.osd = true;
-        verify(CortetsuOverlayPolicy.openExclusive(screenA, "calendar"));
+        verify(CortetsuOverlayPolicy.open([screenA], screenA, "calendar"));
         compare(openFlags(screenA).sort(), ["calendar", "osd"]);
-        verify(CortetsuOverlayPolicy.openExclusive(screenA, "calendar"));
+        verify(CortetsuOverlayPolicy.open([screenA], screenA, "calendar"));
         compare(openFlags(screenA).sort(), ["calendar", "osd"]);
-        verify(!CortetsuOverlayPolicy.openExclusive(screenA, "launcher"));
-        verify(!CortetsuOverlayPolicy.openExclusive(screenA, "bogus"));
+        verify(!CortetsuOverlayPolicy.open([screenA], screenA, "bar"));
+        verify(!CortetsuOverlayPolicy.open([screenA], screenA, "bogus"));
         compare(openFlags(screenA).sort(), ["calendar", "osd"]);
     }
 
     function test_close_and_reopen_cycles_leave_nothing_retained() {
         for (let cycle = 0; cycle < 40; ++cycle) {
             for (const flag of retainedSurfaces) {
-                verify(CortetsuOverlayPolicy.openExclusive(screenA, flag));
+                verify(CortetsuOverlayPolicy.open([screenA, screenB], screenA, flag));
                 compare(openFlags(screenA), [flag]);
-                verify(CortetsuOverlayPolicy.retainedOverlayOpen(screenA));
+                verify(screenA.cortetsuState.retainedOverlayOpen);
             }
             screenA.cortetsuState.closeRetainedOverlays();
             verify(!screenA.cortetsuState.retainedOverlayOpen);
@@ -181,22 +184,26 @@ TestCase {
         for (const flag of retainedSurfaces)
             screenA[flag] = true;
         screenA.launcher = true;
-        verify(CortetsuOverlayPolicy.closeOtherRetained(screenA, "clipboard"));
+        screenA.cortetsuState.closeRetainedOverlaysExcept("clipboard");
         compare(openFlags(screenA).sort(), ["clipboard", "launcher"]);
-        verify(!CortetsuOverlayPolicy.closeOtherRetained(screenA, "launcher"));
         screenA.hardware = true;
         screenA.cortetsuState.closeRetainedOverlaysExcept("hardware");
         compare(openFlags(screenA).sort(), ["hardware", "launcher"]);
     }
 
+    // Per-screen state stays per screen: closing the retained group of one
+    // screen (Escape, fullscreen) leaves the other alone. Opening goes through
+    // CortetsuOverlayPolicy.open, which is exclusive across screens
+    // (tst_OverlayTransitions).
     function test_screens_are_independent() {
         screenB.hardware = true;
         screenB.sidebar = true;
-        CortetsuOverlayPolicy.openExclusive(screenA, "overview");
+        screenA.overview = true;
         compare(openFlags(screenB).sort(), ["hardware", "sidebar"]);
         verify(screenB.cortetsuState.retainedOverlayOpen);
         screenA.cortetsuState.closeRetainedOverlays();
         verify(screenB.cortetsuState.hardware);
+        verify(!screenA.overview);
     }
 
     function test_plain_objects_keep_direct_writes() {

@@ -1,0 +1,4 @@
+{"helper": "main:cortetsu/bin/cortetsu-pomodoro", "phase": "idle", "seconds": 60.0, "wakeups": 120, "cpu_ms": 50.0, "rss_kib": 13824}
+{"helper": "main:cortetsu/bin/cortetsu-pomodoro", "phase": "focus", "seconds": 60.0, "wakeups": 120, "cpu_ms": 50.0, "rss_kib": 13848}
+{"helper": "cortetsu/bin/cortetsu-pomodoro", "phase": "idle", "seconds": 60.0, "wakeups": 0, "cpu_ms": 0.0, "rss_kib": 14128}
+{"helper": "cortetsu/bin/cortetsu-pomodoro", "phase": "focus", "seconds": 60.0, "wakeups": 0, "cpu_ms": 0.0, "rss_kib": 14156}

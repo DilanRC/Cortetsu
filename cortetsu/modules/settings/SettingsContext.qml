@@ -6,6 +6,7 @@ import Quickshell.Io
 import ".."
 import "../../services"
 import "../launcher/services"
+import "../CortetsuOverlayPolicy.js" as OverlayPolicy
 
 // What every Settings page reads: the live state of each domain, one line
 // that sums it up for the Nexus, and whether it needs attention. The
@@ -126,21 +127,10 @@ QtObject {
         return qsTr("%1 h %2 min").arg(Math.floor(minutes / 60)).arg(minutes % 60);
     }
 
-    // Leaves Settings and opens another surface on the same screen.
+    // Leaves Settings and opens another surface on the same screen, with the
+    // same exclusivity as its shortcut (CortetsuOverlayPolicy.open).
     function openSurface(flag: string): void {
         root.screenState.settings = false;
-        Qt.callLater(() => {
-            if (flag === "wallpaperManager") {
-                WallpaperController.open(root.screen);
-                return;
-            }
-            // The launcher is a drawer of this screen, not a retained surface.
-            if (flag === "launcher") {
-                root.screenState.launcher = true;
-                return;
-            }
-            root.screenState.cortetsuState?.closeRetainedOverlaysExcept(flag);
-            root.screenState.cortetsuState?.setRetained(flag, true);
-        });
+        Qt.callLater(() => OverlayPolicy.open(CortetsuShellState.allStates(), root.screenState, flag));
     }
 }

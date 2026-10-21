@@ -23,6 +23,10 @@ QtObject {
     readonly property bool requiresFullInputMask: retainedOverlayOpen
     readonly property bool requiresWindowKeyboardFocus: requiresOverlayLayer
 
+    // This screen's Bottom Hub window, set by BottomHub. The retained-surfaces
+    // scrim covers the hub and asks it whether a click fell on the bell.
+    property var bottomHub: null
+
     function setFlag(flag: string, value: bool): bool {
         if (Surfaces.isRetained(flag))
             return setRetained(flag, value);

@@ -1,0 +1,28 @@
+oct 20 21:21:03.535778 stelar systemd-logind[839]: suspend requested from client PID 191491 ('systemctl') (unit user@1000.service)...
+oct 20 21:21:03.540696 stelar systemd-logind[839]: The system will suspend now!
+oct 20 21:21:04.049633 stelar suspend[191551]: nvidia-suspend.service
+oct 20 21:21:04.050060 stelar logger[191551]: <13>Oct 20 21:21:04 suspend: nvidia-suspend.service
+oct 20 21:21:04.074231 stelar systemd[1]: nvidia-suspend.service: Deactivated successfully.
+oct 20 21:21:04.083976 stelar systemd-sleep[191559]: User sessions remain unfrozen on explicit request ($SYSTEMD_SLEEP_FREEZE_USER_SESSIONS=0).
+oct 20 21:21:04.083983 stelar systemd-sleep[191559]: This is not recommended, and might result in unexpected behavior, particularly
+oct 20 21:21:04.083987 stelar systemd-sleep[191559]: in suspend-then-hibernate operations or setups with encrypted home directories.
+oct 20 21:21:04.086873 stelar systemd-sleep[191559]: Performing sleep operation 'suspend'...
+oct 20 21:21:16.360802 stelar systemd-sleep[191559]: System returned from sleep operation 'suspend'.
+oct 20 21:21:16.364852 stelar systemd-logind[839]: Operation 'suspend' finished.
+oct 20 21:21:16.381209 stelar suspend[191717]: nvidia-resume.service
+oct 20 21:21:16.381489 stelar logger[191717]: <13>Oct 20 21:21:16 suspend: nvidia-resume.service
+oct 20 21:21:16.387250 stelar systemd[1]: nvidia-resume.service: Deactivated successfully.
+oct 20 21:22:32.278948 stelar systemd-logind[839]: suspend requested from client PID 194804 ('systemctl') (unit user@1000.service)...
+oct 20 21:22:32.281000 stelar systemd-logind[839]: The system will suspend now!
+oct 20 21:22:32.705558 stelar suspend[194871]: nvidia-suspend.service
+oct 20 21:22:32.706051 stelar logger[194871]: <13>Oct 20 21:22:32 suspend: nvidia-suspend.service
+oct 20 21:22:32.715834 stelar systemd[1]: nvidia-suspend.service: Deactivated successfully.
+oct 20 21:22:32.727482 stelar systemd-sleep[194879]: User sessions remain unfrozen on explicit request ($SYSTEMD_SLEEP_FREEZE_USER_SESSIONS=0).
+oct 20 21:22:32.727490 stelar systemd-sleep[194879]: This is not recommended, and might result in unexpected behavior, particularly
+oct 20 21:22:32.727494 stelar systemd-sleep[194879]: in suspend-then-hibernate operations or setups with encrypted home directories.
+oct 20 21:22:32.729985 stelar systemd-sleep[194879]: Performing sleep operation 'suspend'...
+oct 20 21:53:48.339370 stelar systemd-sleep[194879]: System returned from sleep operation 'suspend'.
+oct 20 21:53:48.344886 stelar systemd-logind[839]: Operation 'suspend' finished.
+oct 20 21:53:48.370338 stelar suspend[195009]: nvidia-resume.service
+oct 20 21:53:48.370629 stelar logger[195009]: <13>Oct 20 21:53:48 suspend: nvidia-resume.service
+oct 20 21:53:48.377504 stelar systemd[1]: nvidia-resume.service: Deactivated successfully.

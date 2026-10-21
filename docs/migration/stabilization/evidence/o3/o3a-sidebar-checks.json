@@ -1,0 +1,136 @@
+{
+ "date": "2026-10-20T14:49:48-0600",
+ "repeats": 15,
+ "fail": 4,
+ "leftover_pids": [],
+ "runtime_dir_removed": true,
+ "rows": [
+  {
+   "result": "FAIL",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "result": "FAIL",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "result": "FAIL",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "result": "FAIL",
+   "seen": {
+    "HEADLESS-1": [],
+    "HEADLESS-2": []
+   }
+  },
+  {
+   "result": "PASS",
+   "seen": {
+    "HEADLESS-1": [
+     "sidebar"
+    ],
+    "HEADLESS-2": []
+   }
+  }
+ ]
+}

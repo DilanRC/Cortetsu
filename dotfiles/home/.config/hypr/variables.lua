@@ -95,7 +95,6 @@ return {
     kbWindowIncreaseHeight     = { "SUPER + SHIFT + Equal", "SUPER + ALT + Down" },
 
     kbMoveWindow               = "SUPER + Z",
-    kbResizeWindow             = "SUPER + X",
     kbCenterWindow             = "CTRL + SUPER + Backslash",
     kbNormalizeWindow          = "CTRL + SUPER + ALT + Backslash",
     kbWindowPip                = "SUPER + ALT + Backslash",
@@ -137,7 +136,7 @@ return {
 
     -- Misc
     kbLauncher                 = "SUPER + SUPER_L",
-    kbSession                  = "CTRL + ALT + Delete",
+    kbSession                  = { "CTRL + ALT + Delete", "SUPER + X" },
     kbShowSidebar              = "SUPER + N",
     kbFocusToast               = "SUPER + ALT + N",
     kbClearNotifs              = "CTRL + ALT + C",

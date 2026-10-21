@@ -10,6 +10,7 @@ import "../../theme"
 import "../CortetsuTypography.js" as CortetsuTypography
 import "../CortetsuWallpaperSearch.js" as WallpaperSearch
 import "OrbitModel.js" as Orbit
+import "../CortetsuOverlayPolicy.js" as OverlayPolicy
 
 FocusScope {
     id: root
@@ -304,7 +305,7 @@ FocusScope {
         cosmicPulse = false;
         screenState.cortetsuState?.setRetained("wallpaperManager", false);
         SettingsController.select("wallpaper");
-        Qt.callLater(() => root.screenState.settings = true);
+        Qt.callLater(() => OverlayPolicy.open(CortetsuShellState.allStates(), root.screenState, "settings"));
     }
 
     onCurrentPathChanged: updateHero()

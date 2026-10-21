@@ -443,9 +443,4 @@ Item {
             selected: false
         }
     }
-
-    Shortcut {
-        sequence: "Escape"
-        onActivated: root.screenState.dashboard = false
-    }
 }

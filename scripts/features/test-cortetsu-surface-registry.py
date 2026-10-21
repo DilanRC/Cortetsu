@@ -30,13 +30,14 @@ retained = registry.group("retained")
 assert len(names) == len(set(names)) == len(surfaces) == 15, names
 assert {entry["kind"] for entry in surfaces} == {"retained", "transient", "chrome"}
 for entry in surfaces:
-    assert set(entry) == {"name", "kind", "exclusive", "ownsKeyboard", "ipcExclusive"}, entry
+    assert set(entry) == {"name", "kind", "exclusive", "ownsKeyboard", "fullscreenGuard"}, entry
     if entry["kind"] == "retained":
-        assert entry["exclusive"] and entry["ownsKeyboard"] and not entry["ipcExclusive"], entry
+        assert entry["exclusive"] and entry["ownsKeyboard"] and not entry["fullscreenGuard"], entry
     if entry["kind"] == "chrome":
-        assert not (entry["exclusive"] or entry["ownsKeyboard"] or entry["ipcExclusive"]), entry
-    if entry["ipcExclusive"]:
-        assert entry["exclusive"], entry
+        assert not (entry["exclusive"] or entry["ownsKeyboard"] or entry["fullscreenGuard"]), entry
+    # Every shortcut-driven panel is guarded the same way by its shortcut and by IPC.
+    if entry["kind"] == "transient":
+        assert entry["fullscreenGuard"], entry
 # Parity with F0: OSD coexists, the bar is never part of the policy.
 osd = next(entry for entry in surfaces if entry["name"] == "osd")
 assert osd["kind"] == "transient" and not osd["exclusive"], osd
@@ -91,7 +92,33 @@ for path in sorted(list(MODULES.rglob("*.qml")) + list(MODULES.rglob("*.js")) + 
     for match in literal_list.findall(path.read_text(encoding="utf-8")):
         assert (relative, match) in allowed, f"{relative}: surface list outside the registry: {match}"
 
-# 4. The registry ships in every generation and its runtime test runs in both gates.
+# 4. One transition path: every open goes through CortetsuOverlayPolicy, so no
+#    module writes a surface flag to true itself (closing writes stay local).
+policy_users = (
+    "cortetsu/modules/RetainedSurfaceController.qml", "cortetsu/modules/OverviewController.qml",
+    "cortetsu/modules/Shortcuts.qml", "cortetsu/modules/BottomHub.qml",
+    "cortetsu/modules/settings/SettingsContext.qml", "cortetsu/modules/dashboard/Today.qml",
+)
+for relative in policy_users:
+    assert "CortetsuOverlayPolicy.js\" as OverlayPolicy" in read(relative), f"{relative} must use the policy"
+direct_open = re.compile(r"(?:setRetained|setFlag)\([^)]*,\s*true\)|\.(?:" + name_pattern + r")\s*=\s*(?:true|!)")
+allowed_direct = {
+    # Pointer peeks of the legacy drawer (hover at a screen edge, drag). A
+    # retained surface on the same screen takes the full input mask, so these
+    # cannot stack over it; a peek on another screen is not an explicit
+    # request and must not close what is open there (F1a O-4).
+    "cortetsu/modules/drawers/Interactions.qml",
+}
+for path in sorted(list(MODULES.rglob("*.qml")) + list(MODULES.rglob("*.js"))):
+    relative = path.relative_to(ROOT).as_posix()
+    if "/tests/" in relative or relative in allowed_direct or relative.endswith(("CortetsuOverlayPolicy.js", "CortetsuScreenState.qml")):
+        continue
+    found = direct_open.findall(path.read_text(encoding="utf-8"))
+    assert not found, f"{relative} opens a surface around CortetsuOverlayPolicy: {found}"
+for controller in ("Calendar", "Clipboard", "Display", "Hardware", "Keyboards", "Wallpaper"):
+    assert "RetainedSurfaceController {" in read(f"cortetsu/modules/{controller}Controller.qml"), controller
+
+# 5. The registry ships in every generation and its runtime test runs in both gates.
 build = read("cortetsu/bin/build-runtime.sh")
 cli = read("scripts/cortetsu")
 assert "modules/SurfaceRegistry.js" in build

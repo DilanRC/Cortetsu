@@ -31,10 +31,26 @@ $XDG_CONFIG_HOME/cortetsu/calendar-selection.json
 $XDG_CACHE_HOME/cortetsu/calendar-events.json
 ```
 
+## Arquitectura en el shell
+
+| Pieza | Responsabilidad |
+|---|---|
+| `modules/calendar/CalendarService.qml` (singleton) | caché de eventos, selección de calendarios y el único proceso de sincronización; pide una sincronización cuando el Calendario se abre en cualquier pantalla |
+| `modules/calendar/CalendarModel.js` | reglas de fecha puras: rejilla del mes (lunes primero), eventos por día en una pasada, fin exclusivo de los eventos de día completo |
+| `modules/calendar/Content.qml`, `PomodoroCard.qml` | presentación; `SystemClock` por minutos solo con el panel abierto para que «hoy» cambie a medianoche |
+| `modules/pomodoro/Pomodoro.qml` (singleton) | estado leído del archivo del helper, órdenes, el daemon y el aviso de fin de fase |
+| `modules/pomodoro/PomodoroModel.js` | lo que se muestra: tiempo restante, progreso, botón principal y si un aviso es nuevo |
+| `modules/dashboard/Today.qml`, `Focus.qml` | tarjetas del Dashboard sobre los mismos servicios |
+
+Hay una instancia de cada servicio por shell. Antes, cada vista (dos por pantalla, contando una copia oculta en
+la ventana de cajones) tenía su propia caché, su proceso de sincronización y su copia de la máquina de estados de
+Pomodoro, y releía los archivos con `text()` tras `fileChanged` sin `reload()`, así que no veía los cambios.
+
 ## Focus/Pomodoro
 
 ```text
-$XDG_STATE_HOME/cortetsu/pomodoro.json
+$XDG_STATE_HOME/cortetsu/pomodoro.json                 estado (schema 2, sin cambios de formato)
+$XDG_STATE_HOME/cortetsu/pomodoro-notification.json    último aviso de fin de fase
 ```
 
 Ciclo predeterminado:
@@ -45,7 +61,26 @@ cada 4 sesiones -> 15 min LONG_BREAK
 BREAK/LONG_BREAK -> FOCUS
 ```
 
-Pausa, reanudación, reinicio y salto sobreviven al reinicio del shell. El cálculo por timestamps conserva el tiempo correcto tras suspensión. Locks separados protegen el singleton y las escrituras atómicas.
+Contrato de `cortetsu-pomodoro`:
+
+- `status|start|pause|resume|skip|reset` imprimen el estado en JSON; solo escriben el archivo si cambia.
+- El helper es el único que calcula transiciones. Una fase termina en un instante de reloj de pared
+  (`targetEndTimestamp`, segundos UTC), así que el tiempo sobrevive a reinicios del shell y a la suspensión, y un
+  cambio de zona horaria no lo mueve. La fase siguiente empieza cuando se detecta el final (tras suspender, al
+  despertar).
+- Si el reloj retrocede, a una fase nunca le queda más que su duración completa. Si avanza, la fase termina antes:
+  con reloj de pared no hay forma de distinguirlo de una suspensión.
+- Cada fin de fase pasa por `settle()`, con el lock del estado: quien lo detecta primero (daemon u orden) guarda la
+  fase nueva y escribe un único aviso. Antes solo el daemon avisaba y una orden en el instante del final lo perdía.
+- `reset` reinicia el ciclo y conserva `focusMinutes`, `shortBreakMinutes`, `longBreakMinutes` y
+  `sessionsBeforeLongBreak` (antes los borraba).
+- Un estado en fase activa sin `targetEndTimestamp` se recupera como `IDLE`.
+- `daemon`: un solo daemon por usuario (lock). Espera con un `timerfd` de `CLOCK_REALTIME` hasta el final de la
+  fase, sin despertar en reposo; las órdenes lo despiertan con `SIGUSR1` y un cambio de reloj lo reevalúa. Antes
+  leía el archivo cada 0,5 s para siempre (en una sesión real: 118 827 despertares y 58 s de CPU en 16,5 h).
+- Escrituras atómicas con `fsync`, modo `0600`.
+
+El shell muestra un aviso por cada fin de fase escrito después de arrancar; uno anterior no se repite al recargar.
 
 ## Pruebas
 
@@ -54,5 +89,8 @@ cortetsu-calendar disconnect
 bash cortetsu/tests/test-calendar-readonly.sh
 python3 cortetsu/tests/test-calendar-credentials.py
 python3 cortetsu/tests/test-calendar-polish.py
-python3 cortetsu/tests/test-pomodoro.py
+python3 cortetsu/tests/test-pomodoro.py                          # helper y daemon, reloj simulado, estado privado
+python3 cortetsu/tests/test-calendar-pomodoro-services.py        # servicios reales en Quickshell, HOME privado
+QT_QPA_PLATFORM=offscreen qmltestrunner -input cortetsu/tests/qml/calendar
+QT_QPA_PLATFORM=offscreen qmltestrunner -input cortetsu/tests/qml/pomodoro
 ```

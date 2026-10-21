@@ -32,7 +32,7 @@ hub = (repo / "cortetsu/modules/BottomHub.qml").read_text(encoding="utf-8")
 for flag in ("overview", "calendar", "clipboard", "hardware", "displayManager", "wallpaperManager", "keyboards"):
     assert f"property bool {flag}" in state, flag
     assert flag in surface_registry.group("retained"), flag
-assert "const retainedFlags = Surfaces.retained;" in policy
+assert "Surfaces.isRetained(flag)" in policy
 # The derived input flags have one definition, in the typed state. The copy
 # ScreenState kept had no reader and disagreed about settings.
 for derived in ("retainedOverlayOpen", "requiresOverlayLayer", "requiresFullInputMask", "requiresWindowKeyboardFocus"):
@@ -45,9 +45,14 @@ assert "function setRetained(flag: string, value: bool): bool" in state
 assert "function resetTransientState(): void" in screen_component
 assert "root.resetTransientState();" in screen_component
 assert "for (const flag of Surfaces.names)" in screen_component
-assert "function openExclusive" in policy
-assert "function isRetainedFlag(flag)" in policy
-assert "function closeOtherRetained(state, exceptFlag)" in policy
+# One multi-screen transition API for every caller (stabilization O-1/O-2).
+for signature in ("function open(states, target, flag)", "function close(states, flag)",
+                  "function toggle(states, target, flag)", "function toggleOn(states, target, flag)",
+                  "function toggleGuarded(states, target, flag, fullscreen)",
+                  "function closeExclusiveEverywhere(states)", "function isRetainedFlag(flag)"):
+    assert signature in policy, signature
+assert "function openExclusive" not in policy and "function closeOtherRetained" not in policy
+assert "function allStates(): var" in shell_state
 assert "Geometry" in policy and "popouts" in policy and "wallpaper side effects" in policy
 assert 'import "../modules"' in screen_component
 assert "import QtQml" in screen_component
@@ -101,26 +106,25 @@ assert "CortetsuShellState.forActive()" not in retained_host
 assert "Qt.alpha(CortetsuDesign.colorSumi, 0.34)" in retained_host
 assert "visible: window.surfaceOpen && !window.screenState?.cortetsuState?.overview" in retained_host
 
-assert "cortetsuState" in calendar
-assert 'state.setRetained("calendar", false)' in calendar
-assert 'state.setRetained("calendar", true)' in calendar
-assert "OverlayPolicy.closeOtherPanels(state)" in calendar
-assert "CortetsuShellState.forScreen(screen)?.calendar" not in calendar
-assert "cortetsuState" in clipboard
-assert 'state.setRetained("clipboard", false)' in clipboard
-assert 'state.setRetained("clipboard", true)' in clipboard
-assert "CortetsuShellState.forActive()?.cortetsuState" in clipboard
-assert "OverlayPolicy.closeOtherPanels(CortetsuShellState.forScreen(screen)?.cortetsuState)" in clipboard
-assert "CortetsuShellState.forScreen(screen)?.clipboard" not in clipboard
+shared = (repo / "cortetsu/modules/RetainedSurfaceController.qml").read_text(encoding="utf-8")
+assert 'import "CortetsuOverlayPolicy.js" as OverlayPolicy' in shared
+assert "OverlayPolicy.open(CortetsuShellState.allStates(), target, root.surfaceKey)" in shared
+assert "OverlayPolicy.close(CortetsuShellState.allStates(), root.surfaceKey)" in shared
+assert ".legacyState" not in shared
 for flag, controller in controllers.items():
-    assert "cortetsuState" in controller, flag
-    assert f'setRetained("{flag}"' in controller, flag
+    if flag == "overview":
+        assert 'OverlayPolicy.open(CortetsuShellState.allStates(), state, "overview")' in controller
+        assert 'OverlayPolicy.close(CortetsuShellState.allStates(), "overview")' in controller
+    else:
+        assert "RetainedSurfaceController {" in controller, flag
+        assert f'surfaceKey: "{flag}"' in controller, flag
     assert f"CortetsuShellState.forScreen(screen)?.{flag}" not in controller, flag
-    assert "OverlayPolicy.close" in controller, flag
-assert 'state.setRetained("calendar"' in hub
+    assert ".legacyState" not in controller, flag
+    assert "setRetained(" not in controller, f"{flag}: writes go through the policy"
+assert 'toggleSurfaceOn(screen, "calendar")' in hub
 assert "WallpaperController.open(screen);" in hub
 assert 'state.setRetained("wallpaperManager"' not in hub
-assert "OverlayPolicy.closeOtherPanels(state);" in hub
+assert "OverlayPolicy.closeExclusiveEverywhere(CortetsuShellState.allStates());" in hub
 assert "readonly property var cortetsuState" in hub
 for wrapper, flag in (
     ("calendar/Wrapper.qml", "calendar"),
@@ -137,7 +141,9 @@ for content_file, flag in (("calendar/Content.qml", "calendar"), ("overview/Cont
     assert f'cortetsuState?.setRetained("{flag}", false)' in content_text, content_file
 for marker in ("closeRetainedOverlays", "requiresWindowKeyboardFocus", "requiresFullInputMask", "retainedOverlayOpen"):
     assert marker in content_window_patch, marker
-assert 'state.cortetsuState?.setRetained("wallpaperManager", false)' in shortcuts
+# SUPER+N closes the Wallpaper Manager through the exclusive group.
+assert "wallpaperManager" in surface_registry.group("exclusive")
+assert 'root.toggleSurface(CortetsuShellState.forActive(), "sidebar")' in shortcuts
 assert "root.screenState?.cortetsuState?.overview ? CortetsuDesign.scrimOpacity" in scrim_patch
 for content_file, flag in (
     ("clipboard/Content.qml", "clipboard"),

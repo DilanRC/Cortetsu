@@ -1,0 +1,251 @@
+{
+ "shell": "/tmp/claude-1000/-home-dilan-Documentos-GitHub-Cortetsu/b029ed35-d3e0-4523-966f-ca8dfda69f31/scratchpad/qa/data/builds/20261020-203033-52095",
+ "start": "2026-10-20T21:03:16-0600",
+ "monitors": [
+  "eDP-1",
+  "HDMI-A-1"
+ ],
+ "checks": [
+  {
+   "t": "21:03:18",
+   "scenario": "a4",
+   "check": "fullscreen on (eDP-1)",
+   "result": "PASS",
+   "seen": null
+  },
+  {
+   "t": "21:03:19",
+   "scenario": "a4",
+   "check": "fullscreen eDP-1: sidebar by ipc does not open",
+   "result": "PASS",
+   "seen": []
+  },
+  {
+   "t": "21:03:21",
+   "scenario": "a4",
+   "check": "fullscreen eDP-1: sidebar by super+n does not open",
+   "result": "PASS",
+   "seen": []
+  },
+  {
+   "t": "21:03:22",
+   "scenario": "a4",
+   "check": "fullscreen eDP-1: sidebar by bottomhub-ipc does not open",
+   "result": "PASS",
+   "seen": []
+  },
+  {
+   "t": "21:03:22",
+   "scenario": "a4",
+   "check": "fullscreen eDP-1: drawers toggle osd is guarded",
+   "result": "PASS",
+   "seen": []
+  },
+  {
+   "t": "21:03:23",
+   "scenario": "a4",
+   "check": "fullscreen eDP-1: SUPER+H (always allowed) opens hardware",
+   "result": "PASS",
+   "seen": [
+    "hardware"
+   ]
+  },
+  {
+   "t": "21:03:24",
+   "scenario": "a4",
+   "check": "fullscreen eDP-1: closing hardware works",
+   "result": "PASS",
+   "seen": null
+  },
+  {
+   "t": "21:03:24",
+   "scenario": "a4",
+   "check": "fullscreen eDP-1: keyboard in the client",
+   "result": "PASS",
+   "seen": null
+  },
+  {
+   "t": "21:03:25",
+   "scenario": "a4",
+   "check": "fullscreen off (eDP-1)",
+   "result": "PASS",
+   "seen": null
+  },
+  {
+   "t": "21:03:29",
+   "scenario": "a4",
+   "check": "fullscreen eDP-1: sidebar open before fullscreen closes by ipc",
+   "result": "PASS",
+   "seen": {
+    "opened": true,
+    "after_fs": true,
+    "after": []
+   }
+  },
+  {
+   "t": "21:03:35",
+   "scenario": "a4",
+   "check": "fullscreen eDP-1: sidebar open before fullscreen closes by super+n",
+   "result": "PASS",
+   "seen": {
+    "opened": true,
+    "after_fs": true,
+    "after": []
+   }
+  },
+  {
+   "t": "21:03:40",
+   "scenario": "a4",
+   "check": "fullscreen eDP-1: sidebar open before fullscreen closes by bottomhub-ipc",
+   "result": "PASS",
+   "seen": {
+    "opened": true,
+    "after_fs": true,
+    "after": []
+   }
+  },
+  {
+   "t": "21:03:43",
+   "scenario": "a4",
+   "check": "osd coexists with calendar on eDP-1",
+   "result": "PASS",
+   "seen": [
+    "calendar",
+    "osd"
+   ]
+  },
+  {
+   "t": "21:03:45",
+   "scenario": "a4",
+   "check": "after A4 keyboard in client (eDP-1)",
+   "result": "PASS",
+   "seen": null
+  },
+  {
+   "t": "21:03:47",
+   "scenario": "a4",
+   "check": "fullscreen on (HDMI-A-1)",
+   "result": "PASS",
+   "seen": null
+  },
+  {
+   "t": "21:03:48",
+   "scenario": "a4",
+   "check": "fullscreen HDMI-A-1: sidebar by ipc does not open",
+   "result": "PASS",
+   "seen": []
+  },
+  {
+   "t": "21:03:50",
+   "scenario": "a4",
+   "check": "fullscreen HDMI-A-1: sidebar by super+n does not open",
+   "result": "PASS",
+   "seen": []
+  },
+  {
+   "t": "21:03:51",
+   "scenario": "a4",
+   "check": "fullscreen HDMI-A-1: sidebar by bottomhub-ipc does not open",
+   "result": "PASS",
+   "seen": []
+  },
+  {
+   "t": "21:03:52",
+   "scenario": "a4",
+   "check": "fullscreen HDMI-A-1: drawers toggle osd is guarded",
+   "result": "PASS",
+   "seen": []
+  },
+  {
+   "t": "21:03:53",
+   "scenario": "a4",
+   "check": "fullscreen HDMI-A-1: SUPER+H (always allowed) opens hardware",
+   "result": "PASS",
+   "seen": [
+    "hardware"
+   ]
+  },
+  {
+   "t": "21:03:53",
+   "scenario": "a4",
+   "check": "fullscreen HDMI-A-1: closing hardware works",
+   "result": "PASS",
+   "seen": null
+  },
+  {
+   "t": "21:03:53",
+   "scenario": "a4",
+   "check": "fullscreen HDMI-A-1: keyboard in the client",
+   "result": "PASS",
+   "seen": null
+  },
+  {
+   "t": "21:03:54",
+   "scenario": "a4",
+   "check": "fullscreen off (HDMI-A-1)",
+   "result": "PASS",
+   "seen": null
+  },
+  {
+   "t": "21:03:59",
+   "scenario": "a4",
+   "check": "fullscreen HDMI-A-1: sidebar open before fullscreen closes by ipc",
+   "result": "PASS",
+   "seen": {
+    "opened": true,
+    "after_fs": true,
+    "after": []
+   }
+  },
+  {
+   "t": "21:04:04",
+   "scenario": "a4",
+   "check": "fullscreen HDMI-A-1: sidebar open before fullscreen closes by super+n",
+   "result": "PASS",
+   "seen": {
+    "opened": true,
+    "after_fs": true,
+    "after": []
+   }
+  },
+  {
+   "t": "21:04:09",
+   "scenario": "a4",
+   "check": "fullscreen HDMI-A-1: sidebar open before fullscreen closes by bottomhub-ipc",
+   "result": "PASS",
+   "seen": {
+    "opened": true,
+    "after_fs": true,
+    "after": []
+   }
+  },
+  {
+   "t": "21:04:12",
+   "scenario": "a4",
+   "check": "osd coexists with calendar on HDMI-A-1",
+   "result": "PASS",
+   "seen": [
+    "calendar",
+    "osd"
+   ]
+  },
+  {
+   "t": "21:04:14",
+   "scenario": "a4",
+   "check": "after A4 keyboard in client (HDMI-A-1)",
+   "result": "PASS",
+   "seen": null
+  },
+  {
+   "t": "21:04:17",
+   "scenario": "final",
+   "check": "every flag closed on every screen",
+   "result": "PASS",
+   "seen": {
+    "eDP-1": [],
+    "HDMI-A-1": []
+   }
+  }
+ ],
+ "end": "2026-10-20T21:04:17-0600"
+}

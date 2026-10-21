@@ -11,7 +11,8 @@ import "../utils"
 import "launcher/services"
 import "BottomHubResolver.js" as BottomHubResolver
 import "BottomHubTray.js" as BottomHubTray
-import "OverlayPolicy.js" as OverlayPolicy
+import "CortetsuOverlayPolicy.js" as OverlayPolicy
+import "OverlayPolicy.js" as Exclusion
 import "utilities/toasts" as Toasts
 
 Scope {
@@ -50,10 +51,13 @@ Scope {
     }
 
     function closeAllPanels(): void {
-        for (const screen of CortetsuScreens.screens) {
-            const state = CortetsuShellState.forScreen(screen);
-            OverlayPolicy.closeOtherPanels(state);
-        }
+        OverlayPolicy.closeExclusiveEverywhere(CortetsuShellState.allStates());
+    }
+
+    // A Bottom Hub button acts on its own screen: the surface opens there
+    // (closing every exclusive surface, on any screen) unless it is open there.
+    function toggleSurfaceOn(screen, flag: string): bool {
+        return OverlayPolicy.toggleOn(CortetsuShellState.allStates(), CortetsuShellState.forScreen(screen), flag);
     }
 
     // A hover close leaves a Wi-Fi password being typed alone: the pointer
@@ -67,16 +71,8 @@ Scope {
     }
 
     function toggleClipboardFor(screen): void {
-        const state = CortetsuShellState.forScreen(screen)?.cortetsuState;
-        if (!state)
-            return;
-
-        const wasOpen = state.clipboard;
-        closeAllLaunchers();
-        closeAllPanels();
         closeAllPopouts();
-        if (!wasOpen)
-            state.setRetained("clipboard", true);
+        toggleSurfaceOn(screen, "clipboard");
         shown = true;
     }
 
@@ -99,89 +95,44 @@ Scope {
         setShown(!shown);
     }
 
-    Process {
-        id: calendarSync
-        command: [Paths.home + "/.local/bin/cortetsu-calendar", "sync"]
-    }
-
-    // startup inventory: cortetsu:pomodoro (always-on with Bottom Hub)
-    Process {
-        id: pomodoroOwner
-        command: [Paths.home + "/.local/bin/cortetsu-pomodoro", "daemon"]
-        running: true
-    }
-
-    Timer {
-        id: pomodoroNotificationReload
-        interval: 120
-        repeat: false
-        onTriggered: pomodoroNotification.reload()
-    }
-
-    FileView {
-        id: pomodoroNotification
-        path: `${Quickshell.env("XDG_STATE_HOME") || `${Paths.home}/.local/state`}/cortetsu/pomodoro-notification.json`
-        watchChanges: true
-        printErrors: false
-        property var consumed: 0
-        onFileChanged: pomodoroNotificationReload.restart()
-        function consumeEvent(raw): void {
-            try {
-                const event = JSON.parse(raw);
-                if (event.sequence !== consumed) {
-                    consumed = event.sequence;
-                    if (event.title && event.message)
-                        CortetsuToaster.toast(event.title, event.message, "timer");
-                }
-            } catch (_) {}
-        }
-        onLoaded: consumeEvent(text())
-        onTextChanged: consumeEvent(text())
-    }
-
+    // Opening the calendar requests its sync (CalendarService).
     function openCalendarFor(screen): void {
-        closeAllLaunchers();
-        closeAllPanels();
         closeAllPopouts();
-        const state = CortetsuShellState.forScreen(screen)?.cortetsuState;
-        if (state)
-            state.setRetained("calendar", !(state.calendar ?? false));
-        if (state?.calendar && !calendarSync.running)
-            calendarSync.running = true;
+        toggleSurfaceOn(screen, "calendar");
         shown = true;
     }
 
+    // The launcher is one effective state across screens: a toggle closes it
+    // wherever it is. Launcher visibility is independent from BottomHub
+    // visibility: opening it by its shortcut does not resurrect the bar.
     function toggleLauncherFor(screen): void {
         const state = CortetsuShellState.forScreen(screen);
         if (!state)
             return;
-
-        const wasOpen = CortetsuShellState.launcherOpenAnywhere();
-        closeAllLaunchers();
-        closeAllPanels();
-        if (!wasOpen)
-            closeAllPopouts();
-        OverlayPolicy.closeOtherPanels(state);
-        state.launcher = !wasOpen;
-        // Launcher visibility is independent from BottomHub visibility. Do
-        // not resurrect the bar when the launcher is opened by its shortcut.
+        const all = CortetsuShellState.allStates();
+        if (CortetsuShellState.launcherOpenAnywhere()) {
+            OverlayPolicy.close(all, "launcher");
+            return;
+        }
+        closeAllPopouts();
+        OverlayPolicy.open(all, state, "launcher");
     }
 
-    function toggleSidebarFor(screen): void {
+    // Notifications are a standalone surface; opening them closes every
+    // exclusive surface (quick settings included) like SUPER+N does.
+    // pressedAt: when the bell's pointer press began (0 for other paths).
+    // A press over a window that is not the focused one makes Hyprland refocus,
+    // which ends the sidebar's focus grab (closing it) and sends the same press
+    // to the bell; its click must not reopen the sidebar.
+    function toggleSidebarFor(screen, pressedAt = 0): void {
         const state = CortetsuShellState.forScreen(screen);
         if (!state)
             return;
-
-        const wasOpen = state.sidebar;
-        closeAllLaunchers();
-        closeAllPanels();
-        if (!wasOpen)
+        if (!state.sidebar && pressedAt > 0 && Math.abs(state.sidebarGrabClearedAt - pressedAt) < 250)
+            return;
+        if (!state.sidebar)
             closeAllPopouts();
-        OverlayPolicy.closeOtherPanels(state);
-        state.sidebar = !wasOpen;
-        // Notifications are a standalone surface. Quick settings are opened
-        // through their own OSD entry point.
-        state.utilities = false;
+        toggleSurfaceOn(screen, "sidebar");
         shown = true;
     }
 
@@ -190,11 +141,9 @@ Scope {
         if (!state)
             return;
 
-        closeAllLaunchers();
         closeAllPanels();
         closeAllPopouts();
-        OverlayPolicy.closeOtherPanels(state);
-        state.osd = !state.osd;
+        toggleSurfaceOn(screen, "osd");
         shown = true;
     }
 
@@ -263,6 +212,15 @@ Scope {
         function show(): void { hubRoot.setShown(true); }
         function hide(): void { hubRoot.setShown(false); }
         function isShown(): bool { return hubRoot.shown; }
+        // Read-only: the bell of the focused screen in layout coordinates
+        // ("x y width height"), so pointer tests click it like a person.
+        function notificationsButton(): string {
+            const state = CortetsuShellState.forActive();
+            const r = state?.cortetsuState?.bottomHub?.notificationsButtonRect();
+            if (!r || r.width <= 0)
+                return "";
+            return `${state.modelData.x + r.x} ${state.modelData.y + r.y} ${r.width} ${r.height}`;
+        }
         // Read-only runtime evidence for focus, lifetime and monitor ownership.
         function inspect(): string {
             return JSON.stringify(CortetsuScreens.screens.map(screen => {
@@ -296,11 +254,19 @@ Scope {
                 return;
             hubRoot.toggleLauncherFor(state.modelData);
         }
+        // Same fullscreen guard as SUPER+N and `drawers toggle`: these do not
+        // open over a fullscreen window; closing still works.
         function notifications(): void {
-            hubRoot.toggleSidebarFor(CortetsuShellState.forActive()?.modelData);
+            const state = CortetsuShellState.forActive();
+            if (CortetsuHypr.focusedFullscreen && !state?.sidebar)
+                return;
+            hubRoot.toggleSidebarFor(state?.modelData);
         }
         function quickSettings(): void {
-            hubRoot.toggleUtilitiesFor(CortetsuShellState.forActive()?.modelData);
+            const state = CortetsuShellState.forActive();
+            if (CortetsuHypr.focusedFullscreen && !state?.osd)
+                return;
+            hubRoot.toggleUtilitiesFor(state?.modelData);
         }
         function control(mode: string): bool {
             const allowed = ["activewindow", "audio", "network", "bluetooth", "battery", "kblayout", "lockstatus", "winfo"];
@@ -377,7 +343,7 @@ Scope {
                 || (cortetsuState?.calendar ?? false)
             // Attached popouts live outside the screen-state flags, so the
             // exclusivity policy closes them from here when a full surface opens.
-            readonly property bool fullSurfaceOpen: OverlayPolicy.hasCompetingPanel(screenState)
+            readonly property bool fullSurfaceOpen: Exclusion.hasCompetingPanel(screenState)
                 || (cortetsuState?.wallpaperManager ?? false)
             onFullSurfaceOpenChanged: if (fullSurfaceOpen) hubRoot.closeAllPopouts()
             readonly property int hubMargin: 8
@@ -680,17 +646,41 @@ Scope {
                     item.scroll(delta, horizontal);
             }
 
+            // The bell in screen coordinates. The surface is anchored only at
+            // the bottom, so layer shell centres it horizontally.
+            function notificationsButtonRect(): rect {
+                const bell = bottomHubView.notificationsButton;
+                if (!visible || !hubRoot.shown || !bell?.visible)
+                    return Qt.rect(0, 0, 0, 0);
+                const p = bell.mapToItem(contentItem, 0, 0);
+                return Qt.rect(Math.round((modelData.width - width) / 2) + p.x,
+                    modelData.height - margins.bottom - height + p.y, bell.width, bell.height);
+            }
+
+            function notificationsButtonContains(x: real, y: real): bool {
+                const r = notificationsButtonRect();
+                return x >= r.x && x < r.x + r.width && y >= r.y && y < r.y + r.height;
+            }
+
+            // What the bell does, also for a click that reached it through the scrim.
+            function activateNotifications(): void {
+                hubRoot.toggleSidebarFor(win.modelData);
+            }
+
+            Binding {
+                target: win.cortetsuState
+                property: "bottomHub"
+                value: win
+                when: !!win.cortetsuState
+            }
+
             function toggleSession(): void {
                 if (!screenState)
                     return;
 
-                const wasOpen = screenState.session;
-                hubRoot.closeAllLaunchers();
-                hubRoot.closeAllPanels();
-                if (!wasOpen)
+                if (!screenState.session)
                     hubRoot.closeAllPopouts();
-                OverlayPolicy.closeOtherPanels(screenState);
-                screenState.session = !wasOpen;
+                OverlayPolicy.toggleOn(CortetsuShellState.allStates(), screenState, "session");
             }
 
             Process {
@@ -860,7 +850,7 @@ Scope {
                     else if (delta < 0)
                         CortetsuAudio.decrementVolume();
                 }
-                onNotificationsRequested: hubRoot.toggleSidebarFor(win.modelData)
+                onNotificationsRequested: hubRoot.toggleSidebarFor(win.modelData, bottomHubView.notificationsButton.pressedAt)
                 onStopRecordingRequested: CortetsuRecorder.stop()
                 onToggleDndRequested: CortetsuNotifications.dnd = !CortetsuNotifications.dnd
                 onToggleIdleInhibitorRequested: CortetsuIdleInhibitor.enabled = !CortetsuIdleInhibitor.enabled
