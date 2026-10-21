@@ -1,0 +1,12 @@
+Hyprland 0.56.2 built from branch v0.56.2 at commit efb50993780079460b0cbed1363e2166a2de1d9f clean ([gha] Nix: update inputs).
+Date: Wed Aug 5 14:13:21 2026
+Quickshell 0.3.2 (revision 4f508be500dea6e5732cc3d50382a0048b17e7b1, distributed by AUR (package: quickshell-git))
+qt6-base 6.12.0-3
+quickshell-git 0.3.2.r0.g4f508be-1
+hyprland 0.56.2-4.1
+python 3.14.8-1
+systemd 262-1
+kitty 0.49.2-1.1
+Python 3.14.8
+systemd 262 (262-1-arch)
+7.2.10-1-cachyos

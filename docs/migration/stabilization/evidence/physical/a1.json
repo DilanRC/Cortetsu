@@ -1,0 +1,169 @@
+{
+ "shell": "/tmp/claude-1000/-home-dilan-Documentos-GitHub-Cortetsu/b029ed35-d3e0-4523-966f-ca8dfda69f31/scratchpad/qa/data/builds/20261020-203033-52095",
+ "start": "2026-10-20T20:47:00-0600",
+ "monitors": [
+  "eDP-1",
+  "HDMI-A-1"
+ ],
+ "checks": [
+  {
+   "t": "20:47:03",
+   "scenario": "a1",
+   "check": "hardware@eDP-1 -> calendar@HDMI-A-1: SUPER+H opens hardware",
+   "result": "PASS",
+   "seen": {
+    "eDP-1": [
+     "hardware"
+    ],
+    "HDMI-A-1": []
+   }
+  },
+  {
+   "t": "20:47:05",
+   "scenario": "a1",
+   "check": "hardware@eDP-1 -> calendar@HDMI-A-1: hardware holds the keyboard",
+   "result": "PASS",
+   "seen": null
+  },
+  {
+   "t": "20:47:07",
+   "scenario": "a1",
+   "check": "hardware@eDP-1 -> calendar@HDMI-A-1: SUPER+SHIFT+C opens calendar",
+   "result": "PASS",
+   "seen": {
+    "eDP-1": [],
+    "HDMI-A-1": [
+     "calendar"
+    ]
+   }
+  },
+  {
+   "t": "20:47:07",
+   "scenario": "a1",
+   "check": "hardware@eDP-1 -> calendar@HDMI-A-1: hardware closed, calendar only on HDMI-A-1",
+   "result": "PASS",
+   "seen": {
+    "eDP-1": [],
+    "HDMI-A-1": [
+     "calendar"
+    ]
+   }
+  },
+  {
+   "t": "20:47:09",
+   "scenario": "a1",
+   "check": "hardware@eDP-1 -> calendar@HDMI-A-1: calendar holds the keyboard",
+   "result": "PASS",
+   "seen": null
+  },
+  {
+   "t": "20:47:11",
+   "scenario": "a1",
+   "check": "hardware@eDP-1 -> calendar@HDMI-A-1: Escape closes calendar",
+   "result": "PASS",
+   "seen": {
+    "eDP-1": [],
+    "HDMI-A-1": []
+   }
+  },
+  {
+   "t": "20:47:12",
+   "scenario": "a1",
+   "check": "hardware@eDP-1 -> calendar@HDMI-A-1: keyboard back in the client (HDMI-A-1)",
+   "result": "PASS",
+   "seen": null
+  },
+  {
+   "t": "20:47:12",
+   "scenario": "a1",
+   "check": "hardware@eDP-1 -> calendar@HDMI-A-1: keyboard back in the client (eDP-1)",
+   "result": "PASS",
+   "seen": null
+  },
+  {
+   "t": "20:47:16",
+   "scenario": "a1",
+   "check": "hardware@HDMI-A-1 -> calendar@eDP-1: SUPER+H opens hardware",
+   "result": "PASS",
+   "seen": {
+    "eDP-1": [],
+    "HDMI-A-1": [
+     "hardware"
+    ]
+   }
+  },
+  {
+   "t": "20:47:18",
+   "scenario": "a1",
+   "check": "hardware@HDMI-A-1 -> calendar@eDP-1: hardware holds the keyboard",
+   "result": "PASS",
+   "seen": null
+  },
+  {
+   "t": "20:47:20",
+   "scenario": "a1",
+   "check": "hardware@HDMI-A-1 -> calendar@eDP-1: SUPER+SHIFT+C opens calendar",
+   "result": "PASS",
+   "seen": {
+    "eDP-1": [
+     "calendar"
+    ],
+    "HDMI-A-1": []
+   }
+  },
+  {
+   "t": "20:47:20",
+   "scenario": "a1",
+   "check": "hardware@HDMI-A-1 -> calendar@eDP-1: hardware closed, calendar only on eDP-1",
+   "result": "PASS",
+   "seen": {
+    "eDP-1": [
+     "calendar"
+    ],
+    "HDMI-A-1": []
+   }
+  },
+  {
+   "t": "20:47:22",
+   "scenario": "a1",
+   "check": "hardware@HDMI-A-1 -> calendar@eDP-1: calendar holds the keyboard",
+   "result": "PASS",
+   "seen": null
+  },
+  {
+   "t": "20:47:23",
+   "scenario": "a1",
+   "check": "hardware@HDMI-A-1 -> calendar@eDP-1: Escape closes calendar",
+   "result": "PASS",
+   "seen": {
+    "eDP-1": [],
+    "HDMI-A-1": []
+   }
+  },
+  {
+   "t": "20:47:24",
+   "scenario": "a1",
+   "check": "hardware@HDMI-A-1 -> calendar@eDP-1: keyboard back in the client (eDP-1)",
+   "result": "PASS",
+   "seen": null
+  },
+  {
+   "t": "20:47:24",
+   "scenario": "a1",
+   "check": "hardware@HDMI-A-1 -> calendar@eDP-1: keyboard back in the client (HDMI-A-1)",
+   "result": "PASS",
+   "seen": null
+  },
+  {
+   "t": "20:47:27",
+   "scenario": "final",
+   "check": "every flag closed on every screen",
+   "result": "PASS",
+   "seen": {
+    "eDP-1": [],
+    "HDMI-A-1": []
+   }
+  }
+ ],
+ "end": "2026-10-20T20:47:27-0600"
+}

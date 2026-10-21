@@ -219,11 +219,16 @@ alternados en dos pares (rama→main, main→rama). `evidence/perf-table.txt`, `
 
 ## 10. Pendientes físicos y limitaciones de revisión
 
-**Pendientes físicos (no ejecutados para no perturbar la sesión):**
+**Pruebas físicas (2026-10-20, `PHYSICAL-QA.md`):**
 
-- Dos monitores reales (las pruebas usan dos salidas `HEADLESS` anidadas).
-- Suspensión y reanudación física con una fase de Pomodoro en curso. Cubierto por el diseño (`timerfd` de
-  `CLOCK_REALTIME`, que vence a su hora tras despertar) y por pruebas con reloj simulado, no por una suspensión real.
+- Dos monitores reales (eDP-1 y HDMI-A-1) con la candidata de `d6769c3`: `PHYSICAL_MULTIMONITOR_PASS`, 198
+  comprobaciones, 120 transiciones Wallpaper→Sidebar sin carrera.
+- Suspensión real con Pomodoro: `PHYSICAL_SUSPEND_POMODORO_FAIL` por la plataforma, no por la PR. Pomodoro cerró la
+  fase vencida al reanudar, con un único aviso y sin repetirlo al recargar. El HDMI (NVIDIA) quedó congelado tras
+  `s2idle`, también con el shell instalado, y se recuperó con un ciclo DPMS.
+
+**Pendientes físicos:**
+
 - Cambio real de la hora del sistema (requiere privilegios). Cubierto con reloj simulado.
 - Una semana de uso con la nueva generación instalada.
 
@@ -246,5 +251,5 @@ fixture de servicios, mutantes, suite completo en el WS 2 y construcción con ro
 nuevos; persistencia compatible; rendimiento contrastado frente a F0/F1a; sesión real sin cambios atribuibles.
 
 Reservas, todas verificables: la revisión externa está incompleta (un revisor no se ejecutó, el otro solo leyó el
-código); las pruebas con dos monitores reales y con una suspensión física siguen pendientes; el cambio de workspace
+código); la prueba física de suspensión dejó el HDMI congelado (plataforma, `PHYSICAL-QA.md` §4.4); el cambio de workspace
 del escritorio durante el suite no tiene causa determinada. El estado de la CI está en la PR.

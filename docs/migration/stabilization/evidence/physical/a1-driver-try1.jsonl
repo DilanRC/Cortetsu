@@ -1,0 +1,17 @@
+{"t": "20:35:02", "scenario": "a1", "check": "hardware@eDP-1 -> calendar@HDMI-A-1: SUPER+H opens hardware", "result": "PASS", "seen": {"eDP-1": ["hardware"], "HDMI-A-1": []}}
+{"t": "20:35:04", "scenario": "a1", "check": "hardware@eDP-1 -> calendar@HDMI-A-1: hardware holds the keyboard", "result": "PASS", "seen": null}
+{"t": "20:35:06", "scenario": "a1", "check": "hardware@eDP-1 -> calendar@HDMI-A-1: SUPER+SHIFT+C opens calendar", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["calendar"]}}
+{"t": "20:35:06", "scenario": "a1", "check": "hardware@eDP-1 -> calendar@HDMI-A-1: hardware closed, calendar only on HDMI-A-1", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["calendar"]}}
+{"t": "20:35:08", "scenario": "a1", "check": "hardware@eDP-1 -> calendar@HDMI-A-1: calendar holds the keyboard", "result": "PASS", "seen": null}
+{"t": "20:35:10", "scenario": "a1", "check": "hardware@eDP-1 -> calendar@HDMI-A-1: Escape closes calendar", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": []}}
+{"t": "20:35:10", "scenario": "a1", "check": "hardware@eDP-1 -> calendar@HDMI-A-1: keyboard back in the client (HDMI-A-1)", "result": "PASS", "seen": null}
+{"t": "20:35:14", "scenario": "a1", "check": "hardware@eDP-1 -> calendar@HDMI-A-1: keyboard back in the client (eDP-1)", "result": "FAIL", "seen": null}
+{"t": "20:35:17", "scenario": "a1", "check": "hardware@HDMI-A-1 -> calendar@eDP-1: SUPER+H opens hardware", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": ["hardware"]}}
+{"t": "20:35:19", "scenario": "a1", "check": "hardware@HDMI-A-1 -> calendar@eDP-1: hardware holds the keyboard", "result": "PASS", "seen": null}
+{"t": "20:35:21", "scenario": "a1", "check": "hardware@HDMI-A-1 -> calendar@eDP-1: SUPER+SHIFT+C opens calendar", "result": "PASS", "seen": {"eDP-1": ["calendar"], "HDMI-A-1": []}}
+{"t": "20:35:21", "scenario": "a1", "check": "hardware@HDMI-A-1 -> calendar@eDP-1: hardware closed, calendar only on eDP-1", "result": "PASS", "seen": {"eDP-1": ["calendar"], "HDMI-A-1": []}}
+{"t": "20:35:23", "scenario": "a1", "check": "hardware@HDMI-A-1 -> calendar@eDP-1: calendar holds the keyboard", "result": "PASS", "seen": null}
+{"t": "20:35:25", "scenario": "a1", "check": "hardware@HDMI-A-1 -> calendar@eDP-1: Escape closes calendar", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": []}}
+{"t": "20:35:26", "scenario": "a1", "check": "hardware@HDMI-A-1 -> calendar@eDP-1: keyboard back in the client (eDP-1)", "result": "PASS", "seen": null}
+{"t": "20:35:29", "scenario": "a1", "check": "hardware@HDMI-A-1 -> calendar@eDP-1: keyboard back in the client (HDMI-A-1)", "result": "FAIL", "seen": null}
+{"t": "20:35:32", "scenario": "final", "check": "every flag closed on every screen", "result": "PASS", "seen": {"eDP-1": [], "HDMI-A-1": []}}
