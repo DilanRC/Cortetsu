@@ -13,7 +13,10 @@ the real Hyprland with two physical monitors instead of the nested harness:
   ever lands in a personal window.
 
 Scenarios: a1 (calendar exclusivity), a2 (exclusivity across surfaces),
-a3 (sidebar paths over Hardware/Wallpaper, REPEAT_O3 times), a4 (fullscreen).
+a3 (sidebar paths over Hardware/Wallpaper, REPEAT_O3 times), a4 (fullscreen),
+b1 (one physical click on the Bottom Hub bell through the retained scrim;
+clicks are uinput button events from ydotool at the bell that the shell
+reports through `bottomHub notificationsButton`).
 """
 from __future__ import annotations
 
@@ -252,6 +255,83 @@ class QA:
 
     def other(self, monitor: str) -> str:
         return self.ext if monitor == self.int else self.int
+
+    # B1 ----------------------------------------------------------------
+    def bell(self, monitor: str) -> tuple[int, int]:
+        self.focus(monitor)
+        x, y, w, h = map(float, ipc("bottomHub", "notificationsButton").split())
+        return int(x + w / 2), int(y + h / 2)
+
+    def click(self, point: tuple[int, int]) -> None:
+        dispatch(f"hl.dsp.cursor.move({{ x = {point[0]}, y = {point[1]} }})")
+        time.sleep(0.15)
+        done = run("ydotool", "click", "0xC0")
+        assert done.returncode == 0, f"ydotool failed: {done.stderr.strip()}"
+        time.sleep(0.6)  # O-3: a cleared grab closed the sidebar 20-40 ms after opening
+
+    def sidebar_screens(self) -> list[str]:
+        """Read without moving focus (flags() focuses every monitor)."""
+        return [r["screen"] for r in json.loads(ipc("bottomHub", "inspect") or "[]") if r["sidebar"]]
+
+    def b1(self) -> None:
+        for monitor, other in self.both():
+            point = self.bell(monitor)
+            self.check(f"{monitor}: bell at {point}", True, point)
+            closed = {monitor: [], other: []}
+            for target in ("hardware", "wallpapermanager", "clipboard", "display", "keyboards", "calendar"):
+                self.reset()
+                self.open(target, monitor)
+                self.click(point)
+                flags = self.flags()
+                self.check(f"{target}@{monitor}: one click on the bell leaves only the sidebar",
+                           flags == {monitor: ["sidebar"], other: []}, flags)
+                self.click(point)
+                self.check(f"{target}@{monitor}: a second click closes it", wait(lambda: self.flags() == closed),
+                           self.flags())
+                self.check(f"{target}@{monitor}: keyboard back in the client", self.key_reaches_client(monitor, True))
+            m = self.mons[monitor]
+            self.reset()
+            self.open("hardware", monitor)
+            self.click((m["x"] + 12, m["y"] + m["height"] // 2))
+            self.check(f"hardware@{monitor}: a click elsewhere on the scrim only dismisses", self.flags() == closed,
+                       self.flags())
+            self.open("hardware", monitor)
+            self.click((m["x"] + m["width"] // 2, m["y"] + m["height"] // 2))
+            self.check(f"hardware@{monitor}: a click on the panel keeps it open",
+                       self.flags() == {monitor: ["hardware"], other: []}, self.flags())
+            self.reset()
+            self.open("hardware", monitor)
+            self.focus(monitor)
+            ipc("drawers", "toggle", "osd")
+            self.click(point)
+            flags = self.flags()
+            self.check(f"hardware+osd@{monitor}: the bell leaves the sidebar, hardware closed",
+                       "sidebar" in flags[monitor] and "hardware" not in flags[monitor], flags)
+            # Escape after a bell click: observed, not a contract (nested: no).
+            self.reset()
+            self.click(point)
+            opened = self.sidebar_screens() == [monitor]
+            run("ydotool", "key", "-d", "30", "1:1", "1:0")
+            time.sleep(0.5)
+            row = {"opened": opened, "escape_closes": self.sidebar_screens() == []}
+            self.checks.append({"t": time.strftime("%T"), "scenario": self.scenario, "result": "INFO",
+                                "check": f"{monitor}: Escape after a bell click", "seen": row})
+            # Fullscreen: SUPER+H still opens Hardware; the bell spot must not open the sidebar.
+            self.reset()
+            self.fullscreen(monitor, True)
+            self.focus(monitor)
+            keys("super", "h")
+            opened = wait(lambda: self.is_open("hardware"))
+            self.click(point)
+            seen = self.sidebar_screens()
+            self.check(f"fullscreen {monitor}: hardware open, bell-spot click does not open the sidebar",
+                       opened and monitor not in seen, {"hardware": opened, "sidebar": seen})
+            if monitor in seen:
+                self.focus(monitor)
+                ipc("drawers", "toggle", "sidebar")
+            self.reset()
+            self.fullscreen(monitor, False)
+            self.check(f"after B1 keyboard in client ({monitor})", self.key_reaches_client(monitor, True))
 
     # A4 ----------------------------------------------------------------
     def fullscreen(self, monitor: str, on: bool) -> bool:

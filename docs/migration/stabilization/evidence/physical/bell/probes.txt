@@ -1,0 +1,11 @@
+Second click on the bell and scrim clicks, physical session 2026-10-20/21.
+probe(): bell click, bell click; bell click, flags() (focuses the sinks), bell click; Hardware + click at (x+12, mid); Hardware + click at (x+200, y+200).
+branch 22f2266:      eDP-1 second click closes: no / no; scrim clicks close: yes / yes.  HDMI-A-1 second click closes: yes / yes; scrim clicks close: no / no
+installed 71e13b4:   eDP-1 second click closes: no / no; scrim clicks close: yes / yes.  HDMI-A-1 second click closes: yes / yes; scrim clicks close: yes / yes
+Instrumented branch (console.warn in the scrim forwarder and in Hardware's outside MouseArea), 3 lost HDMI clicks: no press reached the retained-surfaces window (eDP-1: press, accepted=false, Hardware press and click, closed).
+HDMI scrim click at (200,200) with a 1 px uinput motion before the click, lost clicks:
+round 1 63bb651: lost 6 / 10
+round 1 branch: lost 3 / 10
+round 2 63bb651: lost 4 / 10
+round 2 branch: lost 6 / 10
+installed 71e13b4: lost 4 / 10
