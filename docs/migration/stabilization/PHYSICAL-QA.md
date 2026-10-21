@@ -6,7 +6,7 @@ Evidencia: `evidence/physical/`. Driver: `tools/physical_qa.py`.
 | Prueba | Resultado |
 |---|---|
 | Multimonitor físico | **`PHYSICAL_MULTIMONITOR_PASS`** |
-| Suspensión con Pomodoro | **`PHYSICAL_SUSPEND_POMODORO_FAIL`**: Pomodoro cumplió los 10 puntos; falló «ambas pantallas vuelven a funcionar» (el HDMI quedó congelado tras reanudar, también con el shell instalado; §4.4) |
+| Suspensión con Pomodoro | **`PHYSICAL_SUSPEND_POMODORO_FAIL`**: los puntos de Pomodoro (5, 6, 8, 10 y la escritura y lectura únicas del aviso, 7) pasaron; falló «ambas pantallas vuelven a funcionar» (el HDMI quedó congelado tras reanudar, también con el shell instalado; §4.4) |
 
 ## 1. Entorno
 
@@ -118,11 +118,16 @@ Pomodoro sobrevivió a la suspensión real.
 ### 4.4 HDMI congelado tras reanudar
 
 Tras el intento 2, `grim -o HDMI-A-1` se colgaba (eDP-1 funcionaba), y Dilan confirmó que el HDMI estaba congelado.
-Hyprland lo seguía dando activo y con DPMS encendido. Ocurrió igual con el shell instalado, restaurado después, y el
-journal solo muestra el aviso habitual de nvidia-modeset sobre el reloj de píxel HDMI. Un ciclo
-`hl.dsp.dpms({ action = "off" })` / `"on"` lo recuperó (grim y la imagen, confirmado por Dilan). El QML no gestiona
-salidas DRM: es un fallo de la plataforma (Hyprland 0.56.2 / NVIDIA 615.78 tras `s2idle`), no de la PR. No se sabe si
-el intento 1 lo produjo también.
+Hyprland lo seguía dando activo y con DPMS encendido. Ocurrió igual con el shell instalado, restaurado después. Un
+ciclo `hl.dsp.dpms({ action = "off" })` / `"on"` lo recuperó (grim y la imagen, confirmado por Dilan). El QML no
+gestiona salidas DRM: es una incidencia de la plataforma (Hyprland 0.56.2 / NVIDIA 615.78 tras `s2idle`), no de la PR,
+con causa no determinada. No se sabe si el intento 1 lo produjo también.
+
+Corrección posterior (2026-10-20, 22:55): esta sección decía que el journal solo mostraba el aviso de nvidia-modeset
+sobre el reloj de píxel. También hay un `*ERROR*` de `nvidia-drm` («Failed to register auto-value-update … sync FD
+semaphore surface») en cada suspensión, y el log de Hyprland tiene 83 206 commits atómicos fallidos hasta el ciclo
+DPMS y ninguno después. Análisis, hipótesis no demostradas y pasos pendientes en **`HDMI-S2IDLE.md`**; evidencia en
+`evidence/physical/hdmi/`.
 
 ## 5. Restauración
 
@@ -148,5 +153,7 @@ el intento 1 lo produjo también.
 
 ## 7. ¿Bloquea la fusión?
 
-Nada de la PR. Pendiente de decidir aparte: el congelado del HDMI tras `s2idle` (plataforma) y el clic de Bottom Hub
-detrás del scrim (diseño previo).
+Nada de la PR. El resultado de la prueba integral sigue siendo `PHYSICAL_SUSPEND_POMODORO_FAIL`; los puntos de
+Pomodoro de 4.3 (5, 6, 8 y 10, y en el 7 la escritura y la lectura únicas del aviso) son PASS; la visibilidad del aviso
+tras reanudar no se verificó. El congelado del HDMI tras `s2idle` es una incidencia de plataforma aparte
+(`HDMI-S2IDLE.md`). El clic de Bottom Hub detrás del scrim se resolvió después en la PR (`README.md` §12).

@@ -73,6 +73,32 @@ pointer peeks (`drawers/Interactions.qml`, F1a O-4) still write their own
 flags, since a retained surface on the same screen takes the full input mask
 and a hover on another screen must not close it.
 
+### The Bottom Hub bell through the retained scrim
+
+The retained-surfaces window sits on the Overlay layer with a full input mask
+while a surface is open, so it covers Bottom Hub (Top layer). A click on the
+bell used to land on the surface's outside-click area: it dismissed the
+surface, and a second click opened the sidebar. The scrim now forwards that
+one click: a full-window `MouseArea` above the surfaces accepts a press only
+when
+
+- the point is on the bell (`CortetsuScreenState.bottomHub` is this screen's
+  hub window; `notificationsButtonContains` maps the bell to screen
+  coordinates),
+- only full-window layers cover it (`ScrimHit.backdropOnly`: any panel over
+  the bell keeps its click, e.g. Wallpaper's at 720p),
+- Overview is not open (it has no scrim), and
+- Keyboards is not recording or writing (`dismissBlocked`, the same guard as
+  its own outside click).
+
+The click then runs the bell's action (`activateNotifications`, a `toggleOn`
+of the sidebar), so the result is the one SUPER+N and `bottomHub
+notifications` give. Every other press is rejected and reaches the surface as
+before. Masks, layers and keyboard modes do not change, and the OSD keeps
+coexisting. `bottomHub notificationsButton` (IPC, read-only) gives the bell's
+rectangle in layout coordinates for pointer tests
+(`docs/migration/stabilization/tools/stab_contracts.py`, scenario `bell`).
+
 ## Migrated consumers
 
 `CalendarController`, `ClipboardController`, `HardwareController`,

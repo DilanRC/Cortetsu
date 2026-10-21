@@ -1,0 +1,42 @@
+BOOT_IMAGE=/@/boot/vmlinuz-linux-cachyos root=UUID=<omitido> rw rootflags=subvol=@ nowatchdog nvme_load=YES quiet splash loglevel=3 rd.udev.log_level=3 udev.log_priority=3 systemd.show_status=false rd.systemd.show_status=false vt.global_cursor_default=0
+
+mem_sleep: [s2idle]
+NVRM version: NVIDIA UNIX Open Kernel Module for x86_64  615.78.08  Release Build  (notroot@)  Wed Oct 14 07:25:17 UTC 2026
+PreserveVideoMemoryAllocations: 1
+EnableS0ixPowerManagement: 0
+DynamicPowerManagement: 2
+TemporaryFilePath: ""
+modprobe.d/nvidia.conf:
+# Override /usr/lib/modprobe.d/nvidia.conf for NVIDIA 610.
+# NVreg_UsePageAttributeTable is rejected by this driver and logs an
+# "unknown parameter" warning on every boot.
+options nvidia NVreg_InitializeSystemMemoryAllocations=0 NVreg_DynamicPowerManagement=0x02
+nvidia-suspend.service: enabled
+nvidia-resume.service: enabled
+nvidia-hibernate.service: enabled
+nvidia-suspend-then-hibernate.service: disabled
+linux-cachyos 7.2.10-1
+linux-cachyos-nvidia-open 7.2.10-1
+nvidia-utils 615.78.08-2
+hyprland 0.56.2-4.1
+aquamarine 0.15.1-1.1
+mesa 3:26.2.4-1
+[2026-10-14T23:48:13-0600] [ALPM] upgraded linux-cachyos (7.2.9-1 -> 7.2.10-1)
+[2026-10-14T23:48:19-0600] [ALPM] upgraded linux-cachyos-nvidia-open (7.2.9-1 -> 7.2.10-1)
+suspends in earlier boots (same stack since 2026-10-14):
+oct 19 00:35:05.976024 stelar kernel: PM: suspend entry (s2idle)
+oct 19 13:55:18.279609 stelar kernel: PM: suspend exit
+oct 16 03:11:38.297920 stelar kernel: PM: suspend entry (s2idle)
+oct 16 08:42:48.624482 stelar kernel: PM: suspend exit
+oct 16 09:17:26.524216 stelar kernel: PM: suspend entry (s2idle)
+oct 16 13:01:36.666136 stelar kernel: PM: suspend exit
+oct 16 15:17:20.869142 stelar kernel: PM: suspend entry (s2idle)
+oct 16 18:44:42.450870 stelar kernel: PM: suspend exit
+oct 17 07:42:51.379700 stelar kernel: PM: suspend entry (s2idle)
+oct 17 07:56:41.651375 stelar kernel: PM: suspend exit
+oct 17 08:02:49.020286 stelar kernel: PM: suspend entry (s2idle)
+oct 17 08:07:25.618008 stelar kernel: PM: suspend exit
+oct 17 10:15:28.986127 stelar kernel: PM: suspend entry (s2idle)
+oct 17 13:27:37.723390 stelar kernel: PM: suspend exit
+oct 17 21:22:58.436165 stelar kernel: PM: suspend entry (s2idle)
+oct 18 08:28:15.156960 stelar kernel: PM: suspend exit
