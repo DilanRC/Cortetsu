@@ -120,9 +120,15 @@ Scope {
 
     // Notifications are a standalone surface; opening them closes every
     // exclusive surface (quick settings included) like SUPER+N does.
-    function toggleSidebarFor(screen): void {
+    // pressedAt: when the bell's pointer press began (0 for other paths).
+    // A press over a window that is not the focused one makes Hyprland refocus,
+    // which ends the sidebar's focus grab (closing it) and sends the same press
+    // to the bell; its click must not reopen the sidebar.
+    function toggleSidebarFor(screen, pressedAt = 0): void {
         const state = CortetsuShellState.forScreen(screen);
         if (!state)
+            return;
+        if (!state.sidebar && pressedAt > 0 && Math.abs(state.sidebarGrabClearedAt - pressedAt) < 250)
             return;
         if (!state.sidebar)
             closeAllPopouts();
@@ -844,7 +850,7 @@ Scope {
                     else if (delta < 0)
                         CortetsuAudio.decrementVolume();
                 }
-                onNotificationsRequested: hubRoot.toggleSidebarFor(win.modelData)
+                onNotificationsRequested: hubRoot.toggleSidebarFor(win.modelData, bottomHubView.notificationsButton.pressedAt)
                 onStopRecordingRequested: CortetsuRecorder.stop()
                 onToggleDndRequested: CortetsuNotifications.dnd = !CortetsuNotifications.dnd
                 onToggleIdleInhibitorRequested: CortetsuIdleInhibitor.enabled = !CortetsuIdleInhibitor.enabled

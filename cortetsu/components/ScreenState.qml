@@ -19,6 +19,8 @@ PersistentProperties {
     property bool utilities
     property bool settings
     property bool sidebar
+    // When the drawer's focus grab last closed an open sidebar (ms epoch).
+    property real sidebarGrabClearedAt
     property int dashboardTab
     property date dashboardDate: new Date()
 

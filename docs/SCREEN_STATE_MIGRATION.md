@@ -99,6 +99,32 @@ coexisting. `bottomHub notificationsButton` (IPC, read-only) gives the bell's
 rectangle in layout coordinates for pointer tests
 (`docs/migration/stabilization/tools/stab_contracts.py`, scenario `bell`).
 
+### A second bell click closes the sidebar
+
+With the sidebar open its drawer window holds a focus grab. A press over a
+regular window that is not the focused one makes Hyprland refocus before it
+delivers the press (`processMouseDownNormal`): the refocus ends the grab, whose
+`onCleared` closes the sidebar, and the press goes to the bell, whose click then
+opened the sidebar again. On the real session there is almost always a window
+under Bottom Hub, so a second click with the pointer left on the bell did
+nothing visible. The bell records when its pointer press began
+(`pressedAt`, 0 for the keyboard) and the grab records when it closed an open
+sidebar (`ScreenState.sidebarGrabClearedAt`). `toggleSidebarFor` ignores a
+bell click whose press is within 250 ms of that clear: that press is the one
+that closed the sidebar. SUPER+N, IPC and the scrim path pass no press time
+and are unchanged.
+
+### Escape in the drawer window
+
+The drawer window's Escape closes its panels while the focus grab is active.
+It never fired: `Dash.qml`, instantiated in that window by `Dashboard.Wrapper`,
+had its own Escape shortcut, always enabled, so Qt found two enabled shortcuts
+for the key and ran neither (`activatedAmbiguously`). `DashboardHost` had the
+same pair. `Dash` no longer declares one; each host keeps its own. Keyboard
+modes and the grab do not change: the drawer window already held the keyboard
+while the sidebar was open. A dashboard opened by IPC still takes the keyboard
+only on demand, so Escape reaches it only after a click on it.
+
 ## Migrated consumers
 
 `CalendarController`, `ClipboardController`, `HardwareController`,

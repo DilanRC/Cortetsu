@@ -1,0 +1,302 @@
+{
+ "date": "2026-10-21",
+ "shell": "installed 20261017-160736-98327 (71e13b4)",
+ "method": "uinput clicks (ydotool) at the bell; cursor placed with hl.dsp.cursor.move; start=same: cursor left on the bell between clicks, start=other: moved to the other monitor and back; no keys typed",
+ "rows": [
+  {
+   "rep": 0,
+   "mon": "eDP-1",
+   "start": "same",
+   "step": "after click 1",
+   "sidebar": [
+    "eDP-1"
+   ],
+   "layers": {
+    "eDP-1": [
+     "cortetsu-drawers",
+     "quickshell"
+    ],
+    "HDMI-A-1": [
+     "cortetsu-drawers",
+     "quickshell"
+    ]
+   },
+   "focusmon": "eDP-1",
+   "active": "kitty",
+   "cursor": "3682, 1048"
+  },
+  {
+   "rep": 0,
+   "mon": "eDP-1",
+   "start": "same",
+   "step": "after click 2",
+   "sidebar": [
+    "eDP-1"
+   ],
+   "focusmon": "eDP-1",
+   "active": "kitty",
+   "cursor": "3682, 1048"
+  },
+  {
+   "rep": 0,
+   "mon": "eDP-1",
+   "start": "other",
+   "step": "after click 1",
+   "sidebar": [
+    "eDP-1"
+   ],
+   "layers": {
+    "eDP-1": [
+     "cortetsu-drawers",
+     "quickshell"
+    ],
+    "HDMI-A-1": [
+     "cortetsu-drawers",
+     "quickshell"
+    ]
+   },
+   "focusmon": "eDP-1",
+   "active": "chatgpt",
+   "cursor": "3682, 1048"
+  },
+  {
+   "rep": 0,
+   "mon": "eDP-1",
+   "start": "other",
+   "step": "after click 2",
+   "sidebar": [],
+   "focusmon": "eDP-1",
+   "active": "chatgpt",
+   "cursor": "3682, 1048"
+  },
+  {
+   "rep": 0,
+   "mon": "HDMI-A-1",
+   "start": "same",
+   "step": "after click 1",
+   "sidebar": [
+    "HDMI-A-1"
+   ],
+   "layers": {
+    "eDP-1": [
+     "cortetsu-drawers",
+     "quickshell"
+    ],
+    "HDMI-A-1": [
+     "cortetsu-drawers",
+     "quickshell"
+    ]
+   },
+   "focusmon": "HDMI-A-1",
+   "active": "chatgpt",
+   "cursor": "1762, 1048"
+  },
+  {
+   "rep": 0,
+   "mon": "HDMI-A-1",
+   "start": "same",
+   "step": "after click 2",
+   "sidebar": [
+    "HDMI-A-1"
+   ],
+   "focusmon": "HDMI-A-1",
+   "active": "chatgpt",
+   "cursor": "1762, 1048"
+  },
+  {
+   "rep": 0,
+   "mon": "HDMI-A-1",
+   "start": "other",
+   "step": "after click 1",
+   "sidebar": [
+    "HDMI-A-1"
+   ],
+   "layers": {
+    "eDP-1": [
+     "cortetsu-drawers",
+     "quickshell"
+    ],
+    "HDMI-A-1": [
+     "cortetsu-drawers",
+     "quickshell"
+    ]
+   },
+   "focusmon": "HDMI-A-1",
+   "active": "kitty",
+   "cursor": "1762, 1048"
+  },
+  {
+   "rep": 0,
+   "mon": "HDMI-A-1",
+   "start": "other",
+   "step": "after click 2",
+   "sidebar": [],
+   "focusmon": "HDMI-A-1",
+   "active": "kitty",
+   "cursor": "1762, 1048"
+  },
+  {
+   "rep": 1,
+   "mon": "eDP-1",
+   "start": "same",
+   "step": "after click 1",
+   "sidebar": [
+    "eDP-1"
+   ],
+   "layers": {
+    "eDP-1": [
+     "cortetsu-drawers",
+     "quickshell"
+    ],
+    "HDMI-A-1": [
+     "cortetsu-drawers",
+     "quickshell"
+    ]
+   },
+   "focusmon": "eDP-1",
+   "active": "kitty",
+   "cursor": "3682, 1048"
+  },
+  {
+   "rep": 1,
+   "mon": "eDP-1",
+   "start": "same",
+   "step": "after click 2",
+   "sidebar": [
+    "eDP-1"
+   ],
+   "focusmon": "eDP-1",
+   "active": "kitty",
+   "cursor": "3682, 1048"
+  },
+  {
+   "rep": 1,
+   "mon": "eDP-1",
+   "start": "other",
+   "step": "after click 1",
+   "sidebar": [
+    "eDP-1"
+   ],
+   "layers": {
+    "eDP-1": [
+     "cortetsu-drawers",
+     "quickshell"
+    ],
+    "HDMI-A-1": [
+     "cortetsu-drawers",
+     "quickshell"
+    ]
+   },
+   "focusmon": "eDP-1",
+   "active": "chatgpt",
+   "cursor": "3682, 1048"
+  },
+  {
+   "rep": 1,
+   "mon": "eDP-1",
+   "start": "other",
+   "step": "after click 2",
+   "sidebar": [],
+   "focusmon": "eDP-1",
+   "active": "chatgpt",
+   "cursor": "3682, 1048"
+  },
+  {
+   "rep": 1,
+   "mon": "HDMI-A-1",
+   "start": "same",
+   "step": "after click 1",
+   "sidebar": [
+    "HDMI-A-1"
+   ],
+   "layers": {
+    "eDP-1": [
+     "cortetsu-drawers",
+     "quickshell"
+    ],
+    "HDMI-A-1": [
+     "cortetsu-drawers",
+     "quickshell"
+    ]
+   },
+   "focusmon": "HDMI-A-1",
+   "active": "chatgpt",
+   "cursor": "1762, 1048"
+  },
+  {
+   "rep": 1,
+   "mon": "HDMI-A-1",
+   "start": "same",
+   "step": "after click 2",
+   "sidebar": [
+    "HDMI-A-1"
+   ],
+   "focusmon": "HDMI-A-1",
+   "active": "chatgpt",
+   "cursor": "1762, 1048"
+  },
+  {
+   "rep": 1,
+   "mon": "HDMI-A-1",
+   "start": "other",
+   "step": "after click 1",
+   "sidebar": [
+    "HDMI-A-1"
+   ],
+   "layers": {
+    "eDP-1": [
+     "cortetsu-drawers",
+     "quickshell"
+    ],
+    "HDMI-A-1": [
+     "cortetsu-drawers",
+     "quickshell"
+    ]
+   },
+   "focusmon": "HDMI-A-1",
+   "active": "kitty",
+   "cursor": "1762, 1048"
+  },
+  {
+   "rep": 1,
+   "mon": "HDMI-A-1",
+   "start": "other",
+   "step": "after click 2",
+   "sidebar": [],
+   "focusmon": "HDMI-A-1",
+   "active": "kitty",
+   "cursor": "1762, 1048"
+  }
+ ],
+ "bounce_ms": {
+  "note": "sidebar state polled during a still second click: press at ~100 ms, release 150 ms later",
+  "eDP-1": [
+   [
+    0,
+    true
+   ],
+   [
+    82,
+    false
+   ],
+   [
+    264,
+    true
+   ]
+  ],
+  "HDMI-A-1": [
+   [
+    0,
+    true
+   ],
+   [
+    66,
+    false
+   ],
+   [
+    261,
+    true
+   ]
+  ]
+ }
+}

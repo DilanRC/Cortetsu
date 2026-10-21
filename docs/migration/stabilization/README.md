@@ -4,7 +4,7 @@ Fecha: 2026-10-20. Rama `fix/stabilization-surfaces-calendar-pomodoro` sobre `ma
 Hyprland 0.56.2 · Quickshell 0.3.2 (4f508be) · Qt 6.12.0 · Python 3.14.8. Generación instalada (sin tocar):
 `20261017-160736-98327`. F1b no se ha iniciado.
 
-**Veredicto: `STABILIZATION_WITH_CONCERNS`** (§11, actualizado en §12).
+**Veredicto: `STABILIZATION_READY_TO_MERGE`** (§13; antes `STABILIZATION_WITH_CONCERNS`, §11–12).
 
 ## 1. Causas raíz confirmadas
 
@@ -333,3 +333,87 @@ quedaría sin efecto (en esta máquina no hay ninguna).
 **Veredicto: `STABILIZATION_WITH_CONCERNS`.** Defectos de Cortetsu de la PR: ninguno abierto. Defectos de Cortetsu
 anteriores a la PR: segundo clic en eDP-1 y Escape en el Sidebar. Plataforma: HDMI tras `s2idle` y clics perdidos en
 HDMI. Proceso: revisión externa INCOMPLETE en todos los bloques.
+
+## 13. Cierre final (2026-10-21): segundo clic, Escape, ChatGPT y SUPER+X
+
+Sin fusionar ni desplegar; F1b sin empezar. Sin suspensiones ni cambios de NVIDIA, kernel o energía. El equipo se
+reinició (por Dilan) a las 06:38 antes de esta pasada, así que el HDMI ya no arrastra el estado de `s2idle`.
+
+### 13.1 El segundo clic en la campana no cerraba el Sidebar
+
+No dependía del monitor. Sonda física (`evidence/physical/bell/second-click.json`, shell instalado, clics uinput sin
+teclas): con el cursor quieto sobre la campana el segundo clic falla en eDP-1 y en HDMI-A-1 (4/4); si el cursor sale
+y vuelve, cierra en los dos (4/4). Midiendo el estado cada pocos ms: la pulsación cierra el Sidebar (~80 ms) y la
+liberación lo reabre (~260 ms). En B1 la asimetría venía del orden en que el driver movía el cursor y enfocaba los
+sumideros entre clics.
+
+Causa (Hyprland 0.56.2, `CInputManager::processMouseDownNormal`): si bajo el cursor hay una ventana normal que no es
+la enfocada, Hyprland ejecuta `refocus()` antes de entregar la pulsación; eso termina el grab del Sidebar (su
+`onCleared` lo cierra) y manda la pulsación a la campana, cuyo clic hacía `toggleOn` y lo reabría. En la sesión real
+casi siempre hay una ventana bajo Bottom Hub; en el arnés anidado el monitor del clic estaba vacío, por eso nunca falló.
+
+Corrección (`SCREEN_STATE_MIGRATION.md`): la campana guarda cuándo empezó su pulsación de puntero y el grab guarda
+cuándo cerró un Sidebar abierto; un clic de campana con el Sidebar cerrado y la pulsación a menos de 250 ms de ese
+cierre no lo reabre. SUPER+N, IPC y el reenvío del scrim no pasan hora de pulsación y no cambian. No cambian
+máscaras, capas, modos de teclado ni otras superficies.
+
+Regresión: `stab_contracts.py bell` abre una Kitty bajo la campana de m1, enfoca el cliente de la otra pantalla y
+hace el segundo clic sin movimiento: FAIL en `e15c4b1`, PASS con la corrección. Mutantes nuevos: quitar la guarda y
+quitar la marca del grab.
+
+### 13.2 Escape no cerraba el Sidebar
+
+Causa: `Dash.qml` (instanciado en la ventana de cajones por `Dashboard.Wrapper` y en `DashboardHost`) tenía su propio
+`Shortcut` Escape siempre habilitado. Con dos atajos iguales habilitados en la ventana, Qt emite
+`activatedAmbiguously` y no ejecuta ninguno (instrumentado en anidado). El teclado ya estaba en la ventana de cajones
+con el Sidebar abierto (una `a` no llegaba al cliente), así que la corrección no roba foco ni toca el grab: se quita
+el atajo de `Dash`; cada anfitrión conserva el suyo.
+
+| Escape cierra el Sidebar abierto por | `e15c4b1` | corrección |
+|---|---|---|
+| clic en la campana / `bottomHub notifications` sobre Hardware / SUPER+N sobre Hardware | 0/3 | 3/3 (ahora contrato) |
+| Dashboard abierto por IPC (observación) | no | no: toma el teclado bajo demanda, sin cambio |
+
+Mutante nuevo: devolver el atajo a `Dash` vuelve ambiguo el de la ventana.
+
+### 13.3 La ventana de ChatGPT desaparecida: cerrada por `systemd-oomd`
+
+Evidencia (journal del arranque anterior): a las 23:58:08 (−06:00) `systemd-oomd` marcó
+`app-org.chromium.Chromium-3869.scope` «due to memory used (14 385 856 512) / total (15 940 653 056) and swap used
+(15 078 494 208) / total (15 940 448 256) being more than 90.00%» y mató 602 procesos; el scope de lanzamiento
+`cortetsu-app-chatgpt-…-3869.scope` terminó a las 23:58:10. El PID 3869 es ChatGPT (inhibidor «ChatGPT … Saving
+browser state», PID 3869, en la QA física). Ese scope era el mayor usuario de swap (10,6 GiB). En ese momento corrían
+el shell instalado y, por la QA, una candidata (~0,6–0,7 GiB cada uno). Estado: **terminado por oomd por presión de
+memoria y swap**; no se cerró, no cambió de workspace y no lo cerró Cortetsu ni el agente. Cuánto aportó cada proceso
+a la presión no se puede determinar con los datos guardados.
+
+### 13.4 SUPER+X
+
+Autorizado de forma explícita: mensaje de Dilan del 2026-10-21 04:28 UTC, fuera del texto pegado, en la sesión de
+cierre anterior: «que super x abra el menu de sesion que se abre al presionar el boton de apagado de la bottomhub».
+Se conserva (`072f231`).
+
+### 13.5 Revisión externa
+
+Sigue **INCOMPLETE** en todos los bloques (§12.3). No se repitió `ai-review`: no hay capacidad nueva (mismos límites
+de shell y cuota). Los cambios de esta pasada tienen las dos pasadas Thermos en línea, sin revisores independientes.
+
+### 13.6 Verificación
+
+| Gate | Resultado |
+|---|---|
+| Regresión anidada `bell` (ventana no enfocada bajo la campana) | FAIL en `e15c4b1`, PASS con la corrección |
+| `stab_contracts.py` escenario `bell` | 31/31 PASS (incluido Escape 3/3) |
+| QML `surfaces` / `focus` / `components` / `bottomhub` | 126 / 10 / 15 / 49 PASS |
+| `cortetsu test` (WS 2) | 188 entradas: 187 PASS, 1 NOT_RUN (`eval-cortetsu-process-launcher.py`, heredado) |
+| Mutantes (`NESTED=1 mutants.sh`) | 29/29 killed, 3 nuevos para esta sección |
+| Construcción y rollback (`test-cortetsu-build.py`) | PASS; enlaces `current`/`previous`/`legacy-previous` intactos |
+
+La corrección del segundo clic se verificó en el arnés anidado. Su verificación física en la sesión real
+queda pendiente: exigía parar `cortetsu-shell.service` y Dilan no lo autorizó. El defecto sí se reprodujo
+físicamente (4/4) con el shell instalado.
+
+**Veredicto: `STABILIZATION_READY_TO_MERGE`.** Defectos de Cortetsu abiertos de la PR: ninguno. Los dos anteriores a
+la PR que se encontraron en la QA (segundo clic y Escape) están corregidos. Heredados y no bloqueantes: Escape no
+alcanza un Dashboard abierto por IPC (sin cambio de comportamiento); clics perdidos en HDMI-A-1 (§12.1, plataforma,
+medidos antes del reinicio). Plataforma: HDMI tras `s2idle` (`HDMI-S2IDLE.md`). Proceso: revisión externa INCOMPLETE.

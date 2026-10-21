@@ -22,8 +22,10 @@ Scenarios (ONLY= selects, REPEAT= repeats the selection):
             open the sidebar; it leaves the client without the keyboard in
             this harness (also on 63bb651), so it runs last and on its own
   bell      a pointer click on the Bottom Hub bell through the retained scrim:
-            one click opens the sidebar; elsewhere it only dismisses, on a
-            panel it does nothing, over Overview it does nothing. BELL="x y"
+            one click opens the sidebar and a second one closes it (also
+            over an unfocused window, with no motion); elsewhere it only
+            dismisses, on a panel it does nothing, over Overview it does
+            nothing; Escape closes the sidebar. BELL="x y"
             gives the point when the checkout has no `bottomHub
             notificationsButton` (main), so the same click runs there
 """
@@ -31,6 +33,7 @@ from __future__ import annotations
 
 import json
 import os
+import subprocess
 from pathlib import Path
 import sys
 import tempfile
@@ -186,6 +189,35 @@ class Run(F1a.Run):
         x, y, w, h = map(float, read())
         return int(x + w / 2), int(y + h / 2)
 
+    def bell_over_unfocused_window(self, point: tuple[int, int]) -> None:
+        """A press over a window that is not the focused one makes Hyprland
+        refocus (processMouseDownNormal), which ends the sidebar's focus grab
+        and sends the press to the bell: the click used to reopen the sidebar.
+        On the real session a window under Bottom Hub is the usual case."""
+        self.reset()
+        self.s.focus_monitor(self.m1)
+        under = subprocess.Popen(["kitty", "--config", "NONE", "--class", "cortetsu-under-bell", "sleep", "600"],
+                                 env=self.s.env(), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                                 start_new_session=True)
+        try:
+            H.wait_for(lambda: any(c.get("class") == "cortetsu-under-bell" for c in self.s.hjson("clients") or []),
+                       "window under the bell", timeout=20)
+            time.sleep(0.5)
+            self.s.hyprctl("dispatch", 'hl.dsp.focus({ window = "class:cortetsu-probe" })')
+            self.s.click(*point)
+            opened = self.wait(lambda: self.sidebar_screens() == [self.m1])
+            time.sleep(0.6)
+            self.s.send(f"button {H.BTN_LEFT} 1")  # no motion: a still physical mouse
+            time.sleep(0.03)
+            self.s.send(f"button {H.BTN_LEFT} 0")
+            time.sleep(0.6)
+            self.check("bell", "window under the bell, not focused: a second click closes the sidebar",
+                       opened and self.sidebar_screens() == [], {"opened": opened, "after": self.sidebar_screens()})
+        finally:
+            under.terminate()
+            under.wait(timeout=10)
+            time.sleep(0.5)
+
     def sidebar_screens(self) -> list[str]:
         """Screens with the sidebar open, read without moving focus (flags() does)."""
         return [row["screen"] for row in json.loads(self.s.ipc("bottomHub", "inspect").stdout) if row["sidebar"]]
@@ -202,9 +234,10 @@ class Run(F1a.Run):
         self.s.click(*point)
         self.check("bell", "nothing open: a second click closes it", self.wait(lambda: self.flags() == closed),
                    self.flags())
-        # Observation, not a contract (main and 63bb651 behave the same): after
-        # any path the sidebar's window holds the keyboard only on demand, so
-        # Escape does not reach it until the sidebar is clicked.
+        self.bell_over_unfocused_window(point)
+        # Escape closes the sidebar by every path. It used to do nothing: Dash's
+        # own Escape shortcut, always enabled in the drawer window, made the
+        # drawer's ambiguous, so Qt ran neither.
         for label, action in (("a bell click, nothing open", lambda: self.s.click(*point)),
                               ("bottomHub notifications over hardware", lambda: self.toggle_sidebar("bottomhub")),
                               ("SUPER+N over hardware", lambda: self.toggle_sidebar("super+n"))):
@@ -217,8 +250,18 @@ class Run(F1a.Run):
             opened = self.sidebar_screens() == [self.m1]
             self.s.tap(H.KEY_ESC)
             closes = opened and self.wait(lambda: self.flags() == closed, timeout=1.5)
-            self.checks.append({"scenario": "bell", "check": f"observed: Escape closes the sidebar opened by {label}",
-                                "result": "INFO", "seen": {"opened": opened, "escape_closes": closes}})
+            self.check("bell", f"Escape closes the sidebar opened by {label}", closes,
+                       {"opened": opened, "escape_closes": closes})
+        self.reset()
+        self.s.focus_monitor(self.m1)
+        self.s.ipc("drawers", "toggle", "dashboard")
+        opened = self.wait(lambda: self.flags()[self.m1] == ["dashboard"])
+        self.s.tap(H.KEY_ESC)
+        # Observation, not a contract (e15c4b1 and before behave the same): a
+        # dashboard opened by IPC takes the keyboard only on demand.
+        self.checks.append({"scenario": "bell", "check": "observed: Escape closes the dashboard opened by IPC",
+                            "result": "INFO", "seen": {"opened": opened,
+                                                       "escape_closes": self.wait(lambda: self.flags() == closed)}})
         for target in [t for t in F1a.RETAINED if t not in ("overview", "wallpapermanager")]:
             self.reset()
             self.open(target, self.m1)

@@ -162,6 +162,8 @@ StyledWindow {
         active: root.wantsFocusGrab
         windows: [root]
         onCleared: {
+            if (root.screenState.sidebar)
+                root.screenState.sidebarGrabClearedAt = Date.now();
             root.screenState.launcher = false;
             root.screenState.session = false;
             root.screenState.sidebar = false;

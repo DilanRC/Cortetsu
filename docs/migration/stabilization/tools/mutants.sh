@@ -130,6 +130,13 @@ if [[ "${NESTED:-0}" == 1 ]]; then
         '                    && ScrimHit.backdropOnly(surfaces, x, y);' '                    ;' -- bell
     mutant "bell: opens the sidebar over a fullscreen window" $H \
         ' && !CortetsuHypr.focusedFullscreen' '' -- bellfs
+    mutant "bell: the click reopens the sidebar the grab just closed" cortetsu/modules/BottomHub.qml \
+        'if (!state.sidebar && pressedAt > 0 && Math.abs(state.sidebarGrabClearedAt - pressedAt) < 250)' 'if (false)' -- bell
+    mutant "bell: the grab no longer stamps the sidebar it closes" cortetsu/modules/drawers/ContentWindow.qml \
+        '                root.screenState.sidebarGrabClearedAt = Date.now();' '                ;' -- bell
+    mutant "Escape: Dash's own shortcut makes the drawer's ambiguous again" cortetsu/modules/dashboard/Dash.qml \
+        '    id: root' '    id: root
+    Shortcut { sequence: "Escape"; onActivated: root.screenState.dashboard = false }' -- bell
     # Not a mutant: without the Overview clause the click still does not
     # reach the sidebar, because Overview's content covers the bell and
     # ScrimHit keeps it (equivalent in the harness; README §12).
