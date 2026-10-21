@@ -149,7 +149,8 @@ create_bind(vars.kbWindowDecreaseHeight, fn.resize_active_window(0, -10), repeat
 create_bind(vars.kbWindowIncreaseHeight, fn.resize_active_window(0, 10), repeating)
 
 create_bind({ vars.kbMoveWindow, "SUPER + mouse:272" }, hl.dsp.window.drag(), mouse)
-create_bind({ vars.kbResizeWindow, "SUPER + mouse:273" }, hl.dsp.window.resize(), mouse)
+-- SUPER + X opens the session menu (kbSession); resizing keeps the right drag.
+create_bind("SUPER + mouse:273", hl.dsp.window.resize(), mouse)
 create_bind(vars.kbCenterWindow, hl.dsp.window.center())
 create_bind(vars.kbNormalizeWindow, function()
     hl.dispatch(hl.dsp.window.resize(fn.resize_by_screen(55, 70)))

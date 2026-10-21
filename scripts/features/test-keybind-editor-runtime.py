@@ -134,6 +134,9 @@ def main() -> int:
             assert nested.bound(4, "End") == [] and nested.bound(4, "Down") == [], "CTRL+End/Down still global"
             assert nested.bound(72, "W") and nested.bound(72, "G"), "app launchers lost"
             assert nested.bound(65, "L") == ["cortetsu:kbSleep"] and nested.bound(72, "K") == ["cortetsu:kbKeepAwake"]
+            # SUPER + X opens the session menu; resizing keeps SUPER + right drag.
+            assert nested.bound(64, "X") == ["cortetsu:kbSession"], nested.bound(64, "X")
+            assert [b for b in nested.binds() if b["modmask"] == 64 and b["key"] == "mouse:273"], "resize drag lost"
 
             listing = nested.helper("list")
             assert listing["ok"]
@@ -157,6 +160,7 @@ def main() -> int:
             done = nested.helper("set", "var:kbSession:0", "SUPER + ALT + Y")
             assert done["ok"], done
             assert nested.bound(72, "Y") == ["cortetsu:kbSession"] and nested.bound(12, "Delete") == []
+            assert nested.bound(64, "X") == ["cortetsu:kbSession"], "editing one chord dropped the other"
             assert (hypr / "cortetsu-keybinds.lua").is_file() and not (hypr / "cortetsu-keybinds.lua").is_symlink()
 
             # Survives a Hyprland restart, a promotion and a rollback.
@@ -170,12 +174,16 @@ def main() -> int:
             nested.hyprctl("reload")
             assert nested.bound(72, "Y") == ["cortetsu:kbSession"], "lost after rollback"
 
-            # Delete leaves nothing behind; reset brings the default back.
+            # Delete leaves nothing behind; reset brings the defaults back.
+            # kbSession has two chords: deleting the first keeps SUPER + X.
             assert nested.helper("delete", "var:kbSession:0")["ok"]
             assert nested.bound(72, "Y") == [] and nested.bound(12, "Delete") == []
+            assert nested.bound(64, "X") == ["cortetsu:kbSession"]
+            assert nested.helper("delete", "var:kbSession:0")["ok"]
+            assert nested.bound(64, "X") == []
             assert any(item["id"] == "var:kbSession:-" for item in nested.helper("list")["bindings"])
             assert nested.helper("reset", "var:kbSession:-")["ok"]
-            assert nested.bound(12, "Delete") == ["cortetsu:kbSession"]
+            assert nested.bound(12, "Delete") == ["cortetsu:kbSession"] and nested.bound(64, "X") == ["cortetsu:kbSession"]
 
             # A hypr-user.lua launcher moves through the edit layer, not by rewriting the file.
             moved = nested.helper("set", witcher["id"], "SUPER + CTRL + W")
