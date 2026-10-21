@@ -9,14 +9,14 @@ index d565ea4..b710058 100644
 +    onSidebarChanged: console.info(`O3DBG sidebar=${sidebar} t=${Date.now()}\n${new Error().stack}`)
      property int dashboardTab
      property date dashboardDate: new Date()
- 
+
 diff --git a/cortetsu/modules/drawers/ContentWindow.qml b/cortetsu/modules/drawers/ContentWindow.qml
 index b3b2ac2..3166f87 100644
 --- a/cortetsu/modules/drawers/ContentWindow.qml
 +++ b/cortetsu/modules/drawers/ContentWindow.qml
 @@ -73,7 +73,6 @@ StyledWindow {
      }
- 
+
      name: "drawers"
 -    focusable: panels.popouts.hasCurrent || ((screenState?.cortetsuState?.requiresWindowKeyboardFocus ?? false) && !(screenState?.launcher ?? false) && !(screenState?.session ?? false))
      WlrLayershell.exclusionMode: ExclusionMode.Ignore
@@ -30,11 +30,11 @@ index b3b2ac2..3166f87 100644
 +        : (panels.popouts.hasCurrent || focusGrab.wanted || (screenState?.cortetsuState?.requiresWindowKeyboardFocus && !(screenState?.launcher ?? false) && !(screenState?.session ?? false)))
              ? WlrKeyboardFocus.OnDemand
              : WlrKeyboardFocus.None
- 
+
 @@ -133,7 +132,8 @@ StyledWindow {
      HyprlandFocusGrab {
          id: focusGrab
- 
+
 -        active: {
 +        active: wanted
 +        readonly property bool wanted: {
@@ -57,7 +57,7 @@ index 3154051..4ee9da2 100644
 +++ b/cortetsu/modules/wallpaper/Wrapper.qml
 @@ -61,6 +61,7 @@ Item {
      }
- 
+
      onGlobalOtherOverlayOpenChanged: {
 +        console.info(`O3DBG wrapper(${root.visible}) other=${globalOtherOverlayOpen} active=${shouldBeActive} t=${Date.now()}`);
          if (shouldBeActive && globalOtherOverlayOpen) {
