@@ -1,12 +1,20 @@
 #!/usr/bin/env bash
 # Stabilization: each mutant puts back one defect this branch fixes (or breaks
 # one contract it adds); the named check must fail on every one. Works on a
-# scratch copy of the checkout, never on the tree itself.
+# scratch copy of the checkout, never on the tree itself. NESTED=1 adds the
+# mutants only nested Hyprland sees (the bell scenario of stab_contracts.py).
 set -euo pipefail
 repo="$(cd "$(dirname "$0")/../../../.." && pwd)"
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
-cp -a "$repo/cortetsu" "$repo/scripts" "$work/"
+# dotfiles and config: the nested harness composes Hyprland from them.
+cp -a "$repo/cortetsu" "$repo/scripts" "$repo/dotfiles" "$repo/config" "$work/"
+bell() {
+    timeout 900 python3 "$repo/scripts/integration/ws2_run.py" --timeout 800 "$work/bell.log" -- \
+        env ONLY=bell python3 "$repo/docs/migration/stabilization/tools/stab_contracts.py" "$work" "$work/bell.json" >/dev/null 2>&1
+    rm -f "$work/bell-qs.log"
+    python3 -c 'import json, sys; sys.exit(any(c["result"] == "FAIL" for c in json.load(open(sys.argv[1]))["checks"]))' "$work/bell.json"
+}
 
 qml() { QT_QPA_PLATFORM=offscreen timeout 120 /usr/lib/qt6/bin/qmltestrunner -input "$work/cortetsu/tests/qml/$1" >/dev/null 2>&1; }
 py() { timeout 300 python3 "$work/$1" >/dev/null 2>&1; }
@@ -36,7 +44,9 @@ baseline() {
     qml surfaces && qml calendar && qml pomodoro \
         && py cortetsu/tests/test-pomodoro.py && py cortetsu/tests/test-calendar-pomodoro-services.py \
         && py scripts/features/test-cortetsu-surface-registry.py && py scripts/features/test-contentwindow-focusgrab-parity.py \
-        && py scripts/features/test-retained-surfaces-host.py && py cortetsu/tests/test-calendar-polish.py
+        && py scripts/features/test-retained-surfaces-host.py && py cortetsu/tests/test-calendar-polish.py \
+        && py scripts/features/test-cortetsu-keyboards-runtime.py \
+        && { [[ "${NESTED:-0}" != 1 ]] || bell; }
 }
 baseline || { echo "baseline does not pass"; exit 2; }
 
@@ -97,4 +107,20 @@ mutant "all-day end treated as inclusive" cortetsu/modules/calendar/CalendarMode
     'return new Date(end.getTime() - 1);' 'return end;' -- qml calendar
 mutant "events of the same month in another year" cortetsu/modules/calendar/CalendarModel.js \
     'day.getMonth() === month && day.getFullYear() === year;' 'day.getMonth() === month;' -- qml calendar
+H=cortetsu/modules/RetainedSurfacesHost.qml
+mutant "bell: a panel over the bell no longer keeps the click" cortetsu/modules/ScrimHit.js \
+    'if (child.width < container.width || child.height < container.height)' 'if (false)' -- qml surfaces
+mutant "bell: a Keyboards capture no longer blocks the click" $H \
+    'return !keyboards.dismissBlocked' 'return true' -- py scripts/features/test-retained-surfaces-host.py
+mutant "bell: recording no longer blocks pointer dismissal" cortetsu/modules/keyboards/Content.qml \
+    'readonly property bool pointerDismissBlocked: listening || Flow.busy(flow)' \
+    'readonly property bool pointerDismissBlocked: Flow.busy(flow)' -- py scripts/features/test-cortetsu-keyboards-runtime.py
+if [[ "${NESTED:-0}" == 1 ]]; then
+    mutant "bell: the scrim only dismisses again (63bb651)" $H \
+        'onPressed: mouse => mouse.accepted = window.reachesBell(mouse.x, mouse.y)' 'onPressed: mouse => mouse.accepted = false' -- bell
+    mutant "bell: the click is taken over a panel" $H \
+        '                    && ScrimHit.backdropOnly(surfaces, x, y);' '                    ;' -- bell
+    mutant "bell: forwarded over Overview too" $H \
+        'enabled: window.surfaceOpen && !(window.screenState?.cortetsuState?.overview ?? false)' 'enabled: window.surfaceOpen' -- bell
+fi
 [[ $failures -eq 0 ]] && echo "all mutants killed" || { echo "$failures mutant(s) survived"; exit 1; }

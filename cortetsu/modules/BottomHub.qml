@@ -206,6 +206,15 @@ Scope {
         function show(): void { hubRoot.setShown(true); }
         function hide(): void { hubRoot.setShown(false); }
         function isShown(): bool { return hubRoot.shown; }
+        // Read-only: the bell of the focused screen in layout coordinates
+        // ("x y width height"), so pointer tests click it like a person.
+        function notificationsButton(): string {
+            const state = CortetsuShellState.forActive();
+            const r = state?.cortetsuState?.bottomHub?.notificationsButtonRect();
+            if (!r || r.width <= 0)
+                return "";
+            return `${state.modelData.x + r.x} ${state.modelData.y + r.y} ${r.width} ${r.height}`;
+        }
         // Read-only runtime evidence for focus, lifetime and monitor ownership.
         function inspect(): string {
             return JSON.stringify(CortetsuScreens.screens.map(screen => {
@@ -631,6 +640,34 @@ Scope {
                     item.scroll(delta, horizontal);
             }
 
+            // The bell in screen coordinates. The surface is anchored only at
+            // the bottom, so layer shell centres it horizontally.
+            function notificationsButtonRect(): rect {
+                const bell = bottomHubView.notificationsButton;
+                if (!visible || !hubRoot.shown || !bell?.visible)
+                    return Qt.rect(0, 0, 0, 0);
+                const p = bell.mapToItem(contentItem, 0, 0);
+                return Qt.rect(Math.round((modelData.width - width) / 2) + p.x,
+                    modelData.height - margins.bottom - height + p.y, bell.width, bell.height);
+            }
+
+            function notificationsButtonContains(x: real, y: real): bool {
+                const r = notificationsButtonRect();
+                return x >= r.x && x < r.x + r.width && y >= r.y && y < r.y + r.height;
+            }
+
+            // The bell's own action, for a click that reached it through the scrim.
+            function activateNotifications(): void {
+                hubRoot.toggleSidebarFor(modelData);
+            }
+
+            Binding {
+                target: win.cortetsuState
+                property: "bottomHub"
+                value: win
+                when: !!win.cortetsuState
+            }
+
             function toggleSession(): void {
                 if (!screenState)
                     return;
@@ -807,7 +844,7 @@ Scope {
                     else if (delta < 0)
                         CortetsuAudio.decrementVolume();
                 }
-                onNotificationsRequested: hubRoot.toggleSidebarFor(win.modelData)
+                onNotificationsRequested: win.activateNotifications()
                 onStopRecordingRequested: CortetsuRecorder.stop()
                 onToggleDndRequested: CortetsuNotifications.dnd = !CortetsuNotifications.dnd
                 onToggleIdleInhibitorRequested: CortetsuIdleInhibitor.enabled = !CortetsuIdleInhibitor.enabled

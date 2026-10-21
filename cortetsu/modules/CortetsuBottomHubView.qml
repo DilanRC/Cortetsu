@@ -73,6 +73,8 @@ Item {
     signal calendarRequested()
     signal sessionRequested()
 
+    readonly property Item notificationsButton: statusSegment.notificationsButton
+
     readonly property real rightOccupiedWidth:
         (statusSegment.visible ? statusSegment.width : 0)
         + (traySegment.visible ? traySegment.width : 0)

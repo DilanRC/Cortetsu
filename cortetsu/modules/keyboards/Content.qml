@@ -46,6 +46,7 @@ FocusScope {
     readonly property var specialRows: Model.specialKeys(backend.deviceKeys, deviceId)
     readonly property var spareRows: Model.spareFor(backend.spare, deviceId)
     readonly property bool listening: Flow.holdsKeyboard(flow)
+    readonly property bool pointerDismissBlocked: listening || Flow.busy(flow)
     // The key test and a change never run together: both rebind keys.
     readonly property bool probing: backend.probe !== null
     readonly property Item listTop: [search, tabRow, probeBar][currentTab] ?? tabRow
@@ -260,7 +261,7 @@ FocusScope {
         onClicked: mouse => {
             const outside = mouse.x < panel.x || mouse.x >= panel.x + panel.width
                 || mouse.y < panel.y || mouse.y >= panel.y + panel.height;
-            if (outside && !root.listening && !Flow.busy(root.flow))
+            if (outside && !root.pointerDismissBlocked)
                 root.closeSurface();
         }
     }

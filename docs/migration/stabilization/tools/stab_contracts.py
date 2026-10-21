@@ -18,6 +18,11 @@ Scenarios (ONLY= selects, REPEAT= repeats the selection):
   o3        Wallpaper Manager, then the sidebar by each path: one result
   calendar  moves between screens, toggles, Escape, one sync per opening
   focus     the keyboard returns to the client after each transition
+  bell      a pointer click on the Bottom Hub bell through the retained scrim:
+            one click opens the sidebar; elsewhere it only dismisses, on a
+            panel it does nothing, over Overview it does nothing. BELL="x y"
+            gives the point when the checkout has no `bottomHub
+            notificationsButton` (main), so the same click runs there
 """
 from __future__ import annotations
 
@@ -166,6 +171,107 @@ class Run(F1a.Run):
         self.check("calendar", "five openings, at most five syncs", self.sync_calls() - before <= 5,
                    self.sync_calls() - before)
 
+    # Bottom Hub bell through the scrim (a pointer click, never IPC) ----------
+    def bell_point(self) -> tuple[int, int]:
+        self.s.focus_monitor(self.m1)
+        self.s.ipc("bottomHub", "show")
+        if os.environ.get("BELL"):
+            x, y = os.environ["BELL"].split()
+            return int(x), int(y)
+        x, y, w, h = map(float, self.s.ipc("bottomHub", "notificationsButton").stdout.split())
+        return int(x + w / 2), int(y + h / 2)
+
+    def sidebar_screens(self) -> list[str]:
+        """Screens with the sidebar open, read without moving focus (flags() does)."""
+        return [row["screen"] for row in json.loads(self.s.ipc("bottomHub", "inspect").stdout) if row["sidebar"]]
+
+    def bell(self) -> None:
+        point = self.bell_point()
+        self.checks.append({"scenario": "bell", "check": "bell centre", "result": "INFO", "seen": point})
+        closed = {self.m1: [], self.m2: []}
+        sidebar = {self.m1: ["sidebar"], self.m2: []}
+        self.reset()
+        self.s.click(*point)
+        self.check("bell", "nothing open: one click opens the sidebar", self.wait(lambda: self.flags() == sidebar),
+                   self.flags())
+        self.s.click(*point)
+        self.check("bell", "nothing open: a second click closes it", self.wait(lambda: self.flags() == closed),
+                   self.flags())
+        # Observation, not a contract (main and 63bb651 behave the same): after
+        # any path the sidebar's window holds the keyboard only on demand, so
+        # Escape does not reach it until the sidebar is clicked.
+        for label, action in (("a bell click, nothing open", lambda: self.s.click(*point)),
+                              ("bottomHub notifications over hardware", lambda: self.toggle_sidebar("bottomhub")),
+                              ("SUPER+N over hardware", lambda: self.toggle_sidebar("super+n"))):
+            self.reset()
+            if "hardware" in label:
+                self.open("hardware", self.m1)
+                self.s.focus_monitor(self.m1)
+            action()
+            time.sleep(0.6)
+            opened = self.sidebar_screens() == [self.m1]
+            self.s.tap(H.KEY_ESC)
+            closes = opened and self.wait(lambda: self.flags() == closed, timeout=1.5)
+            self.checks.append({"scenario": "bell", "check": f"observed: Escape closes the sidebar opened by {label}",
+                                "result": "INFO", "seen": {"opened": opened, "escape_closes": closes}})
+        for target in [t for t in F1a.RETAINED if t not in ("overview", "wallpapermanager")]:
+            self.reset()
+            self.open(target, self.m1)
+            self.s.click(*point)
+            time.sleep(0.6)  # O-3: a cleared focus grab closed the sidebar 20-40 ms after opening
+            flags = self.flags()
+            self.check("bell", f"{target}: one click on the bell leaves only the sidebar", flags == sidebar, flags)
+            self.s.click(*point)
+            self.check("bell", f"{target}: a second click closes it", self.wait(lambda: self.flags() == closed),
+                       self.flags())
+            self.check("bell", f"{target}: keyboard back in the client", self.key_reaches_client(), "")
+        # Wallpaper's panel is min(height - 48, 760) tall: at 720p it covers
+        # the bell, so the click belongs to the panel; at 1080p it does not.
+        self.reset()
+        self.open("wallpapermanager", self.m1)
+        self.s.click(*point)
+        time.sleep(0.6)
+        self.check("bell", "wallpaper at 720p: its panel covers the bell and keeps the click",
+                   self.flags() == {self.m1: ["wallpaperManager"], self.m2: []}, self.flags())
+        monitor = next(m for m in self.s.monitors() if m["name"] == self.m1)
+        self.reset()
+        self.open("hardware", self.m1)
+        self.s.click(monitor["x"] + 12, monitor["y"] + monitor["height"] // 2)
+        time.sleep(0.5)
+        self.check("bell", "hardware: a click elsewhere on the scrim only dismisses", self.flags() == closed,
+                   self.flags())
+        self.open("hardware", self.m1)
+        self.s.click(monitor["x"] + monitor["width"] // 2, monitor["y"] + monitor["height"] // 2)
+        time.sleep(0.5)
+        self.check("bell", "hardware: a click on the panel keeps it open",
+                   self.flags() == {self.m1: ["hardware"], self.m2: []}, self.flags())
+        self.reset()
+        self.open("overview", self.m1)
+        self.s.click(*point)
+        time.sleep(0.5)
+        self.check("bell", "overview: the bell click does not open the sidebar",
+                   "sidebar" not in self.flags()[self.m1], self.flags())
+        self.reset()
+        self.open("hardware", self.m1)
+        self.s.ipc("drawers", "toggle", "osd")
+        time.sleep(0.3)
+        self.s.click(*point)
+        time.sleep(0.6)
+        flags = self.flags()
+        self.check("bell", "hardware and OSD: the bell click leaves the sidebar (the OSD follows SUPER+N)",
+                   "sidebar" in flags[self.m1] and "hardware" not in flags[self.m1], flags)
+        self.reset()
+        self.s.hyprctl("eval", f'hl.monitor({{ output = "{self.m1}", mode = "1920x1080", position = "auto-right", scale = 1 }})')
+        time.sleep(1.0)
+        big = self.bell_point()
+        self.open("wallpapermanager", self.m1)
+        self.s.click(*big)
+        time.sleep(0.6)
+        self.check("bell", f"wallpaper at 1080p: one click on the bell {big} leaves only the sidebar",
+                   self.flags() == sidebar, self.flags())
+        self.s.hyprctl("eval", f'hl.monitor({{ output = "{self.m1}", mode = "1280x720", position = "auto-right", scale = 1 }})')
+        time.sleep(1.0)
+
     def focus(self) -> None:
         for path in ("ipc", "super+n"):
             self.reset()
@@ -197,7 +303,7 @@ def main() -> int:
             run = Run(session, sink)
             result["monitors"] = {"client": run.home, "m1": run.m1, "m2": run.m2}
             warnings_before = len(F1a.qml_problems(session.logs / "qs.log"))
-            scenarios = [run.o1, run.o2, run.o3, run.calendar, run.focus]
+            scenarios = [run.o1, run.o2, run.o3, run.calendar, run.focus, run.bell]
             only = [name for name in os.environ.get("ONLY", "").split(",") if name]
             if only:
                 scenarios = [s for s in scenarios if s.__name__ in only]

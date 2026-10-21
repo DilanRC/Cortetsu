@@ -102,9 +102,11 @@ ShellRoot {
                 root.verify(page.backend.bindings.length === 1 && page.backend.keyboards.length === 1, "inventory and bindings load");
                 root.verify(page.backend.keysymByScanCode[148] === "XF86Calculator", "keysyms by scan code");
                 root.verify(page.spareRows.length === 1, "the spare key is listed");
+                root.verify(!page.pointerDismissBlocked, "idle: a click outside may close the surface");
                 page.selectBinding(page.backend.bindings[0]);
                 page.startCapture();
                 root.verify(root.phase() === "listening", "Editar starts recording at once");
+                root.verify(page.pointerDismissBlocked, "recording: clicks (the Bottom Hub bell too) keep it open");
             } else if (s === 3) {
                 page.handleKey(Qt.Key_Meta, Qt.MetaModifier, 133);
                 root.verify(page.flow.held.join() === "SUPER", "held modifiers are echoed");
@@ -123,6 +125,7 @@ ShellRoot {
             } else if (s === 9) {
                 page.dispatch({ type: "confirm" });
                 root.verify(root.phase() === "applying", "confirm applies");
+                root.verify(page.pointerDismissBlocked, "applying: clicks keep it open");
             } else if (s === 11) {
                 root.verify(root.phase() === "verified", "success after the helper verified: " + root.phase());
                 page.startCapture();
