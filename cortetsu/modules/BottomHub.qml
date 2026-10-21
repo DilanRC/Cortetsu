@@ -656,9 +656,9 @@ Scope {
                 return x >= r.x && x < r.x + r.width && y >= r.y && y < r.y + r.height;
             }
 
-            // The bell's own action, for a click that reached it through the scrim.
+            // What the bell does, also for a click that reached it through the scrim.
             function activateNotifications(): void {
-                hubRoot.toggleSidebarFor(modelData);
+                hubRoot.toggleSidebarFor(win.modelData);
             }
 
             Binding {
@@ -844,7 +844,7 @@ Scope {
                     else if (delta < 0)
                         CortetsuAudio.decrementVolume();
                 }
-                onNotificationsRequested: win.activateNotifications()
+                onNotificationsRequested: hubRoot.toggleSidebarFor(win.modelData)
                 onStopRecordingRequested: CortetsuRecorder.stop()
                 onToggleDndRequested: CortetsuNotifications.dnd = !CortetsuNotifications.dnd
                 onToggleIdleInhibitorRequested: CortetsuIdleInhibitor.enabled = !CortetsuIdleInhibitor.enabled

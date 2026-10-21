@@ -45,8 +45,9 @@ Scope {
 
             // A press on the bell where no panel covers it. A Keyboards
             // capture or write blocks pointer dismissal; it blocks this too.
+            // A fullscreen window blocks opening the sidebar, as for SUPER+N.
             function reachesBell(x: real, y: real): bool {
-                return !keyboards.dismissBlocked
+                return !keyboards.dismissBlocked && !CortetsuHypr.focusedFullscreen
                     && (screenState?.cortetsuState?.bottomHub?.notificationsButtonContains(x, y) ?? false)
                     && ScrimHit.backdropOnly(surfaces, x, y);
             }
@@ -101,7 +102,7 @@ Scope {
             }
 
             // The scrim is modal and covers Bottom Hub (Top layer), so a click
-            // on the bell would only dismiss the surface. The bell's action
+            // on the bell would only dismiss the surface. The bell action
             // closes every retained surface anyway (as SUPER+N does), so a
             // click on it runs that action in one step. Every other press, and
             // any press on a panel, goes on to the surface underneath.

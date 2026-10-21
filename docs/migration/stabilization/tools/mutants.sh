@@ -15,6 +15,14 @@ bell() {
     rm -f "$work/bell-qs.log"
     python3 -c 'import json, sys; sys.exit(any(c["result"] == "FAIL" for c in json.load(open(sys.argv[1]))["checks"]))' "$work/bell.json"
 }
+# Only its guard row: the scenario's final keyboard check fails in this
+# harness on 63bb651 too (stab_contracts.py, bellfs).
+bellfs() {
+    timeout 900 python3 "$repo/scripts/integration/ws2_run.py" --timeout 800 "$work/bellfs.log" -- \
+        env ONLY=bellfs python3 "$repo/docs/migration/stabilization/tools/stab_contracts.py" "$work" "$work/bellfs.json" >/dev/null 2>&1
+    rm -f "$work/bellfs-qs.log"
+    python3 -c 'import json, sys; sys.exit(any(c["result"] == "FAIL" and c["scenario"] == "bellfs" for c in json.load(open(sys.argv[1]))["checks"]))' "$work/bellfs.json"
+}
 
 qml() { QT_QPA_PLATFORM=offscreen timeout 120 /usr/lib/qt6/bin/qmltestrunner -input "$work/cortetsu/tests/qml/$1" >/dev/null 2>&1; }
 py() { timeout 300 python3 "$work/$1" >/dev/null 2>&1; }
@@ -46,7 +54,7 @@ baseline() {
         && py scripts/features/test-cortetsu-surface-registry.py && py scripts/features/test-contentwindow-focusgrab-parity.py \
         && py scripts/features/test-retained-surfaces-host.py && py cortetsu/tests/test-calendar-polish.py \
         && py scripts/features/test-cortetsu-keyboards-runtime.py \
-        && { [[ "${NESTED:-0}" != 1 ]] || bell; }
+        && { [[ "${NESTED:-0}" != 1 ]] || { bell && bellfs; }; }
 }
 baseline || { echo "baseline does not pass"; exit 2; }
 
@@ -120,6 +128,8 @@ if [[ "${NESTED:-0}" == 1 ]]; then
         'onPressed: mouse => mouse.accepted = window.reachesBell(mouse.x, mouse.y)' 'onPressed: mouse => mouse.accepted = false' -- bell
     mutant "bell: the click is taken over a panel" $H \
         '                    && ScrimHit.backdropOnly(surfaces, x, y);' '                    ;' -- bell
+    mutant "bell: opens the sidebar over a fullscreen window" $H \
+        ' && !CortetsuHypr.focusedFullscreen' '' -- bellfs
     # Not a mutant: without the Overview clause the click still does not
     # reach the sidebar, because Overview's content covers the bell and
     # ScrimHit keeps it (equivalent in the harness; README §12).

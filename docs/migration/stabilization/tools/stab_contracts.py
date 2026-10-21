@@ -18,6 +18,9 @@ Scenarios (ONLY= selects, REPEAT= repeats the selection):
   o3        Wallpaper Manager, then the sidebar by each path: one result
   calendar  moves between screens, toggles, Escape, one sync per opening
   focus     the keyboard returns to the client after each transition
+  bellfs    (ONLY=bellfs) fullscreen: a bell-spot click over Hardware does not
+            open the sidebar; it leaves the client without the keyboard in
+            this harness (also on 63bb651), so it runs last and on its own
   bell      a pointer click on the Bottom Hub bell through the retained scrim:
             one click opens the sidebar; elsewhere it only dismisses, on a
             panel it does nothing, over Overview it does nothing. BELL="x y"
@@ -172,13 +175,15 @@ class Run(F1a.Run):
                    self.sync_calls() - before)
 
     # Bottom Hub bell through the scrim (a pointer click, never IPC) ----------
-    def bell_point(self) -> tuple[int, int]:
-        self.s.focus_monitor(self.m1)
+    def bell_point(self, monitor: str | None = None) -> tuple[int, int]:
+        self.s.focus_monitor(monitor or self.m1)
         self.s.ipc("bottomHub", "show")
         if os.environ.get("BELL"):
             x, y = os.environ["BELL"].split()
             return int(x), int(y)
-        x, y, w, h = map(float, self.s.ipc("bottomHub", "notificationsButton").stdout.split())
+        read = lambda: self.s.ipc("bottomHub", "notificationsButton").stdout.split()
+        H.wait_for(lambda: read() and read() == (time.sleep(0.5) or read()), "bell geometry settled", timeout=10)
+        x, y, w, h = map(float, read())
         return int(x + w / 2), int(y + h / 2)
 
     def sidebar_screens(self) -> list[str]:
@@ -272,6 +277,36 @@ class Run(F1a.Run):
         self.s.hyprctl("eval", f'hl.monitor({{ output = "{self.m1}", mode = "1280x720", position = "auto-right", scale = 1 }})')
         time.sleep(1.0)
 
+    def bellfs(self) -> None:
+        # Fullscreen on the client's screen: Hardware still opens (SUPER+H),
+        # but the bell click must not open the sidebar over it.
+        self.reset()
+        home_bell = self.bell_point(self.home)
+        self.s.hyprctl("dispatch", 'hl.dsp.focus({ window = "class:cortetsu-probe" })')
+        self.s.hyprctl("dispatch", 'hl.dsp.window.fullscreen({ mode = "fullscreen" })')
+        time.sleep(0.6)
+        self.open("hardware", self.home)
+        self.s.click(*home_bell)
+        time.sleep(0.6)
+        self.s.focus_monitor(self.home)
+        seen = self.s.ipc("drawers", "isOpen", "sidebar").stdout.strip()
+        self.check("bellfs", "fullscreen: a bell-spot click over Hardware does not open the sidebar", seen == "0", seen)
+        if seen == "1":
+            self.s.ipc("drawers", "toggle", "sidebar")
+        self.s.ipc("hardware", "close")
+        self.s.hyprctl("dispatch", 'hl.dsp.focus({ window = "class:cortetsu-probe" })')
+        self.s.hyprctl("dispatch", 'hl.dsp.window.fullscreen({ mode = "fullscreen" })')
+        time.sleep(0.4)
+        probe = next((c for c in self.s.hjson("clients") or [] if c.get("class") == "cortetsu-probe"), {})
+        # Leaving fullscreen leaves no window focused (main does the same);
+        # focus the client as a click on it would.
+        self.s.hyprctl("dispatch", 'hl.dsp.focus({ window = "class:cortetsu-probe" })')
+        # Observation: here the key does not reach the client, also on
+        # 63bb651 and without the click (harness, not the bell).
+        self.checks.append({"scenario": "bellfs", "check": "observed: keyboard in the client after leaving fullscreen",
+                            "result": "INFO", "seen": {"reaches": self.key_reaches_client(),
+                                                       "fullscreen": probe.get("fullscreen"), "flags": self.flags()}})
+
     def focus(self) -> None:
         for path in ("ipc", "super+n"):
             self.reset()
@@ -304,6 +339,8 @@ def main() -> int:
             result["monitors"] = {"client": run.home, "m1": run.m1, "m2": run.m2}
             warnings_before = len(F1a.qml_problems(session.logs / "qs.log"))
             scenarios = [run.o1, run.o2, run.o3, run.calendar, run.focus, run.bell]
+            if os.environ.get("ONLY"):
+                scenarios.append(run.bellfs)
             only = [name for name in os.environ.get("ONLY", "").split(",") if name]
             if only:
                 scenarios = [s for s in scenarios if s.__name__ in only]
