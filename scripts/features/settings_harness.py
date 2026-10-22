@@ -298,6 +298,7 @@ def build_tree(folder: Path) -> None:
 
 
 HOST_SHELL = """import QtQuick
+import QtQuick.Window
 import Quickshell
 import "modules"
 import "modules/settings"
@@ -317,7 +318,30 @@ ShellRoot {
         for (const screen of Quickshell.screens)
             CortetsuShellState.states = CortetsuShellState.states.concat([{ screen: screen, state: state }]);
     }
-    SettingsHost {}
+    SettingsHost { id: host }
+    function find(item, name) {
+        if (item.objectName === name) return item;
+        for (const child of item.children ?? []) {
+            const found = find(child, name);
+            if (found) return found;
+        }
+        return null;
+    }
+    function checkWindows(open) {
+        const windows = host.children[0].instances;
+        if (windows.length !== Quickshell.screens.length) {
+            console.log("SETTINGS_FAIL", "the host must own one window per screen");
+            Qt.quit(); return false;
+        }
+        for (const window of windows) {
+            const loader = find(window.contentItem, "settingsContentLoader");
+            if (window.visible !== open || !loader || loader.active !== open || !!loader.item !== open) {
+                console.log("SETTINGS_FAIL", "window visibility and loaded content", open, window.visible, loader?.active, !!loader?.item);
+                Qt.quit(); return false;
+            }
+        }
+        return true;
+    }
     Timer {
         interval: 500; repeat: true; running: true
         onTriggered: {
@@ -325,11 +349,27 @@ ShellRoot {
             const ids = SettingsController.categories.map(item => item.id);
             if (root.step === 1 || root.step === ids.length + 4)
                 state.settings = true;
-            else if (root.step <= ids.length + 1)
+            else if (root.step <= ids.length + 1) {
+                if (!root.checkWindows(true)) return;
                 SettingsController.select(ids[root.step - 2]);
-            else if (root.step === ids.length + 2 || root.step === ids.length + 6)
+            } else if (root.step === ids.length + 2 || root.step === ids.length + 9)
                 state.settings = false;
-            else if (root.step === ids.length + 7) {
+            else if (root.step === ids.length + 3) {
+                if (!root.checkWindows(false)) return;
+            } else if (root.step === ids.length + 5 || root.step === ids.length + 8) {
+                if (!root.checkWindows(true)) return;
+            } else if (root.step === ids.length + 6) {
+                // Close the real QWindow, as the WM does, without changing
+                // the fixture's requested state first.
+                host.children[0].instances[0].contentItem.Window.window.close();
+            } else if (root.step === ids.length + 7) {
+                if (state.settings || !root.checkWindows(false)) {
+                    console.log("SETTINGS_FAIL", "a native close must clear the requested state and unload content");
+                    Qt.quit(); return;
+                }
+                state.settings = true;
+            } else if (root.step === ids.length + 10) {
+                if (!root.checkWindows(false)) return;
                 console.log("SETTINGS_HOST_PASS", Quickshell.screens.length);
                 Qt.quit();
             }

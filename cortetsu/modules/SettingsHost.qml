@@ -18,9 +18,12 @@ Scope {
             id: window
             required property ShellScreen modelData
             readonly property var screenState: CortetsuShellState.forScreen(modelData)
+            readonly property bool requestedOpen: screenState?.settings ?? false
 
             screen: modelData
-            visible: screenState?.settings ?? false
+            visible: requestedOpen
+            // Native WM closes must update the same state that opens Settings.
+            onClosed: if (screenState) screenState.settings = false
             title: qsTr("Ajustes de Cortetsu")
             color: "transparent"
             surfaceFormat.opaque: false
@@ -39,16 +42,26 @@ Scope {
                 // The content exists only while the window is open: a closed
                 // Settings holds no pages, bindings or processes.
                 Loader {
+                    id: contentLoader
+                    objectName: "settingsContentLoader"
                     anchors.fill: parent
                     anchors.margins: CortetsuDesign.spacingSpacious
-                    active: window.visible
+                    // Showing the native window emits visibleChanged before
+                    // its binding returns. Load from intent, outside that path.
+                    active: window.requestedOpen
                     focus: true
                     sourceComponent: Content {
                         screenState: window.screenState
                         screen: window.modelData
                         controller: SettingsController
                     }
-                    onLoaded: item.open()
+                    onLoaded: {
+                        const loaded = item;
+                        Qt.callLater(() => {
+                            if (contentLoader.active && contentLoader.item === loaded && window.visible)
+                                loaded.open();
+                        });
+                    }
                 }
             }
         }

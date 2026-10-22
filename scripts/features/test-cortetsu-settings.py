@@ -48,7 +48,7 @@ unread = sorted(key for key in written if not any(f"CortetsuConfig.{key}" in tex
 assert not unread, f"Settings writes preferences nothing reads: {unread}"
 
 # The content is built only while the window is open; a page only while selected.
-assert "active: window.visible" in host and "sourceComponent: Content {" in host
+assert "active: window.requestedOpen" in host and "sourceComponent: Content {" in host
 assert "sourceComponent: pages[pageId] ?? null" in content
 assert not re.search(r"visible: root\.(section|controller\.selectedId) ===", "\n".join(sources.values()))
 
