@@ -13,6 +13,7 @@ import (
 
 	"github.com/DilanRC/Cortetsu/cortetsu/protocol/execv1"
 	"github.com/DilanRC/Cortetsu/cortetsu/protocol/policy"
+	"github.com/DilanRC/Cortetsu/cortetsu/protocol/policyaudit"
 )
 
 const MaxLineBytes = 64 * 1024
@@ -53,6 +54,11 @@ func decode(raw []byte, target any) error {
 // Run consumes user-supplied trace events and writes only decisions. It never
 // emits event payloads, secrets or the raw input to stdout/stderr.
 func Run(input io.Reader, output io.Writer, rules []policy.Rule) error {
+	return RunWithAudit(input, output, rules, nil)
+}
+
+// RunWithAudit optionally persists redacted decisions, but never actions.
+func RunWithAudit(input io.Reader, output io.Writer, rules []policy.Rule, audit *policyaudit.Ledger) error {
 	if input == nil || output == nil {
 		return errors.New("missing stream")
 	}
@@ -97,6 +103,17 @@ func Run(input io.Reader, output io.Writer, rules []policy.Rule) error {
 					return errors.New("INVALID_REQUEST")
 				}
 				result.Decisions = decisions
+				if audit != nil {
+					for _, d := range decisions {
+						record, err := policyaudit.NewRecord(*next.Event, d, next.NowUnixMs)
+						if err != nil {
+							return err
+						}
+						if err := audit.Append(record); err != nil {
+							return err
+						}
+					}
+				}
 			}
 		default:
 			return errors.New("INVALID_REQUEST")

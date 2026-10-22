@@ -77,6 +77,7 @@ struct SystemMeta {
     shell_generation: String,
     dotfiles_generation: String,
     repository_revision: Option<String>,
+    helpers_generation: Option<String>,
 }
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -100,6 +101,8 @@ pub struct VerifiedGeneration {
     pub shell: String,
     pub dotfiles: String,
     pub revision: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub helpers: Option<String>,
 }
 
 fn read_json<T: serde::de::DeserializeOwned>(path: &Path) -> Result<T> {
@@ -244,9 +247,23 @@ fn verify_shell(path: &Path) -> Result<()> {
 
 fn verify_system_path(path: &Path, roots: &Roots) -> Result<VerifiedGeneration> {
     let meta: SystemMeta = read_json(&path.join("SYSTEM.json"))?;
-    if meta.schema != 1 {
+    if meta.schema != 1 && meta.schema != 2 {
         return Err(invalid("unsupported system schema"));
     }
+    if (meta.schema == 1 && meta.helpers_generation.is_some())
+        || (meta.schema == 2 && meta.helpers_generation.is_none())
+    {
+        return Err(invalid("system schema and helper generation mismatch"));
+    }
+    let helpers = if let Some(ref source) = meta.helpers_generation {
+        let builds = roots.data.join("helpers/builds");
+        let path = managed_generation(source, &builds)?;
+        let id = path.file_name().and_then(|v| v.to_str()).ok_or_else(|| invalid("invalid helper generation id"))?;
+        helper_bundle::verify(roots, id)?;
+        Some(path.to_string_lossy().into_owned())
+    } else {
+        None
+    };
     let shell = managed_generation(&meta.shell_generation, &roots.data.join("builds"))?;
     let dotfiles = managed_generation(&meta.dotfiles_generation, &roots.dot_root().join("builds"))?;
     verify_shell(&shell)?;
@@ -256,6 +273,7 @@ fn verify_system_path(path: &Path, roots: &Roots) -> Result<VerifiedGeneration> 
         shell: shell.to_string_lossy().into_owned(),
         dotfiles: dotfiles.to_string_lossy().into_owned(),
         revision: meta.repository_revision,
+        helpers,
     })
 }
 
@@ -270,6 +288,12 @@ pub fn current(roots: &Roots) -> Result<VerifiedGeneration> {
         &roots.dot_root().join("current"),
         &roots.dot_root().join("builds"),
     )?;
+    if let Some(ref helpers) = snapshot.helpers {
+        let active_helpers = managed_link(&roots.data.join("helpers/current"), &roots.data.join("helpers/builds"))?;
+        if Path::new(helpers) != active_helpers {
+            return Err(invalid("system/helpers current pointer drift"));
+        }
+    }
     if Path::new(&snapshot.shell) != active_shell || Path::new(&snapshot.dotfiles) != active_dots {
         return Err(invalid("system/shell/dotfiles current pointer drift"));
     }
@@ -289,6 +313,9 @@ pub fn plan_rollback(roots: &Roots) -> Result<(VerifiedGeneration, VerifiedGener
     let target = previous(roots)?;
     if now.system == target.system {
         return Err(invalid("current and previous identify the same generation"));
+    }
+    if now.helpers.is_some() != target.helpers.is_some() {
+        return Err(invalid("cannot roll back across schema 1/2 without an explicit migration"));
     }
     Ok((now, target))
 }

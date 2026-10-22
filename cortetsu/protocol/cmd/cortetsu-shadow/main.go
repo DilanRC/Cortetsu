@@ -8,11 +8,13 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/DilanRC/Cortetsu/cortetsu/protocol/policyaudit"
 	"github.com/DilanRC/Cortetsu/cortetsu/protocol/shadow"
 )
 
 func main() {
 	rulePath := flag.String("rules", "", "Optional JSON rule fixture (read only)")
+	auditDir := flag.String("audit-dir", "", "Optional preexisting private directory (0700) for bounded redacted decisions")
 	flag.Parse()
 	if len(flag.Args()) != 0 {
 		fmt.Fprintln(os.Stderr, "usage: cortetsu-shadow [-rules fixture.json] < trace.ndjson")
@@ -34,7 +36,11 @@ func main() {
 		fmt.Fprintln(os.Stderr, "invalid rules")
 		os.Exit(1)
 	}
-	if err := shadow.Run(os.Stdin, os.Stdout, rules); err != nil {
+	var audit *policyaudit.Ledger
+	if *auditDir != "" {
+		audit = &policyaudit.Ledger{Root: *auditDir}
+	}
+	if err := shadow.RunWithAudit(os.Stdin, os.Stdout, rules, audit); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}

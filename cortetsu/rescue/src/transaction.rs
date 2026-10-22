@@ -1,6 +1,6 @@
 //! Opt-in offline transaction recovery for Cortetsu generation pointers.
 //!
-//! This deliberately operates only on the six managed generation symlinks.
+//! This uses six legacy links, or eight when schema-2 helper pointers exist.
 //! The preexisting helper binaries under ~/.local/bin are *not* part of schema 1;
 //! a rollback is therefore refused unless the operator acknowledges that
 //! helper versions need separate verified recovery. Never invoke automatically.
@@ -27,6 +27,10 @@ pub struct Pointers {
     pub shell_previous: Option<PathBuf>,
     pub dotfiles_current: PathBuf,
     pub dotfiles_previous: Option<PathBuf>,
+    #[serde(default)]
+    pub helpers_current: Option<PathBuf>,
+    #[serde(default)]
+    pub helpers_previous: Option<PathBuf>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -56,7 +60,7 @@ pub struct RecoveryStatus {
 }
 
 impl Roots {
-    fn roles(&self) -> [(PathBuf, PathBuf); 6] {
+    fn roles(&self) -> [(PathBuf, PathBuf); 8] {
         [
             (
                 self.system_root().join("current"),
@@ -76,6 +80,8 @@ impl Roots {
                 self.dot_root().join("previous"),
                 self.dot_root().join("builds"),
             ),
+            (self.data.join("helpers/current"), self.data.join("helpers/builds")),
+            (self.data.join("helpers/previous"), self.data.join("helpers/builds")),
         ]
     }
 }
@@ -92,7 +98,7 @@ pub fn capture_pointers(roots: &Roots) -> Result<Pointers> {
     // Verify both full generations before trying to capture any target.
     plan_rollback(roots)?;
     let roles = roots.roles();
-    let mut values = Vec::with_capacity(6);
+    let mut values = Vec::with_capacity(8);
     for (link, builds) in &roles {
         values.push(existing_pointer(link, builds)?);
     }
@@ -108,11 +114,13 @@ pub fn capture_pointers(roots: &Roots) -> Result<Pointers> {
         shell_previous: values[3].clone(),
         dotfiles_current: required(4)?,
         dotfiles_previous: values[5].clone(),
+        helpers_current: values[6].clone(),
+        helpers_previous: values[7].clone(),
     })
 }
 
 impl Pointers {
-    fn members(&self) -> [Option<&Path>; 6] {
+    fn members(&self) -> [Option<&Path>; 8] {
         [
             Some(&self.system_current),
             Some(&self.system_previous),
@@ -120,6 +128,8 @@ impl Pointers {
             self.shell_previous.as_deref(),
             Some(&self.dotfiles_current),
             self.dotfiles_previous.as_deref(),
+            self.helpers_current.as_deref(),
+            self.helpers_previous.as_deref(),
         ]
     }
 
@@ -141,6 +151,13 @@ impl Pointers {
 fn planned(roots: &Roots) -> Result<(Pointers, Pointers)> {
     let (active, previous) = plan_rollback(roots)?;
     let before = capture_pointers(roots)?;
+    // A schema-1 transaction must not silently remove an independently
+    // activated schema-2 helper pointer. Mixed installations are quarantined.
+    if active.helpers.is_none()
+        && (before.helpers_current.is_some() || before.helpers_previous.is_some())
+    {
+        return Err(invalid("schema-1 rollback cannot change helper pointers"));
+    }
     let target = Pointers {
         system_current: before.system_previous.clone(),
         system_previous: before.system_current.clone(),
@@ -148,11 +165,17 @@ fn planned(roots: &Roots) -> Result<(Pointers, Pointers)> {
         shell_previous: Some(PathBuf::from(&active.shell)),
         dotfiles_current: PathBuf::from(&previous.dotfiles),
         dotfiles_previous: Some(PathBuf::from(&active.dotfiles)),
+        helpers_current: previous.helpers.as_deref().map(PathBuf::from),
+        helpers_previous: active.helpers.as_deref().map(PathBuf::from),
     };
     before.validate(roots)?;
     target.validate(roots)?;
     verify_shell(&target.shell_current)?;
     verify_dotfiles(&target.dotfiles_current)?;
+    if let Some(ref helpers) = target.helpers_current {
+        let id = helpers.file_name().and_then(|v| v.to_str()).ok_or_else(|| invalid("bad helper build id"))?;
+        super::helper_bundle::verify(roots, id)?;
+    }
     Ok((before, target))
 }
 
@@ -310,7 +333,7 @@ fn apply(
     let roles = roots.roles();
     let members = pointers.members();
     // Previous pointers before current; system/current is the commit marker.
-    for (step, i) in [3, 2, 5, 4, 1, 0].into_iter().enumerate() {
+    for (step, i) in [3, 2, 5, 4, 7, 6, 1, 0].into_iter().enumerate() {
         atomic_pointer(&roles[i].0, members[i], &roles[i].1, step)?;
         hook(step + 1)?;
     }
