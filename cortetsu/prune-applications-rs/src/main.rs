@@ -50,6 +50,7 @@ fn split_shell(source: &str) -> Option<Vec<String>> {
                 },
                 _ => token.push(ch),
             },
+            Some(_) => return None,
             None => match ch {
                 '\'' | '"' => {
                     quote = Some(ch);

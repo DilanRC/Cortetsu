@@ -81,14 +81,15 @@ impl<'de> Visitor<'de> for CheckedVisitor {
     }
 }
 
-pub fn validate(raw: &[u8]) -> Result<(), ()> {
+pub fn validate(raw: &[u8]) -> bool {
     if raw.is_empty() || raw.len() > 64 * 1024 {
-        return Err(());
+        return false;
     }
     let mut decoder = serde_json::Deserializer::from_slice(raw);
-    Checked::deserialize(&mut decoder).map_err(|_| ())?;
-    decoder.end().map_err(|_| ())?;
-    Ok(())
+    if Checked::deserialize(&mut decoder).is_err() {
+        return false;
+    }
+    decoder.end().is_ok()
 }
 
 #[cfg(test)]
@@ -97,20 +98,20 @@ mod tests {
 
     #[test]
     fn duplicate_keys_are_rejected_at_every_depth() {
-        assert!(validate(br#"{"a":1,"a":2}"#).is_err());
-        assert!(validate(br#"{"x":{"y":1,"y":2}}"#).is_err());
-        assert!(validate(br#"[{"x":1},{"x":2}]"#).is_ok());
-        assert!(validate(br#"{"a":1,"\u0061":2}"#).is_err());
+        assert!(!validate(br#"{"a":1,"a":2}"#));
+        assert!(!validate(br#"{"x":{"y":1,"y":2}}"#));
+        assert!(validate(br#"[{"x":1},{"x":2}]"#));
+        assert!(!validate(br#"{"a":1,"\u0061":2}"#));
     }
 
     #[test]
     fn invalid_unicode_numbers_and_partial_frames_fail_closed() {
-        assert!(validate(br#"{"a":-0}"#).is_err());
-        assert!(validate(br#"{"a":-0.0}"#).is_err());
-        assert!(validate(br#"{"a":1e999}"#).is_err());
-        assert!(validate(br#"{"a":"\uD800"}"#).is_err());
-        assert!(validate(b"{} {} ").is_err());
-        assert!(validate(br#"{"a": [1,2}"#).is_err());
-        assert!(validate(br#"{"a":-1.0,"b":true,"c":null}"#).is_ok());
+        assert!(!validate(br#"{"a":-0}"#));
+        assert!(!validate(br#"{"a":-0.0}"#));
+        assert!(!validate(br#"{"a":1e999}"#));
+        assert!(!validate(br#"{"a":"\uD800"}"#));
+        assert!(!validate(b"{} {} "));
+        assert!(!validate(br#"{"a": [1,2}"#));
+        assert!(validate(br#"{"a":-1.0,"b":true,"c":null}"#));
     }
 }

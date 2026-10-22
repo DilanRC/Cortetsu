@@ -62,7 +62,7 @@ pub fn handle(input: &[u8], roots: &Roots) -> Value {
     // serde_json's default struct deserializer accepts duplicate keys in
     // nested `arguments`; Go explicitly rejects them, so preflight the full
     // payload before interpreting any operation or constructing a response.
-    if super::strict_json::validate(input).is_err() {
+    if !super::strict_json::validate(input) {
         return reject("", "INVALID_REQUEST");
     }
     let request: Request = match serde_json::from_slice(input) {
