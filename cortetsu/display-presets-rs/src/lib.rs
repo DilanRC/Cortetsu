@@ -44,10 +44,10 @@ impl Paths {
 }
 
 fn read_data(path: &Path) -> Map<String, Value> {
-    if let Ok(raw) = fs::read(path) {
-        if let Ok(Value::Object(map)) = serde_json::from_slice::<Value>(&raw) {
-            return map;
-        }
+    if let Ok(raw) = fs::read(path)
+        && let Ok(Value::Object(map)) = serde_json::from_slice::<Value>(&raw)
+    {
+        return map;
     }
     let mut default = Map::new();
     default.insert("version".into(), json!(1));
@@ -86,10 +86,10 @@ fn synced_parent(path: &Path) -> Result<()> {
 fn save(path: &Path, data: &Map<String, Value>) -> Result<()> {
     let parent = path.parent().ok_or_else(|| failed("invalid config path"))?;
     fs::create_dir_all(parent).map_err(|_| failed("cannot create config directory"))?;
-    if let Ok(meta) = fs::symlink_metadata(path) {
-        if meta.file_type().is_symlink() || !meta.is_file() {
-            return Err(failed("unsafe config file"));
-        }
+    if let Ok(meta) = fs::symlink_metadata(path)
+        && (meta.file_type().is_symlink() || !meta.is_file())
+    {
+        return Err(failed("unsafe config file"));
     }
     let key = path
         .file_name()
@@ -121,10 +121,10 @@ fn acquire_lock(path: &Path) -> Result<File> {
         .ok_or_else(|| failed("missing config directory"))?;
     fs::create_dir_all(parent).map_err(|_| failed("cannot create config directory"))?;
     let lock = parent.join(".display-presets-rs.lock");
-    if let Ok(meta) = fs::symlink_metadata(&lock) {
-        if meta.file_type().is_symlink() || !meta.is_file() {
-            return Err(failed("unsafe presets lock"));
-        }
+    if let Ok(meta) = fs::symlink_metadata(&lock)
+        && (meta.file_type().is_symlink() || !meta.is_file())
+    {
+        return Err(failed("unsafe presets lock"));
     }
     let f = OpenOptions::new()
         .write(true)
