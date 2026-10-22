@@ -59,6 +59,12 @@ pub fn handle(input: &[u8], roots: &Roots) -> Value {
     if input.len() > MAX_REQUEST {
         return reject("", "FRAME_TOO_LARGE");
     }
+    // serde_json's default struct deserializer accepts duplicate keys in
+    // nested `arguments`; Go explicitly rejects them, so preflight the full
+    // payload before interpreting any operation or constructing a response.
+    if super::strict_json::validate(input).is_err() {
+        return reject("", "INVALID_REQUEST");
+    }
     let request: Request = match serde_json::from_slice(input) {
         Ok(value) => value,
         Err(_) => return reject("", "INVALID_REQUEST"),
@@ -109,5 +115,9 @@ mod tests {
             handle(duplicate, &roots)["error"]["code"],
             "INVALID_REQUEST"
         );
+        let nested = br#"{"protocol":"cortetsu.exec","version":{"major":1,"minor":0},"request_id":"00000000-0000-0000-0000-000000000001","operation":"system.verify","deadline_ms":5000,"arguments":{"a":1,"a":2}}"#;
+        assert_eq!(handle(nested, &roots)["error"]["code"], "INVALID_REQUEST");
+        let negative = br#"{"protocol":"cortetsu.exec","version":{"major":1,"minor":0},"request_id":"00000000-0000-0000-0000-000000000001","operation":"system.verify","deadline_ms":5000,"arguments":{"a":-0}}"#;
+        assert_eq!(handle(negative, &roots)["error"]["code"], "INVALID_REQUEST");
     }
 }

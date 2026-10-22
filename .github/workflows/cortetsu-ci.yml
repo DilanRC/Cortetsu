@@ -70,6 +70,8 @@ jobs:
         run: python3 scripts/features/test-dotfiles-platform.py
       - name: Validate unified system generations
         run: python3 scripts/features/test-system-generations.py
+      - name: Verify schema2 helper bundle contract without activation
+        run: python3 scripts/features/test-system-helper-schema2.py
       - name: Validate single-owner shell lifecycle
         run: python3 scripts/features/test-shell-lifecycle.py
       - name: Validate migration resilience

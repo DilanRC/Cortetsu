@@ -408,6 +408,7 @@ test_cmd() {
         "scripts/features/test-native-theme.py"
         "scripts/features/test-dotfiles-platform.py"
         "scripts/features/test-system-generations.py"
+        "scripts/features/test-system-helper-schema2.py"
         "scripts/features/test-cortetsu-generation-gc.py"
         "scripts/features/test-shell-lifecycle.py"
         "scripts/features/eval-shell-application-safety.py"

@@ -339,3 +339,6 @@ pub mod exec_read;
 
 /// Durable replay tombstones for future typed Rust owners; no active dispatch.
 pub mod idempotency;
+
+/// Strict, duplicate-free JSON envelope validation shared by Rust adapters.
+pub mod strict_json;

@@ -1,0 +1,55 @@
+name: Cortetsu application cleanup Rust parity
+on:
+  push:
+    paths:
+      - 'cortetsu/prune-applications-rs/**'
+      - 'cortetsu/bin/cortetsu-prune-applications'
+      - '.github/workflows/prune-applications-rust-ci.yml'
+  pull_request:
+    paths:
+      - 'cortetsu/prune-applications-rs/**'
+      - 'cortetsu/bin/cortetsu-prune-applications'
+      - '.github/workflows/prune-applications-rust-ci.yml'
+permissions:
+  contents: read
+jobs:
+  format-review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install rustfmt
+        run: rustup toolchain install stable --profile minimal --component rustfmt && rustup default stable
+      - name: Prepare formatted candidate for audit
+        working-directory: cortetsu/prune-applications-rs
+        run: cargo fmt --all
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cortetsu-prune-applications-rustfmt-review
+          path: cortetsu/prune-applications-rs/src/
+          retention-days: 2
+      - name: Require checked-in formatting
+        run: git diff --exit-code -- cortetsu/prune-applications-rs/src
+  parity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install Rust toolchain
+        run: rustup toolchain install stable --profile minimal --component rustfmt,clippy && rustup default stable
+      - name: Format and lint
+        working-directory: cortetsu/prune-applications-rs
+        run: |
+          cargo fmt --all -- --check
+          cargo clippy --locked --all-targets -- -D warnings
+      - name: Rust unit tests
+        working-directory: cortetsu/prune-applications-rs
+        run: cargo test --locked --all-targets
+      - name: Build opt-in helper
+        working-directory: cortetsu/prune-applications-rs
+        run: cargo build --locked --release
+      - name: Compare Python and Rust behavior using temporary XDG roots
+        run: python3 cortetsu/prune-applications-rs/tests/parity.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cortetsu-prune-applications-rs-linux-amd64-parity
+          path: cortetsu/prune-applications-rs/target/release/cortetsu-prune-applications-rs
+          retention-days: 14
