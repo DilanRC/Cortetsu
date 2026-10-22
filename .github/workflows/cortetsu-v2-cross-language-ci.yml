@@ -1,0 +1,39 @@
+name: Cortetsu 2.0 IPC Go-Rust end-to-end
+
+on:
+  push:
+    paths:
+      - 'cortetsu/protocol/**'
+      - 'cortetsu/rescue/**'
+      - 'scripts/features/test-cortetsu-cross-language-ipc.py'
+      - '.github/workflows/cortetsu-v2-cross-language-ci.yml'
+  pull_request:
+    paths:
+      - 'cortetsu/protocol/**'
+      - 'cortetsu/rescue/**'
+      - 'scripts/features/test-cortetsu-cross-language-ipc.py'
+      - '.github/workflows/cortetsu-v2-cross-language-ci.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  ipc-e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: cortetsu/protocol/go.mod
+      - name: Install Rust with a pinned lockfile
+        run: rustup toolchain install stable --profile minimal --component rustfmt,clippy && rustup default stable
+      - name: Build Rust offline verifier
+        run: cargo build --locked --release --manifest-path cortetsu/rescue/Cargo.toml
+      - name: Build Go per-session bridge
+        working-directory: cortetsu/protocol
+        run: go build -trimpath -o dist/cortetsu-bridge ./cmd/cortetsu-bridge
+      - name: Exercise the real Go->Rust exchange in a private XDG test home
+        run: |
+          python3 scripts/features/test-cortetsu-cross-language-ipc.py \
+            --bridge cortetsu/protocol/dist/cortetsu-bridge \
+            --rescue cortetsu/rescue/target/release/cortetsu-rescue

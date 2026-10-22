@@ -4,6 +4,7 @@
 package ipcv1
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"errors"
@@ -27,10 +28,13 @@ const (
 var id = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9._:-]{0,127}$`)
 var uuid = regexp.MustCompile(`(?i)^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`)
 
-var supportedCapabilities = []string{"snapshot", "events", "policy.observe", "policy.simulate", "explain"}
+var supportedCapabilities = []string{"snapshot", "events", "policy.observe", "policy.simulate", "explain", "system.verify"}
 
 // Error never includes request bodies or session identifiers in its message.
-type Error struct{ Code string }
+type Error struct {
+	Code      string `json:"code"`
+	Retryable bool   `json:"retryable"`
+}
 
 func (e *Error) Error() string { return e.Code }
 func fail(code string) error   { return &Error{Code: code} }
@@ -164,6 +168,13 @@ func ParseRequest(data []byte, session *Negotiated) (*Request, error) {
 		return nil, fail("SESSION_MISMATCH")
 	}
 	switch r.Op {
+	case "system.verify":
+		if !slices.Contains(session.Capabilities, "system.verify") {
+			return nil, fail("UNSUPPORTED_CAPABILITY")
+		}
+		if err := checkBody(r.Body, &struct{}{}); err != nil {
+			return nil, err
+		}
 	case "snapshot.get":
 		if !slices.Contains(session.Capabilities, "snapshot") {
 			return nil, fail("UNSUPPORTED_CAPABILITY")
@@ -215,7 +226,7 @@ func ParseRequest(data []byte, session *Negotiated) (*Request, error) {
 		if err := checkBody(r.Body, &args); err != nil {
 			return nil, err
 		}
-		if args.AtUnixMs <= 0 || len(args.Rules) > 1024 || len(args.Overrides) > 1024 {
+		if args.AtUnixMs <= 0 || len(args.Rules) > 128 || len(args.Overrides) > 128 {
 			return nil, fail("INVALID_REQUEST")
 		}
 		if _, err := policy.NewEngine().Evaluate(args.AtUnixMs, args.Event, args.Rules, args.Overrides); err != nil {
@@ -229,43 +240,44 @@ func ParseRequest(data []byte, session *Negotiated) (*Request, error) {
 	return &r, nil
 }
 
-// FrameReader rejects overlarge lines before unmarshalling. It returns EOF
-// only when there is no pending partial message; unterminated JSON is invalid.
-type FrameReader struct {
-	reader *io.LimitedReader
-	source io.Reader
+// FrameReader bounds each newline-delimited message without reading a byte at
+// a time from the UNIX socket. A partial frame at EOF is always invalid.
+// The buffered reader must be reused for a whole client connection.
+type FrameReader struct{ reader *bufio.Reader }
+
+func NewFrameReader(source io.Reader) *FrameReader {
+	if source == nil {
+		return &FrameReader{}
+	}
+	return &FrameReader{reader: bufio.NewReaderSize(source, 4096)}
 }
 
-func NewFrameReader(reader io.Reader) *FrameReader { return &FrameReader{source: reader} }
-
 func (r *FrameReader) Read() ([]byte, error) {
-	if r == nil || r.source == nil {
+	if r == nil || r.reader == nil {
 		return nil, fail("INVALID_REQUEST")
 	}
-	var frame []byte
-	var one [1]byte
-	for len(frame) <= MaxFrameBytes {
-		n, err := r.source.Read(one[:])
-		if n > 0 {
-			if one[0] == '\n' {
-				if len(frame) == 0 {
-					return nil, fail("INVALID_REQUEST")
-				}
-				return frame, nil
+	frame := make([]byte, 0, 4096)
+	for {
+		part, err := r.reader.ReadSlice('\n')
+		if len(frame)+len(part) > MaxFrameBytes+1 {
+			return nil, fail("FRAME_TOO_LARGE")
+		}
+		frame = append(frame, part...)
+		if err == nil {
+			frame = frame[:len(frame)-1]
+			if len(frame) == 0 || len(frame) > MaxFrameBytes {
+				return nil, fail("INVALID_REQUEST")
 			}
-			frame = append(frame, one[0])
+			return frame, nil
 		}
-		if err != nil {
-			if errors.Is(err, io.EOF) && len(frame) == 0 {
-				return nil, io.EOF
-			}
-			return nil, fail("INVALID_REQUEST")
+		if errors.Is(err, bufio.ErrBufferFull) {
+			continue
 		}
-		if n == 0 {
-			return nil, fail("INVALID_REQUEST")
+		if errors.Is(err, io.EOF) && len(frame) == 0 {
+			return nil, io.EOF
 		}
+		return nil, fail("INVALID_REQUEST")
 	}
-	return nil, fail("FRAME_TOO_LARGE")
 }
 
 func WriteFrame(w io.Writer, v any) error {

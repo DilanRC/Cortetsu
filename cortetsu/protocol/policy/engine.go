@@ -45,17 +45,18 @@ type Condition struct {
 }
 
 type Rule struct {
-	ID         string      `json:"id"`
-	Enabled    bool        `json:"enabled"`
-	Mode       string      `json:"mode"`
-	Domain     string      `json:"domain"`
-	EventType  string      `json:"event_type"`
-	Conditions []Condition `json:"conditions,omitempty"`
-	Resource   string      `json:"resource"`
-	Operation  string      `json:"operation"`
-	Priority   int         `json:"priority"`
-	CooldownMs int64       `json:"cooldown_ms"`
-	TTLms      int64       `json:"ttl_ms"`
+	ID           string      `json:"id"`
+	Enabled      bool        `json:"enabled"`
+	Mode         string      `json:"mode"`
+	Domain       string      `json:"domain"`
+	EventType    string      `json:"event_type"`
+	Conditions   []Condition `json:"conditions,omitempty"`
+	Resource     string      `json:"resource"`
+	Operation    string      `json:"operation"`
+	Priority     int         `json:"priority"`
+	CooldownMs   int64       `json:"cooldown_ms"`
+	HysteresisMs int64       `json:"hysteresis_ms,omitempty"`
+	TTLms        int64       `json:"ttl_ms"`
 }
 
 // ManualOverride blocks automation for a resource until UntilUnixMs.
@@ -76,15 +77,18 @@ type Decision struct {
 type Engine struct {
 	mu            sync.Mutex
 	lastSelection map[string]int64
+	stableSince   map[string]int64
 }
 
-func NewEngine() *Engine { return &Engine{lastSelection: map[string]int64{}} }
+func NewEngine() *Engine {
+	return &Engine{lastSelection: map[string]int64{}, stableSince: map[string]int64{}}
+}
 
 func (r Rule) Validate() error {
 	if !name.MatchString(r.ID) || !name.MatchString(r.Domain) || !name.MatchString(r.EventType) || !name.MatchString(r.Resource) {
 		return errors.New("invalid rule identifier")
 	}
-	if r.Priority < -1000 || r.Priority > 1000 || r.CooldownMs < 0 || r.TTLms <= 0 || r.TTLms > 7*24*3600*1000 {
+	if r.Priority < -1000 || r.Priority > 1000 || r.CooldownMs < 0 || r.HysteresisMs < 0 || r.HysteresisMs > 24*3600*1000 || r.TTLms <= 0 || r.TTLms > 7*24*3600*1000 {
 		return errors.New("invalid priority, cooldown or ttl")
 	}
 	if r.Mode != "observe" && r.Mode != "simulate" && r.Mode != "active" {
@@ -97,7 +101,7 @@ func (r Rule) Validate() error {
 		return errors.New("too many conditions")
 	}
 	for _, c := range r.Conditions {
-		if !name.MatchString(c.Field) || len(c.Equals) > 256 || strings.ContainsAny(c.Equals, "\r\n") {
+		if !name.MatchString(c.Field) || !allowedEventFields[c.Field] || len(c.Equals) > 256 || strings.ContainsAny(c.Equals, "\r\n") {
 			return errors.New("invalid condition")
 		}
 	}
@@ -121,6 +125,9 @@ func (e *Engine) Evaluate(nowMs int64, event Event, rules []Rule, overrides []Ma
 	defer e.mu.Unlock()
 	if e.lastSelection == nil {
 		e.lastSelection = make(map[string]int64)
+	}
+	if e.stableSince == nil {
+		e.stableSince = make(map[string]int64)
 	}
 	if len(rules) > 1024 {
 		return nil, errors.New("too many rules")
@@ -161,6 +168,7 @@ func (e *Engine) Evaluate(nowMs int64, event Event, rules []Rule, overrides []Ma
 			continue
 		}
 		matches := true
+		key := event.Session + "\x00" + r.ID
 		for _, c := range r.Conditions {
 			if event.Fields[c.Field] != c.Equals {
 				matches = false
@@ -168,6 +176,7 @@ func (e *Engine) Evaluate(nowMs int64, event Event, rules []Rule, overrides []Ma
 			}
 		}
 		if !matches {
+			delete(e.stableSince, key)
 			continue
 		}
 		d := Decision{Resource: r.Resource, RuleID: r.ID, Operation: r.Operation}
@@ -180,7 +189,12 @@ func (e *Engine) Evaluate(nowMs int64, event Event, rules []Rule, overrides []Ma
 			d.Outcome, d.Reason = "BLOCKED", "EVENT_EXPIRED"
 		case locks[r.Resource] > nowMs:
 			d.Outcome, d.Reason = "BLOCKED", "MANUAL_OVERRIDE"
-		case e.lastSelection[r.ID] != 0 && nowMs-e.lastSelection[r.ID] < r.CooldownMs:
+		case r.HysteresisMs > 0 && (e.stableSince[key] == 0 || nowMs < e.stableSince[key] || nowMs-e.stableSince[key] < r.HysteresisMs):
+			if e.stableSince[key] == 0 || nowMs < e.stableSince[key] {
+				e.stableSince[key] = nowMs
+			}
+			d.Outcome, d.Reason = "BLOCKED", "STABILIZING"
+		case e.lastSelection[key] != 0 && nowMs >= e.lastSelection[key] && nowMs-e.lastSelection[key] < r.CooldownMs:
 			d.Outcome, d.Reason = "BLOCKED", "COOLDOWN"
 		case r.Mode == "observe":
 			d.Outcome, d.Reason = "OBSERVED", "READ_ONLY"
@@ -196,7 +210,10 @@ func (e *Engine) Evaluate(nowMs int64, event Event, rules []Rule, overrides []Ma
 				// affects simulations. No actions are wired to this engine.
 				e.lastSelection = map[string]int64{}
 			}
-			e.lastSelection[r.ID] = nowMs
+			if len(e.stableSince) >= 8192 {
+				e.stableSince = map[string]int64{}
+			}
+			e.lastSelection[key] = nowMs
 		}
 		results = append(results, d)
 	}

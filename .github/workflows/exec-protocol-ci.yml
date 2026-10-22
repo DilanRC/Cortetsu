@@ -6,12 +6,20 @@ on:
       - 'cortetsu/protocol/**'
       - 'cortetsu/contracts/exec/**'
       - 'docs/migration/F1b/**'
+      - 'docs/migration/F9/**'
+      - 'cortetsu/modules/CortetsuPolicyBridge.qml'
+      - 'cortetsu/shell.qml'
+      - 'scripts/features/test-cortetsu-v2-bridge.py'
       - '.github/workflows/exec-protocol-ci.yml'
   pull_request:
     paths:
       - 'cortetsu/protocol/**'
       - 'cortetsu/contracts/exec/**'
       - 'docs/migration/F1b/**'
+      - 'docs/migration/F9/**'
+      - 'cortetsu/modules/CortetsuPolicyBridge.qml'
+      - 'cortetsu/shell.qml'
+      - 'scripts/features/test-cortetsu-v2-bridge.py'
       - '.github/workflows/exec-protocol-ci.yml'
 
 permissions:
@@ -31,6 +39,9 @@ jobs:
       - name: Wire contract, two-session socket and shadow tests
         working-directory: cortetsu/protocol
         run: go test -race ./...
+      - name: Refuse new first-party Python runtime entrypoints
+        working-directory: cortetsu/protocol
+        run: go run ./cmd/cortetsu-python-inventory --repo ../.. --baseline ../../docs/migration/F9/python-baseline.json
       - name: Static analysis
         working-directory: cortetsu/protocol
         run: go vet ./...
@@ -43,6 +54,15 @@ jobs:
         run: |
           mkdir -p dist
           go build -trimpath -ldflags='-s -w' -o dist/cortetsu-shadow ./cmd/cortetsu-shadow
+      - name: Build opt-in per-session IPC bridge
+        working-directory: cortetsu/protocol
+        env:
+          CGO_ENABLED: '0'
+          GOOS: linux
+          GOARCH: amd64
+        run: go build -trimpath -ldflags='-s -w' -o dist/cortetsu-bridge ./cmd/cortetsu-bridge
+      - name: Validate QML feature gate (does not activate bridge)
+        run: python3 scripts/features/test-cortetsu-v2-bridge.py
       - name: Build read-only Hyprland event observer
         working-directory: cortetsu/protocol
         env:
@@ -61,4 +81,18 @@ jobs:
           path: |
             cortetsu/protocol/dist/cortetsu-shadow
             cortetsu/protocol/dist/cortetsu-coordinator
+            cortetsu/protocol/dist/cortetsu-bridge
           retention-days: 14
+
+  qml-syntax:
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    steps:
+      - name: Install QML parser and Python on Arch
+        run: pacman -Syu --noconfirm git python qt6-declarative
+      - uses: actions/checkout@v6
+      - name: Parse optional QML bridge without enabling it
+        run: |
+          test -x /usr/lib/qt6/bin/qmlformat
+          /usr/lib/qt6/bin/qmlformat cortetsu/modules/CortetsuPolicyBridge.qml > /dev/null
+          python3 scripts/features/test-cortetsu-v2-bridge.py

@@ -296,5 +296,8 @@ pub fn plan_rollback(roots: &Roots) -> Result<(VerifiedGeneration, VerifiedGener
 /// Offline pointer transaction implementation; not used by the installed shell.
 pub mod transaction;
 
+/// Immutable, opt-in helper bundle staging for future schema-2 migration.
+pub mod helper_bundle;
+
 /// Read-only cross-language exec/1 adapter; no mutation dispatch.
 pub mod exec_read;

@@ -13,23 +13,71 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/DilanRC/Cortetsu/cortetsu/protocol/execclient"
 	"github.com/DilanRC/Cortetsu/cortetsu/protocol/policy"
 )
 
 const (
 	maxClients               = 8
 	maxRequestsPerConnection = 32
-	clientDeadline           = 5 * time.Second
+	clientDeadline           = 30 * time.Second
 )
 
 // TestListener implements the first-party, read-only IPC adapter *only* for
 // isolated tests. No systemd socket or production service launches it.
 // It intentionally cannot invoke Rust, Hyprland or any privileged operation.
+// SnapshotSource is a safe, bounded read-only observation source. It must never
+// include window titles, secrets, addresses, or raw Hyprland event payloads.
+type SnapshotSource func(domains []string) (any, error)
+
 type TestListener struct {
-	l       *net.UnixListener
-	path    string
-	session string
-	epoch   uint64
+	l        *net.UnixListener
+	path     string
+	session  string
+	epoch    uint64
+	snapshot SnapshotSource
+	rules    []policy.Rule
+	rust     *execclient.Client
+}
+
+// SetSnapshotSource configures the source before Serve starts. It must not be
+// changed while Serve is running (it is intentionally not hot-swappable).
+func (s *TestListener) SetSnapshotSource(source SnapshotSource) {
+	if s != nil {
+		s.snapshot = source
+	}
+}
+
+// SetRules supplies a static, validated read-only policy catalog before the
+// listener starts. The catalog is never mutated by IPC clients.
+// SetVerifier enables only the read-only Rust system.verify operation.
+// The executable is configured by a trusted startup option, never by IPC.
+func (s *TestListener) SetVerifier(client *execclient.Client) error {
+	if s == nil {
+		return fail("INVALID_REQUEST")
+	}
+	if client != nil {
+		if err := client.CheckBinary(); err != nil {
+			return fail("OWNER_UNAVAILABLE")
+		}
+	}
+	s.rust = client
+	return nil
+}
+
+func (s *TestListener) SetRules(rules []policy.Rule) error {
+	if s == nil || len(rules) > 128 {
+		return fail("INVALID_REQUEST")
+	}
+	ids := map[string]bool{}
+	for _, r := range rules {
+		if err := r.Validate(); err != nil || ids[r.ID] {
+			return fail("INVALID_REQUEST")
+		}
+		ids[r.ID] = true
+	}
+	s.rules = append([]policy.Rule(nil), rules...)
+	return nil
 }
 
 func (s *TestListener) Path() string {
@@ -123,11 +171,13 @@ func (s *TestListener) Serve(ctx context.Context) error {
 }
 
 type serverReply struct {
-	Type    string `json:"type"`
-	ID      string `json:"id"`
-	Outcome string `json:"outcome"`
-	Error   *Error `json:"error,omitempty"`
-	Body    any    `json:"body"`
+	Protocol string  `json:"protocol"`
+	Version  Version `json:"version"`
+	Type     string  `json:"type"`
+	ID       string  `json:"id"`
+	Outcome  string  `json:"outcome"`
+	Error    *Error  `json:"error,omitempty"`
+	Body     any     `json:"body"`
 }
 
 func (s *TestListener) handle(conn *net.UnixConn) {
@@ -154,6 +204,7 @@ func (s *TestListener) handle(conn *net.UnixConn) {
 		return
 	}
 	engine := policy.NewEngine()
+	traces := map[string][]policy.Decision{}
 	for i := 0; i < maxRequestsPerConnection; i++ {
 		_ = conn.SetDeadline(time.Now().Add(clientDeadline))
 		frame, err := frames.Read()
@@ -163,15 +214,38 @@ func (s *TestListener) handle(conn *net.UnixConn) {
 		request, err := ParseRequest(frame, accepted)
 		if err != nil {
 			// Do not echo untrusted request IDs or request data on error.
-			_ = WriteFrame(conn, serverReply{Type: "response", Outcome: "rejected", Error: &Error{Code: "INVALID_REQUEST"}, Body: map[string]any{}})
+			_ = WriteFrame(conn, serverReply{Protocol: Protocol, Version: Version{Major: Major, Minor: Minor}, Type: "response", Outcome: "rejected", Error: &Error{Code: "INVALID_REQUEST"}, Body: map[string]any{}})
 			return
 		}
-		reply := serverReply{Type: "response", ID: request.ID, Outcome: "rejected", Error: &Error{Code: "OWNER_UNAVAILABLE"}, Body: map[string]any{}}
+		reply := serverReply{Protocol: Protocol, Version: Version{Major: Major, Minor: Minor}, Type: "response", ID: request.ID, Outcome: "rejected", Error: &Error{Code: "OWNER_UNAVAILABLE"}, Body: map[string]any{}}
 		switch request.Op {
+		case "system.verify":
+			if s.rust != nil {
+				body, err := s.rust.Verify(context.Background(), request.ID, time.Duration(request.DeadlineMs)*time.Millisecond)
+				if err == nil {
+					reply.Outcome = "read"
+					reply.Error = nil
+					reply.Body = body
+				}
+			}
+		case "snapshot.get":
+			if s.snapshot != nil {
+				var body struct {
+					Domains []string `json:"domains"`
+				}
+				if json.Unmarshal(request.Body, &body) == nil {
+					if result, err := s.snapshot(body.Domains); err == nil {
+						reply.Outcome = "read"
+						reply.Error = nil
+						reply.Body = result
+					}
+				}
+			}
 		case "policy.list":
 			reply.Outcome = "read"
 			reply.Error = nil
-			reply.Body = map[string]any{"rules": []any{}}
+			records := append([]policy.Rule(nil), s.rules...)
+			reply.Body = map[string]any{"rules": records}
 		case "policy.simulate":
 			var body struct {
 				AtUnixMs  int64                   `json:"at_unix_ms"`
@@ -184,7 +258,26 @@ func (s *TestListener) handle(conn *net.UnixConn) {
 				if err == nil {
 					reply.Outcome = "simulated"
 					reply.Error = nil
-					reply.Body = map[string]any{"decisions": decisions}
+					// Keep at most 16 bounded traces per connection; never
+					// persist raw event metadata or unbounded policy details.
+					if len(decisions) <= 64 {
+						if len(traces) >= 16 {
+							traces = map[string][]policy.Decision{}
+						}
+						traces[request.ID] = append([]policy.Decision(nil), decisions...)
+					}
+					reply.Body = map[string]any{"trace_id": request.ID, "decisions": decisions}
+				}
+			}
+		case "explain.get":
+			var args struct {
+				TraceID string `json:"trace_id"`
+			}
+			if json.Unmarshal(request.Body, &args) == nil {
+				if decisions, ok := traces[args.TraceID]; ok {
+					reply.Outcome = "read"
+					reply.Error = nil
+					reply.Body = map[string]any{"trace_id": args.TraceID, "decisions": decisions}
 				}
 			}
 		}

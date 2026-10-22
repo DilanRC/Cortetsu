@@ -156,3 +156,60 @@ func TestObserverSeparateSessionsAndSnapshotMonotonicity(t *testing.T) {
 		t.Fatal("other session affected", c)
 	}
 }
+
+func TestHysteresisPerSessionAndNoUnexpectedAction(t *testing.T) {
+	e := NewEngine()
+	r := sampleRule("low", "simulate", 1)
+	r.HysteresisMs = 1500
+	r.CooldownMs = 0
+	ev := Event{Session: "session-a", Domain: "power", Type: "battery.changed", EmittedAtUnixMs: 1000, Fields: map[string]string{"level": "low"}}
+	decide := func(at int64, event Event) Decision {
+		t.Helper()
+		got, err := e.Evaluate(at, event, []Rule{r}, nil)
+		if err != nil || len(got) != 1 {
+			t.Fatalf("evaluation: %v %v", got, err)
+		}
+		return got[0]
+	}
+	if got := decide(1000, ev); got.Reason != "STABILIZING" {
+		t.Fatal(got)
+	}
+	if got := decide(2000, ev); got.Reason != "STABILIZING" {
+		t.Fatal(got)
+	}
+	if got := decide(2500, ev); got.Outcome != "SIMULATED" {
+		t.Fatal(got)
+	}
+	// A new Wayland session must never inherit the old session's hysteresis.
+	ev.Session = "session-b"
+	if got := decide(2600, ev); got.Reason != "STABILIZING" {
+		t.Fatal(got)
+	}
+	ev.Fields["level"] = "normal"
+	got, err := e.Evaluate(3000, ev, []Rule{r}, nil)
+	if err != nil || len(got) != 0 {
+		t.Fatal(got, err)
+	}
+	ev.Fields["level"] = "low"
+	if got := decide(3100, ev); got.Reason != "STABILIZING" {
+		t.Fatal(got)
+	}
+	// Even a high-priority active rule cannot bypass missing Rust owner.
+	r.Mode = "active"
+	if got := decide(4700, ev); got.Reason != "NO_VERIFIED_RUST_OWNER" {
+		t.Fatal(got)
+	}
+}
+
+func TestRulesRejectNonWhitelistedCondition(t *testing.T) {
+	r := sampleRule("unsafe", "observe", 0)
+	r.Conditions = []Condition{{Field: "ssid", Equals: "private_wifi"}}
+	if err := r.Validate(); err == nil {
+		t.Fatal("secret condition key accepted")
+	}
+	r = sampleRule("unsafe", "observe", 0)
+	r.HysteresisMs = 25 * 3600 * 1000
+	if err := r.Validate(); err == nil {
+		t.Fatal("unbounded hysteresis accepted")
+	}
+}

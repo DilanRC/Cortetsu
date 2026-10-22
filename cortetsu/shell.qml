@@ -27,6 +27,12 @@ ShellRoot {
     readonly property var displayCalibration: DisplayCalibration
     Binding { target: ShellState; property: "shellRoot"; value: root }
     ShellLifecycle {}
+    // Optional Cortetsu 2.0 observation bridge. OFF by default; never
+    // changes window focus, keyboard ownership or existing manual actions.
+    Loader {
+        active: Quickshell.env("CORTETSU_V2_IPC_EXPERIMENTAL") === "1"
+        source: "modules/CortetsuPolicyBridge.qml"
+    }
     ServiceLoader {}
     Background {}
     Drawers {}

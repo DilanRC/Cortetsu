@@ -3,6 +3,9 @@
 //! Not installed by Cortetsu. All writes are scoped to the user's XDG state
 //! and retain the JSON shapes already watched by services/Notifs.qml.
 use fs2::FileExt;
+
+#[cfg(test)]
+mod pilot;
 use serde_json::{Map, Value, json};
 use std::fs::{self, File, OpenOptions};
 use std::io::Write;
