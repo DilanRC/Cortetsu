@@ -17,7 +17,8 @@ jobs:
           fetch-depth: 2
       - name: Trust the fixture repository for git
         run: git config --system --add safe.directory "$GITHUB_WORKSPACE"
-      - uses: actions/cache@v4
+      - uses: actions/cache/restore@v4
+        id: native-cache
         with:
           path: |
             /root/.cargo/registry
@@ -29,19 +30,35 @@ jobs:
           mkdir -p /run/dbus
           dbus-daemon --system --fork
       - name: Build the native runtime
+        id: native-build
         run: scripts/build-native.sh
+      - name: Preserve successful native build for QML diagnostics
+        if: steps.native-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            /root/.cargo/registry
+            /root/.cargo/git
+            cortetsu/*/target
+          key: native-arch-${{ hashFiles('cortetsu/**/Cargo.lock') }}
       - name: Parse the actual bridge and automation settings
+        if: ${{ !cancelled() && steps.native-build.outcome == 'success' }}
         run: |
           /usr/lib/qt6/bin/qmlformat cortetsu/modules/CortetsuPolicyBridge.qml > /dev/null
           /usr/lib/qt6/bin/qmlformat cortetsu/modules/settings/sections/AutomationSection.qml > /dev/null
           QT_QPA_PLATFORM=offscreen /usr/lib/qt6/bin/qmltestrunner -input cortetsu/tests/qml/policy
       - name: Native installation with no Python on child PATH
+        if: ${{ !cancelled() && steps.native-build.outcome == 'success' }}
         run: python3 scripts/features/test-cortetsu-build.py --native-bundle dist/native
       - name: Real QML coordinator lifecycle and readback
+        if: ${{ !cancelled() && steps.native-build.outcome == 'success' }}
         run: dbus-run-session -- python3 scripts/features/test-cortetsu-v2-bridge-runtime.py
       - name: Real notification owner and concurrent history changes
+        if: ${{ !cancelled() && steps.native-build.outcome == 'success' }}
         run: python3 scripts/features/test-notification-history-runtime.py
       - name: Credential failure and cancellation stay uncommitted
+        if: ${{ !cancelled() && steps.native-build.outcome == 'success' }}
         run: dbus-run-session -- python3 scripts/features/test-connectivity-credential-flow.py
       - name: Actual Settings pages, activation controls and keyboard input
+        if: ${{ !cancelled() && steps.native-build.outcome == 'success' }}
         run: dbus-run-session -- python3 scripts/features/test-cortetsu-settings-runtime.py

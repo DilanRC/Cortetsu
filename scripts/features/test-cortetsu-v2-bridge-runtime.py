@@ -119,7 +119,14 @@ ShellRoot {
     property bool sawNegotiated: false
     property bool sawPending: false
     property bool sawDisconnect: false
-    function fail(reason) { console.log("POLICY_FAIL", reason); Qt.quit(); }
+    function diagnostic() {
+        return JSON.stringify({scenario, step, connection: bridge.connectionState,
+            negotiated: bridge.negotiated, usable: bridge.usable, canChange: bridge.canChange,
+            pendingRequest: bridge.pendingRequest, pendingOperation: bridge.pendingOperation,
+            pendingAction: bridge.pendingAction, descriptor: bridge.descriptor,
+            snapshot: bridge.snapshot, lastError: bridge.lastError, readError: bridge.readError});
+    }
+    function fail(reason) { console.log("POLICY_FAIL", reason, diagnostic()); Qt.quit(); }
     function pass() { console.log("POLICY_PASS", scenario); Qt.quit(); }
     CortetsuPolicyBridge { id: bridge }
     Timer {
@@ -174,6 +181,7 @@ ShellRoot {
         }
     }
     Timer { interval: 2500; running: root.scenario === "mismatch"; onTriggered: root.pass() }
+    Timer { interval: 3000; running: true; repeat: true; onTriggered: console.log("POLICY_STATE", root.diagnostic()) }
     Timer { interval: 21000; running: true; onTriggered: root.fail("scenario deadline") }
 }
 '''
@@ -203,7 +211,18 @@ for scenario in ("flow", "timeout", "mismatch", "readback-failure"):
         process = subprocess.Popen(["quickshell", "-p", str(folder / "shell.qml"), "--no-color"],
             env=environment, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, start_new_session=True)
         try:
-            output, _ = process.communicate(timeout=25)
+            try:
+                output, _ = process.communicate(timeout=25)
+            except subprocess.TimeoutExpired as error:
+                partial = error.stdout or b""
+                if isinstance(partial, bytes):
+                    partial = partial.decode("utf-8", errors="replace")
+                print(f"POLICY_TIMEOUT {scenario}; parent_returncode={process.poll()}", flush=True)
+                print(partial[-20000:], flush=True)
+                for name in ("starts", "calls", "activation.json"):
+                    path = folder / name
+                    print(f"POLICY_FIXTURE {name}: {path.read_text() if path.exists() else '<missing>'}", flush=True)
+                raise AssertionError(f"policy QML {scenario} exceeded its runtime deadline; diagnostic output above") from None
             assert process.returncode == 0 and f"POLICY_PASS {scenario}" in output, output
             assert "POLICY_FAIL" not in output and "ReferenceError" not in output and "TypeError" not in output, output
             calls = [json.loads(line) for line in (folder / "calls").read_text().splitlines()] if (folder / "calls").exists() else []
