@@ -4,11 +4,13 @@ on:
   push:
     paths:
       - 'cortetsu/rescue/**'
+      - 'cortetsu/display-presets-rs/**'
       - 'cortetsu/contracts/exec/**'
       - '.github/workflows/rescue-rust-ci.yml'
   pull_request:
     paths:
       - 'cortetsu/rescue/**'
+      - 'cortetsu/display-presets-rs/**'
       - 'cortetsu/contracts/exec/**'
       - '.github/workflows/rescue-rust-ci.yml'
 
@@ -39,3 +41,24 @@ jobs:
           name: cortetsu-rescue-linux-amd64-prototype
           path: cortetsu/rescue/target/release/cortetsu-rescue
           retention-days: 14
+  format-review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install rustfmt
+        run: rustup toolchain install stable --profile minimal --component rustfmt && rustup default stable
+      - name: Format both Rust candidates for audit
+        run: |
+          cargo fmt --all --manifest-path cortetsu/rescue/Cargo.toml
+          cargo fmt --all --manifest-path cortetsu/display-presets-rs/Cargo.toml
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cortetsu-v2-20261022-rustfmt-review
+          path: |
+            cortetsu/rescue/src/
+            cortetsu/rescue/tests/
+            cortetsu/display-presets-rs/src/
+            cortetsu/display-presets-rs/tests/
+          retention-days: 2
+      - name: Enforce checked-in formatting
+        run: git diff --exit-code -- cortetsu/rescue/src cortetsu/rescue/tests cortetsu/display-presets-rs/src cortetsu/display-presets-rs/tests
