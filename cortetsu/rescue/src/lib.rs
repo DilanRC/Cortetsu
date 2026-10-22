@@ -258,7 +258,10 @@ fn verify_system_path(path: &Path, roots: &Roots) -> Result<VerifiedGeneration> 
     let helpers = if let Some(ref source) = meta.helpers_generation {
         let builds = roots.data.join("helpers/builds");
         let path = managed_generation(source, &builds)?;
-        let id = path.file_name().and_then(|v| v.to_str()).ok_or_else(|| invalid("invalid helper generation id"))?;
+        let id = path
+            .file_name()
+            .and_then(|v| v.to_str())
+            .ok_or_else(|| invalid("invalid helper generation id"))?;
         helper_bundle::verify(roots, id)?;
         Some(path.to_string_lossy().into_owned())
     } else {
@@ -289,7 +292,10 @@ pub fn current(roots: &Roots) -> Result<VerifiedGeneration> {
         &roots.dot_root().join("builds"),
     )?;
     if let Some(ref helpers) = snapshot.helpers {
-        let active_helpers = managed_link(&roots.data.join("helpers/current"), &roots.data.join("helpers/builds"))?;
+        let active_helpers = managed_link(
+            &roots.data.join("helpers/current"),
+            &roots.data.join("helpers/builds"),
+        )?;
         if Path::new(helpers) != active_helpers {
             return Err(invalid("system/helpers current pointer drift"));
         }
@@ -315,7 +321,9 @@ pub fn plan_rollback(roots: &Roots) -> Result<(VerifiedGeneration, VerifiedGener
         return Err(invalid("current and previous identify the same generation"));
     }
     if now.helpers.is_some() != target.helpers.is_some() {
-        return Err(invalid("cannot roll back across schema 1/2 without an explicit migration"));
+        return Err(invalid(
+            "cannot roll back across schema 1/2 without an explicit migration",
+        ));
     }
     Ok((now, target))
 }

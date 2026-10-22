@@ -80,8 +80,14 @@ impl Roots {
                 self.dot_root().join("previous"),
                 self.dot_root().join("builds"),
             ),
-            (self.data.join("helpers/current"), self.data.join("helpers/builds")),
-            (self.data.join("helpers/previous"), self.data.join("helpers/builds")),
+            (
+                self.data.join("helpers/current"),
+                self.data.join("helpers/builds"),
+            ),
+            (
+                self.data.join("helpers/previous"),
+                self.data.join("helpers/builds"),
+            ),
         ]
     }
 }
@@ -173,7 +179,10 @@ fn planned(roots: &Roots) -> Result<(Pointers, Pointers)> {
     verify_shell(&target.shell_current)?;
     verify_dotfiles(&target.dotfiles_current)?;
     if let Some(ref helpers) = target.helpers_current {
-        let id = helpers.file_name().and_then(|v| v.to_str()).ok_or_else(|| invalid("bad helper build id"))?;
+        let id = helpers
+            .file_name()
+            .and_then(|v| v.to_str())
+            .ok_or_else(|| invalid("bad helper build id"))?;
         super::helper_bundle::verify(roots, id)?;
     }
     Ok((before, target))

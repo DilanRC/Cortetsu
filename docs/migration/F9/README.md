@@ -26,3 +26,15 @@ Ejecutar:
 cd cortetsu/protocol
 go run ./cmd/cortetsu-python-inventory --repo ../.. --baseline ../../docs/migration/F9/python-baseline.json
 ```
+
+## Dato corregido (2026-10-22)
+
+La primera clasificación omitía `cortetsu/services/ConnectivitySecret.py` como
+runtime: `ConnectivityNmAdapter.qml` lo invoca explícitamente con `python3`.
+El inventario ahora contabiliza **41 rutas Python runtime** y un apartado
+`runtime_python_invocations` con los launchers QML/Bash que todavía dependen
+del intérprete. Esto sigue siendo una aproximación conservadora: el gate final
+requiere un rastreo completo de imports y de todas las rutas dinámicas.
+
+NO eliminar `ConnectivitySecret.py` ni la ejecución Python que lo llama sin
+conservar el aislamiento y protección de secretos de NetworkManager.

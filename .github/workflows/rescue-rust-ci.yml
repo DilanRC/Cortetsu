@@ -62,3 +62,28 @@ jobs:
           retention-days: 2
       - name: Enforce checked-in formatting
         run: git diff --exit-code -- cortetsu/rescue/src cortetsu/rescue/tests cortetsu/display-presets-rs/src cortetsu/display-presets-rs/tests
+  display-presets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install Rust stable
+        run: rustup toolchain install stable --profile minimal --component rustfmt,clippy && rustup default stable
+      - name: Check committed formatting
+        working-directory: cortetsu/display-presets-rs
+        run: cargo fmt --all -- --check
+      - name: Lint under the lockfile
+        working-directory: cortetsu/display-presets-rs
+        run: cargo clippy --locked --all-targets -- -D warnings
+      - name: Run Rust tests
+        working-directory: cortetsu/display-presets-rs
+        run: cargo test --locked --all-targets
+      - name: Build isolated binary
+        working-directory: cortetsu/display-presets-rs
+        run: cargo build --locked --release
+      - name: Compare with original Python CLI in separate HOME fixtures
+        run: python3 cortetsu/display-presets-rs/tests/parity.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cortetsu-display-presets-rs-linux-amd64-parity
+          path: cortetsu/display-presets-rs/target/release/cortetsu-display-presets-rs
+          retention-days: 14

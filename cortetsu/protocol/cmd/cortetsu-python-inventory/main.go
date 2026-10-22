@@ -15,10 +15,21 @@ import (
 )
 
 type Inventory struct {
-	Schema  int      `json:"schema"`
-	Runtime []string `json:"runtime_python"`
-	Tests   []string `json:"test_python"`
-	Tooling []string `json:"tooling_python"`
+	Schema      int      `json:"schema"`
+	Runtime     []string `json:"runtime_python"`
+	Tests       []string `json:"test_python"`
+	Tooling     []string `json:"tooling_python"`
+	Invocations []string `json:"runtime_python_invocations,omitempty"`
+}
+
+// Runtime invocations exclude historical scripts, generated fixtures and
+// tests. They are a conservative dependency graph, not a total callgraph.
+func runtimeLauncher(path string) bool {
+	return strings.HasPrefix(path, "cortetsu/bin/") ||
+		strings.HasPrefix(path, "cortetsu/modules/") ||
+		strings.HasPrefix(path, "cortetsu/services/") ||
+		strings.HasPrefix(path, "scripts/lib/") ||
+		path == "scripts/cortetsu" || path == "scripts/install-cortetsu.sh"
 }
 
 func inspect(repo string) (Inventory, error) {
@@ -27,7 +38,7 @@ func inspect(repo string) (Inventory, error) {
 	if err != nil {
 		return Inventory{}, fmt.Errorf("cannot inventory tracked files: %w", err)
 	}
-	result := Inventory{Schema: 1, Runtime: []string{}, Tests: []string{}, Tooling: []string{}}
+	result := Inventory{Schema: 1, Runtime: []string{}, Tests: []string{}, Tooling: []string{}, Invocations: []string{}}
 	for _, item := range bytes.Split(raw, []byte{0}) {
 		if len(item) == 0 {
 			continue
@@ -50,11 +61,33 @@ func inspect(repo string) (Inventory, error) {
 			line := strings.SplitN(string(head[:n]), "\n", 2)[0]
 			isPython = strings.HasPrefix(line, "#!") && strings.Contains(line, "python")
 		}
+		// Conservative reverse edge audit: runtime QML, Bash and service
+		// configuration calling the interpreter also block the F9 cutover.
+		// Do not include documentation, test fixtures, or Python comments.
+		if !isPython && info.Size() <= 2<<20 && (strings.HasSuffix(path, ".qml") ||
+			strings.HasSuffix(path, ".sh") || strings.HasPrefix(path, "scripts/cortetsu") ||
+			strings.HasPrefix(path, "cortetsu/bin/")) &&
+			runtimeLauncher(path) {
+			body, err := os.ReadFile(file)
+			if err != nil {
+				return Inventory{}, fmt.Errorf("cannot read potential runtime dependency %s", path)
+			}
+			for _, line := range strings.Split(string(body), "\n") {
+				trimmed := strings.TrimSpace(line)
+				if strings.HasPrefix(trimmed, "#") || strings.HasPrefix(trimmed, "//") {
+					continue
+				}
+				if strings.Contains(line, "python3") || strings.Contains(line, "python -") || strings.Contains(line, "exec python") {
+					result.Invocations = append(result.Invocations, path)
+					break
+				}
+			}
+		}
 		if !isPython {
 			continue
 		}
 		switch {
-		case strings.HasPrefix(path, "core/"), strings.HasPrefix(path, "cortetsu/bin/"):
+		case strings.HasPrefix(path, "core/"), strings.HasPrefix(path, "cortetsu/bin/"), strings.HasPrefix(path, "cortetsu/services/"):
 			result.Runtime = append(result.Runtime, path)
 		case strings.HasPrefix(path, "cortetsu/tests/"), strings.HasPrefix(path, "scripts/features/"), strings.HasPrefix(path, "docs/migration/"):
 			result.Tests = append(result.Tests, path)
@@ -65,6 +98,7 @@ func inspect(repo string) (Inventory, error) {
 	slices.Sort(result.Runtime)
 	slices.Sort(result.Tests)
 	slices.Sort(result.Tooling)
+	slices.Sort(result.Invocations)
 	return result, nil
 }
 

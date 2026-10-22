@@ -40,7 +40,8 @@
     "cortetsu/bin/cortetsu-wallpaper-colours",
     "cortetsu/bin/migrate-bottom-hub-from-main.py",
     "cortetsu/bin/normalize-contentwindow-overview-24.py",
-    "cortetsu/bin/normalize-shell-24.py"
+    "cortetsu/bin/normalize-shell-24.py",
+    "cortetsu/services/ConnectivitySecret.py"
   ],
   "test_python": [
     "cortetsu/tests/test-calendar-credentials.py",
@@ -302,7 +303,6 @@
   "tooling_python": [
     "cortetsu/keyboards/tools/gen-keycodes.py",
     "cortetsu/notification-helper/tests/parity.py",
-    "cortetsu/services/ConnectivitySecret.py",
     "docs/history/cortetsu/legacy-tools/apply-launcher-input-fix.py",
     "docs/history/cortetsu/legacy-tools/audit-theme-dock.py",
     "docs/history/cortetsu/legacy-tools/finalize-theme-dock.py",
