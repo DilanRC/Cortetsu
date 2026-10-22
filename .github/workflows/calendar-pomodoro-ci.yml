@@ -11,7 +11,14 @@ jobs:
     container: archlinux:latest
     steps:
       - name: Install cloud test dependencies
-        run: pacman -Syu --noconfirm base-devel git python nodejs qt6-declarative quickshell rust go libxkbcommon dbus weston libnotify
+        run: |
+          pacman -Syu --noconfirm base-devel git python nodejs qt6-declarative quickshell rust go libxkbcommon dbus weston libnotify noto-fonts
+          # A minimal Arch image has no fonts; Qt then measures missing glyphs
+          # at one em each, which is not a usable desktop text environment.
+          cortetsu_test_font="$(fc-match --format='%{file}' Rubik)"
+          test -n "$cortetsu_test_font"
+          test -r "$cortetsu_test_font"
+          fc-match Rubik
       - uses: actions/checkout@v6
         with:
           fetch-depth: 2
