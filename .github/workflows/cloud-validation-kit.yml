@@ -1,0 +1,49 @@
+name: Cortetsu offline validation kit
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/cloud-validation-kit.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  kit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Install compiler and validation components
+        run: rustup toolchain install stable --profile minimal --component rustfmt,clippy
+      - name: Prepare offline inputs (no credentials or user state)
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="$RUNNER_TEMP/validation-kit"
+          mkdir -p "$root"
+          rustup run stable rustc --version > "$root/TOOLCHAIN.txt"
+          rustup run stable cargo --version >> "$root/TOOLCHAIN.txt"
+          git rev-parse HEAD > "$root/SOURCE_REVISION"
+          git archive --format=tar.gz --output="$root/source.tar.gz" HEAD
+          args=()
+          while IFS= read -r manifest; do
+            [[ "$manifest" == 'cortetsu/rescue/Cargo.toml' ]] && continue
+            args+=(--sync "$manifest")
+          done < <(find cortetsu -name Cargo.toml -not -path '*/target/*' | sort)
+          rustup run stable cargo vendor --locked --manifest-path cortetsu/rescue/Cargo.toml "${args[@]}" "$root/vendor" > "$root/vendor-config.toml"
+          toolchain="$(dirname "$(dirname "$(rustup which --toolchain stable rustc)")")"
+          tar -C "$toolchain" -czf "$root/toolchain.tar.gz" bin lib
+          tar -C "$root" -czf "$RUNNER_TEMP/cortetsu-validation-kit.tar.gz" TOOLCHAIN.txt SOURCE_REVISION source.tar.gz vendor-config.toml vendor toolchain.tar.gz
+          sha256sum "$RUNNER_TEMP/cortetsu-validation-kit.tar.gz" > "$RUNNER_TEMP/cortetsu-validation-kit.sha256"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cortetsu-offline-validation-kit
+          path: |
+            ${{ runner.temp }}/cortetsu-validation-kit.tar.gz
+            ${{ runner.temp }}/cortetsu-validation-kit.sha256
+          retention-days: 1
+          compression-level: 0
