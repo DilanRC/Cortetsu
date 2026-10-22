@@ -103,7 +103,7 @@ def test(bridge: Path, rescue: Path) -> None:
                     assert result["outcome"] == "read", result
                     assert result["body"]["revision"] == "e2e-test", result
                     assert result["id"] == request_id
-                    # A mutation has no Rust executor and cannot reuse this read-only IPC channel.
+                    # Typed mutations cannot reuse this read-only IPC channel.
                     send(pipe, {"type": "request", "protocol": "cortetsu.ipc",
                                 "version": {"major": 1, "minor": 0}, "id": request_id,
                                 "op": "display.profile.preview", "session_id": "test-run",
@@ -121,8 +121,14 @@ def test(bridge: Path, rescue: Path) -> None:
             assert child.returncode == 0, error.decode(errors="replace")
         assert not meta.exists(), "metadata survived bridge shutdown"
         assert not endpoint.exists(), "socket survived bridge shutdown"
+        # The session's empty flock inode must remain stable across restarts;
+        # unlinking it could let two owners lock different inodes concurrently.
+        lock = xdg / "cortetsu" / "coordinator-test-run.lock"
+        assert lock.is_file() and not lock.is_symlink(), "session lock is missing or unsafe"
+        assert lock.stat().st_mode & 0o777 == 0o600 and lock.read_bytes() == b""
+        allowed_lock = lock.relative_to(root).as_posix()
         after_files = sorted(p.relative_to(root).as_posix() for p in root.rglob("*") if p.is_file())
-        assert starting_files == after_files, (starting_files, after_files)
+        assert starting_files == [path for path in after_files if path != allowed_lock], (starting_files, after_files)
         print("PASS: Go IPC and Rust system.verify (schema1), no mutations or leaked socket")
 
 

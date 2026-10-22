@@ -30,6 +30,20 @@ find_repo_root() {
 }
 
 ROOT="$(find_repo_root || true)"
+helper_path() {
+    local name="$1"
+    if [[ -x "$SCRIPT_DIR/$name" ]]; then
+        printf '%s\n' "$SCRIPT_DIR/$name"
+    elif [[ -n "$ROOT" && -x "$ROOT/dist/native/$name" ]]; then
+        printf '%s\n' "$ROOT/dist/native/$name"
+    else
+        printf 'ERROR: falta helper nativo %s; ejecuta scripts/build-native.sh\n' "$name" >&2
+        return 1
+    fi
+}
+PLATFORM="$(helper_path cortetsu-platform 2>/dev/null || true)"
+require_platform() { [[ -x "$PLATFORM" ]] || fail "construye el runtime nativo con scripts/build-native.sh"; }
+
 BASE_INFO="${ROOT:+$ROOT/cortetsu/base/PROVENANCE.md}"
 
 usage() {
@@ -42,9 +56,9 @@ Usage:
   cortetsu apply                   Build and promote a dotfiles generation
   cortetsu doctor [--json]         Check packages, runtime, dotfiles and services
   cortetsu generations             Show unified system generations
-  cortetsu rollback                Roll back shell + dotfiles as one system
-  cortetsu system <action>         promote|verify|status|rollback|gc
-  cortetsu dotfiles <action>       plan|apply|verify|status|rollback|gc
+  cortetsu rollback                Roll back shell + dotfiles + helpers together
+  cortetsu system <action>         promote|verify|status|rollback|recover|gc
+  cortetsu dotfiles <action>       plan|apply|verify|status|rollback|recover|gc
   cortetsu theme <action>          check|compile|adopt native desktop theme
   cortetsu shell <action>          status|adopt|reconcile|reload|restart|disable|logs|ipc
   cortetsu legacy-processes <action> scan|migrate
@@ -52,7 +66,9 @@ Usage:
   cortetsu screenshot [-r] [-f]   Open the Cortetsu regional screenshot picker
   cortetsu record <action>        status|stop for GPU Screen Recorder
   cortetsu emoji [-p] [-f]        Emoji/glyph picker (-p) or data refresh (-f)
-  cortetsu test                    Run repository, UX and transaction regressions
+  cortetsu test                    Run native Rust/Go, Qt and JavaScript regressions
+  cortetsu test --developer        Run historical source-contract oracles
+  cortetsu recover                Recover interrupted installation or promotion
   cortetsu verify                  Verify the complete promoted Cortetsu system
   cortetsu gc [--keep N]           Show exactly what collection would delete (read-only)
   cortetsu gc --apply --plan-id ID [--keep N] [--archive]
@@ -94,61 +110,49 @@ show_generation() {
         return
     fi
     printf '  %s_build_id=%s\n' "$label" "$(tr -d '\n' < "$resolved/BUILD_ID")"
-    python3 - "$label" "$resolved/BUILD.json" <<'PY'
-import json, sys
-from pathlib import Path
-label, path = sys.argv[1:]
-try:
-    payload = json.loads(Path(path).read_text(encoding="utf-8"))
-except (OSError, ValueError):
-    print(f"  {label}_metadata=invalid")
-else:
-    print(f"  {label}_source={payload.get('sourceProject', 'unknown')}@{payload.get('repositoryRevision', 'unknown')}")
-    print(f"  {label}_revision={payload.get('repositoryRevision', 'unknown')}")
-PY
+    "$PLATFORM" show-generation "$label" "$resolved/BUILD.json"
+
 }
 
 dotfiles_cmd() {
     require_repo
-    require_file "$ROOT/core/dotfiles.py"
     local action="${1:-status}"
     [[ $# -eq 0 ]] || shift
     if [[ "$action" == "apply" ]]; then
-        require_file "$ROOT/core/theme.py"
-        python3 "$ROOT/core/theme.py" adopt --repo "$ROOT"
+        "$PLATFORM" theme adopt --repo "$ROOT"
     fi
-    python3 "$ROOT/core/dotfiles.py" "$action" --repo "$ROOT" "$@"
+    "$PLATFORM" dotfiles "$action" --repo "$ROOT" "$@"
     if [[ "$action" == "apply" || "$action" == "rollback" ]]; then
         systemctl --user daemon-reload >/dev/null 2>&1 || true
     fi
 }
 
 system_cmd() {
-    require_repo
-    require_file "$ROOT/core/system.py"
+    require_platform
     local action="${1:-status}"
     [[ $# -eq 0 ]] || shift
-    python3 "$ROOT/core/system.py" "$action" --repo "$ROOT" "$@"
+    if [[ -n "$ROOT" ]]; then
+        "$PLATFORM" system "$action" --repo "$ROOT" "$@"
+    else
+        "$PLATFORM" system "$action" "$@"
+    fi
 }
 
 gc_cmd() {
     require_repo
-    require_file "$ROOT/core/generation_gc.py"
-    python3 "$ROOT/core/generation_gc.py" --repo "$ROOT" "$@"
+    "$PLATFORM" generation_gc --repo "$ROOT" "$@"
 }
 
 theme_cmd() {
     require_repo
-    require_file "$ROOT/core/theme.py"
     local action="${1:-check}"
     [[ $# -eq 0 ]] || shift
-    python3 "$ROOT/core/theme.py" "$action" --repo "$ROOT" "$@"
+    "$PLATFORM" theme "$action" --repo "$ROOT" "$@"
 }
 
 reconcile_shell_lifecycle() {
     require_repo
-    require_file "$ROOT/core/shell_lifecycle.py"
-    python3 "$ROOT/core/shell_lifecycle.py" migrate
+    "$PLATFORM" shell_lifecycle migrate
 }
 
 shell_reload() {
@@ -232,16 +236,15 @@ status_cmd() {
     show_generation current "$CURRENT"
     show_generation previous "$PREVIOUS"
     if [[ -e "$LEGACY_PREVIOUS" || -L "$LEGACY_PREVIOUS" ]]; then show_generation archived_previous "$LEGACY_PREVIOUS"; fi
-    if [[ -n "$ROOT" && -f "$ROOT/core/dotfiles.py" ]]; then
+    if [[ -n "$ROOT" ]]; then
         printf '\n'; dotfiles_cmd status
     fi
-    if [[ -n "$ROOT" && -f "$ROOT/core/system.py" ]]; then
+    if [[ -x "$PLATFORM" ]]; then
         printf '\n'; system_cmd status
     fi
     printf '\nCanonical namespace:\n  commands=cortetsu-*\n  config=~/.config/cortetsu\n  state=~/.local/state/cortetsu\n  data=~/.local/share/cortetsu\n'
 }
 
-run_python_test() { local relative="$1"; shift; require_repo; require_file "$ROOT/$relative"; printf '==> %s\n' "$relative"; python3 "$ROOT/$relative" "$@"; }
 run_node_test() { local relative="$1"; require_repo; require_file "$ROOT/$relative"; printf '==> %s\n' "$relative"; node "$ROOT/$relative"; }
 run_bash_test() { local relative="$1"; require_repo; require_file "$ROOT/$relative"; printf '==> %s\n' "$relative"; bash "$ROOT/$relative"; }
 run_qml_test() {
@@ -270,17 +273,15 @@ run_quickshell_fixture() {
 
 legacy_processes_cmd() {
     require_repo
-    require_file "$ROOT/core/migrate_legacy_processes.py"
     local action="${1:-scan}"
     [[ "$action" == "scan" || "$action" == "migrate" ]] || fail "acción legacy-processes inválida: $action"
-    python3 "$ROOT/core/migrate_legacy_processes.py" "$action"
+    "$PLATFORM" migrate_legacy_processes "$action"
 }
 
 config_cmd() {
     require_repo
     [[ "${1:-}" == "migrate" ]] || fail "acción config inválida: migrate"
-    require_file "$ROOT/core/migrate_config.py"
-    python3 "$ROOT/core/migrate_config.py"
+    "$PLATFORM" migrate_config
 }
 
 screenshot_cmd() {
@@ -302,7 +303,7 @@ screenshot_cmd() {
 record_cmd() {
     local action="${1:-status}"
     [[ "$action" == "status" || "$action" == "stop" ]] || fail "acción record inválida: $action"
-    exec cortetsu-record "$action"
+    exec "$(helper_path cortetsu-record)" "$action"
 }
 
 emoji_cmd() {
@@ -312,205 +313,31 @@ emoji_cmd() {
             *) fail "opción de emoji desconocida: $arg" ;;
         esac
     done
-    exec cortetsu-emoji "$@"
+    exec "$(helper_path cortetsu-emoji)" "$@"
 }
 
 test_cmd() {
     require_repo
-    local tests=(
-        "scripts/features/test-native-bottom-hub.py"
-        "scripts/features/eval-bottom-hub-design.py"
-        "scripts/features/test-bottom-hub-target.py"
-        "scripts/features/test-bottom-hub-v3.py"
-        "scripts/features/test-bottom-hub-v4.py"
-        "scripts/features/test-retained-overlay-wiring.py"
-        "scripts/features/test-contentwindow-overview-base.py"
-        "scripts/features/test-contentwindow-focusgrab-parity.py"
-        "scripts/features/test-wallpaper-manager.py"
-        "scripts/features/test-cortetsu-wall-utility-contract.py"
-        "scripts/features/eval-cortetsu-wall-utility-contract.py"
-        "scripts/features/test-cortetsu-launcher-wallpaper-apply.py"
-        "scripts/features/eval-cortetsu-launcher-wallpaper-apply.py"
-        "scripts/features/eval-wallpaper-orbital.py"
-        "scripts/features/test-overview-design.py"
-        "scripts/features/eval-overview-spatial-bounds.py"
-        "scripts/features/test-cortetsu-wallpaper-palette.py"
-        "scripts/features/eval-cortetsu-wallpaper-palette.py"
-        "scripts/features/test-keybinds.py"
-        "scripts/features/test-notification-owner.py"
-        "scripts/features/validate-wallpaper-manager.py"
-        "scripts/features/eval-keybind-editor.py"
-        "scripts/features/test-shell-normalizer.py"
-        "scripts/features/test-cortetsu-quality.py"
-        "scripts/features/test-first-party-host-boundaries.py"
-        "scripts/features/eval-first-party-host-boundaries.py"
-        "scripts/features/test-first-party-surface-imports.py"
-        "scripts/features/eval-first-party-surface-imports.py"
-        "scripts/features/test-overview-popout-exclusivity.py"
-        "scripts/features/eval-overview-popout-exclusivity.py"
-        "scripts/features/test-panel-popout-exclusivity.py"
-        "scripts/features/eval-panel-popout-exclusivity.py"
-        "scripts/features/test-cortetsu-wave0-foundations.py"
-        "scripts/features/eval-cortetsu-wave0-foundations.py"
-        "scripts/features/test-cortetsu-wave4-quick-settings-osd.py"
-        "scripts/features/eval-cortetsu-wave4-quick-settings-osd.py"
-        "scripts/features/test-display-footer-layout.py"
-        "scripts/features/eval-display-footer-layout.py"
-        "scripts/features/test-display-transaction-lua.py"
-        "scripts/features/eval-display-transaction-lua.py"
-        "scripts/features/test-cortetsu-recorder.py"
-        "scripts/features/eval-cortetsu-recorder.py"
-        "scripts/features/test-hypr-keybind-conflicts.py"
-        "scripts/features/eval-hypr-keybind-conflicts.py"
-        "scripts/features/test-osd-hover-contract.py"
-        "scripts/features/eval-osd-hover-contract.py"
-        "scripts/features/test-cortetsu-native-design-system.py"
-        "scripts/features/eval-cortetsu-native-design-system.py"
-        "scripts/features/test-hardware-design.py"
-        "cortetsu/tests/test-hardware-probe.py"
-        "cortetsu/tests/test-gpu-passive.py"
-        "scripts/features/test-cortetsu-hardware-home-runtime.py"
-        "scripts/features/test-cortetsu-settings.py"
-        "scripts/features/test-cortetsu-settings-runtime.py"
-        "scripts/features/eval-cortetsu-hardware-tabs.py"
-        "scripts/features/test-display-design.py"
-        "scripts/features/eval-cortetsu-display-controls.py"
-        "scripts/features/test-cortetsu-progress-bar.py"
-        "scripts/features/eval-cortetsu-progress-bar.py"
-        "scripts/features/test-cortetsu-power.py"
-        "scripts/features/eval-cortetsu-power.py"
-        "scripts/features/test-cortetsu-calendar-controls.py"
-        "scripts/features/eval-cortetsu-calendar-controls.py"
-        "scripts/features/test-cortetsu-button-tooltip.py"
-        "scripts/features/eval-cortetsu-button-tooltip.py"
-        "scripts/features/test-stable-interaction-bounds.py"
-        "scripts/features/eval-stable-interaction-bounds.py"
-        "scripts/features/test-cortetsu-wallpaper-controls.py"
-        "scripts/features/eval-cortetsu-wallpaper-controls.py"
-        "scripts/features/test-cortetsu-product-design-foundation.py"
-        "scripts/features/eval-cortetsu-product-design-foundation.py"
-        "scripts/features/test-cortetsu-branding.py"
-        "scripts/features/test-cortetsu-evolving-branding.py"
-        "scripts/features/eval-cortetsu-evolving-branding.py"
-        "scripts/features/test-cortetsu-static-brand-surfaces.py"
-        "scripts/features/eval-cortetsu-static-brand-surfaces.py"
-        "scripts/features/test-cortetsu-native-popups.py"
-        "scripts/features/eval-cortetsu-native-popups.py"
-        "scripts/features/test-cortetsu-tray-menu.py"
-        "scripts/features/eval-cortetsu-tray-menu.py"
-        "cortetsu/tests/test-startup-inventory.py"
-        "scripts/features/test-cortetsu-native-notification-center.py"
-        "scripts/features/eval-cortetsu-native-notification-center.py"
-        "scripts/features/test-notification-dismiss-popup.py"
-        "scripts/features/eval-notification-dismiss-popup.py"
-        "scripts/features/test-cortetsu-toasts.py"
-        "scripts/features/eval-cortetsu-toasts.py"
-        "scripts/features/test-native-theme.py"
-        "scripts/features/test-dotfiles-platform.py"
-        "scripts/features/test-system-generations.py"
-        "scripts/features/test-system-helper-schema2.py"
-        "scripts/features/test-cortetsu-generation-gc.py"
-        "scripts/features/test-shell-lifecycle.py"
-        "scripts/features/eval-shell-application-safety.py"
-        "scripts/features/eval-cortetsu-shell-ipc.py"
-        "scripts/features/test-shell-state-screens.py"
-        "cortetsu/tests/test-calendar-credentials.py"
-        "cortetsu/tests/test-calendar-polish.py"
-        "cortetsu/tests/test-regional.py"
-        "cortetsu/tests/test-pomodoro.py"
-        "cortetsu/tests/test-notifications.py"
-        "cortetsu/tests/test-runtime-contract.py"
-        "scripts/features/test-wallpaper-color-daemon.py"
-        "scripts/features/test-power-auto-transitions.py"
-        "scripts/features/test-nested-gpu-quiet.py"
-        "scripts/features/test-cortetsu-screen-state.py"
-        "scripts/features/test-cortetsu-surface-registry.py"
-        "cortetsu/tests/test-calendar-pomodoro-services.py"
-        "scripts/features/test-cortetsu-state-boundary.py"
-        "scripts/features/eval-cortetsu-state-boundary.py"
-        "scripts/features/eval-cortetsu-screen-ownership.py"
-        "scripts/features/test-cortetsu-config.py"
-        "scripts/features/eval-cortetsu-config.py"
-        "scripts/features/test-cortetsu-idle.py"
-        "scripts/features/test-cortetsu-idle-runtime.py"
-        "scripts/features/test-gamemode-runtime.py"
-        "scripts/features/test-gamemode-helper.py"
-        "scripts/features/test-cortetsu-session-runtime.py"
-        "scripts/features/test-cortetsu-keyboards-runtime.py"
-        "scripts/features/test-keybinds-preview.py"
-        "scripts/features/test-keybinds-scope.py"
-        "scripts/features/test-cortetsu-keyboards-devices-runtime.py"
-        "scripts/features/test-cortetsu-keyboard-state-runtime.py"
-        "scripts/features/test-cortetsu-wallpaper-catalog-runtime.py"
-        "scripts/features/test-cortetsu-wallpaper-orbital-runtime.py"
-        "scripts/features/eval-cortetsu-idle.py"
-        "scripts/features/test-cortetsu-launcher.py"
-        "scripts/features/test-cortetsu-launcher-apps-runtime.py"
-        "scripts/features/eval-cortetsu-launcher.py"
-        "scripts/features/test-cortetsu-dashboard-typography.py"
-        "scripts/features/eval-cortetsu-dashboard-typography.py"
-        "scripts/features/test-launcher-focus-runtime-contract.py"
-        "scripts/features/eval-launcher-focus-runtime-contract.py"
-        "scripts/integration/test-launcher-dismiss.py"
-        "scripts/integration/test-bottomhub-hover-close-race.py"
-        "scripts/integration/test-hp-keys.py"
-        "scripts/integration/test-keyboards-capture.py"
-        "scripts/integration/test-keyboards-scope.py"
-        "scripts/integration/test-keyboards-probe.py"
-        "scripts/features/test-launcher-process-scope.py"
-        "scripts/features/eval-cortetsu-process-launcher.py"
-        "scripts/features/test-cortetsu-scheme.py"
-        "scripts/features/test-cortetsu-theme-reactive-runtime.py"
-        "scripts/features/test-scheme-catalog.py"
-        "scripts/features/eval-scheme-catalog.py"
-        "scripts/features/test-super-e-dolphin.py"
-        "scripts/features/eval-super-e-dolphin.py"
-        "scripts/features/test-cortetsu-time.py"
-        "scripts/features/test-cortetsu-brightness.py"
-        "scripts/features/test-global-shortcut-receivers.py"
-        "scripts/features/test-cortetsu-osd.py"
-        "scripts/features/eval-cortetsu-osd.py"
-        "scripts/features/test-cortetsu-players.py"
-        "scripts/features/test-config-migration.py"
-        "scripts/features/test-legacy-process-migration.py"
-        "scripts/features/test-hyprland-import.py"
-        "scripts/features/test-hyprland-import-ci.py"
-        "scripts/features/eval-hyprland-import-ci.py"
-        "scripts/features/test-hyprland-self-contained.py"
-        "scripts/features/test-zero-caelestia-gate.py"
-        "scripts/features/test-shortcut-namespace.py"
-        "scripts/features/test-cortetsu-screenshot.py"
-        "scripts/features/eval-cortetsu-screenshot.py"
-        "scripts/features/test-cortetsu-emoji.py"
-        "scripts/features/test-cortetsu-network-idle.py"
-        "scripts/features/test-cortetsu-network-dbus.py"
-        "scripts/features/test-patch-debt-audit.py"
-        "scripts/features/test-design-system-migration-status.py"
-        "scripts/features/test-cortetsu-notifications.py"
-        "scripts/features/test-notification-backend-boundary.py"
-        "scripts/features/test-cortetsu-notification-actions.py"
-        "scripts/features/test-notification-history-runtime.py"
-    )
-    local test_path
-    for test_path in "${tests[@]}"; do run_python_test "$test_path"; done
+    if [[ "${1:-}" == --developer ]]; then
+        exec bash "$ROOT/scripts/verification/developer-regressions.sh"
+    fi
+    [[ $# == 0 ]] || fail "uso: cortetsu test [--developer]"
+    for crate in keyboards notification-helper display-presets-rs prune-applications-rs rescue platform-rs hardware-runtime-rs desktop-runtime-rs; do
+        cargo test --locked --manifest-path "$ROOT/cortetsu/$crate/Cargo.toml"
+    done
+    (cd "$ROOT/cortetsu/protocol" && go test ./...)
     run_node_test "cortetsu/tests/test-wallpaper-search.node.js"
     run_node_test "scripts/features/test-ascension-motion.js"
-    run_bash_test "scripts/features/test-v2-migration-unreadable.sh"
-    run_bash_test "cortetsu/tests/test-calendar-readonly.sh"
-    run_bash_test "cortetsu/tests/test-legacy-process-migration-eval.sh"
-    run_qml_test "cortetsu/tests/qml/focus"
-    run_qml_test "cortetsu/tests/qml/components"
-    run_qml_test "cortetsu/tests/qml/hardware"
-    run_qml_test "cortetsu/tests/qml/keyboards"
-    run_qml_test "cortetsu/tests/qml/settings"
-    run_qml_test "cortetsu/tests/qml/surfaces"
-    run_qml_test "cortetsu/tests/qml/calendar"
-    run_qml_test "cortetsu/tests/qml/pomodoro"
+    run_node_test "scripts/features/test-connectivity-wifi-policy.cjs"
+    run_node_test "scripts/features/test-connectivity-bluetooth.mjs"
+    local directory
+    for directory in focus components hardware hypr keyboards settings surfaces calendar pomodoro bottomhub; do
+        run_qml_test "cortetsu/tests/qml/$directory"
+    done
     run_qml_test "cortetsu/modules/wallpaper/tests"
-    run_qml_test "cortetsu/tests/qml/bottomhub"
     run_quickshell_fixture "cortetsu/tests/qml/bottomhub/fixture_ScriptModelIdentity.qml" "SCRIPT_MODEL_IDENTITY_PASS"
     run_quickshell_fixture "cortetsu/StartupPageFixture.qml" "STARTUP_PAGE_PASS"
-    printf '\nCortetsu repository regressions passed.\n'
+    printf '\nCortetsu native regressions passed.\n'
 }
 
 verify_generation() {
@@ -518,18 +345,15 @@ verify_generation() {
     resolved="$(resolved_generation "$link")"
     [[ -n "$resolved" ]] || fail "no existe la generación $label: $link"
     is_managed_generation "$resolved" || fail "$label no es una generación Cortetsu administrada: $resolved"
-    python3 - "$resolved/BUILD.json" <<'PY'
-import json, sys
-from pathlib import Path
-build = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
-assert build.get("schema") == 1
-assert build.get("sourceProject") == "Cortetsu"
-assert isinstance(build.get("repositoryRevision"), str) and build["repositoryRevision"]
-PY
-    if [[ "$label" == "current" ]]; then
-        run_python_test "scripts/features/test-cortetsu-wall-utility-contract.py" --runtime "$resolved"
+    "$PLATFORM" verify-shell-metadata "$resolved/BUILD.json"
+    local legacy_checkpoint=unknown
+    if [[ -f "$DATA_ROOT/system/current/SYSTEM.json" ]]; then
+        legacy_checkpoint="$("$PLATFORM" metadata "$DATA_ROOT/system/current/SYSTEM.json" legacySourceSystem)"
+    fi
+    if [[ "$label" == current && "$legacy_checkpoint" == unknown ]]; then
+        "$PLATFORM" validate-runtime "$resolved"
     else
-        run_python_test "scripts/features/test-cortetsu-wall-utility-contract.py" --runtime "$resolved" --historical
+        "$PLATFORM" validate-runtime "$resolved" --historical
     fi
     printf 'PASS: %s generation %s\n' "$label" "$resolved"
 }
@@ -553,48 +377,6 @@ verify_cmd() {
         [[ -z "$archived_resolved" || ! -f "$archived_resolved/shell.qml" ]] || printf 'INFO: snapshot pre-v2 archivado: %s\n' "$archived_resolved"
     fi
     theme_cmd check
-    run_python_test "scripts/features/test-cortetsu-quality.py"
-    run_python_test "scripts/features/test-first-party-host-boundaries.py"
-    run_python_test "scripts/features/eval-first-party-host-boundaries.py"
-    run_python_test "scripts/features/test-first-party-surface-imports.py"
-    run_python_test "scripts/features/eval-first-party-surface-imports.py"
-    run_python_test "scripts/features/test-cortetsu-settings.py"
-    run_python_test "scripts/features/test-cortetsu-dashboard.py"
-    run_python_test "scripts/features/eval-cortetsu-dashboard.py"
-    run_python_test "scripts/features/test-cortetsu-lock.py"
-    run_python_test "scripts/features/eval-cortetsu-lock.py"
-    run_python_test "scripts/features/test-cortetsu-launcher-identity.py"
-    run_python_test "scripts/features/eval-cortetsu-launcher-identity.py"
-    run_python_test "scripts/features/test-cortetsu-launcher-host.py"
-    run_python_test "scripts/features/eval-cortetsu-launcher-host.py"
-    run_python_test "scripts/features/test-cortetsu-osd-identity.py"
-    run_python_test "scripts/features/eval-cortetsu-osd-identity.py"
-    run_python_test "scripts/features/test-cortetsu-static-brand-surfaces.py"
-    run_python_test "scripts/features/eval-cortetsu-static-brand-surfaces.py"
-    run_python_test "scripts/features/test-cortetsu-system-cluster.py"
-    run_python_test "scripts/features/eval-cortetsu-system-cluster.py"
-    run_python_test "scripts/features/test-cortetsu-osd-state.py"
-    run_python_test "scripts/features/test-cortetsu-progress-bar.py"
-    run_python_test "scripts/features/eval-cortetsu-progress-bar.py"
-    run_python_test "scripts/features/test-cortetsu-power.py"
-    run_python_test "scripts/features/eval-cortetsu-power.py"
-    run_python_test "scripts/features/test-cortetsu-calendar-controls.py"
-    run_python_test "scripts/features/eval-cortetsu-calendar-controls.py"
-    run_python_test "scripts/features/test-cortetsu-button-tooltip.py"
-    run_python_test "scripts/features/eval-cortetsu-button-tooltip.py"
-    run_python_test "scripts/features/test-cortetsu-wallpaper-controls.py"
-    run_python_test "scripts/features/eval-cortetsu-wallpaper-controls.py"
-    run_python_test "scripts/features/test-cortetsu-session-host.py"
-    run_python_test "scripts/features/test-cortetsu-wall-utility-contract.py"
-    run_python_test "scripts/features/eval-cortetsu-wall-utility-contract.py"
-    run_python_test "scripts/features/test-retained-surfaces-host.py"
-    run_python_test "scripts/features/test-cortetsu-hover-controller.py"
-    run_python_test "scripts/features/test-cortetsu-input-ownership.py"
-    run_python_test "scripts/features/eval-cortetsu-input-ownership.py"
-    run_python_test "scripts/features/validate-clipboard-qml.py"
-    run_python_test "scripts/features/eval-retained-surfaces-host.py"
-    run_python_test "cortetsu/tests/test-runtime-contract.py"
-    run_bash_test "cortetsu/tests/test-calendar-readonly.sh"
     dotfiles_cmd verify
     system_cmd verify
     printf '\nCortetsu promoted system verified.\n'
@@ -602,18 +384,41 @@ verify_cmd() {
 
 doctor_cmd() {
     require_repo
-    require_file "$ROOT/core/doctor.py"
-    python3 "$ROOT/core/doctor.py" --repo "$ROOT" "$@"
+    "$PLATFORM" doctor --repo "$ROOT" "$@"
 }
 
 plan_cmd() { dotfiles_cmd plan "$@"; }
 apply_cmd() { dotfiles_cmd apply "$@"; }
-rollback_cmd() { system_cmd rollback "$@"; systemctl --user daemon-reload >/dev/null 2>&1 || true; }
+rollback_cmd() {
+    system_cmd rollback "$@"
+    systemctl --user daemon-reload >/dev/null 2>&1 || true
+    if systemctl --user is-active --quiet cortetsu-wallpaper-color.service 2>/dev/null; then
+        systemctl --user restart cortetsu-wallpaper-color.service || printf 'WARN: no se pudo reiniciar wallpaper-color tras rollback\n' >&2
+    fi
+    if systemctl --user is-enabled --quiet cortetsu-power-auto.service 2>/dev/null \
+        && systemctl --user is-active --quiet cortetsu-power-auto.service 2>/dev/null; then
+        systemctl --user restart cortetsu-power-auto.service || printf 'WARN: no se pudo reiniciar power-auto tras rollback\n' >&2
+    fi
+}
 audit_cmd() { require_repo; status_cmd; printf '\n===== DOCTOR =====\n'; doctor_cmd; printf '\n===== REPOSITORY TESTS =====\n'; test_cmd; printf '\n===== PROMOTED SYSTEM =====\n'; verify_cmd; }
-install_cmd() { require_repo; require_file "$ROOT/scripts/install-cortetsu.sh"; printf 'Cortetsu: building shell, dotfiles and unified system generation.\n'; bash "$ROOT/scripts/install-cortetsu.sh"; }
+install_cmd() { require_repo; require_file "$ROOT/scripts/install-cortetsu.sh"; printf 'Cortetsu: building shell, dotfiles and unified system generation.\n'; bash "$ROOT/scripts/install-cortetsu.sh" "$@"; }
 
+recover_cmd() {
+    require_platform
+    mkdir -p "$DATA_ROOT"
+    [[ ! -L "$DATA_ROOT/install.lock" ]] || fail "install.lock es un enlace"
+    exec 8>>"$DATA_ROOT/install.lock"
+    flock -n 8 || fail "hay una instalación de Cortetsu en curso"
+    "$PLATFORM" install-transaction recover
+    "$PLATFORM" dotfiles recover
+    "$PLATFORM" system recover
+}
 command="${1:-help}"
 shift || true
+case "$command" in
+    help|-h|--help|--version|-V|version|install|test) ;;
+    *) require_platform ;;
+esac
 case "$command" in
     --version|-V|version) version_cmd "$@" ;;
     status) status_cmd "$@" ;;
@@ -633,6 +438,7 @@ case "$command" in
     emoji) emoji_cmd "$@" ;;
     test) test_cmd "$@" ;;
     verify) verify_cmd "$@" ;;
+    recover) recover_cmd "$@" ;;
     gc) gc_cmd "$@" ;;
     audit) audit_cmd "$@" ;;
     install) install_cmd "$@" ;;

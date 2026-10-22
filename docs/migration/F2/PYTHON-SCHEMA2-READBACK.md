@@ -1,5 +1,8 @@
 # F2 — verificación defensiva de bundles de helpers (schema 2)
 
+> Registro de diseño/prototipo anterior a la integración nativa. Para el
+> comportamiento actual, consultar [NATIVE-RUNTIME.md](../NATIVE-RUNTIME.md).
+
 **Estado: verificación solamente, sin cutover.** El instalador y
 `core/system.py promote` siguen escribiendo `SYSTEM.json` schema 1. Los
 helpers instalados en `~/.local/bin` permanecen bajo el propietario existente.

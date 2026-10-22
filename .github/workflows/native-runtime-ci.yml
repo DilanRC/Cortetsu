@@ -1,0 +1,60 @@
+name: Cortetsu native owners
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  rust:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        crate: [keyboards, notification-helper, display-presets-rs, prune-applications-rs, rescue, platform-rs, hardware-runtime-rs, desktop-runtime-rs]
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          # Keyboard equivalence uses its original, separately retired helper.
+          fetch-depth: 0
+      - name: Install stable Rust, rustfmt and Clippy
+        run: rustup toolchain install stable --profile minimal --component rustfmt,clippy && rustup default stable
+      - name: Install native test dependencies
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq dbus libxkbcommon-tools
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            cortetsu/${{ matrix.crate }}/target
+          key: native-${{ runner.os }}-${{ matrix.crate }}-${{ hashFiles('cortetsu/**/Cargo.lock') }}
+      - name: Check formatting
+        run: cargo fmt --all --manifest-path cortetsu/${{ matrix.crate }}/Cargo.toml -- --check
+      - name: Lint all targets
+        run: cargo clippy --locked --all-targets --manifest-path cortetsu/${{ matrix.crate }}/Cargo.toml -- -D warnings
+      - name: Native unit, crash recovery and contract tests
+        run: cargo test --locked --all-targets --manifest-path cortetsu/${{ matrix.crate }}/Cargo.toml
+      - name: Build the production binary under the lockfile
+        run: cargo build --locked --release --manifest-path cortetsu/${{ matrix.crate }}/Cargo.toml
+      - name: Differential tests against frozen Python references
+        env:
+          CRATE: ${{ matrix.crate }}
+        run: |
+          case "$CRATE" in
+            notification-helper|display-presets-rs|prune-applications-rs)
+              python3 "cortetsu/$CRATE/tests/parity.py" ;;
+            platform-rs)
+              python3 cortetsu/platform-rs/tests/parity.py cortetsu/platform-rs/target/release/cortetsu-platform ;;
+            hardware-runtime-rs)
+              python3 cortetsu/hardware-runtime-rs/tests/legacy_contracts.py cortetsu/hardware-runtime-rs/target/release/cortetsu-hardware-runtime ;;
+            keyboards)
+              python3 scripts/features/test-keybinds.py
+              python3 scripts/features/test-keybinds-equivalence.py
+              python3 scripts/features/test-keybinds-preview.py
+              python3 scripts/features/test-keybinds-scope.py ;;
+          esac
+      - name: Verify generated keyboard constants
+        if: matrix.crate == 'keyboards'
+        working-directory: cortetsu/keyboards
+        run: |
+          python3 tools/gen-keycodes.py /usr/include/linux/input-event-codes.h
+          git diff --exit-code -- src/keycodes.rs || echo "::warning::Runner kernel headers differ from the committed key table"

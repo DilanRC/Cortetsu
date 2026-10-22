@@ -1,4 +1,4 @@
 schema = 1
 name = "base"
 enabled_tags = ["core", "performance", "theme", "shell-bridge", "services"]
-package_groups = ["core", "shell", "keyboards"]
+package_groups = ["core", "shell", "keyboards", "native-runtime"]

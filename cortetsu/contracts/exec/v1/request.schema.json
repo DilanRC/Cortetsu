@@ -1,62 +1,207 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/DilanRC/Cortetsu/blob/main/cortetsu/contracts/exec/v1/request.schema.json",
-  "title": "Cortetsu exec/1 request (not yet enabled)",
+  "title": "Cortetsu exec/1 typed request",
   "type": "object",
   "additionalProperties": false,
-  "required": ["protocol", "version", "request_id", "operation", "deadline_ms", "arguments"],
+  "required": [
+    "protocol",
+    "version",
+    "request_id",
+    "operation",
+    "deadline_ms",
+    "arguments"
+  ],
   "properties": {
-    "protocol": { "const": "cortetsu.exec" },
+    "protocol": {
+      "const": "cortetsu.exec"
+    },
     "version": {
-      "type": "object", "additionalProperties": false,
-      "required": ["major", "minor"],
-      "properties": { "major": { "const": 1 }, "minor": { "const": 0 } }
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "major",
+        "minor"
+      ],
+      "properties": {
+        "major": {
+          "const": 1
+        },
+        "minor": {
+          "const": 0
+        }
+      }
     },
-    "request_id": { "$ref": "#/$defs/uuid" },
+    "request_id": {
+      "$ref": "#/$defs/uuid"
+    },
     "operation": {
-      "enum": ["gamemode.status", "gamemode.set", "display.status", "display.profile.preview", "power.status", "power.profile.set", "system.verify"]
+      "enum": [
+        "gamemode.status",
+        "gamemode.set",
+        "display.status",
+        "display.profile.preview",
+        "power.status",
+        "power.profile.set",
+        "system.verify",
+        "notifications.status",
+        "notifications.dnd.set"
+      ]
     },
-    "deadline_ms": { "type": "integer", "minimum": 1, "maximum": 60000 },
-    "expected_revision": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
-    "idempotency_key": { "$ref": "#/$defs/uuid" },
-    "arguments": { "type": "object" }
+    "deadline_ms": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 60000
+    },
+    "expected_revision": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "idempotency_key": {
+      "$ref": "#/$defs/uuid"
+    },
+    "arguments": {
+      "type": "object"
+    }
   },
   "allOf": [
     {
-      "if": { "properties": { "operation": { "enum": ["gamemode.status", "display.status", "power.status", "system.verify"] } }, "required": ["operation"] },
-      "then": { "properties": { "arguments": { "type": "object", "additionalProperties": false, "maxProperties": 0 } } }
-    },
-    {
-      "if": { "properties": { "operation": { "const": "gamemode.set" } }, "required": ["operation"] },
-      "then": {
-        "required": ["expected_revision", "idempotency_key"],
-        "properties": { "arguments": {
-          "type": "object", "required": ["enabled"], "additionalProperties": false,
-          "properties": { "enabled": { "type": "boolean" } }
-        } }
-      }
-    },
-    {
-      "if": { "properties": { "operation": { "const": "display.profile.preview" } }, "required": ["operation"] },
-      "then": {
-        "required": ["expected_revision", "idempotency_key"],
-        "properties": { "arguments": {
-          "type": "object", "required": ["monitor", "profile"], "additionalProperties": false,
-          "properties": {
-            "monitor": { "type": "string", "minLength": 1, "maxLength": 128 },
-            "profile": { "type": "string", "minLength": 1, "maxLength": 128 }
+      "if": {
+        "properties": {
+          "operation": {
+            "enum": [
+              "gamemode.status",
+              "display.status",
+              "power.status",
+              "system.verify",
+              "notifications.status"
+            ]
           }
-        } }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "arguments": {
+            "type": "object",
+            "additionalProperties": false,
+            "maxProperties": 0
+          }
+        }
       }
     },
     {
-      "if": { "properties": { "operation": { "const": "power.profile.set" } }, "required": ["operation"] },
+      "if": {
+        "properties": {
+          "operation": {
+            "enum": [
+              "gamemode.set",
+              "notifications.dnd.set"
+            ]
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
       "then": {
-        "required": ["expected_revision", "idempotency_key"],
-        "properties": { "arguments": {
-          "type": "object", "required": ["profile"], "additionalProperties": false,
-          "properties": { "profile": { "enum": ["balanced", "power-saver", "performance"] } }
-        } }
+        "required": [
+          "expected_revision",
+          "idempotency_key"
+        ],
+        "properties": {
+          "arguments": {
+            "type": "object",
+            "required": [
+              "enabled"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "enabled": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "display.profile.preview"
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "required": [
+          "expected_revision",
+          "idempotency_key"
+        ],
+        "properties": {
+          "arguments": {
+            "type": "object",
+            "required": [
+              "monitor",
+              "profile"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "monitor": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "profile": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "power.profile.set"
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "required": [
+          "expected_revision",
+          "idempotency_key"
+        ],
+        "properties": {
+          "arguments": {
+            "type": "object",
+            "required": [
+              "profile"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "profile": {
+                "enum": [
+                  "balanced",
+                  "power-saver",
+                  "performance"
+                ]
+              }
+            }
+          }
+        }
       }
     }
   ],

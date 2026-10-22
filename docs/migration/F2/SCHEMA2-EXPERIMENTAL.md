@@ -1,5 +1,8 @@
 # SYSTEM.json esquema 2 (propuesta experimental no instalable)
 
+> Registro de diseño/prototipo anterior a la integración nativa. Para el
+> comportamiento actual, consultar [NATIVE-RUNTIME.md](../NATIVE-RUNTIME.md).
+
 Formato adicional respecto al esquema 1:
 
 ```json

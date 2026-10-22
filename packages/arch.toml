@@ -2,8 +2,14 @@ schema = 1
 
 [group.core]
 required = true
-packages = ["git", "python", "util-linux"]
-commands = ["git", "python3", "bash", "flock", "systemctl"]
+packages = ["git", "util-linux"]
+commands = ["git", "bash", "flock", "systemctl"]
+
+# Native owners and the session coordinator are compiled in the build stage.
+[group.native-runtime]
+required = true
+packages = ["rust", "go"]
+commands = ["cargo", "go"]
 
 [group.shell]
 required = true
@@ -35,5 +41,5 @@ commands = ["clipse", "ddcutil"]
 
 [group.wallpaper-colours]
 required = false
-packages = ["imagemagick", "python-materialyoucolor"]
-commands = ["magick", "python3"]
+packages = ["imagemagick"]
+commands = ["magick"]

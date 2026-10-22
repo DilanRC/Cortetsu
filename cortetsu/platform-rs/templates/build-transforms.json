@@ -1,0 +1,391 @@
+{
+  "content": {
+    "LAYER_UPSTREAM": "    WlrLayershell.layer: (fsTransitionProg > 0 && contentItem.Config.general.showOverFullscreen) || (hasSpecialWorkspace && hasFullscreenOnNormalWs) ? WlrLayer.Overlay : WlrLayer.Top",
+    "LAYER_TARGET": "    WlrLayershell.layer: screenState.overview ? WlrLayer.Overlay : ((fsTransitionProg > 0 && contentItem.Config.general.showOverFullscreen) || (hasSpecialWorkspace && hasFullscreenOnNormalWs) ? WlrLayer.Overlay : WlrLayer.Top)",
+    "KEYBOARD_UPSTREAM": "    WlrLayershell.keyboardFocus: screenState.launcher || screenState.session ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None",
+    "KEYBOARD_TARGET": "    WlrLayershell.keyboardFocus: screenState.overview || screenState.launcher || screenState.session ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None",
+    "MASK_UPSTREAM": "    mask: hasFullscreen ? emptyRegion : regions",
+    "MASK_TARGET": "    mask: screenState.overview ? null : (hasFullscreen ? emptyRegion : regions)",
+    "SCRIM_UPSTREAM": "        opacity: (root.screenState.session && Config.session.enabled) || panels.popouts.detachedMode !== \"\" ? 0.5 : 0",
+    "SCRIM_TARGET": "        opacity: root.screenState.overview ? CortetsuDesign.scrimOpacity : ((root.screenState.session && Config.session.enabled) || panels.popouts.detachedMode !== \"\" ? 0.5 : 0)"
+  },
+  "wire": {
+    "display": [
+      {
+        "op": "replace_once",
+        "args": [
+          "screen",
+          "    property bool hardware\n    property bool dashboard",
+          "    property bool hardware\n    property bool displayManager\n    property bool dashboard",
+          "property bool displayManager"
+        ]
+      },
+      {
+        "op": "replace_once",
+        "args": [
+          "shell",
+          "    HardwareController {}\n    BatteryMonitor {}",
+          "    HardwareController {}\n    DisplayController {}\n    BatteryMonitor {}",
+          "DisplayController {}"
+        ]
+      },
+      {
+        "op": "replace_once",
+        "args": [
+          "panels",
+          "import qs.modules.hardware as Hardware\nimport qs.modules.notifications as Notifications",
+          "import qs.modules.hardware as Hardware\nimport qs.modules.display as Display\nimport qs.modules.notifications as Notifications",
+          "import qs.modules.display as Display"
+        ]
+      },
+      {
+        "op": "replace_once",
+        "args": [
+          "panels",
+          "    readonly property alias hardware: hardware\n    readonly property alias dashboard: dashboard",
+          "    readonly property alias hardware: hardware\n    readonly property alias displayManager: displayManager\n    readonly property alias dashboard: dashboard",
+          "readonly property alias displayManager: displayManager"
+        ]
+      },
+      {
+        "op": "insert_wrapper",
+        "args": [
+          "displayManager",
+          "    Display.Wrapper {\n        id: displayManager\n\n        screen: root.screen\n        screenState: root.screenState\n\n        anchors.fill: parent\n    }\n\n"
+        ]
+      },
+      {
+        "op": "ensure_statement",
+        "args": [
+          "content",
+          "        screenState.hardware = false;",
+          "\n        panels.popouts.close();",
+          "        screenState.displayManager = false;"
+        ]
+      },
+      {
+        "op": "ensure_or_member",
+        "args": [
+          "content",
+          "WlrLayershell.layer: screenState.overview || screenState.clipboard || screenState.hardware",
+          " ? WlrLayer.Overlay",
+          "screenState.displayManager"
+        ]
+      },
+      {
+        "op": "ensure_or_member",
+        "args": [
+          "content",
+          "WlrLayershell.keyboardFocus: screenState.overview || screenState.clipboard || screenState.hardware",
+          " || screenState.launcher",
+          "screenState.displayManager"
+        ]
+      },
+      {
+        "op": "ensure_or_member",
+        "args": [
+          "content",
+          "mask: screenState.overview || screenState.clipboard || screenState.hardware",
+          " ? null",
+          "screenState.displayManager"
+        ]
+      },
+      {
+        "op": "ensure_or_member",
+        "args": [
+          "content",
+          "if (s.overview || s.clipboard || s.hardware",
+          ")\n                return true;",
+          "s.displayManager"
+        ]
+      },
+      {
+        "op": "ensure_statement",
+        "args": [
+          "content",
+          "            root.screenState.hardware = false;",
+          "\n            panels.popouts.hasCurrent = false;",
+          "            root.screenState.displayManager = false;"
+        ]
+      },
+      {
+        "op": "insert_bind",
+        "args": [
+          "hl.bind(\n    \"SUPER + SHIFT + O\",\n    hl.dsp.global(\"cortetsu:displaymanager\")\n)",
+          "hl.bind(\n    \"SUPER + H\",\n    hl.dsp.global(\"cortetsu:hardware\")\n)",
+          "Display Manager QML nativo"
+        ]
+      }
+    ],
+    "wallpaper": [
+      {
+        "op": "replace_once",
+        "args": [
+          "screen",
+          "    property bool hardware\n    property bool displayManager",
+          "    property bool hardware\n    property bool displayManager\n    property bool wallpaperManager",
+          "property bool wallpaperManager"
+        ]
+      },
+      {
+        "op": "replace_once",
+        "args": [
+          "shell",
+          "    DisplayController {}\n    BatteryMonitor {}",
+          "    DisplayController {}\n    WallpaperController {}\n    BatteryMonitor {}",
+          "WallpaperController {}"
+        ]
+      },
+      {
+        "op": "replace_once",
+        "args": [
+          "panels",
+          "import qs.modules.display as Display\nimport qs.modules.notifications as Notifications",
+          "import qs.modules.display as Display\nimport qs.modules.wallpaper as Wallpaper\nimport qs.modules.notifications as Notifications",
+          "import qs.modules.wallpaper as Wallpaper"
+        ]
+      },
+      {
+        "op": "replace_once",
+        "args": [
+          "panels",
+          "    readonly property alias displayManager: displayManager\n    readonly property alias dashboard: dashboard",
+          "    readonly property alias displayManager: displayManager\n    readonly property alias wallpaperManager: wallpaperManager\n    readonly property alias dashboard: dashboard",
+          "readonly property alias wallpaperManager: wallpaperManager"
+        ]
+      },
+      {
+        "op": "insert_wrapper",
+        "args": [
+          "wallpaperManager",
+          "    Wallpaper.Wrapper {\n        id: wallpaperManager\n\n        screen: root.screen\n        screenState: root.screenState\n\n        anchors.fill: parent\n    }\n\n"
+        ]
+      },
+      {
+        "op": "ensure_statement",
+        "args": [
+          "content",
+          "        screenState.displayManager = false;",
+          "\n        panels.popouts.close();",
+          "        screenState.wallpaperManager = false;"
+        ]
+      },
+      {
+        "op": "ensure_or_member",
+        "args": [
+          "content",
+          "WlrLayershell.layer: screenState.overview || screenState.clipboard || screenState.hardware",
+          " ? WlrLayer.Overlay",
+          "screenState.wallpaperManager"
+        ]
+      },
+      {
+        "op": "ensure_or_member",
+        "args": [
+          "content",
+          "WlrLayershell.keyboardFocus: screenState.overview || screenState.clipboard || screenState.hardware",
+          " || screenState.launcher",
+          "screenState.wallpaperManager"
+        ]
+      },
+      {
+        "op": "ensure_or_member",
+        "args": [
+          "content",
+          "mask: screenState.overview || screenState.clipboard || screenState.hardware",
+          " ? null",
+          "screenState.wallpaperManager"
+        ]
+      },
+      {
+        "op": "ensure_or_member",
+        "args": [
+          "content",
+          "if (s.overview || s.clipboard || s.hardware",
+          ")\n                return true;",
+          "s.wallpaperManager"
+        ]
+      },
+      {
+        "op": "ensure_statement",
+        "args": [
+          "content",
+          "            root.screenState.displayManager = false;",
+          "\n            panels.popouts.hasCurrent = false;",
+          "            root.screenState.wallpaperManager = false;"
+        ]
+      },
+      {
+        "op": "insert_bind",
+        "args": [
+          "hl.bind(\n    \"SUPER + SHIFT + W\",\n    hl.dsp.global(\"cortetsu:wallpapermanager\")\n)",
+          "hl.bind(\n    \"SUPER + SHIFT + O\",\n    hl.dsp.global(\"cortetsu:displaymanager\")\n)",
+          "Wallpaper Manager QML nativo"
+        ]
+      }
+    ]
+  },
+  "bottom": {
+    "shell": [
+      [
+        "    CustomDock {}\n",
+        "    BottomHub {}\n"
+      ]
+    ],
+    "shortcuts": [
+      [
+        "            const screenState = ShellState.forActive();\n            screenState.sidebar = !screenState.sidebar;\n",
+        "            const screenState = ShellState.forActive();\n            const open = !(screenState.sidebar || screenState.utilities);\n            screenState.sidebar = open;\n            screenState.utilities = open;\n",
+        1
+      ]
+    ],
+    "panels": [
+      [
+        "        sidebar: sidebar\n",
+        ""
+      ],
+      [
+        "clip: sidebar.visible || session.visible",
+        "clip: session.visible"
+      ],
+      [
+        "sidebarOrSessionVisible: sidebar.visible || session.visible",
+        "sidebarOrSessionVisible: session.visible"
+      ],
+      [
+        "anchors.rightMargin: sidebar.width * (1 - sidebar.offsetScale)",
+        "anchors.rightMargin: 0"
+      ],
+      [
+        "clip: sidebar.visible",
+        "clip: false"
+      ],
+      [
+        "anchors.bottom: sidebar.visible ? parent.bottom : utilities.top",
+        "anchors.bottom: utilities.top"
+      ],
+      [
+        "anchors.bottom: sidebar.visible ? sidebar.top : utilities.top",
+        "anchors.bottom: utilities.top"
+      ],
+      [
+        "anchors.right: sidebar.left",
+        "anchors.right: parent.right"
+      ]
+    ],
+    "sidebar": [
+      [
+        "objectName: \"cortetsuNativeSidebar\"",
+        "objectName: \"cortetsuBottomNotificationCenter\""
+      ],
+      [
+        "    id: root\n",
+        "    id: root\n    objectName: \"cortetsuBottomNotificationCenter\"\n",
+        1
+      ],
+      [
+        "readonly property bool shouldBeActive: screenState.sidebar && Config.sidebar.enabled",
+        "readonly property bool shouldBeActive: screenState.sidebar"
+      ],
+      [
+        "    objectName: \"cortetsuBottomNotificationCenter\"\n",
+        "    objectName: \"cortetsuBottomNotificationCenter\"\n\n    readonly property bool shouldBeActive: screenState.sidebar\n",
+        1
+      ],
+      [
+        "implicitWidth: Tokens.sizes.sidebar.width - content.anchors.leftMargin - content.anchors.margins",
+        "implicitWidth: root.implicitWidth"
+      ]
+    ],
+    "utilities": [
+      [
+        "import qs.modules.sidebar as Sidebar\n",
+        ""
+      ],
+      [
+        "    required property Sidebar.Wrapper sidebar\n",
+        ""
+      ],
+      [
+        "    property real horizontalStretch\n",
+        ""
+      ],
+      [
+        "screenState.sidebar || (screenState.utilities && Config.utilities.enabled && !(screenState.session && Config.session.enabled))",
+        "screenState.utilities && Config.utilities.enabled && !(screenState.session && Config.session.enabled)"
+      ],
+      [
+        "    property real sidebarLerp\n",
+        ""
+      ]
+    ],
+    "bar": [
+      [
+        "readonly property bool disabled: Strings.testRegexList(Config.bar.excludedScreens, screen.name)",
+        "readonly property bool disabled: true"
+      ],
+      [
+        "readonly property int clampedWidth: Math.max(Config.border.minThickness, implicitWidth)",
+        "readonly property int clampedWidth: 0"
+      ],
+      [
+        "readonly property int exclusiveZone: !disabled && (Config.bar.persistent || screenState.bar) ? contentWidth : Config.border.thickness",
+        "readonly property int exclusiveZone: 0"
+      ],
+      [
+        "readonly property bool shouldBeVisible: !fullscreen && !disabled && (Config.bar.persistent || screenState.bar || isHovered)",
+        "readonly property bool shouldBeVisible: false"
+      ],
+      [
+        "visible: width > Config.border.thickness",
+        "visible: false"
+      ],
+      [
+        "implicitWidth: fullscreen ? 0 : Config.border.thickness",
+        "implicitWidth: 0"
+      ]
+    ],
+    "popout_clip": [
+      [
+        "        : content.bottomAttached\n            ? parent.width - content.nonAnimWidth - content.bottomRightMargin\n            : 0",
+        "        : content.bottomAttached\n            ? content.bottomAnchorCenter >= 0\n                ? Math.max(8, Math.min(parent.width - content.nonAnimWidth - 8, content.bottomAnchorCenter - content.nonAnimWidth / 2))\n                : parent.width - content.nonAnimWidth - content.bottomRightMargin\n            : 0",
+        1
+      ]
+    ],
+    "popout_wrapper": [
+      [
+        "    property real bottomRightMargin: 4\n",
+        "    property real bottomRightMargin: 4\n    property real bottomAnchorCenter: -1\n",
+        1
+      ],
+      [
+        "    function detach(mode: string): void {\n        bottomAttached = false;\n        setAnims(true);",
+        "    function detach(mode: string): void {\n        bottomAttached = false;\n        bottomAnchorCenter = -1;\n        setAnims(true);",
+        1
+      ],
+      [
+        "        detachedMode = \"\";\n        bottomAttached = false;\n    }\n\n    onHasCurrentChanged: {\n        if (!hasCurrent)\n            bottomAttached = false;\n    }",
+        "        detachedMode = \"\";\n        bottomAttached = false;\n        bottomAnchorCenter = -1;\n    }\n\n    onHasCurrentChanged: {\n        if (!hasCurrent) {\n            bottomAttached = false;\n            bottomAnchorCenter = -1;\n        }\n    }",
+        1
+      ]
+    ],
+    "interactions": [
+      [
+        "if (Config.sidebar.showOnHover)",
+        "if (false && Config.sidebar.showOnHover)"
+      ],
+      [
+        "if (Config.sidebar.showOnHover && !pressed)",
+        "if (false && Config.sidebar.showOnHover && !pressed)"
+      ],
+      [
+        "const showSidebar = pressed && dragStart.x > Math.min(width - Config.border.minThickness, bar.implicitWidth + panels.sidebar.x);",
+        "const showSidebar = false;"
+      ],
+      [
+        "if (pressed && inRightPanel(panels.sidebar, dragStart.x, 0) && dragX > Config.sidebar.dragThreshold)",
+        "if (false && pressed && inRightPanel(panels.sidebar, dragStart.x, 0) && dragX > Config.sidebar.dragThreshold)"
+      ]
+    ]
+  }
+}

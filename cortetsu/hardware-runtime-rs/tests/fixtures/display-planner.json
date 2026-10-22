@@ -1,0 +1,3743 @@
+[
+  {
+    "candidate": {
+      "outputs": []
+    },
+    "snapshot": {
+      "hyprland": [
+        {
+          "name": "eDP-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 0,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 0,
+          "max_bpc": 8,
+          "hdr_capable": null,
+          "wide_color_capable": null
+        },
+        {
+          "name": "HDMI-A-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 1920,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 1,
+          "max_bpc": 10,
+          "hdr_capable": true,
+          "wide_color_capable": true
+        }
+      ]
+    },
+    "expected": {
+      "ok": false,
+      "errors": [
+        "candidate contains no valid outputs"
+      ],
+      "warnings": [],
+      "candidate": {
+        "outputs": []
+      },
+      "commands": [],
+      "hypr_lines": [],
+      "applied": false,
+      "safety": "dry-run only; 10-bit/VRR/HDR require established capability; no hyprctl write command was executed"
+    },
+    "exit_code": 3
+  },
+  {
+    "candidate": {
+      "outputs": [
+        {
+          "name": "eDP-1",
+          "mode": "1920x1080@60Hz"
+        }
+      ]
+    },
+    "snapshot": {
+      "hyprland": [
+        {
+          "name": "eDP-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 0,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 0,
+          "max_bpc": 8,
+          "hdr_capable": null,
+          "wide_color_capable": null
+        },
+        {
+          "name": "HDMI-A-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 1920,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 1,
+          "max_bpc": 10,
+          "hdr_capable": true,
+          "wide_color_capable": true
+        }
+      ]
+    },
+    "expected": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "candidate": {
+        "outputs": [
+          {
+            "name": "eDP-1",
+            "enabled": true,
+            "mode": "1920x1080@60Hz",
+            "x": 0,
+            "y": 0,
+            "scale": 1.0,
+            "transform": 0,
+            "bitdepth": 8,
+            "cm": "srgb",
+            "vrr": 0
+          }
+        ]
+      },
+      "commands": [
+        [
+          "hyprctl",
+          "keyword",
+          "monitor",
+          "eDP-1,1920x1080@60Hz,0x0,1.0,transform,0,bitdepth,8,cm,srgb,vrr,0"
+        ]
+      ],
+      "hypr_lines": [
+        "monitor = eDP-1,1920x1080@60Hz,0x0,1.0,transform,0,bitdepth,8,cm,srgb,vrr,0"
+      ],
+      "applied": false,
+      "safety": "dry-run only; 10-bit/VRR/HDR require established capability; no hyprctl write command was executed"
+    },
+    "exit_code": 0
+  },
+  {
+    "candidate": {
+      "outputs": [
+        {
+          "name": "eDP-1",
+          "enabled": false
+        }
+      ]
+    },
+    "snapshot": {
+      "hyprland": [
+        {
+          "name": "eDP-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 0,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 0,
+          "max_bpc": 8,
+          "hdr_capable": null,
+          "wide_color_capable": null
+        },
+        {
+          "name": "HDMI-A-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 1920,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 1,
+          "max_bpc": 10,
+          "hdr_capable": true,
+          "wide_color_capable": true
+        }
+      ]
+    },
+    "expected": {
+      "ok": false,
+      "errors": [
+        "candidate disables every output"
+      ],
+      "warnings": [],
+      "candidate": {
+        "outputs": [
+          {
+            "name": "eDP-1",
+            "enabled": false
+          }
+        ]
+      },
+      "commands": [],
+      "hypr_lines": [],
+      "applied": false,
+      "safety": "dry-run only; 10-bit/VRR/HDR require established capability; no hyprctl write command was executed"
+    },
+    "exit_code": 3
+  },
+  {
+    "candidate": {
+      "outputs": [
+        {
+          "name": "eDP-1",
+          "mode": "1920x1080@60Hz"
+        },
+        {
+          "name": "eDP-1",
+          "mode": "1920x1080@60Hz"
+        }
+      ]
+    },
+    "snapshot": {
+      "hyprland": [
+        {
+          "name": "eDP-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 0,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 0,
+          "max_bpc": 8,
+          "hdr_capable": null,
+          "wide_color_capable": null
+        },
+        {
+          "name": "HDMI-A-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 1920,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 1,
+          "max_bpc": 10,
+          "hdr_capable": true,
+          "wide_color_capable": true
+        }
+      ]
+    },
+    "expected": {
+      "ok": false,
+      "errors": [
+        "duplicate output eDP-1"
+      ],
+      "warnings": [],
+      "candidate": {
+        "outputs": [
+          {
+            "name": "eDP-1",
+            "enabled": true,
+            "mode": "1920x1080@60Hz",
+            "x": 0,
+            "y": 0,
+            "scale": 1.0,
+            "transform": 0,
+            "bitdepth": 8,
+            "cm": "srgb",
+            "vrr": 0
+          }
+        ]
+      },
+      "commands": [],
+      "hypr_lines": [],
+      "applied": false,
+      "safety": "dry-run only; 10-bit/VRR/HDR require established capability; no hyprctl write command was executed"
+    },
+    "exit_code": 3
+  },
+  {
+    "candidate": {
+      "outputs": [
+        {
+          "name": "bogus"
+        }
+      ]
+    },
+    "snapshot": {
+      "hyprland": [
+        {
+          "name": "eDP-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 0,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 0,
+          "max_bpc": 8,
+          "hdr_capable": null,
+          "wide_color_capable": null
+        },
+        {
+          "name": "HDMI-A-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 1920,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 1,
+          "max_bpc": 10,
+          "hdr_capable": true,
+          "wide_color_capable": true
+        }
+      ]
+    },
+    "expected": {
+      "ok": false,
+      "errors": [
+        "output bogus is not currently known to Hyprland",
+        "candidate contains no valid outputs"
+      ],
+      "warnings": [],
+      "candidate": {
+        "outputs": []
+      },
+      "commands": [],
+      "hypr_lines": [],
+      "applied": false,
+      "safety": "dry-run only; 10-bit/VRR/HDR require established capability; no hyprctl write command was executed"
+    },
+    "exit_code": 3
+  },
+  {
+    "candidate": {
+      "outputs": [
+        null
+      ]
+    },
+    "snapshot": {
+      "hyprland": [
+        {
+          "name": "eDP-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 0,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 0,
+          "max_bpc": 8,
+          "hdr_capable": null,
+          "wide_color_capable": null
+        },
+        {
+          "name": "HDMI-A-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 1920,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 1,
+          "max_bpc": 10,
+          "hdr_capable": true,
+          "wide_color_capable": true
+        }
+      ]
+    },
+    "expected": {
+      "ok": false,
+      "errors": [
+        "outputs[0] must be an object",
+        "candidate contains no valid outputs"
+      ],
+      "warnings": [],
+      "candidate": {
+        "outputs": []
+      },
+      "commands": [],
+      "hypr_lines": [],
+      "applied": false,
+      "safety": "dry-run only; 10-bit/VRR/HDR require established capability; no hyprctl write command was executed"
+    },
+    "exit_code": 3
+  },
+  {
+    "candidate": {
+      "outputs": [
+        {}
+      ]
+    },
+    "snapshot": {
+      "hyprland": [
+        {
+          "name": "eDP-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 0,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 0,
+          "max_bpc": 8,
+          "hdr_capable": null,
+          "wide_color_capable": null
+        },
+        {
+          "name": "HDMI-A-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 1920,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 1,
+          "max_bpc": 10,
+          "hdr_capable": true,
+          "wide_color_capable": true
+        }
+      ]
+    },
+    "expected": {
+      "ok": false,
+      "errors": [
+        "outputs[0] has no name",
+        "candidate contains no valid outputs"
+      ],
+      "warnings": [],
+      "candidate": {
+        "outputs": []
+      },
+      "commands": [],
+      "hypr_lines": [],
+      "applied": false,
+      "safety": "dry-run only; 10-bit/VRR/HDR require established capability; no hyprctl write command was executed"
+    },
+    "exit_code": 3
+  },
+  {
+    "candidate": {
+      "outputs": [
+        {
+          "name": "eDP-1",
+          "mode": "preferred"
+        }
+      ]
+    },
+    "snapshot": {
+      "hyprland": [
+        {
+          "name": "eDP-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 0,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 0,
+          "max_bpc": 8,
+          "hdr_capable": null,
+          "wide_color_capable": null
+        },
+        {
+          "name": "HDMI-A-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 1920,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 1,
+          "max_bpc": 10,
+          "hdr_capable": true,
+          "wide_color_capable": true
+        }
+      ]
+    },
+    "expected": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "candidate": {
+        "outputs": [
+          {
+            "name": "eDP-1",
+            "enabled": true,
+            "mode": "preferred",
+            "x": 0,
+            "y": 0,
+            "scale": 1.0,
+            "transform": 0,
+            "bitdepth": 8,
+            "cm": "srgb",
+            "vrr": 0
+          }
+        ]
+      },
+      "commands": [
+        [
+          "hyprctl",
+          "keyword",
+          "monitor",
+          "eDP-1,preferred,0x0,1.0,transform,0,bitdepth,8,cm,srgb,vrr,0"
+        ]
+      ],
+      "hypr_lines": [
+        "monitor = eDP-1,preferred,0x0,1.0,transform,0,bitdepth,8,cm,srgb,vrr,0"
+      ],
+      "applied": false,
+      "safety": "dry-run only; 10-bit/VRR/HDR require established capability; no hyprctl write command was executed"
+    },
+    "exit_code": 0
+  },
+  {
+    "candidate": {
+      "outputs": [
+        {
+          "name": "eDP-1",
+          "mode": "highrr"
+        }
+      ]
+    },
+    "snapshot": {
+      "hyprland": [
+        {
+          "name": "eDP-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 0,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 0,
+          "max_bpc": 8,
+          "hdr_capable": null,
+          "wide_color_capable": null
+        },
+        {
+          "name": "HDMI-A-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 1920,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 1,
+          "max_bpc": 10,
+          "hdr_capable": true,
+          "wide_color_capable": true
+        }
+      ]
+    },
+    "expected": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "candidate": {
+        "outputs": [
+          {
+            "name": "eDP-1",
+            "enabled": true,
+            "mode": "highrr",
+            "x": 0,
+            "y": 0,
+            "scale": 1.0,
+            "transform": 0,
+            "bitdepth": 8,
+            "cm": "srgb",
+            "vrr": 0
+          }
+        ]
+      },
+      "commands": [
+        [
+          "hyprctl",
+          "keyword",
+          "monitor",
+          "eDP-1,highrr,0x0,1.0,transform,0,bitdepth,8,cm,srgb,vrr,0"
+        ]
+      ],
+      "hypr_lines": [
+        "monitor = eDP-1,highrr,0x0,1.0,transform,0,bitdepth,8,cm,srgb,vrr,0"
+      ],
+      "applied": false,
+      "safety": "dry-run only; 10-bit/VRR/HDR require established capability; no hyprctl write command was executed"
+    },
+    "exit_code": 0
+  },
+  {
+    "candidate": {
+      "outputs": [
+        {
+          "name": "eDP-1",
+          "mode": "highres"
+        }
+      ]
+    },
+    "snapshot": {
+      "hyprland": [
+        {
+          "name": "eDP-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 0,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 0,
+          "max_bpc": 8,
+          "hdr_capable": null,
+          "wide_color_capable": null
+        },
+        {
+          "name": "HDMI-A-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 1920,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 1,
+          "max_bpc": 10,
+          "hdr_capable": true,
+          "wide_color_capable": true
+        }
+      ]
+    },
+    "expected": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "candidate": {
+        "outputs": [
+          {
+            "name": "eDP-1",
+            "enabled": true,
+            "mode": "highres",
+            "x": 0,
+            "y": 0,
+            "scale": 1.0,
+            "transform": 0,
+            "bitdepth": 8,
+            "cm": "srgb",
+            "vrr": 0
+          }
+        ]
+      },
+      "commands": [
+        [
+          "hyprctl",
+          "keyword",
+          "monitor",
+          "eDP-1,highres,0x0,1.0,transform,0,bitdepth,8,cm,srgb,vrr,0"
+        ]
+      ],
+      "hypr_lines": [
+        "monitor = eDP-1,highres,0x0,1.0,transform,0,bitdepth,8,cm,srgb,vrr,0"
+      ],
+      "applied": false,
+      "safety": "dry-run only; 10-bit/VRR/HDR require established capability; no hyprctl write command was executed"
+    },
+    "exit_code": 0
+  },
+  {
+    "candidate": {
+      "outputs": [
+        {
+          "name": "eDP-1",
+          "mode": "bad"
+        }
+      ]
+    },
+    "snapshot": {
+      "hyprland": [
+        {
+          "name": "eDP-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 0,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 0,
+          "max_bpc": 8,
+          "hdr_capable": null,
+          "wide_color_capable": null
+        },
+        {
+          "name": "HDMI-A-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 1920,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 1,
+          "max_bpc": 10,
+          "hdr_capable": true,
+          "wide_color_capable": true
+        }
+      ]
+    },
+    "expected": {
+      "ok": false,
+      "errors": [
+        "eDP-1: mode bad is not in Hyprland availableModes"
+      ],
+      "warnings": [],
+      "candidate": {
+        "outputs": [
+          {
+            "name": "eDP-1",
+            "enabled": true,
+            "mode": "bad",
+            "x": 0,
+            "y": 0,
+            "scale": 1.0,
+            "transform": 0,
+            "bitdepth": 8,
+            "cm": "srgb",
+            "vrr": 0
+          }
+        ]
+      },
+      "commands": [],
+      "hypr_lines": [],
+      "applied": false,
+      "safety": "dry-run only; 10-bit/VRR/HDR require established capability; no hyprctl write command was executed"
+    },
+    "exit_code": 3
+  },
+  {
+    "candidate": {
+      "outputs": [
+        {
+          "name": "eDP-1",
+          "mode": "1920x1080@60Hz",
+          "scale": 0.25
+        }
+      ]
+    },
+    "snapshot": {
+      "hyprland": [
+        {
+          "name": "eDP-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 0,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 0,
+          "max_bpc": 8,
+          "hdr_capable": null,
+          "wide_color_capable": null
+        },
+        {
+          "name": "HDMI-A-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 1920,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 1,
+          "max_bpc": 10,
+          "hdr_capable": true,
+          "wide_color_capable": true
+        }
+      ]
+    },
+    "expected": {
+      "ok": false,
+      "errors": [
+        "eDP-1: scale 0.25 outside safe range 0.5..3.0"
+      ],
+      "warnings": [],
+      "candidate": {
+        "outputs": [
+          {
+            "name": "eDP-1",
+            "enabled": true,
+            "mode": "1920x1080@60Hz",
+            "x": 0,
+            "y": 0,
+            "scale": 0.25,
+            "transform": 0,
+            "bitdepth": 8,
+            "cm": "srgb",
+            "vrr": 0
+          }
+        ]
+      },
+      "commands": [],
+      "hypr_lines": [],
+      "applied": false,
+      "safety": "dry-run only; 10-bit/VRR/HDR require established capability; no hyprctl write command was executed"
+    },
+    "exit_code": 3
+  },
+  {
+    "candidate": {
+      "outputs": [
+        {
+          "name": "eDP-1",
+          "mode": "1920x1080@60Hz",
+          "scale": 0.5
+        }
+      ]
+    },
+    "snapshot": {
+      "hyprland": [
+        {
+          "name": "eDP-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 0,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 0,
+          "max_bpc": 8,
+          "hdr_capable": null,
+          "wide_color_capable": null
+        },
+        {
+          "name": "HDMI-A-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 1920,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 1,
+          "max_bpc": 10,
+          "hdr_capable": true,
+          "wide_color_capable": true
+        }
+      ]
+    },
+    "expected": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "candidate": {
+        "outputs": [
+          {
+            "name": "eDP-1",
+            "enabled": true,
+            "mode": "1920x1080@60Hz",
+            "x": 0,
+            "y": 0,
+            "scale": 0.5,
+            "transform": 0,
+            "bitdepth": 8,
+            "cm": "srgb",
+            "vrr": 0
+          }
+        ]
+      },
+      "commands": [
+        [
+          "hyprctl",
+          "keyword",
+          "monitor",
+          "eDP-1,1920x1080@60Hz,0x0,0.5,transform,0,bitdepth,8,cm,srgb,vrr,0"
+        ]
+      ],
+      "hypr_lines": [
+        "monitor = eDP-1,1920x1080@60Hz,0x0,0.5,transform,0,bitdepth,8,cm,srgb,vrr,0"
+      ],
+      "applied": false,
+      "safety": "dry-run only; 10-bit/VRR/HDR require established capability; no hyprctl write command was executed"
+    },
+    "exit_code": 0
+  },
+  {
+    "candidate": {
+      "outputs": [
+        {
+          "name": "eDP-1",
+          "mode": "1920x1080@60Hz",
+          "scale": 1
+        }
+      ]
+    },
+    "snapshot": {
+      "hyprland": [
+        {
+          "name": "eDP-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 0,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 0,
+          "max_bpc": 8,
+          "hdr_capable": null,
+          "wide_color_capable": null
+        },
+        {
+          "name": "HDMI-A-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 1920,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 1,
+          "max_bpc": 10,
+          "hdr_capable": true,
+          "wide_color_capable": true
+        }
+      ]
+    },
+    "expected": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "candidate": {
+        "outputs": [
+          {
+            "name": "eDP-1",
+            "enabled": true,
+            "mode": "1920x1080@60Hz",
+            "x": 0,
+            "y": 0,
+            "scale": 1.0,
+            "transform": 0,
+            "bitdepth": 8,
+            "cm": "srgb",
+            "vrr": 0
+          }
+        ]
+      },
+      "commands": [
+        [
+          "hyprctl",
+          "keyword",
+          "monitor",
+          "eDP-1,1920x1080@60Hz,0x0,1.0,transform,0,bitdepth,8,cm,srgb,vrr,0"
+        ]
+      ],
+      "hypr_lines": [
+        "monitor = eDP-1,1920x1080@60Hz,0x0,1.0,transform,0,bitdepth,8,cm,srgb,vrr,0"
+      ],
+      "applied": false,
+      "safety": "dry-run only; 10-bit/VRR/HDR require established capability; no hyprctl write command was executed"
+    },
+    "exit_code": 0
+  },
+  {
+    "candidate": {
+      "outputs": [
+        {
+          "name": "eDP-1",
+          "mode": "1920x1080@60Hz",
+          "scale": 1.333
+        }
+      ]
+    },
+    "snapshot": {
+      "hyprland": [
+        {
+          "name": "eDP-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 0,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 0,
+          "max_bpc": 8,
+          "hdr_capable": null,
+          "wide_color_capable": null
+        },
+        {
+          "name": "HDMI-A-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 1920,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 1,
+          "max_bpc": 10,
+          "hdr_capable": true,
+          "wide_color_capable": true
+        }
+      ]
+    },
+    "expected": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "candidate": {
+        "outputs": [
+          {
+            "name": "eDP-1",
+            "enabled": true,
+            "mode": "1920x1080@60Hz",
+            "x": 0,
+            "y": 0,
+            "scale": 1.333,
+            "transform": 0,
+            "bitdepth": 8,
+            "cm": "srgb",
+            "vrr": 0
+          }
+        ]
+      },
+      "commands": [
+        [
+          "hyprctl",
+          "keyword",
+          "monitor",
+          "eDP-1,1920x1080@60Hz,0x0,1.333,transform,0,bitdepth,8,cm,srgb,vrr,0"
+        ]
+      ],
+      "hypr_lines": [
+        "monitor = eDP-1,1920x1080@60Hz,0x0,1.333,transform,0,bitdepth,8,cm,srgb,vrr,0"
+      ],
+      "applied": false,
+      "safety": "dry-run only; 10-bit/VRR/HDR require established capability; no hyprctl write command was executed"
+    },
+    "exit_code": 0
+  },
+  {
+    "candidate": {
+      "outputs": [
+        {
+          "name": "eDP-1",
+          "mode": "1920x1080@60Hz",
+          "scale": 3
+        }
+      ]
+    },
+    "snapshot": {
+      "hyprland": [
+        {
+          "name": "eDP-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 0,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 0,
+          "max_bpc": 8,
+          "hdr_capable": null,
+          "wide_color_capable": null
+        },
+        {
+          "name": "HDMI-A-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 1920,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 1,
+          "max_bpc": 10,
+          "hdr_capable": true,
+          "wide_color_capable": true
+        }
+      ]
+    },
+    "expected": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "candidate": {
+        "outputs": [
+          {
+            "name": "eDP-1",
+            "enabled": true,
+            "mode": "1920x1080@60Hz",
+            "x": 0,
+            "y": 0,
+            "scale": 3.0,
+            "transform": 0,
+            "bitdepth": 8,
+            "cm": "srgb",
+            "vrr": 0
+          }
+        ]
+      },
+      "commands": [
+        [
+          "hyprctl",
+          "keyword",
+          "monitor",
+          "eDP-1,1920x1080@60Hz,0x0,3.0,transform,0,bitdepth,8,cm,srgb,vrr,0"
+        ]
+      ],
+      "hypr_lines": [
+        "monitor = eDP-1,1920x1080@60Hz,0x0,3.0,transform,0,bitdepth,8,cm,srgb,vrr,0"
+      ],
+      "applied": false,
+      "safety": "dry-run only; 10-bit/VRR/HDR require established capability; no hyprctl write command was executed"
+    },
+    "exit_code": 0
+  },
+  {
+    "candidate": {
+      "outputs": [
+        {
+          "name": "eDP-1",
+          "mode": "1920x1080@60Hz",
+          "scale": 3.5
+        }
+      ]
+    },
+    "snapshot": {
+      "hyprland": [
+        {
+          "name": "eDP-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 0,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 0,
+          "max_bpc": 8,
+          "hdr_capable": null,
+          "wide_color_capable": null
+        },
+        {
+          "name": "HDMI-A-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 1920,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 1,
+          "max_bpc": 10,
+          "hdr_capable": true,
+          "wide_color_capable": true
+        }
+      ]
+    },
+    "expected": {
+      "ok": false,
+      "errors": [
+        "eDP-1: scale 3.5 outside safe range 0.5..3.0"
+      ],
+      "warnings": [],
+      "candidate": {
+        "outputs": [
+          {
+            "name": "eDP-1",
+            "enabled": true,
+            "mode": "1920x1080@60Hz",
+            "x": 0,
+            "y": 0,
+            "scale": 3.5,
+            "transform": 0,
+            "bitdepth": 8,
+            "cm": "srgb",
+            "vrr": 0
+          }
+        ]
+      },
+      "commands": [],
+      "hypr_lines": [],
+      "applied": false,
+      "safety": "dry-run only; 10-bit/VRR/HDR require established capability; no hyprctl write command was executed"
+    },
+    "exit_code": 3
+  },
+  {
+    "candidate": {
+      "outputs": [
+        {
+          "name": "eDP-1",
+          "mode": "1920x1080@60Hz",
+          "scale": "bad"
+        }
+      ]
+    },
+    "snapshot": {
+      "hyprland": [
+        {
+          "name": "eDP-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 0,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 0,
+          "max_bpc": 8,
+          "hdr_capable": null,
+          "wide_color_capable": null
+        },
+        {
+          "name": "HDMI-A-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 1920,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 1,
+          "max_bpc": 10,
+          "hdr_capable": true,
+          "wide_color_capable": true
+        }
+      ]
+    },
+    "expected": {
+      "ok": false,
+      "errors": [
+        "eDP-1: scale -1 outside safe range 0.5..3.0"
+      ],
+      "warnings": [],
+      "candidate": {
+        "outputs": [
+          {
+            "name": "eDP-1",
+            "enabled": true,
+            "mode": "1920x1080@60Hz",
+            "x": 0,
+            "y": 0,
+            "scale": -1,
+            "transform": 0,
+            "bitdepth": 8,
+            "cm": "srgb",
+            "vrr": 0
+          }
+        ]
+      },
+      "commands": [],
+      "hypr_lines": [],
+      "applied": false,
+      "safety": "dry-run only; 10-bit/VRR/HDR require established capability; no hyprctl write command was executed"
+    },
+    "exit_code": 3
+  },
+  {
+    "candidate": {
+      "outputs": [
+        {
+          "name": "eDP-1",
+          "mode": "1920x1080@60Hz",
+          "transform": -1
+        }
+      ]
+    },
+    "snapshot": {
+      "hyprland": [
+        {
+          "name": "eDP-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 0,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 0,
+          "max_bpc": 8,
+          "hdr_capable": null,
+          "wide_color_capable": null
+        },
+        {
+          "name": "HDMI-A-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 1920,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 1,
+          "max_bpc": 10,
+          "hdr_capable": true,
+          "wide_color_capable": true
+        }
+      ]
+    },
+    "expected": {
+      "ok": false,
+      "errors": [
+        "eDP-1: transform -1 outside Hyprland range 0..7"
+      ],
+      "warnings": [],
+      "candidate": {
+        "outputs": [
+          {
+            "name": "eDP-1",
+            "enabled": true,
+            "mode": "1920x1080@60Hz",
+            "x": 0,
+            "y": 0,
+            "scale": 1.0,
+            "transform": -1,
+            "bitdepth": 8,
+            "cm": "srgb",
+            "vrr": 0
+          }
+        ]
+      },
+      "commands": [],
+      "hypr_lines": [],
+      "applied": false,
+      "safety": "dry-run only; 10-bit/VRR/HDR require established capability; no hyprctl write command was executed"
+    },
+    "exit_code": 3
+  },
+  {
+    "candidate": {
+      "outputs": [
+        {
+          "name": "eDP-1",
+          "mode": "1920x1080@60Hz",
+          "transform": 0
+        }
+      ]
+    },
+    "snapshot": {
+      "hyprland": [
+        {
+          "name": "eDP-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 0,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 0,
+          "max_bpc": 8,
+          "hdr_capable": null,
+          "wide_color_capable": null
+        },
+        {
+          "name": "HDMI-A-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 1920,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 1,
+          "max_bpc": 10,
+          "hdr_capable": true,
+          "wide_color_capable": true
+        }
+      ]
+    },
+    "expected": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "candidate": {
+        "outputs": [
+          {
+            "name": "eDP-1",
+            "enabled": true,
+            "mode": "1920x1080@60Hz",
+            "x": 0,
+            "y": 0,
+            "scale": 1.0,
+            "transform": 0,
+            "bitdepth": 8,
+            "cm": "srgb",
+            "vrr": 0
+          }
+        ]
+      },
+      "commands": [
+        [
+          "hyprctl",
+          "keyword",
+          "monitor",
+          "eDP-1,1920x1080@60Hz,0x0,1.0,transform,0,bitdepth,8,cm,srgb,vrr,0"
+        ]
+      ],
+      "hypr_lines": [
+        "monitor = eDP-1,1920x1080@60Hz,0x0,1.0,transform,0,bitdepth,8,cm,srgb,vrr,0"
+      ],
+      "applied": false,
+      "safety": "dry-run only; 10-bit/VRR/HDR require established capability; no hyprctl write command was executed"
+    },
+    "exit_code": 0
+  },
+  {
+    "candidate": {
+      "outputs": [
+        {
+          "name": "eDP-1",
+          "mode": "1920x1080@60Hz",
+          "transform": 7
+        }
+      ]
+    },
+    "snapshot": {
+      "hyprland": [
+        {
+          "name": "eDP-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 0,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 0,
+          "max_bpc": 8,
+          "hdr_capable": null,
+          "wide_color_capable": null
+        },
+        {
+          "name": "HDMI-A-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 1920,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 1,
+          "max_bpc": 10,
+          "hdr_capable": true,
+          "wide_color_capable": true
+        }
+      ]
+    },
+    "expected": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "candidate": {
+        "outputs": [
+          {
+            "name": "eDP-1",
+            "enabled": true,
+            "mode": "1920x1080@60Hz",
+            "x": 0,
+            "y": 0,
+            "scale": 1.0,
+            "transform": 7,
+            "bitdepth": 8,
+            "cm": "srgb",
+            "vrr": 0
+          }
+        ]
+      },
+      "commands": [
+        [
+          "hyprctl",
+          "keyword",
+          "monitor",
+          "eDP-1,1920x1080@60Hz,0x0,1.0,transform,7,bitdepth,8,cm,srgb,vrr,0"
+        ]
+      ],
+      "hypr_lines": [
+        "monitor = eDP-1,1920x1080@60Hz,0x0,1.0,transform,7,bitdepth,8,cm,srgb,vrr,0"
+      ],
+      "applied": false,
+      "safety": "dry-run only; 10-bit/VRR/HDR require established capability; no hyprctl write command was executed"
+    },
+    "exit_code": 0
+  },
+  {
+    "candidate": {
+      "outputs": [
+        {
+          "name": "eDP-1",
+          "mode": "1920x1080@60Hz",
+          "transform": 8
+        }
+      ]
+    },
+    "snapshot": {
+      "hyprland": [
+        {
+          "name": "eDP-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 0,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 0,
+          "max_bpc": 8,
+          "hdr_capable": null,
+          "wide_color_capable": null
+        },
+        {
+          "name": "HDMI-A-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 1920,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 1,
+          "max_bpc": 10,
+          "hdr_capable": true,
+          "wide_color_capable": true
+        }
+      ]
+    },
+    "expected": {
+      "ok": false,
+      "errors": [
+        "eDP-1: transform 8 outside Hyprland range 0..7"
+      ],
+      "warnings": [],
+      "candidate": {
+        "outputs": [
+          {
+            "name": "eDP-1",
+            "enabled": true,
+            "mode": "1920x1080@60Hz",
+            "x": 0,
+            "y": 0,
+            "scale": 1.0,
+            "transform": 8,
+            "bitdepth": 8,
+            "cm": "srgb",
+            "vrr": 0
+          }
+        ]
+      },
+      "commands": [],
+      "hypr_lines": [],
+      "applied": false,
+      "safety": "dry-run only; 10-bit/VRR/HDR require established capability; no hyprctl write command was executed"
+    },
+    "exit_code": 3
+  },
+  {
+    "candidate": {
+      "outputs": [
+        {
+          "name": "eDP-1",
+          "mode": "1920x1080@60Hz",
+          "transform": "bad"
+        }
+      ]
+    },
+    "snapshot": {
+      "hyprland": [
+        {
+          "name": "eDP-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 0,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 0,
+          "max_bpc": 8,
+          "hdr_capable": null,
+          "wide_color_capable": null
+        },
+        {
+          "name": "HDMI-A-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 1920,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 1,
+          "max_bpc": 10,
+          "hdr_capable": true,
+          "wide_color_capable": true
+        }
+      ]
+    },
+    "expected": {
+      "ok": false,
+      "errors": [
+        "eDP-1: x/y/transform/bitdepth/vrr must be numeric",
+        "candidate contains no valid outputs"
+      ],
+      "warnings": [],
+      "candidate": {
+        "outputs": []
+      },
+      "commands": [],
+      "hypr_lines": [],
+      "applied": false,
+      "safety": "dry-run only; 10-bit/VRR/HDR require established capability; no hyprctl write command was executed"
+    },
+    "exit_code": 3
+  },
+  {
+    "candidate": {
+      "outputs": [
+        {
+          "name": "eDP-1",
+          "mode": "1920x1080@60Hz",
+          "bitdepth": 8
+        }
+      ]
+    },
+    "snapshot": {
+      "hyprland": [
+        {
+          "name": "eDP-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 0,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 0,
+          "max_bpc": 8,
+          "hdr_capable": null,
+          "wide_color_capable": null
+        },
+        {
+          "name": "HDMI-A-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 1920,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 1,
+          "max_bpc": 10,
+          "hdr_capable": true,
+          "wide_color_capable": true
+        }
+      ]
+    },
+    "expected": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "candidate": {
+        "outputs": [
+          {
+            "name": "eDP-1",
+            "enabled": true,
+            "mode": "1920x1080@60Hz",
+            "x": 0,
+            "y": 0,
+            "scale": 1.0,
+            "transform": 0,
+            "bitdepth": 8,
+            "cm": "srgb",
+            "vrr": 0
+          }
+        ]
+      },
+      "commands": [
+        [
+          "hyprctl",
+          "keyword",
+          "monitor",
+          "eDP-1,1920x1080@60Hz,0x0,1.0,transform,0,bitdepth,8,cm,srgb,vrr,0"
+        ]
+      ],
+      "hypr_lines": [
+        "monitor = eDP-1,1920x1080@60Hz,0x0,1.0,transform,0,bitdepth,8,cm,srgb,vrr,0"
+      ],
+      "applied": false,
+      "safety": "dry-run only; 10-bit/VRR/HDR require established capability; no hyprctl write command was executed"
+    },
+    "exit_code": 0
+  },
+  {
+    "candidate": {
+      "outputs": [
+        {
+          "name": "eDP-1",
+          "mode": "1920x1080@60Hz",
+          "bitdepth": 10
+        }
+      ]
+    },
+    "snapshot": {
+      "hyprland": [
+        {
+          "name": "eDP-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 0,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 0,
+          "max_bpc": 8,
+          "hdr_capable": null,
+          "wide_color_capable": null
+        },
+        {
+          "name": "HDMI-A-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 1920,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 1,
+          "max_bpc": 10,
+          "hdr_capable": true,
+          "wide_color_capable": true
+        }
+      ]
+    },
+    "expected": {
+      "ok": false,
+      "errors": [
+        "eDP-1: 10-bit was requested but support is not established by DRM/current format"
+      ],
+      "warnings": [],
+      "candidate": {
+        "outputs": [
+          {
+            "name": "eDP-1",
+            "enabled": true,
+            "mode": "1920x1080@60Hz",
+            "x": 0,
+            "y": 0,
+            "scale": 1.0,
+            "transform": 0,
+            "bitdepth": 10,
+            "cm": "srgb",
+            "vrr": 0
+          }
+        ]
+      },
+      "commands": [],
+      "hypr_lines": [],
+      "applied": false,
+      "safety": "dry-run only; 10-bit/VRR/HDR require established capability; no hyprctl write command was executed"
+    },
+    "exit_code": 3
+  },
+  {
+    "candidate": {
+      "outputs": [
+        {
+          "name": "eDP-1",
+          "mode": "1920x1080@60Hz",
+          "bitdepth": 12
+        }
+      ]
+    },
+    "snapshot": {
+      "hyprland": [
+        {
+          "name": "eDP-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 0,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 0,
+          "max_bpc": 8,
+          "hdr_capable": null,
+          "wide_color_capable": null
+        },
+        {
+          "name": "HDMI-A-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 1920,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 1,
+          "max_bpc": 10,
+          "hdr_capable": true,
+          "wide_color_capable": true
+        }
+      ]
+    },
+    "expected": {
+      "ok": false,
+      "errors": [
+        "eDP-1: bitdepth must be 8 or 10"
+      ],
+      "warnings": [],
+      "candidate": {
+        "outputs": [
+          {
+            "name": "eDP-1",
+            "enabled": true,
+            "mode": "1920x1080@60Hz",
+            "x": 0,
+            "y": 0,
+            "scale": 1.0,
+            "transform": 0,
+            "bitdepth": 12,
+            "cm": "srgb",
+            "vrr": 0
+          }
+        ]
+      },
+      "commands": [],
+      "hypr_lines": [],
+      "applied": false,
+      "safety": "dry-run only; 10-bit/VRR/HDR require established capability; no hyprctl write command was executed"
+    },
+    "exit_code": 3
+  },
+  {
+    "candidate": {
+      "outputs": [
+        {
+          "name": "eDP-1",
+          "mode": "1920x1080@60Hz",
+          "vrr": -1
+        }
+      ]
+    },
+    "snapshot": {
+      "hyprland": [
+        {
+          "name": "eDP-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 0,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 0,
+          "max_bpc": 8,
+          "hdr_capable": null,
+          "wide_color_capable": null
+        },
+        {
+          "name": "HDMI-A-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 1920,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 1,
+          "max_bpc": 10,
+          "hdr_capable": true,
+          "wide_color_capable": true
+        }
+      ]
+    },
+    "expected": {
+      "ok": false,
+      "errors": [
+        "eDP-1: vrr -1 outside Hyprland range 0..3"
+      ],
+      "warnings": [],
+      "candidate": {
+        "outputs": [
+          {
+            "name": "eDP-1",
+            "enabled": true,
+            "mode": "1920x1080@60Hz",
+            "x": 0,
+            "y": 0,
+            "scale": 1.0,
+            "transform": 0,
+            "bitdepth": 8,
+            "cm": "srgb",
+            "vrr": -1
+          }
+        ]
+      },
+      "commands": [],
+      "hypr_lines": [],
+      "applied": false,
+      "safety": "dry-run only; 10-bit/VRR/HDR require established capability; no hyprctl write command was executed"
+    },
+    "exit_code": 3
+  },
+  {
+    "candidate": {
+      "outputs": [
+        {
+          "name": "eDP-1",
+          "mode": "1920x1080@60Hz",
+          "vrr": 0
+        }
+      ]
+    },
+    "snapshot": {
+      "hyprland": [
+        {
+          "name": "eDP-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 0,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 0,
+          "max_bpc": 8,
+          "hdr_capable": null,
+          "wide_color_capable": null
+        },
+        {
+          "name": "HDMI-A-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 1920,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 1,
+          "max_bpc": 10,
+          "hdr_capable": true,
+          "wide_color_capable": true
+        }
+      ]
+    },
+    "expected": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "candidate": {
+        "outputs": [
+          {
+            "name": "eDP-1",
+            "enabled": true,
+            "mode": "1920x1080@60Hz",
+            "x": 0,
+            "y": 0,
+            "scale": 1.0,
+            "transform": 0,
+            "bitdepth": 8,
+            "cm": "srgb",
+            "vrr": 0
+          }
+        ]
+      },
+      "commands": [
+        [
+          "hyprctl",
+          "keyword",
+          "monitor",
+          "eDP-1,1920x1080@60Hz,0x0,1.0,transform,0,bitdepth,8,cm,srgb,vrr,0"
+        ]
+      ],
+      "hypr_lines": [
+        "monitor = eDP-1,1920x1080@60Hz,0x0,1.0,transform,0,bitdepth,8,cm,srgb,vrr,0"
+      ],
+      "applied": false,
+      "safety": "dry-run only; 10-bit/VRR/HDR require established capability; no hyprctl write command was executed"
+    },
+    "exit_code": 0
+  },
+  {
+    "candidate": {
+      "outputs": [
+        {
+          "name": "eDP-1",
+          "mode": "1920x1080@60Hz",
+          "vrr": 1
+        }
+      ]
+    },
+    "snapshot": {
+      "hyprland": [
+        {
+          "name": "eDP-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 0,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 0,
+          "max_bpc": 8,
+          "hdr_capable": null,
+          "wide_color_capable": null
+        },
+        {
+          "name": "HDMI-A-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 1920,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 1,
+          "max_bpc": 10,
+          "hdr_capable": true,
+          "wide_color_capable": true
+        }
+      ]
+    },
+    "expected": {
+      "ok": false,
+      "errors": [
+        "eDP-1: VRR was requested but DRM does not report VRR capability"
+      ],
+      "warnings": [],
+      "candidate": {
+        "outputs": [
+          {
+            "name": "eDP-1",
+            "enabled": true,
+            "mode": "1920x1080@60Hz",
+            "x": 0,
+            "y": 0,
+            "scale": 1.0,
+            "transform": 0,
+            "bitdepth": 8,
+            "cm": "srgb",
+            "vrr": 1
+          }
+        ]
+      },
+      "commands": [],
+      "hypr_lines": [],
+      "applied": false,
+      "safety": "dry-run only; 10-bit/VRR/HDR require established capability; no hyprctl write command was executed"
+    },
+    "exit_code": 3
+  },
+  {
+    "candidate": {
+      "outputs": [
+        {
+          "name": "eDP-1",
+          "mode": "1920x1080@60Hz",
+          "vrr": 2
+        }
+      ]
+    },
+    "snapshot": {
+      "hyprland": [
+        {
+          "name": "eDP-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 0,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 0,
+          "max_bpc": 8,
+          "hdr_capable": null,
+          "wide_color_capable": null
+        },
+        {
+          "name": "HDMI-A-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 1920,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 1,
+          "max_bpc": 10,
+          "hdr_capable": true,
+          "wide_color_capable": true
+        }
+      ]
+    },
+    "expected": {
+      "ok": false,
+      "errors": [
+        "eDP-1: VRR was requested but DRM does not report VRR capability"
+      ],
+      "warnings": [],
+      "candidate": {
+        "outputs": [
+          {
+            "name": "eDP-1",
+            "enabled": true,
+            "mode": "1920x1080@60Hz",
+            "x": 0,
+            "y": 0,
+            "scale": 1.0,
+            "transform": 0,
+            "bitdepth": 8,
+            "cm": "srgb",
+            "vrr": 2
+          }
+        ]
+      },
+      "commands": [],
+      "hypr_lines": [],
+      "applied": false,
+      "safety": "dry-run only; 10-bit/VRR/HDR require established capability; no hyprctl write command was executed"
+    },
+    "exit_code": 3
+  },
+  {
+    "candidate": {
+      "outputs": [
+        {
+          "name": "eDP-1",
+          "mode": "1920x1080@60Hz",
+          "vrr": 3
+        }
+      ]
+    },
+    "snapshot": {
+      "hyprland": [
+        {
+          "name": "eDP-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 0,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 0,
+          "max_bpc": 8,
+          "hdr_capable": null,
+          "wide_color_capable": null
+        },
+        {
+          "name": "HDMI-A-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 1920,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 1,
+          "max_bpc": 10,
+          "hdr_capable": true,
+          "wide_color_capable": true
+        }
+      ]
+    },
+    "expected": {
+      "ok": false,
+      "errors": [
+        "eDP-1: VRR was requested but DRM does not report VRR capability"
+      ],
+      "warnings": [],
+      "candidate": {
+        "outputs": [
+          {
+            "name": "eDP-1",
+            "enabled": true,
+            "mode": "1920x1080@60Hz",
+            "x": 0,
+            "y": 0,
+            "scale": 1.0,
+            "transform": 0,
+            "bitdepth": 8,
+            "cm": "srgb",
+            "vrr": 3
+          }
+        ]
+      },
+      "commands": [],
+      "hypr_lines": [],
+      "applied": false,
+      "safety": "dry-run only; 10-bit/VRR/HDR require established capability; no hyprctl write command was executed"
+    },
+    "exit_code": 3
+  },
+  {
+    "candidate": {
+      "outputs": [
+        {
+          "name": "eDP-1",
+          "mode": "1920x1080@60Hz",
+          "vrr": 4
+        }
+      ]
+    },
+    "snapshot": {
+      "hyprland": [
+        {
+          "name": "eDP-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 0,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 0,
+          "max_bpc": 8,
+          "hdr_capable": null,
+          "wide_color_capable": null
+        },
+        {
+          "name": "HDMI-A-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 1920,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 1,
+          "max_bpc": 10,
+          "hdr_capable": true,
+          "wide_color_capable": true
+        }
+      ]
+    },
+    "expected": {
+      "ok": false,
+      "errors": [
+        "eDP-1: vrr 4 outside Hyprland range 0..3",
+        "eDP-1: VRR was requested but DRM does not report VRR capability"
+      ],
+      "warnings": [],
+      "candidate": {
+        "outputs": [
+          {
+            "name": "eDP-1",
+            "enabled": true,
+            "mode": "1920x1080@60Hz",
+            "x": 0,
+            "y": 0,
+            "scale": 1.0,
+            "transform": 0,
+            "bitdepth": 8,
+            "cm": "srgb",
+            "vrr": 4
+          }
+        ]
+      },
+      "commands": [],
+      "hypr_lines": [],
+      "applied": false,
+      "safety": "dry-run only; 10-bit/VRR/HDR require established capability; no hyprctl write command was executed"
+    },
+    "exit_code": 3
+  },
+  {
+    "candidate": {
+      "outputs": [
+        {
+          "name": "eDP-1",
+          "mode": "1920x1080@60Hz",
+          "cm": "srgb"
+        }
+      ]
+    },
+    "snapshot": {
+      "hyprland": [
+        {
+          "name": "eDP-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 0,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 0,
+          "max_bpc": 8,
+          "hdr_capable": null,
+          "wide_color_capable": null
+        },
+        {
+          "name": "HDMI-A-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 1920,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 1,
+          "max_bpc": 10,
+          "hdr_capable": true,
+          "wide_color_capable": true
+        }
+      ]
+    },
+    "expected": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "candidate": {
+        "outputs": [
+          {
+            "name": "eDP-1",
+            "enabled": true,
+            "mode": "1920x1080@60Hz",
+            "x": 0,
+            "y": 0,
+            "scale": 1.0,
+            "transform": 0,
+            "bitdepth": 8,
+            "cm": "srgb",
+            "vrr": 0
+          }
+        ]
+      },
+      "commands": [
+        [
+          "hyprctl",
+          "keyword",
+          "monitor",
+          "eDP-1,1920x1080@60Hz,0x0,1.0,transform,0,bitdepth,8,cm,srgb,vrr,0"
+        ]
+      ],
+      "hypr_lines": [
+        "monitor = eDP-1,1920x1080@60Hz,0x0,1.0,transform,0,bitdepth,8,cm,srgb,vrr,0"
+      ],
+      "applied": false,
+      "safety": "dry-run only; 10-bit/VRR/HDR require established capability; no hyprctl write command was executed"
+    },
+    "exit_code": 0
+  },
+  {
+    "candidate": {
+      "outputs": [
+        {
+          "name": "eDP-1",
+          "mode": "1920x1080@60Hz",
+          "cm": "auto"
+        }
+      ]
+    },
+    "snapshot": {
+      "hyprland": [
+        {
+          "name": "eDP-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 0,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 0,
+          "max_bpc": 8,
+          "hdr_capable": null,
+          "wide_color_capable": null
+        },
+        {
+          "name": "HDMI-A-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 1920,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 1,
+          "max_bpc": 10,
+          "hdr_capable": true,
+          "wide_color_capable": true
+        }
+      ]
+    },
+    "expected": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "candidate": {
+        "outputs": [
+          {
+            "name": "eDP-1",
+            "enabled": true,
+            "mode": "1920x1080@60Hz",
+            "x": 0,
+            "y": 0,
+            "scale": 1.0,
+            "transform": 0,
+            "bitdepth": 8,
+            "cm": "auto",
+            "vrr": 0
+          }
+        ]
+      },
+      "commands": [
+        [
+          "hyprctl",
+          "keyword",
+          "monitor",
+          "eDP-1,1920x1080@60Hz,0x0,1.0,transform,0,bitdepth,8,cm,auto,vrr,0"
+        ]
+      ],
+      "hypr_lines": [
+        "monitor = eDP-1,1920x1080@60Hz,0x0,1.0,transform,0,bitdepth,8,cm,auto,vrr,0"
+      ],
+      "applied": false,
+      "safety": "dry-run only; 10-bit/VRR/HDR require established capability; no hyprctl write command was executed"
+    },
+    "exit_code": 0
+  },
+  {
+    "candidate": {
+      "outputs": [
+        {
+          "name": "eDP-1",
+          "mode": "1920x1080@60Hz",
+          "cm": "wide"
+        }
+      ]
+    },
+    "snapshot": {
+      "hyprland": [
+        {
+          "name": "eDP-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 0,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 0,
+          "max_bpc": 8,
+          "hdr_capable": null,
+          "wide_color_capable": null
+        },
+        {
+          "name": "HDMI-A-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 1920,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 1,
+          "max_bpc": 10,
+          "hdr_capable": true,
+          "wide_color_capable": true
+        }
+      ]
+    },
+    "expected": {
+      "ok": false,
+      "errors": [
+        "eDP-1: wide requires 10-bit in Cortetsu safety policy",
+        "eDP-1: wide color requested but EDID support is not established"
+      ],
+      "warnings": [],
+      "candidate": {
+        "outputs": [
+          {
+            "name": "eDP-1",
+            "enabled": true,
+            "mode": "1920x1080@60Hz",
+            "x": 0,
+            "y": 0,
+            "scale": 1.0,
+            "transform": 0,
+            "bitdepth": 8,
+            "cm": "wide",
+            "vrr": 0
+          }
+        ]
+      },
+      "commands": [],
+      "hypr_lines": [],
+      "applied": false,
+      "safety": "dry-run only; 10-bit/VRR/HDR require established capability; no hyprctl write command was executed"
+    },
+    "exit_code": 3
+  },
+  {
+    "candidate": {
+      "outputs": [
+        {
+          "name": "eDP-1",
+          "mode": "1920x1080@60Hz",
+          "cm": "hdr"
+        }
+      ]
+    },
+    "snapshot": {
+      "hyprland": [
+        {
+          "name": "eDP-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 0,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 0,
+          "max_bpc": 8,
+          "hdr_capable": null,
+          "wide_color_capable": null
+        },
+        {
+          "name": "HDMI-A-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 1920,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 1,
+          "max_bpc": 10,
+          "hdr_capable": true,
+          "wide_color_capable": true
+        }
+      ]
+    },
+    "expected": {
+      "ok": false,
+      "errors": [
+        "eDP-1: hdr requires 10-bit in Cortetsu safety policy",
+        "eDP-1: HDR requested but EDID support is not established"
+      ],
+      "warnings": [],
+      "candidate": {
+        "outputs": [
+          {
+            "name": "eDP-1",
+            "enabled": true,
+            "mode": "1920x1080@60Hz",
+            "x": 0,
+            "y": 0,
+            "scale": 1.0,
+            "transform": 0,
+            "bitdepth": 8,
+            "cm": "hdr",
+            "vrr": 0
+          }
+        ]
+      },
+      "commands": [],
+      "hypr_lines": [],
+      "applied": false,
+      "safety": "dry-run only; 10-bit/VRR/HDR require established capability; no hyprctl write command was executed"
+    },
+    "exit_code": 3
+  },
+  {
+    "candidate": {
+      "outputs": [
+        {
+          "name": "eDP-1",
+          "mode": "1920x1080@60Hz",
+          "cm": "hdredid"
+        }
+      ]
+    },
+    "snapshot": {
+      "hyprland": [
+        {
+          "name": "eDP-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 0,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 0,
+          "max_bpc": 8,
+          "hdr_capable": null,
+          "wide_color_capable": null
+        },
+        {
+          "name": "HDMI-A-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 1920,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 1,
+          "max_bpc": 10,
+          "hdr_capable": true,
+          "wide_color_capable": true
+        }
+      ]
+    },
+    "expected": {
+      "ok": false,
+      "errors": [
+        "eDP-1: hdredid requires 10-bit in Cortetsu safety policy",
+        "eDP-1: HDR requested but EDID support is not established"
+      ],
+      "warnings": [],
+      "candidate": {
+        "outputs": [
+          {
+            "name": "eDP-1",
+            "enabled": true,
+            "mode": "1920x1080@60Hz",
+            "x": 0,
+            "y": 0,
+            "scale": 1.0,
+            "transform": 0,
+            "bitdepth": 8,
+            "cm": "hdredid",
+            "vrr": 0
+          }
+        ]
+      },
+      "commands": [],
+      "hypr_lines": [],
+      "applied": false,
+      "safety": "dry-run only; 10-bit/VRR/HDR require established capability; no hyprctl write command was executed"
+    },
+    "exit_code": 3
+  },
+  {
+    "candidate": {
+      "outputs": [
+        {
+          "name": "eDP-1",
+          "mode": "1920x1080@60Hz",
+          "cm": "bad"
+        }
+      ]
+    },
+    "snapshot": {
+      "hyprland": [
+        {
+          "name": "eDP-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 0,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 0,
+          "max_bpc": 8,
+          "hdr_capable": null,
+          "wide_color_capable": null
+        },
+        {
+          "name": "HDMI-A-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 1920,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 1,
+          "max_bpc": 10,
+          "hdr_capable": true,
+          "wide_color_capable": true
+        }
+      ]
+    },
+    "expected": {
+      "ok": false,
+      "errors": [
+        "eDP-1: unsupported color-management preset bad"
+      ],
+      "warnings": [],
+      "candidate": {
+        "outputs": [
+          {
+            "name": "eDP-1",
+            "enabled": true,
+            "mode": "1920x1080@60Hz",
+            "x": 0,
+            "y": 0,
+            "scale": 1.0,
+            "transform": 0,
+            "bitdepth": 8,
+            "cm": "bad",
+            "vrr": 0
+          }
+        ]
+      },
+      "commands": [],
+      "hypr_lines": [],
+      "applied": false,
+      "safety": "dry-run only; 10-bit/VRR/HDR require established capability; no hyprctl write command was executed"
+    },
+    "exit_code": 3
+  },
+  {
+    "candidate": {
+      "outputs": [
+        {
+          "name": "eDP-1",
+          "mode": "1920x1080@60Hz",
+          "cm": " DCIP3 "
+        }
+      ]
+    },
+    "snapshot": {
+      "hyprland": [
+        {
+          "name": "eDP-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 0,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 0,
+          "max_bpc": 8,
+          "hdr_capable": null,
+          "wide_color_capable": null
+        },
+        {
+          "name": "HDMI-A-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 1920,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 1,
+          "max_bpc": 10,
+          "hdr_capable": true,
+          "wide_color_capable": true
+        }
+      ]
+    },
+    "expected": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "candidate": {
+        "outputs": [
+          {
+            "name": "eDP-1",
+            "enabled": true,
+            "mode": "1920x1080@60Hz",
+            "x": 0,
+            "y": 0,
+            "scale": 1.0,
+            "transform": 0,
+            "bitdepth": 8,
+            "cm": "dcip3",
+            "vrr": 0
+          }
+        ]
+      },
+      "commands": [
+        [
+          "hyprctl",
+          "keyword",
+          "monitor",
+          "eDP-1,1920x1080@60Hz,0x0,1.0,transform,0,bitdepth,8,cm,dcip3,vrr,0"
+        ]
+      ],
+      "hypr_lines": [
+        "monitor = eDP-1,1920x1080@60Hz,0x0,1.0,transform,0,bitdepth,8,cm,dcip3,vrr,0"
+      ],
+      "applied": false,
+      "safety": "dry-run only; 10-bit/VRR/HDR require established capability; no hyprctl write command was executed"
+    },
+    "exit_code": 0
+  },
+  {
+    "candidate": {
+      "outputs": [
+        {
+          "name": "eDP-1",
+          "mode": "1920x1080@60Hz",
+          "x": "bad"
+        }
+      ]
+    },
+    "snapshot": {
+      "hyprland": [
+        {
+          "name": "eDP-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 0,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 0,
+          "max_bpc": 8,
+          "hdr_capable": null,
+          "wide_color_capable": null
+        },
+        {
+          "name": "HDMI-A-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 1920,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 1,
+          "max_bpc": 10,
+          "hdr_capable": true,
+          "wide_color_capable": true
+        }
+      ]
+    },
+    "expected": {
+      "ok": false,
+      "errors": [
+        "eDP-1: x/y/transform/bitdepth/vrr must be numeric",
+        "candidate contains no valid outputs"
+      ],
+      "warnings": [],
+      "candidate": {
+        "outputs": []
+      },
+      "commands": [],
+      "hypr_lines": [],
+      "applied": false,
+      "safety": "dry-run only; 10-bit/VRR/HDR require established capability; no hyprctl write command was executed"
+    },
+    "exit_code": 3
+  },
+  {
+    "candidate": {
+      "outputs": [
+        {
+          "name": "eDP-1",
+          "mode": "1920x1080@60Hz",
+          "x": -100
+        }
+      ]
+    },
+    "snapshot": {
+      "hyprland": [
+        {
+          "name": "eDP-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 0,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 0,
+          "max_bpc": 8,
+          "hdr_capable": null,
+          "wide_color_capable": null
+        },
+        {
+          "name": "HDMI-A-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 1920,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 1,
+          "max_bpc": 10,
+          "hdr_capable": true,
+          "wide_color_capable": true
+        }
+      ]
+    },
+    "expected": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "candidate": {
+        "outputs": [
+          {
+            "name": "eDP-1",
+            "enabled": true,
+            "mode": "1920x1080@60Hz",
+            "x": -100,
+            "y": 0,
+            "scale": 1.0,
+            "transform": 0,
+            "bitdepth": 8,
+            "cm": "srgb",
+            "vrr": 0
+          }
+        ]
+      },
+      "commands": [
+        [
+          "hyprctl",
+          "keyword",
+          "monitor",
+          "eDP-1,1920x1080@60Hz,-100x0,1.0,transform,0,bitdepth,8,cm,srgb,vrr,0"
+        ]
+      ],
+      "hypr_lines": [
+        "monitor = eDP-1,1920x1080@60Hz,-100x0,1.0,transform,0,bitdepth,8,cm,srgb,vrr,0"
+      ],
+      "applied": false,
+      "safety": "dry-run only; 10-bit/VRR/HDR require established capability; no hyprctl write command was executed"
+    },
+    "exit_code": 0
+  },
+  {
+    "candidate": {
+      "outputs": [
+        {
+          "name": "eDP-1",
+          "mode": "1920x1080@60Hz"
+        },
+        {
+          "name": "HDMI-A-1",
+          "mode": "1920x1080@60Hz",
+          "x": 0
+        }
+      ]
+    },
+    "snapshot": {
+      "hyprland": [
+        {
+          "name": "eDP-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 0,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 0,
+          "max_bpc": 8,
+          "hdr_capable": null,
+          "wide_color_capable": null
+        },
+        {
+          "name": "HDMI-A-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 1920,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 1,
+          "max_bpc": 10,
+          "hdr_capable": true,
+          "wide_color_capable": true
+        }
+      ]
+    },
+    "expected": {
+      "ok": true,
+      "errors": [],
+      "warnings": [
+        "eDP-1 and HDMI-A-1 overlap; this may be intentional for mirroring"
+      ],
+      "candidate": {
+        "outputs": [
+          {
+            "name": "eDP-1",
+            "enabled": true,
+            "mode": "1920x1080@60Hz",
+            "x": 0,
+            "y": 0,
+            "scale": 1.0,
+            "transform": 0,
+            "bitdepth": 8,
+            "cm": "srgb",
+            "vrr": 0
+          },
+          {
+            "name": "HDMI-A-1",
+            "enabled": true,
+            "mode": "1920x1080@60Hz",
+            "x": 0,
+            "y": 0,
+            "scale": 1.0,
+            "transform": 0,
+            "bitdepth": 8,
+            "cm": "srgb",
+            "vrr": 0
+          }
+        ]
+      },
+      "commands": [
+        [
+          "hyprctl",
+          "keyword",
+          "monitor",
+          "eDP-1,1920x1080@60Hz,0x0,1.0,transform,0,bitdepth,8,cm,srgb,vrr,0"
+        ],
+        [
+          "hyprctl",
+          "keyword",
+          "monitor",
+          "HDMI-A-1,1920x1080@60Hz,0x0,1.0,transform,0,bitdepth,8,cm,srgb,vrr,0"
+        ]
+      ],
+      "hypr_lines": [
+        "monitor = eDP-1,1920x1080@60Hz,0x0,1.0,transform,0,bitdepth,8,cm,srgb,vrr,0",
+        "monitor = HDMI-A-1,1920x1080@60Hz,0x0,1.0,transform,0,bitdepth,8,cm,srgb,vrr,0"
+      ],
+      "applied": false,
+      "safety": "dry-run only; 10-bit/VRR/HDR require established capability; no hyprctl write command was executed"
+    },
+    "exit_code": 0
+  },
+  {
+    "candidate": {
+      "outputs": [
+        {
+          "name": "eDP-1",
+          "mode": "1920x1080@60Hz"
+        },
+        {
+          "name": "HDMI-A-1",
+          "mode": "1920x1080@60Hz",
+          "bitdepth": 10,
+          "cm": "hdr",
+          "vrr": 3
+        }
+      ]
+    },
+    "snapshot": {
+      "hyprland": [
+        {
+          "name": "eDP-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 0,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 0,
+          "max_bpc": 8,
+          "hdr_capable": null,
+          "wide_color_capable": null
+        },
+        {
+          "name": "HDMI-A-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 1920,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 1,
+          "max_bpc": 10,
+          "hdr_capable": true,
+          "wide_color_capable": true
+        }
+      ]
+    },
+    "expected": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "candidate": {
+        "outputs": [
+          {
+            "name": "eDP-1",
+            "enabled": true,
+            "mode": "1920x1080@60Hz",
+            "x": 0,
+            "y": 0,
+            "scale": 1.0,
+            "transform": 0,
+            "bitdepth": 8,
+            "cm": "srgb",
+            "vrr": 0
+          },
+          {
+            "name": "HDMI-A-1",
+            "enabled": true,
+            "mode": "1920x1080@60Hz",
+            "x": 1920,
+            "y": 0,
+            "scale": 1.0,
+            "transform": 0,
+            "bitdepth": 10,
+            "cm": "hdr",
+            "vrr": 3
+          }
+        ]
+      },
+      "commands": [
+        [
+          "hyprctl",
+          "keyword",
+          "monitor",
+          "eDP-1,1920x1080@60Hz,0x0,1.0,transform,0,bitdepth,8,cm,srgb,vrr,0"
+        ],
+        [
+          "hyprctl",
+          "keyword",
+          "monitor",
+          "HDMI-A-1,1920x1080@60Hz,1920x0,1.0,transform,0,bitdepth,10,cm,hdr,vrr,3"
+        ]
+      ],
+      "hypr_lines": [
+        "monitor = eDP-1,1920x1080@60Hz,0x0,1.0,transform,0,bitdepth,8,cm,srgb,vrr,0",
+        "monitor = HDMI-A-1,1920x1080@60Hz,1920x0,1.0,transform,0,bitdepth,10,cm,hdr,vrr,3"
+      ],
+      "applied": false,
+      "safety": "dry-run only; 10-bit/VRR/HDR require established capability; no hyprctl write command was executed"
+    },
+    "exit_code": 0
+  },
+  {
+    "candidate": {
+      "outputs": [
+        {
+          "name": "HDMI-A-1",
+          "mode": "1920x1080@60Hz",
+          "bitdepth": 10,
+          "cm": "auto",
+          "vrr": 1
+        }
+      ]
+    },
+    "snapshot": {
+      "hyprland": [
+        {
+          "name": "eDP-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 0,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 0,
+          "max_bpc": 8,
+          "hdr_capable": null,
+          "wide_color_capable": null
+        },
+        {
+          "name": "HDMI-A-1",
+          "width": 1920,
+          "height": 1080,
+          "refresh_hz": 60.0,
+          "x": 1920,
+          "y": 0,
+          "scale": 1.0,
+          "transform": 0,
+          "available_modes": [
+            "1920x1080@60Hz",
+            "1920x1080@144Hz"
+          ],
+          "current_format": "XRGB8888",
+          "vrr": false,
+          "vrr_capable": 1,
+          "max_bpc": 10,
+          "hdr_capable": true,
+          "wide_color_capable": true
+        }
+      ]
+    },
+    "expected": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "candidate": {
+        "outputs": [
+          {
+            "name": "HDMI-A-1",
+            "enabled": true,
+            "mode": "1920x1080@60Hz",
+            "x": 1920,
+            "y": 0,
+            "scale": 1.0,
+            "transform": 0,
+            "bitdepth": 10,
+            "cm": "auto",
+            "vrr": 1
+          }
+        ]
+      },
+      "commands": [
+        [
+          "hyprctl",
+          "keyword",
+          "monitor",
+          "HDMI-A-1,1920x1080@60Hz,1920x0,1.0,transform,0,bitdepth,10,cm,auto,vrr,1"
+        ]
+      ],
+      "hypr_lines": [
+        "monitor = HDMI-A-1,1920x1080@60Hz,1920x0,1.0,transform,0,bitdepth,10,cm,auto,vrr,1"
+      ],
+      "applied": false,
+      "safety": "dry-run only; 10-bit/VRR/HDR require established capability; no hyprctl write command was executed"
+    },
+    "exit_code": 0
+  }
+]

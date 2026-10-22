@@ -1,12 +1,10 @@
-# Display presets en Rust — F5, candidato aislado
+# Presets de pantalla — owner Rust
 
-CLI de prueba `cortetsu-display-presets-rs`; no reemplaza el Python instalado.
-Conserva `list/get/save/delete`, consulta un planner de salida JSON mediante argv fijo,
-y **nunca aplica cambios de monitores**. Almacena sus datos en el HOME/XDG del usuario,
-con escritura atómica y bloqueo entre instancias Rust. El planner dispone de deadline
-12 s; los tests comparan la salida con Python en dos HOME desechables.
+El bundle nativo publica `cortetsu-display-presets` mediante este ejecutable.
+Conserva list/get/save/delete, usa el planner nativo con argv fijo y deadline,
+y almacena JSON atómicamente bajo lock en HOME/XDG. Gestionar un preset no
+aplica cambios de monitor; la aplicación pertenece al owner transaccional
+hardware. La prueba de paridad compara el Python congelado y Rust en HOME
+separados. La QA de monitores físicos sigue siendo un gate independiente.
 
-Limitaciones: el helper Python original **no comparte** el nuevo flock; no hay
-coordinación con QML/hypr-user ni QA física. No instalar ni renombrar la CLI
-hasta pasar paridad de configuración real, revisión de errores, recovery
-transaccional de helpers y pruebas de monitores AMD/NVIDIA.
+Ver [runtime nativo](../../docs/migration/NATIVE-RUNTIME.md).

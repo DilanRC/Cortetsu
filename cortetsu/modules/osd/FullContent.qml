@@ -149,7 +149,7 @@ Item {
                 highlighted: CortetsuNotifications.dnd
                 // DND is an explicit user preference, not a danger state.
                 warning: false
-                onActivated: CortetsuNotifications.dnd = !CortetsuNotifications.dnd
+                onActivated: CortetsuNotifications.toggleDnd()
             }
 
             CortetsuActionTile {

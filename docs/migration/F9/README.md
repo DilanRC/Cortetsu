@@ -1,45 +1,33 @@
-# F9 — Inventario verificable antes de retirar Python propio
+# F9 — runtime nativo sin Python propio
 
-**Gate de retirada: `NOT_READY`**. La versión instalada todavía depende de
-Python en `scripts/cortetsu`, `core/*.py`, helpers de `cortetsu/bin/` y pruebas
-de integración. Sustituir tres comandos y borrar los `.py` daría un falso
-`Python-free` y perdería recuperación, seguridad o funcionalidades.
+El runtime nuevo tiene **cero archivos Python y cero sitios de invocación de
+Python**. El baseline original de 41 rutas se conserva en
+[`python-baseline.json`](python-baseline.json); no se edita para ocultar rutas.
+Dos transformaciones adicionales del instalador también se migraron a Rust.
 
-`cortetsu/protocol/cmd/cortetsu-python-inventory` es una herramienta **Go**
-de solo lectura que inspecciona archivos Git rastreados, su extensión y su
-shebang. Agrupa rutas Python en runtime, test y tooling, y compara runtime
-contra la lista congelada `python-baseline.json`. Una nueva dependencia
-Python del runtime falla la CI; eliminar una ruta migrada reduce la lista
-sin editar el baseline. Esta clasificación **no** cuenta scripts de Bash que
-llaman a Python, imports transitivos ni librerías del sistema; esos caminos
-se auditan en el gate F9 final.
-
-La cifra del inventario es una fotografía del árbol actual, no un indicador
-de que se haya migrado algo. El gate F9 completo requiere un Rust/Go
-`install/verify/rollback/doctor/test` funcional sin Python de primera parte,
-la equivalencia de todos los helpers y la ejecución de CI sin intérprete
-Python en PATH dentro del entorno de prueba. No se elimina el Python de Arch.
-
-Ejecutar:
+Los 43 originales Python y seis scripts de integración quedan en
+[`tests/reference/python-runtime`](../../../tests/reference/python-runtime),
+con el SHA de origen y hashes por archivo. Son oráculos de desarrollo; no se
+copian al bundle ni se importan desde Rust. Las pruebas históricas estructurales
+pueden ejecutarse en una copia congelada mediante `cortetsu test --developer`.
+`cortetsu test` utiliza Rust, Go, Node y Qt.
 
 ```sh
 cd cortetsu/protocol
-go run ./cmd/cortetsu-python-inventory --repo ../.. --baseline ../../docs/migration/F9/python-baseline.json
+go run ./cmd/cortetsu-python-inventory --repo ../.. --require-native
 ```
 
-## Dato corregido (2026-10-22)
+El inventario inspecciona archivos rastreados y nuevos, shebangs, extensiones y
+sitios de llamada QML/Bash/systemd. CI añade comprobaciones de los paquetes y
+launchers y ejecuta el instalador real con un PATH que no contiene intérprete
+Python. Ese gate cubre instalación, verificación, scheme, dos generaciones,
+rollback y recuperación de un fallo, usando un bundle nativo ya compilado.
+Las herramientas de compilación/pruebas pueden usar Python en CI.
 
-La primera clasificación omitía `cortetsu/services/ConnectivitySecret.py` como
-runtime: `ConnectivityNmAdapter.qml` lo invoca explícitamente con `python3`.
-El inventario ahora contabiliza **41 rutas Python runtime** y un apartado
-`runtime_python_invocations` con los launchers QML/Bash que todavía dependen
-del intérprete. Esto sigue siendo una aproximación conservadora: el gate final
-requiere un rastreo completo de imports y de todas las rutas dinámicas.
+[`NATIVE-RUNTIME.md`](../NATIVE-RUNTIME.md) documenta los owners y el cierre de
+cada dominio. `cortetsu-connectivity-secret` usa D-Bus nativo para NetworkManager
+y Secret Service; recibe el secreto por stdin, no por argv ni por logs.
 
-NO eliminar `ConnectivitySecret.py` ni la ejecución Python que lo llama sin
-conservar el aislamiento y protección de secretos de NetworkManager.
-
-El mismo baseline congela los seis sitios de llamada QML/Bash detectados. La
-herramienta falla si aparece un nuevo `python3` runtime sin una migración
-explícita, incluso si el helper llamado ya existía. El listado no cubre
-reflexión, PATH dinámico ni imports transitivos; nunca implica Python-free.
+El rollback a un checkpoint anterior a esta migración conserva sus helpers
+históricos y puede necesitar Python, igual que aquella versión. No se elimina
+el paquete Python de Arch ni las dependencias de aplicaciones ajenas.

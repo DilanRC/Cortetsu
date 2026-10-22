@@ -1,0 +1,606 @@
+[
+  {
+    "id": "cortetsu:pomodoro",
+    "name": "Pomodoro daemon",
+    "source": "modules/pomodoro/Pomodoro.qml",
+    "qmlId": "pomodoroOwner",
+    "startupPhase": "always-on",
+    "condition": "Se inicia con el shell; espera sin despertar hasta el fin de la fase",
+    "command": [
+      "cortetsu-pomodoro",
+      "daemon"
+    ],
+    "manageable": false
+  },
+  {
+    "id": "cortetsu:gamemode-control",
+    "name": "Game mode state and control",
+    "source": "services/GameMode.qml",
+    "qmlId": "helper",
+    "startupPhase": "conditional",
+    "condition": "Al consultar el estado al cargar y al activar o desactivar el modo",
+    "command": [
+      "cortetsu-gamemode",
+      "status"
+    ],
+    "manageable": false
+  },
+  {
+    "id": "cortetsu:wallpaper-scan",
+    "name": "Wallpaper file index",
+    "source": "modules/CortetsuWallpapers.qml",
+    "qmlId": "scan",
+    "startupPhase": "conditional",
+    "condition": "Al cargar el controlador de fondos, al cambiar el fondo y al abrir el gestor o el lanzador de fondos",
+    "command": [
+      "find",
+      "*",
+      "-type",
+      "f"
+    ],
+    "manageable": false
+  },
+  {
+    "id": "cortetsu:battery-notification",
+    "name": "Battery notification helper",
+    "source": "modules/BatteryMonitor.qml",
+    "qmlId": null,
+    "startupPhase": "conditional",
+    "condition": "Al cruzar el umbral de batería baja o crítica",
+    "command": [
+      "notify-send",
+      "--app-name=Cortetsu",
+      "*",
+      "*"
+    ],
+    "manageable": false
+  },
+  {
+    "id": "cortetsu:battery-sleep",
+    "name": "Critical battery sleep",
+    "source": "modules/BatteryMonitor.qml",
+    "qmlId": null,
+    "startupPhase": "conditional",
+    "condition": "Cinco segundos después de alcanzar 3% en batería; suspende si logind no admite hibernar",
+    "command": [],
+    "commandSource": "CortetsuSession.hibernate()",
+    "commandDisplay": "systemctl hibernate o systemctl suspend, según logind",
+    "manageable": false
+  },
+  {
+    "id": "cortetsu:spectrum",
+    "name": "Cava visualizer",
+    "source": "services/CortetsuSpectrum.qml",
+    "qmlId": null,
+    "startupPhase": "conditional",
+    "condition": "CortetsuAudio se carga y cava está instalado",
+    "command": [
+      "cava"
+    ],
+    "manageable": false
+  },
+  {
+    "id": "cortetsu:connectivity-monitor",
+    "name": "Connectivity event monitor",
+    "source": "services/ConnectivityNmAdapter.qml",
+    "qmlId": "monitor",
+    "startupPhase": "always-on",
+    "condition": "Connectivity se carga junto a la barra y Bottom Hub",
+    "command": [
+      "nmcli",
+      "monitor"
+    ],
+    "manageable": false
+  },
+  {
+    "id": "cortetsu:connectivity-command",
+    "name": "Connectivity metadata and UUID operations",
+    "source": "services/ConnectivityNmAdapter.qml",
+    "qmlId": "worker",
+    "startupPhase": "conditional",
+    "condition": "Al cargar Connectivity, recibir un evento o solicitar una operación",
+    "command": [],
+    "commandSource": "worker.command",
+    "commandDisplay": "Metadatos y operaciones por UUID",
+    "manageable": false
+  },
+  {
+    "id": "cortetsu:network-password-copy",
+    "name": "Copy saved Wi-Fi password",
+    "source": "services/CortetsuSettingsNetwork.qml",
+    "qmlId": "passwordCopy",
+    "startupPhase": "on-demand",
+    "condition": "Únicamente al pulsar copiar contraseña de un perfil",
+    "command": [
+      "nmcli",
+      "--wait",
+      "5",
+      "--show-secrets",
+      "--escape",
+      "no",
+      "-g",
+      "802-11-wireless-security.psk",
+      "connection",
+      "show",
+      "uuid",
+      "*"
+    ],
+    "commandDisplay": "Consulta efímera del secreto por UUID",
+    "manageable": false
+  },
+  {
+    "id": "cortetsu:network-password-clipboard",
+    "name": "Offer copied Wi-Fi password",
+    "source": "services/CortetsuSettingsNetwork.qml",
+    "qmlId": "secretCopy",
+    "startupPhase": "on-demand",
+    "condition": "Tras copiar una contraseña; se marca sensible y vive 45 s o hasta la siguiente copia",
+    "command": [
+      "wl-copy",
+      "--foreground",
+      "--sensitive",
+      "--type",
+      "text/plain;charset=utf-8"
+    ],
+    "commandDisplay": "Secreto por stdin, sin historial",
+    "manageable": false
+  },
+  {
+    "id": "cortetsu:vpn-status",
+    "name": "VPN status probe",
+    "source": "base/services/VPN.qml",
+    "qmlId": "statusProc",
+    "startupPhase": "on-demand",
+    "condition": "Al consultar el proveedor VPN seleccionado",
+    "command": [],
+    "commandSource": "root.active.statusCmd",
+    "commandDisplay": "Comando de estado del proveedor VPN",
+    "manageable": false
+  },
+  {
+    "id": "cortetsu:brightness-discovery",
+    "name": "Backlight device discovery",
+    "source": "services/Brightness.qml",
+    "qmlId": "discoverProcess",
+    "startupPhase": "always-on",
+    "condition": "Consulta de dispositivos al cargar el servicio de brillo y al cambiar las pantallas",
+    "command": [
+      "brightnessctl",
+      "-l",
+      "-m"
+    ],
+    "manageable": false
+  },
+  {
+    "id": "cortetsu:brightness-connector",
+    "name": "Backlight connector mapping",
+    "source": "services/Brightness.qml",
+    "qmlId": "connectorProcess",
+    "startupPhase": "always-on",
+    "condition": "Asocia cada retroiluminación a su conector al cargar el servicio de brillo y al cambiar las pantallas",
+    "command": [
+      "find",
+      "/sys/class/backlight",
+      "-mindepth",
+      "1",
+      "-maxdepth",
+      "1",
+      "-printf",
+      "%f\t%l\n"
+    ],
+    "manageable": false
+  },
+  {
+    "id": "cortetsu:brightness-read",
+    "name": "Backlight level read-back",
+    "source": "services/Brightness.qml",
+    "qmlId": "readProcess",
+    "startupPhase": "always-on",
+    "condition": "Una lectura por pantalla con retroiluminación al cargar y después de cada cambio",
+    "command": [
+      "brightnessctl",
+      "-d",
+      "*",
+      "g"
+    ],
+    "manageable": false
+  },
+  {
+    "id": "cortetsu:nvibrant-status",
+    "name": "NVIDIA vibrance capability",
+    "source": "services/Nvibrant.qml",
+    "qmlId": "statusProcess",
+    "startupPhase": "on-demand",
+    "condition": "Al abrir los controles de pantalla o cambiar los monitores; solo lee sysfs y el perfil",
+    "command": [
+      "cortetsu-nvibrant",
+      "status"
+    ],
+    "manageable": false
+  },
+  {
+    "id": "cortetsu:cpu-temperature",
+    "name": "CPU temperature probe",
+    "source": "services/Cpu.qml",
+    "qmlId": "temperature",
+    "startupPhase": "on-demand",
+    "condition": "Cuando Dashboard o el bloqueo consulta recursos",
+    "command": [
+      "sh",
+      "-c",
+      "for f in /sys/class/thermal/thermal_zone*/temp; do [ -r \"$f\" ] && cat \"$f\" && break; done"
+    ],
+    "manageable": false
+  },
+  {
+    "id": "cortetsu:gpu-probe",
+    "name": "GPU telemetry probe",
+    "source": "services/Gpu.qml",
+    "qmlId": "probe",
+    "startupPhase": "on-demand",
+    "condition": "Mientras Dashboard está abierto; no despierta una dGPU suspendida",
+    "command": [
+      "cortetsu-hardware-probe",
+      "--gpus"
+    ],
+    "manageable": false
+  },
+  {
+    "id": "cortetsu:storage-probe",
+    "name": "Storage usage probe",
+    "source": "services/Storage.qml",
+    "qmlId": "probe",
+    "startupPhase": "on-demand",
+    "condition": "Cuando Dashboard o el bloqueo consulta almacenamiento",
+    "command": [
+      "sh",
+      "-c",
+      "df -kP -x tmpfs -x devtmpfs 2>/dev/null"
+    ],
+    "manageable": false
+  },
+  {
+    "id": "cortetsu:network-usage-probe",
+    "name": "Network usage probe",
+    "source": "services/NetworkUsage.qml",
+    "qmlId": "probe",
+    "startupPhase": "on-demand",
+    "condition": "Cuando Dashboard muestra tráfico de red",
+    "command": [
+      "cat",
+      "/proc/net/dev"
+    ],
+    "manageable": false
+  },
+  {
+    "id": "cortetsu:recorder-status",
+    "name": "Recorder status query",
+    "source": "modules/CortetsuRecorder.qml",
+    "qmlId": "status",
+    "startupPhase": "conditional",
+    "condition": "Mientras hay una grabación activa",
+    "command": [
+      "cortetsu-record",
+      "status"
+    ],
+    "manageable": false
+  },
+  {
+    "id": "cortetsu:keyboard-state",
+    "name": "Keyboard lock and layout state",
+    "source": "modules/CortetsuHypr.qml",
+    "qmlId": "keyboardProbe",
+    "startupPhase": "conditional",
+    "condition": "Al iniciar el shell, al cambiar la distribución y mientras el popup de bloqueos está visible",
+    "command": [
+      "hyprctl",
+      "-j",
+      "devices"
+    ],
+    "manageable": false
+  },
+  {
+    "id": "cortetsu:window-list",
+    "name": "Open window list",
+    "source": "modules/CortetsuHypr.qml",
+    "qmlId": "clientsProbe",
+    "startupPhase": "conditional",
+    "condition": "Al iniciar el shell y cuando cambia la lista de ventanas",
+    "command": [
+      "hyprctl",
+      "-j",
+      "clients"
+    ],
+    "manageable": false
+  },
+  {
+    "id": "cortetsu:lock-keyboard-probe",
+    "name": "Lock keyboard discovery",
+    "source": "modules/lock/LockSurface.qml",
+    "qmlId": "keyboardProbe",
+    "startupPhase": "on-demand",
+    "condition": "Al mostrar la pantalla de bloqueo",
+    "command": [
+      "hyprctl",
+      "-j",
+      "devices"
+    ],
+    "manageable": false
+  },
+  {
+    "id": "cortetsu:about-quickshell-version",
+    "name": "Quickshell version check",
+    "source": "base/modules/nexus/pages/AboutPage.qml",
+    "qmlId": null,
+    "startupPhase": "on-demand",
+    "condition": "Al abrir la página Acerca de",
+    "command": [
+      "quickshell",
+      "--version"
+    ],
+    "manageable": false
+  },
+  {
+    "id": "cortetsu:about-cortetsu-version",
+    "name": "Cortetsu version check",
+    "source": "base/modules/nexus/pages/AboutPage.qml",
+    "qmlId": null,
+    "startupPhase": "on-demand",
+    "condition": "Al abrir la página Acerca de",
+    "command": [
+      "cortetsu",
+      "--version"
+    ],
+    "manageable": false
+  },
+  {
+    "id": "cortetsu:launcher-scheme-list",
+    "name": "Scheme list query",
+    "source": "modules/launcher/services/Schemes.qml",
+    "qmlId": "getSchemes",
+    "startupPhase": "on-demand",
+    "condition": "Al abrir el selector de esquemas",
+    "command": [
+      "cortetsu-scheme",
+      "list"
+    ],
+    "manageable": false
+  },
+  {
+    "id": "cortetsu:calendar-sync",
+    "name": "Calendar synchronization",
+    "source": "modules/calendar/CalendarService.qml",
+    "qmlId": "calendarSync",
+    "startupPhase": "on-demand",
+    "condition": "Al abrir Calendario si hay una cuenta conectada",
+    "command": [
+      "cortetsu-calendar",
+      "sync"
+    ],
+    "manageable": false
+  },
+  {
+    "id": "cortetsu:display-presets",
+    "name": "Display preset query",
+    "source": "modules/display/DisplayPresets.qml",
+    "qmlId": "worker",
+    "startupPhase": "on-demand",
+    "condition": "Al abrir el selector de distribuciones de pantalla",
+    "command": [
+      "cortetsu-display-presets"
+    ],
+    "manageable": false
+  },
+  {
+    "id": "cortetsu:display-preview-status",
+    "name": "Display preview status",
+    "source": "modules/display/PreviewControls.qml",
+    "qmlId": "statusProbe",
+    "startupPhase": "on-demand",
+    "condition": "Al abrir los controles de vista previa de pantalla",
+    "command": [
+      "cortetsu-display-transaction",
+      "status"
+    ],
+    "manageable": false
+  },
+  {
+    "id": "cortetsu:hardware-probe",
+    "name": "Hardware telemetry probe",
+    "source": "modules/hardware/HardwareTelemetry.qml",
+    "qmlId": "probe",
+    "startupPhase": "on-demand",
+    "condition": "Al abrir Hardware Center; se detiene al cerrarlo",
+    "command": [
+      "cortetsu-hardware-probe"
+    ],
+    "manageable": false
+  },
+  {
+    "id": "cortetsu:hardware-power-probe",
+    "name": "Hardware power probe",
+    "source": "modules/hardware/PowerPage.qml",
+    "qmlId": "powerProbe",
+    "startupPhase": "on-demand",
+    "condition": "Al abrir la página Energía de Hardware Center",
+    "command": [
+      "cortetsu-hardware-power"
+    ],
+    "manageable": false
+  },
+  {
+    "id": "cortetsu:hardware-power-automation-status",
+    "name": "Power automation status query",
+    "source": "modules/hardware/PowerAutomationPage.qml",
+    "qmlId": "statusProbe",
+    "startupPhase": "on-demand",
+    "condition": "Al abrir la página de automatización de energía",
+    "command": [
+      "cortetsu-power-auto-control",
+      "status"
+    ],
+    "manageable": false
+  },
+  {
+    "id": "cortetsu:keyboards-watch",
+    "name": "Keyboard hotplug watch",
+    "source": "modules/keyboards/KeyboardsBackend.qml",
+    "qmlId": "watchProcess",
+    "startupPhase": "conditional",
+    "condition": "Mientras «Atajos y teclados» está abierto",
+    "command": [
+      "cortetsu-keybinds",
+      "watch"
+    ],
+    "manageable": false
+  },
+  {
+    "id": "cortetsu:settings-keybind-list",
+    "name": "Settings keybind listing",
+    "source": "modules/settings/sections/ShortcutsSection.qml",
+    "qmlId": "listProcess",
+    "startupPhase": "on-demand",
+    "condition": "Al abrir Ajustes, página Atajos",
+    "command": [
+      "cortetsu-keybinds",
+      "list"
+    ],
+    "manageable": false
+  },
+  {
+    "id": "cortetsu:hardware-energy-probe",
+    "name": "Energy telemetry probe",
+    "source": "modules/hardware/EnergyPage.qml",
+    "qmlId": "probe",
+    "startupPhase": "on-demand",
+    "condition": "Al abrir la página Energía",
+    "command": [
+      "cortetsu-hardware-power"
+    ],
+    "manageable": false
+  },
+  {
+    "id": "cortetsu:hardware-startup-scan",
+    "name": "Startup inventory scan",
+    "source": "modules/hardware/StartupPage.qml",
+    "qmlId": "scanProcess",
+    "startupPhase": "on-demand",
+    "condition": "Al abrir Inicio de Hardware Center; sin sondeo al cerrarlo",
+    "command": [
+      "cortetsu-startup",
+      "scan"
+    ],
+    "manageable": false
+  },
+  {
+    "id": "cortetsu:display-calibration-control",
+    "name": "Display calibration control",
+    "source": "services/DisplayCalibration.qml",
+    "qmlId": "service",
+    "startupPhase": "conditional",
+    "condition": "Al iniciar el shell si el filtro de color está guardado como activo, y al cambiarlo en Ajustes",
+    "command": [
+      "systemctl",
+      "--user",
+      "*",
+      "hyprsunset.service"
+    ],
+    "manageable": false
+  },
+  {
+    "id": "cortetsu:session-sleep-capability",
+    "name": "logind sleep capabilities",
+    "source": "services/CortetsuSession.qml",
+    "qmlId": null,
+    "startupPhase": "always-on",
+    "condition": "Al cargar, al abrir el menú de sesión y al reanudar; tres consultas D-Bus de solo lectura",
+    "command": [
+      "busctl",
+      "call",
+      "org.freedesktop.login1",
+      "/org/freedesktop/login1",
+      "org.freedesktop.login1.Manager",
+      "Can*"
+    ],
+    "manageable": false
+  },
+  {
+    "id": "cortetsu:session-sleep-monitor",
+    "name": "Sleep/wake monitor",
+    "source": "services/CortetsuSession.qml",
+    "qmlId": "monitor",
+    "startupPhase": "on-demand",
+    "condition": "Cuando se instancia CortetsuSession",
+    "command": [
+      "dbus-monitor",
+      "--system"
+    ],
+    "manageable": false
+  },
+  {
+    "id": "cortetsu:session-sleep-lock",
+    "name": "Lock-before-sleep delay",
+    "source": "modules/IdleMonitors.qml",
+    "qmlId": "sleepLock",
+    "startupPhase": "conditional",
+    "condition": "Mientras Bloquear antes de dormir esté activo y la sesión no esté bloqueada",
+    "command": [
+      "systemd-inhibit",
+      "--what=sleep"
+    ],
+    "manageable": false
+  },
+  {
+    "id": "cortetsu:coordinator",
+    "name": "Cortetsu policy coordinator",
+    "source": "modules/CortetsuPolicyBridge.qml",
+    "qmlId": "coordinator",
+    "startupPhase": "always-on",
+    "condition": "Se inicia con el shell de la sesión; los dominios requieren activación explícita",
+    "command": [
+      "cortetsu-coordinator",
+      "--observe"
+    ],
+    "manageable": false
+  },
+  {
+    "id": "cortetsu:policy-command",
+    "name": "Cortetsu policy consent",
+    "source": "modules/CortetsuPolicyBridge.qml",
+    "qmlId": "policyCommand",
+    "startupPhase": "on-demand",
+    "condition": "Al activar, desactivar o pausar un dominio desde Ajustes",
+    "command": [
+      "cortetsu-policy",
+      "*"
+    ],
+    "manageable": false
+  },
+  {
+    "id": "cortetsu:notification-status-ensure",
+    "name": "Notification DND state initialization",
+    "source": "services/Notifs.qml",
+    "qmlId": "initializeDnd",
+    "startupPhase": "always-on",
+    "condition": "Inicializa el estado DND al cargar el servidor de notificaciones",
+    "command": [
+      "cortetsu-notifications",
+      "dnd",
+      "ensure"
+    ],
+    "manageable": false
+  },
+  {
+    "id": "cortetsu:notification-history-merge",
+    "name": "Notification history writer",
+    "source": "services/Notifs.qml",
+    "qmlId": "snapshotWriter",
+    "startupPhase": "conditional",
+    "condition": "Guarda y verifica el historial cuando cambia la colección de notificaciones",
+    "command": [
+      "cortetsu-notifications",
+      "merge"
+    ],
+    "manageable": false
+  }
+]

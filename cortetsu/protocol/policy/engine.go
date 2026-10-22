@@ -4,6 +4,7 @@
 package policy
 
 import (
+	"encoding/json"
 	"errors"
 	"regexp"
 	"slices"
@@ -24,6 +25,7 @@ var allowedOperations = map[string]string{
 	"gamemode.set":            "gamemode",
 	"power.profile.set":       "power",
 	"display.profile.preview": "display",
+	"notifications.dnd.set":   "notifications",
 }
 
 // Event holds only explicitly whitelisted, non-secret metadata. Never include
@@ -45,18 +47,19 @@ type Condition struct {
 }
 
 type Rule struct {
-	ID           string      `json:"id"`
-	Enabled      bool        `json:"enabled"`
-	Mode         string      `json:"mode"`
-	Domain       string      `json:"domain"`
-	EventType    string      `json:"event_type"`
-	Conditions   []Condition `json:"conditions,omitempty"`
-	Resource     string      `json:"resource"`
-	Operation    string      `json:"operation"`
-	Priority     int         `json:"priority"`
-	CooldownMs   int64       `json:"cooldown_ms"`
-	HysteresisMs int64       `json:"hysteresis_ms,omitempty"`
-	TTLms        int64       `json:"ttl_ms"`
+	ID           string          `json:"id"`
+	Enabled      bool            `json:"enabled"`
+	Mode         string          `json:"mode"`
+	Domain       string          `json:"domain"`
+	EventType    string          `json:"event_type"`
+	Conditions   []Condition     `json:"conditions,omitempty"`
+	Resource     string          `json:"resource"`
+	Operation    string          `json:"operation"`
+	Priority     int             `json:"priority"`
+	CooldownMs   int64           `json:"cooldown_ms"`
+	HysteresisMs int64           `json:"hysteresis_ms,omitempty"`
+	TTLms        int64           `json:"ttl_ms"`
+	Arguments    json.RawMessage `json:"arguments,omitempty"`
 }
 
 // ManualOverride blocks automation for a resource until UntilUnixMs.
@@ -82,6 +85,22 @@ type Engine struct {
 
 func NewEngine() *Engine {
 	return &Engine{lastSelection: map[string]int64{}, stableSince: map[string]int64{}}
+}
+
+// InvalidateStability never clears another domain's hysteresis or a completed
+// action's cooldown when one observer disconnects or changes epoch.
+func (e *Engine) InvalidateStability(session, domain string, rules []Rule) {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	for _, r := range rules {
+		if r.Domain == domain {
+			delete(e.stableSince, session+"\x00"+r.ID)
+		}
+	}
+}
+
+func (e *Engine) EvaluateAuthorized(nowMs int64, event Event, rules []Rule, overrides []ManualOverride, owners map[string]bool) ([]Decision, error) {
+	return e.evaluate(nowMs, event, rules, overrides, owners)
 }
 
 func (r Rule) Validate() error {
@@ -112,6 +131,9 @@ func (r Rule) Validate() error {
 // them. Even active rules return BLOCKED until a verified Rust owner exists.
 // Ties are resolved by priority then lexicographically by rule ID.
 func (e *Engine) Evaluate(nowMs int64, event Event, rules []Rule, overrides []ManualOverride) ([]Decision, error) {
+	return e.evaluate(nowMs, event, rules, overrides, nil)
+}
+func (e *Engine) evaluate(nowMs int64, event Event, rules []Rule, overrides []ManualOverride, owners map[string]bool) ([]Decision, error) {
 	if e == nil || nowMs <= 0 || event.EmittedAtUnixMs <= 0 || !name.MatchString(event.Domain) || !name.MatchString(event.Type) || len(event.Fields) > 32 {
 		return nil, errors.New("invalid evaluation context")
 	}
@@ -200,10 +222,12 @@ func (e *Engine) Evaluate(nowMs int64, event Event, rules []Rule, overrides []Ma
 			d.Outcome, d.Reason = "OBSERVED", "READ_ONLY"
 		case r.Mode == "simulate":
 			d.Outcome, d.Reason = "SIMULATED", "NO_MUTATION"
+		case r.Mode == "active" && owners[r.Resource]:
+			d.Outcome, d.Reason = "SELECTED", "OWNER_AND_CONSENT_VERIFIED"
 		default:
 			d.Outcome, d.Reason = "BLOCKED", "NO_VERIFIED_RUST_OWNER"
 		}
-		if d.Outcome == "SIMULATED" || d.Outcome == "OBSERVED" {
+		if d.Outcome == "SIMULATED" || d.Outcome == "OBSERVED" || d.Outcome == "SELECTED" {
 			selected[r.Resource] = true
 			if len(e.lastSelection) >= 8192 {
 				// Old cooldown entries cannot authorize an action; clearing only

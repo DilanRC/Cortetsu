@@ -1,5 +1,8 @@
 # Cortetsu 2.0 — Puente IPC local de lectura (experimental)
 
+> Registro de diseño/prototipo anterior a la integración nativa. Para el
+> comportamiento actual, consultar [NATIVE-RUNTIME.md](../NATIVE-RUNTIME.md).
+
 **Estado:** se compila y prueba en entorno aislado. No está habilitado en la instalación actual y no sustituye `Notifs`, `Hypr`, `Calendar` ni otro propietario.
 
 ## Topología y activación manual

@@ -360,7 +360,38 @@ fn verify_target(roots: &Roots, expected: &Pointers) -> Result<()> {
     Ok(())
 }
 
+fn verify_snapshot_contents(roots: &Roots, pointers: &Pointers) -> Result<()> {
+    pointers.validate(roots)?;
+    let active = super::verify_generation(roots, &pointers.system_current)?;
+    super::verify_generation(roots, &pointers.system_previous)?;
+    if Path::new(&active.shell) != pointers.shell_current
+        || Path::new(&active.dotfiles) != pointers.dotfiles_current
+        || active.helpers.as_deref().map(Path::new) != pointers.helpers_current.as_deref()
+    {
+        return Err(invalid(
+            "transaction snapshot components disagree with system manifest",
+        ));
+    }
+    if let Some(path) = &pointers.shell_previous {
+        verify_shell(path)?;
+    }
+    if let Some(path) = &pointers.dotfiles_previous {
+        verify_dotfiles(path)?;
+    }
+    if let Some(path) = &pointers.helpers_previous {
+        let id = path
+            .file_name()
+            .and_then(|s| s.to_str())
+            .ok_or_else(|| invalid("bad helper build id"))?;
+        super::helper_bundle::verify(roots, id)?;
+    }
+    Ok(())
+}
+
 fn restore(roots: &Roots, journal: &mut Journal) -> Result<()> {
+    // Corrupt or incoherent before-state must fail before the first pointer
+    // moves. Keep the journal so the operator can repair the exact evidence.
+    verify_snapshot_contents(roots, &journal.before)?;
     if let Err(e) = apply(roots, &journal.before, |_| Ok(()))
         .and_then(|()| verify_target(roots, &journal.before))
     {
@@ -373,9 +404,16 @@ fn restore(roots: &Roots, journal: &mut Journal) -> Result<()> {
 
 fn execute(
     roots: &Roots,
+    acknowledge_unmanaged_helpers: bool,
     mut after_step: impl FnMut(usize) -> Result<()>,
 ) -> Result<RecoveryStatus> {
     let _guards = locks(roots)?;
+    reject_pending_platform_transactions(roots)?;
+    if !acknowledge_unmanaged_helpers && crate::current(roots)?.helpers.is_none() {
+        return Err(invalid(
+            "rollback refused: schema 1 cannot restore ~/.local/bin helpers; explicit acknowledgement required",
+        ));
+    }
     if load(roots)?.is_some() {
         return Err(invalid("pending transaction: run recover before rollback"));
     }
@@ -422,12 +460,7 @@ pub fn rollback_pointers(
     roots: &Roots,
     acknowledge_unmanaged_helpers: bool,
 ) -> Result<RecoveryStatus> {
-    if !acknowledge_unmanaged_helpers {
-        return Err(invalid(
-            "rollback refused: schema 1 cannot restore ~/.local/bin helpers; explicit acknowledgement required",
-        ));
-    }
-    execute(roots, |step| {
+    execute(roots, acknowledge_unmanaged_helpers, |step| {
         // Instrumentation available only in debug CI test builds. Release
         // binaries never read the fault injection environment variable.
         #[cfg(debug_assertions)]
@@ -445,8 +478,12 @@ pub fn rollback_pointers(
 
 pub fn recover(roots: &Roots) -> Result<RecoveryStatus> {
     let _guards = locks(roots)?;
+    reject_pending_platform_transactions(roots)?;
     let mut journal = load(roots)?.ok_or_else(|| invalid("no pending recovery journal"))?;
-    if journal.phase == Phase::Committed && verify_target(roots, &journal.target).is_ok() {
+    if journal.phase == Phase::Committed {
+        // A durable commit cannot become an undo request because a later
+        // manual change or corruption makes its readback fail.
+        verify_target(roots, &journal.target)?;
         remove_journal(roots)?;
         return Ok(RecoveryStatus {
             transaction_id: journal.id,
@@ -461,6 +498,40 @@ pub fn recover(roots: &Roots) -> Result<RecoveryStatus> {
         recovered: true,
         result: "RESTORED_BEFORE".into(),
     })
+}
+
+fn reject_pending_platform_transactions(roots: &Roots) -> Result<()> {
+    for relative in [
+        "install-journal.json",
+        "system/promotion-journal.json",
+        "dotfiles/apply-journal.json",
+    ] {
+        reject_pending_journal(&roots.data.join(relative))?;
+    }
+    Ok(())
+}
+
+fn reject_pending_journal(path: &Path) -> Result<()> {
+    match std::fs::symlink_metadata(path) {
+        Err(err) if err.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+        Ok(meta)
+            if meta.is_file()
+                && !meta.file_type().is_symlink()
+                && meta.len() <= 4 * 1024 * 1024 => {}
+        _ => return Err(invalid("unsafe platform journal: run cortetsu recover")),
+    }
+    let raw = std::fs::read(path).map_err(|_| invalid("unreadable platform journal"))?;
+    if !crate::strict_json::validate(&raw) {
+        return Err(invalid("invalid platform journal"));
+    }
+    let value: serde_json::Value =
+        serde_json::from_slice(&raw).map_err(|_| invalid("invalid platform journal"))?;
+    if value["schema"] == 1 && matches!(value["phase"].as_str(), Some("COMMITTED" | "RECOVERED")) {
+        return Ok(());
+    }
+    Err(invalid(
+        "platform recovery required: run cortetsu recover before rollback",
+    ))
 }
 
 #[cfg(test)]
@@ -479,9 +550,13 @@ mod tests {
     impl Fixture {
         fn new() -> Self {
             let dir = std::env::temp_dir().join(format!(
-                "cortetsu-txn-{}-{}",
+                "cortetsu-txn-{}-{}-{}",
                 std::process::id(),
-                NEXT.fetch_add(1, Ordering::SeqCst)
+                NEXT.fetch_add(1, Ordering::SeqCst),
+                SystemTime::now()
+                    .duration_since(UNIX_EPOCH)
+                    .unwrap()
+                    .as_nanos()
             ));
             let roots = Roots {
                 data: dir.join("data"),
@@ -569,7 +644,7 @@ mod tests {
         let f = Fixture::new();
         let before = capture_pointers(&f.roots).unwrap();
         let crashed = std::panic::catch_unwind(|| {
-            let _ = execute(&f.roots, |step| {
+            let _ = execute(&f.roots, true, |step| {
                 if step == 3 {
                     panic!("simulated SIGKILL after 3 pointers");
                 }
@@ -578,7 +653,7 @@ mod tests {
         });
         assert!(crashed.is_err());
         assert!(journal_path(&f.roots).exists());
-        assert!(execute(&f.roots, |_| Ok(())).is_err());
+        assert!(execute(&f.roots, true, |_| Ok(())).is_err());
         let result = recover(&f.roots).unwrap();
         assert_eq!(result.result, "RESTORED_BEFORE");
         assert_eq!(capture_pointers(&f.roots).unwrap(), before);
@@ -608,6 +683,84 @@ mod tests {
         assert!(rollback_pointers(&f.roots, true).is_err());
         assert_eq!(capture_pointers(&f.roots).unwrap(), before);
         fs2::FileExt::unlock(&lock).unwrap();
+    }
+
+    #[test]
+    fn pending_platform_journals_block_offline_mutation() {
+        let f = Fixture::new();
+        let before = capture_pointers(&f.roots).unwrap();
+        for relative in [
+            "install-journal.json",
+            "system/promotion-journal.json",
+            "dotfiles/apply-journal.json",
+        ] {
+            let path = f.roots.data.join(relative);
+            fs::create_dir_all(path.parent().unwrap()).unwrap();
+            for phase in ["PREPARED", "RECOVERING", "unknown"] {
+                fs::write(&path, format!(r#"{{"schema":1,"phase":"{phase}"}}"#)).unwrap();
+                assert!(rollback_pointers(&f.roots, true).is_err());
+                assert!(recover(&f.roots).is_err());
+                assert_eq!(capture_pointers(&f.roots).unwrap(), before);
+            }
+            for phase in ["COMMITTED", "RECOVERED"] {
+                fs::write(&path, format!(r#"{{"schema":1,"phase":"{phase}"}}"#)).unwrap();
+                reject_pending_platform_transactions(&f.roots).unwrap();
+            }
+            fs::remove_file(path).unwrap();
+        }
+    }
+
+    #[test]
+    fn committed_recovery_never_rewinds_later_pointer_drift() {
+        let f = Fixture::new();
+        let (before, target) = planned(&f.roots).unwrap();
+        apply(&f.roots, &target, |_| Ok(())).unwrap();
+        let journal = Journal {
+            schema: 1,
+            id: "committed-drift".into(),
+            phase: Phase::Committed,
+            before: before.clone(),
+            target: target.clone(),
+        };
+        store(&f.roots, &journal).unwrap();
+        atomic_pointer(
+            &f.roots.runtime.join("current"),
+            Some(&before.shell_current),
+            &f.roots.data.join("builds"),
+            0,
+        )
+        .unwrap();
+        assert!(recover(&f.roots).is_err());
+        assert_eq!(
+            fs::canonicalize(f.roots.system_root().join("current")).unwrap(),
+            target.system_current
+        );
+        assert_eq!(
+            fs::canonicalize(f.roots.runtime.join("current")).unwrap(),
+            before.shell_current
+        );
+        assert!(journal_path(&f.roots).exists());
+    }
+
+    #[test]
+    fn recovery_refuses_corrupt_before_without_moving_any_pointer() {
+        let f = Fixture::new();
+        let (before, target) = planned(&f.roots).unwrap();
+        apply(&f.roots, &target, |_| Ok(())).unwrap();
+        let journal = Journal {
+            schema: 1,
+            id: "corrupt-before".into(),
+            phase: Phase::Applying,
+            before: before.clone(),
+            target: target.clone(),
+        };
+        store(&f.roots, &journal).unwrap();
+        fs::write(before.dotfiles_current.join("home/example.toml"), "corrupt").unwrap();
+        assert!(recover(&f.roots).is_err());
+        for ((link, builds), expected) in f.roots.roles().iter().zip(target.members()) {
+            assert_eq!(existing_pointer(link, builds).unwrap().as_deref(), expected);
+        }
+        assert!(journal_path(&f.roots).exists());
     }
 
     #[test]

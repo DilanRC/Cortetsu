@@ -1,134 +1,15 @@
-#!/usr/bin/env python3
-from __future__ import annotations
-import argparse, json, os, re, shutil, subprocess, tempfile, time
-from pathlib import Path
-
-HERE=Path(__file__).resolve().parent
-PLANNER=HERE/'cortetsu-display-plan'
-PROBE=HERE/'cortetsu-display-probe'
-CFG=Path.home()/'.config/hypr/hypr-user.lua'
-STATE=Path.home()/'.config/cortetsu/display-workspaces.json'
-SNAPS=Path.home()/'.local/share/cortetsu/upstream/snapshots'
-BEGIN='-- CORTETSU_WORKSPACE_POLICY_BEGIN'
-END='-- CORTETSU_WORKSPACE_POLICY_END'
-DISPLAY_MARK='-- CORTETSU_DISPLAY_MANAGED'
-
-def emit(p,c=0): print(json.dumps(p,separators=(',',':'),ensure_ascii=False)); return c
-def atomic_text(path,text):
- path.parent.mkdir(parents=True,exist_ok=True); fd,tmp=tempfile.mkstemp(prefix=path.name+'.',suffix='.tmp',dir=path.parent)
- try:
-  with os.fdopen(fd,'w',encoding='utf-8') as h:h.write(text)
-  os.replace(tmp,path)
- finally:
-  try:os.unlink(tmp)
-  except FileNotFoundError:pass
-
-def plan(candidate):
- cp=subprocess.run([str(PLANNER),'--candidate',json.dumps(candidate,separators=(',',':'))],text=True,capture_output=True,timeout=12,check=False)
- if cp.returncode not in (0,3): raise RuntimeError((cp.stderr or cp.stdout).strip())
- p=json.loads(cp.stdout)
- if not p.get('ok'): raise ValueError('candidate is invalid')
- return p.get('candidate',candidate)
-
-def policy(candidate):
- outputs=[x for x in candidate.get('outputs',[]) if isinstance(x,dict) and x.get('enabled',True)]
- if not outputs: raise ValueError('no enabled output')
- internal=next((x for x in outputs if str(x.get('name','')).startswith('eDP-')),outputs[0])
- external=next((x for x in outputs if x is not internal and not str(x.get('name','')).startswith('eDP-')),None)
- m1=str(internal.get('name','')); m2=str(external.get('name','')) if external else m1
- block=f'''{BEGIN}\n-- Managed by Display Manager. 1-10 follow the internal/primary output;\n-- 11-20 follow the selected external output and fall back to the primary output.\nfor i = 1, 10 do\n    hl.workspace_rule({{\n        workspace = tostring(i),\n        monitor = "{m1}",\n        default = i == 1,\n        persistent = true,\n    }})\n\n    hl.workspace_rule({{\n        workspace = tostring(i + 10),\n        monitor = "{m2}",\n        default = i == 1,\n        persistent = true,\n    }})\nend\n{END}'''
- return block,m1,m2
-
-def rewrite_policy(text,block):
- if BEGIN in text and END in text:
-  a=text.index(BEGIN); b=text.index(END,a)+len(END); return text[:a]+block+text[b:]
- anchor='-- ============================================================\n-- TECLADO'
- idx=text.find(anchor); payload='\n\n'+block+'\n\n'
- return text[:idx]+payload+text[idx:] if idx>=0 else text.rstrip()+payload+'\n'
-
-def find_monitor_blocks(text):
- out=[]; pos=0; needle='hl.monitor({'
- while True:
-  start=text.find(needle,pos)
-  if start<0: break
-  depth=0; end=None; i=start
-  while i<len(text):
-   if text[i]=='{': depth+=1
-   elif text[i]=='}':
-    depth-=1
-    if depth==0:
-     close=text.find(')',i); end=close+1 if close>=0 else None; break
-   i+=1
-  if end is None: break
-  block=text[start:end]; m=re.search(r'^\s*output\s*=\s*"([^"]+)"\s*,?',block,re.M)
-  if m:
-   marker=text.rfind(DISPLAY_MARK,max(0,start-len(DISPLAY_MARK)-8),start)
-   managed=marker>=0 and text[marker+len(DISPLAY_MARK):start].strip()==''
-   out.append((start,end,m.group(1),block,managed))
-  pos=end
- return out
-
-def set_field(block,key,value):
- pattern=re.compile(rf'^(\s*){re.escape(key)}\s*=\s*[^\n]*$',re.M); m=pattern.search(block)
- if m: return block[:m.start()]+f'{m.group(1)}{key} = {value},'+block[m.end():]
- closing=block.rfind('})')
- if closing<0: raise RuntimeError(f'malformed monitor block for {key}')
- return block[:closing].rstrip()+f'\n    {key} = {value},\n'+block[closing:]
-
-def apply_output_policy(text,candidate):
- by_name={str(x.get('name','')):x for x in candidate.get('outputs',[]) if isinstance(x,dict)}
- replacements=[]; changed=[]
- for start,end,name,block,managed in find_monitor_blocks(text):
-  item=by_name.get(name)
-  if not managed or not item or not item.get('enabled',True): continue
-  new=block
-  new=set_field(new,'bitdepth',str(int(item.get('bitdepth',8))))
-  new=set_field(new,'cm',json.dumps(str(item.get('cm','srgb'))))
-  new=set_field(new,'vrr',str(int(item.get('vrr',0))))
-  if new!=block: replacements.append((start,end,new)); changed.append(name)
- updated=text
- for start,end,new in sorted(replacements,reverse=True): updated=updated[:start]+new+updated[end:]
- return updated,changed
-
-def verify_runtime(candidate):
- cp=subprocess.run([str(PROBE)],text=True,capture_output=True,timeout=8,check=False)
- if cp.returncode!=0:return False,'display probe failed after reload'
- live=json.loads(cp.stdout); by={str(m.get('name','')):m for m in live.get('hyprland',[]) if isinstance(m,dict)}
- for item in candidate.get('outputs',[]):
-  if not isinstance(item,dict) or not item.get('enabled',True):continue
-  name=str(item.get('name','')); m=by.get(name)
-  if not m:return False,f'{name} missing after output-policy reload'
-  if int(item.get('bitdepth',8))==10 and '2101010' not in str(m.get('current_format','')).upper(): return False,f'{name} did not enter a 10-bit format'
-  # Only always-on VRR can be verified immediately. Conditional modes can
-  # legitimately report idle until a fullscreen/game surface exists.
-  if int(item.get('vrr',0))==1 and not bool(m.get('vrr',False)): return False,f'{name} always-on VRR did not become active'
- return True,''
-
-def sync(candidate):
- if not CFG.is_file(): return {'ok':False,'error':f'missing {CFG}'},2
- normalized=plan(candidate); block,m1,m2=policy(normalized); original=CFG.read_text(encoding='utf-8')
- updated,color_outputs=apply_output_policy(original,normalized); updated=rewrite_policy(updated,block)
- stamp=time.strftime('%Y%m%d-%H%M%S'); snap=SNAPS/f'display-workspaces-{stamp}'; snap.mkdir(parents=True,exist_ok=True); shutil.copy2(CFG,snap/'hypr-user.lua')
- atomic_text(CFG,updated); cp=subprocess.run(['hyprctl','reload'],text=True,capture_output=True,timeout=10,check=False)
- if cp.returncode!=0:
-  shutil.copy2(snap/'hypr-user.lua',CFG); subprocess.run(['hyprctl','reload'],text=True,capture_output=True,timeout=10,check=False)
-  return {'ok':False,'error':(cp.stderr or cp.stdout).strip(),'rolled_back':True,'backup':str(snap/'hypr-user.lua')},3
- try: ok,error=verify_runtime(normalized)
- except Exception as exc: ok,error=False,str(exc)
- if not ok:
-  shutil.copy2(snap/'hypr-user.lua',CFG); subprocess.run(['hyprctl','reload'],text=True,capture_output=True,timeout=10,check=False)
-  return {'ok':False,'error':error,'rolled_back':True,'backup':str(snap/'hypr-user.lua')},4
- STATE.parent.mkdir(parents=True,exist_ok=True); STATE.write_text(json.dumps({'version':2,'primary':m1,'secondary':m2,'saved_at':int(time.time()),'backup':str(snap/'hypr-user.lua'),'output_policy':color_outputs},separators=(',',':')),encoding='utf-8')
- return {'ok':True,'synced':True,'primary':m1,'secondary':m2,'output_policy':color_outputs,'backup':str(snap/'hypr-user.lua')},0
-
-def main():
- p=argparse.ArgumentParser(); s=p.add_subparsers(dest='command',required=True); sp=s.add_parser('sync'); sp.add_argument('--candidate',required=True); s.add_parser('status'); a=p.parse_args()
- try:
-  if a.command=='status':
-   try:data=json.loads(STATE.read_text(encoding='utf-8'))
-   except Exception:data={}
-   text=CFG.read_text(encoding='utf-8') if CFG.is_file() else ''
-   return emit({'ok':True,'managed':BEGIN in text,'display_policy_managed':DISPLAY_MARK in text,'state':data})
-  cand=json.loads(a.candidate); out,code=sync(cand); return emit(out,code)
- except Exception as e:return emit({'ok':False,'error':str(e)},2)
-if __name__=='__main__': raise SystemExit(main())
+#!/usr/bin/env bash
+# Stable entry point. All behavior lives in the generation's native owner.
+set -euo pipefail
+SELF="$(readlink -f "${BASH_SOURCE[0]}")"
+BUNDLE="$(dirname "$SELF")"
+if [[ ! -x "$BUNDLE/cortetsu-hardware-runtime" ]]; then
+    REPO="$(cd "$BUNDLE/../.." && pwd)"
+    BUNDLE="$REPO/dist/native"
+    export CORTETSU_REPO_ROOT="${CORTETSU_REPO_ROOT:-$REPO}"
+fi
+if [[ -z "${CORTETSU_RESOURCE_ROOT:-}" && -x "$BUNDLE/cortetsu-resource-root" ]]; then
+    export CORTETSU_RESOURCE_ROOT="$("$BUNDLE/cortetsu-resource-root")"
+fi
+[[ -x "$BUNDLE/cortetsu-hardware-runtime" ]] || { printf 'ERROR: construye el runtime con scripts/build-native.sh\n' >&2; exit 1; }
+exec "$BUNDLE/cortetsu-hardware-runtime" cortetsu-display-workspaces "$@"

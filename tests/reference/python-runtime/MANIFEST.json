@@ -1,0 +1,203 @@
+{
+  "schema": 1,
+  "source_commit": "ce9523ea8a403ba106162cd8118b264897104db8",
+  "purpose": "test-only compatibility oracles; never packaged or installed",
+  "files": [
+    {
+      "path": "core/doctor.py",
+      "sha256": "c3915cd486435fb3207fba1563df7236135ff270f3a14edf93d5446e677bd1ec"
+    },
+    {
+      "path": "core/dotfiles.py",
+      "sha256": "9e681f33d95ef940700668b8c9c08a15d5903a56c483e6023c386cff84187882"
+    },
+    {
+      "path": "core/generation_gc.py",
+      "sha256": "ce68f74d388af91849d95953c8ad04d18228123a1607489af427d407b0a66d28"
+    },
+    {
+      "path": "core/import_desktop.py",
+      "sha256": "70529af3a9efcf848acb5a006b893790b28eea17cf5a3ea9ec5b65aa0c22810e"
+    },
+    {
+      "path": "core/import_fish.py",
+      "sha256": "18f28096233ce52b4848845eb61a78b60d85d07d43a44e68947e497537e8fac2"
+    },
+    {
+      "path": "core/import_hyprland.py",
+      "sha256": "596716e71b01672fa2f22f29c8d3eeeef2d180f83f7e90e18c03655f122ae11c"
+    },
+    {
+      "path": "core/migrate_config.py",
+      "sha256": "3a162c78ad977bcd85197279cf9c953ca0db7d5930428549102d70588ba0b453"
+    },
+    {
+      "path": "core/migrate_legacy_processes.py",
+      "sha256": "632f579c047610387b93c10eee561ce5f6ee05b3f0fcd07d4e73a9b79cb98f6b"
+    },
+    {
+      "path": "core/shell_lifecycle.py",
+      "sha256": "bf2eb77cda47a52744c32414c6fdba2d0a40c9d6c42c033598eeda292d450188"
+    },
+    {
+      "path": "core/system.py",
+      "sha256": "2a9e4d97ab61ed25ad3f1fc250adaabbedc08371411849aa9ac54eb4527084c2"
+    },
+    {
+      "path": "core/theme.py",
+      "sha256": "75c8fc1b16adeb29efe8eaaa7626912965f19dc0eacd056d4dcdc6ad6181846a"
+    },
+    {
+      "path": "cortetsu/bin/check-bottom-hub-target.py",
+      "sha256": "23e303d8d8a54e9bce7bc9377edbe24dd33cdb7fd60747bcaccb3a271a2e5c3f"
+    },
+    {
+      "path": "cortetsu/bin/compose-panels.py",
+      "sha256": "34157e50da81765fd64c7724e05daee7cd6c49124082fe02f0e366b6f20db90b"
+    },
+    {
+      "path": "cortetsu/bin/cortetsu-area-capture",
+      "sha256": "9dcf97816c554eb855459947c1f003892a0da7ab861d474a9481832a85d5d8dd"
+    },
+    {
+      "path": "cortetsu/bin/cortetsu-calendar",
+      "sha256": "a987e1794f996477ea059baef56618c625553da3a660a2f5979cddf0db304a29"
+    },
+    {
+      "path": "cortetsu/bin/cortetsu-display-persist",
+      "sha256": "e9fe04afb27511d6752bc6eba7d7874bb97000ff00398b4cb1951548da8a4304"
+    },
+    {
+      "path": "cortetsu/bin/cortetsu-display-plan",
+      "sha256": "8890c7fbeb1f4c0eef28e3e5ba6178c318b452620c00c6613a7107b50fb641c5"
+    },
+    {
+      "path": "cortetsu/bin/cortetsu-display-presets",
+      "sha256": "52a9c797fabfcd1319c03a0cbb30a923413eb514fcf7fce1a693e7ef38407fe2"
+    },
+    {
+      "path": "cortetsu/bin/cortetsu-display-probe",
+      "sha256": "d85b62aacfab7ea51b71baf755dfae8cc55a2b14a4bfa813ae6dd3284c294c89"
+    },
+    {
+      "path": "cortetsu/bin/cortetsu-display-transaction",
+      "sha256": "c6b0560c8ed3c740a7e125059fa19f19410772f0d59e041334a31004a7ed6171"
+    },
+    {
+      "path": "cortetsu/bin/cortetsu-display-workspaces",
+      "sha256": "61b7fcbef79591283f9be8915c127672057fb3d5aea5acc5a5434d4978bbfac8"
+    },
+    {
+      "path": "cortetsu/bin/cortetsu-emoji",
+      "sha256": "3f63883b78484d75343566c5dd21100d3f69144d8bc8d2be828685d27b8b3474"
+    },
+    {
+      "path": "cortetsu/bin/cortetsu-gamemode",
+      "sha256": "7d5b8cd4ba082cccf6019613c8e11ad05c384e744963a03eba55eb900d5282d1"
+    },
+    {
+      "path": "cortetsu/bin/cortetsu-hardware-power",
+      "sha256": "1d417db34fb8e04b7b64030562c8d88ccad2fce1b7454eee18e86c724c83ca80"
+    },
+    {
+      "path": "cortetsu/bin/cortetsu-hardware-probe",
+      "sha256": "a83fe8a63eda7a99f12dabe1d9c09ec3f30c22eae873e4d4509d95ca4412c8e3"
+    },
+    {
+      "path": "cortetsu/bin/cortetsu-notifications",
+      "sha256": "bf19f730ab0a80cbca3bde3c2c64139f5b431a218b93989573566608528bb224"
+    },
+    {
+      "path": "cortetsu/bin/cortetsu-nvibrant",
+      "sha256": "ed87fd62f32e428c79203ab4c357a1cd905e7bef26e02028e86ce219465cc6bc"
+    },
+    {
+      "path": "cortetsu/bin/cortetsu-pomodoro",
+      "sha256": "8b2d1d73f99db74f2b4170c1b4362543de59a5e841dd085ca59b0861975cec94"
+    },
+    {
+      "path": "cortetsu/bin/cortetsu-power-auto",
+      "sha256": "e877d7dcbd318058e413366d1bf7b2b7d76844935320430c0a6a560a7eff18f7"
+    },
+    {
+      "path": "cortetsu/bin/cortetsu-power-auto-control",
+      "sha256": "40d31f2b26b988035ca046298a24cdce89f2aa37edab0ed1ba7b3fa09c870dd2"
+    },
+    {
+      "path": "cortetsu/bin/cortetsu-prune-applications",
+      "sha256": "83ef93b3bb9a7b85e445e04fdb4e59ea331017000d2179f2b4093d0723b452ea"
+    },
+    {
+      "path": "cortetsu/bin/cortetsu-record",
+      "sha256": "148b7a99effe88e4a424d3e4a6276783c4aadc52681c5384dca0e36af6056fc5"
+    },
+    {
+      "path": "cortetsu/bin/cortetsu-scheme",
+      "sha256": "cfb83a2447a9db2cf322c7183921f0014eabb56ee2febe6c795b52eff7537ede"
+    },
+    {
+      "path": "cortetsu/bin/cortetsu-scheme-posthook",
+      "sha256": "ec520be62fa70e37e842d7d33ec8042367a0acfcf8385be79b7e8cfa67a2f7df"
+    },
+    {
+      "path": "cortetsu/bin/cortetsu-startup",
+      "sha256": "3ad9adae66d8f0f2fc81a70a002406101c9c3d3407c789c37f6df1ff1ceda713"
+    },
+    {
+      "path": "cortetsu/bin/cortetsu-wallpaper-color-daemon",
+      "sha256": "a54bb479b68ecdcd410f2c392516c965bd0143f54920a612902c3002f9c83080"
+    },
+    {
+      "path": "cortetsu/bin/cortetsu-wallpaper-colours",
+      "sha256": "46286d60f80e59e015b9e538b6daabccc7b3ee57ab47ddbe3bfe1139ae494646"
+    },
+    {
+      "path": "cortetsu/bin/migrate-bottom-hub-from-main.py",
+      "sha256": "f6d8d917a8cf8baaee199fd73c85970a6d57ae5c965882f54ac1dd375fd9d5a6"
+    },
+    {
+      "path": "cortetsu/bin/normalize-contentwindow-overview-24.py",
+      "sha256": "14e212c4a44b75e124e5e8c53197574e1561bc81128aaaa2b5c8101a83d1f621"
+    },
+    {
+      "path": "cortetsu/bin/normalize-shell-24.py",
+      "sha256": "014f78a65286112ebc1fbcb0978a94b67e5b4b1cf321443d568d63ccc444975f"
+    },
+    {
+      "path": "cortetsu/services/ConnectivitySecret.py",
+      "sha256": "d2fe025f7950f512f78a3478ec672b28fe3e5cad7827672e0f58eea6a717feab"
+    },
+    {
+      "path": "scripts/features/wire_sad_shell.py",
+      "sha256": "b6f958b0143b3bdbb0ed952f1954be8cbfd227df831fe2bf9acdb2c2191ebfd1"
+    },
+    {
+      "path": "scripts/maintenance/retire_legacy_theme.py",
+      "sha256": "7de81fce5152c2974283dd81e92500fe48e5815cdfdc73c4378bfc74782cc02c"
+    },
+    {
+      "path": "scripts/cortetsu",
+      "sha256": "b0e67fa93f01b547215b6152f3a10b8ec0dc6409d03e60bb23d97d442dc5a54f"
+    },
+    {
+      "path": "scripts/install-cortetsu.sh",
+      "sha256": "c3529ea8fe145837d64fa7a7ea9cd5ca05602a1f67399ae85f9f2cefdc922e47"
+    },
+    {
+      "path": "cortetsu/bin/build-runtime.sh",
+      "sha256": "16aa15d5d7058ef912da557b50aa9c6fa3e148844a159f8d1c322b311bebfc08"
+    },
+    {
+      "path": "cortetsu/bin/rollback-runtime.sh",
+      "sha256": "c9ed61bc8b47d019ac9a4845ba67285413a832b85b6a08c3515ab5574f995bb4"
+    },
+    {
+      "path": "cortetsu/bin/cortetsu-import-desktop",
+      "sha256": "38afe49ab2087bdb51e147d4d918cbbd9847cc92ca6b2432ad3922723f3f4e05"
+    },
+    {
+      "path": "cortetsu/bin/cortetsu-import-hyprland",
+      "sha256": "0dbe2e5e302e3d451ded0fa902b18fc5ae66a160137d69ab87350c1c3a7240a9"
+    }
+  ]
+}

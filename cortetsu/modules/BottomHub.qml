@@ -852,7 +852,7 @@ Scope {
                 }
                 onNotificationsRequested: hubRoot.toggleSidebarFor(win.modelData, bottomHubView.notificationsButton.pressedAt)
                 onStopRecordingRequested: CortetsuRecorder.stop()
-                onToggleDndRequested: CortetsuNotifications.dnd = !CortetsuNotifications.dnd
+                onToggleDndRequested: CortetsuNotifications.toggleDnd()
                 onToggleIdleInhibitorRequested: CortetsuIdleInhibitor.enabled = !CortetsuIdleInhibitor.enabled
                 onCalendarRequested: hubRoot.openCalendarFor(win.modelData)
                 onSessionRequested: win.toggleSession()

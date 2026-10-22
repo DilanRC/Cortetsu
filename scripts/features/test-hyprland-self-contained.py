@@ -59,7 +59,7 @@ assert "caelestia" not in path_assignment.group(0).lower(), (
 #    ~/.config/caelestia/hyprland tree as an active dependency. This is the
 #    gate the P0 fix explicitly requires so the regression can't come back.
 hits = subprocess.run(
-    ["git", "grep", "-n", "-I", "-F", FORBIDDEN_DEPENDENCY, "--", ".", f":!{SELF}", ":!docs/**"],
+    ["git", "grep", "-n", "-I", "-F", FORBIDDEN_DEPENDENCY, "--", ".", f":!{SELF}", ":!docs/**", ":!tests/reference/**"],
     cwd=REPO, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
 )
 assert hits.returncode in (0, 1), f"git grep failed:\n{hits.stdout}"
@@ -80,7 +80,7 @@ assert 'move_key = "SUPER + SHIFT + F7"' in user_config
 # the P0 failure mode recurring in a different file.
 user_hits = subprocess.run(
     ["git", "grep", "-n", "-I", "-F", FORBIDDEN_USER_OVERRIDE,
-     "--", ".", f":!{SELF}", ":!docs/**", ":!scripts/history/**",
+     "--", ".", f":!{SELF}", ":!docs/**", ":!scripts/history/**", ":!tests/reference/**",
      ":!scripts/maintenance/caelestia-migrate-v2.1-official-tag.sh"],
     cwd=REPO, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
 )

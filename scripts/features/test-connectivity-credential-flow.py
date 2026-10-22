@@ -28,7 +28,8 @@ if 'up' in args:
 elif 'radio' in args: print('enabled')
 ''')
         (folder / 'nmcli').chmod(0o700)
-        (folder / 'services/ConnectivitySecret.py').write_text('''import json, os, sys, time
+        (folder / 'cortetsu-connectivity-secret').write_text('''#!/usr/bin/env python3
+import json, os, sys, time
 from pathlib import Path
 assert len(sys.argv) == 2 and 'fixture-sensitive-value' not in ' '.join(sys.argv)
 assert sys.stdin.read() == 'fixture-sensitive-value'
@@ -40,6 +41,7 @@ if mode == 'missing-proof': print('UNVERIFIED'); sys.exit(0)
 print('credential-save-failed', file=sys.stderr)
 sys.exit(4)
 ''')
+        (folder / 'cortetsu-connectivity-secret').chmod(0o700)
         cancel = mode.endswith('cancel')
         (folder / 'shell.qml').write_text('''import QtQuick
 import Quickshell

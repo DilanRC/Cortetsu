@@ -1,4 +1,4 @@
-//! A standalone Rust candidate for the Python application-entry quarantiner.
+//! Native application-entry quarantiner with the frozen CLI contract.
 //! Quarantines only broken *.desktop entries in a user's XDG applications
 //! directory. Never removes applications or touches system-owned desktops.
 use std::env;
@@ -37,11 +37,7 @@ fn split_shell(source: &str) -> Option<Vec<String>> {
             Some('"') => match ch {
                 '"' => quote = None,
                 '\\' => match chars.next() {
-                    Some(next @ ('"' | '\\' | '$' | '`' | '\n')) => {
-                        if next != '\n' {
-                            token.push(next);
-                        }
-                    }
+                    Some(next @ ('"' | '\\')) => token.push(next),
                     Some(next) => {
                         token.push('\\');
                         token.push(next);
@@ -56,15 +52,12 @@ fn split_shell(source: &str) -> Option<Vec<String>> {
                     quote = Some(ch);
                     active = true;
                 }
-                '\\' => match chars.next() {
-                    Some('\n') => {}
-                    Some(next) => {
-                        active = true;
-                        token.push(next);
-                    }
-                    None => return None,
-                },
-                c if c.is_ascii_whitespace() => {
+                '\\' => {
+                    let next = chars.next()?;
+                    active = true;
+                    token.push(next);
+                }
+                ' ' | '\t' | '\r' | '\n' => {
                     if active {
                         result.push(std::mem::take(&mut token));
                         active = false;
@@ -117,65 +110,68 @@ fn which(binary: &str) -> bool {
     false
 }
 
-// Only the standard [Desktop Entry] group's Type and Exec are relevant. Do
-// not interpret % placeholders, arbitrary metadata, or .desktop Exec as code.
+// Match the legacy RawConfigParser contract, including DEFAULT inheritance,
+// colon delimiters, duplicate keys, indentation and errors in other groups.
+// An invalid file is left untouched; parsing never executes its Exec value.
 fn desktop_fields(path: &Path) -> Option<(String, String)> {
+    use std::collections::BTreeMap;
     let raw = fs::read_to_string(path).ok()?;
-    let mut in_entry = false;
-    let mut seen_section = false;
-    let mut typ = String::from("Application");
-    let mut exec = String::new();
+    let mut sections: BTreeMap<String, BTreeMap<String, String>> = BTreeMap::new();
+    let mut section: Option<String> = None;
     let mut previous_key: Option<String> = None;
-    for line in raw.lines() {
-        let trimmed = line.trim();
-        if trimmed.starts_with('#') || trimmed.starts_with(';') || trimmed.is_empty() {
+    let mut previous_indent = 0;
+    for line in raw.split('\n') {
+        let value = line.trim();
+        if value.starts_with('#') || value.starts_with(';') {
             continue;
         }
-        if trimmed.starts_with('[') && trimmed.ends_with(']') {
-            in_entry = trimmed == "[Desktop Entry]";
-            if in_entry {
-                seen_section = true;
+        if value.is_empty() {
+            if let (Some(group), Some(key)) = (&section, &previous_key) {
+                sections.get_mut(group)?.get_mut(key)?.push('\n');
             }
+            continue;
+        }
+        let indent = line.chars().take_while(|ch| ch.is_whitespace()).count();
+        if indent > previous_indent
+            && let (Some(group), Some(key)) = (&section, &previous_key)
+        {
+            let old = sections.get_mut(group)?.get_mut(key)?;
+            old.push('\n');
+            old.push_str(value);
+            continue;
+        }
+        previous_indent = indent;
+        if value.starts_with('[')
+            && let Some(close) = value.rfind(']').filter(|close| *close > 1)
+        {
+            let name = value[1..close].to_owned();
+            sections.entry(name.clone()).or_default();
+            section = Some(name);
             previous_key = None;
             continue;
         }
-        if in_entry && line.starts_with(char::is_whitespace) {
-            if let Some(ref key) = previous_key {
-                match key.as_str() {
-                    "Type" => {
-                        typ.push('\n');
-                        typ.push_str(trimmed);
-                    }
-                    "Exec" => {
-                        exec.push('\n');
-                        exec.push_str(trimmed);
-                    }
-                    _ => {}
-                }
-            }
-            continue;
+        let group = section.as_ref()?;
+        let delimiter = value.find(['=', ':'])?;
+        let key = value[..delimiter].trim_end();
+        if key.is_empty() {
+            return None;
         }
-        if in_entry {
-            let (key, value) = match line.split_once('=') {
-                Some((key, value)) => (key.trim(), value.trim()),
-                None => return None,
-            };
-            if key.is_empty() {
-                return None;
-            }
-            match key {
-                "Type" => typ = value.to_owned(),
-                "Exec" => exec = value.to_owned(),
-                _ => {}
-            }
-            previous_key = Some(key.to_owned());
-        }
+        sections
+            .get_mut(group)?
+            .insert(key.to_owned(), value[delimiter + 1..].trim().to_owned());
+        previous_key = Some(key.to_owned());
     }
-    if seen_section {
-        Some((typ, exec))
-    } else {
-        None
-    }
+    let fields = sections.get("Desktop Entry")?;
+    let defaults = sections.get("DEFAULT");
+    let get = |key: &str, fallback: &str| {
+        fields
+            .get(key)
+            .or_else(|| defaults.and_then(|map| map.get(key)))
+            .map(|s| s.trim_end())
+            .unwrap_or(fallback)
+            .to_owned()
+    };
+    Some((get("Type", "Application"), get("Exec", "")))
 }
 
 fn broken(path: &Path) -> bool {

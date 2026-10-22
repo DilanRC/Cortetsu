@@ -21,3 +21,6 @@ __pycache__/
 
 # Rust build output
 cortetsu/keyboards/target/
+cortetsu/*/target/
+cortetsu/protocol/dist/
+dist/

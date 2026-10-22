@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
-"""Compare the Python desktop quarantiner and its opt-in Rust equivalent."""
+"""Compare frozen Python and the native application quarantiner."""
 from __future__ import annotations
 
 import os
 from pathlib import Path
 import subprocess
 import tempfile
+import sys
 
 REPO = Path(__file__).resolve().parents[3]
-PYTHON = REPO / 'cortetsu/bin/cortetsu-prune-applications'
+PYTHON = REPO / 'tests/reference/python-runtime/cortetsu/bin/cortetsu-prune-applications'
 RUST = REPO / 'cortetsu/prune-applications-rs/target/release/cortetsu-prune-applications-rs'
 
 FIXTURES = {
@@ -22,6 +23,15 @@ FIXTURES = {
     'outside-section.desktop': '[Not An App]\nType=Application\nExec=does-not-exist\n',
     'duplicate.desktop': '[Desktop Entry]\nExec=/bin/true\nExec=missing-replaced-last\n',
     'commented.desktop': '[Desktop Entry]\n# comment\nExec=/bin/true\n',
+    'colon.desktop': '[Desktop Entry]\nExec: /bin/true\n',
+    'default.desktop': '[DEFAULT]\nExec=/bin/true\n[Desktop Entry]\nName=Inherited\n',
+    'default-link.desktop': '[DEFAULT]\nType=Link\n[Desktop Entry]\nExec=does-not-exist\n',
+    'indented-keys.desktop': '[Desktop Entry]\n  Name=Indented\n  Exec=/bin/true\n',
+    'bad-before.desktop': 'not a section\n[Desktop Entry]\nExec=does-not-exist\n',
+    'bad-after.desktop': '[Desktop Entry]\nExec=does-not-exist\n[Other]\nmalformed line\n',
+    'section-comment.desktop': '[Desktop Entry] # trailing comment\nExec=/bin/true\n',
+    'dollar-escape.desktop': '[Desktop Entry]\nExec="literal\\$binary"\n',
+    'multiline.desktop': '[Desktop Entry]\nExec=env\n  /bin/true\n',
 }
 
 
@@ -29,7 +39,8 @@ def call(executable: Path, root: Path, *args: str) -> subprocess.CompletedProces
     env = os.environ.copy()
     env['HOME'] = str(root)
     env['XDG_DATA_HOME'] = str(root / 'data')
-    return subprocess.run([str(executable), *args], env=env, text=True,
+    env['PATH'] = str(root / 'commands') + os.pathsep + env.get('PATH', '')
+    return subprocess.run(([sys.executable, str(executable)] if executable == PYTHON else [str(executable)]) + list(args), env=env, text=True,
                           capture_output=True, check=False, timeout=8)
 
 
@@ -43,6 +54,11 @@ with tempfile.TemporaryDirectory(prefix='cortetsu-prune-parity-') as tmp:
     for root in roots:
         apps = root / 'data/applications'
         apps.mkdir(parents=True)
+        commands = root / 'commands'
+        commands.mkdir()
+        program = commands / 'literal\\$binary'
+        program.write_text('#!/bin/sh\nexit 0\n')
+        program.chmod(0o700)
         for name, body in FIXTURES.items():
             (apps / name).write_text(body, encoding='utf-8')
     if not RUST.is_file():

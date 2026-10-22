@@ -51,6 +51,38 @@ ShellRoot {
     readonly property var content: host.item
     readonly property var wifi: ConnectivityWifi
     readonly property var bluetooth: ConnectivityBluetooth
+    readonly property var policyBridge: policyDouble
+    Binding { target: ShellState; property: "shellRoot"; value: root }
+    QtObject {
+        id: policyDouble
+        property bool usable: false
+        readonly property bool canChange: usable && pendingDomain === ""
+        readonly property string statusText: usable ? "Conectado" : "No disponible"
+        property string sessionId: "fixture-session"
+        property string pendingDomain: ""
+        property string actionErrorDomain: ""
+        property string lastError: ""
+        property string readError: ""
+        property bool rulesLoaded: true
+        property var rules: []
+        property var snapshot: ({activations: {}, decisions: []})
+        property var calls: []
+        function activation(domain) { return snapshot.activations[domain] || {enabled:false, owner_session:"", manual_override_until_unix_ms:0}; }
+        function ownedByAnother(domain) { return activation(domain).owner_session !== "" && activation(domain).owner_session !== sessionId; }
+        function refreshStatus() { calls = calls.concat(["refresh"]); }
+        function setDomainEnabled(domain, enabled) { calls = calls.concat([["set", domain, enabled]]); pendingDomain = domain; }
+        function overrideDomain(domain, seconds) { calls = calls.concat([["override", domain, seconds]]); pendingDomain = domain; }
+        function revokeDomain(domain, expectedOwner) {
+            calls = calls.concat([["revoke", domain, expectedOwner]]);
+            pendingDomain = domain; lastError = ""; actionErrorDomain = "";
+        }
+        function settle(domain, enabled, until, owner) {
+            const active = Object.assign({}, snapshot.activations);
+            active[domain] = {enabled:enabled, owner_session:owner, manual_override_until_unix_ms:until};
+            snapshot = {activations:active, decisions:[]};
+            pendingDomain = "";
+        }
+    }
 
     function verify(value, reason) { if (!value) { console.log("SETTINGS_FAIL", reason); return; } checks++; }
     function same(a, b) { return Qt.colorEqual(a, b); }
@@ -639,6 +671,58 @@ ShellRoot {
         }]
     ]
 
+    readonly property var policies: [
+        [() => CortetsuConfig.loaded, () => { select("automation"); screenDouble.settings = true; }],
+        [() => !!content && content.pageId === "automation" && !!page("policy-gamemode"), () => {
+            verify(page("policy-gamemode").disabled && !page("policy-gamemode").checked, "an unavailable coordinator cannot grant consent");
+            verify(value("policyConnection") === "No disponible", "connection state is visible");
+            policyDouble.usable = true;
+            window.requestActivate();
+        }],
+        [() => window.active && !page("policy-gamemode").disabled, () => {
+            const toggle = page("policy-gamemode");
+            verify(toggle.Accessible.name.includes("juego"), "the switch has a domain-specific accessible name");
+            toggle.forceActiveFocus(); key(Qt.Key_Space);
+            verify(JSON.stringify(policyDouble.calls) === JSON.stringify([["set", "gamemode", true]]), "Space requests consent for only this domain");
+            verify(!toggle.checked && toggle.status === "busy", "the switch waits for confirmed state");
+            policyDouble.settle("gamemode", true, 0, "fixture-session");
+        }],
+        [() => page("policy-gamemode").checked && !page("policy-pause-gamemode").disabled, () => {
+            const action = find(page("policy-pause-gamemode"), "action");
+            verify(action.Accessible.name.includes("juego") && action.Accessible.name.includes("quince"), "the pause button describes its domain and duration");
+            action.forceActiveFocus(); key(Qt.Key_Return);
+            verify(JSON.stringify(policyDouble.calls[1]) === JSON.stringify(["override", "gamemode", 900]), "keyboard pause has a fixed fifteen-minute duration");
+            policyDouble.settle("gamemode", true, Date.now() + 900000, "fixture-session");
+        }],
+        [() => page("policy-pause-gamemode").actionLabel === "Reanudar", () => {
+            const action = find(page("policy-pause-gamemode"), "action");
+            action.forceActiveFocus(); key(Qt.Key_Return);
+            verify(JSON.stringify(policyDouble.calls[2]) === JSON.stringify(["override", "gamemode", 0]), "resume clears the manual pause");
+            policyDouble.pendingDomain = "";
+            policyDouble.lastError = "No se pudo confirmar el cambio";
+            policyDouble.actionErrorDomain = "gamemode";
+            policyDouble.settle("notifications", true, 0, "other-session");
+        }],
+        [() => page("policy-notifications").disabled && page("policy-gamemode").status === "error", () => {
+            verify(page("policy-notifications").detail.includes("otra sesión"), "foreign ownership is explained and cannot be taken");
+            verify(page("policy-gamemode").checked, "a failed action retains the last confirmed activation");
+            verify(text("policy-gamemode").includes("confirmar"), "the failure is explained beside the control");
+            render("automation");
+            const revoke = find(page("policy-revoke-notifications"), "action");
+            verify(revoke.Accessible.name.includes("Notificaciones") && revoke.Accessible.name.includes("otra sesión"), "revocation identifies the domain and foreign session");
+            revoke.forceActiveFocus(); key(Qt.Key_Return);
+            verify(JSON.stringify(policyDouble.calls[3]) === JSON.stringify(["revoke", "notifications", "other-session"]), "keyboard revocation carries the exact displayed owner");
+            verify(page("policy-notifications").checked && page("policy-notifications").disabled, "revocation waits for readback without transferring consent");
+            policyDouble.settle("notifications", false, 0, "");
+        }],
+        [() => !page("policy-notifications").disabled && !page("policy-revoke-notifications").visible, () => {
+            verify(!page("policy-notifications").checked && policyDouble.calls.length === 4, "revocation leaves the domain disabled until a separate action");
+            page("policy-notifications").forceActiveFocus(); key(Qt.Key_Space);
+            verify(JSON.stringify(policyDouble.calls[4]) === JSON.stringify(["set", "notifications", true]), "a separate keyboard action grants this session consent");
+            policyDouble.settle("notifications", true, 0, "fixture-session");
+        }]
+    ]
+
     // One PNG per page, for visual review at the size given by the environment.
     readonly property var pages: [
         [() => CortetsuConfig.loaded && Schemes.catalogCount > 0, () => { select("network"); screenDouble.settings = true; }]
@@ -738,6 +822,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     assert calls.count("cortetsu-keybinds list") == 2, calls
 
     unwritable = passed(run(folder, "shell.qml", "unwritable", preferences={"schema": 1}, read_only_config=True)[0])
+    policies = passed(run(folder, "shell.qml", "policies")[0])
 
     # Every page at the default size, at the narrowest one, and on a scheme
     # other than the ui.toml default.
@@ -753,10 +838,11 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     host = run_host(folder)
     assert not host or "SETTINGS_HOST_PASS 1" in host, host
 
-assert (reactivity, navigation, states, unwritable, pages) == (47, 40, 41, 3, 14), (reactivity, navigation, states, unwritable, pages)
+assert (reactivity, navigation, states, unwritable, pages) == (47, 40, 41, 3, 15), (reactivity, navigation, states, unwritable, pages)
+assert policies == 16, policies
 print(f"Settings builds in {opened.split()[0]} ms ({opened.split()[1]} items); "
-      f"20 cycles of open, 14 pages and close take {cycles} ms")
-print("The window host opens, shows its 14 pages, closes and reopens under weston" if host
+      f"20 cycles of open, 15 pages and close take {cycles} ms")
+print("The window host opens, shows its 15 pages, closes and reopens under weston" if host
       else "SKIP: weston is not installed, the window host was not mapped")
 print("PASS: Settings keeps its objects through colour, scheme and preference changes, "
       "shows pending, failed and unavailable states truthfully, and is fully usable from the keyboard")

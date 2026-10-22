@@ -22,11 +22,21 @@ assert "GlobalConfig." not in service
 assert "Caelestia." not in service
 assert "import qs." not in service
 
-# Helper binary is a standalone, importable-free deterministic script (no LLM/API calls,
-# no upstream QML coupling) that owns exactly the two Cortetsu-state files.
-assert helper.startswith("#!/usr/bin/env python3")
-for marker in ("def cmd_dismiss", "def cmd_clear", "def cmd_dnd", "notifs.json", "notification-status.json"):
-    assert marker in helper, marker
+# The stable entry point selects its generation's Rust owner; Python remains
+# only in the archived development oracle used by parity tests.
+assert helper.startswith("#!/usr/bin/env bash")
+assert 'exec "$BUNDLE/cortetsu-notifications-rs" "$@"' in helper
+assert "python" not in helper.lower()
+owner = (repo / "cortetsu/notification-helper/src/lib.rs").read_text(encoding="utf-8")
+for marker in ('"dismiss"', '"clear"', '"dnd"', "notifs.json", "notification-status.json"):
+    assert marker in owner, marker
 assert "GlobalConfig." not in helper and "Caelestia." not in helper
+notifs = (repo / "cortetsu/services/Notifs.qml").read_text(encoding="utf-8")
+assert '["cortetsu-notifications", "merge"]' in notifs
+assert '["cortetsu-notifications", "dnd", "ensure"]' in notifs
+for source in (notifs, service):
+    assert "CortetsuNotificationModel.js" in source
+    assert "notifs-clear.json" in source
+    assert ".setText(" not in source, "QML must not bypass the native state owner"
 
-print("PASS: CortetsuNotifications exposes history/dismiss/clear/DND through a deterministic, GlobalConfig-free helper")
+print("PASS: notification history/DND mutations use the native owner and shared readback contract")

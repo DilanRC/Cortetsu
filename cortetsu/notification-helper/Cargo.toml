@@ -5,7 +5,7 @@ edition = "2024"
 rust-version = "1.89"
 publish = false
 license = "MIT"
-description = "Staged, independently testable replacement for the first-party Cortetsu notification history CLI"
+description = "Native notification history and transactional DND owner for Cortetsu"
 
 [[bin]]
 name = "cortetsu-notifications-rs"

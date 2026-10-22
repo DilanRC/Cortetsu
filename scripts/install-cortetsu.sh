@@ -2,29 +2,103 @@
 set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-BIN_DIR="${HOME}/.local/bin"
 DATA_ROOT="${CORTETSU_DATA_ROOT:-${XDG_DATA_HOME:-$HOME/.local/share}/cortetsu}"
 export CORTETSU_DATA_ROOT="$DATA_ROOT"
 SYSTEMD_USER_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
-# Retired: keep-awake is now a shell toggle (CortetsuIdleInhibitor), not a unit.
 KEEP_AWAKE_UNIT="cortetsu-keep-awake.service"
 WALLPAPER_COLOR_UNIT="cortetsu-wallpaper-color.service"
+native_input=""
+if [[ "${1:-}" == --native-bundle && $# == 2 ]]; then
+    native_input="$2"
+    [[ "$native_input" == /* && -d "$native_input" && ! -L "$native_input" ]] || { printf 'ERROR: --native-bundle requires an absolute directory\n' >&2; exit 2; }
+elif [[ $# != 0 ]]; then
+    printf 'usage: install-cortetsu.sh [--native-bundle ABSOLUTE_DIRECTORY]\n' >&2
+    exit 2
+fi
 
-atomic_symlink() {
-    local target="$1"
-    local link="$2"
-    local temporary="${link}.tmp.$$"
-    rm -f "$temporary"
-    ln -s "$target" "$temporary"
-    mv -Tf "$temporary" "$link"
+
+# Each installation builds its own staging directory. Concurrent compilers
+# cannot change the resource pointer of a bundle about to be hashed.
+mkdir -p "$REPO/dist"
+native_output="$(mktemp -d "$REPO/dist/.install-native-XXXXXXXX")"
+stage_report="$(mktemp)"
+PLATFORM="$native_output/cortetsu-platform"
+RESCUE="$native_output/cortetsu-rescue"
+transaction_active=0
+cleanup() {
+    local status=$? keep_native=0
+    trap - EXIT
+    if [[ "$transaction_active" == 1 ]]; then
+        printf 'Instalación interrumpida: restaurando la generación y los ficheros anteriores.\n' >&2
+        if ! "$PLATFORM" install-transaction recover; then
+            printf 'ERROR: la recuperación no pudo completarse; conserva el journal y ejecuta cortetsu recover.\n' >&2
+            status=1
+            keep_native=1
+            printf 'Recovery tool retained: %s\n' "$PLATFORM" >&2
+        fi
+    fi
+    rm -f -- "$stage_report"
+    if [[ "$keep_native" == 0 ]]; then rm -rf -- "$native_output"; fi
+    exit "$status"
 }
+trap cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+printf '==> Runtime nativo Cortetsu\n'
+if [[ -n "$native_input" ]]; then
+    while IFS= read -r -d '' artifact; do
+        [[ -f "$artifact" && ! -L "$artifact" && -x "$artifact" ]] || { printf 'ERROR: unsafe native bundle entry: %s\n' "$artifact" >&2; exit 1; }
+    done < <(find "$native_input" -mindepth 1 -maxdepth 1 -print0)
+    cp -a "$native_input/." "$native_output/"
+else
+    CORTETSU_NATIVE_OUTPUT="$native_output" "$REPO/scripts/build-native.sh"
+fi
+[[ -x "$PLATFORM" && -x "$RESCUE" && -x "$native_output/cortetsu" ]] || { printf 'ERROR: native bundle is incomplete\n' >&2; exit 1; }
+
+printf '==> Construcción y validación aislada del shell\n'
+shell_generation="$(CORTETSU_PLATFORM="$PLATFORM" "$REPO/cortetsu/bin/build-runtime.sh" --stage)"
+[[ -d "$shell_generation" ]] || { printf 'ERROR: shell staging produced no generation\n' >&2; exit 1; }
+# Pin helper data to the matching immutable shell generation. This helper is
+# hashed with the rest of the bundle before any active pointer changes.
+{
+    printf '#!/usr/bin/env bash\n'
+    printf 'printf "%%s\\n" %q\n' "$shell_generation"
+} > "$native_output/cortetsu-resource-root"
+chmod 0755 "$native_output/cortetsu-resource-root"
+"$RESCUE" helpers-stage "$native_output" > "$stage_report"
+helpers_generation="$("$PLATFORM" metadata "$stage_report" bundle.directory)"
+[[ -d "$helpers_generation" ]] || { printf 'ERROR: helper staging produced no generation\n' >&2; exit 1; }
+
 
 mkdir -p "$DATA_ROOT"
-# Held for the whole install so an explicit GC cannot run against a
-# half-promoted system; GC takes this lock without waiting and refuses.
+[[ ! -L "$DATA_ROOT/install.lock" ]] || { printf 'ERROR: install.lock is a symlink\n' >&2; exit 1; }
 exec 8>>"$DATA_ROOT/install.lock"
 flock -n 8 || { printf 'ERROR: ya hay una instalación de Cortetsu en curso\n' >&2; exit 1; }
+"$PLATFORM" install-transaction recover
+CORTETSU_INSTALL_TRANSACTION="$("$PLATFORM" install-transaction begin --repo "$REPO" --helpers "$helpers_generation" --shell "$shell_generation")"
+export CORTETSU_INSTALL_TRANSACTION
+transaction_active=1
+"$PLATFORM" install-transaction activate
 
+printf '==> Tema nativo y ownership\n'
+"$PLATFORM" theme check --repo "$REPO"
+"$PLATFORM" theme adopt --repo "$REPO"
+printf '==> Dotfiles Cortetsu\n'
+"$PLATFORM" dotfiles apply --repo "$REPO"
+printf '==> Retiro de tema heredado y ciclo de vida\n'
+"$PLATFORM" retire_legacy_theme
+"$PLATFORM" shell_lifecycle migrate
+
+printf '==> Generación unificada schema 2\n'
+"$PLATFORM" system promote --repo "$REPO" --helpers "$helpers_generation"
+printf '==> Verificación de la generación completa\n'
+"$helpers_generation/cortetsu" verify
+"$PLATFORM" install-transaction commit
+transaction_active=0
+unset CORTETSU_INSTALL_TRANSACTION
+
+# Services and additive legacy state migration run only after the filesystem
+# transaction is durable. They never restart the desktop shell implicitly.
 legacy_state_present=0
 for legacy_candidate in \
     "${XDG_CONFIG_HOME:-$HOME/.config}/caelestia" \
@@ -39,30 +113,10 @@ for legacy_candidate in \
     fi
 done
 if [[ "$legacy_state_present" == 1 && -x "$REPO/scripts/migrate-cortetsu-v2.sh" ]]; then
-    "$REPO/scripts/migrate-cortetsu-v2.sh"
+    "$REPO/scripts/migrate-cortetsu-v2.sh" || printf 'WARN: migración legacy pendiente; vuelve a ejecutar scripts/migrate-cortetsu-v2.sh\n' >&2
 else
     printf 'Migración legacy: no hay estado anterior; se omite.\n'
 fi
-
-printf '==> Atajos y teclados: helper Rust\n'
-cargo build --release --locked --manifest-path "$REPO/cortetsu/keyboards/Cargo.toml"
-
-printf '==> Cortetsu: validación y construcción aislada\n'
-"$REPO/cortetsu/bin/check-package-updates.sh" || true
-"$REPO/cortetsu/bin/build-runtime.sh"
-
-printf '==> Helpers Cortetsu\n'
-mkdir -p "$BIN_DIR" "$DATA_ROOT"
-while IFS= read -r -d '' source; do
-    name="$(basename "$source")"
-    install -m 0755 "$source" "$BIN_DIR/$name"
-done < <(find "$REPO/cortetsu/bin" -maxdepth 1 -type f -name 'cortetsu-*' -print0 | sort -z)
-# Same name and commands as the Python helper it replaced (list, set, delete,
-# reset, add-app), plus inventory, keys and watch.
-install -m 0755 "$REPO/cortetsu/keyboards/target/release/cortetsu-keybinds" "$BIN_DIR/cortetsu-keybinds"
-
-mkdir -p "$SYSTEMD_USER_DIR"
-install -m 0644 "$REPO/config/systemd/user/$WALLPAPER_COLOR_UNIT" "$SYSTEMD_USER_DIR/$WALLPAPER_COLOR_UNIT"
 
 # The pre-Cortetsu nvibrant.service runs a bare `nvibrant 128` at login and
 # would overwrite the profile that cortetsu-nvibrant reapplies from Hyprland.
@@ -70,31 +124,6 @@ if systemctl --user is-enabled --quiet nvibrant.service 2>/dev/null; then
     systemctl --user disable nvibrant.service >/dev/null 2>&1 || true
     printf 'nvibrant.service desactivada; Cortetsu reaplica la vibrance. Revertir: systemctl --user enable nvibrant.service\n'
 fi
-
-# Low-level shell rollback remains available for recovery. Normal operation uses
-# `cortetsu rollback`, which reverts the full system generation.
-install -m 0755 "$REPO/cortetsu/bin/rollback-runtime.sh" "$BIN_DIR/cortetsu-rollback"
-install -m 0755 "$REPO/cortetsu/bin/cortetsu-scheme" "$BIN_DIR/cortetsu-scheme"
-
-if [[ -x "$REPO/scripts/cortetsu" ]]; then
-    atomic_symlink "$REPO" "$DATA_ROOT/repository"
-    atomic_symlink "$REPO/scripts/cortetsu" "$BIN_DIR/cortetsu"
-fi
-
-printf '==> Tema nativo Cortetsu\n'
-python3 "$REPO/core/theme.py" check --repo "$REPO"
-
-printf '==> Ownership de tema\n'
-python3 "$REPO/core/theme.py" adopt --repo "$REPO"
-
-printf '==> Dotfiles Cortetsu\n'
-python3 "$REPO/core/dotfiles.py" apply --repo "$REPO"
-
-printf '==> Retiro de tema heredado\n'
-python3 "$REPO/scripts/maintenance/retire_legacy_theme.py"
-
-printf '==> Ciclo de vida del shell\n'
-python3 "$REPO/core/shell_lifecycle.py" migrate
 
 systemctl --user daemon-reload >/dev/null 2>&1 || true
 
@@ -121,7 +150,10 @@ fi
 if [[ "$(systemctl --user show -p Transient --value "$WALLPAPER_COLOR_UNIT" 2>/dev/null || true)" == "yes" ]]; then
     systemctl --user stop "$WALLPAPER_COLOR_UNIT" >/dev/null 2>&1 || true
 fi
-if systemctl --user enable --now "$WALLPAPER_COLOR_UNIT" >/dev/null 2>&1; then
+# restart adopts the newly promoted executable even when the old unit was
+# already active; enable --now alone would keep a legacy interpreter running.
+if systemctl --user enable "$WALLPAPER_COLOR_UNIT" >/dev/null 2>&1 \
+        && systemctl --user restart "$WALLPAPER_COLOR_UNIT" >/dev/null 2>&1; then
     printf 'Wallpaper colors: active and enabled\n'
 else
     printf 'WARN: no se pudo activar %s\n' "$WALLPAPER_COLOR_UNIT" >&2
@@ -137,16 +169,19 @@ if [[ -f "$DATA_ROOT/.power-auto-was-enabled" && -f "$SYSTEMD_USER_DIR/cortetsu-
     fi
 fi
 
-printf '==> Generación unificada Cortetsu\n'
-python3 "$REPO/core/system.py" promote --repo "$REPO"
+# Preserve the opt-in state of the power policy daemon while replacing an
+# already running legacy executable with the current native generation.
+if systemctl --user is-enabled --quiet cortetsu-power-auto.service 2>/dev/null \
+        && systemctl --user is-active --quiet cortetsu-power-auto.service 2>/dev/null; then
+    systemctl --user try-restart cortetsu-power-auto.service >/dev/null 2>&1 \
+        || printf 'WARN: native power daemon restart is pending\n' >&2
+fi
 
-printf '==> Verificación completa del sistema promovido\n'
-"$REPO/scripts/cortetsu" verify
 # Installation never deletes generations. The report below is computed after
 # promotion, so it names exactly what an explicit `cortetsu gc --apply` would
 # remove now; the user decides whether to run it.
 printf '==> Generaciones (solo inspección, no se borra nada)\n'
-"$REPO/scripts/cortetsu" gc --keep 5 | grep -E '^(TOTAL_DELETE|TOTAL_RECLAIM|PLAN_ID|  DELETE)' || true
+"$helpers_generation/cortetsu" gc --keep 5 | grep -E '^(TOTAL_DELETE|TOTAL_RECLAIM|PLAN_ID|  DELETE)' || true
 printf 'Detalle y aplicación explícita: cortetsu gc\n'
 
 # Never restart shell supervision implicitly. The promoted generation is safe
@@ -165,7 +200,7 @@ printf 'Dotfiles runtime: %s/dotfiles/current\n' "$DATA_ROOT"
 printf 'System runtime: %s/system/current\n' "$DATA_ROOT"
 printf 'No se escribió ningún runtime legacy de Caelestia.\n'
 printf 'Tema desktop: ui.toml -> CortetsuDesign/Kitty/GTK/KDE; kdeglobals permanece editable.\n'
-printf 'Shell personal: Fish es dependencia del perfil personal y se importa de forma explícita con core/import_fish.py.\n'
+printf 'Shell personal: Fish es dependencia del perfil personal y se importa de forma explícita con cortetsu-platform import_fish.\n'
 printf 'cortetsu-shell.service no se habilita implícitamente; una adopción existente sí se conserva.\n'
 printf 'Rollback completo: cortetsu rollback\n'
 printf 'Supervisión: cortetsu shell status\n'

@@ -130,3 +130,34 @@ func TestSeparateSessionIdentity(t *testing.T) {
 		t.Fatal("session identity collision")
 	}
 }
+
+func TestDisconnectInvalidatesStateBeforeReconnectBackoff(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "socket2.sock")
+	listener, err := net.Listen("unix", path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer listener.Close()
+	go func() {
+		conn, err := listener.Accept()
+		if err == nil {
+			conn.Close()
+		}
+	}()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	output := &syncOutput{}
+	done := make(chan error, 1)
+	go func() { done <- (Observer{Session: "one", Socket: path, ReconnectDelay: time.Second}).Run(ctx, output) }()
+	deadline := time.Now().Add(300 * time.Millisecond)
+	for !strings.Contains(output.String(), `"type":"unavailable"`) && time.Now().Before(deadline) {
+		time.Sleep(5 * time.Millisecond)
+	}
+	cancel()
+	if err := <-done; err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(output.String(), `"type":"unavailable"`) {
+		t.Fatal("disconnected owner remained current during backoff", output.String())
+	}
+}

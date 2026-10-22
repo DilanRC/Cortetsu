@@ -200,9 +200,9 @@ func ParseRequest(data []byte) (*Request, error) {
 	var mutation bool
 	var argument any
 	switch r.Operation {
-	case "gamemode.status", "power.status", "display.status", "system.verify":
+	case "gamemode.status", "power.status", "display.status", "system.verify", "notifications.status":
 		argument = &struct{}{}
-	case "gamemode.set":
+	case "gamemode.set", "notifications.dnd.set":
 		mutation = true
 		argument = &struct {
 			Enabled *bool `json:"enabled"`

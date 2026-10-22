@@ -1,5 +1,10 @@
 # Arquitectura objetivo de Cortetsu
 
+> Este documento conserva la dirección de producto. La implementación actual
+> Rust/Go, schema 2, los dominios y los gates están descritos en el
+> [contrato del runtime nativo](migration/NATIVE-RUNTIME.md).
+
+
 ## Definición
 
 Cortetsu es un dotfiles reproducible y una plataforma de escritorio personal para CachyOS/Arch. La implementación actual utiliza Caelestia como base visual y de servicios del shell, pero Caelestia no define la identidad ni el alcance final del proyecto.

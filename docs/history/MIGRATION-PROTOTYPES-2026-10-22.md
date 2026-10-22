@@ -1,0 +1,137 @@
+# Cortetsu 2.0 — estado verificable de migración (2026-10-22)
+
+Esta tabla delimita qué existe en el `main` actual y qué **no** ha pasado a
+producción. La base instalada antes de comenzar era `b586c90` (PR #51,
+Calendario/Pomodoro/superficies). No hay reinicio del shell ni cambios en el
+portátil mientras se trabaja en nube. Verificar siempre el SHA de `main` y
+consultar los checks de GitHub Actions para la compilación concreta.
+
+| Fase original | Estado | Evidencia observable | Bloqueo para cerrar |
+|---|---|---|---|
+| F0 | COMPLETE previo | `docs/migration/F0` | QA física de los dominios futuros sigue separada |
+| F1a | COMPLETE previo | `docs/migration/F1a`, registro único de superficies | — |
+| Estabilización #51 | DEPLOYED_WITH_CONCERNS previo | `docs/migration/stabilization` | HDMI tras s2idle, heredados documentados |
+| F1b contratos IPC/exec | PARTIAL | `cortetsu/contracts/exec`, `cortetsu/protocol`, Go CI y fixture compartida con Rust `system.verify` | ADR de socket, equivalencia total del ejecutor Rust, expiración idempotente y prueba real de dos sesiones |
+| F2 Rust offline | PARTIAL | `cortetsu/rescue`, `Cargo.lock`, journal, `recover`, tests SIGKILL | Generación de helpers/restauración exacta y ENOSPC, upgrade/downgrade, adopción del binario |
+| F3 piloto Rust transaccional | NOT_STARTED | El rollback de punteros es infraestructura de recuperación, NO un piloto de hardware | Elegir dominio/ADR y validar rollback/readback propietario |
+| F4 Go observer | PARTIAL | `observehypr`, `cmd/cortetsu-coordinator` no residente ni autostart | logind/NM, eventos del owner, PSS, batería y dGPU en equipo real |
+| F5 migración Python→Rust | PARTIAL | `cortetsu/notification-helper` mantiene CLI y JSON, paridad automatizada | Concurrencia QML, restantes cientos de entrypoints, binarios dentro de generaciones |
+| F6 reglas Go simulate | PARTIAL | `policy`, `shadow`, determinismo y rechazo de mutaciones | Políticas ampliadas, usuario/consentimiento, trazas persistidas y gates de operación |
+| F7 cliente QML–Go | NOT_STARTED | Solo AF_UNIX de pruebas sin integración en QML | Socket real por sesión, bridge, pruebas de foco, reconnect y multimonitor |
+| F8 activación por dominio | NOT_STARTED | Ningún writer Go habilitado | Dominios Rust comprobados, readback, idempotencia durable y QA física |
+| F9 no Python propio | NOT_STARTED | Python histórico permanece instalado y bajo CI | Port completo + paridad de cada comando/test/instalador |
+| F10 QA física | NOT_TESTED para nuevas piezas | Sólo CI/nested/fakes; QA previa de #51 no cubre nuevos motores | HP Victus AMD/NVIDIA, HDMI, s2idle, energía, GameMode, teclas |
+| F11 release | BLOCKED | Sólo prototipos CLI/CI; no candidato instalable de 2.0 | Todos los gates anteriores y aceptación del usuario |
+
+## Principios innegociables
+
+- La compatibilidad se demuestra, no se simula con symlinks ABI o wrappers
+  Python ocultos. Ningún nuevo servicio obtiene permisos root ni se activa
+  antes de sus gates.
+- Rust `cortetsu-rescue` cambia únicamente punteros bajo una opción expresa;
+  su flag de confirmación avisa que NO recupera `~/.local/bin`. El rollback
+  canónico instalado sigue siendo el histórico hasta la nueva generación.
+- Go `cortetsu-coordinator` requiere lanzamiento explícito y sólo observa;
+  el modo `active` del motor de políticas rechaza mutaciones sin owner Rust.
+- Las pruebas en nube no validan drivers NVIDIA/AMD, monitores físicos, sueño,
+  enfoque de Quickshell en sesión real ni interferencias de gaming.
+- No comenzar retirada de Python ni denominar Cortetsu 2.0 release a esta
+  entrega parcial. Mantener las tres generaciones y sus respaldos para rollback.
+
+## Siguiente gate real de implementación
+
+1. Completar el contrato `cortetsu.exec/1` compartido con un ejecutor Rust
+   idempotente y solo operaciones tipadas; invalidar replay sobre journal.
+2. Diseñar la generación de helpers y empaquetado junto con schema2. El
+   instalador antiguo copia helpers a `~/.local/bin`, fuera de `SYSTEM.json`;
+   los seis symlinks actuales no bastan para una recuperación integral.
+3. Validar dos sesiones Hyprland reales, QA hardware y dominio reversible,
+   antes de activar cualquier política en segundo plano.
+
+**Estado global: `MIGRATION_IN_PROGRESS / NO_CUTOVER`.**
+
+## Avance aislado posterior, aún sin cutover
+
+- F1b/F7: bridge AF_UNIX real con sesión/epoch/UID, cliente QML único y
+  **desactivado** por `CORTETSU_V2_IPC_EXPERIMENTAL` salvo opt-in, snapshots
+  Hyprland solo con contadores/booleanos y readback Go→Rust `system.verify`
+  con argv fijo. CI cross-language usa HOME privado; falta QA de Quickshell y
+  dos sesiones Wayland físicas.
+- F2: staging de helpers Rust con manifiestos SHA256 y verificación
+  independiente; **no restaura todavía** helpers de `~/.local/bin` ni activa
+  system schema2, por lo que permanece pendiente la migración real.
+- F3: piloto transaccional de DND únicamente en sandbox de tests Rust, con
+  journal y recuperación que preserva cambios externos. `Notifs.qml` y
+  `CortetsuNotifications.qml` aún no comparten lock/owner, bloqueando cutover.
+- F4/F6: observer de eventos Hyprland redacted y simulador de reglas Go con
+  histéresis, cooldown por sesión, catálogo y explicaciones de trazas
+  acotadas. Sin unidad/autostart ni mutaciones.
+- F5: `cortetsu-notifications-rs` sigue candidato y sin reemplazo; el resto
+  de los helpers Python permanece.
+- F9: auditoría Go de Python de primera parte; el baseline actual registra
+  **41 entrypoints Python de runtime**, más tests y tooling en Git, y CI
+  bloquea nuevos entrypoints sin inventario. No pretende que el runtime ya
+  sea Python-free. El gate definitivo sigue NOT_READY.
+
+El avance deberá verificarse en el SHA publicado mediante GitHub Actions;
+las pruebas físicas hardware y consumo de las nuevas piezas siguen
+NOT_TESTED. No declarar F1b–F9 como finalizadas por este informe.
+
+## Siguiente incremento cloud — diseño de esquema 2, política auditable y segundo helper
+
+El trabajo de este incremento añade, **en calidad de candidato y sin cutover**:
+
+- **F2:** lectura/verificación de `SYSTEM.json` schema 2 con `helpersGeneration`,
+  hash de `HELPERS.json` y referencia al puntero `helpers/current`. El rollback
+  Rust existente pasa de seis a ocho punteros gestionados (incluye
+  `helpers/current` y `helpers/previous`) con journal, readback, prueba de ida
+  y vuelta y rechazo de manifiestos incompletos, bundles alterados y mezclas
+  schema1/schema2. El CLI antiguo Python **no entiende schema 2**: no usar
+  este esquema sobre la instalación real hasta completar el cambio conjunto
+  de instalador, wrappers y owners de `~/.local/bin`.
+- **F5:** candidato Rust `cortetsu-display-presets-rs` con los cuatro comandos
+  del helper histórico (`list`, `get`, `save`, `delete`), planner externo fijo,
+  deadline y pruebas comparativas sobre HOME desechables. No cambia pantallas
+  ni reemplaza `cortetsu-display-presets` en la instalación.
+- **F6:** `policyaudit` ofrece bitácora voluntaria, redactada, limitada a
+  4 MiB y protegida con UID/0700/0600 y fsync. `cortetsu-shadow --audit-dir DIR`
+  es opt-in; **no** enciende un daemon o muta recursos. No vuelca campos de
+  eventos, nombres de ventanas ni secretos.
+- **F9:** siguen existiendo 41 entrypoints Python de runtime según el
+  inventario reproducible. Dos candidatos Rust no equivalen a retirar Python.
+
+Los gates físicos y los cambios de propietarios permanecen abiertos. Las
+operaciones de alto impacto de F3/F8 están **BLOCKED**, no PASS. Los tests
+nuevos necesitan pasar en GitHub Actions en el SHA que los publique.
+
+## Incremento de idempotencia durable (preparación, no corte)
+
+`cortetsu/rescue/src/idempotency.rs` aporta tombstones `PREPARED` en un
+repositorio de usuario 0700/0600 y claves de idempotencia tipo UUID. Las
+solicitudes repetidas no ejecutan una acción: regresan `RECOVERY_REQUIRED`
+o `READBACK_REQUIRED` y las huellas/revisiones divergentes se rechazan.
+`finish_with_readback` requiere que un owner de confianza observe una
+revisión incrementada. **No existe un dispatch de mutaciones** conectado a
+ese código y no se ha cumplido el gate multisesión/hardware.
+
+El inventario F9 también bloquea nuevos sitios de invocación runtime
+`python3` por QML/Bash, además de nuevos archivos Python. La lista congelada
+contiene 41 entrypoints runtime y 6 sitios de llamada; no considera resueltos
+los imports ni los wrappers Python. La eliminación completa de Python sigue
+`NOT_READY`.
+
+## Implementación adicional: schema 2 readback y tercer piloto Rust
+
+- `core/system.py` admite **verificación y status** de generaciones de helpers
+  schema 2 sin activar su promoción. Rechaza rollback Python de schema 2 y
+  cruces schema 1/2 que dejarían helpers desincronizados.
+- `scripts/features/test-system-helper-schema2.py` prueba bundles, digest,
+  drift y el bloqueo de rollback en XDG temporal. El gate corre en la CI.
+- `cortetsu/rescue/src/strict_json.rs` añade validación recursiva sin claves
+  duplicadas ni cero negativo al adaptador Rust `cortetsu.exec/1` de lectura.
+- `cortetsu/prune-applications-rs` es un tercer candidato **no instalado** de
+  migración Python→Rust. Sus pruebas comparan CLI de cuarentena y `--dry-run`
+  contra el Python existente, sin abrir archivos personales.
+
+Estas mejoras **no cierran F1b–F9**: no hay cutover del instalador, otros
+helpers Python siguen siendo propietarios y no se habilita el escritor Go.

@@ -1,0 +1,86 @@
+#!/usr/bin/env python3
+"""Emit the Material 3 scheme consumed by the dynamic palette reader."""
+from __future__ import annotations
+
+import argparse
+import json
+import subprocess
+import sys
+
+from materialyoucolor.palettes.core_palette import CorePalette
+from materialyoucolor.scheme.scheme import Scheme
+from materialyoucolor.quantize import QuantizeCelebi
+from materialyoucolor.score.score import Score
+
+
+def hex6(value: int) -> str:
+    return f"{value & 0xFFFFFF:06x}"
+
+
+def image_source(path: str) -> int:
+    raw = subprocess.check_output(
+        ["/usr/bin/magick", path, "-resize", "64x64^", "-gravity", "center",
+         "-extent", "64x64", "-depth", "8", "rgba:-"],
+        stderr=subprocess.DEVNULL,
+    )
+    pixels = [[raw[i], raw[i + 1], raw[i + 2]] for i in range(0, len(raw) - 3, 4)]
+    if not pixels:
+        raise ValueError("wallpaper produced no pixels")
+    ranked = Score.score(QuantizeCelebi(pixels, 128))
+    return ranked[0] if ranked else 0xFF4285F4
+
+
+def colours(source: int, mode: str) -> dict[str, str]:
+    core = CorePalette.content_of(source)
+    scheme = Scheme.dark_content(source) if mode == "dark" else Scheme.light_content(source)
+    values = dict(scheme.props)
+    n1, n2 = core.n1, core.n2
+
+    values.update({
+        "primary_paletteKeyColor": core.a1.tone(40),
+        "secondary_paletteKeyColor": core.a2.tone(40),
+        "tertiary_paletteKeyColor": core.a3.tone(40),
+        "neutral_paletteKeyColor": n1.tone(40),
+        "neutral_variant_paletteKeyColor": n2.tone(40),
+        "surfaceDim": n1.tone(6 if mode == "dark" else 87),
+        "surfaceBright": n1.tone(24 if mode == "dark" else 98),
+        "surfaceContainerLowest": n1.tone(4 if mode == "dark" else 100),
+        "surfaceContainerLow": n1.tone(10 if mode == "dark" else 96),
+        "surfaceContainer": n1.tone(12 if mode == "dark" else 94),
+        "surfaceContainerHigh": n1.tone(17 if mode == "dark" else 92),
+        "surfaceContainerHighest": n1.tone(22 if mode == "dark" else 90),
+        "primaryDim": core.a1.tone(70 if mode == "dark" else 30),
+        "secondaryDim": core.a2.tone(70 if mode == "dark" else 30),
+        "tertiaryDim": core.a3.tone(70 if mode == "dark" else 30),
+    })
+    for prefix, palette in (("primary", core.a1), ("secondary", core.a2), ("tertiary", core.a3)):
+        values[f"{prefix}Fixed"] = palette.tone(90)
+        values[f"{prefix}FixedDim"] = palette.tone(80)
+        values[f"on{prefix.title()}Fixed"] = palette.tone(10)
+        values[f"on{prefix.title()}FixedVariant"] = palette.tone(30)
+
+    term_palettes = [core.n1, core.a1, core.a2, core.a3, core.error]
+    for index in range(16):
+        palette = term_palettes[index % len(term_palettes)]
+        values[f"term{index}"] = palette.tone(80 if index % 2 else 60)
+    return {key: hex6(value) for key, value in values.items()}
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("image")
+    parser.add_argument("--mode", choices=("dark", "light"), default="dark")
+    args = parser.parse_args()
+    try:
+        payload = {"name": "dynamic", "flavour": "default", "mode": args.mode,
+                   "variant": "tonal-spot", "colours": colours(image_source(args.image), args.mode)}
+        json.dump(payload, sys.stdout, separators=(",", ":"))
+        sys.stdout.write("\n")
+        return 0
+    except (OSError, ValueError, subprocess.CalledProcessError) as error:
+        print(f"cortetsu-wallpaper-colours: {error}", file=sys.stderr)
+        return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

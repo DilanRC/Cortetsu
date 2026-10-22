@@ -17,6 +17,9 @@ serde_json = "1"
 sha2 = "0.10"
 walkdir = "2"
 fs2 = "0.4"
+cortetsu-notifications-rs = { path = "../notification-helper" }
+nix = { version = "0.30", features = ["signal", "process", "user", "fs"] }
+signal-hook = "0.3"
 
 [lints.rust]
 unsafe_code = "forbid"

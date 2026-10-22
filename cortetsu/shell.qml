@@ -27,10 +27,14 @@ ShellRoot {
     readonly property var displayCalibration: DisplayCalibration
     Binding { target: ShellState; property: "shellRoot"; value: root }
     ShellLifecycle {}
-    // Optional Cortetsu 2.0 observation bridge. OFF by default; never
-    // changes window focus, keyboard ownership or existing manual actions.
+    // One coordinator belongs to this shell session. All automation domains
+    // remain disabled until the user grants consent in Settings.
+    readonly property bool policySessionAvailable: (Quickshell.env("HYPRLAND_INSTANCE_SIGNATURE") || "").length > 0
+        && (Quickshell.env("XDG_RUNTIME_DIR") || "").length > 0
+    readonly property var policyBridge: policyBridgeLoader.item
     Loader {
-        active: Quickshell.env("CORTETSU_V2_IPC_EXPERIMENTAL") === "1"
+        id: policyBridgeLoader
+        active: root.policySessionAvailable
         source: "modules/CortetsuPolicyBridge.qml"
     }
     ServiceLoader {}

@@ -1,0 +1,141 @@
+#!/usr/bin/env python3
+"""First-party emoji/glyph picker.
+
+Reads cortetsu/data/emojis.txt (one "<glyph> <label> <tags...>" per line),
+shows it in fuzzel as a dmenu, and copies the chosen glyph to the clipboard
+with wl-copy. `--fetch` refreshes the data file from the same two upstream
+sources (emojibase + nerd-fonts) the old picker's fetch mode used, so the
+data stays first-party without vendoring a fetch service.
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+from urllib.request import urlopen
+
+STATIC_ENTRIES = [
+    "¿? question upside down reversed spanish",
+    "← left arrow",
+    "↑ up arrow",
+    "→ right arrow",
+    "↓ down arrow",
+    "←↑→↓ all directions up down left right arrows",
+    "⇇ leftwards paired arrows",
+    "⇉ rightwards paired arrows",
+    "⇈ upwards paired arrows",
+    "⇊ downwards paired arrows",
+    "⬱ three leftwards arrows",
+    "⇶ three rightwards arrows",
+    "• dot circle separator",
+    "「」 japanese quote square bracket",
+    "¯\\_(ツ)_/¯ shrug idk i dont know",
+    "(ง🔥ﾛ🔥)ง person with fire eyes eyes on fire",
+    "↵ enter key return",
+    "° degrees",
+    "™ tm trademark",
+    "® registered trademark",
+    "© copyright",
+    "— em dash",
+    "󰖳 windows super key",
+]
+
+EMOJIBASE_URL = "https://raw.githubusercontent.com/milesj/emojibase/refs/heads/master/packages/data/en/compact.raw.json"
+NERD_FONTS_URL = "https://raw.githubusercontent.com/ryanoasis/nerd-fonts/refs/heads/master/glyphnames.json"
+
+
+def repo_root() -> Path:
+    override = os.environ.get("CORTETSU_REPO_ROOT")
+    if override:
+        return Path(override)
+    data_root = os.environ.get("CORTETSU_DATA_ROOT")
+    base = Path(data_root) if data_root else Path.home() / ".local/share/cortetsu"
+    return base / "repository"
+
+
+def data_path() -> Path:
+    override = os.environ.get("CORTETSU_EMOJI_DATA")
+    if override:
+        return Path(override)
+    return repo_root() / "cortetsu/data/emojis.txt"
+
+
+def cmd_picker(path: Path) -> int:
+    if not path.is_file():
+        print(f"cortetsu-emoji: no such data file: {path}", file=sys.stderr)
+        return 1
+    entries = path.read_text(encoding="utf-8")
+    chosen = subprocess.check_output(
+        ["fuzzel", "--dmenu", "--placeholder=Type to search emojis"],
+        input=entries, text=True,
+    )
+    glyph = chosen.split()[0] if chosen.split() else ""
+    subprocess.run(["wl-copy"], input=glyph, text=True, check=True)
+    return 0
+
+
+def cmd_fetch(path: Path) -> int:
+    data = list(STATIC_ENTRIES)
+
+    with urlopen(EMOJIBASE_URL) as f:
+        emojis = json.load(f)
+    for emoji in emojis:
+        line = [emoji["unicode"]]
+        emoticon = emoji.get("emoticon")
+        if isinstance(emoticon, str):
+            line.append(emoticon)
+        elif emoticon:
+            line.extend(emoticon)
+        line.append(emoji["label"])
+        line.extend(emoji.get("tags", []))
+        data.append(" ".join(line))
+
+    with urlopen(NERD_FONTS_URL) as f:
+        glyphs = json.load(f)
+    buckets: dict[str, list[str]] = {}
+    for name, glyph in glyphs.items():
+        if name == "METADATA":
+            continue
+        buckets.setdefault(glyph["char"], []).append(f"nf-{name}")
+    for glyph, names in buckets.items():
+        data.append(f"{glyph}  {' '.join(names)}")
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("\n".join(data) + "\n", encoding="utf-8")
+    print(f"cortetsu-emoji: fetched {len(data)} entries -> {path}")
+    return 0
+
+
+def cmd_dump(path: Path) -> int:
+    if not path.is_file():
+        print(f"cortetsu-emoji: no such data file: {path}", file=sys.stderr)
+        return 1
+    sys.stdout.write(path.read_text(encoding="utf-8"))
+    return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("-p", "--picker", action="store_true", help="open the emoji/glyph picker")
+    group.add_argument("-f", "--fetch", action="store_true", help="fetch emoji/glyph data from remote")
+    args = parser.parse_args()
+
+    path = data_path()
+    if args.picker:
+        return cmd_picker(path)
+    if args.fetch:
+        return cmd_fetch(path)
+    return cmd_dump(path)
+
+
+if __name__ == "__main__":
+    try:
+        raise SystemExit(main())
+    except BrokenPipeError:
+        # e.g. `cortetsu emoji | head` -- the reader closed early, not an error.
+        os.dup2(os.open(os.devnull, os.O_WRONLY), sys.stdout.fileno())
+        raise SystemExit(0)

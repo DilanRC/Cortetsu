@@ -3,8 +3,9 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import "CortetsuNotificationModel.js" as HistoryModel
 
-// First-party notification history/DND facade. Owns two XDG-state files
+// First-party notification history/DND facade. Reads two XDG-state files
 // (cortetsu/notifs.json, cortetsu/notification-status.json) reactively via
 // FileView, and routes mutations through the cortetsu-notifications binary
 // (deterministic, unit-tested in cortetsu/tests/test-notifications.py)
@@ -20,16 +21,30 @@ Singleton {
     property var history: []
     property bool dnd: false
     property bool loaded: false
+    property bool statusReady: false
     property bool historyReady: false
+    property var clearState: null
+    property bool clearStorageReady: false
+    property bool historyAwaitingClear: false
 
     function readNotifications(): void {
-        try {
-            const entries = JSON.parse(notifications.text());
-            history = Array.isArray(entries) ? entries : [];
-        } catch (_) {
-            history = [];
-        }
+        historyAwaitingClear = false;
+        if (clearState === null || clearState.pending) { historyReady = false; return; }
+        const entries = HistoryModel.parseHistory(notifications.text());
+        historyReady = entries !== null;
+        if (entries === null) return;
+        history = entries;
         count = history.length;
+    }
+
+    function applyClearState(next: var): void {
+        const observed = HistoryModel.observeClear(clearState, next);
+        clearStorageReady = observed !== null;
+        if (observed === null) return;
+        clearState = observed.state;
+        if (observed.clear || clearState.pending) { history = []; count = 0; }
+        if (historyAwaitingClear) readNotifications();
+        else if (notifications) notifications.reload();
     }
 
     function dismiss(id: var): void {
@@ -40,8 +55,36 @@ Singleton {
         Quickshell.execDetached(["cortetsu-notifications", "clear"]);
     }
 
+    function setDnd(enabled: bool): void {
+        Quickshell.execDetached(["cortetsu-notifications", "dnd", enabled ? "on" : "off"]);
+    }
+
     function toggleDnd(): void {
         Quickshell.execDetached(["cortetsu-notifications", "dnd", "toggle"]);
+    }
+
+    FileView {
+        id: clearStorage
+        path: `${root.stateRoot}/cortetsu/notifs-clear.json`
+        blockLoading: true
+        watchChanges: true
+        printErrors: false
+        onLoaded: {
+            try { root.applyClearState(JSON.parse(text())); }
+            catch (_) { root.clearStorageReady = false; }
+        }
+        onFileChanged: reload()
+        onLoadFailed: {
+            if (root.clearState === null) root.applyClearState({revision: 0, pending: false});
+            else if (root.historyAwaitingClear) root.readNotifications();
+            root.clearStorageReady = false;
+        }
+    }
+    Timer {
+        running: !root.clearStorageReady
+        interval: 1000
+        repeat: true
+        onTriggered: clearStorage.reload()
     }
 
     FileView {
@@ -50,13 +93,12 @@ Singleton {
         watchChanges: true
         printErrors: false
         onLoaded: {
-            root.historyReady = true;
-            root.readNotifications();
+            root.historyAwaitingClear = true;
+            clearStorage.reload();
         }
         onFileChanged: reload()
         onLoadFailed: {
-            root.history = [];
-            root.count = 0;
+            root.historyReady = false;
         }
     }
 
@@ -76,25 +118,28 @@ Singleton {
         watchChanges: true
         printErrors: false
         onLoaded: {
-            try { root.dnd = JSON.parse(text()).dnd === true; } catch (_) { root.dnd = false; }
-            root.loaded = true;
+            const state = HistoryModel.parseDnd(text());
+            root.statusReady = state !== null;
+            if (state !== null) { root.dnd = state.dnd; root.loaded = true; }
         }
         onFileChanged: reload()
         onLoadFailed: {
-            root.loaded = true;
-            setText(JSON.stringify({ dnd: false }));
+            root.statusReady = false;
         }
     }
 
-    onDndChanged: {
-        if (loaded)
-            status.setText(JSON.stringify({ dnd }));
+    Timer {
+        running: !root.statusReady
+        interval: 1000
+        repeat: true
+        onTriggered: status.reload()
     }
 
     IpcHandler {
         target: "cortetsu-notifications"
         function clear(): void { root.clear(); }
         function dismiss(id: string): void { root.dismiss(id); }
+        function setDnd(enabled: bool): void { root.setDnd(enabled); }
         function toggleDnd(): void { root.toggleDnd(); }
         function isDndEnabled(): bool { return root.dnd; }
         function count(): int { return root.count; }

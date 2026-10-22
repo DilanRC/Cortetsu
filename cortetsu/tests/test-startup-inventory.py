@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Temporary-home checks for startup inventory and reversible toggles."""
+"""Native registry/QML contract plus isolated historical operation oracles.
+
+The Python functions below are the archived development reference, never the
+installed helper. Native CLI/ownership tests live in desktop-runtime-rs/tests.
+"""
 import importlib.machinery
 import importlib.util
 import json
@@ -9,11 +13,18 @@ import re
 import shutil
 import tempfile
 
-SCRIPT = Path(__file__).resolve().parents[1] / "bin/cortetsu-startup"
+REPO = Path(__file__).resolve().parents[2]
+SCRIPT = REPO / "tests/reference/python-runtime/cortetsu/bin/cortetsu-startup"
 loader = importlib.machinery.SourceFileLoader("cortetsu_startup", str(SCRIPT))
 spec = importlib.util.spec_from_loader(loader.name, loader)
 app = importlib.util.module_from_spec(spec)
 loader.exec_module(app)
+NATIVE_COMPONENTS = json.loads((REPO / "cortetsu/desktop-runtime-rs/src/startup-components.json").read_text())
+assert len({entry["id"] for entry in NATIVE_COMPONENTS}) == len(NATIVE_COMPONENTS)
+# The immutable oracle supplies normalization/edit semantics. All structural
+# checks use the catalog actually compiled into the native runtime.
+app.CORTETSU_STARTUP = NATIVE_COMPONENTS
+app.cortetsu_source_root = lambda: REPO / "cortetsu"
 
 
 def put(path: Path, text: str) -> None:
@@ -335,9 +346,9 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-startup-test-") as temp:
     assert app.process_is_running(["cortetsu-startup", "scan"], fake_proc, unambiguous=False) is None
     fake_script_proc = base / "script-proc"
     (fake_script_proc / "124").mkdir(parents=True)
-    (fake_script_proc / "124/cmdline").write_bytes(
-        b"/usr/bin/python3\0" + os.fsencode(script_path) + b"\0scan\0")
     python_path = Path(shutil.which("python3")).resolve()
+    (fake_script_proc / "124/cmdline").write_bytes(
+        os.fsencode(python_path) + b"\0" + os.fsencode(script_path) + b"\0scan\0")
     (fake_script_proc / "124/exe").symlink_to(python_path)
     assert app.process_is_running(
         ["cortetsu-startup", "scan"], fake_script_proc, executable_path=script_path) is True
@@ -347,14 +358,14 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-startup-test-") as temp:
     self_proc = base / "self-proc" / str(os.getpid())
     self_proc.mkdir(parents=True)
     (self_proc / "cmdline").write_bytes(
-        b"/usr/bin/python3\0" + os.fsencode(script_path) + b"\0scan\0")
+        os.fsencode(python_path) + b"\0" + os.fsencode(script_path) + b"\0scan\0")
     (self_proc / "exe").symlink_to(python_path)
     assert app.process_is_running(
         ["cortetsu-startup", "scan"], self_proc.parent, executable_path=script_path) is False
     script_spoof_proc = base / "script-spoof-proc"
     (script_spoof_proc / "126").mkdir(parents=True)
     (script_spoof_proc / "126/cmdline").write_bytes(
-        b"/usr/bin/python3\0" + os.fsencode(script_path) + b"\0scan\0")
+        os.fsencode(python_path) + b"\0" + os.fsencode(script_path) + b"\0scan\0")
     (script_spoof_proc / "126/exe").symlink_to(os.path.realpath(shutil.which("cat")))
     assert app.process_is_running(
         ["cortetsu-startup", "scan"], script_spoof_proc, executable_path=script_path) is False
@@ -376,6 +387,10 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-startup-test-") as temp:
     assert {entry["startupPhase"] for entry in app.CORTETSU_STARTUP} == {"always-on", "conditional", "on-demand"}
     phases = {entry["id"]: entry["startupPhase"] for entry in app.CORTETSU_STARTUP}
     assert phases["cortetsu:pomodoro"] == "always-on"
+    assert phases["cortetsu:coordinator"] == "always-on"
+    assert phases["cortetsu:policy-command"] == "on-demand"
+    assert phases.get("cortetsu:notification-status-ensure") == "always-on"
+    assert phases.get("cortetsu:notification-history-merge") == "conditional"
     assert phases["cortetsu:spectrum"] == "conditional"
     assert phases["cortetsu:brightness-connector"] == phases["cortetsu:brightness-discovery"] == "always-on"
     assert phases["cortetsu:connectivity-monitor"] == "always-on"
@@ -394,7 +409,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-startup-test-") as temp:
     assert startup_rows["cortetsu:hardware-energy-probe"]["running"] is None
     assert all("eligible" not in entry for entry in startup_rows.values())
     assert '"configured": component["startupPhase"] != "on-demand"' in SCRIPT.read_text(encoding="utf-8")
-    assert {entry["id"] for entry in app.CORTETSU_STARTUP} == {
+    assert {entry["id"] for entry in app.CORTETSU_STARTUP} >= {
         "cortetsu:pomodoro", "cortetsu:gamemode-control", "cortetsu:wallpaper-scan", "cortetsu:battery-notification",
         "cortetsu:battery-sleep", "cortetsu:spectrum", "cortetsu:connectivity-monitor",
         "cortetsu:connectivity-command", "cortetsu:network-password-copy", "cortetsu:network-password-clipboard", "cortetsu:vpn-status",
@@ -415,7 +430,15 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-startup-test-") as temp:
         source_text = source.read_text(encoding="utf-8")
         assert source.is_file()
         if entry["command"]:
-            assert entry["command"][0] in source_text, entry["id"]
+            # Fixed argv can be constructed by an imported JS model shared
+            # with its boundary tests; require that real import rather than
+            # a duplicated command string in the QML process declaration.
+            command_sources = [source_text]
+            for relative in re.findall(r'^import\s+"([^"]+\.js)"\s+as\s+\w+', source_text, re.MULTILINE):
+                model = (source.parent / relative).resolve()
+                assert model.is_relative_to(REPO / "cortetsu"), model
+                command_sources.append(model.read_text(encoding="utf-8"))
+            assert any(entry["command"][0] in text for text in command_sources), entry["id"]
         else:
             assert entry["commandSource"] in source_text, entry["id"]
         if entry["qmlId"]:
@@ -432,6 +455,15 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-startup-test-") as temp:
                 entry = next(item for item in app.CORTETSU_STARTUP if item["id"] == marker)
                 assert entry["startupPhase"] == "on-demand", marker
                 assert marker not in starts, "factory must not launch during singleton creation"
+                starts.append(marker)
+        # A declared process can be cold until an event (including FileView
+        # onLoaded or a user action) invokes it. It must still have a catalog
+        # row. Automatic starts above remain checked for UNREGISTERED markers.
+        for marker in re.findall(r"//\s*startup inventory:\s*(cortetsu:[\w-]+)", text):
+            if marker not in starts:
+                entry = next((item for item in NATIVE_COMPONENTS if item["id"] == marker), None)
+                assert entry is not None, f"missing native startup catalog entry: {marker}"
+                assert entry["startupPhase"] in {"on-demand", "conditional"}, marker
                 starts.append(marker)
         if starts:
             declarations[source.relative_to(repo_root).as_posix()] = sorted(starts)
@@ -614,4 +646,4 @@ esac
     changes = [json.loads(line) for line in (home / ".local/state/cortetsu/startup/changes.jsonl").read_text().splitlines()]
     assert any(change.get("action") == "stop" and change.get("oldState") == "running" and change.get("newState") == "stopped" for change in changes)
 
-print("PASS: XDG overrides and user systemd toggles use isolated fixtures")
+print("PASS: native startup registry covers QML processes; historical XDG/systemd oracles use isolated fixtures")

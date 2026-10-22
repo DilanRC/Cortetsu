@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """Semantic parity with the shipped Python CLI in isolated XDG directories.
 
-This is a temporary F5 comparison tool, not a replacement for Python first-party
-CI. It performs no operations on the real user's HOME or session.
+These test-only archived sources preserve the prior observable behavior. It performs no operations on the real user's HOME or session.
 """
 from __future__ import annotations
 
@@ -14,7 +13,7 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
-PYTHON = ROOT / "cortetsu/bin/cortetsu-notifications"
+PYTHON = ROOT / "tests/reference/python-runtime/cortetsu/bin/cortetsu-notifications"
 RUST = ROOT / "cortetsu/notification-helper/target/release/cortetsu-notifications-rs"
 
 
@@ -39,6 +38,10 @@ def read_state(root: Path) -> dict:
             text = file.read_text(encoding="utf-8")
             try:
                 result[name] = json.loads(text)
+                if name == "notification-status.json" and isinstance(result[name], dict):
+                    # New durable transaction metadata is additive, not user content.
+                    result[name].pop("revision", None)
+                    result[name].pop("manual_override_until_unix_ms", None)
             except json.JSONDecodeError:
                 result[name] = {"invalid_raw": text}
     return result
@@ -81,7 +84,15 @@ def main() -> None:
                   ["dnd", "toggle"], ["dnd", "off"], ["clear"], ["count"]])
     verify({}, [["count"], ["history"], ["dnd", "status"], ["clear"], ["history"]])
     verify({"notifs.json": "{broken history"}, [["count"], ["clear"], ["count"]])
-    verify({"notification-status.json": "{invalid"}, [["dnd", "status"], ["dnd", "on"]])
+    # Deliberate safety change: the old CLI reset corrupt status. The native
+    # owner refuses it without overwriting bytes; this is not a parity waiver.
+    with tempfile.TemporaryDirectory(prefix="cortetsu-corrupt-owner-") as parent:
+        target = Path(parent) / "cortetsu" / "notification-status.json"
+        target.parent.mkdir()
+        target.write_text("{invalid")
+        for action in (["dnd", "status"], ["dnd", "on"]):
+            result = run([str(RUST), *action], {**os.environ, "XDG_STATE_HOME": parent})
+            assert result.returncode != 0 and target.read_text() == "{invalid"
     verify({}, [["unknown"], ["dnd", "unknown"]])
     print("PASS: Rust notifications CLI semantic parity (private XDG_STATE_HOME)")
 

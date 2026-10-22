@@ -1,22 +1,9 @@
-name: Cortetsu 2.0 IPC Go-Rust end-to-end
-
+name: Cortetsu native end-to-end
 on:
   push:
-    paths:
-      - 'cortetsu/protocol/**'
-      - 'cortetsu/rescue/**'
-      - 'scripts/features/test-cortetsu-cross-language-ipc.py'
-      - '.github/workflows/cortetsu-v2-cross-language-ci.yml'
   pull_request:
-    paths:
-      - 'cortetsu/protocol/**'
-      - 'cortetsu/rescue/**'
-      - 'scripts/features/test-cortetsu-cross-language-ipc.py'
-      - '.github/workflows/cortetsu-v2-cross-language-ci.yml'
-
 permissions:
   contents: read
-
 jobs:
   ipc-e2e:
     runs-on: ubuntu-latest
@@ -24,16 +11,29 @@ jobs:
       - uses: actions/checkout@v6
       - uses: actions/setup-go@v6
         with:
-          go-version-file: cortetsu/protocol/go.mod
-      - name: Install Rust with a pinned lockfile
-        run: rustup toolchain install stable --profile minimal --component rustfmt,clippy && rustup default stable
-      - name: Build Rust offline verifier
-        run: cargo build --locked --release --manifest-path cortetsu/rescue/Cargo.toml
-      - name: Build Go per-session bridge
-        working-directory: cortetsu/protocol
-        run: go build -trimpath -o dist/cortetsu-bridge ./cmd/cortetsu-bridge
-      - name: Exercise the real Go->Rust exchange in a private XDG test home
+          go-version: stable
+          cache-dependency-path: cortetsu/protocol/go.sum
+      - name: Install Rust
+        run: rustup toolchain install stable --profile minimal && rustup default stable
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            cortetsu/*/target
+          key: bundle-${{ runner.os }}-${{ hashFiles('cortetsu/**/Cargo.lock') }}
+      - name: Build the complete generation-ready bundle
+        run: scripts/build-native.sh
+      - name: Real Go to Rust verification and failure propagation
         run: |
           python3 scripts/features/test-cortetsu-cross-language-ipc.py \
-            --bridge cortetsu/protocol/dist/cortetsu-bridge \
-            --rescue cortetsu/rescue/target/release/cortetsu-rescue
+            --bridge dist/native/cortetsu-bridge --rescue dist/native/cortetsu-rescue
+      - name: Real consent, CAS, manual override, audit and crash reconnect
+        run: python3 scripts/verification/test-active-policy.py
+      - name: Preserve executable modes in the downloadable bundle
+        run: tar -C dist -czf dist/cortetsu-native-linux-amd64.tar.gz native
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cortetsu-native-linux-amd64
+          path: dist/cortetsu-native-linux-amd64.tar.gz
+          retention-days: 14

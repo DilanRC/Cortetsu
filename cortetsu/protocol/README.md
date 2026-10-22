@@ -1,30 +1,32 @@
-# Cortetsu protocol — módulos aislados, sin activación
+# Cortetsu coordinator and typed protocols
 
-Módulo Go `github.com/DilanRC/Cortetsu/cortetsu/protocol`.
+The Go module owns per-session observation, policy evaluation, consent and
+coordination. Rust owns resource mutations and generation recovery; QML displays
+confirmed snapshots and changes consent through a fixed local CLI.
 
-- `execv1`: solicitudes/salidas de helpers `cortetsu.exec/1`, fixtures y fingerprints JCS.
-- `ipcv1`: contrato `cortetsu.ipc/1`, sesiones, AF_UNIX **solo pruebas**, sin mutaciones.
-- `policy`: motor `observe/simulate` con reglas declarativas, eventos secuenciados y campos permitidos.
-- `shadow`: simulador de trazas offline y salida explicativa segura.
-- `cmd/cortetsu-shadow`: CLI opt-in de simulación; **no es un daemon**.
-- `observehypr` y `cmd/cortetsu-coordinator`: escucha de eventos Hyprland por AF_UNIX, solo lectura, campos de evento redactados, epoch nuevo y resnapshot tras reconexión. Se activa únicamente al invocar la CLI; sin unidad systemd ni escritor de recursos.
-
-Probar:
+| Package | Contract |
+| --- | --- |
+| `ipcv1` | Private AF_UNIX framing, UID/session/epoch negotiation, bounded read-only QML RPC |
+| `execv1`, `execclient` | Strict typed Rust requests/responses, CAS, UUIDs, deadlines and process cancellation |
+| `daemon` | One coordinator per session, metadata publication, reconnect and snapshot invalidation |
+| `observehypr`, `observedbus` | Hyprland, logind, UPower and NetworkManager owner reads and event invalidation |
+| `policy`, `coordinator` | Pure simulation plus consent-gated execution, hysteresis, TTL, cooldown and verified readback |
+| `activation` | Private durable per-domain/session consent, explicit revocation and override |
+| `policyaudit` | Bounded, redacted durable intent/result audit |
+| `shadow` | Deterministic offline trace simulation |
 
 ```sh
 go test -race ./...
 go vet ./...
 go run ./cmd/cortetsu-shadow -rules fixtures/rules.json < fixtures/trace.ndjson
+go run ./cmd/cortetsu-python-inventory --repo ../.. --require-native
 ```
 
-Fases y gates: `docs/migration/F1b/README.md`. Este código NO está conectado a Quickshell ni a Rust y no reemplaza helpers de Python.
+The shell starts `cortetsu-coordinator --observe` once. `cortetsu-bridge` is a
+compatibility name for the same daemon. Neither grants consent at startup.
+`cortetsu-policy status|rules` is read-only; `enable`, `disable`, `override` and
+`revoke` change only configuration. Device writes remain enumerated requests to
+the trusted sibling Rust owner. Default domains are disabled.
 
-
-Probar observación voluntaria en entorno desechable (solo emite metadatos):
-
-```sh
-go run ./cmd/cortetsu-coordinator --session test --socket /ruta/socket2.sock
-```
-
-El modo por defecto usa `XDG_RUNTIME_DIR` y `HYPRLAND_INSTANCE_SIGNATURE`.
-Nunca activar como servicio hasta validar identidad de sesión, ACL y energía.
+The full operating and verification contract is
+[`docs/migration/NATIVE-RUNTIME.md`](../../docs/migration/NATIVE-RUNTIME.md).

@@ -3,7 +3,7 @@ schema = 4
 [project]
 name = "Cortetsu"
 kind = "dotfiles-platform"
-stage = "unified-system-generations"
+stage = "native-runtime-generations"
 source_of_truth = "git-main"
 platforms = ["CachyOS", "Arch Linux"]
 
@@ -44,7 +44,7 @@ strategy = "build-hash-backup-promote-verify"
 current = "~/.local/share/cortetsu/system/current"
 previous = "~/.local/share/cortetsu/system/previous"
 generations = "~/.local/share/cortetsu/system/builds"
-components = ["shell", "dotfiles"]
+components = ["shell", "dotfiles", "helpers"]
 rollback = "coordinated-compensating-transaction"
 
 [packages]

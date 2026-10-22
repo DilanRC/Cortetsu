@@ -224,7 +224,7 @@ FocusScope {
                         network: networkPage, bluetooth: bluetoothPage, audio: audioPage, display: displayPage,
                         power: powerPage, notifications: notificationsPage, input: inputPage,
                         appearance: appearancePage, wallpaper: wallpaperPage, desktop: desktopPage,
-                        bottomhub: bottomHubPage, launcher: launcherPage, shortcuts: shortcutsPage, about: aboutPage
+                        bottomhub: bottomHubPage, launcher: launcherPage, shortcuts: shortcutsPage, automation: automationPage, about: aboutPage
                     })
 
                     // Leaves room for the scroll bar so it never covers a
@@ -264,5 +264,6 @@ FocusScope {
     Component { id: bottomHubPage; BottomHubSection { context: settingsContext } }
     Component { id: launcherPage; LauncherSection { context: settingsContext } }
     Component { id: shortcutsPage; ShortcutsSection { context: settingsContext } }
+    Component { id: automationPage; AutomationSection { context: settingsContext } }
     Component { id: aboutPage; AboutSection { context: settingsContext } }
 }

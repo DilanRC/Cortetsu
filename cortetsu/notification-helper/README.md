@@ -1,25 +1,32 @@
-# Cortetsu Notifications — Rust port, opt-in, not installed
+# Cortetsu Notifications — owner Rust
 
-F5 parity candidate for `cortetsu/bin/cortetsu-notifications` (Python).
-Builds `cortetsu-notifications-rs` to avoid replacing the currently installed
-helper before the transition and reverse transition have been tested.
+El bundle nativo instala este ejecutable detrás de `cortetsu-notifications`.
+Mantiene count/history/dismiss/clear y dnd status/on/off/toggle. QML utiliza
+merge con IDs base y revisión de clear; Go utiliza estado/DND tipados con CAS,
+idempotencia durable y readback. Todos comparten el mismo lock.
 
-Commands: `count`, `history`, `dismiss ID`, `clear`, `dnd status/on/off/toggle`.
-Reads the existing XDG state schema without upgrades or QML changes. Mutations
-preserve unrelated fields and use a sibling tempfile plus `fsync`+rename.
-The Rust helper's private advisory lock coordinates its own instances only;
-**Quickshell does not acquire that lock**. The old owner remains active until
-cross-process contention and real QML integration tests establish safety.
+DND preserva campos desconocidos y aplica cambios atómicos con fsync/journal.
+La recuperación repara una intención incompleta o un anchor pendiente tras
+commit; nunca reejecuta una clave incierta. Los cambios manuales tienen prioridad
+sobre automatización. Los receipts automáticos son acotados; una elección manual
+sigue disponible cuando el ledger está lleno.
 
-`history` on malformed JSON fails with exit 65 without overwriting the file;
-`clear` deliberately replaces malformed history, matching Python. Usage errors
-exit 64. DND status and history/count are strictly read-only.
+El historial conserva su array JSON. Un clear tiene token durable propio para
+no resucitar lotes anteriores, incluso si el array ya estaba vacío. QML aplica
+el resultado sobre IDs congelados y conserva notificaciones posteriores.
 
-For trial in a private HOME only:
+Historial inválido falla con salida65; clear explícito puede vaciar un archivo
+regular corrupto. Un symlink no se sigue ni reemplaza. DND corrupto se conserva
+y devuelve error. Las lecturas de estado pueden reconciliar una edición externa
+con una revisión y pausa manual; no se describen como estrictamente read-only.
 
 ```sh
-cargo build --release --manifest-path cortetsu/notification-helper/Cargo.toml
-XDG_STATE_HOME=/tmp/cortetsu-notif-test cortetsu/notification-helper/target/release/cortetsu-notifications-rs count
+cargo test --locked --all-targets
+cargo build --locked --release
+python3 tests/parity.py
 ```
 
-Do not install into `~/.local/bin` until parity and rollback are signed off.
+La paridad usa referencias históricas archivadas; las pruebas adicionales cubren
+las garantías transaccionales nuevas. La fixture Quickshell del historial usa
+el owner real en un D-Bus privado. Ver el
+[contrato completo](../../docs/migration/NATIVE-RUNTIME.md).

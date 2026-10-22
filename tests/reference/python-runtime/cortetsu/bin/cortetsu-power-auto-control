@@ -1,0 +1,250 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import json
+import os
+import shutil
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+
+UID = os.getuid()
+RUNTIME = Path(os.environ.get("XDG_RUNTIME_DIR", f"/run/user/{UID}"))
+CONFIG_PATH = Path.home() / ".config/cortetsu/power-auto.json"
+STATE_PATH = RUNTIME / "cortetsu-power-auto-state.json"
+EVENTS_PATH = Path.home() / ".local/state/cortetsu/power-auto-events.jsonl"
+SERVICE = "cortetsu-power-auto.service"
+VALID_PROFILES = {"power-saver", "balanced", "performance"}
+DEFAULTS = {
+    "enabled": False,
+    "ac_profile": "performance",
+    "battery_profile": "balanced",
+    "low_battery_enabled": True,
+    "low_battery_threshold": 25,
+    "low_battery_profile": "power-saver",
+    "poll_seconds": 4,
+}
+
+
+def load_json(path: Path, default):
+    try:
+        parsed = json.loads(path.read_text(encoding="utf-8"))
+        return parsed if isinstance(parsed, type(default)) else default
+    except (OSError, json.JSONDecodeError):
+        return default
+
+
+def normalize_config(parsed: dict) -> dict:
+    cfg = dict(DEFAULTS)
+    cfg.update(parsed if isinstance(parsed, dict) else {})
+    cfg["enabled"] = bool(cfg.get("enabled", False))
+    cfg["low_battery_enabled"] = bool(cfg.get("low_battery_enabled", True))
+    for key in ("ac_profile", "battery_profile", "low_battery_profile"):
+        if cfg.get(key) not in VALID_PROFILES:
+            cfg[key] = DEFAULTS[key]
+    try:
+        cfg["low_battery_threshold"] = max(5, min(80, int(cfg.get("low_battery_threshold", 25))))
+    except (TypeError, ValueError):
+        cfg["low_battery_threshold"] = 25
+    try:
+        cfg["poll_seconds"] = max(2, min(30, int(cfg.get("poll_seconds", 4))))
+    except (TypeError, ValueError):
+        cfg["poll_seconds"] = 4
+    return cfg
+
+
+def load_config() -> dict:
+    return normalize_config(load_json(CONFIG_PATH, {}))
+
+
+def save_config(cfg: dict) -> None:
+    cfg = normalize_config(cfg)
+    CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
+    fd, tmp_name = tempfile.mkstemp(
+        prefix=f".{CONFIG_PATH.name}.",
+        suffix=".tmp",
+        dir=CONFIG_PATH.parent,
+        text=True,
+    )
+    tmp = Path(tmp_name)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as handle:
+            handle.write(json.dumps(cfg, indent=2) + "\n")
+        tmp.replace(CONFIG_PATH)
+    except Exception:
+        try:
+            tmp.unlink()
+        except OSError:
+            pass
+        raise
+
+
+def systemctl(*args: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        ["systemctl", "--user", *args],
+        text=True,
+        capture_output=True,
+        timeout=8,
+        check=False,
+    )
+
+
+def bool_arg(value: str) -> bool:
+    lowered = value.lower()
+    if lowered in {"1", "true", "yes", "on", "enabled"}:
+        return True
+    if lowered in {"0", "false", "no", "off", "disabled"}:
+        return False
+    raise ValueError("expected true/false")
+
+
+def recent_events(limit: int = 12) -> list[dict]:
+    if not EVENTS_PATH.exists():
+        return []
+    out = []
+    try:
+        for line in EVENTS_PATH.read_text(encoding="utf-8", errors="replace").splitlines()[-limit:]:
+            try:
+                event = json.loads(line)
+                if isinstance(event, dict):
+                    out.append(event)
+            except json.JSONDecodeError:
+                pass
+    except OSError:
+        return []
+    return list(reversed(out))
+
+
+def current_profile() -> str:
+    exe = shutil.which("powerprofilesctl")
+    if not exe:
+        return ""
+    try:
+        cp = subprocess.run([exe, "get"], text=True, capture_output=True, timeout=3, check=False)
+    except (OSError, subprocess.SubprocessError):
+        return ""
+    return cp.stdout.strip() if cp.returncode == 0 else ""
+
+
+def status() -> dict:
+    cfg = load_config()
+    active_cp = systemctl("is-active", SERVICE)
+    enabled_cp = systemctl("is-enabled", SERVICE)
+    state = load_json(STATE_PATH, {})
+    # The watcher only asks power-profiles-daemon on rule transitions, so a
+    # profile picked by hand since then is read here, when the page asks.
+    live = current_profile()
+    if live:
+        state["profile"] = live
+    return {
+        "config": cfg,
+        "service": {
+            "active": active_cp.returncode == 0,
+            "enabled": enabled_cp.returncode == 0,
+            "active_state": active_cp.stdout.strip() or "inactive",
+            "enable_state": enabled_cp.stdout.strip() or "disabled",
+            "name": SERVICE,
+        },
+        "last": state,
+        "events": recent_events(),
+    }
+
+
+def emit(payload: dict, code: int = 0) -> int:
+    print(json.dumps(payload, separators=(",", ":")))
+    return code
+
+
+def refresh_service(cfg: dict) -> None:
+    if cfg.get("enabled", False):
+        systemctl("try-restart", SERVICE)
+
+
+def set_enabled(cfg: dict, enabled: bool) -> tuple[dict, int]:
+    previous = bool(cfg.get("enabled", False))
+    cfg["enabled"] = enabled
+    save_config(cfg)
+    systemctl("daemon-reload")
+    cp = systemctl("enable", "--now", SERVICE) if enabled else systemctl("disable", "--now", SERVICE)
+    if cp.returncode != 0:
+        cfg["enabled"] = previous
+        save_config(cfg)
+        return {"ok": False, "error": (cp.stderr or cp.stdout).strip(), **status()}, cp.returncode or 2
+    return {"ok": True, **status()}, 0
+
+
+def main() -> int:
+    cfg = load_config()
+    if len(sys.argv) == 1 or sys.argv[1] == "status":
+        save_config(cfg)
+        return emit(status())
+
+    cmd = sys.argv[1]
+    try:
+        if cmd == "set-enabled" and len(sys.argv) >= 3:
+            payload, code = set_enabled(cfg, bool_arg(sys.argv[2]))
+            return emit(payload, code)
+
+        if cmd == "set-profile" and len(sys.argv) >= 4:
+            slot, profile = sys.argv[2], sys.argv[3]
+            keys = {"ac": "ac_profile", "battery": "battery_profile", "low": "low_battery_profile"}
+            if slot not in keys or profile not in VALID_PROFILES:
+                return emit({"ok": False, "error": "invalid slot/profile"}, 2)
+            cfg[keys[slot]] = profile
+            save_config(cfg)
+            refresh_service(cfg)
+            return emit({"ok": True, **status()})
+
+        if cmd == "set-low-enabled" and len(sys.argv) >= 3:
+            cfg["low_battery_enabled"] = bool_arg(sys.argv[2])
+            save_config(cfg)
+            refresh_service(cfg)
+            return emit({"ok": True, **status()})
+
+        if cmd == "set-threshold" and len(sys.argv) >= 3:
+            cfg["low_battery_threshold"] = max(5, min(80, int(sys.argv[2])))
+            save_config(cfg)
+            refresh_service(cfg)
+            return emit({"ok": True, **status()})
+
+        if cmd == "set-poll" and len(sys.argv) >= 3:
+            cfg["poll_seconds"] = max(2, min(30, int(sys.argv[2])))
+            save_config(cfg)
+            refresh_service(cfg)
+            return emit({"ok": True, **status()})
+
+        if cmd == "apply-now":
+            watcher = Path.home() / ".local/bin/cortetsu-power-auto"
+            cp = subprocess.run([str(watcher), "--once"], text=True, capture_output=True, timeout=10, check=False)
+            payload = {
+                "ok": cp.returncode == 0,
+                "watcher_stdout": cp.stdout.strip(),
+                "watcher_stderr": cp.stderr.strip(),
+                **status(),
+            }
+            return emit(payload, cp.returncode)
+
+        if cmd == "clear-events":
+            try:
+                EVENTS_PATH.unlink(missing_ok=True)
+            except OSError as exc:
+                return emit({"ok": False, "error": str(exc), **status()}, 2)
+            return emit({"ok": True, **status()})
+
+        if cmd == "reset-defaults":
+            was_enabled = bool(cfg.get("enabled", False))
+            new_cfg = dict(DEFAULTS)
+            new_cfg["enabled"] = was_enabled
+            save_config(new_cfg)
+            refresh_service(new_cfg)
+            return emit({"ok": True, **status()})
+
+    except (ValueError, OSError, subprocess.SubprocessError) as exc:
+        return emit({"ok": False, "error": str(exc), **status()}, 2)
+
+    return emit({"ok": False, "error": "unknown command", **status()}, 2)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

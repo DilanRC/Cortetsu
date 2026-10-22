@@ -9,6 +9,7 @@ SettingRow {
     id: root
 
     property string actionLabel: ""
+    property string accessibleName: actionLabel
     property string actionIcon: ""
     property bool danger: false
     property bool confirm: false
@@ -40,7 +41,7 @@ SettingRow {
         danger: root.danger || root.armed
         disabled: root.disabled || root.status === "busy"
         Accessible.role: Accessible.Button
-        Accessible.name: root.armed ? qsTr("Confirmar: %1").arg(root.title) : root.actionLabel
+        Accessible.name: root.armed ? qsTr("Confirmar: %1").arg(root.title) : root.accessibleName
         onClicked: root.request()
     }
 }

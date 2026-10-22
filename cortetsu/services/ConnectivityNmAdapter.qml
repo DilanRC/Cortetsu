@@ -44,7 +44,7 @@ QtObject {
         output = ""; errorOutput = ""; commandTimedOut = false;
         worker.stdinEnabled = !!job.context.usesStdin;
         worker.command = job.kind === "save-secret"
-            ? ["python3", Quickshell.shellPath("services/ConnectivitySecret.py"), job.context.uuid]
+            ? ["cortetsu-connectivity-secret", job.context.uuid]
             : ["nmcli", "--wait", "12", "-t", "--escape", "yes", ...job.args];
         worker.running = true;
         commandDeadline.restart();

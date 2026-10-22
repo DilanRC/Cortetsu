@@ -1,0 +1,1 @@
+{"protocol":"cortetsu.exec","version":{"major":1,"minor":0},"request_id":"00000000-0000-4000-8000-000000000001","operation":"notifications.dnd.set","deadline_ms":5000,"expected_revision":0,"idempotency_key":"00000000-0000-4000-8000-000000000002","arguments":{"enabled":true}}

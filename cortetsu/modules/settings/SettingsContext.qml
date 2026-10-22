@@ -19,6 +19,7 @@ QtObject {
 
     readonly property var wifi: Connectivity.wifi
     readonly property var bluetooth: Connectivity.bluetooth
+    readonly property var policies: ShellState.shellRoot?.policyBridge ?? null
 
     readonly property var brightnessMonitor: Brightness.getMonitorForScreen(root.screen)
     readonly property real brightnessValue: brightnessMonitor?.brightness ?? -1
@@ -88,6 +89,7 @@ QtObject {
         readonly property string bottomhub: ""
         readonly property string launcher: CortetsuConfig.launcher.enabled ? "" : qsTr("Apagado")
         readonly property string shortcuts: ""
+        readonly property string automation: root.policies?.statusText || qsTr("No disponible")
         readonly property string about: root.revision
     }
 
@@ -115,6 +117,7 @@ QtObject {
         readonly property string bottomhub: ""
         readonly property string launcher: ""
         readonly property string shortcuts: ""
+        readonly property string automation: root.policies?.lastError || ""
         readonly property string about: ""
     }
 

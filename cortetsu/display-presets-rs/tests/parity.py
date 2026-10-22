@@ -8,7 +8,7 @@ import tempfile
 from pathlib import Path
 
 repo = Path(__file__).resolve().parents[3]
-old = repo / "cortetsu/bin/cortetsu-display-presets"
+old = repo / "tests/reference/python-runtime/cortetsu/bin/cortetsu-display-presets"
 new = repo / "cortetsu/display-presets-rs/target/release/cortetsu-display-presets-rs"
 
 def invoke(binary, args, env):

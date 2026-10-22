@@ -113,11 +113,13 @@ func (o Observer) Run(ctx context.Context, output io.Writer) error {
 	}
 	encoder := json.NewEncoder(output)
 	var epoch uint64
+	var unavailable bool
 	for ctx.Err() == nil {
 		d := net.Dialer{Timeout: 3 * time.Second}
 		conn, err := d.DialContext(ctx, "unix", o.Socket)
 		if err == nil {
 			epoch++
+			unavailable = false
 			if err := encoder.Encode(Output{Type: "resync_required", Session: o.Session, Epoch: epoch}); err != nil {
 				_ = conn.Close()
 				return fmt.Errorf("cannot emit stream state: %w", err)
@@ -131,6 +133,12 @@ func (o Observer) Run(ctx context.Context, output io.Writer) error {
 			}
 			err = o.consume(ctx, conn, epoch, encoder)
 			_ = conn.Close()
+			if ctx.Err() == nil {
+				if encodeErr := encoder.Encode(Output{Type: "unavailable", Session: o.Session, Epoch: epoch}); encodeErr != nil {
+					return fmt.Errorf("cannot emit stream state: %w", encodeErr)
+				}
+				unavailable = true
+			}
 			if err != nil && !errors.Is(err, io.EOF) && ctx.Err() == nil { // Never print raw events or socket bytes.
 				if !errors.Is(err, errFrameLimit) {
 					return err
@@ -139,6 +147,12 @@ func (o Observer) Run(ctx context.Context, output io.Writer) error {
 		}
 		if ctx.Err() != nil {
 			return nil
+		}
+		if !unavailable {
+			if err := encoder.Encode(Output{Type: "unavailable", Session: o.Session, Epoch: epoch}); err != nil {
+				return fmt.Errorf("cannot emit stream state: %w", err)
+			}
+			unavailable = true
 		}
 		timer := time.NewTimer(delay)
 		select {

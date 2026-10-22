@@ -122,7 +122,7 @@ Item {
 
                 CortetsuToggle {
                     checked: CortetsuNotifications.dnd
-                    onToggled: checked => CortetsuNotifications.dnd = checked
+                    onToggled: checked => CortetsuNotifications.setDnd(checked)
                 }
             }
         }

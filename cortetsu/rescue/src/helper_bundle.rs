@@ -1,8 +1,4 @@
-//! Opt-in, immutable helper *staging* without changing active executables.
-//!
-//! This module is a prerequisite for a future SYSTEM schema-2 cutover.
-//! It intentionally never touches ~/.local/bin or any active generation
-//! pointer: old schema-1 installations cannot atomically restore helpers.
+//! Immutable helper staging. The installation transaction owns activation.
 use super::{Result, Roots, invalid};
 use fs2::FileExt;
 use serde::{Deserialize, Serialize};
@@ -41,7 +37,7 @@ pub struct BundleReport {
 }
 
 fn safe_filename(name: &str) -> bool {
-    name.starts_with("cortetsu-")
+    (name == "cortetsu" || name.starts_with("cortetsu-"))
         && name.len() <= 120
         && name
             .bytes()
@@ -371,5 +367,14 @@ mod tests {
         file.lock_exclusive().unwrap();
         assert!(stage(&fixture.roots, &src).is_err());
         fs2::FileExt::unlock(&file).unwrap();
+    }
+    #[test]
+    fn includes_stable_cli_in_generation() {
+        let fixture = Fixture::new();
+        let src = fixture.source();
+        fs::write(src.join("cortetsu"), "#!/bin/sh\nexit 0\n").unwrap();
+        let bundle = stage(&fixture.roots, &src).unwrap();
+        assert_eq!(bundle.helpers, 2);
+        assert!(Path::new(&bundle.directory).join("cortetsu").is_file());
     }
 }

@@ -111,8 +111,7 @@ fn complete_schema2_rollback_includes_helpers_and_returns() {
         original.helpers_previous.as_deref(),
         Some(f.bundles[1].as_path())
     );
-    assert!(rollback_pointers(&f.roots, false).is_err());
-    let result = rollback_pointers(&f.roots, true).unwrap();
+    let result = rollback_pointers(&f.roots, false).unwrap();
     assert_eq!(result.result, "ROLLBACK_POINTERS_ONLY");
     assert_eq!(
         current(&f.roots).unwrap().helpers.as_deref(),

@@ -1,0 +1,142 @@
+#!/usr/bin/env python3
+"""First-party scheme state command used by the Cortetsu launcher."""
+from __future__ import annotations
+
+import json
+import os
+import shutil
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+
+
+def state_path() -> Path:
+    return Path(os.environ.get("XDG_STATE_HOME", Path.home() / ".local/state")) / "cortetsu/scheme.json"
+
+
+def read_state() -> dict:
+    try:
+        value = json.loads(state_path().read_text(encoding="utf-8"))
+    except (FileNotFoundError, json.JSONDecodeError):
+        value = {}
+    return value if isinstance(value, dict) else {}
+
+
+def write_state(value: dict) -> None:
+    path = state_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.NamedTemporaryFile("w", encoding="utf-8", dir=path.parent, delete=False) as handle:
+        json.dump(value, handle, indent=2)
+        handle.write("\n")
+        temporary = Path(handle.name)
+    os.replace(temporary, path)
+
+
+def hypr_scheme_path() -> Path:
+    return Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config")) / "hypr/scheme/current.lua"
+
+
+def write_hypr_scheme(colours: dict) -> None:
+    """Keep the live Hyprland palette in sync when it already exists."""
+    path = hypr_scheme_path()
+    if not path.is_file():
+        return
+    keys = ("primary", "onPrimary", "secondary", "surfaceContainer", "outline",
+            "inversePrimary", "onSurfaceVariant")
+    payload = {key: colours[key].lstrip("#") for key in keys if isinstance(colours.get(key), str)}
+    if len(payload) != len(keys):
+        return
+    lines = ["return {"] + [f'    {key} = "{payload[key]}",' for key in keys] + ["}\n"]
+    with tempfile.NamedTemporaryFile("w", encoding="utf-8", dir=path.parent, delete=False) as handle:
+        handle.writelines(f"{line}\n" for line in lines)
+        temporary = Path(handle.name)
+    os.replace(temporary, path)
+    hyprctl = shutil.which("hyprctl")
+    if hyprctl and not os.environ.get("CORTETSU_SKIP_RELOAD"):
+        # The palette is read by the Lua config, so the config has to run
+        # again; the monitors have not changed and are left alone.
+        subprocess.run([hyprctl, "reload", "config-only"], check=False,
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
+def resource_root() -> Path:
+    """Locate scheme data from source checkouts and installed helpers."""
+    candidates = [Path(__file__).resolve().parents[1]]
+    repository = os.environ.get(
+        "CORTETSU_REPOSITORY",
+        Path(os.environ.get("CORTETSU_DATA_ROOT", Path.home() / ".local/share/cortetsu")) / "repository",
+    )
+    candidates.append(Path(repository) / "cortetsu")
+    for candidate in candidates:
+        if (candidate / "data/schemes/palettes.json").is_file():
+            return candidate
+    return candidates[0]
+
+
+def catalog() -> dict:
+    """Return every shipped scheme, not only the currently selected state."""
+    root = resource_root()
+    pack = root / "data/schemes/cortetsu-pack"
+    palette_file = root / "data/schemes/palettes.json"
+    import json as _json
+    allowed = set(_json.loads(palette_file.read_text(encoding="utf-8"))) if palette_file.exists() else None
+    result: dict[str, dict[str, dict[str, str]]] = {}
+    for file in sorted(pack.glob("*/**/dark.txt")):
+        relative = file.relative_to(pack)
+        if len(relative.parts) != 3:
+            continue
+        name, flavour = relative.parts[:2]
+        if allowed is not None and f"{name}/{flavour}" not in allowed:
+            continue
+        colours = {}
+        for line in file.read_text(encoding="utf-8").splitlines():
+            parts = line.split(None, 1)
+            if len(parts) == 2:
+                colours[parts[0]] = parts[1].strip().lower()
+        result.setdefault(name, {})[flavour] = colours
+    return result
+
+
+def main(argv: list[str]) -> int:
+    state = read_state()
+    if argv == ["list"]:
+        schemes = catalog()
+        current_name = state.get("name")
+        current_flavour = state.get("flavour", "default")
+        if current_name and current_name not in schemes:
+            schemes[current_name] = {current_flavour: state.get("colours", {})}
+        if not schemes:
+            name = state.get("name", "dynamic")
+            flavour = state.get("flavour", "default")
+            schemes = {name: {flavour: state.get("colours", {})}}
+        print(json.dumps(schemes, separators=(",", ":")))
+        return 0
+    if argv == ["get", "-nfv"]:
+        print(state.get("name", "dynamic"))
+        print(state.get("flavour", "default"))
+        print(state.get("variant", "tonal-spot"))
+        return 0
+    if len(argv) == 4 and argv[:2] == ["set", "-n"] and argv[2]:
+        schemes = catalog()
+        colours = schemes.get(argv[2], {}).get(argv[3])
+        if not isinstance(colours, dict):
+            print(f"esquema no encontrado: {argv[2]} {argv[3]}", file=sys.stderr)
+            return 1
+        state["name"], state["flavour"] = argv[2], argv[3]
+        state["colours"] = colours
+        write_state(state)
+        # The shell watches scheme.json and repaints in place; nothing in the
+        # promoted generation is rewritten and the shell is not reloaded.
+        write_hypr_scheme(colours)
+        return 0
+    if len(argv) == 3 and argv[:2] == ["set", "-v"] and argv[2]:
+        state["variant"] = argv[2]
+        write_state(state)
+        return 0
+    print("usage: cortetsu-scheme {list|get -nfv|set -n NAME FLAVOUR|set -v VARIANT}", file=sys.stderr)
+    return 2
+
+
+if __name__ == "__main__":
+    raise SystemExit(main(sys.argv[1:]))

@@ -1,0 +1,360 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+VALID_PROFILES = ("power-saver", "balanced", "performance")
+
+
+def read_text(path: Path, default: str = "") -> str:
+    try:
+        return path.read_text(encoding="utf-8", errors="replace").strip()
+    except OSError:
+        return default
+
+
+def read_num(path: Path, scale: float = 1.0):
+    raw = read_text(path)
+    if not raw:
+        return None
+    try:
+        return float(raw) / scale
+    except ValueError:
+        return None
+
+
+def run(command: list[str], timeout: float = 1.5) -> subprocess.CompletedProcess[str] | None:
+    try:
+        return subprocess.run(
+            command,
+            text=True,
+            capture_output=True,
+            timeout=timeout,
+            check=False,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+
+
+def unique(values):
+    out = []
+    for value in values:
+        if value and value not in out:
+            out.append(value)
+    return out
+
+
+def finite(value, digits=1):
+    return round(value, digits) if value is not None else None
+
+
+def powerprofiles_snapshot() -> dict:
+    exe = shutil.which("powerprofilesctl")
+    if not exe:
+        return {
+            "backend": "none",
+            "current": "",
+            "available": [],
+            "can_set": False,
+            "degraded": None,
+        }
+
+    current_cp = run([exe, "get"])
+    current = current_cp.stdout.strip() if current_cp and current_cp.returncode == 0 else ""
+
+    list_cp = run([exe, "list"])
+    listing = list_cp.stdout if list_cp and list_cp.returncode == 0 else ""
+    available = [
+        profile
+        for profile in VALID_PROFILES
+        if re.search(rf"(?m)^\s*\*?\s*{re.escape(profile)}:\s*$", listing)
+    ]
+    if current and current not in available:
+        available.append(current)
+
+    degraded = None
+    current_block = re.search(
+        rf"(?ms)^\s*\*?\s*{re.escape(current)}:\s*$\n(.*?)(?=^\s*\*?\s*(?:{'|'.join(map(re.escape, VALID_PROFILES))}):\s*$|\Z)",
+        listing,
+    ) if current else None
+    if current_block:
+        match = re.search(r"(?mi)^\s*Degraded:\s*(\S+)", current_block.group(1))
+        if match:
+            degraded = match.group(1).lower() not in {"no", "false", "0"}
+
+    return {
+        "backend": "powerprofilesctl",
+        "current": current,
+        "available": available,
+        "can_set": bool(available),
+        "degraded": degraded,
+    }
+
+
+def ac_snapshot() -> dict:
+    sources = []
+    for supply in sorted(Path("/sys/class/power_supply").glob("*")):
+        supply_type = read_text(supply / "type")
+        if supply_type not in {"Mains", "USB", "USB_C", "USB_PD"}:
+            continue
+        online = read_text(supply / "online", "0") == "1"
+        sources.append({"name": supply.name, "type": supply_type, "online": online})
+    return {
+        "online": any(item["online"] for item in sources),
+        "sources": sources,
+    }
+
+
+def battery_snapshot() -> dict:
+    roots = sorted(Path("/sys/class/power_supply").glob("BAT*"))
+    if not roots:
+        return {"present": False}
+
+    root = roots[0]
+    status = read_text(root / "status", "Unknown")
+    percent = read_num(root / "capacity")
+
+    power_w = read_num(root / "power_now", 1_000_000.0)
+    voltage_v = read_num(root / "voltage_now", 1_000_000.0)
+    if power_w is None:
+        current_a = read_num(root / "current_now", 1_000_000.0)
+        if current_a is not None and voltage_v is not None:
+            power_w = current_a * voltage_v
+
+    energy_now = read_num(root / "energy_now", 1_000_000.0)
+    energy_full = read_num(root / "energy_full", 1_000_000.0)
+    energy_design = read_num(root / "energy_full_design", 1_000_000.0)
+
+    if voltage_v is not None:
+        if energy_now is None:
+            charge_now_ah = read_num(root / "charge_now", 1_000_000.0)
+            if charge_now_ah is not None:
+                energy_now = charge_now_ah * voltage_v
+        if energy_full is None:
+            charge_full_ah = read_num(root / "charge_full", 1_000_000.0)
+            if charge_full_ah is not None:
+                energy_full = charge_full_ah * voltage_v
+        if energy_design is None:
+            charge_design_ah = read_num(root / "charge_full_design", 1_000_000.0)
+            if charge_design_ah is not None:
+                energy_design = charge_design_ah * voltage_v
+
+    health = None
+    if energy_full is not None and energy_design and energy_design > 0:
+        health = max(0.0, min(100.0, energy_full / energy_design * 100.0))
+
+    remaining_min = None
+    to_full_min = None
+    if power_w is not None and power_w > 0.2:
+        if status.lower() == "discharging" and energy_now is not None:
+            remaining_min = max(0.0, energy_now / power_w * 60.0)
+        elif status.lower() == "charging" and energy_now is not None and energy_full is not None:
+            to_full_min = max(0.0, (energy_full - energy_now) / power_w * 60.0)
+
+    return {
+        "present": True,
+        "name": root.name,
+        "percent": finite(percent, 0),
+        "status": status,
+        "power_w": finite(power_w, 2),
+        "voltage_v": finite(voltage_v, 2),
+        "energy_now_wh": finite(energy_now, 2),
+        "energy_full_wh": finite(energy_full, 2),
+        "energy_design_wh": finite(energy_design, 2),
+        "health_percent": finite(health, 1),
+        "remaining_minutes": finite(remaining_min, 0),
+        "time_to_full_minutes": finite(to_full_min, 0),
+    }
+
+
+def cpu_package_power() -> float | None:
+    candidates = []
+    for hwmon in Path("/sys/class/hwmon").glob("hwmon*"):
+        name = read_text(hwmon / "name").lower()
+        if name not in {"k10temp", "zenpower", "amd_energy", "coretemp"}:
+            continue
+        for path in list(hwmon.glob("power*_average")) + list(hwmon.glob("power*_input")):
+            watts = read_num(path, 1_000_000.0)
+            if watts is not None and 0 <= watts <= 350:
+                candidates.append(watts)
+    return max(candidates) if candidates else None
+
+
+def cpu_policy_snapshot() -> dict:
+    cpu_root = Path("/sys/devices/system/cpu")
+    policies = sorted(cpu_root.glob("cpu[0-9]*/cpufreq"))
+    drivers = unique(read_text(p / "scaling_driver") for p in policies)
+    governors = unique(read_text(p / "scaling_governor") for p in policies)
+    epps = unique(read_text(p / "energy_performance_preference") for p in policies)
+    epp_choices = unique(
+        choice
+        for p in policies
+        for choice in read_text(p / "energy_performance_available_preferences").split()
+    )
+
+    cur = [read_num(p / "scaling_cur_freq", 1000.0) for p in policies]
+    cur = [v for v in cur if v is not None]
+    mins = [read_num(p / "cpuinfo_min_freq", 1000.0) for p in policies]
+    mins = [v for v in mins if v is not None]
+    maxs = [read_num(p / "cpuinfo_max_freq", 1000.0) for p in policies]
+    maxs = [v for v in maxs if v is not None]
+
+    platform_path = Path("/sys/firmware/acpi/platform_profile")
+    platform_choices_path = Path("/sys/firmware/acpi/platform_profile_choices")
+
+    return {
+        "driver": ", ".join(drivers) if drivers else "unknown",
+        "governor": ", ".join(governors) if governors else "unknown",
+        "epp": ", ".join(epps) if epps else "",
+        "epp_choices": epp_choices,
+        "current_mhz": finite(sum(cur) / len(cur), 0) if cur else None,
+        "min_mhz": finite(min(mins), 0) if mins else None,
+        "max_mhz": finite(max(maxs), 0) if maxs else None,
+        "platform_profile": read_text(platform_path),
+        "platform_profile_choices": read_text(platform_choices_path).split(),
+        "package_power_w": finite(cpu_package_power(), 2),
+    }
+
+
+def amd_gpu_power() -> list[dict]:
+    out = []
+    for card in sorted(Path("/sys/class/drm").glob("card[0-9]")):
+        device = card / "device"
+        if read_text(device / "vendor").lower() != "0x1002":
+            continue
+
+        temp = None
+        power = None
+        for hwmon in (device / "hwmon").glob("hwmon*") if (device / "hwmon").exists() else []:
+            temps = [read_num(p, 1000.0) for p in hwmon.glob("temp*_input")]
+            temps = [v for v in temps if v is not None and -20 < v < 130]
+            if temps:
+                temp = max(temps)
+            watts = read_num(hwmon / "power1_average", 1_000_000.0)
+            if watts is None:
+                watts = read_num(hwmon / "power1_input", 1_000_000.0)
+            if watts is not None:
+                power = watts
+
+        out.append(
+            {
+                "vendor": "AMD",
+                "card": card.name,
+                "performance_level": read_text(device / "power_dpm_force_performance_level"),
+                "power_state": read_text(device / "power_dpm_state"),
+                "runtime_status": read_text(device / "power/runtime_status"),
+                "temp_c": finite(temp, 1),
+                "power_w": finite(power, 2),
+            }
+        )
+    return out
+
+
+SYSFS = Path(os.environ.get("CORTETSU_SYSFS_ROOT", "/sys"))
+
+
+def nvidia_asleep() -> bool:
+    """True when every NVIDIA display device is runtime-suspended.
+
+    Same passive rule as cortetsu-hardware-probe: runtime_status is held by
+    the kernel and reading it never resumes the device; nvidia-smi does.
+    """
+    states = [read_text(device / "power/runtime_status")
+              for device in (SYSFS / "bus/pci/devices").glob("*")
+              if read_text(device / "vendor").lower() == "0x10de" and read_text(device / "class").startswith("0x03")]
+    return bool(states) and all(state in {"suspended", "suspending"} for state in states)
+
+
+def nvidia_gpu_power() -> list[dict]:
+    if nvidia_asleep():
+        return [{"vendor": "NVIDIA", "name": "NVIDIA GPU", "state": "suspended", "power_w": None, "temp_c": None}]
+    exe = shutil.which("nvidia-smi")
+    if not exe:
+        return []
+
+    query = "name,pstate,power.draw,power.limit,temperature.gpu,clocks.gr,clocks.mem"
+    cp = run([exe, f"--query-gpu={query}", "--format=csv,noheader,nounits"], timeout=1.5)
+    if not cp or cp.returncode != 0:
+        return []
+
+    out = []
+    for line in cp.stdout.splitlines():
+        parts = [part.strip() for part in line.split(",")]
+        if len(parts) < 7:
+            continue
+
+        def number(index):
+            try:
+                return float(parts[index])
+            except ValueError:
+                return None
+
+        out.append(
+            {
+                "vendor": "NVIDIA",
+                "name": parts[0],
+                "state": "active",
+                "pstate": parts[1],
+                "power_w": finite(number(2), 2),
+                "power_limit_w": finite(number(3), 2),
+                "temp_c": finite(number(4), 1),
+                "graphics_clock_mhz": finite(number(5), 0),
+                "memory_clock_mhz": finite(number(6), 0),
+            }
+        )
+    return out
+
+
+def snapshot() -> dict:
+    gpus = amd_gpu_power() + nvidia_gpu_power()
+    gpu_watts = [float(g.get("power_w")) for g in gpus if g.get("power_w") is not None]
+    return {
+        "profiles": powerprofiles_snapshot(),
+        "ac": ac_snapshot(),
+        "battery": battery_snapshot(),
+        "cpu": cpu_policy_snapshot(),
+        "gpus": gpus,
+        "total_gpu_power_w": finite(sum(gpu_watts), 2) if gpu_watts else None,
+    }
+
+
+def set_profile(profile: str) -> int:
+    if profile not in VALID_PROFILES:
+        print(json.dumps({"ok": False, "error": "invalid profile"}))
+        return 2
+
+    exe = shutil.which("powerprofilesctl")
+    if not exe:
+        print(json.dumps({"ok": False, "error": "powerprofilesctl not installed"}))
+        return 3
+
+    cp = run([exe, "set", profile], timeout=8.0)
+    if not cp:
+        print(json.dumps({"ok": False, "error": "failed to execute powerprofilesctl"}))
+        return 4
+    if cp.returncode != 0:
+        print(json.dumps({"ok": False, "error": (cp.stderr or cp.stdout).strip()}))
+        return cp.returncode or 5
+
+    verify = run([exe, "get"], timeout=3.0)
+    current = verify.stdout.strip() if verify and verify.returncode == 0 else ""
+    ok = current == profile
+    print(json.dumps({"ok": ok, "profile": profile, "current": current}))
+    return 0 if ok else 6
+
+
+def main() -> int:
+    if len(sys.argv) >= 3 and sys.argv[1] == "set-profile":
+        return set_profile(sys.argv[2])
+    print(json.dumps(snapshot(), separators=(",", ":")))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

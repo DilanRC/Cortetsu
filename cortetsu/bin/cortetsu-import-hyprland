@@ -1,12 +1,15 @@
 #!/usr/bin/env bash
+# Stable entry point. All behavior lives in the generation's native owner.
 set -euo pipefail
-DATA_ROOT="${CORTETSU_DATA_ROOT:-${XDG_DATA_HOME:-$HOME/.local/share}/cortetsu}"
-repo="${CORTETSU_REPO_ROOT:-}"
-if [[ -z "$repo" && -L "$DATA_ROOT/repository" ]]; then
-    repo="$(readlink -f "$DATA_ROOT/repository")"
+SELF="$(readlink -f "${BASH_SOURCE[0]}")"
+BUNDLE="$(dirname "$SELF")"
+if [[ ! -x "$BUNDLE/cortetsu-platform" ]]; then
+    REPO="$(cd "$BUNDLE/../.." && pwd)"
+    BUNDLE="$REPO/dist/native"
+    export CORTETSU_REPO_ROOT="${CORTETSU_REPO_ROOT:-$REPO}"
 fi
-if [[ -z "$repo" ]]; then
-    repo="$(git -C "$PWD" rev-parse --show-toplevel 2>/dev/null || true)"
+if [[ -z "${CORTETSU_RESOURCE_ROOT:-}" && -x "$BUNDLE/cortetsu-resource-root" ]]; then
+    export CORTETSU_RESOURCE_ROOT="$("$BUNDLE/cortetsu-resource-root")"
 fi
-[[ -n "$repo" && -f "$repo/core/import_hyprland.py" ]] || { echo "ERROR: no se encontró el repositorio Cortetsu" >&2; exit 1; }
-exec python3 "$repo/core/import_hyprland.py" "$@" --repo "$repo"
+[[ -x "$BUNDLE/cortetsu-platform" ]] || { printf 'ERROR: construye el runtime con scripts/build-native.sh\n' >&2; exit 1; }
+exec "$BUNDLE/cortetsu-platform" import_hyprland "$@"

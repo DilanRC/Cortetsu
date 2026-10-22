@@ -1,5 +1,8 @@
 # Cortetsu 2.0 — F1b, inicio de F2/F4/F6/F7 (trabajo en nube)
 
+> Registro de diseño/prototipo anterior a la integración nativa. Para el
+> comportamiento actual, consultar [NATIVE-RUNTIME.md](../NATIVE-RUNTIME.md).
+
 **Estado: `IN_PROGRESS / NO_CUTOVER` — no es una release candidate.**
 Base revisada en GitHub: `b586c90db06d08bf0aba22a55e809f69e8b2a9ee` (instalación estable después de #51).
 Fecha del trabajo aislado: 2026-10-22. No activar nada en la sesión real ni sustituir Python.

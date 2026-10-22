@@ -1,12 +1,9 @@
 name: Cortetsu static validation
-
 on:
   push:
   pull_request:
-
 permissions:
   contents: read
-
 jobs:
   static:
     runs-on: ubuntu-latest
@@ -16,164 +13,39 @@ jobs:
           fetch-depth: 2
       - name: Validate repository whitespace
         run: git diff --check HEAD^ HEAD
-      - name: Validate Cortetsu manifest
-        run: |
-          python3 - <<'PY'
-          import pathlib
-          import tomllib
-          with pathlib.Path('cortetsu.toml').open('rb') as handle:
-              data = tomllib.load(handle)
-          assert data['schema'] == 4
-          assert data['project']['name'] == 'Cortetsu'
-          assert data['project']['stage'] == 'unified-system-generations'
-          assert data['identity']['canonical_command'] == 'cortetsu'
-          assert data['upstream']['caelestia']['tag'] == 'v2.4.0'
-          assert data['runtime']['current'].endswith('/quickshell/cortetsu/current')
-          assert data['dotfiles']['default_profile'] == 'personal'
-          assert data['system']['components'] == ['shell', 'dotfiles']
-          assert data['compatibility']['active_legacy'] is False
-          print('manifest: valid')
-          PY
-      - name: Compile Python sources
-        shell: bash
-        run: |
-          set -euo pipefail
-          while IFS= read -r -d '' file; do python3 -m py_compile "$file"; done < <(find core scripts -type f -name '*.py' -print0)
-          while IFS= read -r -d '' file; do
-            first_line="$(head -n 1 "$file" || true)"
-            if [[ "$first_line" == *python3* ]]; then python3 -m py_compile "$file"; fi
-          done < <(find cortetsu/bin -type f -print0)
+      - name: Install Lua for the actual Hyprland module-loading fixture
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq lua5.4
+      - name: Validate native packages, launchers and frozen reference hashes
+        run: python3 scripts/verification/test-native-source.py
       - name: Validate Bash syntax
         shell: bash
         run: |
           set -euo pipefail
           while IFS= read -r -d '' file; do bash -n "$file"; done < <(find scripts cortetsu/bin -type f -name '*.sh' -print0)
           bash -n scripts/cortetsu
-          bash -n scripts/migrate-cortetsu-v2.sh
-      - name: Validate shell quality
-        run: python3 scripts/features/test-cortetsu-quality.py
-      - name: Validate first-party Bottom Hub
-        run: python3 scripts/features/test-native-bottom-hub.py
-      - name: Validate shared Launcher and Dashboard typography
+          for file in cortetsu/bin/cortetsu-*; do
+            if head -n 1 "$file" | grep -q bash; then bash -n "$file"; fi
+          done
+      - name: Validate preserved UI and shortcut contracts
         run: |
+          python3 scripts/features/test-cortetsu-quality.py
+          python3 scripts/features/test-native-bottom-hub.py
           python3 scripts/features/test-cortetsu-dashboard-typography.py
           python3 scripts/features/eval-cortetsu-dashboard-typography.py
-      - name: Validate tray menu data boundary
-        run: |
           python3 scripts/features/test-cortetsu-tray-menu.py
           python3 scripts/features/eval-cortetsu-tray-menu.py
-      - name: Validate native theme
-        run: python3 scripts/features/test-native-theme.py
-      - name: Validate legacy theme retirement
-        run: python3 scripts/features/test-theme-retirement.py
-      - name: Validate immutable dotfiles
-        run: python3 scripts/features/test-dotfiles-platform.py
-      - name: Validate unified system generations
-        run: python3 scripts/features/test-system-generations.py
-      - name: Verify schema2 helper bundle contract without activation
-        run: python3 scripts/features/test-system-helper-schema2.py
-      - name: Validate single-owner shell lifecycle
-        run: python3 scripts/features/test-shell-lifecycle.py
-      - name: Validate migration resilience
-        run: bash scripts/features/test-v2-migration-unreadable.sh
-      - name: Validate modern contract
-        shell: bash
+          python3 scripts/features/test-hyprland-self-contained.py
+          python3 scripts/features/test-zero-caelestia-gate.py
+          python3 scripts/features/test-shortcut-namespace.py
+          python3 scripts/features/test-cortetsu-settings.py
+          python3 scripts/features/test-cortetsu-v2-bridge.py
+          python3 cortetsu/tests/test-startup-inventory.py
+      - name: Validate policy and notification reconciliation models
         run: |
-          set -euo pipefail
-          test -x scripts/cortetsu
-          test -x core/dotfiles.py
-          test -x core/system.py
-          test -x core/doctor.py
-          test -f core/theme.py
-          test -f core/shell_lifecycle.py
-          test -f core/import_fish.py
-          test -f scripts/maintenance/retire_legacy_theme.py
-          test -x scripts/features/test-dotfiles-platform.py
-          test -x scripts/features/test-system-generations.py
-          test -f scripts/features/test-shell-lifecycle.py
-          test -f scripts/features/test-native-theme.py
-          test -f scripts/features/test-theme-retirement.py
-          test -f scripts/features/test-fish-import.py
-          test -f scripts/features/test-native-bottom-hub.py
-          test -f scripts/features/test-cortetsu-wall-utility-contract.py
-          test -f scripts/features/eval-cortetsu-wall-utility-contract.py
-          test -f cortetsu/contracts/wall-utility.json
-          test ! -e cortetsu/bin/native-bottom-hub.py
-          test -f cortetsu/modules/CortetsuBottomHubView.qml
-          test -f cortetsu/modules/CortetsuModeSegment.qml
-          test -f cortetsu/modules/CortetsuAppRail.qml
-          test -f cortetsu/modules/CortetsuTraySegment.qml
-          test -f cortetsu/modules/CortetsuStatusSegment.qml
-          test -f dotfiles/manifest.toml
-          test -f dotfiles/generated/theme/home/.config/kitty/cortetsu-theme.conf
-          test -f dotfiles/generated/theme/home/.config/gtk-3.0/cortetsu-colors.css
-          test -f dotfiles/generated/theme/home/.config/gtk-4.0/cortetsu-colors.css
-          test -f dotfiles/generated/theme/home/.local/share/color-schemes/Cortetsu.colors
-          test ! -e dotfiles/imported/desktop/home/.config/kitty/caelestia-theme.conf
-          test ! -e scripts/features/install-theme-bridge.py
-          test ! -e cortetsu/bin/ensure-upstream.sh
-          test ! -e scripts/features/test-upstream-bootstrap.sh
-          test ! -e caelestia/compatibility.json
-          test -f profiles/base.toml
-          test -f profiles/personal.toml
-          test -f packages/arch.toml
-          test -f config/systemd/user/cortetsu-shell.service
-          test -f docs/CORTETSU_ARCHITECTURE.md
-          test -f docs/DOTFILES_PLATFORM.md
-          test -f docs/IDENTITY.md
-          test -f docs/PROVENANCE.md
-          grep -q '^# Cortetsu' README.md
-          grep -q '^\[group.personal-shell\]' packages/arch.toml
-          grep -q 'packages = \["fish"\]' packages/arch.toml
-          grep -q '"personal-shell"' profiles/personal.toml
-          ! grep -q 'ensure-upstream.sh' cortetsu/bin/build-runtime.sh
-          grep -q 'CortetsuBottomHubView.qml' cortetsu/bin/build-runtime.sh
-          ! grep -q 'native-bottom-hub.py' cortetsu/bin/build-runtime.sh
-          grep -q 'core/dotfiles.py' scripts/install-cortetsu.sh
-          grep -q 'core/system.py' scripts/install-cortetsu.sh
-          grep -q 'core/theme.py' scripts/install-cortetsu.sh
-          grep -q 'scripts/maintenance/retire_legacy_theme.py' scripts/install-cortetsu.sh
-          grep -q 'core/shell_lifecycle.py' scripts/install-cortetsu.sh
-          grep -q 'theme) theme_cmd' scripts/cortetsu
-          grep -q 'rollback) rollback_cmd' scripts/cortetsu
-          ! grep -q 'install-theme-bridge.py' scripts/install-cortetsu.sh
-          ! grep -q 'caelestia-theme.conf' dotfiles/manifest.toml
-          ! git grep -n -I -E 'caerice-|CAERICE_|~/.config/caerice|~/.local/state/caerice' -- ':!docs/history/**' ':!docs/PROVENANCE.md' ':!scripts/migrate-cortetsu-v2.sh' ':!cortetsu/tests/test-runtime-contract.py' ':!core/migrate_legacy_processes.py' ':!scripts/features/test-legacy-process-migration.py' ':!cortetsu/tests/test-legacy-process-migration-eval.sh' ':!docs/PERFORMANCE_BASELINE_2026-09-04.md' ':!.github/workflows/**'
-          ! git grep -n -I 'sh -c' -- '*.qml'
-          ! git grep -n -I 'CORTETSU_DATA_ROOT:-${CORTETSU_DATA_ROOT' -- ':!docs/history/**' ':!.github/workflows/**'
-          ! git grep -n -I 'CORTETSU_RUNTIME_ROOT:-${CORTETSU_RUNTIME_ROOT' -- ':!docs/history/**' ':!.github/workflows/**'
-
-  keyboards-rust:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: cortetsu/keyboards
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          # The equivalence test reads the retired Python helper from history.
-          fetch-depth: 0
-      - name: Install the Rust toolchain
-        run: rustup toolchain install stable --profile minimal --component rustfmt,clippy && rustup default stable
-      - name: Install xkbcli for the keymap test
-        run: sudo apt-get update -qq && sudo apt-get install -y -qq libxkbcommon-tools
-      - name: Format
-        run: cargo fmt --check
-      - name: Lint
-        run: cargo clippy --all-targets --locked -- -D warnings
-      - name: Test
-        run: cargo test --locked
-      - name: Same behaviour as the Python helper it replaced
-        working-directory: .
-        run: |
-          python3 scripts/features/test-keybinds.py
-          python3 scripts/features/test-keybinds-equivalence.py
-          python3 scripts/features/test-keybinds-preview.py
-          python3 scripts/features/test-keybinds-scope.py
-      - name: The committed key table matches the kernel header
-        run: |
-          python3 tools/gen-keycodes.py /usr/include/linux/input-event-codes.h
-          git diff --exit-code -- src/keycodes.rs || echo "::warning::input-event-codes.h on the runner differs from the committed table"
+          node scripts/features/test-cortetsu-policy-model.mjs
+          node scripts/features/test-notification-reconcile.mjs
+      - name: Keep QML commands structured
+        run: '! git grep -n -I "sh -c" -- "cortetsu/**/*.qml"'
 
   wall-utility-contract:
     runs-on: ubuntu-latest

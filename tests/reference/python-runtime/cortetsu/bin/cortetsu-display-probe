@@ -1,0 +1,234 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import json
+import re
+import shutil
+import subprocess
+from pathlib import Path
+
+USERCFG = Path.home() / ".config/hypr/hypr-user.lua"
+
+
+def read_text(path: Path, default: str = "") -> str:
+    try:
+        return path.read_text(encoding="utf-8", errors="replace").strip()
+    except OSError:
+        return default
+
+
+def read_int(path: Path):
+    try:
+        return int(read_text(path))
+    except (ValueError, TypeError):
+        return None
+
+
+def run_json(command: list[str], timeout: float = 3.0):
+    try:
+        cp = subprocess.run(command, text=True, capture_output=True, timeout=timeout, check=False)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if cp.returncode != 0:
+        return None
+    try:
+        return json.loads(cp.stdout)
+    except json.JSONDecodeError:
+        return None
+
+
+def configured_monitor_options() -> dict[str, dict]:
+    """Read only the small scalar monitor fields needed for rollback fidelity."""
+    text = read_text(USERCFG)
+    out: dict[str, dict] = {}
+    needle = "hl.monitor({"
+    pos = 0
+    while True:
+        start = text.find(needle, pos)
+        if start < 0:
+            break
+        depth = 0
+        end = None
+        i = start
+        while i < len(text):
+            if text[i] == "{":
+                depth += 1
+            elif text[i] == "}":
+                depth -= 1
+                if depth == 0:
+                    close = text.find(")", i)
+                    end = close + 1 if close >= 0 else None
+                    break
+            i += 1
+        if end is None:
+            break
+        block = text[start:end]
+        output = re.search(r'^\s*output\s*=\s*"([^"]+)"\s*,?', block, re.M)
+        if output:
+            name = output.group(1)
+            item: dict[str, object] = {}
+            bitdepth = re.search(r"^\s*bitdepth\s*=\s*(\d+)\s*,?", block, re.M)
+            cm = re.search(r'^\s*cm\s*=\s*"([^"]+)"\s*,?', block, re.M)
+            vrr = re.search(r"^\s*vrr\s*=\s*(\d+)\s*,?", block, re.M)
+            if bitdepth:
+                item["bitdepth"] = int(bitdepth.group(1))
+            if cm:
+                item["cm"] = cm.group(1)
+            if vrr:
+                item["vrr"] = int(vrr.group(1))
+            out[name] = item
+        pos = end
+    return out
+
+
+def gpu_vendor(card: Path) -> str:
+    vendor = read_text(card / "device/vendor").lower()
+    return {"0x1002": "AMD", "0x10de": "NVIDIA", "0x8086": "Intel"}.get(vendor, vendor or "unknown")
+
+
+def edid_caps(connector: Path) -> dict:
+    edid = connector / "edid"
+    try:
+        size = len(edid.read_bytes())
+    except OSError:
+        size = 0
+    caps = {"edid_bytes": size, "hdr_capable": None, "wide_color_capable": None}
+    decoder = shutil.which("edid-decode")
+    if not decoder or not size:
+        return caps
+    try:
+        cp = subprocess.run([decoder, str(edid)], text=True, capture_output=True, timeout=3, check=False)
+    except (OSError, subprocess.SubprocessError):
+        return caps
+    if cp.returncode != 0:
+        return caps
+    text = cp.stdout.lower()
+    caps["hdr_capable"] = "hdr static metadata" in text or "smpte st 2084" in text or "hybrid log-gamma" in text
+    caps["wide_color_capable"] = "bt2020" in text or "display p3" in text or "dci-p3" in text
+    return caps
+
+
+def drm_connectors() -> list[dict]:
+    out: list[dict] = []
+    drm = Path("/sys/class/drm")
+    if not drm.exists():
+        return out
+    for connector in sorted(drm.glob("card[0-9]-*")):
+        status_path = connector / "status"
+        if not status_path.exists():
+            continue
+        card_name, output_name = connector.name.split("-", 1)
+        if output_name.startswith("Writeback-"):
+            continue
+        card = drm / card_name
+        modes = [line for line in read_text(connector / "modes").splitlines() if line]
+        caps = edid_caps(connector)
+        out.append({
+            "connector": connector.name,
+            "output_name": output_name,
+            "card": card_name,
+            "gpu_vendor": gpu_vendor(card),
+            "status": read_text(status_path, "unknown"),
+            "enabled": read_text(connector / "enabled", "unknown"),
+            "modes": modes,
+            "vrr_capable": read_int(connector / "vrr_capable"),
+            "max_bpc": read_int(connector / "max_bpc"),
+            **caps,
+        })
+    return out
+
+
+def hypr_monitors(connectors: list[dict]) -> list[dict]:
+    raw = run_json(["hyprctl", "-j", "monitors", "all"])
+    if not isinstance(raw, list):
+        return []
+    by_output = {c["output_name"]: c for c in connectors}
+    configured = configured_monitor_options()
+    out: list[dict] = []
+    for monitor in raw:
+        if not isinstance(monitor, dict):
+            continue
+        name = str(monitor.get("name", ""))
+        drm = by_output.get(name, {})
+        cfg = configured.get(name, {})
+        out.append({
+            "id": monitor.get("id"),
+            "name": name,
+            "description": monitor.get("description", ""),
+            "make": monitor.get("make", ""),
+            "model": monitor.get("model", ""),
+            "serial": monitor.get("serial", ""),
+            "width": monitor.get("width"),
+            "height": monitor.get("height"),
+            "refresh_hz": monitor.get("refreshRate"),
+            "x": monitor.get("x"),
+            "y": monitor.get("y"),
+            "scale": monitor.get("scale"),
+            "transform": monitor.get("transform"),
+            "focused": bool(monitor.get("focused", False)),
+            "disabled": bool(monitor.get("disabled", False)),
+            "dpms": monitor.get("dpmsStatus"),
+            "vrr": monitor.get("vrr"),
+            "current_format": monitor.get("currentFormat"),
+            "available_modes": monitor.get("availableModes", []) if isinstance(monitor.get("availableModes"), list) else [],
+            "workspace": monitor.get("activeWorkspace", {}),
+            "special_workspace": monitor.get("specialWorkspace", {}),
+            "gpu_vendor": drm.get("gpu_vendor", "unknown"),
+            "drm_card": drm.get("card", ""),
+            "drm_connector": drm.get("connector", ""),
+            "drm_status": drm.get("status", "unknown"),
+            "vrr_capable": drm.get("vrr_capable"),
+            "max_bpc": drm.get("max_bpc"),
+            "hdr_capable": drm.get("hdr_capable"),
+            "wide_color_capable": drm.get("wide_color_capable"),
+            "edid_bytes": drm.get("edid_bytes", 0),
+            "configured_bitdepth": cfg.get("bitdepth"),
+            "configured_cm": cfg.get("cm"),
+            "configured_vrr": cfg.get("vrr"),
+        })
+    return out
+
+
+def workspaces() -> list[dict]:
+    raw = run_json(["hyprctl", "-j", "workspaces"])
+    if not isinstance(raw, list):
+        return []
+    out = []
+    for item in raw:
+        if not isinstance(item, dict):
+            continue
+        out.append({
+            "id": item.get("id"),
+            "name": item.get("name", ""),
+            "monitor": item.get("monitor", ""),
+            "monitor_id": item.get("monitorID"),
+            "windows": item.get("windows", 0),
+            "last_window": item.get("lastwindow", ""),
+            "last_window_title": item.get("lastwindowtitle", ""),
+        })
+    return out
+
+
+def main() -> None:
+    drm = drm_connectors()
+    monitors = hypr_monitors(drm)
+    payload = {
+        "hyprland": monitors,
+        "drm": drm,
+        "workspaces": workspaces(),
+        "summary": {
+            "connected": sum(1 for m in monitors if not m.get("disabled")),
+            "focused": next((m.get("name") for m in monitors if m.get("focused")), ""),
+            "gpu_vendors": sorted({m.get("gpu_vendor", "unknown") for m in monitors}),
+        },
+        "write_capability": False,
+        "planner_capability": True,
+        "capability_policy": "HDR/wide-color are reported only when edid-decode can establish support; unknown remains null. VRR/max_bpc come from DRM sysfs when exposed.",
+        "rollback_policy": "configured cm/bitdepth/vrr are read from hypr-user.lua when present so preview rollback can restore color policy as well as geometry",
+        "safety": "probe is read-only; monitor writes require the preview/confirm/persist workflow",
+    }
+    print(json.dumps(payload, separators=(",", ":")))
+
+
+if __name__ == "__main__":
+    main()

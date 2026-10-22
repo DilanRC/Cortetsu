@@ -1,12 +1,15 @@
-//! Rust parity candidate for `cortetsu/bin/cortetsu-notifications`.
+//! Native owner for `cortetsu/bin/cortetsu-notifications`.
 //!
-//! Not installed by Cortetsu. All writes are scoped to the user's XDG state
+//! All writes are scoped to the user's XDG state
 //! and retain the JSON shapes already watched by services/Notifs.qml.
 use fs2::FileExt;
+pub mod owner;
 
 #[cfg(test)]
 mod pilot;
-use serde_json::{Map, Value, json};
+use serde_json::Value;
+#[cfg(test)]
+use serde_json::{Map, json};
 use std::fs::{self, File, OpenOptions};
 use std::io::Write;
 use std::os::unix::fs::OpenOptionsExt;
@@ -65,7 +68,28 @@ fn status_path(root: &Path) -> PathBuf {
     root.join("cortetsu/notification-status.json")
 }
 
+fn check_history_path(root: &Path) -> Result<()> {
+    for (path, directory) in [(root.join("cortetsu"), true), (history_path(root), false)] {
+        match fs::symlink_metadata(path) {
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => (),
+            Ok(meta)
+                if !meta.file_type().is_symlink()
+                    && if directory {
+                        meta.is_dir()
+                    } else {
+                        meta.is_file()
+                    } => {}
+            _ => return Err(Failure::unreadable()),
+        }
+    }
+    Ok(())
+}
+
 fn load_history(root: &Path) -> Result<Vec<Value>> {
+    check_history_path(root)?;
+    if owner::clear_state(root)?.1 {
+        return Ok(Vec::new());
+    }
     let bytes = match fs::read(history_path(root)) {
         Ok(bytes) => bytes,
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(Vec::new()),
@@ -78,6 +102,7 @@ fn load_history(root: &Path) -> Result<Vec<Value>> {
     Ok(items)
 }
 
+#[cfg(test)]
 fn load_status(root: &Path) -> Map<String, Value> {
     match fs::read(status_path(root))
         .ok()
@@ -123,7 +148,16 @@ fn atomic_write(path: &Path, bytes: &[u8]) -> Result<()> {
 }
 
 fn lock(root: &Path) -> Result<File> {
+    lock_with_timeout(root, std::time::Duration::from_secs(5))
+}
+fn lock_with_timeout(root: &Path, timeout: std::time::Duration) -> Result<File> {
+    let started = std::time::Instant::now();
     let parent = root.join("cortetsu");
+    if let Ok(meta) = fs::symlink_metadata(&parent)
+        && (!meta.is_dir() || meta.file_type().is_symlink())
+    {
+        return Err(Failure::io());
+    }
     fs::create_dir_all(&parent).map_err(|_| Failure::io())?;
     let path = parent.join("notifications-rs.lock");
     if let Ok(meta) = fs::symlink_metadata(&path)
@@ -138,16 +172,35 @@ fn lock(root: &Path) -> Result<File> {
         .mode(0o600)
         .open(path)
         .map_err(|_| Failure::io())?;
-    file.lock_exclusive().map_err(|_| Failure::io())?;
+    loop {
+        match file.try_lock_exclusive() {
+            Ok(()) => break,
+            Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => {
+                if started.elapsed() >= timeout {
+                    return Err(Failure {
+                        code: 2,
+                        message: "DEADLINE_EXCEEDED".into(),
+                    });
+                }
+                std::thread::sleep(
+                    std::time::Duration::from_millis(5)
+                        .min(timeout.saturating_sub(started.elapsed())),
+                );
+            }
+            Err(_) => return Err(Failure::io()),
+        }
+    }
     Ok(file)
 }
 
 fn save_history(root: &Path, entries: &[Value]) -> Result<()> {
+    check_history_path(root)?;
     let mut bytes = serde_json::to_vec(entries).map_err(|_| Failure::io())?;
     bytes.push(b'\n');
     atomic_write(&history_path(root), &bytes)
 }
 
+#[cfg(test)]
 fn save_status(root: &Path, data: &Map<String, Value>) -> Result<()> {
     let mut bytes = serde_json::to_vec(data).map_err(|_| Failure::io())?;
     bytes.push(b'\n');
@@ -195,31 +248,48 @@ pub fn run(args: &[String], root: &Path) -> Result<String> {
         }
         [action] if action == "clear" => {
             let _guard = lock(root)?;
-            save_history(root, &[])?;
+            owner::clear_locked(root)?;
             Ok("0".into())
+        }
+        [action, mode] if action == "dnd" && mode == "snapshot" => {
+            Ok(owner::snapshot(root)?.to_string())
+        }
+        [action, mode] if action == "dnd" && mode == "ensure" => {
+            owner::ensure(root)?;
+            Ok(owner::snapshot(root)?.to_string())
+        }
+        [action, mode] if action == "dnd" && mode == "recover" => {
+            owner::recover(root)?;
+            Ok(owner::snapshot(root)?.to_string())
+        }
+        [
+            action,
+            mode,
+            expected_flag,
+            expected,
+            key_flag,
+            key,
+            enabled_flag,
+            enabled,
+        ] if action == "dnd"
+            && mode == "set"
+            && expected_flag == "--expected-revision"
+            && key_flag == "--idempotency-key"
+            && enabled_flag == "--enabled" =>
+        {
+            let revision = expected.parse::<u64>().map_err(|_| Failure::usage())?;
+            let enabled = enabled.parse::<bool>().map_err(|_| Failure::usage())?;
+            Ok(owner::set(root, revision, key, enabled)?.to_string())
         }
         [action, mode] if action == "dnd" => {
             if !matches!(mode.as_str(), "status" | "on" | "off" | "toggle") {
                 return Err(Failure::usage());
             }
-            // A status query must not create a lock or mutate a file.
-            let _guard = if mode == "status" {
-                None
+            let state = if mode == "status" {
+                owner::snapshot(root)?["dnd"] == true
             } else {
-                Some(lock(root)?)
+                owner::manual(root, mode)?["dnd"] == true
             };
-            let mut status = load_status(root);
-            let mut state = status.get("dnd") == Some(&json!(true));
-            match mode.as_str() {
-                "on" => state = true,
-                "off" => state = false,
-                "toggle" => state = !state,
-                _ => {}
-            }
-            if mode != "status" {
-                status.insert("dnd".into(), Value::Bool(state));
-                save_status(root, &status)?;
-            }
             Ok(if state { "on".into() } else { "off".into() })
         }
         _ => Err(Failure::usage()),

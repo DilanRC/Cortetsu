@@ -1,0 +1,397 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import subprocess
+import sys
+import tempfile
+import time
+import uuid
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+PROBE = HERE / "cortetsu-display-probe"
+PLANNER = HERE / "cortetsu-display-plan"
+RUNTIME = Path(os.environ.get("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}"))
+STATE = RUNTIME / "cortetsu-display-preview.json"
+
+
+def emit(payload: dict, code: int = 0) -> int:
+    print(json.dumps(payload, separators=(",", ":")))
+    return code
+
+
+def read_json(path: Path) -> dict:
+    try:
+        parsed = json.loads(path.read_text(encoding="utf-8"))
+        return parsed if isinstance(parsed, dict) else {}
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+
+def write_state(payload: dict) -> None:
+    STATE.parent.mkdir(parents=True, exist_ok=True)
+    fd, tmp_name = tempfile.mkstemp(prefix="cortetsu-display-preview-", suffix=".json", dir=STATE.parent)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as handle:
+            json.dump(payload, handle, separators=(",", ":"))
+        os.replace(tmp_name, STATE)
+    finally:
+        try:
+            os.unlink(tmp_name)
+        except FileNotFoundError:
+            pass
+
+
+def clear_state() -> None:
+    try:
+        STATE.unlink()
+    except FileNotFoundError:
+        pass
+
+
+def run_json(command: list[str], timeout: float = 8.0) -> dict:
+    cp = subprocess.run(command, text=True, capture_output=True, timeout=timeout, check=False)
+    if cp.returncode != 0:
+        raise RuntimeError((cp.stderr or cp.stdout).strip() or f"command failed: {' '.join(command)}")
+    parsed = json.loads(cp.stdout)
+    if not isinstance(parsed, dict):
+        raise RuntimeError("JSON command returned non-object")
+    return parsed
+
+
+def current_snapshot() -> dict:
+    return run_json([str(PROBE)], 5)
+
+
+def mode_for(monitor: dict) -> str:
+    modes = monitor.get("available_modes", []) if isinstance(monitor.get("available_modes"), list) else []
+    width = int(monitor.get("width") or 0)
+    height = int(monitor.get("height") or 0)
+    refresh = float(monitor.get("refresh_hz") or 0)
+    best = ""
+    best_delta = 99999.0
+    for mode in modes:
+        text = str(mode)
+        if "@" not in text or "x" not in text:
+            continue
+        try:
+            wh, hz = text.split("@", 1)
+            w, h = wh.split("x", 1)
+            hz_value = float(hz.removesuffix("Hz"))
+        except ValueError:
+            continue
+        if int(w) != width or int(h) != height:
+            continue
+        delta = abs(hz_value - refresh)
+        if delta < best_delta:
+            best_delta = delta
+            best = text
+    return best or (str(modes[0]) if modes else "preferred")
+
+
+def current_bitdepth(monitor: dict) -> int:
+    configured = monitor.get("configured_bitdepth")
+    try:
+        if int(configured) in {8, 10}:
+            return int(configured)
+    except (TypeError, ValueError):
+        pass
+    fmt = str(monitor.get("current_format", "")).upper()
+    return 10 if "2101010" in fmt or "101010" in fmt else 8
+
+
+def current_vrr(monitor: dict) -> int:
+    configured = monitor.get("configured_vrr")
+    try:
+        value = int(configured)
+        if 0 <= value <= 3:
+            return value
+    except (TypeError, ValueError):
+        pass
+    return 1 if bool(monitor.get("vrr", False)) else 0
+
+
+def current_cm(monitor: dict) -> str:
+    configured = str(monitor.get("configured_cm") or "").strip().lower()
+    return configured or "srgb"
+
+
+def candidate_from_snapshot(snapshot: dict) -> dict:
+    outputs = []
+    for monitor in snapshot.get("hyprland", []):
+        if not isinstance(monitor, dict):
+            continue
+        outputs.append({
+            "name": str(monitor.get("name", "")),
+            "enabled": not bool(monitor.get("disabled", False)),
+            "mode": mode_for(monitor),
+            "x": int(monitor.get("x") or 0),
+            "y": int(monitor.get("y") or 0),
+            "scale": float(monitor.get("scale") or 1),
+            "transform": int(monitor.get("transform") or 0),
+            "bitdepth": current_bitdepth(monitor),
+            "cm": current_cm(monitor),
+            "vrr": current_vrr(monitor),
+        })
+    return {"outputs": outputs}
+
+
+def plan(candidate: dict) -> dict:
+    return run_json([str(PLANNER), "--candidate", json.dumps(candidate, separators=(",", ":"))], 10)
+
+
+def lua_monitor_command(command: list[str]) -> list[str]:
+    """Translate the planner's monitor command to the active Lua parser."""
+    if command[:3] != ["hyprctl", "keyword", "monitor"] or len(command) != 4:
+        raise RuntimeError("planner returned an unexpected command")
+    fields = command[3].split(",")
+    if len(fields) < 2 or not fields[0]:
+        raise RuntimeError("planner returned an invalid monitor command")
+    output = fields[0]
+    if len(fields) == 2 and fields[1] == "disable":
+        lua = f'hl.monitor({{ output = {json.dumps(output)}, disable = true }})'
+        return ["hyprctl", "eval", lua]
+    if len(fields) < 4:
+        raise RuntimeError("planner returned an incomplete monitor command")
+    values = {"mode": fields[1], "position": fields[2], "scale": fields[3]}
+    index = 4
+    while index + 1 < len(fields):
+        values[fields[index]] = fields[index + 1]
+        index += 2
+    lua_values = [f"output = {json.dumps(output)}"]
+    for key in ("mode", "position", "scale", "transform", "bitdepth", "cm", "vrr"):
+        if key not in values:
+            continue
+        raw = values[key]
+        if key in {"scale"}:
+            lua_values.append(f"{key} = {float(raw):g}")
+        elif key in {"transform", "bitdepth", "vrr"}:
+            lua_values.append(f"{key} = {int(raw)}")
+        else:
+            lua_values.append(f"{key} = {json.dumps(raw)}")
+    return ["hyprctl", "eval", "hl.monitor({" + ", ".join(lua_values) + "})"]
+
+
+def execute_plan(planned: dict) -> tuple[bool, str]:
+    commands = planned.get("commands", [])
+    if not planned.get("ok") or not isinstance(commands, list):
+        return False, "candidate plan is not valid"
+    for command in commands:
+        if not isinstance(command, list):
+            return False, "planner returned an unexpected command"
+        try:
+            command = lua_monitor_command(command)
+        except (RuntimeError, ValueError) as exc:
+            return False, str(exc)
+        try:
+            cp = subprocess.run(command, text=True, capture_output=True, timeout=6, check=False)
+        except (OSError, subprocess.SubprocessError) as exc:
+            return False, str(exc)
+        if cp.returncode != 0:
+            return False, (cp.stderr or cp.stdout).strip()
+    return True, ""
+
+
+def verify_candidate(candidate: dict) -> tuple[bool, str]:
+    time.sleep(0.7)
+    live = current_snapshot()
+    by_name = {str(m.get("name", "")): m for m in live.get("hyprland", []) if isinstance(m, dict)}
+    for item in candidate.get("outputs", []):
+        if not isinstance(item, dict):
+            continue
+        name = str(item.get("name", ""))
+        monitor = by_name.get(name)
+        if monitor is None:
+            return False, f"{name} disappeared after preview"
+        if not item.get("enabled", True):
+            continue
+        if abs(float(monitor.get("scale") or 1) - float(item.get("scale") or 1)) > 0.03:
+            return False, f"{name} scale did not match preview"
+        if abs(int(monitor.get("x") or 0) - int(item.get("x") or 0)) > 2:
+            return False, f"{name} x position did not match preview"
+        if abs(int(monitor.get("y") or 0) - int(item.get("y") or 0)) > 2:
+            return False, f"{name} y position did not match preview"
+        if int(item.get("bitdepth", 8)) == 10:
+            fmt = str(monitor.get("current_format", "")).upper()
+            if "2101010" not in fmt and "101010" not in fmt:
+                return False, f"{name} did not enter a 10-bit format"
+        # Mode 1 is always-on VRR and can be verified immediately. Conditional
+        # modes may correctly report idle until a fullscreen/game surface exists.
+        if int(item.get("vrr", 0)) == 1 and not bool(monitor.get("vrr", False)):
+            return False, f"{name} always-on VRR did not become active"
+    return True, ""
+
+
+def restore_original(original: dict) -> tuple[bool, str]:
+    try:
+        original_plan = plan(original)
+    except Exception as exc:
+        return False, f"could not plan original layout: {exc}"
+    return execute_plan(original_plan)
+
+
+def preview(candidate: dict, timeout_seconds: int) -> tuple[dict, int]:
+    existing = read_json(STATE)
+    if existing.get("active") and float(existing.get("deadline", 0)) > time.time():
+        return {"ok": False, "error": "a display preview is already active", "state": existing}, 4
+
+    try:
+        planned = plan(candidate)
+    except Exception as exc:
+        return {"ok": False, "error": str(exc)}, 2
+    if not planned.get("ok"):
+        return {"ok": False, "error": "candidate validation failed", "plan": planned}, 3
+
+    normalized_candidate = planned.get("candidate", candidate)
+    try:
+        original = candidate_from_snapshot(current_snapshot())
+        # Planning the rollback snapshot now proves it can be restored before
+        # the live candidate is ever touched.
+        original_plan = plan(original)
+        if not original_plan.get("ok"):
+            return {"ok": False, "error": "current layout cannot be represented safely for rollback", "rollback_plan": original_plan}, 2
+    except Exception as exc:
+        return {"ok": False, "error": f"could not snapshot current layout: {exc}"}, 2
+
+    token = uuid.uuid4().hex
+    now = time.time()
+    state = {
+        "active": True,
+        "token": token,
+        "started": int(now),
+        "deadline": now + timeout_seconds,
+        "timeout_seconds": timeout_seconds,
+        "original": original,
+        "candidate": normalized_candidate,
+        "confirmed": False,
+    }
+    write_state(state)
+
+    ok, error = execute_plan(planned)
+    if not ok:
+        restore_original(original)
+        clear_state()
+        return {"ok": False, "error": error, "reverted": True}, 5
+
+    try:
+        verified, verify_error = verify_candidate(normalized_candidate)
+    except Exception as exc:
+        verified, verify_error = False, str(exc)
+    if not verified:
+        restore_original(original)
+        clear_state()
+        return {"ok": False, "error": verify_error, "reverted": True}, 6
+
+    subprocess.Popen(
+        [sys.executable, str(Path(__file__).resolve()), "watch", "--token", token],
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        start_new_session=True,
+    )
+    return {
+        "ok": True,
+        "preview": True,
+        "deadline": state["deadline"],
+        "timeout_seconds": timeout_seconds,
+        "token": token,
+        "candidate": normalized_candidate,
+        "rollback_captures_color_policy": True,
+    }, 0
+
+
+def confirm() -> tuple[dict, int]:
+    state = read_json(STATE)
+    if not state.get("active"):
+        return {"ok": False, "error": "no active preview"}, 2
+    state["confirmed"] = True
+    state["active"] = False
+    write_state(state)
+    clear_state()
+    return {
+        "ok": True,
+        "confirmed": True,
+        "persistent": False,
+        "candidate": state.get("candidate", {}),
+        "note": "layout kept for this Hyprland session; persistence is a separate step",
+    }, 0
+
+
+def revert(token: str | None = None) -> tuple[dict, int]:
+    state = read_json(STATE)
+    if not state.get("active"):
+        clear_state()
+        return {"ok": True, "reverted": False, "reason": "no active preview"}, 0
+    if token and token != state.get("token"):
+        return {"ok": False, "error": "preview token mismatch"}, 3
+    ok, error = restore_original(state.get("original", {}))
+    clear_state()
+    return {"ok": ok, "reverted": ok, "error": error, "restored_color_policy": ok}, 0 if ok else 5
+
+
+def watch(token: str) -> int:
+    while True:
+        state = read_json(STATE)
+        if not state or state.get("token") != token or not state.get("active"):
+            return 0
+        remaining = float(state.get("deadline", 0)) - time.time()
+        if remaining <= 0:
+            _payload, code = revert(token)
+            return code
+        time.sleep(min(0.5, max(0.1, remaining)))
+
+
+def status() -> dict:
+    state = read_json(STATE)
+    if not state.get("active"):
+        return {"active": False}
+    return {
+        "active": True,
+        "token": state.get("token", ""),
+        "started": state.get("started"),
+        "deadline": state.get("deadline"),
+        "remaining_seconds": max(0, round(float(state.get("deadline", 0)) - time.time(), 1)),
+        "candidate": state.get("candidate", {}),
+        "rollback": state.get("original", {}),
+    }
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Cortetsu timed display preview transaction")
+    sub = parser.add_subparsers(dest="command", required=True)
+    preview_parser = sub.add_parser("preview")
+    preview_parser.add_argument("--candidate", required=True)
+    preview_parser.add_argument("--timeout", type=int, default=15)
+    sub.add_parser("confirm")
+    sub.add_parser("revert")
+    sub.add_parser("status")
+    watch_parser = sub.add_parser("watch")
+    watch_parser.add_argument("--token", required=True)
+    args = parser.parse_args()
+
+    try:
+        if args.command == "preview":
+            candidate = json.loads(args.candidate)
+            timeout_seconds = max(8, min(30, int(args.timeout)))
+            payload, code = preview(candidate, timeout_seconds)
+            return emit(payload, code)
+        if args.command == "confirm":
+            payload, code = confirm()
+            return emit(payload, code)
+        if args.command == "revert":
+            payload, code = revert()
+            return emit(payload, code)
+        if args.command == "status":
+            return emit(status())
+        if args.command == "watch":
+            return watch(args.token)
+    except (ValueError, json.JSONDecodeError, OSError, RuntimeError, subprocess.SubprocessError) as exc:
+        return emit({"ok": False, "error": str(exc)}, 2)
+    return 2
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

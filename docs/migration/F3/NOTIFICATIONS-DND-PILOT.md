@@ -1,5 +1,8 @@
 # F3 — Piloto reversible: estado DND local (sandbox)
 
+> Registro de diseño/prototipo anterior a la integración nativa. Para el
+> comportamiento actual, consultar [NATIVE-RUNTIME.md](../NATIVE-RUNTIME.md).
+
 El primer dominio de escritura seleccionado es **notification-status.json / DND**:
 una única clave booleana con cambio reversible, no display, energía ni red.
 Es el piloto más pequeño para validar el journal de Rust sin riesgo de apagar

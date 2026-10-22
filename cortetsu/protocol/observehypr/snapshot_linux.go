@@ -17,10 +17,11 @@ import (
 // All details are counters/booleans; monitor names, workspaces names, window
 // titles, EDID, addresses and individual app properties are discarded.
 type OwnerState struct {
-	MonitorCount   int   `json:"monitor_count"`
-	WorkspaceCount int   `json:"workspace_count"`
-	FocusedMonitor bool  `json:"focused_monitor"`
-	ObservedUnixMs int64 `json:"observed_at_unix_ms"`
+	MonitorCount      int   `json:"monitor_count"`
+	WorkspaceCount    int   `json:"workspace_count"`
+	FocusedMonitor    bool  `json:"focused_monitor"`
+	FocusedFullscreen bool  `json:"focused_fullscreen"`
+	ObservedUnixMs    int64 `json:"observed_at_unix_ms"`
 }
 
 const ownerMaxReply = 512 * 1024
@@ -87,7 +88,7 @@ func (r *limitReader) Read(p []byte) (int, error) {
 	return n, err
 }
 
-// ReadOwner obtains real Hyprland state with two short-lived read-only queries.
+// ReadOwner obtains real Hyprland state with three short-lived read-only queries.
 // hyprland processes each request synchronously, so never hold a connection
 // open after decoding a result. There is no poll loop in this library.
 func ReadOwner(socketPath string) (OwnerState, error) {
@@ -107,7 +108,17 @@ func ReadOwner(socketPath string) (OwnerState, error) {
 	if len(monitors) > 128 || len(workspaces) > 4096 {
 		return OwnerState{}, errors.New("impossible owner counts")
 	}
+	var active struct {
+		Fullscreen int `json:"fullscreen"`
+	}
+	if err := queryOwner(socketPath, "j/activewindow", &active); err != nil {
+		return OwnerState{}, err
+	}
+	if active.Fullscreen < 0 || active.Fullscreen > 3 {
+		return OwnerState{}, errors.New("invalid fullscreen state")
+	}
 	state := OwnerState{WorkspaceCount: len(workspaces), ObservedUnixMs: time.Now().UnixMilli()}
+	state.FocusedFullscreen = active.Fullscreen == 2 || active.Fullscreen == 3
 	for _, m := range monitors {
 		if !m.Disabled {
 			state.MonitorCount++

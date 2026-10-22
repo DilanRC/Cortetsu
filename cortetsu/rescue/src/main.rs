@@ -13,10 +13,12 @@ fn main() -> ExitCode {
     let args: Vec<_> = env::args().collect();
     let is_explicit_rollback =
         args.len() == 3 && args[1] == "rollback" && args[2] == "--acknowledge-unmanaged-helpers";
-    let is_helper_stage =
-        args.len() == 4 && args[1] == "helpers-stage" && args[2] == "--experimental";
+    let is_schema2_rollback = args.len() == 2 && args[1] == "rollback";
+    let is_helper_stage = (args.len() == 3 && args[1] == "helpers-stage")
+        || (args.len() == 4 && args[1] == "helpers-stage" && args[2] == "--experimental");
     let is_helper_verify = args.len() == 3 && args[1] == "helpers-verify";
     if !is_explicit_rollback
+        && !is_schema2_rollback
         && !is_helper_stage
         && !is_helper_verify
         && (args.len() != 2
@@ -26,7 +28,7 @@ fn main() -> ExitCode {
             ))
     {
         eprintln!(
-            "usage: cortetsu-rescue verify|status|plan-rollback|recover|exec|rollback --acknowledge-unmanaged-helpers|helpers-stage --experimental ABSOLUTE_SOURCE|helpers-verify BUILD_ID"
+            "usage: cortetsu-rescue verify|status|plan-rollback|recover|exec|rollback [--acknowledge-unmanaged-helpers]|helpers-stage ABSOLUTE_SOURCE|helpers-verify BUILD_ID"
         );
         return ExitCode::from(2);
     }
@@ -62,8 +64,8 @@ fn main() -> ExitCode {
             json!({"operation":"ROLLBACK_PLAN_ONLY","current":now,"target":target,"applied":false})
         }),
         "recover" => recover(&roots).map(|receipt| json!({"verified":true,"recovery":receipt})),
-        "rollback" => rollback_pointers(&roots, is_explicit_rollback).map(|receipt| json!({"verified":true,"result":receipt,"helpers_restored":false})),
-        "helpers-stage" => helper_bundle::stage(&roots, Path::new(&args[3]))
+        "rollback" => rollback_pointers(&roots, is_explicit_rollback).map(|receipt| json!({"verified":true,"result":receipt,"helpers_restored":current(&roots).is_ok_and(|g| g.helpers.is_some())})),
+        "helpers-stage" => helper_bundle::stage(&roots, Path::new(args.last().expect("validated arguments")))
             .map(|bundle| json!({"verified":true,"bundle":bundle,"activated":false})),
         "helpers-verify" => helper_bundle::verify(&roots, &args[2])
             .map(|bundle| json!({"verified":true,"bundle":bundle,"activated":false})),

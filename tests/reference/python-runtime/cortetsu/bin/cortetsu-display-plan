@@ -1,0 +1,221 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+import json
+import subprocess
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+PROBE = HERE / "cortetsu-display-probe"
+ALLOWED_CM = {"auto", "srgb", "dcip3", "dp3", "adobe", "wide", "edid", "hdr", "hdredid"}
+
+
+def current_snapshot() -> dict:
+    cp = subprocess.run([str(PROBE)], text=True, capture_output=True, timeout=5, check=False)
+    if cp.returncode != 0:
+        raise RuntimeError((cp.stderr or cp.stdout).strip() or "display probe failed")
+    parsed = json.loads(cp.stdout)
+    if not isinstance(parsed, dict):
+        raise RuntimeError("display probe returned non-object JSON")
+    return parsed
+
+
+def parse_candidate(raw: str) -> dict:
+    parsed = json.loads(raw)
+    if not isinstance(parsed, dict):
+        raise ValueError("candidate root must be an object")
+    outputs = parsed.get("outputs")
+    if not isinstance(outputs, list):
+        raise ValueError("candidate.outputs must be an array")
+    return parsed
+
+
+def mode_dimensions(mode: str) -> tuple[int, int] | None:
+    head = mode.split("@", 1)[0]
+    if "x" not in head:
+        return None
+    left, right = head.split("x", 1)
+    try:
+        return int(left), int(right)
+    except ValueError:
+        return None
+
+
+def current_bitdepth(monitor: dict) -> int:
+    fmt = str(monitor.get("current_format", "")).upper()
+    if "2101010" in fmt or "101010" in fmt:
+        return 10
+    return 8
+
+
+def proven_10bit(monitor: dict) -> bool:
+    max_bpc = monitor.get("max_bpc")
+    try:
+        if max_bpc is not None and int(max_bpc) >= 10:
+            return True
+    except (TypeError, ValueError):
+        pass
+    return current_bitdepth(monitor) == 10
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Validate a Cortetsu display layout without applying it")
+    parser.add_argument("--candidate", required=True, help="Candidate JSON object with an outputs array")
+    args = parser.parse_args()
+
+    try:
+        candidate = parse_candidate(args.candidate)
+        snapshot = current_snapshot()
+    except (ValueError, json.JSONDecodeError, RuntimeError, OSError, subprocess.SubprocessError) as exc:
+        print(json.dumps({"ok": False, "errors": [str(exc)], "warnings": [], "commands": [], "hypr_lines": []}, separators=(",", ":")))
+        return 2
+
+    current = snapshot.get("hyprland", []) if isinstance(snapshot.get("hyprland"), list) else []
+    by_name = {str(m.get("name", "")): m for m in current if isinstance(m, dict)}
+    errors: list[str] = []
+    warnings: list[str] = []
+    normalized: list[dict] = []
+    seen: set[str] = set()
+
+    for index, raw in enumerate(candidate.get("outputs", [])):
+        if not isinstance(raw, dict):
+            errors.append(f"outputs[{index}] must be an object")
+            continue
+        name = str(raw.get("name", "")).strip()
+        if not name:
+            errors.append(f"outputs[{index}] has no name")
+            continue
+        if name in seen:
+            errors.append(f"duplicate output {name}")
+            continue
+        seen.add(name)
+        monitor = by_name.get(name)
+        if monitor is None:
+            errors.append(f"output {name} is not currently known to Hyprland")
+            continue
+
+        enabled = bool(raw.get("enabled", True))
+        if not enabled:
+            normalized.append({"name": name, "enabled": False})
+            continue
+
+        mode = str(raw.get("mode", "")).strip()
+        if not mode:
+            width = int(monitor.get("width") or 0)
+            height = int(monitor.get("height") or 0)
+            refresh = float(monitor.get("refresh_hz") or 0)
+            mode = f"{width}x{height}@{refresh:.2f}Hz" if width and height and refresh else "preferred"
+
+        allowed_modes = [str(v) for v in monitor.get("available_modes", []) if v]
+        symbolic = {"preferred", "highrr", "highres"}
+        if mode not in symbolic and allowed_modes and mode not in allowed_modes:
+            errors.append(f"{name}: mode {mode} is not in Hyprland availableModes")
+
+        try:
+            scale = float(raw.get("scale", monitor.get("scale", 1.0)))
+        except (TypeError, ValueError):
+            scale = -1
+        if not 0.5 <= scale <= 3.0:
+            errors.append(f"{name}: scale {scale} outside safe range 0.5..3.0")
+
+        try:
+            x = int(raw.get("x", monitor.get("x", 0)))
+            y = int(raw.get("y", monitor.get("y", 0)))
+            transform = int(raw.get("transform", monitor.get("transform", 0)))
+            bitdepth = int(raw.get("bitdepth", current_bitdepth(monitor)))
+            vrr = int(raw.get("vrr", 1 if bool(monitor.get("vrr", False)) else 0))
+        except (TypeError, ValueError):
+            errors.append(f"{name}: x/y/transform/bitdepth/vrr must be numeric")
+            continue
+
+        if transform < 0 or transform > 7:
+            errors.append(f"{name}: transform {transform} outside Hyprland range 0..7")
+        if bitdepth not in {8, 10}:
+            errors.append(f"{name}: bitdepth must be 8 or 10")
+        if bitdepth == 10 and not proven_10bit(monitor):
+            errors.append(f"{name}: 10-bit was requested but support is not established by DRM/current format")
+        if vrr < 0 or vrr > 3:
+            errors.append(f"{name}: vrr {vrr} outside Hyprland range 0..3")
+        if vrr > 0 and not bool(monitor.get("vrr_capable", False)):
+            errors.append(f"{name}: VRR was requested but DRM does not report VRR capability")
+
+        cm = str(raw.get("cm", "srgb")).strip().lower() or "srgb"
+        if cm not in ALLOWED_CM:
+            errors.append(f"{name}: unsupported color-management preset {cm}")
+        if cm in {"wide", "hdr", "hdredid"} and bitdepth != 10:
+            errors.append(f"{name}: {cm} requires 10-bit in Cortetsu safety policy")
+        if cm in {"hdr", "hdredid"} and monitor.get("hdr_capable") is not True:
+            errors.append(f"{name}: HDR requested but EDID support is not established")
+        if cm == "wide" and monitor.get("wide_color_capable") is not True:
+            errors.append(f"{name}: wide color requested but EDID support is not established")
+        if cm == "auto" and bitdepth == 10 and monitor.get("wide_color_capable") is not True:
+            warnings.append(f"{name}: 10-bit auto color mode has no established wide-color EDID capability")
+
+        normalized.append({
+            "name": name,
+            "enabled": True,
+            "mode": mode,
+            "x": x,
+            "y": y,
+            "scale": round(scale, 3),
+            "transform": transform,
+            "bitdepth": bitdepth,
+            "cm": cm,
+            "vrr": vrr,
+        })
+
+    if normalized and not any(item.get("enabled") for item in normalized):
+        errors.append("candidate disables every output")
+    if not normalized:
+        errors.append("candidate contains no valid outputs")
+
+    enabled = [item for item in normalized if item.get("enabled")]
+    for i, left in enumerate(enabled):
+        left_dim = mode_dimensions(str(left.get("mode", "")))
+        if not left_dim:
+            continue
+        lw = left_dim[0] / max(0.5, float(left.get("scale", 1)))
+        lh = left_dim[1] / max(0.5, float(left.get("scale", 1)))
+        for right in enabled[i + 1 :]:
+            right_dim = mode_dimensions(str(right.get("mode", "")))
+            if not right_dim:
+                continue
+            rw = right_dim[0] / max(0.5, float(right.get("scale", 1)))
+            rh = right_dim[1] / max(0.5, float(right.get("scale", 1)))
+            overlap = not (
+                left["x"] + lw <= right["x"] or right["x"] + rw <= left["x"] or
+                left["y"] + lh <= right["y"] or right["y"] + rh <= left["y"]
+            )
+            if overlap:
+                warnings.append(f"{left['name']} and {right['name']} overlap; this may be intentional for mirroring")
+
+    commands: list[list[str]] = []
+    hypr_lines: list[str] = []
+    for item in normalized:
+        if not item.get("enabled"):
+            value = f"{item['name']},disable"
+        else:
+            value = (
+                f"{item['name']},{item['mode']},{item['x']}x{item['y']},{item['scale']},"
+                f"transform,{item['transform']},bitdepth,{item['bitdepth']},cm,{item['cm']},vrr,{item['vrr']}"
+            )
+        commands.append(["hyprctl", "keyword", "monitor", value])
+        hypr_lines.append(f"monitor = {value}")
+
+    payload = {
+        "ok": not errors,
+        "errors": errors,
+        "warnings": warnings,
+        "candidate": {"outputs": normalized},
+        "commands": commands if not errors else [],
+        "hypr_lines": hypr_lines if not errors else [],
+        "applied": False,
+        "safety": "dry-run only; 10-bit/VRR/HDR require established capability; no hyprctl write command was executed",
+    }
+    print(json.dumps(payload, separators=(",", ":")))
+    return 0 if not errors else 3
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

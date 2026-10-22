@@ -25,7 +25,7 @@ ColumnLayout {
                 ? qsTr("Los avisos se guardan en el historial sin aparecer en pantalla")
                 : qsTr("Los avisos aparecen en pantalla al llegar")
             checked: CortetsuNotifications.dnd
-            onToggled: value => CortetsuNotifications.dnd = value
+            onToggled: value => CortetsuNotifications.setDnd(value)
         }
 
         SettingToggleRow {

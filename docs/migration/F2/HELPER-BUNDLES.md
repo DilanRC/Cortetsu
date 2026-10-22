@@ -1,5 +1,8 @@
 # F2 — Generaciones de helpers (staging sin cutover)
 
+> Registro de diseño/prototipo anterior a la integración nativa. Para el
+> comportamiento actual, consultar [NATIVE-RUNTIME.md](../NATIVE-RUNTIME.md).
+
 El primer defecto real de instalación detectado después de la PR #51 fue que `cortetsu rollback` revertía shell y dotfiles pero dejaba los ejecutables copiados a `~/.local/bin` en la versión nueva. El esquema `SYSTEM.json` 1 no menciona esos helpers.
 
 `cortetsu-rescue helpers-stage --experimental /ruta/absoluta/cortetsu/bin` crea una copia inmutable de los archivos regulares `cortetsu-*` en `$CORTETSU_DATA_ROOT/helpers/builds/helpers-...`. Genera `HELPERS.json` con SHA-256 por archivo, sincroniza los datos antes de publicar y verifica que el archivo no se modificó durante la copia. `cortetsu-rescue helpers-verify BUILD_ID` comprueba entradas, tamaño, hash y rechaza symlinks y archivos adicionales. Respeta el mismo `install.lock` del instalador.

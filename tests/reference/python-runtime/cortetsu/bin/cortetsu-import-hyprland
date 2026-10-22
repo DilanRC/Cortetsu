@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+DATA_ROOT="${CORTETSU_DATA_ROOT:-${XDG_DATA_HOME:-$HOME/.local/share}/cortetsu}"
+repo="${CORTETSU_REPO_ROOT:-}"
+if [[ -z "$repo" && -L "$DATA_ROOT/repository" ]]; then
+    repo="$(readlink -f "$DATA_ROOT/repository")"
+fi
+if [[ -z "$repo" ]]; then
+    repo="$(git -C "$PWD" rev-parse --show-toplevel 2>/dev/null || true)"
+fi
+[[ -n "$repo" && -f "$repo/core/import_hyprland.py" ]] || { echo "ERROR: no se encontró el repositorio Cortetsu" >&2; exit 1; }
+exec python3 "$repo/core/import_hyprland.py" "$@" --repo "$repo"

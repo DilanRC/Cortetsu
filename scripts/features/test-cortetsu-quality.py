@@ -73,9 +73,17 @@ assert "root.screen?.height ?? 0" in visualiser
 assert "screen?.height ?? 0" in launcher
 assert "modelData?.width ?? 0" in bottom_hub
 
-calendar = (repo / "cortetsu/bin/cortetsu-calendar").read_text(encoding="utf-8")
-pomodoro = (repo / "cortetsu/bin/cortetsu-pomodoro").read_text(encoding="utf-8")
-assert '/ "cortetsu"' in calendar
-assert 'state_home / "cortetsu/pomodoro.json"' in pomodoro
+native = repo / "cortetsu/desktop-runtime-rs/src"
+calendar = (native / "calendar.rs").read_text(encoding="utf-8")
+pomodoro = (native / "pomodoro.rs").read_text(encoding="utf-8")
+common = (native / "common.rs").read_text(encoding="utf-8")
+assert 'config().join("cortetsu/calendar-client.json")' in calendar
+assert 'config().join("cortetsu/calendar-selection.json")' in calendar
+assert 'state().join("pomodoro.json")' in pomodoro
+assert 'xdg("XDG_STATE_HOME", ".local/state").join("cortetsu")' in common
+for command in ("calendar", "pomodoro"):
+    launcher = (repo / f"cortetsu/bin/cortetsu-{command}").read_text(encoding="utf-8")
+    assert f'exec "$BUNDLE/cortetsu-desktop-runtime" cortetsu-{command} "$@"' in launcher
+    assert "python" not in launcher, f"{command} reintroduced an interpreter dependency"
 
 print("PASS: Cortetsu quality gate: cold hidden pages, native visual primitives, canonical state, no QML shell pipelines")

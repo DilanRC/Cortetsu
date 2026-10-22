@@ -130,7 +130,7 @@ CortetsuSurface {
                     delegate: Toggle {
                         icon: "notifications_off"
                         checked: Notifs.dnd
-                        onClicked: Notifs.dnd = !Notifs.dnd
+                        onClicked: Notifs.toggleDnd()
                     }
                 }
                 DelegateChoice {

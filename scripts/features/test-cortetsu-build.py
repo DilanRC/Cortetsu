@@ -1,116 +1,148 @@
 #!/usr/bin/env python3
-"""E2E gate: unmanaged runtime -> two unified Cortetsu systems -> rollback."""
-from __future__ import annotations
+"""Native E2E gate: real installer, two sealed schema2 generations and rollback.
 
+Python is only this test driver. Every child installer/CLI runs with a whitelist
+PATH containing no Python interpreter. Qt Quick Test remains real and mandatory;
+only systemctl is replaced to isolate the fixture from the host user manager.
+"""
+from __future__ import annotations
+import argparse
+import json
+import os
+import shutil
 import subprocess
 import tempfile
-import os
 from pathlib import Path
 
-repo = Path(__file__).resolve().parents[2]
-with tempfile.TemporaryDirectory(prefix="cortetsu-e2e-") as temporary:
-    root = Path(temporary)
-    home = root / "home"
-    data = root / "data"
-    runtime = root / "runtime"
-    unmanaged = root / "unmanaged-runtime"
-    home.mkdir()
-    runtime.mkdir()
-    unmanaged.mkdir()
-    (unmanaged / "shell.qml").write_text("// pre-v2 runtime without BUILD.json\n", encoding="utf-8")
-    (runtime / "current").symlink_to(unmanaged, target_is_directory=True)
+REPO = Path(__file__).resolve().parents[2]
 
-    env = {
-        **os.environ,
-        "HOME": str(home),
-        "XDG_CONFIG_HOME": str(home / ".config"),
-        "CORTETSU_DATA_ROOT": str(data),
-        "CORTETSU_RUNTIME_ROOT": str(runtime),
-        "CORTETSU_REPOSITORY": str(repo),
-    }
-    # A host platform theme cannot find its config under the isolated HOME and
-    # logs Qt warnings that the Quickshell fixtures treat as failures.
-    env.pop("QT_QPA_PLATFORMTHEME", None)
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--native-bundle', type=Path, default=REPO / 'dist/native')
+    parser.add_argument('--qml-runner', type=Path, default=Path('/usr/lib/qt6/bin/qmltestrunner'))
+    args = parser.parse_args()
+    bundle = args.native_bundle.resolve()
+    if not (bundle / 'cortetsu-platform').is_file():
+        subprocess.run([str(REPO / 'scripts/build-native.sh')], cwd=REPO, check=True,
+                       env={**os.environ, 'CORTETSU_NATIVE_OUTPUT': str(bundle)})
+    assert args.qml_runner.is_file(), 'Qt Quick Test is required for the native installation gate'
+    with tempfile.TemporaryDirectory(prefix='cortetsu-native-e2e-') as temporary:
+        root = Path(temporary)
+        fixture = root / 'repository'
+        shutil.copytree(REPO, fixture, symlinks=True,
+                        ignore=shutil.ignore_patterns('.git', 'target', 'dist', '__pycache__', '.pytest_cache'))
+        home, data, runtime = root / 'home', root / 'data', root / 'runtime'
+        home.mkdir(); runtime.mkdir()
+        unmanaged = root / 'unmanaged-runtime'; unmanaged.mkdir()
+        (unmanaged / 'shell.qml').write_text('// archived pre-v2 runtime\n')
+        (runtime / 'current').symlink_to(unmanaged, target_is_directory=True)
+        commands = root / 'commands'; commands.mkdir()
+        for name in ('bash', 'sh', 'readlink', 'dirname', 'mkdir', 'mktemp', 'rm', 'chmod',
+                     'cp', 'flock', 'git', 'date', 'find', 'sort', 'install', 'mv', 'tr',
+                     'awk', 'sed', 'timeout', 'grep', 'tar', 'gzip', 'head', 'ln', 'cut',
+                     'stat', 'uname', 'sleep'):
+            path = shutil.which(name)
+            assert path, f'missing installation dependency: {name}'
+            (commands / name).symlink_to(path)
+        control = commands / 'systemctl'
+        control.write_text('''#!/bin/sh
+printf '%s\\n' "$*" >> "$CORTETSU_SYSTEMCTL_LOG"
+case "$*" in
+  *is-enabled*|*is-active*|*'cat mako.service'*) exit 1 ;;
+  *'show -p Transient'*) printf 'no\\n' ;;
+esac
+exit 0
+''')
+        control.chmod(0o755)
+        assert shutil.which('python3', path=str(commands)) is None
+        assert shutil.which('python', path=str(commands)) is None
+        env = {**os.environ, 'HOME': str(home), 'PATH': str(commands),
+               'XDG_CONFIG_HOME': str(home / '.config'),
+               'XDG_DATA_HOME': str(home / '.local/share'),
+               'XDG_STATE_HOME': str(home / '.local/state'),
+               'XDG_CACHE_HOME': str(home / '.cache'),
+               'XDG_RUNTIME_DIR': str(root / 'xdg-runtime'),
+               'CORTETSU_DATA_ROOT': str(data), 'CORTETSU_RUNTIME_ROOT': str(runtime),
+               'CORTETSU_REPO_ROOT': str(fixture), 'CORTETSU_REPOSITORY': str(fixture),
+               'CORTETSU_QMLTESTRUNNER': str(args.qml_runner.resolve()),
+               'CORTETSU_SKIP_RELOAD': '1', 'CORTETSU_SYSTEMCTL_LOG': str(root / 'systemctl.log')}
+        for key in ('QT_QPA_PLATFORMTHEME', 'DBUS_SESSION_BUS_ADDRESS', 'WAYLAND_DISPLAY',
+                    'DISPLAY', 'HYPRLAND_INSTANCE_SIGNATURE', 'CORTETSU_RESOURCE_ROOT',
+                    'CORTETSU_INSTALL_TRANSACTION', 'CORTETSU_NATIVE_OUTPUT'):
+            env.pop(key, None)
+        Path(env['XDG_RUNTIME_DIR']).mkdir(mode=0o700)
+        installer = fixture / 'scripts/install-cortetsu.sh'
+        cli = home / '.local/bin/cortetsu'
+        def run(*arguments: str | Path, success: bool = True) -> subprocess.CompletedProcess[str]:
+            result = subprocess.run(list(map(str, arguments)), cwd=fixture, env=env,
+                                    text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            if result.returncode != 0 and success:
+                raise AssertionError(f'failed {arguments!r}:\n{result.stdout}')
+            if not success:
+                assert result.returncode != 0, f'unexpected success: {arguments!r}'
+            return result
+        def install(success: bool = True) -> None:
+            result = run(installer, '--native-bundle', bundle, success=success)
+            print(result.stdout, end='')
+        def pointers() -> dict[str, Path]:
+            return {name: (path / label).resolve(strict=True)
+                    for name, path, label in (
+                        ('system', data / 'system', 'current'), ('shell', runtime, 'current'),
+                        ('dotfiles', data / 'dotfiles', 'current'), ('helpers', data / 'helpers', 'current'))}
+        def resource() -> Path:
+            return Path(run(home / '.local/bin/cortetsu-resource-root').stdout.strip())
+        def verify() -> None:
+            run(cli, 'verify'); run(home / '.local/bin/cortetsu-rescue', 'verify')
+        install()
+        a = pointers()
+        assert (runtime / 'legacy-previous').resolve(strict=True) == unmanaged
+        assert not (runtime / 'previous').exists()
+        assert resource() == a['shell']
+        payload = json.loads((a['system'] / 'SYSTEM.json').read_text())
+        assert payload['schema'] == 2 and payload['nativeRuntime'] is True
+        assert payload['helpersManifestSha256'] and payload['shellManifestSha256']
+        assert (a['shell'] / 'data/emojis.txt').is_file()
+        verify()
+        run(home / '.local/bin/cortetsu-scheme', 'set', '-n', 'aura', 'default')
+        selected_scheme = (home / '.local/state/cortetsu/scheme.json').read_bytes()
+        assert json.loads(selected_scheme)['name'] == 'aura'
+        install()
+        b = pointers()
+        assert all(a[key] != b[key] for key in a), (a, b)
+        assert (data / 'system/previous').resolve(strict=True) == a['system']
+        assert resource() == b['shell']
+        assert (home / '.local/state/cortetsu/scheme.json').read_bytes() == selected_scheme
+        verify()
+        for file in (b['helpers'] / 'cortetsu-resource-root', b['shell'] / 'components/CortetsuButton.qml'):
+            before = file.read_bytes()
+            file.write_bytes(before + b'\n// deliberate test corruption\n')
+            run(cli, 'verify', success=False)
+            run(home / '.local/bin/cortetsu-rescue', 'verify', success=False)
+            file.write_bytes(before)
+        verify()
+        run(cli, 'rollback')
+        assert pointers() == a
+        assert resource() == a['shell']
+        assert (data / 'system/previous').resolve(strict=True) == b['system']
+        assert (home / '.local/state/cortetsu/scheme.json').read_bytes() == selected_scheme
+        verify()
+        # A real error after helper/shell activation must trigger the EXIT undo
+        # journal and restore every pointer; no host service was invoked yet.
+        ui = fixture / 'dotfiles/home/.config/cortetsu/ui.toml'
+        ui_before = ui.read_bytes()
+        ui.write_bytes(b'not valid TOML = [')
+        install(success=False)
+        assert pointers() == a
+        assert resource() == a['shell']
+        assert json.loads((data / 'install-journal.json').read_text())['phase'] == 'RECOVERED'
+        ui.write_bytes(ui_before)
+        verify()
+        run(cli, 'recover')
+        assert pointers() == a
+        service_calls=(root / 'systemctl.log').read_text()
+        assert 'restart cortetsu-wallpaper-color.service' in service_calls
+        assert 'restart cortetsu-shell.service' not in service_calls
+        print('PASS: native installation, two schema2 generations, sealed assets/helpers, all-layer rollback and failed-install recovery without Python on PATH')
 
-    build = repo / "cortetsu/bin/build-runtime.sh"
-    dotfiles = repo / "core/dotfiles.py"
-    system = repo / "core/system.py"
-    cli = repo / "scripts/cortetsu"
-
-    subprocess.run([str(build)], cwd=repo, env=env, check=True)
-    shell1 = (runtime / "current").resolve()
-    assert shell1 != unmanaged
-    assert (shell1 / "shell.qml").is_file()
-    assert (shell1 / "modules/calendar/Content.qml").is_file()
-    assert (shell1 / "BUILD.json").is_file()
-    assert not (runtime / "previous").exists()
-    assert (runtime / "legacy-previous").resolve() == unmanaged
-
-    # A promoted generation must retain the selected scheme instead of
-    # reverting to the source-generated design defaults.
-    scheme = repo / "cortetsu/bin/cortetsu-scheme"
-    scheme_env = {**env, "CORTETSU_REPOSITORY": str(repo)}
-    subprocess.run(
-        [str(scheme), "set", "-n", "aura", "default"],
-        cwd=repo,
-        env={**scheme_env, "CORTETSU_SKIP_RELOAD": "1"},
-        check=True,
-    )
-    aura_primary = next(
-        line.split(None, 1)[1].strip().upper()
-        for line in (repo / "cortetsu/data/schemes/cortetsu-pack/aura/default/dark.txt").read_text().splitlines()
-        if line.startswith("primary ")
-    )
-
-    subprocess.run(
-        ["python3", str(dotfiles), "apply", "--repo", str(repo), "--profile", "personal"],
-        cwd=repo,
-        env=env,
-        check=True,
-    )
-    dots1 = (data / "dotfiles/current").resolve(strict=True)
-    subprocess.run(["python3", str(system), "promote", "--repo", str(repo)], cwd=repo, env=env, check=True)
-    system1 = (data / "system/current").resolve(strict=True)
-
-    # Reproduce an upgrade edge case: shell current is managed while shell
-    # previous still points at the unmanaged pre-v2 generation.
-    (runtime / "previous").symlink_to(unmanaged, target_is_directory=True)
-    subprocess.run([str(cli), "verify"], cwd=repo, env=env, check=True)
-
-    subprocess.run([str(build)], cwd=repo, env=env, check=True)
-    shell2 = (runtime / "current").resolve()
-    assert shell2 != shell1
-    assert (runtime / "previous").resolve() == shell1
-    assert (runtime / "legacy-previous").resolve() == unmanaged
-    # A promoted generation ships the ui.toml tokens untouched; the selected
-    # scheme is applied at runtime from scheme.json, never baked into the build.
-    for name in ("CortetsuDesignDefaults.js", "CortetsuDesign.qml", "qmldir"):
-        assert (shell2 / "theme" / name).read_bytes() == (repo / "cortetsu/theme" / name).read_bytes(), name
-
-    subprocess.run(
-        ["python3", str(dotfiles), "apply", "--repo", str(repo), "--profile", "personal"],
-        cwd=repo,
-        env=env,
-        check=True,
-    )
-    dots2 = (data / "dotfiles/current").resolve(strict=True)
-    assert dots2 != dots1
-    subprocess.run(["python3", str(system), "promote", "--repo", str(repo)], cwd=repo, env=env, check=True)
-    system2 = (data / "system/current").resolve(strict=True)
-    assert system2 != system1
-    assert (data / "system/previous").resolve(strict=True) == system1
-    subprocess.run([str(cli), "verify"], cwd=repo, env=env, check=True)
-
-    # Top-level rollback is the product contract: shell and dotfiles move
-    # together to the exact previous Cortetsu system generation.
-    subprocess.run([str(cli), "rollback"], cwd=repo, env=env, check=True)
-    assert (data / "system/current").resolve(strict=True) == system1
-    assert (data / "system/previous").resolve(strict=True) == system2
-    assert (runtime / "current").resolve(strict=True) == shell1
-    assert (runtime / "previous").resolve(strict=True) == shell2
-    assert (data / "dotfiles/current").resolve(strict=True) == dots1
-    assert (data / "dotfiles/previous").resolve(strict=True) == dots2
-    assert (runtime / "legacy-previous").resolve() == unmanaged
-    subprocess.run([str(cli), "verify"], cwd=repo, env=env, check=True)
-
-print("PASS: shell + dotfiles promote and roll back as one Cortetsu system")
+if __name__ == '__main__':
+    main()

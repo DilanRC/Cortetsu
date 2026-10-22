@@ -103,7 +103,7 @@ def assert_controller(text: str) -> None:
         "Connectivity.bluetooth.connectedCount",
         "CortetsuPower",
         "CortetsuRecorder.stop()",
-        "CortetsuNotifications.dnd = !CortetsuNotifications.dnd",
+        "onToggleDndRequested: CortetsuNotifications.toggleDnd()",
         "CortetsuIdleInhibitor.enabled = !CortetsuIdleInhibitor.enabled",
         "hubRoot.toggleLauncherFor(win.modelData)",
         "hubRoot.toggleSidebarFor(win.modelData)",

@@ -40,6 +40,8 @@ QtObject {
           settings: [qsTr("Lanzador"), qsTr("Abrir al acercar el puntero"), qsTr("Búsqueda aproximada")] },
         { id: "shortcuts", group: qsTr("Escritorio"), title: qsTr("Atajos"), icon: "keyboard_command_key", keywords: qsTr("teclas super combinaciones"),
           settings: [qsTr("Atajos del shell"), qsTr("Editar atajos")] },
+        { id: "automation", group: qsTr("Cortetsu"), title: qsTr("Automatización"), icon: "auto_awesome", keywords: qsTr("reglas políticas sesión automático pausa consentimiento"),
+          settings: [qsTr("Coordinador"), qsTr("Notificaciones automáticas"), qsTr("Modo de juego automático"), qsTr("Energía automática"), qsTr("Reglas de pantalla"), qsTr("Pausar quince minutos"), qsTr("Decisiones recientes")] },
         { id: "about", group: qsTr("Cortetsu"), title: qsTr("Acerca de"), icon: "info", keywords: qsTr("versión revisión generación"),
           settings: [qsTr("Revisión instalada"), qsTr("Generación")] }
     ]

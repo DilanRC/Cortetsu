@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"slices"
 	"strings"
 )
@@ -29,11 +30,12 @@ func runtimeLauncher(path string) bool {
 		strings.HasPrefix(path, "cortetsu/modules/") ||
 		strings.HasPrefix(path, "cortetsu/services/") ||
 		strings.HasPrefix(path, "scripts/lib/") ||
+		strings.HasPrefix(path, "config/systemd/") ||
 		path == "scripts/cortetsu" || path == "scripts/install-cortetsu.sh"
 }
 
 func inspect(repo string) (Inventory, error) {
-	cmd := exec.Command("git", "-C", repo, "ls-files", "-z")
+	cmd := exec.Command("git", "-C", repo, "ls-files", "--cached", "--others", "--exclude-standard", "-z")
 	raw, err := cmd.Output()
 	if err != nil {
 		return Inventory{}, fmt.Errorf("cannot inventory tracked files: %w", err)
@@ -65,7 +67,7 @@ func inspect(repo string) (Inventory, error) {
 		// configuration calling the interpreter also block the F9 cutover.
 		// Do not include documentation, test fixtures, or Python comments.
 		if !isPython && info.Size() <= 2<<20 && (strings.HasSuffix(path, ".qml") ||
-			strings.HasSuffix(path, ".sh") || strings.HasPrefix(path, "scripts/cortetsu") ||
+			strings.HasSuffix(path, ".sh") || strings.HasSuffix(path, ".service") || strings.HasPrefix(path, "scripts/cortetsu") ||
 			strings.HasPrefix(path, "cortetsu/bin/")) &&
 			runtimeLauncher(path) {
 			body, err := os.ReadFile(file)
@@ -77,7 +79,7 @@ func inspect(repo string) (Inventory, error) {
 				if strings.HasPrefix(trimmed, "#") || strings.HasPrefix(trimmed, "//") {
 					continue
 				}
-				if strings.Contains(line, "python3") || strings.Contains(line, "python -") || strings.Contains(line, "exec python") {
+				if regexp.MustCompile(`(^|[\s"',=])python(3([.][0-9]+)?)?([\s"',]|$)`).MatchString(line) {
 					result.Invocations = append(result.Invocations, path)
 					break
 				}
@@ -89,7 +91,7 @@ func inspect(repo string) (Inventory, error) {
 		switch {
 		case strings.HasPrefix(path, "core/"), strings.HasPrefix(path, "cortetsu/bin/"), strings.HasPrefix(path, "cortetsu/services/"):
 			result.Runtime = append(result.Runtime, path)
-		case strings.HasPrefix(path, "cortetsu/tests/"), strings.HasPrefix(path, "scripts/features/"), strings.HasPrefix(path, "docs/migration/"):
+		case strings.HasPrefix(path, "tests/"), strings.HasPrefix(path, "cortetsu/tests/"), strings.Contains(path, "/tests/"), strings.HasPrefix(path, "scripts/features/"), strings.HasPrefix(path, "scripts/verification/"), strings.HasPrefix(path, "docs/migration/"):
 			result.Tests = append(result.Tests, path)
 		default:
 			result.Tooling = append(result.Tooling, path)
@@ -105,6 +107,7 @@ func inspect(repo string) (Inventory, error) {
 func main() {
 	repo := flag.String("repo", ".", "local Cortetsu source repository")
 	baseline := flag.String("baseline", "", "optional frozen runtime Python path baseline")
+	requireNative := flag.Bool("require-native", false, "fail if any first-party Python runtime file or invocation remains")
 	flag.Parse()
 	if len(flag.Args()) != 0 {
 		os.Exit(2)
@@ -117,6 +120,10 @@ func main() {
 	out := json.NewEncoder(os.Stdout)
 	out.SetIndent("", "  ")
 	if err := out.Encode(found); err != nil {
+		os.Exit(1)
+	}
+	if *requireNative && (len(found.Runtime) != 0 || len(found.Invocations) != 0) {
+		fmt.Fprintln(os.Stderr, "first-party Python runtime dependency remains")
 		os.Exit(1)
 	}
 	if *baseline == "" {

@@ -1,0 +1,49 @@
+{
+  "schema": 1,
+  "favouriteApps": [],
+  "hiddenApps": [],
+  "hiddenTrayIcons": [],
+  "terminalCommand": [
+    "kitty"
+  ],
+  "vpn": {
+    "providers": [],
+    "selectedProvider": "",
+    "enabled": false
+  },
+  "actions": [],
+  "actionPrefix": ">",
+  "specialPrefix": "@",
+  "enableDangerousActions": true,
+  "useFuzzyApps": true,
+  "useFuzzyWallpapers": true,
+  "smartScheme": true,
+  "wallpaperDirectory": "~/Imágenes/Wallpapers",
+  "useTwelveHourClock": false,
+  "useFahrenheit": false,
+  "useFahrenheitPerformance": false,
+  "weatherLocation": "",
+  "audioIncrement": 0.1,
+  "brightnessIncrement": 0.1,
+  "maxVolume": 1.0,
+  "visualiserBars": 60,
+  "defaultPlayer": "Spotify",
+  "playerAliases": [
+    {
+      "from": "com.github.th_ch.youtube_music",
+      "to": "YT Music"
+    }
+  ],
+  "toastAudioOutputChanged": true,
+  "toastAudioInputChanged": true,
+  "toastNowPlaying": false,
+  "notificationExpire": true,
+  "suppressNotificationsInFullscreen": false,
+  "notificationDefaultExpireTimeout": 5000,
+  "notificationFullscreenExpireTimeout": 2000,
+  "notificationActionOnClick": false,
+  "toastDndChanged": true,
+  "toastGameModeChanged": true,
+  "vimKeybinds": true,
+  "workspacesShown": 5
+}

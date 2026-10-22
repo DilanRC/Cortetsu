@@ -52,20 +52,32 @@ fn journal_load(path: &Path) -> Result<PilotJournal> {
     }
     let value: Value = serde_json::from_slice(&raw).map_err(|_| Failure::io())?;
     let object = value.as_object().ok_or_else(Failure::io)?;
-    if object.len() != 4 || object.get("schema").and_then(Value::as_u64) != Some(SCHEMA as u64)
-        || object.get("domain").and_then(Value::as_str) != Some("notifications.dnd") {
+    if object.len() != 4
+        || object.get("schema").and_then(Value::as_u64) != Some(SCHEMA as u64)
+        || object.get("domain").and_then(Value::as_str) != Some("notifications.dnd")
+    {
         return Err(Failure::io());
     }
     let before = match object.get("before") {
         Some(Value::Null) => None,
-        Some(raw) => Some(serde_json::from_value::<Vec<u8>>(raw.clone()).map_err(|_| Failure::io())?),
+        Some(raw) => {
+            Some(serde_json::from_value::<Vec<u8>>(raw.clone()).map_err(|_| Failure::io())?)
+        }
         None => return Err(Failure::io()),
     };
-    let after = serde_json::from_value::<Vec<u8>>(object.get("after").ok_or_else(Failure::io)?.clone())
-        .map_err(|_| Failure::io())?;
-    let journal = PilotJournal { schema: SCHEMA, domain: "notifications.dnd".into(), before, after };
+    let after =
+        serde_json::from_value::<Vec<u8>>(object.get("after").ok_or_else(Failure::io)?.clone())
+            .map_err(|_| Failure::io())?;
+    let journal = PilotJournal {
+        schema: SCHEMA,
+        domain: "notifications.dnd".into(),
+        before,
+        after,
+    };
     validate_bytes(&journal.after)?;
-    if let Some(ref previous) = journal.before { validate_bytes(previous)?; }
+    if let Some(ref previous) = journal.before {
+        validate_bytes(previous)?;
+    }
     Ok(journal)
 }
 
@@ -96,7 +108,8 @@ fn apply(root: &Path, enabled: bool, after_write: impl FnOnce()) -> Result<()> {
     let mut encoded = serde_json::to_vec(&json!({
         "schema": journal.schema, "domain": journal.domain,
         "before": journal.before, "after": journal.after,
-    })).map_err(|_| Failure::io())?;
+    }))
+    .map_err(|_| Failure::io())?;
     encoded.push(b'\n');
     atomic_write(&journal_path, &encoded)?;
     atomic_write(&state_path, &after)?;
@@ -146,14 +159,17 @@ mod tests {
         fn new() -> Self {
             let temp = std::env::temp_dir().join(format!(
                 "cortetsu-dnd-pilot-{}-{}",
-                std::process::id(), N.fetch_add(1, Ordering::Relaxed)
+                std::process::id(),
+                N.fetch_add(1, Ordering::Relaxed)
             ));
             fs::create_dir_all(&temp).unwrap();
             Self(temp)
         }
     }
     impl Drop for Sandbox {
-        fn drop(&mut self) { let _ = fs::remove_dir_all(&self.0); }
+        fn drop(&mut self) {
+            let _ = fs::remove_dir_all(&self.0);
+        }
     }
 
     #[test]
@@ -163,7 +179,8 @@ mod tests {
         let original = br#"{"dnd":false,"custom":"keep"}"#;
         fs::write(status_path(&sandbox.0), original).unwrap();
         apply(&sandbox.0, true, || {}).unwrap();
-        let value: Value = serde_json::from_slice(&fs::read(status_path(&sandbox.0)).unwrap()).unwrap();
+        let value: Value =
+            serde_json::from_slice(&fs::read(status_path(&sandbox.0)).unwrap()).unwrap();
         assert_eq!(value["dnd"], true);
         assert_eq!(value["custom"], "keep");
         assert!(!pilot_journal(&sandbox.0).exists());

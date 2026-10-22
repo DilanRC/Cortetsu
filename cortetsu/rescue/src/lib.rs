@@ -1,8 +1,8 @@
 //! Read-only, offline Cortetsu generation verification.
 //!
-//! The existing Bash/Python install and rollback remain authoritative.
-//! This crate does not update links, helpers or state. It is deliberately
-//! safe to run from a TTY without Quickshell, Go or a Git checkout.
+//! Verification remains available from a TTY without Quickshell, Go, Python
+//! or a Git checkout. Native installs seal runtime files, helper manifests and
+//! stable user launchers; historical generations retain explicit compatibility.
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::env;
@@ -78,11 +78,22 @@ struct SystemMeta {
     dotfiles_generation: String,
     repository_revision: Option<String>,
     helpers_generation: Option<String>,
+    helpers_manifest_sha256: Option<String>,
+    shell_manifest_sha256: Option<String>,
+    dotfiles_manifest_sha256: Option<String>,
+    legacy_source_system: Option<String>,
+    #[serde(default)]
+    native_runtime: bool,
+    #[serde(default)]
+    managed_launchers: Vec<String>,
 }
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct ShellMeta {
     schema: u32,
+    runtime_manifest_sha256: Option<String>,
+    source_project: Option<String>,
+    repository_revision: Option<String>,
 }
 #[derive(Debug, Clone, Deserialize)]
 struct DotfilesMeta {
@@ -106,10 +117,15 @@ pub struct VerifiedGeneration {
 }
 
 fn read_json<T: serde::de::DeserializeOwned>(path: &Path) -> Result<T> {
-    let source = fs::read(path).map_err(|_| invalid("cannot read generation metadata"))?;
-    if source.len() > 4 * 1024 * 1024 {
+    let meta =
+        fs::symlink_metadata(path).map_err(|_| invalid("cannot stat generation metadata"))?;
+    if !meta.is_file() || meta.file_type().is_symlink() {
+        return Err(invalid("metadata must be a regular file"));
+    }
+    if meta.len() > 4 * 1024 * 1024 {
         return Err(invalid("metadata exceeds safety bound"));
     }
+    let source = fs::read(path).map_err(|_| invalid("cannot read generation metadata"))?;
     serde_json::from_slice(&source).map_err(|_| invalid("malformed generation metadata"))
 }
 
@@ -136,6 +152,13 @@ fn managed_generation(source: &str, builds: &Path) -> Result<PathBuf> {
     let path = Path::new(source);
     if !path.is_absolute() {
         return Err(invalid("non-absolute generation metadata path"));
+    }
+    if fs::symlink_metadata(path)
+        .map_err(|_| invalid("missing generation directory"))?
+        .file_type()
+        .is_symlink()
+    {
+        return Err(invalid("generation directory is a symlink"));
     }
     let canonical = canonical_existing(path)?;
     let managed_builds = canonical_existing(builds)?;
@@ -218,8 +241,10 @@ fn verify_dotfiles(path: &Path) -> Result<()> {
     if meta.schema != 1 || meta.entries.is_empty() || meta.entries.len() > 100_000 {
         return Err(invalid("unsupported or empty dotfiles manifest"));
     }
+    let mut targets = std::collections::HashSet::new();
     for entry in &meta.entries {
-        if !is_safe_target(&entry.target)
+        if !targets.insert(&entry.target)
+            || !is_safe_target(&entry.target)
             || entry.sha256.len() != 64
             || !entry.sha256.bytes().all(|b| b.is_ascii_hexdigit())
         {
@@ -234,7 +259,33 @@ fn verify_dotfiles(path: &Path) -> Result<()> {
     Ok(())
 }
 
-fn verify_shell(path: &Path) -> Result<()> {
+fn verify_digest(path: &Path, expected: &str) -> Result<()> {
+    if expected.len() != 64 || !expected.bytes().all(|b| b.is_ascii_hexdigit()) {
+        return Err(invalid("invalid manifest digest"));
+    }
+    let mut file = fs::File::open(path).map_err(|_| invalid("cannot read digest source"))?;
+    let mut digest = Sha256::new();
+    let mut buffer = [0u8; 64 * 1024];
+    loop {
+        let n = file
+            .read(&mut buffer)
+            .map_err(|_| invalid("digest source read failed"))?;
+        if n == 0 {
+            break;
+        }
+        digest.update(&buffer[..n]);
+    }
+    if hex_digest(&digest.finalize()) != expected {
+        return Err(invalid("generation manifest or file digest mismatch"));
+    }
+    Ok(())
+}
+#[derive(Deserialize)]
+struct RuntimeFiles {
+    schema: u32,
+    files: std::collections::BTreeMap<String, String>,
+}
+fn verify_shell_manifest(path: &Path, require_seal: bool) -> Result<()> {
     if !path.join("shell.qml").is_file() || !path.join("BUILD_ID").is_file() {
         return Err(invalid("shell generation missing required files"));
     }
@@ -242,7 +293,68 @@ fn verify_shell(path: &Path) -> Result<()> {
     if manifest.schema != 1 {
         return Err(invalid("unsupported shell manifest"));
     }
+    if let Some(expected) = &manifest.runtime_manifest_sha256 {
+        if manifest.source_project.as_deref() != Some("Cortetsu")
+            || manifest
+                .repository_revision
+                .as_ref()
+                .is_none_or(String::is_empty)
+        {
+            return Err(invalid("invalid native shell provenance"));
+        }
+        verify_digest(&path.join("FILES.json"), expected)?;
+        let files: RuntimeFiles = read_json(&path.join("FILES.json"))?;
+        if files.schema != 1 || files.files.is_empty() || files.files.len() > 100_000 {
+            return Err(invalid("invalid native runtime file manifest"));
+        }
+        let mut actual = std::collections::BTreeSet::new();
+        for entry in WalkDir::new(path).follow_links(false).min_depth(1) {
+            let entry = entry.map_err(|_| invalid("cannot scan runtime"))?;
+            if entry.file_type().is_dir() {
+                continue;
+            }
+            let rel = entry
+                .path()
+                .strip_prefix(path)
+                .map_err(|_| invalid("runtime path"))?
+                .to_str()
+                .ok_or_else(|| invalid("runtime path encoding"))?;
+            if ["BUILD.json", "FILES.json"].contains(&rel) {
+                continue;
+            }
+            if entry.file_type().is_symlink()
+                && !canonical_existing(entry.path())?.starts_with(canonical_existing(path)?)
+            {
+                return Err(invalid("runtime symlink escapes generation"));
+            }
+            if !entry.path().is_file() {
+                return Err(invalid("non-file native runtime entry"));
+            }
+            actual.insert(rel.to_owned());
+        }
+        if actual != files.files.keys().cloned().collect() {
+            return Err(invalid("runtime manifest file set mismatch"));
+        }
+        for (name, hash) in &files.files {
+            if !is_safe_target(name) || ["BUILD.json", "FILES.json"].contains(&name.as_str()) {
+                return Err(invalid("unsafe runtime manifest path"));
+            }
+            verify_digest(&path.join(name), hash)?;
+        }
+    } else if require_seal {
+        return Err(invalid("native runtime requires a sealed file manifest"));
+    }
     Ok(())
+}
+fn verify_shell(path: &Path) -> Result<()> {
+    verify_shell_manifest(path, false)
+}
+fn safe_launcher(name: &str) -> bool {
+    (name == "cortetsu" || name.starts_with("cortetsu-"))
+        && name.len() <= 120
+        && name
+            .bytes()
+            .all(|b| b.is_ascii_alphanumeric() || b == b'-' || b == b'_')
 }
 
 fn verify_system_path(path: &Path, roots: &Roots) -> Result<VerifiedGeneration> {
@@ -263,14 +375,58 @@ fn verify_system_path(path: &Path, roots: &Roots) -> Result<VerifiedGeneration> 
             .and_then(|v| v.to_str())
             .ok_or_else(|| invalid("invalid helper generation id"))?;
         helper_bundle::verify(roots, id)?;
+        if let Some(expected) = &meta.helpers_manifest_sha256 {
+            verify_digest(&path.join("HELPERS.json"), expected)?;
+        } else if meta.native_runtime {
+            return Err(invalid("native system requires helper manifest digest"));
+        }
+        let bundle: serde_json::Value = read_json(&path.join("HELPERS.json"))?;
+        let entries = bundle["helpers"]
+            .as_array()
+            .ok_or_else(|| invalid("helper entries"))?;
+        let mut names = std::collections::HashSet::new();
+        for name in &meta.managed_launchers {
+            if !safe_launcher(name)
+                || !names.insert(name)
+                || !entries.iter().any(|e| e["name"].as_str() == Some(name))
+            {
+                return Err(invalid("invalid managed launcher ownership"));
+            }
+        }
         Some(path.to_string_lossy().into_owned())
     } else {
         None
     };
     let shell = managed_generation(&meta.shell_generation, &roots.data.join("builds"))?;
     let dotfiles = managed_generation(&meta.dotfiles_generation, &roots.dot_root().join("builds"))?;
-    verify_shell(&shell)?;
+    if let Some(source) = &meta.legacy_source_system {
+        let original = managed_generation(source, &roots.system_root().join("builds"))?;
+        let old: SystemMeta = read_json(&original.join("SYSTEM.json"))?;
+        if old.schema != 1
+            || old.shell_generation != meta.shell_generation
+            || old.dotfiles_generation != meta.dotfiles_generation
+            || old.helpers_generation.is_some()
+        {
+            return Err(invalid(
+                "legacy checkpoint does not match original schema1 generation",
+            ));
+        }
+    }
+    verify_shell_manifest(
+        &shell,
+        meta.native_runtime && meta.legacy_source_system.is_none(),
+    )?;
+    if let Some(expected) = &meta.shell_manifest_sha256 {
+        verify_digest(&shell.join("BUILD.json"), expected)?;
+    } else if meta.native_runtime {
+        return Err(invalid("native system requires shell manifest digest"));
+    }
     verify_dotfiles(&dotfiles)?;
+    if let Some(expected) = &meta.dotfiles_manifest_sha256 {
+        verify_digest(&dotfiles.join("MANIFEST.json"), expected)?;
+    } else if meta.native_runtime {
+        return Err(invalid("native system requires dotfiles manifest digest"));
+    }
     Ok(VerifiedGeneration {
         system: path.to_string_lossy().into_owned(),
         shell: shell.to_string_lossy().into_owned(),
@@ -278,6 +434,12 @@ fn verify_system_path(path: &Path, roots: &Roots) -> Result<VerifiedGeneration> 
         revision: meta.repository_revision,
         helpers,
     })
+}
+
+/// Verify an immutable system without requiring it to be currently selected.
+pub fn verify_generation(roots: &Roots, path: &Path) -> Result<VerifiedGeneration> {
+    let path = managed_generation(&path.to_string_lossy(), &roots.system_root().join("builds"))?;
+    verify_system_path(&path, roots)
 }
 
 pub fn current(roots: &Roots) -> Result<VerifiedGeneration> {
@@ -299,6 +461,27 @@ pub fn current(roots: &Roots) -> Result<VerifiedGeneration> {
         if Path::new(helpers) != active_helpers {
             return Err(invalid("system/helpers current pointer drift"));
         }
+        let meta: SystemMeta = read_json(&system.join("SYSTEM.json"))?;
+        if !meta.managed_launchers.is_empty() {
+            let home = env::var_os("HOME")
+                .map(PathBuf::from)
+                .filter(|p| p.is_absolute())
+                .ok_or_else(|| invalid("HOME required for launcher verification"))?;
+            for name in &meta.managed_launchers {
+                let target = roots.data.join("helpers/current").join(name);
+                if fs::read_link(home.join(".local/bin").join(name))
+                    .ok()
+                    .as_ref()
+                    != Some(&target)
+                {
+                    return Err(invalid("managed launcher target drift"));
+                }
+            }
+        }
+    } else if fs::symlink_metadata(roots.data.join("helpers/current")).is_ok() {
+        return Err(invalid(
+            "schema1 system cannot own an active helper pointer",
+        ));
     }
     if Path::new(&snapshot.shell) != active_shell || Path::new(&snapshot.dotfiles) != active_dots {
         return Err(invalid("system/shell/dotfiles current pointer drift"));
@@ -328,10 +511,10 @@ pub fn plan_rollback(roots: &Roots) -> Result<(VerifiedGeneration, VerifiedGener
     Ok((now, target))
 }
 
-/// Offline pointer transaction implementation; not used by the installed shell.
+/// Offline, journaled rollback transaction used by the native CLI.
 pub mod transaction;
 
-/// Immutable, opt-in helper bundle staging for future schema-2 migration.
+/// Immutable helper bundle staging for schema-2 installation and rollback.
 pub mod helper_bundle;
 
 /// Read-only cross-language exec/1 adapter; no mutation dispatch.

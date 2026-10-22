@@ -1,80 +1,15 @@
-#!/usr/bin/env python3
-from __future__ import annotations
-
-import argparse
-import json
-import os
-import re
-import subprocess
-import tempfile
-import time
-from pathlib import Path
-
-CONFIG = Path.home() / ".config/cortetsu/display-presets.json"
-HERE = Path(__file__).resolve().parent
-PLANNER = HERE / "cortetsu-display-plan"
-
-
-def emit(payload: dict, code: int = 0) -> int:
-    print(json.dumps(payload, separators=(",", ":"), ensure_ascii=False)); return code
-
-
-def load() -> dict:
-    try:
-        data = json.loads(CONFIG.read_text(encoding="utf-8")); return data if isinstance(data, dict) else {"version":1,"presets":{}}
-    except (OSError, json.JSONDecodeError): return {"version":1,"presets":{}}
-
-
-def atomic_write(payload: dict) -> None:
-    CONFIG.parent.mkdir(parents=True, exist_ok=True)
-    fd, tmp = tempfile.mkstemp(prefix=CONFIG.name+".", suffix=".tmp", dir=CONFIG.parent)
-    try:
-        with os.fdopen(fd,"w",encoding="utf-8") as handle: json.dump(payload,handle,separators=(",",":"),ensure_ascii=False)
-        os.replace(tmp,CONFIG)
-    finally:
-        try: os.unlink(tmp)
-        except FileNotFoundError: pass
-
-
-def validate_name(name: str) -> str:
-    name=name.strip()
-    if not re.fullmatch(r"[A-Za-z0-9 _.-]{1,40}",name): raise ValueError("preset name must be 1..40 safe characters")
-    return name
-
-
-def validate_candidate(candidate: dict) -> dict:
-    cp=subprocess.run([str(PLANNER),"--candidate",json.dumps(candidate,separators=(",",":"))],text=True,capture_output=True,timeout=12,check=False)
-    if cp.returncode not in (0,3): raise RuntimeError((cp.stderr or cp.stdout).strip())
-    parsed=json.loads(cp.stdout)
-    if not parsed.get("ok"): raise ValueError("candidate is not valid")
-    return parsed.get("candidate",candidate)
-
-
-def main() -> int:
-    p=argparse.ArgumentParser(description="Cortetsu named display presets")
-    s=p.add_subparsers(dest="command",required=True)
-    s.add_parser("list")
-    g=s.add_parser("get"); g.add_argument("--name",required=True)
-    sv=s.add_parser("save"); sv.add_argument("--name",required=True); sv.add_argument("--candidate",required=True)
-    d=s.add_parser("delete"); d.add_argument("--name",required=True)
-    args=p.parse_args()
-    try:
-        data=load(); presets=data.setdefault("presets",{})
-        if args.command=="list":
-            items=[{"name":name,**value} for name,value in presets.items() if isinstance(value,dict)]
-            return emit({"ok":True,"presets":sorted(items,key=lambda x:x["name"].lower()),"config":str(CONFIG)})
-        name=validate_name(args.name)
-        if args.command=="get":
-            item=presets.get(name)
-            return emit({"ok":bool(item),"name":name,"preset":item or {},"error":"preset not found" if not item else ""},0 if item else 2)
-        if args.command=="delete":
-            removed=presets.pop(name,None) is not None; atomic_write(data); return emit({"ok":True,"deleted":removed,"name":name})
-        candidate=json.loads(args.candidate)
-        if not isinstance(candidate,dict): raise ValueError("candidate must be an object")
-        normalized=validate_candidate(candidate)
-        presets[name]={"candidate":normalized,"saved_at":int(time.time())}; data["version"]=1; atomic_write(data)
-        return emit({"ok":True,"saved":True,"name":name,"preset":presets[name]})
-    except (OSError,RuntimeError,ValueError,json.JSONDecodeError,subprocess.SubprocessError) as exc:
-        return emit({"ok":False,"error":str(exc)},2)
-
-if __name__=="__main__": raise SystemExit(main())
+#!/usr/bin/env bash
+# Stable entry point. All behavior lives in the generation's native owner.
+set -euo pipefail
+SELF="$(readlink -f "${BASH_SOURCE[0]}")"
+BUNDLE="$(dirname "$SELF")"
+if [[ ! -x "$BUNDLE/cortetsu-display-presets-rs" ]]; then
+    REPO="$(cd "$BUNDLE/../.." && pwd)"
+    BUNDLE="$REPO/dist/native"
+    export CORTETSU_REPO_ROOT="${CORTETSU_REPO_ROOT:-$REPO}"
+fi
+if [[ -z "${CORTETSU_RESOURCE_ROOT:-}" && -x "$BUNDLE/cortetsu-resource-root" ]]; then
+    export CORTETSU_RESOURCE_ROOT="$("$BUNDLE/cortetsu-resource-root")"
+fi
+[[ -x "$BUNDLE/cortetsu-display-presets-rs" ]] || { printf 'ERROR: construye el runtime con scripts/build-native.sh\n' >&2; exit 1; }
+exec "$BUNDLE/cortetsu-display-presets-rs" "$@"

@@ -1,0 +1,377 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import re
+import shutil
+import subprocess
+import tempfile
+import time
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+PROBE = HERE / "cortetsu-display-probe"
+PLANNER = HERE / "cortetsu-display-plan"
+WORKSPACES = HERE / "cortetsu-display-workspaces"
+USERCFG = Path.home() / ".config/hypr/hypr-user.lua"
+STATE = Path.home() / ".config/cortetsu/display-persisted.json"
+SNAPSHOT_ROOT = Path.home() / ".local/share/cortetsu/upstream/snapshots"
+MARKER = "-- CORTETSU_DISPLAY_MANAGED"
+
+
+def emit(payload: dict, code: int = 0) -> int:
+    print(json.dumps(payload, separators=(",", ":")))
+    return code
+
+
+def run_json(command: list[str], timeout: float = 8.0) -> dict:
+    cp = subprocess.run(command, text=True, capture_output=True, timeout=timeout, check=False)
+    if cp.returncode != 0:
+        raise RuntimeError((cp.stderr or cp.stdout).strip() or f"command failed: {' '.join(command)}")
+    parsed = json.loads(cp.stdout)
+    if not isinstance(parsed, dict):
+        raise RuntimeError("JSON command returned non-object")
+    return parsed
+
+
+def atomic_write(path: Path, text: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, tmp_name = tempfile.mkstemp(prefix=path.name + ".", suffix=".tmp", dir=path.parent)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as handle:
+            handle.write(text)
+        os.replace(tmp_name, path)
+    finally:
+        try:
+            os.unlink(tmp_name)
+        except FileNotFoundError:
+            pass
+
+
+def quote(value: str) -> str:
+    return '"' + value.replace("\\", "\\\\").replace('"', '\\"') + '"'
+
+
+def current_snapshot() -> dict:
+    return run_json([str(PROBE)], 5)
+
+
+def configured_or(value, default):
+    return default if value is None else value
+
+
+def candidate_from_snapshot(snapshot: dict) -> dict:
+    outputs = []
+    for monitor in snapshot.get("hyprland", []):
+        if not isinstance(monitor, dict):
+            continue
+        modes = monitor.get("available_modes", []) if isinstance(monitor.get("available_modes"), list) else []
+        width = int(monitor.get("width") or 0)
+        height = int(monitor.get("height") or 0)
+        refresh = float(monitor.get("refresh_hz") or 0)
+        best = ""
+        best_delta = 99999.0
+        for mode in modes:
+            text = str(mode)
+            match = re.match(r"^(\d+)x(\d+)@([0-9.]+)", text)
+            if not match or int(match.group(1)) != width or int(match.group(2)) != height:
+                continue
+            delta = abs(float(match.group(3)) - refresh)
+            if delta < best_delta:
+                best_delta = delta
+                best = text
+        fmt = str(monitor.get("current_format", "")).upper()
+        runtime_depth = 10 if "2101010" in fmt or "101010" in fmt else 8
+        configured_depth = configured_or(monitor.get("configured_bitdepth"), runtime_depth)
+        configured_cm = str(configured_or(monitor.get("configured_cm"), "srgb"))
+        configured_vrr = configured_or(monitor.get("configured_vrr"), 1 if bool(monitor.get("vrr", False)) else 0)
+        outputs.append({
+            "name": str(monitor.get("name", "")),
+            "enabled": not bool(monitor.get("disabled", False)),
+            "mode": best or (str(modes[0]) if modes else "preferred"),
+            "x": int(monitor.get("x") or 0),
+            "y": int(monitor.get("y") or 0),
+            "scale": float(monitor.get("scale") or 1),
+            "transform": int(monitor.get("transform") or 0),
+            "bitdepth": int(configured_depth),
+            "cm": configured_cm,
+            "vrr": int(configured_vrr),
+        })
+    return {"outputs": outputs}
+
+
+def plan(candidate: dict) -> dict:
+    return run_json([str(PLANNER), "--candidate", json.dumps(candidate, separators=(",", ":"))], 10)
+
+
+def find_monitor_blocks(text: str) -> list[tuple[int, int, str, str]]:
+    blocks = []
+    needle = "hl.monitor({"
+    pos = 0
+    while True:
+        start = text.find(needle, pos)
+        if start < 0:
+            break
+        depth = 0
+        end = None
+        i = start
+        while i < len(text):
+            char = text[i]
+            if char == "{":
+                depth += 1
+            elif char == "}":
+                depth -= 1
+                if depth == 0:
+                    close = text.find(")", i)
+                    if close >= 0:
+                        end = close + 1
+                    break
+            i += 1
+        if end is None:
+            break
+        block = text[start:end]
+        match = re.search(r'^\s*output\s*=\s*"([^"]+)"\s*,?', block, re.MULTILINE)
+        if match:
+            blocks.append((start, end, match.group(1), block))
+        pos = end
+    return blocks
+
+
+def set_field(block: str, key: str, value: str) -> str:
+    pattern = re.compile(rf'^(\s*){re.escape(key)}\s*=\s*[^\n]*$', re.MULTILINE)
+    match = pattern.search(block)
+    line = f"    {key} = {value},"
+    if match:
+        indent = match.group(1)
+        return block[: match.start()] + f"{indent}{key} = {value}," + block[match.end() :]
+    closing = block.rfind("})")
+    if closing < 0:
+        raise RuntimeError(f"malformed hl.monitor block while adding {key}")
+    prefix = block[:closing].rstrip()
+    return prefix + "\n" + line + "\n" + block[closing:]
+
+
+def remove_field(block: str, key: str) -> str:
+    pattern = re.compile(rf'^\s*{re.escape(key)}\s*=\s*[^\n]*\n?', re.MULTILINE)
+    return pattern.sub("", block, count=1)
+
+
+def render_block(item: dict, existing: str | None) -> str:
+    name = str(item.get("name", "")).strip()
+    if not name:
+        raise RuntimeError("cannot persist unnamed output")
+
+    block = existing or f"hl.monitor({{\n    output = {quote(name)},\n}})"
+    if item.get("enabled", True):
+        block = remove_field(block, "disabled")
+        block = set_field(block, "mode", quote(str(item.get("mode") or "preferred")))
+        block = set_field(block, "position", quote(f"{int(item.get('x') or 0)}x{int(item.get('y') or 0)}"))
+        block = set_field(block, "scale", f"{float(item.get('scale') or 1):g}")
+        block = set_field(block, "transform", str(int(item.get("transform") or 0)))
+    else:
+        block = set_field(block, "disabled", "true")
+
+    return MARKER + "\n" + block
+
+
+def rewrite_config(text: str, candidate: dict) -> tuple[str, list[str]]:
+    blocks = find_monitor_blocks(text)
+    by_name = {name: (start, end, block) for start, end, name, block in blocks}
+    replacements = []
+    managed = []
+
+    for item in candidate.get("outputs", []):
+        if not isinstance(item, dict):
+            continue
+        name = str(item.get("name", "")).strip()
+        if not name:
+            continue
+        existing = by_name.get(name)
+        rendered = render_block(item, existing[2] if existing else None)
+        managed.append(name)
+        if existing:
+            start, end, _ = existing
+            marker_start = text.rfind(MARKER, max(0, start - len(MARKER) - 4), start)
+            if marker_start >= 0 and text[marker_start + len(MARKER):start].strip() == "":
+                start = marker_start
+            replacements.append((start, end, rendered))
+        else:
+            replacements.append((-1, -1, rendered))
+
+    updated = text
+    for start, end, rendered in sorted((r for r in replacements if r[0] >= 0), reverse=True):
+        updated = updated[:start] + rendered + updated[end:]
+
+    additions = [rendered for start, _end, rendered in replacements if start < 0]
+    if additions:
+        anchor = "-- ============================================================\n-- APLICACIONES PERSONALIZADAS"
+        payload = "\n\n" + "\n\n".join(additions) + "\n\n"
+        index = updated.find(anchor)
+        if index >= 0:
+            updated = updated[:index] + payload + updated[index:]
+        else:
+            updated = updated.rstrip() + payload + "\n"
+
+    return updated, managed
+
+
+def verify_geometry(candidate: dict) -> tuple[bool, str]:
+    time.sleep(0.8)
+    live = current_snapshot()
+    by_name = {str(m.get("name", "")): m for m in live.get("hyprland", []) if isinstance(m, dict)}
+    for item in candidate.get("outputs", []):
+        if not isinstance(item, dict):
+            continue
+        name = str(item.get("name", ""))
+        monitor = by_name.get(name)
+        if not item.get("enabled", True):
+            if monitor is not None and not bool(monitor.get("disabled", False)):
+                return False, f"{name} remained enabled after persistence"
+            continue
+        if monitor is None or bool(monitor.get("disabled", False)):
+            return False, f"{name} is not active after persistence"
+        if abs(float(monitor.get("scale") or 1) - float(item.get("scale") or 1)) > 0.03:
+            return False, f"{name} scale mismatch after reload"
+        if abs(int(monitor.get("x") or 0) - int(item.get("x") or 0)) > 2:
+            return False, f"{name} x mismatch after reload"
+        if abs(int(monitor.get("y") or 0) - int(item.get("y") or 0)) > 2:
+            return False, f"{name} y mismatch after reload"
+    return True, ""
+
+
+def restore(backup_file: Path, original_live: dict) -> None:
+    shutil.copy2(backup_file, USERCFG)
+    subprocess.run(["hyprctl", "reload"], text=True, capture_output=True, timeout=8, check=False)
+    try:
+        original_plan = plan(original_live)
+        for command in original_plan.get("commands", []):
+            subprocess.run(command, text=True, capture_output=True, timeout=6, check=False)
+    except Exception:
+        pass
+
+
+def persist(candidate: dict) -> tuple[dict, int]:
+    if not USERCFG.is_file():
+        return {"ok": False, "error": f"missing {USERCFG}"}, 2
+    if not WORKSPACES.is_file():
+        return {"ok": False, "error": f"missing {WORKSPACES}"}, 2
+
+    planned = plan(candidate)
+    if not planned.get("ok"):
+        return {"ok": False, "error": "candidate validation failed", "plan": planned}, 3
+    normalized = planned.get("candidate", candidate)
+
+    original_live = candidate_from_snapshot(current_snapshot())
+    rollback_plan = plan(original_live)
+    if not rollback_plan.get("ok"):
+        return {"ok": False, "error": "current display state cannot be represented safely for rollback", "rollback_plan": rollback_plan}, 3
+
+    original_text = USERCFG.read_text(encoding="utf-8")
+    updated_text, managed = rewrite_config(original_text, normalized)
+
+    stamp = time.strftime("%Y%m%d-%H%M%S")
+    backup_dir = SNAPSHOT_ROOT / f"display-persist-{stamp}"
+    backup_dir.mkdir(parents=True, exist_ok=True)
+    backup_file = backup_dir / "hypr-user.lua"
+    shutil.copy2(USERCFG, backup_file)
+
+    if updated_text != original_text:
+        atomic_write(USERCFG, updated_text)
+        cp = subprocess.run(["hyprctl", "reload"], text=True, capture_output=True, timeout=8, check=False)
+        if cp.returncode != 0:
+            restore(backup_file, original_live)
+            return {"ok": False, "error": (cp.stderr or cp.stdout).strip(), "rolled_back": True, "backup": str(backup_file)}, 5
+
+        try:
+            ok, error = verify_geometry(normalized)
+        except Exception as exc:
+            ok, error = False, str(exc)
+        if not ok:
+            restore(backup_file, original_live)
+            return {"ok": False, "error": error, "rolled_back": True, "backup": str(backup_file)}, 6
+
+    # Color/bitdepth/VRR and workspace placement are part of the same persistent
+    # transaction. Failure here restores the pre-Save config and runtime state.
+    policy_cp = subprocess.run(
+        [str(WORKSPACES), "sync", "--candidate", json.dumps(normalized, separators=(",", ":"))],
+        text=True,
+        capture_output=True,
+        timeout=20,
+        check=False,
+    )
+    try:
+        policy_result = json.loads(policy_cp.stdout) if policy_cp.stdout.strip() else {}
+    except json.JSONDecodeError:
+        policy_result = {}
+    if policy_cp.returncode != 0 or not policy_result.get("ok"):
+        restore(backup_file, original_live)
+        return {
+            "ok": False,
+            "error": policy_result.get("error") or (policy_cp.stderr or policy_cp.stdout).strip() or "workspace/color policy failed",
+            "rolled_back": True,
+            "backup": str(backup_file),
+            "policy": policy_result,
+        }, 7
+
+    STATE.parent.mkdir(parents=True, exist_ok=True)
+    atomic_write(STATE, json.dumps({
+        "version": 2,
+        "saved_at": int(time.time()),
+        "outputs": normalized.get("outputs", []),
+        "managed_outputs": managed,
+        "workspace_policy": policy_result,
+        "backup": str(backup_file),
+    }, separators=(",", ":")))
+    return {
+        "ok": True,
+        "persisted": True,
+        "changed": updated_text != original_text or bool(policy_result.get("output_policy")),
+        "outputs": managed,
+        "workspace_policy": policy_result,
+        "backup": str(backup_file),
+        "atomic": True,
+    }, 0
+
+
+def status() -> dict:
+    saved = {}
+    try:
+        parsed = json.loads(STATE.read_text(encoding="utf-8"))
+        if isinstance(parsed, dict):
+            saved = parsed
+    except (OSError, json.JSONDecodeError):
+        pass
+    text = USERCFG.read_text(encoding="utf-8") if USERCFG.is_file() else ""
+    return {
+        "available": USERCFG.is_file() and WORKSPACES.is_file(),
+        "managed": MARKER in text,
+        "state": saved,
+        "config": str(USERCFG),
+        "atomic_scope": "geometry + color/bitdepth/vrr + workspace ranges",
+    }
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Persist a verified Cortetsu display layout with backup and rollback")
+    sub = parser.add_subparsers(dest="command", required=True)
+    persist_parser = sub.add_parser("persist")
+    persist_parser.add_argument("--candidate", required=True)
+    sub.add_parser("status")
+    args = parser.parse_args()
+
+    try:
+        if args.command == "status":
+            return emit(status())
+        candidate = json.loads(args.candidate)
+        if not isinstance(candidate, dict):
+            raise ValueError("candidate root must be an object")
+        payload, code = persist(candidate)
+        return emit(payload, code)
+    except (ValueError, json.JSONDecodeError, OSError, RuntimeError, subprocess.SubprocessError) as exc:
+        return emit({"ok": False, "error": str(exc)}, 2)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

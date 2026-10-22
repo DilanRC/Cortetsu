@@ -19,9 +19,9 @@ func TestOwnerSnapshotWhitelistsCountsAndClosesConnections(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer server.Close()
-	accepted := make(chan string, 2)
+	accepted := make(chan string, 3)
 	go func() {
-		for i := 0; i < 2; i++ {
+		for i := 0; i < 3; i++ {
 			conn, e := server.Accept()
 			if e != nil {
 				return
@@ -33,8 +33,10 @@ func TestOwnerSnapshotWhitelistsCountsAndClosesConnections(t *testing.T) {
 			accepted <- req
 			if req == "j/monitors" {
 				_, _ = conn.Write([]byte(`[ {"name":"HDMI-A-1","disabled":false,"focused":false,"private":"WINDOW-SECRET"},{"name":"eDP-1","disabled":false,"focused":true}]`))
-			} else {
+			} else if req == "j/workspaces" {
 				_, _ = conn.Write([]byte(`[{"id":1,"name":"personal-secret"},{"id":2}]`))
+			} else {
+				_, _ = conn.Write([]byte(`{"fullscreen":2,"title":"DO-NOT-RETAIN","class":"personal-app"}`))
 			}
 			conn.Close()
 		}
@@ -43,17 +45,17 @@ func TestOwnerSnapshotWhitelistsCountsAndClosesConnections(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if state.MonitorCount != 2 || state.WorkspaceCount != 2 || !state.FocusedMonitor {
+	if state.MonitorCount != 2 || state.WorkspaceCount != 2 || !state.FocusedMonitor || !state.FocusedFullscreen {
 		t.Fatal(state)
 	}
 	data, err := json.Marshal(state)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if strings.Contains(string(data), "WINDOW-SECRET") || strings.Contains(string(data), "personal-secret") || strings.Contains(string(data), "HDMI") {
+	if strings.Contains(string(data), "WINDOW-SECRET") || strings.Contains(string(data), "personal-secret") || strings.Contains(string(data), "HDMI") || strings.Contains(string(data), "DO-NOT-RETAIN") {
 		t.Fatal("raw private data leaked")
 	}
-	if <-accepted != "j/monitors" || <-accepted != "j/workspaces" {
+	if <-accepted != "j/monitors" || <-accepted != "j/workspaces" || <-accepted != "j/activewindow" {
 		t.Fatal("wrong read-only owner queries")
 	}
 }

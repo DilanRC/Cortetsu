@@ -1,0 +1,477 @@
+use crate::common::*;
+use material_colors::{color::Argb, palette::CorePalette, scheme::SchemeFromPalette, score::Score};
+use serde_json::{Value, json};
+use sha2::{Digest, Sha256};
+use std::{
+    env, fs,
+    io::Write,
+    os::unix::{fs::MetadataExt, process::CommandExt},
+    path::{Path, PathBuf},
+    process::{Command, Stdio},
+    thread,
+    time::Duration,
+};
+
+pub fn catalog() -> Result<Value> {
+    let root = resources();
+    let pack = root.join("data/schemes/cortetsu-pack");
+    let allowed: Value =
+        serde_json::from_slice(&fs::read(root.join("data/schemes/palettes.json"))?)?;
+    let mut result = json!({});
+    let names = fs::read_dir(&pack)?;
+    let mut files = Vec::new();
+    for name in names.flatten() {
+        if let Ok(flavours) = fs::read_dir(name.path()) {
+            for flavour in flavours.flatten() {
+                let p = flavour.path().join("dark.txt");
+                if p.is_file() {
+                    files.push(p);
+                }
+            }
+        }
+    }
+    files.sort();
+    for file in files {
+        let rel = file.strip_prefix(&pack)?;
+        let c: Vec<_> = rel.iter().collect();
+        if c.len() != 3 {
+            continue;
+        }
+        let name = c[0].to_string_lossy();
+        let flavour = c[1].to_string_lossy();
+        let key = format!("{name}/{flavour}");
+        if !allowed.is_null()
+            && !allowed.as_object().is_some_and(|v| v.contains_key(&key))
+            && !allowed
+                .as_array()
+                .is_some_and(|v| v.iter().any(|v| v == &key))
+        {
+            continue;
+        }
+        let mut colours = json!({});
+        for line in fs::read_to_string(&file)?.lines() {
+            if let Some((k, v)) = line.split_once(char::is_whitespace) {
+                colours[k] = json!(v.trim().to_lowercase());
+            }
+        }
+        if result.get(name.as_ref()).is_none() {
+            result[name.as_ref()] = json!({});
+        }
+        result[name.as_ref()][flavour.as_ref()] = colours;
+    }
+    Ok(result)
+}
+fn hypr_scheme(colours: &Value) -> Result<()> {
+    let path = config().join("hypr/scheme/current.lua");
+    if !path.is_file() {
+        return Ok(());
+    }
+    let keys = [
+        "primary",
+        "onPrimary",
+        "secondary",
+        "surfaceContainer",
+        "outline",
+        "inversePrimary",
+        "onSurfaceVariant",
+    ];
+    if keys.iter().any(|k| !colours[k].is_string()) {
+        return Ok(());
+    }
+    let mut lines = "return {\n".to_owned();
+    for k in keys {
+        let colour = text(&colours[k]).trim_start_matches('#');
+        if colour.len() != 6 || !colour.bytes().all(|c| c.is_ascii_hexdigit()) {
+            return Err("invalid scheme colour".into());
+        }
+        lines.push_str(&format!("    {k} = \"{colour}\",\n"));
+    }
+    lines.push_str("}\n\n");
+    atomic(&path, lines.as_bytes(), 0o600)?;
+    if env::var_os("CORTETSU_SKIP_RELOAD").is_none() && which("hyprctl").is_some() {
+        let _ = call("hyprctl", &["reload", "config-only"], 15);
+    }
+    Ok(())
+}
+pub fn scheme(args: &[String]) -> Result<i32> {
+    let path = state().join("scheme.json");
+    let mut s = json_load(&path, json!({}));
+    if !s.is_object() {
+        s = json!({});
+    }
+    let a: Vec<_> = args.iter().map(String::as_str).collect();
+    match a.as_slice() {
+        ["list"] => {
+            let mut schemes = catalog()?;
+            let name = s.get("name").and_then(Value::as_str);
+            if let Some(name) = name
+                && schemes.get(name).is_none()
+            {
+                schemes[name] = json!({text(s.get("flavour").unwrap_or(&json!("default"))):s.get("colours").cloned().unwrap_or(json!({}))});
+            }
+            if schemes.as_object().is_some_and(|m| m.is_empty()) {
+                schemes = json!({s.get("name").and_then(Value::as_str).unwrap_or("dynamic"):{s.get("flavour").and_then(Value::as_str).unwrap_or("default"):s.get("colours").cloned().unwrap_or(json!({}))}});
+            }
+            emit(&schemes)?;
+        }
+        ["get", "-nfv"] => {
+            let mut o = std::io::stdout().lock();
+            for (k, d) in [
+                ("name", "dynamic"),
+                ("flavour", "default"),
+                ("variant", "tonal-spot"),
+            ] {
+                writeln!(o, "{}", s.get(k).and_then(Value::as_str).unwrap_or(d))?;
+            }
+        }
+        ["set", "-n", name, flavour] if !name.is_empty() => {
+            let schemes = catalog()?;
+            let colours = &schemes[name][flavour];
+            if !colours.is_object() {
+                eprintln!("esquema no encontrado: {name} {flavour}");
+                return Ok(1);
+            }
+            s["name"] = json!(name);
+            s["flavour"] = json!(flavour);
+            s["colours"] = colours.clone();
+            json_save(&path, &s)?;
+            hypr_scheme(colours)?;
+        }
+        ["set", "-v", variant] if !variant.is_empty() => {
+            s["variant"] = json!(variant);
+            json_save(&path, &s)?;
+        }
+        _ => {
+            eprintln!(
+                "usage: cortetsu-scheme {{list|get -nfv|set -n NAME FLAVOUR|set -v VARIANT}}"
+            );
+            return Ok(2);
+        }
+    }
+    Ok(0)
+}
+pub fn posthook() -> Result<i32> {
+    let s = json_load(&state().join("scheme.json"), json!({}));
+    let colour = ["surface", "background", "surfaceContainer"]
+        .iter()
+        .filter_map(|k| s["colours"][k].as_str())
+        .map(|c| c.trim().trim_start_matches('#'))
+        .find(|c| c.len() == 6 && c.bytes().all(|v| v.is_ascii_hexdigit()));
+    let Some(colour) = colour else {
+        eprintln!("Cortetsu postHook: scheme has no usable surface/background colour");
+        return Ok(0);
+    };
+    // This exact file is provisioned by the installer; never change the parent directory.
+    let policy = Path::new("/etc/brave/policies/managed/cortetsu.json");
+    let bytes = format!(
+        "{}\n",
+        json!({"BrowserThemeColor":format!("#{}",colour.to_uppercase()),"BrowserColorScheme":"device"})
+    );
+    if let Err(e) = fs::write(policy, bytes) {
+        eprintln!(
+            "Cortetsu postHook: cannot update Brave policy {}: {e}",
+            policy.display()
+        );
+        return Ok(0);
+    }
+    if let Some(browser) = ["brave-origin", "brave-origin-stable"]
+        .iter()
+        .find_map(|b| which(b))
+    {
+        let _ = Command::new(browser)
+            .args(["--refresh-platform-policy", "--no-startup-window"])
+            .stdin(Stdio::null())
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .process_group(0)
+            .spawn();
+    }
+    Ok(0)
+}
+
+pub fn colours(source: Argb, dark: bool) -> Value {
+    let core = CorePalette::content_of(source);
+    let s = if dark {
+        SchemeFromPalette::dark_content(source)
+    } else {
+        SchemeFromPalette::light_content(source)
+    };
+    let mut v = json!({});
+    macro_rules! fields{($($name:literal=>$field:ident),*$(,)?)=>{$(v[$name]=json!(s.$field.to_hex());)*};}
+    fields!("primary"=>primary,"onPrimary"=>on_primary,"primaryContainer"=>primary_container,"onPrimaryContainer"=>on_primary_container,"secondary"=>secondary,"onSecondary"=>on_secondary,"secondaryContainer"=>secondary_container,"onSecondaryContainer"=>on_secondary_container,"tertiary"=>tertiary,"onTertiary"=>on_tertiary,"tertiaryContainer"=>tertiary_container,"onTertiaryContainer"=>on_tertiary_container,"error"=>error,"onError"=>on_error,"errorContainer"=>error_container,"onErrorContainer"=>on_error_container,"background"=>background,"onBackground"=>on_background,"surface"=>surface,"onSurface"=>on_surface,"surfaceVariant"=>surface_variant,"onSurfaceVariant"=>on_surface_variant,"outline"=>outline,"outlineVariant"=>outline_variant,"shadow"=>shadow,"scrim"=>scrim,"inverseSurface"=>inverse_surface,"inverseOnSurface"=>inverse_on_surface,"inversePrimary"=>inverse_primary);
+    for (name, palette) in [
+        ("primary", &core.primary),
+        ("secondary", &core.secondary),
+        ("tertiary", &core.tertiary),
+        ("neutral", &core.neutral),
+        ("neutral_variant", &core.neutral_variant),
+    ] {
+        v[format!("{name}_paletteKeyColor")] = json!(palette.tone(40).to_hex());
+    }
+    for (name, dt, lt) in [
+        ("surfaceDim", 6, 87),
+        ("surfaceBright", 24, 98),
+        ("surfaceContainerLowest", 4, 100),
+        ("surfaceContainerLow", 10, 96),
+        ("surfaceContainer", 12, 94),
+        ("surfaceContainerHigh", 17, 92),
+        ("surfaceContainerHighest", 22, 90),
+    ] {
+        v[name] = json!(core.neutral.tone(if dark { dt } else { lt }).to_hex());
+    }
+    for (prefix, palette) in [
+        ("primary", &core.primary),
+        ("secondary", &core.secondary),
+        ("tertiary", &core.tertiary),
+    ] {
+        v[format!("{prefix}Dim")] = json!(palette.tone(if dark { 70 } else { 30 }).to_hex());
+        v[format!("{prefix}Fixed")] = json!(palette.tone(90).to_hex());
+        v[format!("{prefix}FixedDim")] = json!(palette.tone(80).to_hex());
+        let title = format!("{}{}", prefix[..1].to_uppercase(), &prefix[1..]);
+        v[format!("on{title}Fixed")] = json!(palette.tone(10).to_hex());
+        v[format!("on{title}FixedVariant")] = json!(palette.tone(30).to_hex());
+    }
+    let palettes = [
+        &core.neutral,
+        &core.primary,
+        &core.secondary,
+        &core.tertiary,
+        &core.error,
+    ];
+    for i in 0..16 {
+        v[format!("term{i}")] = json!(
+            palettes[i % 5]
+                .tone(if i % 2 == 0 { 60 } else { 80 })
+                .to_hex()
+        );
+    }
+    v
+}
+pub fn wallpaper_colours(args: &[String]) -> Result<i32> {
+    let mut mode = "dark";
+    let mut image = None;
+    let mut iter = args.iter();
+    while let Some(arg) = iter.next() {
+        if arg == "--mode" {
+            mode = iter.next().map(String::as_str).unwrap_or("");
+        } else if image.is_none() {
+            image = Some(arg.as_str());
+        } else {
+            return Ok(2);
+        }
+    }
+    if !matches!(mode, "dark" | "light") || image.is_none() {
+        return Ok(2);
+    }
+    let output = call(
+        "/usr/bin/magick",
+        &[
+            image.unwrap_or(""),
+            "-resize",
+            "64x64^",
+            "-gravity",
+            "center",
+            "-extent",
+            "64x64",
+            "-depth",
+            "8",
+            "rgba:-",
+        ],
+        30,
+    )?;
+    if !output.status.success() {
+        return Err("wallpaper conversion failed".into());
+    }
+    let pixels: Vec<_> = output
+        .stdout
+        .as_chunks::<4>()
+        .0
+        .iter()
+        .map(|p| Argb::new(255, p[0], p[1], p[2]))
+        .collect();
+    if pixels.is_empty() {
+        return Err("wallpaper produced no pixels".into());
+    }
+    let quant = crate::quantizer::quantize(&pixels, 128);
+    let score = Score::score(&quant.color_to_count, None, None, None);
+    let source = score.first().copied().unwrap_or(Argb::from_u32(0xff4285f4));
+    emit(
+        &json!({"name":"dynamic","flavour":"default","mode":mode,"variant":"tonal-spot","colours":colours(source,mode=="dark")}),
+    )?;
+    Ok(0)
+}
+fn static_path() -> String {
+    fs::read_to_string(state().join("wallpaper/path.txt"))
+        .unwrap_or_default()
+        .replace('\n', "")
+}
+fn engine_running() -> bool {
+    let root = env::var_os("CORTETSU_PROC_ROOT")
+        .map(PathBuf::from)
+        .unwrap_or_else(|| PathBuf::from("/proc"));
+    let Ok(entries) = fs::read_dir(root) else {
+        return false;
+    };
+    let uid = nix::unistd::getuid().as_raw();
+    entries.flatten().any(|e| {
+        e.file_name()
+            .to_string_lossy()
+            .parse::<u32>()
+            .is_ok_and(|pid| pid != std::process::id())
+            && e.metadata().is_ok_and(|m| m.uid() == uid)
+            && fs::read(e.path().join("cmdline")).is_ok_and(|b| {
+                b.windows(b"linux-wallpaperengine".len())
+                    .any(|v| v == b"linux-wallpaperengine")
+            })
+    })
+}
+fn stat_line(p: &Path) -> String {
+    p.metadata()
+        .map(|m| format!("{} {}\n", m.mtime(), m.len()))
+        .unwrap_or_default()
+}
+fn sources(running: bool) -> String {
+    let mut text = format!(
+        "wallpaper-engine={}\n",
+        if running { "active" } else { "inactive" }
+    );
+    let active = home().join(".config/Linux Wallpaper Engine/active-wallpapers.json");
+    text.push_str(&stat_line(&active));
+    if let Some(items) = json_load(&active, Value::Null)["activeWallpapers"].as_object() {
+        for (k, v) in items {
+            let background = &v["backgroundId"];
+            text.push_str(&format!(
+                "{k}={}\n",
+                background
+                    .as_str()
+                    .map(str::to_owned)
+                    .unwrap_or_else(|| background.to_string())
+            ));
+        }
+    }
+    let static_file = state().join("wallpaper/path.txt");
+    if static_file.is_file() {
+        let p = static_path();
+        text.push_str(&format!("static={p}\n"));
+        if !p.is_empty() && Path::new(&p).is_file() {
+            text.push_str(&stat_line(Path::new(&p)));
+        }
+    }
+    format!("{:x}", Sha256::digest(text.as_bytes()))
+}
+pub fn wallpaper_daemon(args: &[String]) -> Result<i32> {
+    let dir = env::var_os("XDG_RUNTIME_DIR")
+        .filter(|s| !s.is_empty())
+        .map(PathBuf::from)
+        .unwrap_or_else(|| PathBuf::from("/tmp"))
+        .join("cortetsu-wallpaper-color-daemon");
+    fs::create_dir_all(&dir)?;
+    let _lock = match lock(&dir.join("lock"), true) {
+        Ok(v) => v,
+        Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => return Ok(0),
+        Err(e) => return Err(e.into()),
+    };
+    let hash = dir.join("last.hash");
+    let mut previous = fs::read_to_string(&hash)
+        .unwrap_or_default()
+        .trim()
+        .to_owned();
+    let interval = env::var("CORTETSU_WALLPAPER_POLL")
+        .ok()
+        .and_then(|s| s.parse::<f64>().ok())
+        .filter(|v| v.is_finite() && *v > 0.0)
+        .unwrap_or(2.0);
+    loop {
+        let running = engine_running();
+        let current = sources(running);
+        if current != previous {
+            let p = static_path();
+            if !running && !p.is_empty() && Path::new(&p).is_file() {
+                let _ = run(
+                    Command::new(home().join(".local/bin/cortetsu-apply-wallpaper-colors")).arg(&p),
+                    None,
+                    Duration::from_secs(60),
+                );
+            }
+            let _ = atomic(&hash, format!("{current}\n").as_bytes(), 0o600);
+            previous = current;
+        }
+        if args.iter().any(|a| a == "--once") {
+            return Ok(0);
+        }
+        thread::sleep(Duration::from_secs_f64(interval));
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn quantized_sources_match_the_legacy_image_pipeline() {
+        let fixtures: Value =
+            serde_json::from_str(include_str!("../tests/fixtures/legacy-quantization.json"))
+                .unwrap();
+        for case in fixtures["cases"].as_array().unwrap() {
+            let pixels: Vec<_> = case["pixels"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|p| {
+                    Argb::new(
+                        255,
+                        p[0].as_u64().unwrap() as u8,
+                        p[1].as_u64().unwrap() as u8,
+                        p[2].as_u64().unwrap() as u8,
+                    )
+                })
+                .collect();
+            use material_colors::quantize::{Quantizer, QuantizerWu};
+            let wu = QuantizerWu::quantize(&pixels, 128)
+                .color_to_count
+                .keys()
+                .map(|c| u32::from_be_bytes([c.alpha, c.red, c.green, c.blue]))
+                .collect::<Vec<_>>();
+            assert_eq!(json!(wu), case["wu"], "Wu {}", case["name"]);
+            let result = crate::quantizer::quantize(&pixels, 128);
+            let population: serde_json::Map<String, Value> = result
+                .color_to_count
+                .iter()
+                .map(|(c, n)| {
+                    (
+                        format!("{}", u32::from_be_bytes([c.alpha, c.red, c.green, c.blue])),
+                        json!(n),
+                    )
+                })
+                .collect();
+            assert_eq!(
+                Value::Object(population),
+                case["population"],
+                "{}",
+                case["name"]
+            );
+            let source = Score::score(&result.color_to_count, None, None, None)[0];
+            assert_eq!(
+                source,
+                Argb::from_u32(case["source"].as_u64().unwrap() as u32),
+                "{}",
+                case["name"]
+            );
+        }
+    }
+    #[test]
+    fn all_material_roles_match_legacy_palette_fixtures() {
+        let fixtures: Value =
+            serde_json::from_str(include_str!("../tests/fixtures/legacy-palettes.json")).unwrap();
+        for case in fixtures["cases"].as_array().unwrap() {
+            let result = colours(
+                Argb::from_u32(case["seed"].as_u64().unwrap() as u32),
+                case["mode"] == "dark",
+            );
+            assert_eq!(
+                result, case["colours"],
+                "seed {} mode {}",
+                case["seed"], case["mode"]
+            );
+        }
+    }
+}

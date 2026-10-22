@@ -20,7 +20,8 @@ host = (SHELL / "modules/SettingsHost.qml").read_text(encoding="utf-8")
 
 # Every destination of the Nexus opens a page, and no page is unreachable.
 categories = re.findall(r'\{ id: "([a-z]+)", group:', controller)
-assert len(categories) == 14 and len(set(categories)) == 14, categories
+assert len(categories) == 15 and len(set(categories)) == 15, categories
+assert "automation" in categories
 table = re.search(r"readonly property var pages: \(\{(.*?)\}\)", content, re.S).group(1)
 pages = dict(re.findall(r"([a-z]+): ([A-Za-z]+Page)", table))
 assert sorted(pages) == sorted(categories), (sorted(pages), sorted(categories))

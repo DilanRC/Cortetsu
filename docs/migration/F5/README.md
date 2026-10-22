@@ -1,5 +1,8 @@
 # F5 — Migración Rust de helpers Python (primer candidato: notificaciones)
 
+> Registro de diseño/prototipo anterior a la integración nativa. Para el
+> comportamiento actual, consultar [NATIVE-RUNTIME.md](../NATIVE-RUNTIME.md).
+
 Estado: **PILOT / NO_CUTOVER**. La versión de Cortetsu desplegada continúa
 usando `cortetsu/bin/cortetsu-notifications` (Python). Este piloto se compila
 como `cortetsu-notifications-rs` y **no reemplaza la instalación ni su esquema**.
