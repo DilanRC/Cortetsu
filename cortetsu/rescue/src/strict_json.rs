@@ -49,19 +49,33 @@ impl<'de> Visitor<'de> for CheckedVisitor {
         Ok(Checked)
     }
 
-    fn visit_bool<E: de::Error>(self, _: bool) -> Result<Self::Value, E> { Ok(Checked) }
-    fn visit_i64<E: de::Error>(self, _: i64) -> Result<Self::Value, E> { Ok(Checked) }
-    fn visit_u64<E: de::Error>(self, _: u64) -> Result<Self::Value, E> { Ok(Checked) }
+    fn visit_bool<E: de::Error>(self, _: bool) -> Result<Self::Value, E> {
+        Ok(Checked)
+    }
+    fn visit_i64<E: de::Error>(self, _: i64) -> Result<Self::Value, E> {
+        Ok(Checked)
+    }
+    fn visit_u64<E: de::Error>(self, _: u64) -> Result<Self::Value, E> {
+        Ok(Checked)
+    }
     fn visit_f64<E: de::Error>(self, value: f64) -> Result<Self::Value, E> {
         if !value.is_finite() || (value == 0.0 && value.is_sign_negative()) {
             return Err(de::Error::custom("non-finite number or negative zero"));
         }
         Ok(Checked)
     }
-    fn visit_str<E: de::Error>(self, _: &str) -> Result<Self::Value, E> { Ok(Checked) }
-    fn visit_string<E: de::Error>(self, _: String) -> Result<Self::Value, E> { Ok(Checked) }
-    fn visit_none<E: de::Error>(self) -> Result<Self::Value, E> { Ok(Checked) }
-    fn visit_unit<E: de::Error>(self) -> Result<Self::Value, E> { Ok(Checked) }
+    fn visit_str<E: de::Error>(self, _: &str) -> Result<Self::Value, E> {
+        Ok(Checked)
+    }
+    fn visit_string<E: de::Error>(self, _: String) -> Result<Self::Value, E> {
+        Ok(Checked)
+    }
+    fn visit_none<E: de::Error>(self) -> Result<Self::Value, E> {
+        Ok(Checked)
+    }
+    fn visit_unit<E: de::Error>(self) -> Result<Self::Value, E> {
+        Ok(Checked)
+    }
     fn visit_some<D: Deserializer<'de>>(self, d: D) -> Result<Self::Value, D::Error> {
         Checked::deserialize(d)
     }

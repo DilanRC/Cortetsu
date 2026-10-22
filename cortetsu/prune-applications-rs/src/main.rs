@@ -56,7 +56,7 @@ fn split_shell(source: &str) -> Option<Vec<String>> {
                     active = true;
                 }
                 '\\' => match chars.next() {
-                    Some('\n') => {},
+                    Some('\n') => {}
                     Some(next) => {
                         active = true;
                         token.push(next);
@@ -87,7 +87,9 @@ fn split_shell(source: &str) -> Option<Vec<String>> {
 
 fn command_target(value: &str) -> Option<String> {
     let mut tokens = split_shell(value)?;
-    while !tokens.is_empty() && (tokens[0] == "env" || tokens[0] == "nohup" || tokens[0].contains('=')) {
+    while !tokens.is_empty()
+        && (tokens[0] == "env" || tokens[0] == "nohup" || tokens[0].contains('='))
+    {
         tokens.remove(0);
     }
     if tokens.is_empty() || tokens[0].starts_with('%') {
@@ -97,8 +99,7 @@ fn command_target(value: &str) -> Option<String> {
 }
 
 fn executable(path: &Path) -> bool {
-    fs::metadata(path)
-        .is_ok_and(|m| m.is_file() && m.permissions().mode() & 0o111 != 0)
+    fs::metadata(path).is_ok_and(|m| m.is_file() && m.permissions().mode() & 0o111 != 0)
 }
 
 fn which(binary: &str) -> bool {
@@ -140,9 +141,15 @@ fn desktop_fields(path: &Path) -> Option<(String, String)> {
         if in_entry && line.starts_with(char::is_whitespace) {
             if let Some(ref key) = previous_key {
                 match key.as_str() {
-                    "Type" => { typ.push('\n'); typ.push_str(trimmed); },
-                    "Exec" => { exec.push('\n'); exec.push_str(trimmed); },
-                    _ => {},
+                    "Type" => {
+                        typ.push('\n');
+                        typ.push_str(trimmed);
+                    }
+                    "Exec" => {
+                        exec.push('\n');
+                        exec.push_str(trimmed);
+                    }
+                    _ => {}
                 }
             }
             continue;
@@ -158,7 +165,7 @@ fn desktop_fields(path: &Path) -> Option<(String, String)> {
             match key {
                 "Type" => typ = value.to_owned(),
                 "Exec" => exec = value.to_owned(),
-                _ => {},
+                _ => {}
             }
             previous_key = Some(key.to_owned());
         }
@@ -171,11 +178,15 @@ fn desktop_fields(path: &Path) -> Option<(String, String)> {
 }
 
 fn broken(path: &Path) -> bool {
-    let Some((typ, exec)) = desktop_fields(path) else { return false; };
+    let Some((typ, exec)) = desktop_fields(path) else {
+        return false;
+    };
     if typ != "Application" {
         return false;
     }
-    let Some(command) = command_target(&exec) else { return true; };
+    let Some(command) = command_target(&exec) else {
+        return true;
+    };
     if command.starts_with('/') {
         return !Path::new(&command).is_file();
     }
@@ -218,11 +229,18 @@ fn run(dry: bool) -> Result<(), String> {
         let file = candidate.file_name().ok_or("invalid application entry")?;
         let mut destination = quarantine.join(file);
         if destination.exists() {
-            let stem = candidate.file_stem().and_then(OsStr::to_str).ok_or("invalid file name")?;
+            let stem = candidate
+                .file_stem()
+                .and_then(OsStr::to_str)
+                .ok_or("invalid file name")?;
             destination = quarantine.join(format!("{}-{}.desktop", stem, std::process::id()));
         }
         fs::rename(&candidate, &destination).map_err(|_| "cannot quarantine application")?;
-        println!("Cuarentena: {} -> {}", candidate.display(), destination.display());
+        println!(
+            "Cuarentena: {} -> {}",
+            candidate.display(),
+            destination.display()
+        );
     }
     Ok(())
 }
@@ -249,9 +267,18 @@ mod tests {
 
     #[test]
     fn shlex_handles_quotes_escaped_spaces_and_invalid_tokens() {
-        assert_eq!(command_target("env FOO=bar '/path/a b' %u"), Some("/path/a b".into()));
-        assert_eq!(command_target("nohup SOME=thing missing"), Some("missing".into()));
-        assert_eq!(command_target("command\\ with\\ spaces"), Some("command with spaces".into()));
+        assert_eq!(
+            command_target("env FOO=bar '/path/a b' %u"),
+            Some("/path/a b".into())
+        );
+        assert_eq!(
+            command_target("nohup SOME=thing missing"),
+            Some("missing".into())
+        );
+        assert_eq!(
+            command_target("command\\ with\\ spaces"),
+            Some("command with spaces".into())
+        );
         assert_eq!(command_target("unclosed 'quote"), None);
         assert_eq!(command_target("%u"), None);
     }
