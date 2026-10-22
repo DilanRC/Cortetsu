@@ -1,0 +1,25 @@
+[package]
+name = "cortetsu-rescue"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.89"
+license = "MIT"
+publish = false
+description = "Independent, read-only verifier and rollback planner for Cortetsu generations"
+
+[[bin]]
+name = "cortetsu-rescue"
+path = "src/main.rs"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+walkdir = "2"
+fs2 = "0.4"
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }

@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/DilanRC/Cortetsu/blob/main/cortetsu/contracts/exec/v1/response.schema.json",
+  "title": "Cortetsu exec/1 response (not yet enabled)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["protocol", "version", "request_id", "outcome", "verified", "body"],
+  "properties": {
+    "protocol": { "const": "cortetsu.exec" },
+    "version": {
+      "type": "object", "required": ["major", "minor"], "additionalProperties": false,
+      "properties": { "major": { "const": 1 }, "minor": { "const": 0 } }
+    },
+    "request_id": { "type": "string", "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$" },
+    "outcome": { "enum": ["read", "applied", "rejected", "unknown"] },
+    "verified": { "type": "boolean" },
+    "transaction_id": { "type": "string", "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$" },
+    "error": {
+      "type": "object", "required": ["code", "retryable"], "additionalProperties": false,
+      "properties": {
+        "code": { "enum": [
+          "INCOMPATIBLE_PROTOCOL", "UNSUPPORTED_CAPABILITY", "INVALID_REQUEST", "FRAME_TOO_LARGE",
+          "RATE_LIMITED", "STATE_STALE", "SESSION_MISMATCH", "POLICY_CONFLICT",
+          "USER_CONFIRMATION_REQUIRED", "OWNER_UNAVAILABLE", "PERMISSION_DENIED",
+          "DEADLINE_EXCEEDED", "IDEMPOTENCY_CONFLICT", "APPLY_FAILED",
+          "APPLY_VERIFICATION_FAILED", "ROLLBACK_FAILED", "RECOVERY_REQUIRED",
+          "SECRET_TRANSPORT_DENIED", "INTERNAL_REDACTED"
+        ] },
+        "retryable": { "type": "boolean" }
+      }
+    },
+    "body": { "type": "object" }
+  },
+  "allOf": [
+    { "if": { "properties": { "outcome": { "enum": ["read", "applied"] } }, "required": ["outcome"] },
+      "then": { "properties": { "verified": { "const": true } }, "not": { "required": ["error"] } } },
+    { "if": { "properties": { "outcome": { "enum": ["rejected", "unknown"] } }, "required": ["outcome"] },
+      "then": { "required": ["error"], "properties": { "verified": { "const": false } } } }
+  ]
+}

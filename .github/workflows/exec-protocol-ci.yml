@@ -1,0 +1,64 @@
+name: Cortetsu protocol v1 and shadow simulator
+
+on:
+  push:
+    paths:
+      - 'cortetsu/protocol/**'
+      - 'cortetsu/contracts/exec/**'
+      - 'docs/migration/F1b/**'
+      - '.github/workflows/exec-protocol-ci.yml'
+  pull_request:
+    paths:
+      - 'cortetsu/protocol/**'
+      - 'cortetsu/contracts/exec/**'
+      - 'docs/migration/F1b/**'
+      - '.github/workflows/exec-protocol-ci.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  protocol:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: cortetsu/protocol/go.mod
+      - name: Format
+        working-directory: cortetsu/protocol
+        run: test -z "$(gofmt -l .)"
+      - name: Wire contract, two-session socket and shadow tests
+        working-directory: cortetsu/protocol
+        run: go test -race ./...
+      - name: Static analysis
+        working-directory: cortetsu/protocol
+        run: go vet ./...
+      - name: Build isolated read-only shadow utility
+        working-directory: cortetsu/protocol
+        env:
+          CGO_ENABLED: '0'
+          GOOS: linux
+          GOARCH: amd64
+        run: |
+          mkdir -p dist
+          go build -trimpath -ldflags='-s -w' -o dist/cortetsu-shadow ./cmd/cortetsu-shadow
+      - name: Build read-only Hyprland event observer
+        working-directory: cortetsu/protocol
+        env:
+          CGO_ENABLED: '0'
+          GOOS: linux
+          GOARCH: amd64
+        run: go build -trimpath -ldflags='-s -w' -o dist/cortetsu-coordinator ./cmd/cortetsu-coordinator
+      - name: CLI deterministic fixture
+        working-directory: cortetsu/protocol
+        run: |
+          ./dist/cortetsu-shadow -rules fixtures/rules.json < fixtures/trace.ndjson > out.jsonl
+          cmp out.jsonl fixtures/expected.jsonl
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cortetsu-go-readonly-linux-amd64-prototype
+          path: |
+            cortetsu/protocol/dist/cortetsu-shadow
+            cortetsu/protocol/dist/cortetsu-coordinator
+          retention-days: 14

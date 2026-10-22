@@ -1,0 +1,41 @@
+name: Cortetsu Rust rescue prototype
+
+on:
+  push:
+    paths:
+      - 'cortetsu/rescue/**'
+      - 'cortetsu/contracts/exec/**'
+      - '.github/workflows/rescue-rust-ci.yml'
+  pull_request:
+    paths:
+      - 'cortetsu/rescue/**'
+      - 'cortetsu/contracts/exec/**'
+      - '.github/workflows/rescue-rust-ci.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  rescue:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install Rust stable (rustfmt and clippy)
+        run: rustup toolchain install stable --profile minimal --component rustfmt,clippy && rustup default stable
+      - name: Verify committed Rust formatting
+        working-directory: cortetsu/rescue
+        run: cargo fmt --all -- --check
+      - name: Lint without unsafe code
+        working-directory: cortetsu/rescue
+        run: cargo clippy --locked --all-targets -- -D warnings
+      - name: Verify read-only recovery behavior
+        working-directory: cortetsu/rescue
+        run: cargo test --locked --all-targets
+      - name: Compile independently of Cortetsu checkout at runtime
+        working-directory: cortetsu/rescue
+        run: cargo build --locked --release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cortetsu-rescue-linux-amd64-prototype
+          path: cortetsu/rescue/target/release/cortetsu-rescue
+          retention-days: 14

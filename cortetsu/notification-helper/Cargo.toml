@@ -1,0 +1,21 @@
+[package]
+name = "cortetsu-notifications-rs"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.89"
+publish = false
+license = "MIT"
+description = "Staged, independently testable replacement for the first-party Cortetsu notification history CLI"
+
+[[bin]]
+name = "cortetsu-notifications-rs"
+path = "src/main.rs"
+
+[dependencies]
+serde_json = "1"
+fs2 = "0.4"
+
+[lints.rust]
+unsafe_code = "forbid"
+[lints.clippy]
+all = { level = "warn", priority = -1 }

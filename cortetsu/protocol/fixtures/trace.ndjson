@@ -1,0 +1,4 @@
+{"type":"snapshot","producer":"logind","cursor":{"session":"demo","epoch":1,"sequence":10}}
+{"type":"event","event":{"producer":"logind","session":"demo","epoch":1,"sequence":11,"domain":"power","type":"battery.changed","emitted_at_unix_ms":1000,"fields":{"level":"low"}},"now_unix_ms":1001}
+{"type":"event","event":{"producer":"logind","session":"demo","epoch":1,"sequence":11,"domain":"power","type":"battery.changed","emitted_at_unix_ms":1000,"fields":{"level":"low"}},"now_unix_ms":1002}
+{"type":"event","event":{"producer":"logind","session":"demo","epoch":1,"sequence":13,"domain":"power","type":"battery.changed","emitted_at_unix_ms":1000,"fields":{"level":"low"}},"now_unix_ms":1003}

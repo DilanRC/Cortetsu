@@ -1,0 +1,4 @@
+{"type":"cursor","status":"SNAPSHOT_SET"}
+{"type":"observation","status":"APPLIED_OBSERVATION","decisions":[{"resource":"power","rule_id":"low-battery","operation":"power.profile.set","outcome":"SIMULATED","reason":"NO_MUTATION"}]}
+{"type":"observation","status":"DUPLICATE"}
+{"type":"observation","status":"RESYNC_REQUIRED"}

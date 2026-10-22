@@ -1,0 +1,14 @@
+{
+  "protocol": "cortetsu.exec",
+  "version": {
+    "major": 1,
+    "minor": 0
+  },
+  "request_id": "123e4567-e89b-12d3-a456-426614174000",
+  "operation": "gamemode.set",
+  "deadline_ms": 5000,
+  "arguments": {
+    "enabled": true
+  },
+  "expected_revision": 1
+}
