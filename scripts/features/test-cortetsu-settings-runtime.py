@@ -748,6 +748,19 @@ ShellRoot {
     ].concat(SettingsController.categories.map(category =>
         [() => { select(category.id); return !!content && content.pageId === category.id && !!content.page && waitedMs >= 350; }, () => {
             const scroller = get("pageScroller");
+            if (content.page.width > scroller.width || content.page.implicitWidth > scroller.width) {
+                const widths = (item, path, depth, parentWide) => {
+                    if (depth > 5) return;
+                    const tooWide = item.width > scroller.width || item.implicitWidth > scroller.width;
+                    if (depth < 2 || parentWide || tooWide)
+                        console.log("SETTINGS_WIDTH", path, String(item), JSON.stringify({
+                            name: item.objectName, width: item.width, implicitWidth: item.implicitWidth,
+                            x: item.x, childrenWidth: item.childrenRect?.width, text: item.text ?? ""}));
+                    const children = item.children ?? [];
+                    for (let i = 0; i < children.length; ++i) widths(children[i], `${path}/${i}`, depth + 1, tooWide);
+                };
+                widths(content.page, category.id, 0, false);
+            }
             verify(content.page.width <= scroller.width && content.page.implicitWidth <= scroller.width,
                 `${category.id} fits the width it is given (${content.page.implicitWidth} in ${scroller.width})`);
             render(`page-${category.id}`);
