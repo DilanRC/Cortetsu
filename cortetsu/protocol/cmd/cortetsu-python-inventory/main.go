@@ -142,4 +142,16 @@ func main() {
 			os.Exit(1)
 		}
 	}
+	// A new QML/Bash python3 invocation is an independent runtime
+	// regression even when it reuses an already inventoried Python file.
+	knownCallsites := make(map[string]bool, len(original.Invocations))
+	for _, path := range original.Invocations {
+		knownCallsites[path] = true
+	}
+	for _, path := range found.Invocations {
+		if !knownCallsites[path] {
+			fmt.Fprintln(os.Stderr, "new first-party Python runtime invocation:", path)
+			os.Exit(1)
+		}
+	}
 }

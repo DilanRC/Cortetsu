@@ -38,3 +38,8 @@ requiere un rastreo completo de imports y de todas las rutas dinámicas.
 
 NO eliminar `ConnectivitySecret.py` ni la ejecución Python que lo llama sin
 conservar el aislamiento y protección de secretos de NetworkManager.
+
+El mismo baseline congela los seis sitios de llamada QML/Bash detectados. La
+herramienta falla si aparece un nuevo `python3` runtime sin una migración
+explícita, incluso si el helper llamado ya existía. El listado no cubre
+reflexión, PATH dinámico ni imports transitivos; nunca implica Python-free.

@@ -330,5 +330,13 @@
     "scripts/integration/ws2_run.py",
     "scripts/lib/keybinds_helper.py",
     "scripts/maintenance/retire_legacy_theme.py"
+  ],
+  "runtime_python_invocations": [
+    "cortetsu/bin/build-runtime.sh",
+    "cortetsu/bin/cortetsu-import-desktop",
+    "cortetsu/bin/cortetsu-import-hyprland",
+    "cortetsu/services/ConnectivityNmAdapter.qml",
+    "scripts/cortetsu",
+    "scripts/install-cortetsu.sh"
   ]
 }

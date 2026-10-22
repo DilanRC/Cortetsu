@@ -336,3 +336,6 @@ pub mod helper_bundle;
 
 /// Read-only cross-language exec/1 adapter; no mutation dispatch.
 pub mod exec_read;
+
+/// Durable replay tombstones for future typed Rust owners; no active dispatch.
+pub mod idempotency;
