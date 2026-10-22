@@ -169,13 +169,14 @@ restores history on its own:
 tar -tzf ~/.local/share/cortetsu/gc-backups/<stamp>/archives/shell/<name>.tar.gz   # inspect
 tar -xzf .../archives/shell/<name>.tar.gz -C ~/.local/share/cortetsu/builds/
 tar -xzf .../archives/dotfiles/<name>.tar.gz -C ~/.local/share/cortetsu/dotfiles/builds/
+tar -xzf .../archives/helpers/<name>.tar.gz -C ~/.local/share/cortetsu/helpers/builds/
 tar -xzf .../archives/system/<name>.tar.gz -C ~/.local/share/cortetsu/system/builds/
 cortetsu gc   # the restored generations must appear without INVALID entries
 ```
 
 Pointing `current` or `previous` at a restored generation is a deliberate
-rollback decision; restore the system generation together with the shell and
-dotfiles generations its `SYSTEM.json` names. `cortetsu system gc` and
+rollback decision; restore the system generation together with the shell,
+dotfiles and helpers generations its `SYSTEM.json` names. `cortetsu system gc` and
 `cortetsu dotfiles gc` no longer delete anything, because a single layer cannot
 see the references held by the others.
 

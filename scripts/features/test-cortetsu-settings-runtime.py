@@ -148,6 +148,19 @@ ShellRoot {
 
     FileView { id: modeFile; blockWrites: true; printErrors: false }
     FileView { id: stateFile; path: CortetsuColours.schemePath; blockWrites: true; printErrors: false }
+    Process {
+        id: blockConfig
+        property bool ready: false
+        command: ["cortetsu-test-block-preferences"]
+        onExited: (code, status) => {
+            if (code !== 0) {
+                console.log("SETTINGS_FAIL", "could not prepare the failed-write fixture", code);
+                Qt.quit();
+            } else {
+                ready = true;
+            }
+        }
+    }
 
     Connections {
         target: CortetsuConfig
@@ -422,8 +435,11 @@ ShellRoot {
             key(Qt.Key_F, Qt.ControlModifier);
             get("nexusSearch").text = "energia";
         }],
-        [() => SettingsController.matchingIds.length === 1, () => {
-            verify(get("nexus-power").visible, "accents are not needed to find a page");
+        [() => SettingsController.matchingIds.join(",") === "power,automation", () => {
+            verify(get("nexus-power").visible && get("nexus-automation").visible
+                && !get("nexus-appearance").visible && !get("nexus-audio").visible
+                && get("nexus-automation").value === "Energía automática",
+                "an unaccented search finds both the energy page and its automatic policy setting");
             get("nexusSearch").text = "zzzz";
         }],
         [() => SettingsController.matchingIds.length === 0, () => {
@@ -656,8 +672,11 @@ ShellRoot {
 
     // The preferences cannot be written: the user is told and nothing lies.
     readonly property var unwritable: [
-        [() => CortetsuConfig.loaded, () => { select("launcher"); screenDouble.settings = true; }],
-        [() => !!content && content.pageId === "launcher" && !!page("launcherEnabled"), () => {
+        [() => CortetsuConfig.loaded, () => {
+            blockConfig.running = true;
+            select("launcher"); screenDouble.settings = true;
+        }],
+        [() => blockConfig.ready && !!content && content.pageId === "launcher" && !!page("launcherEnabled"), () => {
             window.requestActivate();
             page("launcherEnabled").forceActiveFocus();
             key(Qt.Key_Space);
@@ -821,7 +840,12 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     assert "hyprctl hyprsunset temperature 6000" in calls and "hyprctl hyprsunset gamma 100" in calls, calls
     assert calls.count("cortetsu-keybinds list") == 2, calls
 
-    unwritable = passed(run(folder, "shell.qml", "unwritable", preferences={"schema": 1}, read_only_config=True)[0])
+    output, home = run(folder, "shell.qml", "unwritable", preferences={"schema": 1})
+    unwritable = passed(output)
+    blocked = home / ".config/cortetsu/preferences.json"
+    assert blocked.is_dir(), "a failed write must not replace the blocked destination"
+    assert sorted(path.name for path in blocked.iterdir()) == ["original.json"]
+    assert json.loads((blocked / "original.json").read_text()) == {"schema": 1}
     policies = passed(run(folder, "shell.qml", "policies")[0])
 
     # Every page at the default size, at the narrowest one, and on a scheme

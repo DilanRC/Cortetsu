@@ -210,6 +210,7 @@ import QtQuick
 QtObject {
     property int count: 3
     property bool dnd: false
+    function setDnd(value) { dnd = value; }
     function clear() { count = 0; }
 }
 """
@@ -270,6 +271,12 @@ COMMANDS = {
     "cortetsu-keybinds": '#!/bin/sh\nprintf "cortetsu-keybinds %s\\n" "$*" >> "$SETTINGS_FIXTURES/calls.log"\n'
                          '[ "$(cat "$SETTINGS_FIXTURES/keybinds-mode")" = ok ] || exit 3\n'
                          'cat "$SETTINGS_FIXTURES/bindings.json"\n',
+    # Called after the valid preferences have loaded. A nonempty directory
+    # rejects both direct writes and atomic replacement, including under root.
+    "cortetsu-test-block-preferences": '#!/bin/sh\nset -eu\n'
+        'target="$XDG_CONFIG_HOME/cortetsu/preferences.json"\n'
+        'saved="$SETTINGS_FIXTURES/preferences-before-failed-write.json"\n'
+        'mv "$target" "$saved"\nmkdir "$target"\nmv "$saved" "$target/original.json"\n',
 }
 
 FAILURE_MARKERS = ("SETTINGS_FAIL", "TypeError", "ReferenceError", "is not a type", "Unable to assign",
@@ -356,7 +363,7 @@ def run_host(folder: Path) -> str:
     return output
 
 
-def run(folder: Path, shell: str, scenario: str, *, preferences: dict | None = None, read_only_config: bool = False,
+def run(folder: Path, shell: str, scenario: str, *, preferences: dict | None = None,
         scheme: dict | None = None, env: dict | None = None, timeout: int = 120, label: str = "") -> tuple[str, Path]:
     """Runs one scenario in its own home and returns the log and that home."""
     home = folder / f"home-{label or scenario}"
@@ -375,21 +382,15 @@ def run(folder: Path, shell: str, scenario: str, *, preferences: dict | None = N
         json.dumps(scheme or {"name": "dynamic", "flavour": "default", "colours": {}}), encoding="utf-8")
     if preferences is not None:
         (home / ".config/cortetsu/preferences.json").write_text(json.dumps(preferences), encoding="utf-8")
-    if read_only_config:
-        (home / ".config/cortetsu").chmod(0o555)
-    try:
-        result = subprocess.run(
-            ["quickshell", "-p", str(folder / shell)],
-            env={**os.environ, "QT_QPA_PLATFORM": os.environ.get("CORTETSU_TEST_QPA", "offscreen"), "HOME": str(home),
-                 "XDG_STATE_HOME": str(home / "state"), "XDG_CONFIG_HOME": str(home / ".config"),
-                 "XDG_CACHE_HOME": str(home / "cache"), "PATH": f'{binaries}:{os.environ["PATH"]}',
-                 "CORTETSU_SKIP_RELOAD": "1", "SETTINGS_FIXTURES": str(fixtures), "SETTINGS_SCENARIO": scenario,
-                 "CORTETSU_RENDER_DIR": os.environ.get("CORTETSU_RENDER_DIR", ""), **(env or {})},
-            capture_output=True, text=True, timeout=timeout,
-        )
-    finally:
-        if read_only_config:
-            (home / ".config/cortetsu").chmod(0o755)
+    result = subprocess.run(
+        ["quickshell", "-p", str(folder / shell)],
+        env={**os.environ, "QT_QPA_PLATFORM": os.environ.get("CORTETSU_TEST_QPA", "offscreen"), "HOME": str(home),
+             "XDG_STATE_HOME": str(home / "state"), "XDG_CONFIG_HOME": str(home / ".config"),
+             "XDG_CACHE_HOME": str(home / "cache"), "PATH": f'{binaries}:{os.environ["PATH"]}',
+             "CORTETSU_SKIP_RELOAD": "1", "SETTINGS_FIXTURES": str(fixtures), "SETTINGS_SCENARIO": scenario,
+             "CORTETSU_RENDER_DIR": os.environ.get("CORTETSU_RENDER_DIR", ""), **(env or {})},
+        capture_output=True, text=True, timeout=timeout,
+    )
     output = result.stdout + result.stderr
     assert result.returncode == 0, output
     for marker in FAILURE_MARKERS:

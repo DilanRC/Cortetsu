@@ -37,6 +37,7 @@ Item {
     property bool started: false
     property int reconnectAttempts: 0
     property int daemonAttempts: 0
+    property int socketGeneration: 0
     readonly property bool usable: negotiated && bridgeSocket.connected
     readonly property bool canChange: usable && snapshot.mode === "coordinator" && pendingAction === null
     readonly property string pendingDomain: pendingAction?.domain || ""
@@ -118,7 +119,18 @@ Item {
         requestDeadline.stop();
         connectionState = state;
         scheduleReconnect();
-        bridgeSocket.connected = false;
+        // Quickshell's error signal precedes its own socket cleanup. Closing
+        // synchronously from that signal reenters cleanup and invalidates its
+        // socket pointer. Invalidate the UI now, close after the signal returns.
+        const generation = socketGeneration;
+        const epoch = descriptor?.session_epoch ?? 0;
+        const path = descriptor?.socket || "";
+        Qt.callLater(() => {
+            if (!root.stopping && root.socketGeneration === generation
+                    && (root.descriptor?.session_epoch ?? 0) === epoch
+                    && (root.descriptor?.socket || "") === path)
+                bridgeSocket.connected = false;
+        });
     }
     function acceptDescriptor(raw: string): void {
         let info;
@@ -243,7 +255,7 @@ Item {
         path: root.descriptor?.socket || ""
         connected: false
         onConnectedChanged: {
-            if (connected) root.sendHello();
+            if (connected) { root.socketGeneration++; root.sendHello(); }
             else if (!root.stopping) { root.failConnection("DISCONNECTED"); if (!coordinator.running) root.recoverDaemon(); }
         }
         onError: error => root.failConnection("UNAVAILABLE")
@@ -254,7 +266,10 @@ Item {
         onTriggered: {
             if (root.stopping) return;
             metadataFile.reload();
-            if (root.descriptor && !bridgeSocket.connected) bridgeSocket.connected = true;
+            if (root.descriptor && !bridgeSocket.connected) {
+                root.socketGeneration++;
+                bridgeSocket.connected = true;
+            }
         }
     }
     Timer {
