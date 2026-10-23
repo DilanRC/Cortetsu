@@ -49,7 +49,7 @@ ShellRoot {
 '''
 
 STUBS = {
-    "modules/CortetsuConfig.qml": "pragma Singleton\nimport Quickshell\nSingleton { property bool suppressNotificationsInFullscreen: false; property int notificationDefaultExpireTimeout: 800 }\n",
+    "modules/CortetsuConfig.qml": "pragma Singleton\nimport Quickshell\nSingleton { property bool suppressNotificationsInFullscreen: false; property int notificationDefaultExpireTimeout: 2500; property bool notificationExpire: true }\n",
     "modules/CortetsuHypr.qml": "pragma Singleton\nimport Quickshell\nSingleton { readonly property var monitors: ({ values: [] }) }\n",
     "modules/CortetsuShellState.qml": "pragma Singleton\nimport Quickshell\nSingleton { function anySidebarOpen(): bool { return false } }\n",
     # Global compositor shortcuts are unrelated to the private D-Bus server.
@@ -278,6 +278,8 @@ def main() -> int:
                 wait_for(lambda: (s := ipc()) and "Breve" not in s["popups"], "default-timeout popup expired")
                 assert "Fija" in ipc()["popups"], ipc()
                 assert "Breve" in ipc()["live"], "an expired popup stays in the history"
+                wait_for(lambda: (s := ipc()) and "Breve" in s["facadeSummaries"] and not s["writing"]
+                    and "Breve" in [entry["summary"] for entry in snapshot()], "expired popup persisted in history")
                 log.flush()
                 output = (base / "qs.log").read_text()
                 assert "ReferenceError" not in output and "TypeError" not in output, output

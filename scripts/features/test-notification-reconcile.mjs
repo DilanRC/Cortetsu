@@ -88,4 +88,8 @@ test('popup timeout: -1 means the server default, 0 never expires, positive valu
     assert.equal(model.popupTimeout(-1, -3), 5000);
     assert.equal(model.popupTimeout(-1, undefined), 5000);
     assert.equal(model.popupTimeout(undefined, 4000), 4000);
+    // "Expire automatically" off: -1 never expires, explicit timeouts still apply.
+    assert.equal(model.popupTimeout(-1, 5000, false), 0);
+    assert.equal(model.popupTimeout(1200, 5000, false), 1200);
+    assert.equal(model.popupTimeout(-1, 5000, true), 5000);
 });

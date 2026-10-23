@@ -83,9 +83,12 @@ function observeClear(previous, next) {
 }
 
 // Freedesktop expire_timeout: -1 asks the server for its default, 0 never
-// expires, a positive value is milliseconds.
-function popupTimeout(requested, defaultMs) {
+// expires, a positive value is milliseconds. With automatic expiry off, the
+// server default is "never" (0); explicit client timeouts are still honoured.
+function popupTimeout(requested, defaultMs, expire) {
     if (typeof requested === "number" && requested >= 0)
         return requested;
+    if (expire === false)
+        return 0;
     return Number.isInteger(defaultMs) && defaultMs >= 0 ? defaultMs : 5000;
 }
