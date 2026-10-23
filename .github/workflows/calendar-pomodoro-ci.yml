@@ -24,7 +24,7 @@ jobs:
           fetch-depth: 2
       - name: Trust the fixture repository for git
         run: git config --system --add safe.directory "$GITHUB_WORKSPACE"
-      - uses: actions/cache/restore@v4
+      - uses: actions/cache/restore@v5
         id: native-cache
         with:
           path: |
@@ -41,7 +41,7 @@ jobs:
         run: scripts/build-native.sh
       - name: Preserve successful native build for QML diagnostics
         if: steps.native-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: |
             /root/.cargo/registry
@@ -54,6 +54,14 @@ jobs:
           /usr/lib/qt6/bin/qmlformat cortetsu/modules/CortetsuPolicyBridge.qml > /dev/null
           /usr/lib/qt6/bin/qmlformat cortetsu/modules/settings/sections/AutomationSection.qml > /dev/null
           QT_QPA_PLATFORM=offscreen /usr/lib/qt6/bin/qmltestrunner -input cortetsu/tests/qml/policy
+      - name: Real Qt Quick Test for shared controls, focus and Settings
+        if: ${{ !cancelled() && steps.native-build.outcome == 'success' }}
+        run: |
+          for group in components focus settings; do
+            echo "::group::Qt Quick Test $group"
+            QT_QPA_PLATFORM=offscreen /usr/lib/qt6/bin/qmltestrunner -input "cortetsu/tests/qml/$group"
+            echo "::endgroup::"
+          done
       - name: Native installation with no Python on child PATH
         if: ${{ !cancelled() && steps.native-build.outcome == 'success' }}
         run: python3 scripts/features/test-cortetsu-build.py --native-bundle dist/native
