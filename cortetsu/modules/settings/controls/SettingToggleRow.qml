@@ -17,9 +17,15 @@ SettingRow {
     activeFocusOnTab: !disabled || activeFocus
     enabled: !disabled
 
-    Accessible.role: Accessible.CheckBox
-    Accessible.name: title
-    Accessible.checked: checked
+    // The entire row is one switch; its visual knob is not a second target.
+    Accessible.role: Accessible.Switch
+    Accessible.name: root.title
+    Accessible.checkable: true
+    Accessible.checked: root.checked
+    Accessible.focusable: !root.disabled
+    Accessible.focused: root.activeFocus
+    Accessible.onPressAction: root.request()
+    Accessible.onToggleAction: root.request()
 
     function request(): void {
         if (!root.disabled && root.status !== "busy")

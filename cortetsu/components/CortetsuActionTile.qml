@@ -14,6 +14,7 @@ Item {
     Accessible.name: root.label
     Accessible.description: root.detail
     Accessible.focusable: root.clickable && !root.disabled
+    Accessible.focused: root.activeFocus
     Accessible.onPressAction: if (root.clickable && !root.disabled) root.activated()
 
     property string label: ""

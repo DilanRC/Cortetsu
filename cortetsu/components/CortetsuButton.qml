@@ -15,6 +15,7 @@ Item {
     Accessible.name: root.label.length > 0 ? root.label : root.tooltipText
     Accessible.description: root.label.length > 0 ? root.tooltipText : ""
     Accessible.focusable: !root.disabled
+    Accessible.focused: root.activeFocus
     Accessible.onPressAction: if (!root.disabled) root.clicked()
 
     property string label

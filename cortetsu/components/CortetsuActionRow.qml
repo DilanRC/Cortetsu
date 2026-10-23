@@ -16,6 +16,7 @@ Item {
     Accessible.description: root.subtitle
     Accessible.selected: root.selected
     Accessible.focusable: !root.disabled
+    Accessible.focused: root.activeFocus
     Accessible.onPressAction: if (!root.disabled) root.clicked()
 
     property string icon: ""

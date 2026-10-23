@@ -16,6 +16,7 @@ Item {
     Accessible.checkable: true
     Accessible.checked: root.selected
     Accessible.focusable: !root.disabled
+    Accessible.focused: root.activeFocus
     Accessible.onPressAction: if (!root.disabled) root.clicked()
     Accessible.onToggleAction: if (!root.disabled) root.clicked()
 

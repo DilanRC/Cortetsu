@@ -28,6 +28,7 @@ Item {
     Accessible.name: root.label
     Accessible.selected: root.selected
     Accessible.focusable: !root.disabled
+    Accessible.focused: root.activeFocus
     Accessible.onPressAction: if (!root.disabled) root.activated()
     implicitHeight: 40
     implicitWidth: content.implicitWidth + CortetsuDesign.spacingStandard * 2
