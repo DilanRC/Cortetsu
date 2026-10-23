@@ -90,6 +90,9 @@ jobs:
       - name: Real notification owner and concurrent history changes
         if: ${{ !cancelled() && steps.native-build.outcome == 'success' }}
         run: python3 scripts/features/test-notification-history-runtime.py
+      - name: Shell adopt stops only the Cortetsu Quickshell
+        if: ${{ !cancelled() }}
+        run: python3 scripts/features/test-shell-adopt-scope.py
       - name: Credential failure and cancellation stay uncommitted
         if: ${{ !cancelled() && steps.native-build.outcome == 'success' }}
         run: dbus-run-session -- python3 scripts/features/test-connectivity-credential-flow.py

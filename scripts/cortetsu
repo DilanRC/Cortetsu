@@ -178,6 +178,46 @@ shell_ipc() {
     qs ipc --pid "$pid" call "$target" "$method" "$@"
 }
 
+# Quickshell processes of this user started with `-p` inside RUNTIME_ROOT and
+# outside the shell unit. Other Quickshell configs are never matched.
+unsupervised_cortetsu_qs_pids() {
+    local runtime pid path arg next cgroup
+    runtime="$(realpath -ms "$RUNTIME_ROOT")"
+    for pid in $(pgrep -u "$(id -u)" -x qs || true); do
+        path="" next=0
+        while IFS= read -r -d '' arg; do
+            if (( next )); then path="$arg"; break; fi
+            case "$arg" in
+                -p|--path) next=1 ;;
+                --path=*) path="${arg#--path=}"; break ;;
+            esac
+        done < "/proc/$pid/cmdline" 2>/dev/null || continue
+        [[ -n "$path" ]] || continue
+        path="$(realpath -ms "$path")"
+        [[ "$path" == "$runtime" || "$path" == "$runtime/"* ]] || continue
+        cgroup="$(cat "/proc/$pid/cgroup" 2>/dev/null || true)"
+        [[ "$cgroup" != *"/$SHELL_UNIT"* ]] || continue
+        printf '%s\n' "$pid"
+    done
+}
+
+stop_unsupervised_cortetsu_qs() {
+    local pids pid alive
+    pids="$(unsupervised_cortetsu_qs_pids)"
+    [[ -n "$pids" ]] || return 0
+    for pid in $pids; do kill -TERM "$pid" 2>/dev/null || true; done
+    for _ in $(seq 1 30); do
+        alive=0
+        # A zombie has exited; only its parent can still reap it.
+        for pid in $pids; do
+            [[ "$(awk '{print $3}' "/proc/$pid/stat" 2>/dev/null)" =~ ^[^ZX]$ ]] && alive=1
+        done
+        (( alive )) || return 0
+        sleep 0.1
+    done
+    fail "Quickshell de Cortetsu sin supervisar no terminó tras SIGTERM: $pids"
+}
+
 shell_cmd() {
     require_repo
     local action="${1:-status}"
@@ -190,8 +230,7 @@ shell_cmd() {
             require_file "${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user/$SHELL_UNIT"
             reconcile_shell_lifecycle
             systemctl --user daemon-reload
-            pkill -TERM -x qs >/dev/null 2>&1 || true
-            sleep 1
+            stop_unsupervised_cortetsu_qs
             systemctl --user enable --now "$SHELL_UNIT"
             systemctl --user is-active --quiet "$SHELL_UNIT" || fail "$SHELL_UNIT no quedó activo"
             printf 'Cortetsu shell supervision: adopted by systemd --user\n'
