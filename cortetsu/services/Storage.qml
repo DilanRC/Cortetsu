@@ -35,7 +35,7 @@ Singleton {
     // startup inventory: cortetsu:storage-probe (on-demand resource view)
     Process {
         id: probe
-        command: ["sh", "-c", "df -kP -x tmpfs -x devtmpfs 2>/dev/null"]
+        command: ["df", "-kP", "-x", "tmpfs", "-x", "devtmpfs"]
         stdout: StdioCollector { onStreamFinished: root.readDisks(text) }
     }
 

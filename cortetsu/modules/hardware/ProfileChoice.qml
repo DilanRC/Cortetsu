@@ -24,6 +24,12 @@ Item {
 
     signal chosen()
 
+    // Pointer, keyboard and assistive actions share one busy/disabled guard.
+    function request(): void {
+        if (!root.disabled && !root.busy)
+            root.chosen();
+    }
+
     implicitHeight: 64
     enabled: !root.disabled
     opacity: root.disabled ? 0.46 : 1
@@ -31,7 +37,9 @@ Item {
     Accessible.role: Accessible.RadioButton
     Accessible.name: root.note ? `${root.label}. ${root.note}` : root.label
     Accessible.checked: root.selected
-    Accessible.onPressAction: root.chosen()
+    Accessible.focusable: !root.disabled
+    Accessible.focused: root.activeFocus
+    Accessible.onPressAction: root.request()
 
     CortetsuSurface {
         anchors.fill: parent
@@ -103,10 +111,10 @@ Item {
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
         onPressed: root.forceActiveFocus()
-        onClicked: root.chosen()
+        onClicked: root.request()
     }
 
-    Keys.onEnterPressed: root.chosen()
-    Keys.onReturnPressed: root.chosen()
-    Keys.onSpacePressed: root.chosen()
+    Keys.onEnterPressed: root.request()
+    Keys.onReturnPressed: root.request()
+    Keys.onSpacePressed: root.request()
 }

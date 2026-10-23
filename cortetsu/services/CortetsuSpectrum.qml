@@ -13,6 +13,12 @@ QtObject {
     readonly property int barCount: CortetsuConfig.visualiserBars
     property list<real> values: Array(barCount).fill(0)
     property bool available: false
+    // Eager singleton construction must never spawn cava while disabled.
+    readonly property bool shouldRun: CortetsuConfig.visualiserEnabled
+    onShouldRunChanged: if (!shouldRun) {
+        root.available = false;
+        root.values = Array(root.barCount).fill(0);
+    }
 
     function consume(line: string): void {
         const parsed = line.trim().split(";")
@@ -29,7 +35,11 @@ QtObject {
     // startup inventory: cortetsu:spectrum (conditional on cava availability)
     property Process cavaProcess: Process {
         command: ["sh", "-c", "command -v cava >/dev/null 2>&1 && exec cava"]
-        running: true
+        running: root.shouldRun
+        onRunningChanged: if (!running) {
+            root.available = false;
+            root.values = Array(root.barCount).fill(0);
+        }
         stdout: SplitParser {
             splitMarker: "\n"
             onRead: data => root.consume(data)

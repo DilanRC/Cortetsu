@@ -144,7 +144,7 @@ for logo_consumer in (
 metrics = {
     "Cpu.qml": ("/proc/stat", "property real percentage"),
     "Memory.qml": ("/proc/meminfo", "property real used"),
-    "Storage.qml": ("df -kP", "property list<var> disks"),
+    "Storage.qml": ('"df", "-kP"', "property list<var> disks"),
     "NetworkUsage.qml": ("/proc/net/dev", "property real downloadSpeed"),
     "Gpu.qml": ("cortetsu-hardware-probe", "property int noneType"),
     "UsageFmt.qml": ("formatKib", "QtObject"),
@@ -225,6 +225,9 @@ assert "CortetsuConfig.visualiserBars" in spectrum
 assert "CortetsuConfig.useFuzzyWallpapers" in wallpaper_service
 assert "WallpaperSearch.matches" in wallpaper_service
 assert "command -v cava" in spectrum
+assert 'readonly property bool shouldRun: CortetsuConfig.visualiserEnabled' in spectrum
+assert 'running: root.shouldRun' in spectrum
+assert 'onRunningChanged: if (!running)' in spectrum
 assert "Caelestia" not in spectrum
 assert "CortetsuSpectrum.values" in visualiser
 assert "VisualiserBars" not in visualiser
