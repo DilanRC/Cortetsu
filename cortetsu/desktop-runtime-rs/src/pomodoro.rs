@@ -2,6 +2,8 @@ use crate::common::*;
 use fs2::FileExt;
 use nix::{
     sys::signal::{Signal, kill},
+    sys::time::TimeSpec,
+    time::{ClockId, ClockNanosleepFlags, clock_nanosleep},
     unistd::Pid,
 };
 use serde_json::{Value, json};
@@ -196,6 +198,33 @@ fn wake() {
         }
     }
 }
+/// Sends one tick after `seconds` of CLOCK_BOOTTIME, which keeps counting
+/// while the machine is suspended: a phase that ends during s2idle is settled
+/// right after resume instead of after the rest of a monotonic wait.
+fn boottime_tick(tx: mpsc::Sender<()>, seconds: f64) {
+    thread::spawn(move || {
+        let t = TimeSpec::from_duration(Duration::from_secs_f64(seconds.max(0.0)));
+        let _ = clock_nanosleep(ClockId::CLOCK_BOOTTIME, ClockNanosleepFlags::empty(), &t);
+        let _ = tx.send(());
+    });
+}
+/// True when the installed helper now resolves into another helpers
+/// generation than the running binary. The helper is a wrapper script next to
+/// the multicall binary, so the generation directories are compared.
+fn replaced(running: &std::path::Path, installed: &std::path::Path) -> bool {
+    let dir = |p: &std::path::Path| {
+        p.canonicalize()
+            .ok()
+            .and_then(|p| p.parent().map(|d| d.to_path_buf()))
+    };
+    match (dir(running), dir(installed)) {
+        (Some(a), Some(b)) => a != b,
+        _ => false,
+    }
+}
+fn installed_helper() -> PathBuf {
+    PathBuf::from(env::var_os("HOME").unwrap_or_default()).join(".local/bin/cortetsu-pomodoro")
+}
 fn daemon() -> Result<i32> {
     let event = sibling("pomodoro-notification.json");
     if !event.exists() {
@@ -208,9 +237,10 @@ fn daemon() -> Result<i32> {
     };
     let mut signals = signal_hook::iterator::Signals::new([signal_hook::consts::SIGUSR1])?;
     let (tx, rx) = mpsc::channel();
+    let signal_tx = tx.clone();
     thread::spawn(move || {
         for _ in signals.forever() {
-            if tx.send(()).is_err() {
+            if signal_tx.send(()).is_err() {
                 break;
             }
         }
@@ -226,9 +256,21 @@ fn daemon() -> Result<i32> {
         };
         if active(text(&current["phase"])) {
             let seconds = (number(&current["targetEndTimestamp"]) - now()).clamp(0.0, 30.0);
-            let _ = rx.recv_timeout(Duration::from_secs_f64(seconds));
-        } else if rx.recv().is_err() {
+            boottime_tick(tx.clone(), seconds);
+        }
+        if rx.recv().is_err() {
             break;
+        }
+        // Adopt a newly installed helper without a shell reload; same PID, so
+        // the Quickshell Process keeps owning it. The lock fd is close-on-exec.
+        let installed = installed_helper();
+        if let Ok(running) = env::current_exe()
+            && replaced(&running, &installed)
+        {
+            use std::os::unix::process::CommandExt;
+            drop(guard);
+            let error = std::process::Command::new(&installed).arg("daemon").exec();
+            return Err(error.into());
         }
     }
     Ok(0)
@@ -237,6 +279,10 @@ pub fn main(args: &[String]) -> Result<i32> {
     let command = args.first().map(String::as_str).unwrap_or("status");
     if command == "daemon" {
         return daemon();
+    }
+    if command == "wake" {
+        wake();
+        return Ok(0);
     }
     if !matches!(
         command,
@@ -266,6 +312,35 @@ pub fn main(args: &[String]) -> Result<i32> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn boottime_tick_wakes_the_loop() {
+        let (tx, rx) = mpsc::channel();
+        boottime_tick(tx, 0.05);
+        assert!(rx.recv_timeout(Duration::from_secs(2)).is_ok());
+    }
+    #[test]
+    fn replaced_compares_resolved_binaries() {
+        // helpers-old/{binary,wrapper}, helpers-new/{binary,wrapper}; the
+        // installed link points at a wrapper, the running exe is a binary.
+        let d = tempfile::tempdir().unwrap();
+        for g in ["old", "new"] {
+            std::fs::create_dir(d.path().join(g)).unwrap();
+            for f in ["cortetsu-desktop-runtime", "cortetsu-pomodoro"] {
+                std::fs::write(d.path().join(g).join(f), "").unwrap();
+            }
+        }
+        let link = d.path().join("installed");
+        std::os::unix::fs::symlink(d.path().join("old/cortetsu-pomodoro"), &link).unwrap();
+        let running = d.path().join("old/cortetsu-desktop-runtime");
+        assert!(
+            !replaced(&running, &link),
+            "same generation must not re-exec"
+        );
+        std::fs::remove_file(&link).unwrap();
+        std::os::unix::fs::symlink(d.path().join("new/cortetsu-pomodoro"), &link).unwrap();
+        assert!(replaced(&running, &link));
+        assert!(!replaced(&running, &d.path().join("missing")));
+    }
     #[test]
     fn phase_clock_and_pause_contract() {
         let n = 1_000_000.;

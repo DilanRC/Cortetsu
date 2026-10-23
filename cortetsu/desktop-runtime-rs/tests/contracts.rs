@@ -545,3 +545,60 @@ while :; do sleep 0.05; done
             .exists()
     );
 }
+
+#[test]
+fn pomodoro_daemon_adopts_a_promoted_helper_on_wake() {
+    use std::{
+        os::unix::fs::PermissionsExt,
+        thread,
+        time::{Duration, Instant},
+    };
+    let home = TempDir::new().unwrap();
+    let generation = home.path().join("helpers-new");
+    fs::create_dir_all(&generation).unwrap();
+    let wrapper = generation.join("cortetsu-pomodoro");
+    // The "new" helper records the PID it runs as; exec keeps the daemon's PID.
+    fs::write(
+        &wrapper,
+        "#!/bin/sh\necho $$ > \"$HOME/reexec\"\nexec sleep 30\n",
+    )
+    .unwrap();
+    fs::set_permissions(&wrapper, fs::Permissions::from_mode(0o755)).unwrap();
+    fs::create_dir_all(home.path().join(".local/bin")).unwrap();
+    let mut daemon = command(&home, "cortetsu-pomodoro", &["daemon"])
+        .spawn()
+        .unwrap();
+    let lock = home.path().join("state/cortetsu/pomodoro-daemon.lock");
+    let deadline = Instant::now() + Duration::from_secs(5);
+    while fs::read_to_string(&lock)
+        .map(|s| s.trim().is_empty())
+        .unwrap_or(true)
+    {
+        assert!(Instant::now() < deadline, "daemon did not start");
+        thread::sleep(Duration::from_millis(20));
+    }
+    std::os::unix::fs::symlink(&wrapper, home.path().join(".local/bin/cortetsu-pomodoro")).unwrap();
+    assert!(
+        command(&home, "cortetsu-pomodoro", &["wake"])
+            .status()
+            .unwrap()
+            .success()
+    );
+    let marker = home.path().join("reexec");
+    while !marker.exists() {
+        if Instant::now() > deadline + Duration::from_secs(5) {
+            let _ = daemon.kill();
+            panic!("daemon did not re-execute into the promoted helper");
+        }
+        thread::sleep(Duration::from_millis(20));
+    }
+    thread::sleep(Duration::from_millis(50));
+    let pid: u32 = fs::read_to_string(&marker).unwrap().trim().parse().unwrap();
+    assert_eq!(
+        pid,
+        daemon.id(),
+        "re-exec must keep the PID owned by Quickshell"
+    );
+    let _ = daemon.kill();
+    let _ = daemon.wait();
+}

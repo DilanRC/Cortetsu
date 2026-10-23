@@ -106,7 +106,7 @@ Fin de FOCUS a las 21:08:22.266; aviso escrito a las .278, leído por Quickshell
 | 2 Ambas pantallas funcionan | **FAIL**: HDMI-A-1 congelado (§4.4) |
 | 3 Hyprland reconoce los monitores | PASS: mismos dos, sin `monitoradded/removed` en ninguna suspensión |
 | 4 Cortetsu sigue funcionando | PASS: IPC, superficies y recarga |
-| 5 Pomodoro detecta la fase vencida durante la suspensión | PASS: el daemon la cerró a las 21:53:47.523, al reanudar (`timerfd` sobre `CLOCK_REALTIME`), sin esperar a sondeos |
+| 5 Pomodoro detecta la fase vencida durante la suspensión | PASS: el daemon la cerró a las 21:53:47.523, al reanudar, sin esperar a sondeos (corrección 2026-10-23: no era un `timerfd` sino una espera monótona de hasta 30 s; aquí coincidió con el final del tramo. Ver `docs/CALENDAR.md`) |
 | 6 Transición y contador | PASS: 8→9, `BREAK` (9 no es múltiplo de 4), nuevo fin a +60 s |
 | 7 Aviso sin duplicados | escrito: 1 (21:53:47.529) · consumido por Quickshell: 1 (lectura a las .531) · visible: no verificado (el toast dura 5 s y estaba la pantalla de bloqueo) |
 | 8 Recarga controlada no repite el aviso | PASS: tras `cortetsu-shell reload`, Quickshell releyó el archivo y no hubo toast (capturas); el aviso anterior se mostró en el control (4.1) |

@@ -177,6 +177,10 @@ if systemctl --user is-enabled --quiet cortetsu-power-auto.service 2>/dev/null \
         || printf 'WARN: native power daemon restart is pending\n' >&2
 fi
 
+# A running Pomodoro daemon re-executes itself into the promoted helpers when
+# woken; wake it now instead of waiting for the next Pomodoro command.
+"$helpers_generation/cortetsu-pomodoro" wake >/dev/null 2>&1 || true
+
 # Installation never deletes generations. The report below is computed after
 # promotion, so it names exactly what an explicit `cortetsu gc --apply` would
 # remove now; the user decides whether to run it.

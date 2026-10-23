@@ -75,8 +75,12 @@ Contrato de `cortetsu-pomodoro`:
 - `reset` reinicia el ciclo y conserva `focusMinutes`, `shortBreakMinutes`, `longBreakMinutes` y
   `sessionsBeforeLongBreak` (antes los borraba).
 - Un estado en fase activa sin `targetEndTimestamp` se recupera como `IDLE`.
-- `daemon`: un solo daemon por usuario (lock). Espera con un `timerfd` de `CLOCK_REALTIME` hasta el final de la
-  fase, sin despertar en reposo; las órdenes lo despiertan con `SIGUSR1` y un cambio de reloj lo reevalúa. Antes
+- `daemon`: un solo daemon por usuario (lock). Duerme sobre `CLOCK_BOOTTIME` en tramos de hasta 30 s hacia el
+  final de la fase y sin despertar en reposo; las órdenes lo despiertan con `SIGUSR1`. `CLOCK_BOOTTIME` cuenta el
+  tiempo suspendido, así que una fase que vence en `s2idle` se cierra al reanudar (con el reloj monótono anterior
+  tardaba lo que quedara del tramo, hasta 30 s). Al despertar, si `~/.local/bin/cortetsu-pomodoro` apunta a otra
+  generación de helpers, se reejecuta en ella con el mismo PID; `cortetsu install` lo despierta con
+  `cortetsu-pomodoro wake`. Antes
   leía el archivo cada 0,5 s para siempre (en una sesión real: 118 827 despertares y 58 s de CPU en 16,5 h).
 - Escrituras atómicas con `fsync`, modo `0600`.
 
