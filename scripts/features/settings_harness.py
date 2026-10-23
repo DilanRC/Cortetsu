@@ -302,28 +302,22 @@ import QtQuick.Window
 import Quickshell
 import "modules"
 import "modules/settings"
+import "services"
 
 // The real SettingsHost: a FloatingWindow per screen, which only a Wayland
 // compositor can map. Opened, browsed, closed and reopened.
 ShellRoot {
     id: root
     property int step: 0
-    QtObject {
-        id: state
-        property bool settings: false
-        property bool launcher: false
-        property var cortetsuState: null
-    }
-    Component.onCompleted: {
-        for (const screen of Quickshell.screens)
-            CortetsuShellState.states = CortetsuShellState.states.concat([{ screen: screen, state: state }]);
-    }
+    // SettingsContext also uses ShellState. Share its actual screen state so
+    // creating Content cannot replace a separately registered test object.
+    readonly property var hostState: ShellState.forScreen(Quickshell.screens[0])
     SettingsHost { id: host }
     Connections {
         target: host.windows.length > 0 ? host.windows[0] : null
         function onClosed() {
             console.log("SETTINGS_HOST_CLOSED", JSON.stringify({step: root.step,
-                requested: state.settings, intended: target.requestedOpen,
+                requested: root.hostState.settings, intended: target.requestedOpen,
                 visible: target.visible, nativeClosePending: target.nativeClosePending}));
         }
     }
@@ -345,13 +339,13 @@ ShellRoot {
             const loader = find(window.contentItem, "settingsContentLoader");
             if (window.visible !== open || !loader || loader.active !== open || !!loader.item !== open) {
                 console.log("SETTINGS_FAIL", "window visibility and loaded content", JSON.stringify({
-                    step: root.step, expected: open, requested: state.settings, intended: window.requestedOpen,
-                    windowState: window.screenState?.settings, sameState: window.screenState === state,
+                    step: root.step, expected: open, requested: root.hostState.settings, intended: window.requestedOpen,
+                    windowState: window.screenState?.settings, sameState: window.screenState === root.hostState,
                     nativeClosePending: window.nativeClosePending, visible: window.visible,
                     loaderActive: loader?.active, content: !!loader?.item,
                     screen: window.modelData?.name, nativeScreen: window.screen?.name,
                     registered: CortetsuShellState.states.map(entry => ({screen: entry.screen?.name,
-                        sameScreen: entry.screen === window.modelData, sameState: entry.state === state}))}));
+                        sameScreen: entry.screen === window.modelData, sameState: entry.state === root.hostState}))}));
                 Qt.quit(); return false;
             }
         }
@@ -361,14 +355,18 @@ ShellRoot {
         interval: 500; repeat: true; running: true
         onTriggered: {
             root.step++;
+            if (!root.hostState) {
+                console.log("SETTINGS_FAIL", "the host must have its registered screen state");
+                Qt.quit(); return;
+            }
             const ids = SettingsController.categories.map(item => item.id);
             if (root.step === 1 || root.step === ids.length + 4)
-                state.settings = true;
+                root.hostState.settings = true;
             else if (root.step <= ids.length + 1) {
                 if (!root.checkWindows(true)) return;
                 SettingsController.select(ids[root.step - 2]);
             } else if (root.step === ids.length + 2)
-                state.settings = false;
+                root.hostState.settings = false;
             else if (root.step === ids.length + 3) {
                 if (!root.checkWindows(false)) return;
             } else if (root.step === ids.length + 5) {
@@ -378,24 +376,24 @@ ShellRoot {
                 // the fixture's requested state first.
                 host.windows[0].contentItem.Window.window.close();
             } else if (root.step === ids.length + 7) {
-                if (state.settings || !root.checkWindows(false)) {
+                if (root.hostState.settings || !root.checkWindows(false)) {
                     console.log("SETTINGS_FAIL", "a native close must clear the requested state and unload content");
                     Qt.quit(); return;
                 }
-                state.settings = true;
+                root.hostState.settings = true;
             } else if (root.step === ids.length + 8) {
                 if (!root.checkWindows(true)) return;
                 host.windows[0].contentItem.Window.window.close();
-                if (state.settings) {
+                if (root.hostState.settings) {
                     console.log("SETTINGS_FAIL", "native close must be observed before immediate reopen");
                     Qt.quit(); return;
                 }
                 // Both changes reach the same deferred transition. The native
                 // requested visibility must still be reset before reopening.
-                state.settings = true;
+                root.hostState.settings = true;
             } else if (root.step === ids.length + 9) {
                 if (!root.checkWindows(true)) return;
-                state.settings = false;
+                root.hostState.settings = false;
             } else if (root.step === ids.length + 10) {
                 if (!root.checkWindows(false)) return;
                 console.log("SETTINGS_HOST_PASS", Quickshell.screens.length);
