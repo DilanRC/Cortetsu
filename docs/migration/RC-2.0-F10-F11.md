@@ -53,6 +53,7 @@ Parte de la evidencia del 22 se perdió al reiniciarse el equipo (vivía en `/tm
 | CPU con otras superficies | 0,1–0,9 % | 15 s cada una |
 | CPU durante 280 ciclos | 38,7 % | 126 s de estrés |
 | CPU `qs` en reposo tras H-45 | 1,2 % (60 s y 3×10 s), PSS 465 MiB | eDP-1 + HDMI-A-1, sin reproductor ni eventos de Hyprland |
+| CPU `qs` en reposo, solo eDP-1 | 0,28 % y 5,5 despertares/s; 0,25 % y 5,3/s con `Time` por minutos | mismo proceso, PSS 477 MiB tras recargas suaves |
 | PSS `qs` proceso nuevo | 554 → 514 MiB con el fondo a resolución de pantalla | dos monitores, 20 s tras arrancar |
 | PSS tras 6 recargas suaves | +80 MiB en la primera, luego estable (595–620 MiB) | mismo proceso |
 
@@ -100,11 +101,11 @@ no son críticas.
 - H-45 resuelto en `b07ac18` (con Codex): 8 preferencias con efecto e interruptores en Ajustes; las de la barra
   retirada y los límites del lanzador se retiran. CPU en reposo tras el cambio: 0,27 % (una muestra, con vídeo).
 - Falta baseline de memoria con un solo monitor.
-- CPU en reposo con dos monitores: 1,2 %, frente a 0,18–0,2 % antes (no consta si aquella medida tenía HDMI). Son unos
-  13 despertares/s del hilo principal: los `Timer` de QML (~3/s) y dos ventanas a pantalla completa, una por monitor,
-  que se repintan unas 3 veces/s cada una sin cambios visibles. Falta identificar la superficie; se descartó seguir con
-  `gdb` porque detiene el shell en cada evento. Siguiente paso: medir con un solo monitor y arrancar una instancia
-  aislada con `QT_LOGGING_RULES=qt.scenegraph.time.renderloop=true`.
+- CPU en reposo con dos monitores: 1,2 % y 13 despertares/s; con solo eDP-1, 0,28 % y 5,5/s. El coste extra lo pone
+  el HDMI: está en la NVIDIA y el shell pinta en la Radeon, así que cada fotograma de esa salida se copia entre GPUs.
+  Con `gdb` se vio que lo que se marca para repintar son textos del OSD de ajustes rápidos (oculto) y del reloj, menos
+  de una vez por segundo; los ~3 eventos/s por ventana no están explicados del todo. `Time` pasa a tick por minuto
+  (nadie leía segundos): mejora dentro del ruido. Baseline de memoria de proceso nuevo con un monitor: sigue sin medir.
 
 ## 7. Rollback
 
