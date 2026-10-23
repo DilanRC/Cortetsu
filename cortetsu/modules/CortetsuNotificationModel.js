@@ -81,3 +81,11 @@ function observeClear(previous, next) {
     return {clear: previous !== null && next.revision > previous.revision,
         state: {revision: next.revision, pending: next.pending === true}};
 }
+
+// Freedesktop expire_timeout: -1 asks the server for its default, 0 never
+// expires, a positive value is milliseconds.
+function popupTimeout(requested, defaultMs) {
+    if (typeof requested === "number" && requested >= 0)
+        return requested;
+    return Number.isInteger(defaultMs) && defaultMs >= 0 ? defaultMs : 5000;
+}

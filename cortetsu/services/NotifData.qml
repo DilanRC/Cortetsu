@@ -3,6 +3,8 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import Quickshell.Services.Notifications
+import "../modules"
+import "../modules/CortetsuNotificationModel.js" as NotificationModel
 
 QtObject {
     id: root
@@ -78,7 +80,9 @@ QtObject {
         if (!notification) return;
         notificationId = notification.id; summary = notification.summary; body = notification.body;
         appIcon = notification.appIcon; appName = notification.appName; image = notification.image;
-        hints = notification.hints; expireTimeout = notification.expireTimeout; urgency = notification.urgency;
+        hints = notification.hints;
+        expireTimeout = NotificationModel.popupTimeout(notification.expireTimeout, CortetsuConfig.notificationDefaultExpireTimeout);
+        urgency = notification.urgency;
         resident = notification.resident; hasActionIcons = notification.hasActionIcons;
         actions = notification.actions.map(action => ({identifier: action.identifier, text: action.text, invoke: () => action.invoke()}));
     }

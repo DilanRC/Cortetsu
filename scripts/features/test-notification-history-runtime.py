@@ -49,7 +49,7 @@ ShellRoot {
 '''
 
 STUBS = {
-    "modules/CortetsuConfig.qml": "pragma Singleton\nimport Quickshell\nSingleton { property bool suppressNotificationsInFullscreen: false }\n",
+    "modules/CortetsuConfig.qml": "pragma Singleton\nimport Quickshell\nSingleton { property bool suppressNotificationsInFullscreen: false; property int notificationDefaultExpireTimeout: 800 }\n",
     "modules/CortetsuHypr.qml": "pragma Singleton\nimport Quickshell\nSingleton { readonly property var monitors: ({ values: [] }) }\n",
     "modules/CortetsuShellState.qml": "pragma Singleton\nimport Quickshell\nSingleton { function anySidebarOpen(): bool { return false } }\n",
     # Global compositor shortcuts are unrelated to the private D-Bus server.
@@ -182,8 +182,10 @@ def main() -> int:
                 def snapshot():
                     return json.loads(history.read_text()) if history.exists() else []
 
-                def notify(summary):
-                    subprocess.run(["notify-send", "-a", "Prueba", "-t", "0", summary, "cuerpo"],
+                def notify(summary, timeout="0"):
+                    # timeout=None sends the client default, expire_timeout -1.
+                    flags = [] if timeout is None else ["-t", timeout]
+                    subprocess.run(["notify-send", "-a", "Prueba", *flags, summary, "cuerpo"],
                         env=env, check=True, timeout=4, capture_output=True)
 
                 def cli(*args):
@@ -267,6 +269,15 @@ def main() -> int:
                 assert ipc("toggleDnd") is True
                 wait_for(lambda: (s := ipc()) and not s["dnd"] and not s["facadeDnd"], "facade DND toggle confirmed")
                 expect_live(["Nueva", "Silencio"])
+
+                # expire_timeout -1 (notify-send without -t) uses the configured
+                # default; 0 stays until dismissed. Before the fix, -1 never expired.
+                notify("Fija")
+                notify("Breve", None)
+                wait_for(lambda: (s := ipc()) and {"Fija", "Breve"} <= set(s["popups"]), "both popups shown")
+                wait_for(lambda: (s := ipc()) and "Breve" not in s["popups"], "default-timeout popup expired")
+                assert "Fija" in ipc()["popups"], ipc()
+                assert "Breve" in ipc()["live"], "an expired popup stays in the history"
                 log.flush()
                 output = (base / "qs.log").read_text()
                 assert "ReferenceError" not in output and "TypeError" not in output, output

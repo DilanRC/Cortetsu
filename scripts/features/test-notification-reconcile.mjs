@@ -76,3 +76,16 @@ test('clear revisions identify explicit clears without replaying an old clear af
         {base_ids: ['a'], entries: [entry('a')], clear_revision: 8});
     assert.equal(model.prepareBatch([], [], -1), null);
 });
+
+test('popup timeout: -1 means the server default, 0 never expires, positive values are kept', () => {
+    assert.equal(typeof model.popupTimeout, 'function');
+    // notify-send and most clients send -1 ("let the server decide").
+    assert.equal(model.popupTimeout(-1, 5000), 5000);
+    assert.equal(model.popupTimeout(-1, 7000), 7000);
+    assert.equal(model.popupTimeout(0, 5000), 0);
+    assert.equal(model.popupTimeout(1200, 5000), 1200);
+    // A broken preference must not turn every default popup into a resident one.
+    assert.equal(model.popupTimeout(-1, -3), 5000);
+    assert.equal(model.popupTimeout(-1, undefined), 5000);
+    assert.equal(model.popupTimeout(undefined, 4000), 4000);
+});

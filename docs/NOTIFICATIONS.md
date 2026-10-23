@@ -53,6 +53,12 @@ focus. The live notification model receives the same interaction state, so its
 backend expiry timer pauses too and cannot remove the popup under an active
 action row.
 
+The backend popup timeout follows the freedesktop `expire_timeout`: a positive
+value is used as sent, `0` keeps the popup until it is dismissed, and `-1` (what
+`notify-send` and most clients send) uses `notificationDefaultExpireTimeout`
+(5000 ms by default). `CortetsuNotificationModel.popupTimeout` holds the rule;
+before it, `-1` popups never expired. An expired popup stays in the history.
+
 ## What is explicitly out of scope, and why
 
 Fully eliminating the patch (deleting
