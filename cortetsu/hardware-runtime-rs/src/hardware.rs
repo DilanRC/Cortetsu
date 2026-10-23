@@ -62,6 +62,17 @@ pub fn temperatures(root: &Path) -> Option<f64> {
         .into_iter()
         .filter(|t| *t > -20. && *t < 130.))
 }
+/// Hottest reading of the CPU package sensors; Hardware Center and the
+/// dashboard (`--cpu-temp`) share this choice.
+fn cpu_temp() -> Option<f64> {
+    max(hwmons()
+        .iter()
+        .filter(|p| {
+            ["k10temp", "zenpower", "coretemp"]
+                .contains(&read(&p.join("name")).to_lowercase().as_str())
+        })
+        .filter_map(|p| temperatures(p)))
+}
 fn cpu_numbers(line: &str) -> (i64, i64) {
     let nums = line
         .split_whitespace()
@@ -128,13 +139,7 @@ fn cpu(previous: &Value) -> (Value, Value) {
         .map(|p| read(&p.join("scaling_governor")))
         .filter(|s| !s.is_empty())
         .collect::<BTreeSet<_>>();
-    let temp = max(hwmons()
-        .iter()
-        .filter(|p| {
-            ["k10temp", "zenpower", "coretemp"]
-                .contains(&read(&p.join("name")).to_lowercase().as_str())
-        })
-        .filter_map(|p| temperatures(p)));
+    let temp = cpu_temp();
     (
         json!({"model":model,"usage":percent(total,idle,i(previous,"cpu_total",total),i(previous,"cpu_idle",idle)),"per_core":usages,"freq_mhz":rounded(frequency,0),"temp_c":rounded(temp,1),"governor":if governors.is_empty(){"unknown".into()}else{governors.into_iter().collect::<Vec<_>>().join(", ")},"cores":if usages.is_empty(){std::thread::available_parallelism().map(|n|n.get()).unwrap_or(0)}else{usages.len()}}),
         json!({"cpu_total":total,"cpu_idle":idle,"cpu_cores":cores}),
@@ -557,11 +562,12 @@ fn processes(previous: &Value, now: f64, uptime: f64, total_mem: u64) -> (Vec<Va
     (out, json!({"process_time":now,"process_ticks":ticks}))
 }
 pub fn main(args: &[String]) -> (Value, i32) {
-    let (mut top, mut only_gpus) = (0_i64, false);
+    let (mut top, mut only_gpus, mut only_cpu_temp) = (0_i64, false, false);
     let mut options = args.iter();
     while let Some(option) = options.next() {
         match option.as_str() {
             "--gpus" => only_gpus = true,
+            "--cpu-temp" => only_cpu_temp = true,
             "--top-processes" => match options.next().and_then(|s| s.parse().ok()) {
                 Some(n) => top = n,
                 None => {
@@ -570,7 +576,9 @@ pub fn main(args: &[String]) -> (Value, i32) {
                 }
             },
             "-h" | "--help" => {
-                eprintln!("usage: cortetsu-hardware-probe [--gpus] [--top-processes N]");
+                eprintln!(
+                    "usage: cortetsu-hardware-probe [--gpus | --cpu-temp] [--top-processes N]"
+                );
                 return (Value::Null, 0);
             }
             _ => {
@@ -581,6 +589,9 @@ pub fn main(args: &[String]) -> (Value, i32) {
     }
     if only_gpus {
         return (json!({"gpus":gpus()}), 0);
+    }
+    if only_cpu_temp {
+        return (json!({"temp_c": rounded(cpu_temp(), 1)}), 0);
     }
     let state = runtime().join("cortetsu-hardware-probe-state.json");
     let _lock = lock(&state.with_extension("lock")).ok();

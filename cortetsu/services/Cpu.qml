@@ -1,5 +1,6 @@
 pragma Singleton
 
+import QtCore
 import QtQuick
 import Quickshell
 import Quickshell.Io
@@ -50,12 +51,15 @@ Singleton {
     // startup inventory: cortetsu:cpu-temperature (on-demand resource view)
     Process {
         id: temperature
-        command: ["sh", "-c", "for f in /sys/class/thermal/thermal_zone*/temp; do [ -r \"$f\" ] && cat \"$f\" && break; done"]
+        // Same CPU package sensor as Hardware Center (k10temp/zenpower/coretemp).
+        command: [StandardPaths.writableLocation(StandardPaths.HomeLocation) + "/.local/bin/cortetsu-hardware-probe", "--cpu-temp"]
         stdout: StdioCollector {
             onStreamFinished: {
-                const value = Number(text.trim());
-                if (Number.isFinite(value))
-                    root.temperature = value > 1000 ? value / 1000 : value;
+                try {
+                    const value = JSON.parse(text).temp_c;
+                    if (typeof value === "number" && Number.isFinite(value))
+                        root.temperature = value;
+                } catch (_) {}
             }
         }
     }

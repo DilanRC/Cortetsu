@@ -10,7 +10,6 @@ modules = repo / "cortetsu/modules"
 # Explicit debt: native replacements still need behavioral parity.
 # Scan all first-party QML, including multiline argv arrays, not just modules.
 legacy_shell_exceptions = {
-    "cortetsu/services/Cpu.qml",  # legacy thermal glob, needs typed probe
     "cortetsu/services/CortetsuSpectrum.qml",  # optional cava detection
     "cortetsu/services/ConnectivityBluetooth.qml",  # BlueZ exit and output
     "cortetsu/modules/clipboard/Content.qml",  # preserve image MIME/pipe

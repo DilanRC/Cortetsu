@@ -569,3 +569,31 @@ fn rollback_preserves_external_color_policy_even_with_unchanged_config() {
     .unwrap();
     assert_eq!(journal["recovery_required"], true);
 }
+#[test]
+fn cpu_temp_reads_only_the_cpu_sensor_like_the_hardware_center() {
+    let t = setup();
+    let hwmon = |n: &str, name: &str, temps: &[(&str, &str)]| {
+        let d = t.path().join("sys/class/hwmon").join(n);
+        fs::create_dir_all(&d).unwrap();
+        fs::write(d.join("name"), format!("{name}\n")).unwrap();
+        for (file, v) in temps {
+            fs::write(d.join(file), v).unwrap();
+        }
+    };
+    // The ACPI zone is hotter here; the dashboard used to show it as "CPU".
+    hwmon("hwmon0", "acpitz", &[("temp1_input", "88000\n")]);
+    hwmon(
+        "hwmon1",
+        "k10temp",
+        &[("temp1_input", "54250\n"), ("temp3_input", "51000\n")],
+    );
+    assert_eq!(
+        output(run(&t, &["cortetsu-hardware-probe", "--cpu-temp"])),
+        json!({"temp_c": 54.3})
+    );
+    fs::remove_dir_all(t.path().join("sys/class/hwmon/hwmon1")).unwrap();
+    assert_eq!(
+        output(run(&t, &["cortetsu-hardware-probe", "--cpu-temp"])),
+        json!({"temp_c": null})
+    );
+}
