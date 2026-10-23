@@ -15,7 +15,8 @@ TestCase {
     function test_idle_does_not_spawn_cava() {
         verify(!CortetsuConfig.visualiserEnabled);
         verify(!CortetsuSpectrum.shouldRun);
-        verify(!CortetsuSpectrum.cavaProcess.running);
+        // Standalone QtTest cannot introspect Quickshell's Process internals;
+        // source gate additionally asserts running is bound to shouldRun.
         verify(!CortetsuSpectrum.available);
     }
 }
