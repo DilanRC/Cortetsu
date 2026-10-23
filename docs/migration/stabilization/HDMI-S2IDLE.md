@@ -92,9 +92,19 @@ Suspensión supervisada de 33 min con HDMI-A-1 conectado (11:51:53 → 12:25:18)
 - Los commits atómicos fallidos del log de Hyprland siguieron creciendo (313 → 395 en esos minutos).
 - El despertar volvió a registrar «Unexpected lid state reported by firmware».
 
-Resultado: sin congelado persistente esta vez; bloqueo transitorio de la captura del HDMI tras reanudar. Una sola
-muestra; la causa sigue abierta.
+Resultado: sin congelado. Dilan aclaró que el monitor HDMI se había apagado por su propio tiempo de espera; con la
+salida en reposo no se presentan cuadros y `grim` espera hasta agotar el timeout. Al encenderse, las capturas
+funcionaron. Esta muestra no reproduce el congelado de 2026-10-20, que sigue abierto.
 
 Aparte, la noche del 22 al 23 el equipo quedó con la tapa cerrada y en batería: entró en un bucle de despertares
 espurios (cada 5–10 s, ACPI/EC) re-suspendido por logind y por la acción crítica de UPower hasta agotar la batería.
 Evidencia: `~/.local/state/cortetsu/qa/f10-2026-10-23/lid-loop-journal.txt` (fuera del repo).
+
+Diagnóstico del bucle: `pm_wakeup_irq` = 9 (SCI de ACPI, usado por el EC); 18 entradas en `s2idle` desde las 02:31,
+cada una con «EC: interrupt blocked/unblocked». Con la tapa cerrada logind vuelve a suspender; al llegar a nivel
+crítico UPower (`CriticalPowerAction=Auto`) también pide suspender, porque sin swap en disco (solo zram) no hay
+hibernación. Mitigaciones, con root y fuera de Cortetsu:
+
+1. `/etc/UPower/UPower.conf`: `CriticalPowerAction=PowerOff`, para apagar limpiamente en vez de agotar la batería.
+2. Opcional: parámetro de kernel `acpi.ec_no_wakeup=1`, que impide que el EC despierte el equipo desde `s2idle`.
+   Probar después que abrir la tapa y el botón de encendido siguen despertándolo.

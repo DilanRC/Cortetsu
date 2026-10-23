@@ -3,7 +3,7 @@
 Fecha: 2026-10-22/23. Equipo: HP Victus (Ryzen HawkPoint2 + RTX 3050 6 GB Laptop), CachyOS, kernel
 `7.2.10-1-cachyos`, Hyprland 0.56.2, NVIDIA open 615.78.08. Sin cambios de kernel, drivers ni paquetes.
 
-Candidata: **`30ad4dc`** (instalada, `cortetsu verify` y `cortetsu-rescue verify` PASS). Partida: `78c03fa`.
+Candidata: **`HEAD` de `main`** (arreglos en §5) (instalada, `cortetsu verify` y `cortetsu-rescue verify` PASS). Partida: `78c03fa`.
 Evidencia local (no versionada, puede contener datos de la sesión): `~/.local/state/cortetsu/qa/f10-2026-10-23/`.
 Parte de la evidencia del 22 se perdió al reiniciarse el equipo (vivía en `/tmp`); se indica abajo.
 
@@ -39,7 +39,7 @@ Parte de la evidencia del 22 se perdió al reiniciarse el equipo (vivía en `/tm
 | GPU | `qs` en la Radeon (`renderD129`); sin procesos en la NVIDIA en reposo; sin errores DRM | PASS |
 | GPU | Terraria eligió la RTX 3050 por sí mismo; Cortetsu no fuerza GPU | PASS |
 | Suspensión | eDP-1, 7,5 min: bloqueo, Pomodoro FOCUS→BREAK, un aviso visto | PASS (transición 14 s tras reanudar, sesión de usuario detenida; causa no determinada) |
-| Suspensión | HDMI conectado, 33 min | PASS con observación (captura del HDMI colgada ~70 s, imagen normal; `HDMI-S2IDLE.md` §6) |
+| Suspensión | HDMI conectado, 33 min | PASS (el monitor estaba en reposo por inactividad; sin congelado; `HDMI-S2IDLE.md` §6) |
 | Gaming | Modo juego: 8 opciones aplicadas y restauradas idénticas; `qs` 0,25 % CPU durante el juego | PASS |
 | Gaming | Warframe | NOT_TESTED (no instalado) |
 | Diseño | Animaciones, DPI, accesibilidad, transparencia | NOT_TESTED (sin observación dedicada) |
@@ -52,10 +52,11 @@ Parte de la evidencia del 22 se perdió al reiniciarse el equipo (vivía en `/tm
 | CPU con Hardware abierto | 2,5 % | 15 s, telemetría en vivo |
 | CPU con otras superficies | 0,1–0,9 % | 15 s cada una |
 | CPU durante 280 ciclos | 38,7 % | 126 s de estrés |
-| PSS `qs` proceso nuevo | 554 MiB (480 MiB heap) | dos monitores, 20 s tras arrancar |
+| PSS `qs` proceso nuevo | 554 → 514 MiB con el fondo a resolución de pantalla | dos monitores, 20 s tras arrancar |
+| PSS tras 6 recargas suaves | +80 MiB en la primera, luego estable (595–620 MiB) | mismo proceso |
 
 No hay baseline del proceso nuevo con un solo monitor; el valor de la mañana (204 MiB) era un proceso de 14 h con
-191 MiB en swap y no es comparable. Cada recarga suave sube la memoria (686 MiB tras ~7 recargas).
+191 MiB en swap y no es comparable. La recarga suave no fuga: crece en la primera y se estabiliza.
 
 ## 4. F11
 
@@ -80,14 +81,23 @@ no son críticas.
 - `30ad4dc`: el dashboard muestra la temperatura del sensor de CPU (k10temp/zenpower/coretemp), la misma que Hardware
   Center, sin shell (antes `acpitz`). `VPN.qml` pasa la interfaz como `$1`.
 
+- `590978f`: Spectrum ejecuta cava directamente y Bluetooth lee el código y stderr de busctl desde `Process`. Queda
+  una sola excepción de shell en QML (portapapeles: `wl-copy` lee la imagen de stdin; la ruta es `$1`).
+- `977dfeb`: `notificationFullscreenExpireTimeout` se aplica a los avisos `-1` con una ventana a pantalla completa.
+- `perf(background)`: el fondo se decodifica a la resolución de la pantalla (4625×2600 → 1921×1080), −40 MiB medidos.
+
 ## 6. Riesgos y pendientes
 
-- HDMI tras `s2idle`: causa abierta; hoy solo bloqueo transitorio.
-- Bucle de despertares espurios con la tapa cerrada en batería (ACPI/EC): agotó la batería una noche. Plataforma.
-- Daemons hijos de `qs` (Pomodoro) siguen con el binario de helpers anterior tras `install` hasta la siguiente recarga.
-- Memoria: crecimiento por recarga suave; falta baseline de un monitor con proceso nuevo.
-- Preferencias sin efecto (H-45): `notificationFullscreenExpireTimeout` y otras.
-- Excepciones de shell restantes en QML: Spectrum (detección de cava), Bluetooth (salida de busctl), portapapeles.
+- HDMI tras `s2idle`: la prueba de hoy no reprodujo el congelado de 2026-10-20 (el monitor estaba en reposo); sigue
+  abierto con una sola muestra a favor y otra en contra.
+- Bucle de despertares con la tapa cerrada en batería: diagnosticado (EC por IRQ 9 + UPower sin hibernación).
+  Mitigación con root en `HDMI-S2IDLE.md` §6; no aplicada.
+- Daemons hijos de `qs` (Pomodoro) usan el binario de helpers anterior hasta `cortetsu shell reload`, que `install`
+  indica al terminar. Por diseño: `install` no recarga el shell.
+- Transición de Pomodoro 14 s después de reanudar (suspensión del 22): la sesión de usuario se detuvo; la evidencia
+  detallada se perdió con `/tmp`; no se repitió en la suspensión del 23 (no instrumentada).
+- Preferencias aún sin efecto (H-45): las de barra, lanzador y toasts de teclado.
+- Falta baseline de memoria con un solo monitor.
 
 ## 7. Rollback
 
