@@ -2,13 +2,31 @@
 from __future__ import annotations
 
 from pathlib import Path
+import re
 
 repo = Path(__file__).resolve().parents[2]
 modules = repo / "cortetsu/modules"
 
-for path in modules.rglob("*.qml"):
-    text = path.read_text(encoding="utf-8")
-    assert "sh -c" not in text, f"arbitrary shell in QML: {path.relative_to(repo)}"
+# Explicit debt: native replacements still need behavioral parity.
+# Scan all first-party QML, including multiline argv arrays, not just modules.
+legacy_shell_exceptions = {
+    "cortetsu/services/Cpu.qml",  # legacy thermal glob, needs typed probe
+    "cortetsu/services/CortetsuSpectrum.qml",  # optional cava detection
+    "cortetsu/services/ConnectivityBluetooth.qml",  # BlueZ exit and output
+    "cortetsu/modules/clipboard/Content.qml",  # preserve image MIME/pipe
+}
+found_shell_pipelines = set()
+shell_command = re.compile(r"\[\s*['\"](?:sh|bash)['\"]\s*,\s*['\"]-c['\"]")
+for group in (modules, repo / "cortetsu/components", repo / "cortetsu/services"):
+    for path in group.rglob("*.qml"):
+        source = path.read_text(encoding="utf-8")
+        assert "sh -c" not in source, f"literal shell in QML: {path.relative_to(repo)}"
+        if shell_command.search(source):
+            found_shell_pipelines.add(path.relative_to(repo).as_posix())
+assert found_shell_pipelines == legacy_shell_exceptions, (
+    f"QML shell boundary drift: added={found_shell_pipelines - legacy_shell_exceptions}, "
+    f"resolved={legacy_shell_exceptions - found_shell_pipelines}"
+)
 
 for relative in (
     "hardware/EnergyPage.qml",
@@ -18,6 +36,10 @@ for relative in (
     text = (modules / relative).read_text(encoding="utf-8")
     assert "running: root.visible" in text, f"hidden-page polling regression: {relative}"
     assert "onVisibleChanged: { if (visible) refresh(); }" in text, f"missing wake-on-visible: {relative}"
+
+# The live display topology is built inline; its unused drag overlay was retired.
+assert not (modules / "display/TopologyDragOverlay.qml").exists()
+assert 'id: topologyCanvas' in (modules / "display/Editor.qml").read_text(encoding="utf-8")
 
 hub = (modules / "HubButton.qml").read_text(encoding="utf-8")
 status = (modules / "StatusPill.qml").read_text(encoding="utf-8")
