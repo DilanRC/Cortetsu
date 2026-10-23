@@ -48,3 +48,6 @@ for contract in ("PanelWindow", "CortetsuScreens.screens", "CortetsuConfig.wallp
     assert contract in background, contract
 
 print("PASS: Background host is first-party and monitor-scoped")
+
+# The full-screen wallpaper is decoded at screen size, not at the file size.
+assert "sourceSize: Qt.size(Math.ceil(width * Screen.devicePixelRatio)" in renderer
