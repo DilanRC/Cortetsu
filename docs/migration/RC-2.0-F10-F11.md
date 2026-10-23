@@ -54,6 +54,7 @@ Parte de la evidencia del 22 se perdió al reiniciarse el equipo (vivía en `/tm
 | CPU durante 280 ciclos | 38,7 % | 126 s de estrés |
 | CPU `qs` en reposo tras H-45 | 1,2 % (60 s y 3×10 s), PSS 465 MiB | eDP-1 + HDMI-A-1, sin reproductor ni eventos de Hyprland |
 | CPU `qs` en reposo, solo eDP-1 | 0,28 % y 5,5 despertares/s; 0,25 % y 5,3/s con `Time` por minutos | mismo proceso, PSS 477 MiB tras recargas suaves |
+| PSS `qs` proceso nuevo tras reinicio del shell | 518 MiB (RSS 621 MiB, sin swap) | dos monitores, 20 s tras arrancar, `c093196` |
 | PSS `qs` proceso nuevo | 554 → 514 MiB con el fondo a resolución de pantalla | dos monitores, 20 s tras arrancar |
 | PSS tras 6 recargas suaves | +80 MiB en la primera, luego estable (595–620 MiB) | mismo proceso |
 
