@@ -38,7 +38,7 @@ Parte de la evidencia del 22 se perdió al reiniciarse el equipo (vivía en `/tm
 | Gestos | 4 dedos horizontal, 3 dedos arriba (especial), 4 dedos abajo (sesión) | PASS |
 | GPU | `qs` en la Radeon (`renderD129`); sin procesos en la NVIDIA en reposo; sin errores DRM | PASS |
 | GPU | Terraria eligió la RTX 3050 por sí mismo; Cortetsu no fuerza GPU | PASS |
-| Suspensión | eDP-1, 7,5 min: bloqueo, Pomodoro FOCUS→BREAK, un aviso visto | PASS (transición 14 s tras reanudar, sesión de usuario detenida; causa no determinada) |
+| Suspensión | eDP-1, 7,5 min: bloqueo, Pomodoro FOCUS→BREAK, un aviso visto | PASS (transición 14 s tras reanudar: espera monótona de hasta 30 s, corregida en `8332b87`) |
 | Suspensión | HDMI conectado, 33 min | PASS (el monitor estaba en reposo por inactividad; sin congelado; `HDMI-S2IDLE.md` §6) |
 | Gaming | Modo juego: 8 opciones aplicadas y restauradas idénticas; `qs` 0,25 % CPU durante el juego | PASS |
 | Gaming | Warframe | NOT_TESTED (no instalado) |
@@ -92,11 +92,12 @@ no son críticas.
   abierto con una sola muestra a favor y otra en contra.
 - Bucle de despertares con la tapa cerrada en batería: diagnosticado (EC por IRQ 9 + UPower sin hibernación).
   Mitigado: UPower apaga en batería crítica y `acpi.ec_no_wakeup=1` (tapa probada; batería baja no reproducida).
-- Daemons hijos de `qs` (Pomodoro) usan el binario de helpers anterior hasta `cortetsu shell reload`, que `install`
-  indica al terminar. Por diseño: `install` no recarga el shell.
-- Transición de Pomodoro 14 s después de reanudar (suspensión del 22): la sesión de usuario se detuvo; la evidencia
-  detallada se perdió con `/tmp`; no se repitió en la suspensión del 23 (no instrumentada).
-- H-45: las opciones de barra retiradas ya no forman parte del contrato; los límites del lanzador y los avisos de teclado ahora tienen efecto en sus superficies vivas.
+- Pomodoro: resuelto en `8332b87`. El daemon se reejecuta en la generación promovida (comprobado en vivo: mismo PID
+  207873, helpers nuevos tras `install`) y duerme sobre `CLOCK_BOOTTIME`.
+- Retraso de Pomodoro tras reanudar: causa encontrada (espera monótona de hasta 30 s) y corregida en `8332b87`;
+  falta repetir una suspensión real para observarlo.
+- H-45 resuelto en `b07ac18` (con Codex): 8 preferencias con efecto e interruptores en Ajustes; las de la barra
+  retirada y los límites del lanzador se retiran. CPU en reposo tras el cambio: 0,27 % (una muestra, con vídeo).
 - Falta baseline de memoria con un solo monitor.
 
 ## 7. Rollback
