@@ -9,7 +9,13 @@ MouseArea {
     property bool manualPressOverride: false
     property bool manualHoverOverride: false
     property bool shapeMorph: false
-    property real stateOpacity: showHoverBackground && (containsMouse || manualHoverOverride || pressed || manualPressOverride) ? 0.08 : 0
+    property real hoverOpacity: 0.08
+    property real pressedOpacity: 0.08
+    // Both the legacy module and first-party component now share one state
+    // machine. Disabled overlays must never keep a manual hover/press tint.
+    property real stateOpacity: root.disabled || !root.showHoverBackground ? 0
+        : root.pressed || root.manualPressOverride ? root.pressedOpacity
+        : root.containsMouse || root.manualHoverOverride ? root.hoverOpacity : 0
     readonly property alias rect: base
 
     property alias color: base.color
