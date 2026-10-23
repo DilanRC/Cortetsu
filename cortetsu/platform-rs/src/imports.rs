@@ -284,30 +284,36 @@ fn scan(h: &Path, s: &Scope, a: &Args) -> Result<(Vec<Candidate>, Vec<Rejected>)
     }
     Ok((accepted, rejected))
 }
+/// Kitty theme header owned by Cortetsu: the sealed ui.toml palette, then the
+/// mutable scheme overlay that `cortetsu-scheme` writes outside generations.
+const KITTY_HEADER: &str = "include cortetsu-theme.conf
+# Live scheme colours, written outside the sealed generation by cortetsu-scheme.
+# If the file is missing Kitty logs it and keeps the ui.toml palette above.
+include ~/.local/state/cortetsu/kitty-colors.conf
+";
 fn normalize(c: &Candidate, text: &str) -> String {
     if c.target == Path::new(".config/kitty/kitty.conf") {
         let body = text
             .lines()
             .filter(|line| {
                 let t = line.trim().to_lowercase();
-                !(t.starts_with("include ")
-                    && [
-                        "caelestia-theme.conf",
-                        "state/caelestia/theme/kitty",
-                        "kitty-caerice.conf",
-                        "cortetsu-theme.conf",
-                    ]
-                    .iter()
-                    .any(|m| t.contains(m))
-                    || t.contains("caerice:")
-                    || t.contains("cortetsu: caelestia active scheme"))
+                !KITTY_HEADER.lines().any(|h| h.to_lowercase() == t)
+                    && !(t.starts_with("include ")
+                        && [
+                            "caelestia-theme.conf",
+                            "state/caelestia/theme/kitty",
+                            "kitty-caerice.conf",
+                            "cortetsu-theme.conf",
+                            "kitty-colors.conf",
+                        ]
+                        .iter()
+                        .any(|m| t.contains(m))
+                        || t.contains("caerice:")
+                        || t.contains("cortetsu: caelestia active scheme"))
             })
             .collect::<Vec<_>>()
             .join("\n");
-        format!(
-            "include cortetsu-theme.conf\n\n{}\n",
-            body.trim_matches('\n')
-        )
+        format!("{KITTY_HEADER}\n{}\n", body.trim_matches('\n'))
     } else if [
         Path::new(".config/gtk-3.0/gtk.css"),
         Path::new(".config/gtk-4.0/gtk.css"),
@@ -606,4 +612,35 @@ pub fn run(kind: &str, a: &Args) -> Result<i32> {
         }
     }
     Ok(0)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    fn kitty(text: &str) -> String {
+        let c = Candidate {
+            source: PathBuf::new(),
+            target: PathBuf::from(".config/kitty/kitty.conf"),
+            relative: PathBuf::new(),
+            group: String::new(),
+            tag: String::new(),
+            size: 0,
+        };
+        normalize(&c, text)
+    }
+    #[test]
+    fn committed_kitty_conf_is_the_normalized_fixed_point() {
+        let committed =
+            include_str!("../../../dotfiles/imported/desktop/home/.config/kitty/kitty.conf");
+        assert!(committed.starts_with(KITTY_HEADER));
+        assert_eq!(kitty(committed), committed);
+    }
+    #[test]
+    fn kitty_import_drops_legacy_includes_and_keeps_one_state_overlay() {
+        let legacy = "include caelestia-theme.conf\ninclude ~/.local/state/cortetsu/kitty-colors.conf\n\
+                      font_size 11\n\ninclude caelestia-theme.conf\ninclude ~/.local/state/cortetsu/kitty-colors.conf\n";
+        let out = kitty(legacy);
+        assert_eq!(out, format!("{KITTY_HEADER}\nfont_size 11\n"));
+        assert_eq!(kitty(&out), out);
+    }
 }

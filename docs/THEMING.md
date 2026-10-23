@@ -43,9 +43,14 @@ This boundary prevents KDE from writing application settings through a Cortetsu-
 
 ## 3. Kitty
 
-`kitty.conf` includes only:
+The sealed `kitty.conf` has exactly two includes, in this order:
 
-`include cortetsu-theme.conf`
+1. `include cortetsu-theme.conf`: the immutable palette generated from `ui.toml`, part of the dotfiles generation.
+2. `include ~/.local/state/cortetsu/kitty-colors.conf`: the live scheme overlay. It is mutable state, never part of a generation.
+
+`cortetsu-scheme set -n NAME FLAVOUR` and `cortetsu-apply-wallpaper-colors` rewrite the overlay from `~/.local/state/cortetsu/scheme.json`, and `cortetsu-scheme sync-kitty` rebuilds it on demand. The write is atomic (temporary file plus rename, mode `0644`). Unchanged colours are not rewritten. A scheme with a missing or invalid role fails the sync and keeps the previous file. If the overlay is missing, Kitty logs `Could not find included config file` and uses the `ui.toml` palette. New Kitty windows pick up changes; running windows keep their colours until Kitty reloads its config (`ctrl+shift+f5`).
+
+Nothing in the theme flow writes to `kitty.conf`. It is a symlink into the sealed generation, so an append such as `>> ~/.config/kitty/kitty.conf` writes inside the generation and breaks the dotfiles digest (`dotfiles digest mismatch` in `cortetsu verify`). Scripts that need Kitty colours call `cortetsu-scheme sync-kitty`. `normalize` in `cortetsu/platform-rs/src/imports.rs` owns the header, so `cortetsu-import-desktop` produces it exactly once.
 
 The old runtime includes under `~/.local/state/caelestia/theme/` are not part of the active Kitty path. The imported `caelestia-theme.conf` target is kept for one transition generation only as an inert compatibility artifact; it is not included by Kitty and can be purged after the native theme is verified on the real machine.
 

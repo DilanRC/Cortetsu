@@ -13,3 +13,4 @@ mkdir -p "$(dirname "$state")"
 # consumed by the dynamic palette reader.
 "$HOME/.local/bin/cortetsu-wallpaper-colours" "$image" | jq -e 'if .name == "dynamic" and (.colours.primary | type == "string") then . else error("invalid dynamic scheme") end' > "$tmp"
 install -m 0644 "$tmp" "$state"
+"$HOME/.local/bin/cortetsu-scheme" sync-kitty || echo "cortetsu-apply-wallpaper-colors: Kitty colours kept unchanged" >&2

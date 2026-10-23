@@ -111,6 +111,73 @@ fn scheme_catalog_contains_shipped_colours() {
 }
 
 #[test]
+fn kitty_colours_stay_outside_sealed_generations() {
+    use std::os::unix::fs::MetadataExt;
+    let home = TempDir::new().unwrap();
+    let v = payload(command(&home, "cortetsu-scheme", &["list"]));
+    let (name, flavours) = v.as_object().unwrap().iter().next().unwrap();
+    let flavour = flavours.as_object().unwrap().keys().next().unwrap();
+    let set = |home: &TempDir| {
+        assert!(
+            command(home, "cortetsu-scheme", &["set", "-n", name, flavour])
+                .status()
+                .unwrap()
+                .success()
+        )
+    };
+    let sync = |home: &TempDir| {
+        command(home, "cortetsu-scheme", &["sync-kitty"])
+            .status()
+            .unwrap()
+    };
+    // A stale symlink into a sealed generation must be replaced, never written through.
+    let sealed = home.path().join("dotfiles/builds/g1/kitty.conf");
+    fs::create_dir_all(sealed.parent().unwrap()).unwrap();
+    fs::write(&sealed, "include cortetsu-theme.conf\n").unwrap();
+    let kitty = home.path().join("state/cortetsu/kitty-colors.conf");
+    fs::create_dir_all(kitty.parent().unwrap()).unwrap();
+    std::os::unix::fs::symlink(&sealed, &kitty).unwrap();
+    set(&home);
+    assert_eq!(
+        fs::read_to_string(&sealed).unwrap(),
+        "include cortetsu-theme.conf\n"
+    );
+    assert!(!kitty.is_symlink());
+    let first = fs::read_to_string(&kitty).unwrap();
+    let expected = &flavours[flavour]["term15"].as_str().unwrap();
+    assert!(first.contains(&format!(
+        "color15 #{}",
+        expected.trim_start_matches('#').to_lowercase()
+    )));
+    assert!(!first.contains("include"));
+    let inode = fs::metadata(&kitty).unwrap().ino();
+    for _ in 0..3 {
+        set(&home);
+        assert!(sync(&home).success());
+    }
+    assert_eq!(fs::read_to_string(&kitty).unwrap(), first);
+    assert_eq!(
+        fs::metadata(&kitty).unwrap().ino(),
+        inode,
+        "unchanged colours must not rewrite"
+    );
+    let scheme = home.path().join("state/cortetsu/scheme.json");
+    let good = fs::read(&scheme).unwrap();
+    fs::write(&scheme, r#"{"name":"broken","colours":{"surface":"zz"}}"#).unwrap();
+    assert!(!sync(&home).success());
+    assert_eq!(
+        fs::read_to_string(&kitty).unwrap(),
+        first,
+        "a failed sync keeps the valid file"
+    );
+    fs::write(&scheme, good).unwrap();
+    fs::remove_file(&kitty).unwrap();
+    assert!(sync(&home).success());
+    assert_eq!(fs::read_to_string(&kitty).unwrap(), first);
+    assert_eq!(fs::metadata(&kitty).unwrap().mode() & 0o777, 0o644);
+}
+
+#[test]
 fn emoji_dump_is_byte_exact() {
     let home = TempDir::new().unwrap();
     let path = home.path().join("emoji.txt");
