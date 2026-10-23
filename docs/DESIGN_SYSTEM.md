@@ -13,7 +13,7 @@ La estética samurái de Cortetsu es contenida: precisión, contraste, espacio y
 
 ## Fuente declarativa
 
-`~/.config/cortetsu/ui.toml` es el contrato de producto. Vive dentro de las generaciones de dotfiles y define identidad, spacing, radios y presupuesto de motion. `core/theme.py` compila esos tokens a `theme/CortetsuDesignDefaults.js` y al singleton reactivo `theme/CortetsuDesign.qml` y a las salidas nativas de Kitty/GTK/KDE.
+`~/.config/cortetsu/ui.toml` es el contrato de producto. Vive dentro de las generaciones de dotfiles y define identidad, spacing, radios y presupuesto de motion. el compilador nativo de `cortetsu/platform-rs/src/theme.rs` (expuesto por `cortetsu theme compile`) compila esos tokens a `theme/CortetsuDesignDefaults.js` y al singleton reactivo `theme/CortetsuDesign.qml` y a las salidas nativas de Kitty/GTK/KDE.
 
 La migración del shell es incremental: la lógica funcional puede seguir usando temporalmente servicios, tipografía e icon metrics del adapter Caelestia, pero las superficies propias deben dejar de depender de `Colours`/Material 3 a medida que pasan a Cortetsu.
 

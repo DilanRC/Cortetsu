@@ -32,7 +32,7 @@ jobs:
         run: python3 scripts/verification/test-active-policy.py
       - name: Preserve executable modes in the downloadable bundle
         run: tar -C dist -czf dist/cortetsu-native-linux-amd64.tar.gz native
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: cortetsu-native-linux-amd64
           path: dist/cortetsu-native-linux-amd64.tar.gz

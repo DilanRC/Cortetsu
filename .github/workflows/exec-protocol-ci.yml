@@ -41,7 +41,7 @@ jobs:
         run: |
           ./dist/cortetsu-shadow -rules fixtures/rules.json < fixtures/trace.ndjson > out.jsonl
           cmp out.jsonl fixtures/expected.jsonl
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: cortetsu-native-python-inventory
           path: cortetsu/protocol/native-inventory.json

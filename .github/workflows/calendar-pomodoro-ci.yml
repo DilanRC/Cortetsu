@@ -76,4 +76,16 @@ jobs:
         run: dbus-run-session -- python3 scripts/features/test-connectivity-credential-flow.py
       - name: Actual Settings pages, activation controls and keyboard input
         if: ${{ !cancelled() && steps.native-build.outcome == 'success' }}
-        run: dbus-run-session -- python3 scripts/features/test-cortetsu-settings-runtime.py
+        env:
+          CORTETSU_RENDER_DIR: ${{ runner.temp }}/cortetsu-settings-renders
+        run: |
+          mkdir -p "$CORTETSU_RENDER_DIR"
+          dbus-run-session -- python3 scripts/features/test-cortetsu-settings-runtime.py
+      - name: Keep synthetic Settings render evidence
+        if: ${{ always() && steps.native-build.outcome == 'success' }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: cortetsu-settings-qt-renders
+          path: ${{ runner.temp }}/cortetsu-settings-renders/
+          if-no-files-found: warn
+          retention-days: 7
