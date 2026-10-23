@@ -108,3 +108,13 @@ hibernación. Mitigaciones, con root y fuera de Cortetsu:
 1. `/etc/UPower/UPower.conf`: `CriticalPowerAction=PowerOff`, para apagar limpiamente en vez de agotar la batería.
 2. Opcional: parámetro de kernel `acpi.ec_no_wakeup=1`, que impide que el EC despierte el equipo desde `s2idle`.
    Probar después que abrir la tapa y el botón de encendido siguen despertándolo.
+
+Aplicado el 2026-10-23 con autorización de Dilan (copias en
+`~/.local/share/cortetsu/manual-backups/2026-10-23-upower/`):
+
+- UPower: `CriticalPowerAction=PowerOff`; `GetCriticalAction` devuelve `PowerOff`.
+- `acpi.ec_no_wakeup=1`: primero en caliente; tapa cerrada 2 min 19 s sin HDMI y con corriente, una sola entrada en
+  `s2idle` y ningún despertar espurio; abrir la tapa lo despertó. Después, en `/etc/default/grub` y `grub.cfg`.
+- Con el HDMI conectado logind no suspende al cerrar la tapa (`Docked`, `HandleLidSwitchDocked=ignore`): esperado.
+- No probado: el caso de batería baja que produjo el bucle. Reversión: quitar el parámetro de
+  `/etc/default/grub` y ejecutar `grub-mkconfig -o /boot/grub/grub.cfg`.

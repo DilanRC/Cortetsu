@@ -91,7 +91,7 @@ no son críticas.
 - HDMI tras `s2idle`: la prueba de hoy no reprodujo el congelado de 2026-10-20 (el monitor estaba en reposo); sigue
   abierto con una sola muestra a favor y otra en contra.
 - Bucle de despertares con la tapa cerrada en batería: diagnosticado (EC por IRQ 9 + UPower sin hibernación).
-  Mitigación con root en `HDMI-S2IDLE.md` §6; no aplicada.
+  Mitigado: UPower apaga en batería crítica y `acpi.ec_no_wakeup=1` (tapa probada; batería baja no reproducida).
 - Daemons hijos de `qs` (Pomodoro) usan el binario de helpers anterior hasta `cortetsu shell reload`, que `install`
   indica al terminar. Por diseño: `install` no recarga el shell.
 - Transición de Pomodoro 14 s después de reanudar (suspensión del 22): la sesión de usuario se detuvo; la evidencia
