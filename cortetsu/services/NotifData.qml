@@ -82,7 +82,8 @@ QtObject {
         appIcon = notification.appIcon; appName = notification.appName; image = notification.image;
         hints = notification.hints;
         expireTimeout = NotificationModel.popupTimeout(notification.expireTimeout,
-            CortetsuConfig.notificationDefaultExpireTimeout, CortetsuConfig.notificationExpire);
+            CortetsuConfig.notificationDefaultExpireTimeout, CortetsuConfig.notificationExpire,
+            Notifs.hasFullscreen() ? CortetsuConfig.notificationFullscreenExpireTimeout : undefined);
         urgency = notification.urgency;
         resident = notification.resident; hasActionIcons = notification.hasActionIcons;
         actions = notification.actions.map(action => ({identifier: action.identifier, text: action.text, invoke: () => action.invoke()}));

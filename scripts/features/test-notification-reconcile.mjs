@@ -93,3 +93,12 @@ test('popup timeout: -1 means the server default, 0 never expires, positive valu
     assert.equal(model.popupTimeout(1200, 5000, false), 1200);
     assert.equal(model.popupTimeout(-1, 5000, true), 5000);
 });
+
+test('popup timeout over fullscreen: the fullscreen default replaces only the server default', () => {
+    assert.equal(model.popupTimeout(-1, 5000, true, 2000), 2000);
+    assert.equal(model.popupTimeout(-1, 5000, true, undefined), 5000);
+    assert.equal(model.popupTimeout(-1, 5000, true, -1), 5000);
+    assert.equal(model.popupTimeout(7000, 5000, true, 2000), 7000);
+    assert.equal(model.popupTimeout(0, 5000, true, 2000), 0);
+    assert.equal(model.popupTimeout(-1, 5000, false, 2000), 0);
+});
