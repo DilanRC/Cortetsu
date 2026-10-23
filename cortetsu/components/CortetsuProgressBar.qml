@@ -12,7 +12,8 @@ Item {
     property real barRadius: CortetsuDesign.radiusPill
     property int motionDuration: CortetsuDesign.motionStandardMs
 
-    readonly property real normalizedValue: Math.max(0, Math.min(1, root.value))
+    readonly property real normalizedValue: Number.isFinite(root.value)
+        ? Math.max(0, Math.min(1, root.value)) : 0
     // The fraction is what animates, not the pixel width, so resizing the bar
     // moves the fill with it instead of trailing behind or past the track.
     property real shownValue: root.normalizedValue
@@ -25,7 +26,7 @@ Item {
     }
 
     implicitHeight: root.barHeight
-    visible: root.value >= 0 || root.visibleWhenUnavailable
+    visible: (Number.isFinite(root.value) && root.value >= 0) || root.visibleWhenUnavailable
 
     Rectangle {
         anchors.fill: parent

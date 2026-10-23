@@ -27,6 +27,7 @@ Item {
 
     Accessible.role: Accessible.Slider
     Accessible.focusable: !disabled
+    Accessible.focused: root.activeFocus
     Accessible.onIncreaseAction: if (!root.disabled) root.adjust(root.step)
     Accessible.onDecreaseAction: if (!root.disabled) root.adjust(-root.step)
 
@@ -114,6 +115,8 @@ Item {
     }
 
     readonly property real progress: root.to === root.from
+        || !Number.isFinite(root.shownValue)
+        || !Number.isFinite(root.from) || !Number.isFinite(root.to)
         ? 0
         : Math.max(0, Math.min(1, (root.shownValue - root.from) / (root.to - root.from)))
 
@@ -134,13 +137,20 @@ Item {
     }
 
     function setFromPosition(position: real): void {
+        if (root.width <= 0 || !Number.isFinite(position)
+                || !Number.isFinite(root.from) || !Number.isFinite(root.to))
+            return;
         const next = root.from + Math.max(0, Math.min(1, position / root.width)) * (root.to - root.from);
         root.dragValue = next;
         root.moved(next);
     }
 
     function adjust(delta: real): void {
-        root.moved(Math.max(root.from, Math.min(root.to, root.value + delta)));
+        if (!Number.isFinite(root.from) || !Number.isFinite(root.to) || !Number.isFinite(delta))
+            return;
+        const current = Number.isFinite(root.value) ? root.value : root.from;
+        root.moved(Math.max(Math.min(root.from, root.to),
+            Math.min(Math.max(root.from, root.to), current + delta)));
     }
 
     Keys.onLeftPressed: root.adjust(-root.step)
@@ -148,7 +158,10 @@ Item {
     Keys.onDownPressed: root.adjust(-root.step)
     Keys.onUpPressed: root.adjust(root.step)
     Keys.onPressed: event => {
-        if (event.key === Qt.Key_Home) {
+        if (event.key === Qt.Key_PageUp || event.key === Qt.Key_PageDown) {
+            root.adjust((event.key === Qt.Key_PageUp ? 1 : -1) * root.step * 5);
+            event.accepted = true;
+        } else if (event.key === Qt.Key_Home) {
             root.moved(root.from);
             event.accepted = true;
         } else if (event.key === Qt.Key_End) {
