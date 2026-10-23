@@ -60,10 +60,17 @@ jobs:
         run: |
           /usr/lib/qt6/bin/qmlformat cortetsu/modules/CortetsuPolicyBridge.qml > /dev/null
           /usr/lib/qt6/bin/qmlformat cortetsu/modules/settings/sections/AutomationSection.qml > /dev/null
-          # Syntax-check every first-party control and Settings surface.
+          # Parse the complete QML source inventory, including Quickshell's
+          # compatibility base, rather than only Settings and shared controls.
+          parsed=0
           while IFS= read -r -d '' source; do
-            /usr/lib/qt6/bin/qmlformat "$source" >/dev/null
-          done < <(find cortetsu/components cortetsu/modules/settings -name '*.qml' -print0)
+            /usr/lib/qt6/bin/qmlformat "$source" >/dev/null || {
+              echo "::error file=$source::QML parser failed"
+              exit 1
+            }
+            parsed=$((parsed + 1))
+          done < <(find cortetsu -type f -name '*.qml' -print0)
+          echo "Parsed $parsed QML files"
           QT_QPA_PLATFORM=offscreen /usr/lib/qt6/bin/qmltestrunner -input cortetsu/tests/qml/policy
       - name: Real Qt Quick Test for shared controls, focus and Settings
         if: ${{ !cancelled() && steps.native-build.outcome == 'success' }}
