@@ -33,9 +33,9 @@ Cortetsu ya no es sólo un patchset de shell. Es una plataforma de dotfiles que 
 ## Stack confirmado
 
 - CachyOS / Arch Linux;
-- Hyprland `0.56.2`;
-- Quickshell `0.3.1` o build git compatible;
-- Caelestia Shell `2.4.0` como adapter temporal del shell;
+- Hyprland, con version instalada verificada en la maquina de destino; la referencia historica fue 0.56.2;
+- Quickshell compatible con Qt 6 y el empaquetado de CachyOS/Arch; 0.3.1 fue una referencia anterior, no una version actualmente comprobada;
+- Caelestia Shell 2.4.0 como fuente de procedencia congelada para el staging, no como dependencia activa instalada;
 - Qt 6 / QML para interfaz;
 - Rust para CLI, estado, helpers y recuperación; Go para coordinación y políticas;
 - PipeWire/WirePlumber, NetworkManager, UPower y systemd --user para integración del sistema.

@@ -1,5 +1,7 @@
 # CORTETSU FINAL RELEASE QA
 
+> **Documento historico (7 de septiembre de 2026).** El veredicto DO_NOT_MERGE aplica solamente a la rama ascension/product-elevation y sus SHAs de esa fecha. No representa la evaluacion del main actual ni la aceptacion fisica de Cortetsu 2.0. Para el estado actual, ver docs/migration/STATUS-2026-10-22.md y docs/audits/2026-10-22-repository-audit.md.
+
 Verdict: **DO_NOT_MERGE**
 
 SHA inicial: `4851e64df526378df81d55a6e5cdf52f94ac04ad`

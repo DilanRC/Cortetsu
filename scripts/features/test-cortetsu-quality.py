@@ -108,4 +108,4 @@ for command in ("calendar", "pomodoro"):
     assert f'exec "$BUNDLE/cortetsu-desktop-runtime" cortetsu-{command} "$@"' in launcher
     assert "python" not in launcher, f"{command} reintroduced an interpreter dependency"
 
-print("PASS: Cortetsu quality gate: cold hidden pages, native visual primitives, canonical state, no QML shell pipelines")
+print("PASS: Cortetsu quality gate: cold hidden pages, native visual primitives, canonical state; legacy QML shell exceptions explicitly registered")
