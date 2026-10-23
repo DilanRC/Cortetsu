@@ -27,6 +27,8 @@ Item {
 
     Accessible.role: Accessible.Slider
     Accessible.focusable: !disabled
+    Accessible.onIncreaseAction: if (!root.disabled) root.adjust(root.step)
+    Accessible.onDecreaseAction: if (!root.disabled) root.adjust(-root.step)
 
     Rectangle {
         id: track

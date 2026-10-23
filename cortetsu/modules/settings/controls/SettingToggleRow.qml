@@ -43,5 +43,7 @@ SettingRow {
         // draws the state. Left enabled it would answer the same click too.
         enabled: false
         activeFocusOnTab: false
+        // The parent SettingToggleRow owns the one accessible switch target.
+        Accessible.ignored: true
     }
 }

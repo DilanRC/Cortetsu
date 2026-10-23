@@ -10,6 +10,12 @@ Item {
     enabled: root.clickable && !root.disabled
     activeFocusOnTab: true
 
+    Accessible.role: root.clickable ? Accessible.Button : Accessible.StaticText
+    Accessible.name: root.label
+    Accessible.description: root.detail
+    Accessible.focusable: root.clickable && !root.disabled
+    Accessible.onPressAction: if (root.clickable && !root.disabled) root.activated()
+
     property string label: ""
     property string icon: ""
     property string detail: ""

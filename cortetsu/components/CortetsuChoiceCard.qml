@@ -10,6 +10,15 @@ Item {
     enabled: !disabled
     activeFocusOnTab: true
 
+    Accessible.role: Accessible.RadioButton
+    Accessible.name: root.title
+    Accessible.description: root.subtitle
+    Accessible.checkable: true
+    Accessible.checked: root.selected
+    Accessible.focusable: !root.disabled
+    Accessible.onPressAction: if (!root.disabled) root.clicked()
+    Accessible.onToggleAction: if (!root.disabled) root.clicked()
+
     property string title: ""
     property string subtitle: ""
     property var swatches: []

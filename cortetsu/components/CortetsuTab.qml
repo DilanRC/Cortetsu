@@ -23,6 +23,12 @@ Item {
     focus: root.selected && !root.disabled
     enabled: !root.disabled
     activeFocusOnTab: true
+
+    Accessible.role: Accessible.PageTab
+    Accessible.name: root.label
+    Accessible.selected: root.selected
+    Accessible.focusable: !root.disabled
+    Accessible.onPressAction: if (!root.disabled) root.activated()
     implicitHeight: 40
     implicitWidth: content.implicitWidth + CortetsuDesign.spacingStandard * 2
     opacity: root.disabled ? 0.46 : 1

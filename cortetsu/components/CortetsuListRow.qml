@@ -9,6 +9,13 @@ Item {
     enabled: !disabled
     activeFocusOnTab: true
 
+    Accessible.role: Accessible.Button
+    Accessible.name: root.title.length > 0 ? root.title : root.tooltipText
+    Accessible.description: root.subtitle
+    Accessible.selected: root.selected
+    Accessible.focusable: !root.disabled
+    Accessible.onPressAction: if (!root.disabled) root.clicked()
+
     property string icon
     property string title
     property string subtitle

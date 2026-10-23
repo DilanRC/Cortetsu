@@ -11,6 +11,13 @@ Item {
     enabled: !root.disabled
     activeFocusOnTab: true
 
+    Accessible.role: Accessible.Button
+    Accessible.name: root.title
+    Accessible.description: root.subtitle
+    Accessible.selected: root.selected
+    Accessible.focusable: !root.disabled
+    Accessible.onPressAction: if (!root.disabled) root.clicked()
+
     property string icon: ""
     property string title: ""
     property string subtitle: ""

@@ -10,6 +10,15 @@ Item {
     enabled: !disabled
     activeFocusOnTab: true
 
+    Accessible.role: Accessible.Switch
+    Accessible.name: root.accessibleName
+    Accessible.checkable: true
+    Accessible.checked: root.checked
+    Accessible.focusable: !root.disabled
+    Accessible.onPressAction: if (!root.disabled) root.toggled(!root.checked)
+    Accessible.onToggleAction: if (!root.disabled) root.toggled(!root.checked)
+
+    property string accessibleName: ""
     property bool checked: false
     property bool disabled: false
     signal toggled(bool checked)

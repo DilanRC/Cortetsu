@@ -11,6 +11,12 @@ Item {
     enabled: !disabled
     activeFocusOnTab: true
 
+    Accessible.role: Accessible.Button
+    Accessible.name: root.label.length > 0 ? root.label : root.tooltipText
+    Accessible.description: root.label.length > 0 ? root.tooltipText : ""
+    Accessible.focusable: !root.disabled
+    Accessible.onPressAction: if (!root.disabled) root.clicked()
+
     property string label
     property string icon
     property bool active: false
@@ -43,7 +49,6 @@ Item {
     }
 
     CortetsuSurface {
-        id: surface
         anchors.fill: parent
         radiusValue: CortetsuDesign.radiusPill
         active: root.active

@@ -16,14 +16,28 @@ SettingRow {
     property bool armed: false
     signal activated()
 
+    // A confirmation must never survive a changed or unavailable action.
+    function cancelConfirmation(): void {
+        disarm.stop();
+        root.armed = false;
+    }
+
+    onDisabledChanged: if (root.disabled && root.armed) root.cancelConfirmation()
+    onStatusChanged: if (root.armed) root.cancelConfirmation()
+    onVisibleChanged: if (!root.visible && root.armed) root.cancelConfirmation()
+    onConfirmChanged: if (root.armed) root.cancelConfirmation()
+    onActionLabelChanged: if (root.armed) root.cancelConfirmation()
+    onTitleChanged: if (root.armed) root.cancelConfirmation()
+
     function request(): void {
+        if (!root.visible || root.disabled || root.status === "busy")
+            return;
         if (root.confirm && !root.armed) {
             root.armed = true;
             disarm.restart();
             return;
         }
-        disarm.stop();
-        root.armed = false;
+        root.cancelConfirmation();
         root.activated();
     }
 
@@ -40,7 +54,6 @@ SettingRow {
         label: root.armed ? qsTr("Confirmar") : root.actionLabel
         danger: root.danger || root.armed
         disabled: root.disabled || root.status === "busy"
-        Accessible.role: Accessible.Button
         Accessible.name: root.armed ? qsTr("Confirmar: %1").arg(root.title) : root.accessibleName
         onClicked: root.request()
     }
