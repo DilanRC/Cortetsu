@@ -1,7 +1,7 @@
 # Cortetsu 2.0 — auditoría estática integral y QA de nube
 
-**Fecha de revisión:** 22 de octubre de 2026 (Costa Rica; los runs de GitHub se registran en UTC).  
-**Rama:** main. **Base exacta del inventario:** e2efd4175331ac17df7b9e04631c7c8321a2cf3d.  
+**Fecha de revisión:** 22 de octubre de 2026 (Costa Rica; los runs de GitHub se registran en UTC).
+**Rama:** main. **Base exacta del inventario:** e2efd4175331ac17df7b9e04631c7c8321a2cf3d.
 **Alcance:** código y artefactos versionados, configuración, compilación, interfaces, pruebas e instalación simulada. **Excluye F10 y F11 físicas**: no se ha instalado, recargado o ejecutado el escritorio en el HP Victus.
 
 ## Método y alcance de la evidencia
