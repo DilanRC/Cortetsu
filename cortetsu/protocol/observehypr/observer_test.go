@@ -164,9 +164,9 @@ func TestDisconnectInvalidatesStateBeforeReconnectBackoff(t *testing.T) {
 
 func TestBoundedReconnectDelay(t *testing.T) {
 	cases := []struct {
-		name string
+		name  string
 		input time.Duration
-		want time.Duration
+		want  time.Duration
 	}{
 		{"unset", 0, 250 * time.Millisecond},
 		{"negative", -time.Second, 250 * time.Millisecond},
