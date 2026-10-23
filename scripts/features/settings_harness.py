@@ -319,6 +319,14 @@ ShellRoot {
             CortetsuShellState.states = CortetsuShellState.states.concat([{ screen: screen, state: state }]);
     }
     SettingsHost { id: host }
+    Connections {
+        target: host.windows.length > 0 ? host.windows[0] : null
+        function onClosed() {
+            console.log("SETTINGS_HOST_CLOSED", JSON.stringify({step: root.step,
+                requested: state.settings, intended: target.requestedOpen,
+                visible: target.visible, nativeClosePending: target.nativeClosePending}));
+        }
+    }
     function find(item, name) {
         if (item.objectName === name) return item;
         for (const child of item.children ?? []) {
@@ -336,7 +344,14 @@ ShellRoot {
         for (const window of windows) {
             const loader = find(window.contentItem, "settingsContentLoader");
             if (window.visible !== open || !loader || loader.active !== open || !!loader.item !== open) {
-                console.log("SETTINGS_FAIL", "window visibility and loaded content", open, window.visible, loader?.active, !!loader?.item);
+                console.log("SETTINGS_FAIL", "window visibility and loaded content", JSON.stringify({
+                    step: root.step, expected: open, requested: state.settings, intended: window.requestedOpen,
+                    windowState: window.screenState?.settings, sameState: window.screenState === state,
+                    nativeClosePending: window.nativeClosePending, visible: window.visible,
+                    loaderActive: loader?.active, content: !!loader?.item,
+                    screen: window.modelData?.name, nativeScreen: window.screen?.name,
+                    registered: CortetsuShellState.states.map(entry => ({screen: entry.screen?.name,
+                        sameScreen: entry.screen === window.modelData, sameState: entry.state === state}))}));
                 Qt.quit(); return false;
             }
         }

@@ -3,13 +3,27 @@ use std::{
     fs,
     os::unix::fs::{PermissionsExt, symlink},
     path::PathBuf,
-    sync::atomic::{AtomicU64, Ordering},
+    sync::{
+        Mutex, MutexGuard,
+        atomic::{AtomicU64, Ordering},
+    },
     time::{Duration, Instant},
 };
 static COUNTER: AtomicU64 = AtomicU64::new(0);
-struct Fixture(PathBuf);
+// A concurrent fork can inherit another fixture's writable script descriptor
+// before CLOEXEC closes it. Executing that script then fails with ETXTBSY even
+// after fs::write has returned in its creating thread. Keep creation and every
+// child spawn in one fixture lifetime exclusive; production owners are immutable.
+static FIXTURE_PROCESS_LOCK: Mutex<()> = Mutex::new(());
+struct Fixture {
+    path: PathBuf,
+    _process_guard: MutexGuard<'static, ()>,
+}
 impl Fixture {
     fn new(script: &str) -> Self {
+        let process_guard = FIXTURE_PROCESS_LOCK
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
         let dir = std::env::temp_dir().join(format!(
             "cortetsu-exec-forward-{}-{}-{}",
             std::process::id(),
@@ -23,13 +37,16 @@ impl Fixture {
         let executable = dir.join("owner");
         fs::write(&executable, format!("#!/bin/sh\n{script}\n")).unwrap();
         fs::set_permissions(&executable, fs::Permissions::from_mode(0o700)).unwrap();
-        Self(dir)
+        Self {
+            path: dir,
+            _process_guard: process_guard,
+        }
     }
     fn forward(&self, millis: u32) -> Value {
         let input = json!({"protocol":"cortetsu.exec","version":{"major":1,"minor":0},"request_id":"00000000-0000-0000-0000-000000000001","operation":"power.status","deadline_ms":millis,"arguments":{}}).to_string();
         let request: Request = serde_json::from_str(&input).unwrap();
         forward_owner(
-            &self.0.join("owner"),
+            &self.path.join("owner"),
             input.as_bytes(),
             &request,
             Instant::now(),
@@ -38,7 +55,7 @@ impl Fixture {
 }
 impl Drop for Fixture {
     fn drop(&mut self) {
-        let _ = fs::remove_dir_all(&self.0);
+        let _ = fs::remove_dir_all(&self.path);
     }
 }
 fn reply() -> Value {
@@ -97,7 +114,7 @@ fn timeout_allows_term_cleanup_then_reaps_the_owner() {
         r#"trap 'touch "$(dirname "$0")/cleaned"; exit 0' TERM
 while :; do sleep 1; done"#,
     );
-    let marker = fixture.0.join("cleaned");
+    let marker = fixture.path.join("cleaned");
     let start = Instant::now();
     assert_eq!(fixture.forward(60)["error"]["code"], "DEADLINE_EXCEEDED");
     assert!(
@@ -113,10 +130,14 @@ fn overlong_response_is_bounded_and_untrusted_executable_refused() {
         fixture.forward(500)["error"]["code"],
         "APPLY_VERIFICATION_FAILED"
     );
-    fs::set_permissions(fixture.0.join("owner"), fs::Permissions::from_mode(0o777)).unwrap();
+    fs::set_permissions(
+        fixture.path.join("owner"),
+        fs::Permissions::from_mode(0o777),
+    )
+    .unwrap();
     assert_eq!(fixture.forward(500)["error"]["code"], "OWNER_UNAVAILABLE");
-    fs::remove_file(fixture.0.join("owner")).unwrap();
-    symlink("/bin/sh", fixture.0.join("owner")).unwrap();
+    fs::remove_file(fixture.path.join("owner")).unwrap();
+    symlink("/bin/sh", fixture.path.join("owner")).unwrap();
     assert_eq!(fixture.forward(500)["error"]["code"], "OWNER_UNAVAILABLE");
 }
 #[test]
@@ -170,11 +191,11 @@ while :; do sleep 1; done"#,
             "exec_read::forward_tests::signal_forwarding_child",
             "--nocapture",
         ])
-        .env("CORTETSU_TEST_FORWARD_OWNER", fixture.0.join("owner"))
+        .env("CORTETSU_TEST_FORWARD_OWNER", fixture.path.join("owner"))
         .stdout(std::process::Stdio::null())
         .spawn()
         .unwrap();
-    let ready = fixture.0.join("ready");
+    let ready = fixture.path.join("ready");
     let end = Instant::now() + Duration::from_secs(2);
     while !ready.exists() {
         assert!(Instant::now() < end, "forwarding child did not start");
@@ -203,7 +224,7 @@ while :; do sleep 1; done"#,
         "the forwarding adapter did not handle cancellation"
     );
     assert!(
-        fixture.0.join("cleaned").exists(),
+        fixture.path.join("cleaned").exists(),
         "owner cleanup was skipped"
     );
 }
