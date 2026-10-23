@@ -1,0 +1,40 @@
+name: Cortetsu source audit snapshot
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/repository-audit-snapshot.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Archive the exact committed source for offline audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "$(git status --porcelain)"
+          root="$RUNNER_TEMP/cortetsu-repository-audit"
+          mkdir -p "$root"
+          git rev-parse HEAD > "$root/REVISION"
+          git ls-files > "$root/TRACKED-FILES"
+          git archive --format=tar.gz --output="$root/source.tar.gz" HEAD
+          (cd "$root" && sha256sum source.tar.gz > SOURCE-SHA256)
+          test -s "$root/source.tar.gz"
+          echo "Auditing revision $(cat "$root/REVISION")"
+      - name: Retain read-only audit inputs
+        uses: actions/upload-artifact@v6
+        with:
+          name: cortetsu-repository-audit-source
+          path: ${{ runner.temp }}/cortetsu-repository-audit/
+          retention-days: 3
+          compression-level: 0
