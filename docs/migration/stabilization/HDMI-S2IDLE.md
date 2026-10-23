@@ -80,3 +80,21 @@ configura salidas DRM; la recuperación vino de un ciclo DPMS del compositor, si
 5. Solo como mitigación y si se decide: un ciclo DPMS tras reanudar. No resuelve la causa y no se añadió.
 
 En esta tarea no se ejecutó ninguna suspensión ni se cambiaron drivers, kernel o configuración de energía.
+
+## 6. Nueva observación (2026-10-23, F10 de Cortetsu 2.0)
+
+Suspensión supervisada de 33 min con HDMI-A-1 conectado (11:51:53 → 12:25:18), shell instalado `113f7a4`:
+
+- A los ~8 s de reanudar, `grim -o HDMI-A-1` se colgó (timeout de 5 s); `grim -o eDP-1` funcionó.
+- Unos 70 s después, tres capturas seguidas del HDMI funcionaron y Dilan confirmó la imagen normal. No hizo falta
+  el ciclo DPMS.
+- **No** apareció el error de semáforo de `nvidia-drm` de §3, lo que debilita esa hipótesis como causa necesaria.
+- Los commits atómicos fallidos del log de Hyprland siguieron creciendo (313 → 395 en esos minutos).
+- El despertar volvió a registrar «Unexpected lid state reported by firmware».
+
+Resultado: sin congelado persistente esta vez; bloqueo transitorio de la captura del HDMI tras reanudar. Una sola
+muestra; la causa sigue abierta.
+
+Aparte, la noche del 22 al 23 el equipo quedó con la tapa cerrada y en batería: entró en un bucle de despertares
+espurios (cada 5–10 s, ACPI/EC) re-suspendido por logind y por la acción crítica de UPower hasta agotar la batería.
+Evidencia: `~/.local/state/cortetsu/qa/f10-2026-10-23/lid-loop-journal.txt` (fuera del repo).
