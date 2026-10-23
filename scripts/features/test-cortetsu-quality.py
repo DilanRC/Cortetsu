@@ -105,4 +105,12 @@ for command in ("calendar", "pomodoro"):
     assert f'exec "$BUNDLE/cortetsu-desktop-runtime" cortetsu-{command} "$@"' in launcher
     assert "python" not in launcher, f"{command} reintroduced an interpreter dependency"
 
+# A file that says root.x without its own `id: root` silently reads the
+# creator's root (shell.qml): SessionHost handed the menu an undefined lock.
+import re as _re
+orphans = [str(f.relative_to(repo)) for f in (repo / "cortetsu").rglob("*.qml")
+           if "tests" not in f.parts and _re.search(r"\broot\.", f.read_text(encoding="utf-8"))
+           and not _re.search(r"\bid:\s*root\b", f.read_text(encoding="utf-8"))]
+assert not orphans, f"root. used without id: root: {orphans}"
+
 print("PASS: Cortetsu quality gate: cold hidden pages, native visual primitives, canonical state; legacy QML shell exceptions explicitly registered")

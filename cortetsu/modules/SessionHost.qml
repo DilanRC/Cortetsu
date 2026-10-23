@@ -11,6 +11,7 @@ import "../theme"
 import "CortetsuTypography.js" as CortetsuTypography
 
 Scope {
+    id: root
     required property var lockController
 
     Variants {
