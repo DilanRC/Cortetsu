@@ -37,3 +37,28 @@ The base grid is four pixels. Rows are 52 px, ordinary controls are 36 px, and
 large surfaces use the 14/22 px radius pair. Motion is short and OutCubic:
 content changes use fast motion, surface entry uses panel motion, and no visual
 state depends on animation completing.
+
+## Typography and icon font contract
+
+- UI text asks for `Rubik`. On systems where Rubik is not installed Qt uses
+  its configured sans-serif fallback; this is intentional and is not reported
+  as a falsely installed Rubik font.
+- Icon ligatures require **Material Symbols Rounded**, not `ttf-material-icons`
+  (that legacy package provides a different family). For Arch/CachyOS the
+  official package is `ttf-material-symbols-variable` from **extra**.
+- `packages/arch.toml` lists it as a required shell runtime dependency;
+  Cortetsu never installs system packages automatically.
+
+Verification (does not change the system):
+
+```sh
+pacman -Q ttf-material-symbols-variable fontconfig
+fc-match --format='%{family[0]}\\n' 'Material Symbols Rounded'
+fc-match --format='%{family[0]}\\n' Rubik
+```
+
+The first `fc-match` must return **Material Symbols Rounded**; any different
+family is fallback and would turn icons like `wifi` into literal words.
+The second reports the real text font used (Rubik or a fallback). GitHub Actions
+installs the icon package and verifies the family before recording synthetic
+visual screenshots; missing-font snapshots are not representative UI evidence.

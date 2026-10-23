@@ -12,13 +12,20 @@ jobs:
     steps:
       - name: Install cloud test dependencies
         run: |
-          pacman -Syu --noconfirm base-devel git python nodejs qt6-declarative quickshell rust go libxkbcommon dbus weston libnotify noto-fonts
+          pacman -Syu --noconfirm base-devel git python nodejs qt6-declarative quickshell rust go libxkbcommon dbus weston libnotify noto-fonts fontconfig ttf-material-symbols-variable
           # A minimal Arch image has no fonts; Qt then measures missing glyphs
           # at one em each, which is not a usable desktop text environment.
           cortetsu_test_font="$(fc-match --format='%{file}' Rubik)"
           test -n "$cortetsu_test_font"
           test -r "$cortetsu_test_font"
           fc-match Rubik
+          # fc-match silently returns Noto for an absent font. Verify the
+          # icon family instead of accepting a readable fallback.
+          icon_family="$(fc-match --format='%{family[0]}' 'Material Symbols Rounded')"
+          case "$icon_family" in
+            *"Material Symbols Rounded"*) echo "Material Symbols Rounded: $icon_family" ;;
+            *) echo "::error::Required icon font not resolved: $icon_family" >&2; exit 1 ;;
+          esac
       - uses: actions/checkout@v6
         with:
           fetch-depth: 2

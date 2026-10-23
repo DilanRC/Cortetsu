@@ -43,3 +43,10 @@ commands = ["clipse", "ddcutil"]
 required = false
 packages = ["imagemagick"]
 commands = ["magick"]
+
+# The shell renders icon ligatures using Material Symbols Rounded. Without
+# this font Qt paints the ligature names as visible text and breaks narrow UI.
+[group.ui-icons]
+required = true
+packages = ["ttf-material-symbols-variable", "fontconfig"]
+commands = ["fc-match"]
