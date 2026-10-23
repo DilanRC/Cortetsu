@@ -220,6 +220,11 @@ def assert_view_contract(source: dict[str, str]) -> None:
     assert "onPressed: item.forceActiveFocus()" in pill
 
     icon = source["CortetsuIcon.qml"]
+    if "Native.CortetsuIcon {}" in icon:
+        # The module alias is a compatibility adapter, not a second font
+        # owner. Verify its import boundary and inspect the canonical QML.
+        assert 'import "../components" as Native' in icon
+        icon = read(repo / "cortetsu/components/CortetsuIcon.qml")
     assert 'CortetsuTypography.iconFamily' in icon
     assert 'property font fontStyle' in icon
     text = source["CortetsuText.qml"]
