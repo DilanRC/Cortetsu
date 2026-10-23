@@ -96,8 +96,9 @@ no son críticas.
   Mitigado: UPower apaga en batería crítica y `acpi.ec_no_wakeup=1` (tapa probada; batería baja no reproducida).
 - Pomodoro: resuelto en `8332b87`. El daemon se reejecuta en la generación promovida (comprobado en vivo: mismo PID
   207873, helpers nuevos tras `install`) y duerme sobre `CLOCK_BOOTTIME`.
-- Retraso de Pomodoro tras reanudar: causa encontrada (espera monótona de hasta 30 s) y corregida en `8332b87`;
-  falta repetir una suspensión real para observarlo.
+- Retraso de Pomodoro tras reanudar: corregido en `8332b87` y observado tras reiniciar. FOCUS con fin a las 16:05:13,
+  suspensión de 16:04:28 a ~16:05:24; el daemon escribió BREAK a las 16:05:24,6, antes de cualquier consulta externa
+  (antes: 14 s de retraso).
 - H-45 resuelto en `b07ac18` (con Codex): 8 preferencias con efecto e interruptores en Ajustes; las de la barra
   retirada y los límites del lanzador se retiran. CPU en reposo tras el cambio: 0,27 % (una muestra, con vídeo).
 - Falta baseline de memoria con un solo monitor.
