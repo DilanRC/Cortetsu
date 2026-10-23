@@ -33,6 +33,21 @@ TestCase {
         tryCompare(fill, "width", 400);
     }
 
+    function test_unknown_values_do_not_produce_nan_fill_geometry() {
+        const item = createTemporaryObject(bar, testCase);
+        const fill = findChild(item, "fill");
+        item.motionDuration = 0;
+        item.value = NaN;
+        compare(item.normalizedValue, 0);
+        verify(!item.visible);
+        tryCompare(fill, "width", 0);
+        item.visibleWhenUnavailable = true;
+        verify(item.visible);
+        item.value = Infinity;
+        compare(item.normalizedValue, 0);
+        tryCompare(fill, "width", 0);
+    }
+
     function test_out_of_range_values_are_clamped() {
         const item = createTemporaryObject(bar, testCase, { value: 7 });
         tryCompare(findChild(item, "fill"), "width", 400);

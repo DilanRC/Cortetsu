@@ -65,6 +65,40 @@ TestCase {
         compare(moved.count, 4);
     }
 
+    function test_zero_width_never_emits_an_invalid_change() {
+        const slider = createTemporaryObject(bound, testCase);
+        moved.target = slider;
+        moved.clear();
+        slider.width = 0;
+        slider.setFromPosition(100);
+        compare(moved.count, 0);
+        compare(backend.level, 0.25);
+        compare(slider.progress, 0.25);
+    }
+
+    function test_page_keys_and_reversed_range_use_real_bounds() {
+        const slider = createTemporaryObject(bound, testCase);
+        slider.from = 1;
+        slider.to = 0;
+        slider.forceActiveFocus();
+        keyClick(Qt.Key_PageUp);
+        fuzzyCompare(backend.level, 0.5, 0.001);
+        keyClick(Qt.Key_PageDown);
+        fuzzyCompare(backend.level, 0.25, 0.001);
+        slider.adjust(100);
+        compare(backend.level, 1);
+        slider.adjust(-100);
+        compare(backend.level, 0);
+    }
+
+    function test_infinite_or_nan_slider_value_never_paints_invalid_geometry() {
+        const slider = createTemporaryObject(bound, testCase);
+        backend.level = NaN;
+        compare(slider.progress, 0);
+        slider.adjust(0.2);
+        fuzzyCompare(backend.level, 0.2, 0.0001);
+    }
+
     function test_the_handle_follows_the_pointer_while_pressed() {
         const slider = createTemporaryObject(bound, testCase);
         backend.accepts = false;
