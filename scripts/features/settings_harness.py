@@ -328,7 +328,7 @@ ShellRoot {
         return null;
     }
     function checkWindows(open) {
-        const windows = host.children[0].instances;
+        const windows = host.windows;
         if (windows.length !== Quickshell.screens.length) {
             console.log("SETTINGS_FAIL", "the host must own one window per screen");
             Qt.quit(); return false;
@@ -352,22 +352,35 @@ ShellRoot {
             else if (root.step <= ids.length + 1) {
                 if (!root.checkWindows(true)) return;
                 SettingsController.select(ids[root.step - 2]);
-            } else if (root.step === ids.length + 2 || root.step === ids.length + 9)
+            } else if (root.step === ids.length + 2)
                 state.settings = false;
             else if (root.step === ids.length + 3) {
                 if (!root.checkWindows(false)) return;
-            } else if (root.step === ids.length + 5 || root.step === ids.length + 8) {
+            } else if (root.step === ids.length + 5) {
                 if (!root.checkWindows(true)) return;
             } else if (root.step === ids.length + 6) {
                 // Close the real QWindow, as the WM does, without changing
                 // the fixture's requested state first.
-                host.children[0].instances[0].contentItem.Window.window.close();
+                host.windows[0].contentItem.Window.window.close();
             } else if (root.step === ids.length + 7) {
                 if (state.settings || !root.checkWindows(false)) {
                     console.log("SETTINGS_FAIL", "a native close must clear the requested state and unload content");
                     Qt.quit(); return;
                 }
                 state.settings = true;
+            } else if (root.step === ids.length + 8) {
+                if (!root.checkWindows(true)) return;
+                host.windows[0].contentItem.Window.window.close();
+                if (state.settings) {
+                    console.log("SETTINGS_FAIL", "native close must be observed before immediate reopen");
+                    Qt.quit(); return;
+                }
+                // Both changes reach the same deferred transition. The native
+                // requested visibility must still be reset before reopening.
+                state.settings = true;
+            } else if (root.step === ids.length + 9) {
+                if (!root.checkWindows(true)) return;
+                state.settings = false;
             } else if (root.step === ids.length + 10) {
                 if (!root.checkWindows(false)) return;
                 console.log("SETTINGS_HOST_PASS", Quickshell.screens.length);
