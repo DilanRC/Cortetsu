@@ -87,6 +87,21 @@ func (o Observer) Validate() error {
 	return nil
 }
 
+// boundedReconnectDelay is the one normalization boundary for initial
+// connection attempts and reconnects after a healthy session.
+func boundedReconnectDelay(requested time.Duration) time.Duration {
+	if requested <= 0 {
+		requested = 250 * time.Millisecond
+	}
+	if requested < 10*time.Millisecond {
+		return 10 * time.Millisecond
+	}
+	if requested > 10*time.Second {
+		return 10 * time.Second
+	}
+	return requested
+}
+
 // Run reconnects with bounded, nonbusy backoff. A new epoch invalidates all
 // cached events from the prior connection; consumers must re-snapshot from the
 // authoritative owner. No replay is emitted.
@@ -97,16 +112,7 @@ func (o Observer) Run(ctx context.Context, output io.Writer) error {
 	if output == nil {
 		return errors.New("nil observer output")
 	}
-	delay := o.ReconnectDelay
-	if delay <= 0 {
-		delay = 250 * time.Millisecond
-	}
-	if delay < 10*time.Millisecond {
-		delay = 10 * time.Millisecond
-	}
-	if delay > 10*time.Second {
-		delay = 10 * time.Second
-	}
+	delay := boundedReconnectDelay(o.ReconnectDelay)
 	maxDelay := 5 * time.Second
 	if maxDelay < delay {
 		maxDelay = delay
@@ -124,13 +130,7 @@ func (o Observer) Run(ctx context.Context, output io.Writer) error {
 				_ = conn.Close()
 				return fmt.Errorf("cannot emit stream state: %w", err)
 			}
-			delay = o.ReconnectDelay
-			if delay <= 0 {
-				delay = 250 * time.Millisecond
-			}
-			if delay < 10*time.Millisecond {
-				delay = 10 * time.Millisecond
-			}
+			delay = boundedReconnectDelay(o.ReconnectDelay)
 			err = o.consume(ctx, conn, epoch, encoder)
 			_ = conn.Close()
 			if ctx.Err() == nil {

@@ -161,3 +161,25 @@ func TestDisconnectInvalidatesStateBeforeReconnectBackoff(t *testing.T) {
 		t.Fatal("disconnected owner remained current during backoff", output.String())
 	}
 }
+
+func TestBoundedReconnectDelay(t *testing.T) {
+	cases := []struct {
+		name string
+		input time.Duration
+		want time.Duration
+	}{
+		{"unset", 0, 250 * time.Millisecond},
+		{"negative", -time.Second, 250 * time.Millisecond},
+		{"too_fast", time.Millisecond, 10 * time.Millisecond},
+		{"minimum", 10 * time.Millisecond, 10 * time.Millisecond},
+		{"ordinary", 750 * time.Millisecond, 750 * time.Millisecond},
+		{"cap", 12 * time.Second, 10 * time.Second},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := boundedReconnectDelay(tc.input); got != tc.want {
+				t.Fatalf("boundedReconnectDelay(%v) = %v; want %v", tc.input, got, tc.want)
+			}
+		})
+	}
+}
