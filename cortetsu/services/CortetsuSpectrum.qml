@@ -34,7 +34,8 @@ QtObject {
 
     // startup inventory: cortetsu:spectrum (conditional on cava availability)
     property Process cavaProcess: Process {
-        command: ["sh", "-c", "command -v cava >/dev/null 2>&1 && exec cava"]
+        // Without cava the process fails to start once and running turns false.
+        command: ["cava"]
         running: root.shouldRun
         onRunningChanged: if (!running) {
             root.available = false;

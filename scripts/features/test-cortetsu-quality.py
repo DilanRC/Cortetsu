@@ -10,9 +10,7 @@ modules = repo / "cortetsu/modules"
 # Explicit debt: native replacements still need behavioral parity.
 # Scan all first-party QML, including multiline argv arrays, not just modules.
 legacy_shell_exceptions = {
-    "cortetsu/services/CortetsuSpectrum.qml",  # optional cava detection
-    "cortetsu/services/ConnectivityBluetooth.qml",  # BlueZ exit and output
-    "cortetsu/modules/clipboard/Content.qml",  # preserve image MIME/pipe
+    "cortetsu/modules/clipboard/Content.qml",  # wl-copy reads the image from stdin; path is $1, never shell text
 }
 found_shell_pipelines = set()
 shell_command = re.compile(r"\[\s*['\"](?:sh|bash)['\"]\s*,\s*['\"]-c['\"]")

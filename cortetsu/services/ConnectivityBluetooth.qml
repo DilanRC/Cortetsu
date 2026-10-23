@@ -157,7 +157,7 @@ Singleton {
             else if (kind === "connect") {
                 // BlueZ answers Connect once the profiles are up; the native connected flag turns true with the bare link.
                 connectCall.operationId = operation.id;
-                connectCall.command = ["sh", "-c", 'busctl --system --timeout=18 call org.bluez "$1" org.bluez.Device1 Connect 2>&1; echo "exit=$?"', "sh", target.dbusPath];
+                connectCall.command = ["busctl", "--system", "--timeout=18", "call", "org.bluez", target.dbusPath, "org.bluez.Device1", "Connect"];
                 connectCall.running = true;
             }
             else if (kind === "disconnect") target.disconnect();
@@ -304,13 +304,12 @@ Singleton {
     Process {
         id: connectCall
         property int operationId: 0
-        stdout: StdioCollector {
-            onStreamFinished: {
-                if (!root.busy || connectCall.operationId !== root.operation.id) return;
-                const lines = text.trim().split("\n");
-                if (lines.pop() === "exit=0") root.finish("succeeded");
-                else root.finish("failed", "connect-failed", qsTr("No se pudo conectar: %1").arg(lines.join(" ").replace(/^Call failed: /, "") || qsTr("BlueZ rechazó la conexión")));
-            }
+        stdout: StdioCollector { id: connectOut }
+        stderr: StdioCollector { id: connectErr }
+        onExited: exitCode => {
+            if (!root.busy || connectCall.operationId !== root.operation.id) return;
+            if (exitCode === 0) root.finish("succeeded");
+            else root.finish("failed", "connect-failed", qsTr("No se pudo conectar: %1").arg(`${connectErr.text} ${connectOut.text}`.trim().replace(/^Call failed: /, "") || qsTr("BlueZ rechazó la conexión")));
         }
     }
     Component.onCompleted: reconcilePower()

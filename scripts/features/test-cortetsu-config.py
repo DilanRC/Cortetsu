@@ -224,7 +224,7 @@ assert "Time.hourStr" in desktop_clock and "Time.format" in desktop_clock
 assert "CortetsuConfig.visualiserBars" in spectrum
 assert "CortetsuConfig.useFuzzyWallpapers" in wallpaper_service
 assert "WallpaperSearch.matches" in wallpaper_service
-assert "command -v cava" in spectrum
+assert 'command: ["cava"]' in spectrum and '"sh"' not in spectrum
 assert 'readonly property bool shouldRun: CortetsuConfig.visualiserEnabled' in spectrum
 assert 'running: root.shouldRun' in spectrum
 assert 'onRunningChanged: if (!running)' in spectrum
