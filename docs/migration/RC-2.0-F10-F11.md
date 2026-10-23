@@ -52,6 +52,7 @@ Parte de la evidencia del 22 se perdió al reiniciarse el equipo (vivía en `/tm
 | CPU con Hardware abierto | 2,5 % | 15 s, telemetría en vivo |
 | CPU con otras superficies | 0,1–0,9 % | 15 s cada una |
 | CPU durante 280 ciclos | 38,7 % | 126 s de estrés |
+| CPU `qs` en reposo tras H-45 | 1,2 % (60 s y 3×10 s), PSS 465 MiB | eDP-1 + HDMI-A-1, sin reproductor ni eventos de Hyprland |
 | PSS `qs` proceso nuevo | 554 → 514 MiB con el fondo a resolución de pantalla | dos monitores, 20 s tras arrancar |
 | PSS tras 6 recargas suaves | +80 MiB en la primera, luego estable (595–620 MiB) | mismo proceso |
 
@@ -67,9 +68,9 @@ No hay baseline del proceso nuevo con un solo monitor; el valor de la mañana (2
 | `cargo clippy -D warnings`, `cargo fmt` (hardware-runtime) | PASS |
 | `cortetsu install` × 3, `verify`, `cortetsu-rescue verify` | PASS |
 | Rollback `30ad4dc`→`113f7a4`→`30ad4dc` con verify en cada paso | PASS |
-| CI remota de `30ad4dc` | PENDIENTE: los commits no se han publicado |
+| CI remota de `b07ac18` y `3cd13d6` | PASS 13/13 cada uno |
 
-**Veredicto F11: PASS condicionado a la CI remota.** Los criterios críticos de F10 se cumplen; las pruebas NOT_TESTED
+**Veredicto F11: PASS.** Los criterios críticos de F10 se cumplen; las pruebas NOT_TESTED
 no son críticas.
 
 ## 5. Cambios desde `78c03fa`
@@ -99,6 +100,11 @@ no son críticas.
 - H-45 resuelto en `b07ac18` (con Codex): 8 preferencias con efecto e interruptores en Ajustes; las de la barra
   retirada y los límites del lanzador se retiran. CPU en reposo tras el cambio: 0,27 % (una muestra, con vídeo).
 - Falta baseline de memoria con un solo monitor.
+- CPU en reposo con dos monitores: 1,2 %, frente a 0,18–0,2 % antes (no consta si aquella medida tenía HDMI). Son unos
+  13 despertares/s del hilo principal: los `Timer` de QML (~3/s) y dos ventanas a pantalla completa, una por monitor,
+  que se repintan unas 3 veces/s cada una sin cambios visibles. Falta identificar la superficie; se descartó seguir con
+  `gdb` porque detiene el shell en cada evento. Siguiente paso: medir con un solo monitor y arrancar una instancia
+  aislada con `QT_LOGGING_RULES=qt.scenegraph.time.renderloop=true`.
 
 ## 7. Rollback
 
