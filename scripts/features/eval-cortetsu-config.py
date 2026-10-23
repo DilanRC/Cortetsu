@@ -7,7 +7,9 @@ config = (ROOT / "cortetsu/modules/CortetsuConfig.qml").read_text(encoding="utf-
 storage = (ROOT / "cortetsu/services/Storage.qml").read_text(encoding="utf-8")
 save_body = config.split("function save(): void", 1)[1].split("function setFavouriteApps", 1)[0]
 
-assert "bar: { persistent: bar.persistent" in save_body
+assert "bar: { showOnHover: bar.showOnHover" in save_body
+for retired_bar_preference in ("bar.persistent", "scrollActions.workspaces", "scrollActions.brightness", "tray.compact", "activeWindow.compact", "clock.showDate"):
+    assert retired_bar_preference not in save_body
 assert "entries: bar.entries" in save_body
 assert ", entries, scrollActions" not in save_body
 assert "match[4].startsWith(\"/\")" in storage

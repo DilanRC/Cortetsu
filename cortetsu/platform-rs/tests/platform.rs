@@ -146,7 +146,7 @@ fn preferences_migration_preserves_existing_values_and_copies_state() {
     let s = Sandbox::new();
     s.put(
         "home/.config/caelestia/shell.json",
-        r#"{"launcher":{"favouriteApps":["a",1]},"services":{"maxVolume":1.4}}"#,
+        r#"{"launcher":{"favouriteApps":["a",1]},"services":{"maxVolume":1.4},"bar":{"persistent":true,"scrollActions":{"brightness":false,"workspaces":false},"tray":{"compact":true},"activeWindow":{"compact":false},"clock":{"showDate":true}}}"#,
     );
     s.put(
         "home/.config/cortetsu/preferences.json",
@@ -161,6 +161,7 @@ fn preferences_migration_preserves_existing_values_and_copies_state() {
     assert_eq!(p["favouriteApps"], serde_json::json!(["mine"]));
     assert_eq!(p["maxVolume"], 1.4);
     assert_eq!(p["custom"], true);
+    assert!(p.get("bar").is_none());
     assert!(s.0.join("home/.local/state/cortetsu/notifs.json").exists());
 }
 #[test]

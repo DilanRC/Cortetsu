@@ -5,7 +5,7 @@ import tempfile
 from pathlib import Path
 
 repo = Path(__file__).resolve().parents[2]
-script = repo / "core/migrate_config.py"
+script = repo / "tests/reference/python-runtime/core/migrate_config.py"
 
 with tempfile.TemporaryDirectory(prefix="cortetsu-config-test-") as directory:
     home = Path(directory)
@@ -17,7 +17,14 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-config-test-") as directory:
         "services": {"smartScheme": False, "useTwelveHourClock": True, "useFahrenheit": True, "useFahrenheitPerformance": True, "weatherLocation": "9.9,-84.1", "audioIncrement": 0.05, "brightnessIncrement": 0.2, "maxVolume": 1.5, "visualiserBars": 48, "defaultPlayer": "VLC", "playerAliases": [{"from": "vlc", "to": "VLC"}]},
         "utilities": {"toasts": {"audioOutputChanged": False, "audioInputChanged": False, "nowPlaying": True}, "vpn": {"provider": [{"id": "office", "name": "wireguard", "displayName": "Office", "interface": "wg-office", "connectCmd": ["wg-quick", "up", "wg-office", 9], "disconnectCmd": ["wg-quick", "down", "wg-office"]}], "selectedProvider": "office", "enabled": True}},
         "notifs": {"expire": False, "fullscreen": "off", "defaultExpireTimeout": 7000, "fullscreenExpireTimeout": 3000, "actionOnClick": True},
-        "bar": {"workspaces": {"shown": 6}, "tray": {"hiddenIcons": ["nm-applet", None]}},
+        "bar": {
+            "persistent": True,
+            "scrollActions": {"brightness": False, "workspaces": False},
+            "tray": {"compact": True, "hiddenIcons": ["nm-applet", None]},
+            "activeWindow": {"compact": False},
+            "clock": {"showDate": True},
+            "workspaces": {"shown": 6},
+        },
         "general": {"apps": {"terminal": ["foot", 9]}},
     }), encoding="utf-8")
     legacy_state = home / ".local/state/caelestia"
@@ -29,6 +36,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-config-test-") as directory:
     subprocess.run(["python3", str(script), "--home", str(home)], env=env, check=True)
     target = home / ".config/cortetsu/preferences.json"
     payload = json.loads(target.read_text())
+    assert not any(key.startswith("bar") for key in payload), "retired top-bar preferences must not be migrated"
     assert payload == {"schema": 1, "favouriteApps": ["steam"], "hiddenApps": ["qt6ct"], "hiddenTrayIcons": ["nm-applet"], "terminalCommand": ["foot"], "vpn": {"providers": [{"id": "office", "name": "wireguard", "displayName": "Office", "interface": "wg-office", "connectCmd": ["wg-quick", "up", "wg-office"], "disconnectCmd": ["wg-quick", "down", "wg-office"]}], "selectedProvider": "office", "enabled": True}, "actions": [{"name": "Open", "command": ["open"]}], "actionPrefix": "/", "specialPrefix": "@", "enableDangerousActions": False, "useFuzzyApps": False, "useFuzzyWallpapers": False, "smartScheme": False, "wallpaperDirectory": "~/Wallpapers", "useTwelveHourClock": True, "useFahrenheit": True, "useFahrenheitPerformance": True, "weatherLocation": "9.9,-84.1", "audioIncrement": 0.05, "brightnessIncrement": 0.2, "maxVolume": 1.5, "visualiserBars": 48, "defaultPlayer": "VLC", "playerAliases": [{"from": "vlc", "to": "VLC"}], "toastAudioOutputChanged": False, "toastAudioInputChanged": False, "toastNowPlaying": True, "notificationExpire": False, "suppressNotificationsInFullscreen": True, "notificationDefaultExpireTimeout": 7000, "notificationFullscreenExpireTimeout": 3000, "notificationActionOnClick": True, "toastDndChanged": True, "toastGameModeChanged": True, "vimKeybinds": False, "workspacesShown": 6}
     backups = list((home / ".local/share/cortetsu/migrations").glob("*/preferences/legacy-shell.json"))
     assert len(backups) == 1

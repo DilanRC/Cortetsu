@@ -26,6 +26,7 @@ assert "NotificationServer" in notifs and "modelData.close()" in view
 assert "function inspect(): string" in notifs
 assert "import Quickshell.Io" in notifs
 assert "model: Notifs.popups()" in wrapper
+assert "expanded: CortetsuConfig.notificationOpenExpanded" in wrapper
 assert "visibleNotifications" not in wrapper
 assert "implicitWidth: 320" in wrapper
 assert "Layout.preferredWidth: 30" in view

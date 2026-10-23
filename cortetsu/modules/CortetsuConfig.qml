@@ -265,31 +265,21 @@ QtObject {
     }
 
     readonly property QtObject bar: QtObject {
-        property bool persistent: false
-        onPersistentChanged: if (root.loaded) root.save()
         property bool showOnHover: false
         onShowOnHoverChanged: if (root.loaded) root.save()
         property int dragThreshold: 24
         onDragThresholdChanged: if (root.loaded) root.save()
         readonly property QtObject scrollActions: QtObject {
-            property bool workspaces: true
-            onWorkspacesChanged: if (root.loaded) root.save()
             property bool volume: true
             onVolumeChanged: if (root.loaded) root.save()
-            property bool brightness: true
-            onBrightnessChanged: if (root.loaded) root.save()
         }
         readonly property QtObject tray: QtObject {
             property bool background: true
             onBackgroundChanged: if (root.loaded) root.save()
-            property bool compact: false
-            onCompactChanged: if (root.loaded) root.save()
             property bool recolour: false
             onRecolourChanged: if (root.loaded) root.save()
         }
         readonly property QtObject activeWindow: QtObject {
-            property bool compact: true
-            onCompactChanged: if (root.loaded) root.save()
             property bool inverted: false
             onInvertedChanged: if (root.loaded) root.save()
             property bool showOnHover: false
@@ -306,8 +296,6 @@ QtObject {
         readonly property QtObject clock: QtObject {
             property bool background: true
             onBackgroundChanged: if (root.loaded) root.save()
-            property bool showDate: false
-            onShowDateChanged: if (root.loaded) root.save()
             property bool showIcon: false
             onShowIconChanged: if (root.loaded) root.save()
         }
@@ -451,7 +439,10 @@ QtObject {
                     for (const key of ["enabled", "showOnHover"])
                         if (typeof data[group][key] === "boolean") root[group][key] = data[group][key];
                     for (const key of ["maxShown", "maxWallpapers", "dragThreshold", "minHoverThreshold"])
-                        if (Number.isFinite(data[group][key]) && key in root[group]) root[group][key] = Math.max(0, data[group][key]);
+                        if (Number.isFinite(data[group][key]) && key in root[group])
+                            root[group][key] = ["maxShown", "maxWallpapers"].includes(key)
+                                ? Math.max(1, Math.min(50, data[group][key]))
+                                : Math.max(0, data[group][key]);
                 }
             if (data.utilities && typeof data.utilities === "object") {
                 if (typeof data.utilities.enabled === "boolean") utilities.enabled = data.utilities.enabled;
@@ -472,8 +463,9 @@ QtObject {
                     bar.workspaces.capitalisation = Math.max(0, Math.min(2, data.bar.workspaces.capitalisation));
             }
             if (data.bar && typeof data.bar === "object") {
-                for (const key of ["persistent", "showOnHover"])
-                    if (typeof data.bar[key] === "boolean") bar[key] = data.bar[key];
+                // Old preferences may still contain removed top-bar keys.
+                for (const key of ["showOnHover"])
+                    if (key in bar && typeof data.bar[key] === "boolean") bar[key] = data.bar[key];
                 if (Number.isInteger(data.bar.dragThreshold))
                     bar.dragThreshold = Math.max(0, data.bar.dragThreshold);
                 for (const group of ["scrollActions", "tray", "activeWindow", "popouts", "clock"])
@@ -635,7 +627,7 @@ QtObject {
     }
 
     function snapshot(): var {
-        return ({ schema: 1, favouriteApps, hiddenApps, hiddenTrayIcons, terminalCommand, audioCommand, playbackCommand, explorerCommand, gpuType, lyricsBackend, statusIcons, quickToggles, vpn: { providers: vpn.providers, selectedProvider: vpn.selectedProvider, enabled: vpn.enabled }, actions, actionPrefix, specialPrefix, enableDangerousActions, useFuzzyApps, useFuzzyWallpapers, useFuzzyActions, useFuzzySchemes, useFuzzyVariants, smartScheme, wallpaperDirectory, wallpaperEnabled, transparencyEnabled, desktopClockEnabled, desktopClockPosition, borderThickness, borderSmoothing, useTwelveHourClock, useFahrenheit, useFahrenheitPerformance, weatherLocation, audioIncrement, brightnessIncrement, maxVolume, visualiserBars, visualiserEnabled, visualiserAutoHide, visualiserBlur, visualiserSpacing, visualiserRounding, defaultPlayer, playerAliases, toastAudioOutputChanged, toastAudioInputChanged, toastNowPlaying, toastFullscreen, maxToasts, toastChargingChanged, toastCapsLockChanged, toastNumLockChanged, toastKbLayoutChanged, toastKbLimit, toastVpnChanged, notificationExpire, suppressNotificationsInFullscreen, notificationDefaultExpireTimeout, notificationFullscreenExpireTimeout, notificationActionOnClick, notificationFullscreenMode, notificationClearThreshold, notificationExpandThreshold, notificationGroupPreviewNum, notificationOpenExpanded, toastDndChanged, toastGameModeChanged, lockRecolourLogo, lockHideNotifs, lockEnableFprint, lockMaxFprintTries, lockEnableHowdy, lockMaxHowdyTries, lockTriggerHowdyOnWake, vimKeybinds, workspacesShown, dashboardMediaUpdateInterval, dashboardResourceUpdateInterval, nexusWallpapersPerRow, nexusMaxNetworksShown, nexusNetworkRescanInterval, dashboard: { enabled: dashboard.enabled, showOnHover: dashboard.showOnHover, showDashboard: dashboard.showDashboard, showMedia: dashboard.showMedia, showPerformance: dashboard.showPerformance, showWeather: dashboard.showWeather, dragThreshold: dashboard.dragThreshold, performance: { showCpu: dashboard.performance.showCpu, showGpu: dashboard.performance.showGpu, showMemory: dashboard.performance.showMemory, showStorage: dashboard.performance.showStorage, showNetwork: dashboard.performance.showNetwork, showBattery: dashboard.performance.showBattery } }, launcher: { enabled: launcher.enabled, showOnHover: launcher.showOnHover, maxShown: launcher.maxShown, maxWallpapers: launcher.maxWallpapers, dragThreshold: launcher.dragThreshold }, sidebar: { enabled: sidebar.enabled, showOnHover: sidebar.showOnHover, dragThreshold: sidebar.dragThreshold, minHoverThreshold: sidebar.minHoverThreshold }, utilities: { enabled: utilities.enabled, cards: { keepAwake: utilities.cards.keepAwake, recorder: utilities.cards.recorder, quickToggles: utilities.cards.quickToggles } }, bar: { persistent: bar.persistent, showOnHover: bar.showOnHover, dragThreshold: bar.dragThreshold, entries: bar.entries, scrollActions: { workspaces: bar.scrollActions.workspaces, volume: bar.scrollActions.volume, brightness: bar.scrollActions.brightness }, tray: { background: bar.tray.background, compact: bar.tray.compact, recolour: bar.tray.recolour }, activeWindow: { compact: bar.activeWindow.compact, inverted: bar.activeWindow.inverted, showOnHover: bar.activeWindow.showOnHover }, popouts: { activeWindow: bar.popouts.activeWindow, statusIcons: bar.popouts.statusIcons, tray: bar.popouts.tray }, clock: { background: bar.clock.background, showDate: bar.clock.showDate, showIcon: bar.clock.showIcon }, workspaces: { activeIndicator: bar.workspaces.activeIndicator, activeTrail: bar.workspaces.activeTrail, occupiedBg: bar.workspaces.occupiedBg, showWindows: bar.workspaces.showWindows, maxWindowIcons: bar.workspaces.maxWindowIcons, showWindowsOnSpecialWorkspaces: bar.workspaces.showWindowsOnSpecialWorkspaces, perMonitorWorkspaces: bar.workspaces.perMonitorWorkspaces, displayType: bar.workspaces.displayType, label: bar.workspaces.label, occupiedLabel: bar.workspaces.occupiedLabel, activeLabel: bar.workspaces.activeLabel, capitalisation: bar.workspaces.capitalisation } }, idleInhibitWhenAudio, idleInhibitWhenCharging, idleLockBeforeSleep, idleTimeouts, idleSuspendOnBatteryOnly, idleInhibitWhenFullscreen,
+        return ({ schema: 1, favouriteApps, hiddenApps, hiddenTrayIcons, terminalCommand, audioCommand, playbackCommand, explorerCommand, gpuType, lyricsBackend, statusIcons, quickToggles, vpn: { providers: vpn.providers, selectedProvider: vpn.selectedProvider, enabled: vpn.enabled }, actions, actionPrefix, specialPrefix, enableDangerousActions, useFuzzyApps, useFuzzyWallpapers, useFuzzyActions, useFuzzySchemes, useFuzzyVariants, smartScheme, wallpaperDirectory, wallpaperEnabled, transparencyEnabled, desktopClockEnabled, desktopClockPosition, borderThickness, borderSmoothing, useTwelveHourClock, useFahrenheit, useFahrenheitPerformance, weatherLocation, audioIncrement, brightnessIncrement, maxVolume, visualiserBars, visualiserEnabled, visualiserAutoHide, visualiserBlur, visualiserSpacing, visualiserRounding, defaultPlayer, playerAliases, toastAudioOutputChanged, toastAudioInputChanged, toastNowPlaying, toastFullscreen, maxToasts, toastChargingChanged, toastCapsLockChanged, toastNumLockChanged, toastKbLayoutChanged, toastKbLimit, toastVpnChanged, notificationExpire, suppressNotificationsInFullscreen, notificationDefaultExpireTimeout, notificationFullscreenExpireTimeout, notificationActionOnClick, notificationFullscreenMode, notificationClearThreshold, notificationExpandThreshold, notificationGroupPreviewNum, notificationOpenExpanded, toastDndChanged, toastGameModeChanged, lockRecolourLogo, lockHideNotifs, lockEnableFprint, lockMaxFprintTries, lockEnableHowdy, lockMaxHowdyTries, lockTriggerHowdyOnWake, vimKeybinds, workspacesShown, dashboardMediaUpdateInterval, dashboardResourceUpdateInterval, nexusWallpapersPerRow, nexusMaxNetworksShown, nexusNetworkRescanInterval, dashboard: { enabled: dashboard.enabled, showOnHover: dashboard.showOnHover, showDashboard: dashboard.showDashboard, showMedia: dashboard.showMedia, showPerformance: dashboard.showPerformance, showWeather: dashboard.showWeather, dragThreshold: dashboard.dragThreshold, performance: { showCpu: dashboard.performance.showCpu, showGpu: dashboard.performance.showGpu, showMemory: dashboard.performance.showMemory, showStorage: dashboard.performance.showStorage, showNetwork: dashboard.performance.showNetwork, showBattery: dashboard.performance.showBattery } }, launcher: { enabled: launcher.enabled, showOnHover: launcher.showOnHover, maxShown: launcher.maxShown, maxWallpapers: launcher.maxWallpapers, dragThreshold: launcher.dragThreshold }, sidebar: { enabled: sidebar.enabled, showOnHover: sidebar.showOnHover, dragThreshold: sidebar.dragThreshold, minHoverThreshold: sidebar.minHoverThreshold }, utilities: { enabled: utilities.enabled, cards: { keepAwake: utilities.cards.keepAwake, recorder: utilities.cards.recorder, quickToggles: utilities.cards.quickToggles } }, bar: { showOnHover: bar.showOnHover, dragThreshold: bar.dragThreshold, entries: bar.entries, scrollActions: { volume: bar.scrollActions.volume }, tray: { background: bar.tray.background, recolour: bar.tray.recolour }, activeWindow: { inverted: bar.activeWindow.inverted, showOnHover: bar.activeWindow.showOnHover }, popouts: { activeWindow: bar.popouts.activeWindow, statusIcons: bar.popouts.statusIcons, tray: bar.popouts.tray }, clock: { background: bar.clock.background, showIcon: bar.clock.showIcon }, workspaces: { activeIndicator: bar.workspaces.activeIndicator, activeTrail: bar.workspaces.activeTrail, occupiedBg: bar.workspaces.occupiedBg, showWindows: bar.workspaces.showWindows, maxWindowIcons: bar.workspaces.maxWindowIcons, showWindowsOnSpecialWorkspaces: bar.workspaces.showWindowsOnSpecialWorkspaces, perMonitorWorkspaces: bar.workspaces.perMonitorWorkspaces, displayType: bar.workspaces.displayType, label: bar.workspaces.label, occupiedLabel: bar.workspaces.occupiedLabel, activeLabel: bar.workspaces.activeLabel, capitalisation: bar.workspaces.capitalisation } }, idleInhibitWhenAudio, idleInhibitWhenCharging, idleLockBeforeSleep, idleTimeouts, idleSuspendOnBatteryOnly, idleInhibitWhenFullscreen,
             bottomHub: {
                 segments: { mode: bottomHub.segments.mode, apps: bottomHub.segments.apps, tray: bottomHub.segments.tray, status: bottomHub.segments.status },
                 statusCluster: { audio: bottomHub.statusCluster.audio, network: bottomHub.statusCluster.network, bluetooth: bottomHub.statusCluster.bluetooth, battery: bottomHub.statusCluster.battery }

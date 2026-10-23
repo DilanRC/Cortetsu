@@ -65,7 +65,7 @@ Searcher {
     }
 
     list: schemes.instances
-    useFuzzy: CortetsuConfig.useFuzzyApps
+    useFuzzy: CortetsuConfig.useFuzzySchemes
     keys: ["name", "flavour"]
     weights: [0.9, 0.1]
 

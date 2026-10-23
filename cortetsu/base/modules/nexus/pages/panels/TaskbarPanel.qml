@@ -24,13 +24,6 @@ PageBase {
 
         ToggleRow {
             first: true
-            text: qsTr("Persistent")
-            subtext: qsTr("Keep the bar visible at all times")
-            checked: CortetsuConfig.bar.persistent
-            onToggled: CortetsuConfig.bar.persistent = checked
-        }
-
-        ToggleRow {
             text: qsTr("Show on hover")
             subtext: qsTr("Reveal the bar when the cursor reaches the screen edge")
             checked: CortetsuConfig.bar.showOnHover
@@ -97,25 +90,11 @@ PageBase {
 
         ToggleRow {
             first: true
-            text: qsTr("Workspaces")
-            subtext: qsTr("Scroll over the workspace indicator to switch workspaces")
-            checked: CortetsuConfig.bar.scrollActions.workspaces
-            onToggled: CortetsuConfig.bar.scrollActions.workspaces = checked
-        }
-
-        ToggleRow {
             text: qsTr("Volume")
             subtext: qsTr("Scroll on the top half of the bar to adjust volume")
             checked: CortetsuConfig.bar.scrollActions.volume
             onToggled: CortetsuConfig.bar.scrollActions.volume = checked
         }
 
-        ToggleRow {
-            last: true
-            text: qsTr("Brightness")
-            subtext: qsTr("Scroll on the bottom half of the bar to adjust brightness")
-            checked: CortetsuConfig.bar.scrollActions.brightness
-            onToggled: CortetsuConfig.bar.scrollActions.brightness = checked
-        }
     }
 }

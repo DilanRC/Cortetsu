@@ -41,21 +41,18 @@ forward into `cortetsu/modules/launcher/items/`; they stay as
 unreferenced, harmless leftovers in the ephemeral upstream build
 staging directory.
 
-## `useFuzzy.{apps,actions,schemes,variants}` -> one `useFuzzyApps` flag
+## Fuzzy search preferences
 
-Upstream `GlobalConfig.launcher.useFuzzy` was a 4-key object
-(`apps`/`actions`/`schemes`/`variants`), each independently toggling
-fuzzy search per search domain. `CortetsuConfig.qml` predates this
-migration and already only exposes a single `useFuzzyApps: bool` (plus a
-separate `useFuzzyWallpapers` for the wallpaper picker, which is not part
-of the launcher scope). Rather than add three more booleans that nobody
-has ever asked to set independently, this migration keeps the existing
-convention: `services/Apps.qml`, `services/Actions.qml`,
-`services/Schemes.qml`, and `services/M3Variants.qml` all read
-`CortetsuConfig.useFuzzyApps`. If per-domain fuzzy toggles are ever
-actually needed, split `useFuzzyApps` into the 4 keys in
-`CortetsuConfig.qml` (with a `migrate_config.py` backfill) and repoint
-each service — a small, contained change once there's a real requirement.
+Upstream `GlobalConfig.launcher.useFuzzy` was a four-key object. Cortetsu keeps
+`useFuzzyApps` for applications and variants, `useFuzzyWallpapers` for the
+wallpaper picker, and the existing `useFuzzyActions` and `useFuzzySchemes`
+preferences now control their matching live launcher searchers. Their
+defaults are `true`, matching the prior fuzzy behavior.
+
+`launcher.maxShown` and `launcher.maxWallpapers` are retired: the app grid
+scrolls through every result and the wallpaper strip keeps its layout ceiling
+of 12. The keys are still read and saved so older preference files round-trip,
+but nothing applies them.
 
 ## Terminal command: two sources of truth, on purpose (for now)
 

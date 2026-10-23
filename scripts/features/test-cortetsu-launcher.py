@@ -86,15 +86,17 @@ assert "!entry.noDisplay" in texts["services/Apps.qml"]
 assert "Array.from(entry.command ?? []).length > 0" in texts["services/Apps.qml"]
 
 pruner = (repo / "cortetsu/bin/cortetsu-prune-applications").read_text(encoding="utf-8")
-assert "XDG_DATA_HOME" in pruner
-assert "cortetsu/quarantine/applications" in pruner
-assert "shutil.which" in pruner and "shutil.move" in pruner
+assert "cortetsu-prune-applications-rs" in pruner
+assert "CORTETSU_RESOURCE_ROOT" in pruner
 
-# useFuzzy.{apps,actions,schemes,variants} is deliberately unified into a
-# single CortetsuConfig.useFuzzyApps flag (see docs/LAUNCHER_MIGRATION.md
-# for why) rather than kept as 4 separate toggles.
-for rel in ("services/Apps.qml", "services/Actions.qml", "services/Schemes.qml", "services/M3Variants.qml"):
-    assert "CortetsuConfig.useFuzzyApps" in texts[rel], f"{rel} must use the unified useFuzzyApps flag"
+# launcher.maxShown/maxWallpapers are retired (H-45): the app grid scrolls and the
+# wallpaper strip keeps its layout ceiling; the keys stay only for old files.
+wallpapers = (launcher / "WallpaperList.qml").read_text(encoding="utf-8")
+assert "maxShown" not in texts["AppList.qml"] and "maxWallpapers" not in wallpapers
+assert "useFuzzy: CortetsuConfig.useFuzzyActions" in texts["services/Actions.qml"]
+assert "useFuzzy: CortetsuConfig.useFuzzySchemes" in texts["services/Schemes.qml"]
+assert "CortetsuConfig.useFuzzyApps" in texts["services/Apps.qml"]
+assert "CortetsuConfig.useFuzzyApps" in texts["services/M3Variants.qml"]
 
 # The terminal command (GlobalConfig.general.apps.terminal) is not
 # duplicated: both the calc-in-terminal action and app launching read the

@@ -41,7 +41,7 @@ shell = (repo / "cortetsu/shell.qml").read_text(encoding="utf-8")
 
 assert "pragma Singleton" in config
 assert "XDG_CONFIG_HOME" in config and "/cortetsu/preferences.json" in config
-for marker in ("favouriteApps", "hiddenApps", "hiddenTrayIcons", "terminalCommand", "audioCommand", "playbackCommand", "explorerCommand", "gpuType", "statusIcons", "quickToggles", "transparencyEnabled", "actionPrefix", "specialPrefix", "actions", "enableDangerousActions", "useFuzzyApps", "useFuzzyWallpapers", "useFuzzyActions", "useFuzzySchemes", "useFuzzyVariants", "smartScheme", "wallpaperDirectory", "wallpaperEnabled", "desktopClockEnabled", "desktopClockPosition", "borderThickness", "useTwelveHourClock", "useFahrenheit", "useFahrenheitPerformance", "weatherLocation", "audioIncrement", "brightnessIncrement", "maxVolume", "visualiserBars", "defaultPlayer", "playerAliases", "toastAudioOutputChanged", "toastAudioInputChanged", "toastNowPlaying", "toastFullscreen", "maxToasts", "toastChargingChanged", "toastCapsLockChanged", "toastNumLockChanged", "toastKbLayoutChanged", "toastKbLimit", "toastVpnChanged", "notificationExpire", "suppressNotificationsInFullscreen", "notificationDefaultExpireTimeout", "notificationFullscreenExpireTimeout", "notificationActionOnClick", "notificationFullscreenMode", "notificationClearThreshold", "notificationExpandThreshold", "notificationGroupPreviewNum", "notificationOpenExpanded", "lockRecolourLogo", "lockHideNotifs", "lockEnableFprint", "lockMaxFprintTries", "lockEnableHowdy", "lockMaxHowdyTries", "lockTriggerHowdyOnWake", "dashboardMediaUpdateInterval", "dashboardResourceUpdateInterval", "nexusWallpapersPerRow", "nexusMaxNetworksShown", "nexusNetworkRescanInterval", "toastDndChanged", "toastGameModeChanged", "vimKeybinds", "workspacesShown", "dashboard", "launcher", "sidebar", "utilities", "bar", "activeIndicator", "activeTrail", "maxWindowIcons", "perMonitorWorkspaces", "persistent", "scrollActions", "background", "activeWindow", "popouts", "clock", "function load", "function save", "function setFavouriteApps", "function setHiddenApps", "function setHiddenTrayIcons", "function setWorkspacesShown", "function moveStatusIcon", "function removeStatusIcon", "function setStatusIconEnabled", "function insertStatusIcon", "function setQuickToggleEnabled"):
+for marker in ("favouriteApps", "hiddenApps", "hiddenTrayIcons", "terminalCommand", "audioCommand", "playbackCommand", "explorerCommand", "gpuType", "statusIcons", "quickToggles", "transparencyEnabled", "actionPrefix", "specialPrefix", "actions", "enableDangerousActions", "useFuzzyApps", "useFuzzyWallpapers", "useFuzzyActions", "useFuzzySchemes", "useFuzzyVariants", "smartScheme", "wallpaperDirectory", "wallpaperEnabled", "desktopClockEnabled", "desktopClockPosition", "borderThickness", "useTwelveHourClock", "useFahrenheit", "useFahrenheitPerformance", "weatherLocation", "audioIncrement", "brightnessIncrement", "maxVolume", "visualiserBars", "defaultPlayer", "playerAliases", "toastAudioOutputChanged", "toastAudioInputChanged", "toastNowPlaying", "toastFullscreen", "maxToasts", "toastChargingChanged", "toastCapsLockChanged", "toastNumLockChanged", "toastKbLayoutChanged", "toastKbLimit", "toastVpnChanged", "notificationExpire", "suppressNotificationsInFullscreen", "notificationDefaultExpireTimeout", "notificationFullscreenExpireTimeout", "notificationActionOnClick", "notificationFullscreenMode", "notificationClearThreshold", "notificationExpandThreshold", "notificationGroupPreviewNum", "notificationOpenExpanded", "lockRecolourLogo", "lockHideNotifs", "lockEnableFprint", "lockMaxFprintTries", "lockEnableHowdy", "lockMaxHowdyTries", "lockTriggerHowdyOnWake", "dashboardMediaUpdateInterval", "dashboardResourceUpdateInterval", "nexusWallpapersPerRow", "nexusMaxNetworksShown", "nexusNetworkRescanInterval", "toastDndChanged", "toastGameModeChanged", "vimKeybinds", "workspacesShown", "dashboard", "launcher", "sidebar", "utilities", "bar", "activeIndicator", "activeTrail", "maxWindowIcons", "perMonitorWorkspaces", "scrollActions", "background", "activeWindow", "popouts", "clock", "function load", "function save", "function setFavouriteApps", "function setHiddenApps", "function setHiddenTrayIcons", "function setWorkspacesShown", "function moveStatusIcon", "function removeStatusIcon", "function setStatusIconEnabled", "function insertStatusIcon", "function setQuickToggleEnabled"):
     assert marker in config, marker
 assert "entries: bar.entries" in config
 assert "CortetsuConfig.bar.workspaces.perMonitorWorkspaces" in hub
@@ -52,7 +52,14 @@ assert "watchChanges: false" in config
 assert "patchBottomHubAfterSave" not in config
 assert "onSaved:" in config
 assert "loaded = false;" in config
-assert "bar: { persistent: bar.persistent" in config
+snapshot = config.split("function snapshot()", 1)[1].split("function save()", 1)[0]
+for retired_bar_preference in (
+    "bar.persistent", "scrollActions.workspaces", "scrollActions.brightness",
+    "tray.compact", "activeWindow.compact", "clock.showDate",
+):
+    assert retired_bar_preference not in snapshot, retired_bar_preference
+assert "key in bar && typeof data.bar[key] === \"boolean\"" in config
+assert 'property bool showDate' not in config and 'property bool persistent' not in config
 panel_sources = "\n".join(path.read_text(encoding="utf-8") for path in (repo / "cortetsu/base/modules/nexus/pages/panels").glob("*.qml"))
 workspace_sources = "\n".join(path.read_text(encoding="utf-8") for path in (repo / "cortetsu/base/modules/bar/components/workspaces").glob("*.qml"))
 bar_sources = "\n".join(path.read_text(encoding="utf-8") for path in (repo / "cortetsu/base/modules/bar").rglob("*.qml"))
@@ -320,8 +327,9 @@ assert "CortetsuConfig.actionPrefix" in content_list
 assert actions_service.count("CortetsuConfig.actionPrefix") == 2
 assert schemes_service.count("CortetsuConfig.actionPrefix") == 1
 assert variants_service.count("CortetsuConfig.actionPrefix") == 1
-for svc in (actions_service, schemes_service, variants_service):
-    assert "CortetsuConfig.useFuzzyApps" in svc, "search services must share the unified useFuzzyApps flag"
+assert "CortetsuConfig.useFuzzyActions" in actions_service
+assert "CortetsuConfig.useFuzzySchemes" in schemes_service
+assert "CortetsuConfig.useFuzzyApps" in variants_service
 
 gone_patches = (
     "modules__launcher__AppList.qml.patch",

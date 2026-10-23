@@ -30,6 +30,11 @@ Singleton {
     property var savedIds: []
     readonly property string stateDir: `${Quickshell.env("XDG_STATE_HOME") || `${Quickshell.env("HOME")}/.local/state`}/cortetsu`
 
+    onDndChanged: {
+        if (dndLoaded && CortetsuConfig.toastDndChanged)
+            CortetsuToaster.toast(qsTr("No molestar"), dnd ? qsTr("Activado") : qsTr("Desactivado"), "notifications_paused");
+    }
+
     function hasFullscreen(): bool {
         return CortetsuHypr.monitors.values.some(m => m?.activeWorkspace?.toplevels.values.some(t => t.lastIpcObject.fullscreen > 1));
     }

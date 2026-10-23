@@ -166,6 +166,13 @@ and game-mode toasts (`toastDndChanged`, `toastGameModeChanged`). One toast
 channel, confirmed by reading both call sites; no duplicate toast pipeline
 was introduced.
 
+H-45 connects `toastDndChanged` to DND state changes, `toastNowPlaying` to
+MPRIS track/playback changes, and the keyboard toast preferences to the
+existing `hyprctl -j devices` state watcher. Keyboard state is polled while a
+status popup watches it or any keyboard toast preference is enabled. The
+initial probe and keyboard-device replacement establish a baseline without
+announcing a change.
+
 ## Status
 
 - GlobalConfig/Caelestia.Config in the patch: 0 (already migrated before this

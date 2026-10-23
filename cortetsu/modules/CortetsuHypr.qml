@@ -4,6 +4,9 @@ import QtQuick
 import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Io
+import Qt.labs.folderlistmodel
+import "."
+import "../services"
 import "CortetsuToplevels.js" as CortetsuToplevels
 
 // First-party Hyprland contract. Keep backend access in one adapter so
@@ -30,7 +33,12 @@ Singleton {
     property bool numLock: false
     property string kbLayout: ""
     property string kbLayoutFull: ""
+    property string keyboardName: ""
     property int keyboardWatchers: 0
+    // Layout changes arrive as the `activelayout` event. Lock keys have no event,
+    // so their LEDs are read in-process; hyprctl runs only when one changes.
+    readonly property bool lockToastsEnabled: CortetsuConfig.loaded
+        && (CortetsuConfig.toastCapsLockChanged || CortetsuConfig.toastNumLockChanged)
 
     function watchKeyboard(): void { keyboardWatchers += 1; refreshKeyboard(); }
     function unwatchKeyboard(): void { keyboardWatchers = Math.max(0, keyboardWatchers - 1); }
@@ -50,12 +58,28 @@ Singleton {
             keyboardKnown = false;
             return;
         }
+        const name = String(keyboard.name ?? "");
+        const sameKeyboard = keyboardKnown && keyboardName === name;
+        const previousCapsLock = capsLock;
+        const previousNumLock = numLock;
+        const previousLayout = kbLayoutFull || kbLayout;
         const codes = String(keyboard.layout ?? "").split(",").map(code => code.trim());
         capsLock = keyboard.capsLock === true;
         numLock = keyboard.numLock === true;
         kbLayout = codes[Number(keyboard.active_layout_index ?? 0)] ?? codes[0] ?? "";
         kbLayoutFull = String(keyboard.active_keymap ?? "").trim();
+        keyboardName = name;
         keyboardKnown = true;
+
+        if (!sameKeyboard)
+            return;
+        if (CortetsuConfig.toastCapsLockChanged && previousCapsLock !== capsLock)
+            CortetsuToaster.toast(qsTr("Caps Lock"), capsLock ? qsTr("Activado") : qsTr("Desactivado"), "keyboard_capslock");
+        if (CortetsuConfig.toastNumLockChanged && previousNumLock !== numLock)
+            CortetsuToaster.toast(qsTr("Num Lock"), numLock ? qsTr("Activado") : qsTr("Desactivado"), "keyboard_numlock");
+        const layout = kbLayoutFull || kbLayout;
+        if (CortetsuConfig.toastKbLayoutChanged && previousLayout && previousLayout !== layout)
+            CortetsuToaster.toast(qsTr("Distribución del teclado"), layout, "keyboard");
     }
 
     Component.onCompleted: {
@@ -75,6 +99,52 @@ Singleton {
         repeat: true
         running: root.keyboardWatchers > 0
         onTriggered: root.refreshKeyboard()
+    }
+
+    FolderListModel {
+        id: leds
+        folder: `file://${Quickshell.env("CORTETSU_SYSFS_ROOT") || "/sys"}/class/leds`
+        showFiles: false
+        // nameFilters do not apply to directories.
+        function first(suffix: string): string {
+            for (let i = 0; i < count; ++i)
+                if (get(i, "fileName").endsWith(suffix))
+                    return `${get(i, "filePath")}/brightness`;
+            return "";
+        }
+    }
+
+    // One reader per LED: reusing a FileView across paths returns stale text.
+    // The first LED of each kind is read; the compositor mirrors lock state
+    // to every keyboard, and hyprctl then reports the main one.
+    FileView { id: capsLed; property string asked: ""; path: leds.count > 0 ? leds.first("::capslock") : ""; blockLoading: true; printErrors: false }
+    FileView { id: numLed; property string asked: ""; path: leds.count > 0 ? leds.first("::numlock") : ""; blockLoading: true; printErrors: false }
+
+    Timer {
+        interval: 1000
+        repeat: true
+        running: root.lockToastsEnabled && (capsLed.path !== "" || numLed.path !== "")
+        onTriggered: {
+            // Ask the compositor only when a LED disagrees with the known state,
+            // so no baseline is needed and a key without a LED is ignored.
+            // A persistent disagreement (another keyboard's LED) asks once per
+            // LED value, never every second.
+            const differs = (led, known) => {
+                if (led.path === "")
+                    return false;
+                led.reload();
+                const text = led.text().trim();
+                const asked = led.asked === text;
+                led.asked = text;
+                return text !== "" && !asked && (text !== "0") !== known;
+            };
+            if (!root.keyboardKnown)
+                return;
+            const capsDiffers = differs(capsLed, root.capsLock);
+            const numDiffers = differs(numLed, root.numLock);
+            if (capsDiffers || numDiffers)
+                root.refreshKeyboard();
+        }
     }
 
     // Quickshell never removes closed toplevels, and late events recreate them,

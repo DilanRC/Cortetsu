@@ -15,7 +15,7 @@ Searcher {
     }
 
     list: variants.instances
-    useFuzzy: CortetsuConfig.useFuzzyApps
+    useFuzzy: CortetsuConfig.useFuzzyActions
 
     Variants {
         id: variants

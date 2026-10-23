@@ -110,6 +110,8 @@ fn get<'a>(v: &'a Value, path: &str) -> &'a Value {
 pub fn preference_payload(legacy: &Value) -> Result<Value> {
     let mut out: Value =
         serde_json::from_str(include_str!("../templates/preferences-defaults.json"))?;
+    // Only preferences with a live Cortetsu owner are copied; retired bar
+    // fields remain readable in the source file but are intentionally dropped.
     let mapping = [
         ("favouriteApps", "launcher.favouriteApps"),
         ("hiddenApps", "launcher.hiddenApps"),

@@ -24,12 +24,6 @@ PageBase {
         }
 
         ToggleRow {
-            text: qsTr("Show date")
-            checked: CortetsuConfig.bar.clock.showDate
-            onToggled: CortetsuConfig.bar.clock.showDate = checked
-        }
-
-        ToggleRow {
             last: true
             text: qsTr("Show icon")
             checked: CortetsuConfig.bar.clock.showIcon

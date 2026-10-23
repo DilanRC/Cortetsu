@@ -55,6 +55,48 @@ ColumnLayout {
             checked: CortetsuConfig.toastGameModeChanged
             onToggled: value => { CortetsuConfig.toastGameModeChanged = value; CortetsuConfig.save(); }
         }
+
+        SettingToggleRow {
+            title: qsTr("Avisar de Bloq Mayús")
+            detail: qsTr("Un aviso breve al activar o desactivar Bloq Mayús")
+            checked: CortetsuConfig.toastCapsLockChanged
+            onToggled: value => { CortetsuConfig.toastCapsLockChanged = value; CortetsuConfig.save(); }
+        }
+
+        SettingToggleRow {
+            title: qsTr("Avisar de Bloq Num")
+            detail: qsTr("Un aviso breve al activar o desactivar Bloq Num")
+            checked: CortetsuConfig.toastNumLockChanged
+            onToggled: value => { CortetsuConfig.toastNumLockChanged = value; CortetsuConfig.save(); }
+        }
+
+        SettingToggleRow {
+            title: qsTr("Avisar del cambio de distribución")
+            detail: qsTr("Un aviso breve al cambiar la distribución del teclado")
+            checked: CortetsuConfig.toastKbLayoutChanged
+            onToggled: value => { CortetsuConfig.toastKbLayoutChanged = value; CortetsuConfig.save(); }
+        }
+
+        SettingToggleRow {
+            title: qsTr("Avisar de No molestar")
+            detail: qsTr("Un aviso breve al activar o desactivar No molestar")
+            checked: CortetsuConfig.toastDndChanged
+            onToggled: value => { CortetsuConfig.toastDndChanged = value; CortetsuConfig.save(); }
+        }
+
+        SettingToggleRow {
+            title: qsTr("Avisar de la pista en reproducción")
+            detail: qsTr("Un aviso al cambiar de pista o de reproductor")
+            checked: CortetsuConfig.toastNowPlaying
+            onToggled: value => { CortetsuConfig.toastNowPlaying = value; CortetsuConfig.save(); }
+        }
+
+        SettingToggleRow {
+            title: qsTr("Abrir avisos expandidos")
+            detail: qsTr("Mostrar el cuerpo completo de cada aviso al llegar")
+            checked: CortetsuConfig.notificationOpenExpanded
+            onToggled: value => { CortetsuConfig.notificationOpenExpanded = value; CortetsuConfig.save(); }
+        }
     }
 
     SettingsGroup {

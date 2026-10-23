@@ -101,9 +101,11 @@ Nexus shows icons only, with the destination and its state in a tooltip.
 ## What is not shown
 
 A preference appears in Settings only if something in the running shell reads
-it. Eighteen stored preferences have no reader today (see H-45 in the plan) and
-are not drawn. `test-cortetsu-settings.py` fails if a control is wired to a
-preference with no reader.
+it. H-45's ten live preferences now affect the launcher, notifications or
+toasts, but Settings still does not draw controls for them. Six preferences
+that belonged only to the retired top bar were removed from `CortetsuConfig`;
+old files load safely and those keys are ignored. `test-cortetsu-settings.py`
+fails if a control is wired to a preference with no reader.
 
 ## Checks
 

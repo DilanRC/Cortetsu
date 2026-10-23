@@ -8,6 +8,9 @@ bottom_hub = (repo / "cortetsu/modules/BottomHub.qml").read_text(encoding="utf-8
 pomodoro = (repo / "cortetsu/modules/pomodoro/Pomodoro.qml").read_text(encoding="utf-8")
 panels = (repo / "cortetsu/modules/drawers/Panels.qml").read_text(encoding="utf-8")
 hub = (repo / "cortetsu/modules/BottomHub.qml").read_text(encoding="utf-8")
+hypr = (repo / "cortetsu/modules/CortetsuHypr.qml").read_text(encoding="utf-8")
+notifs = (repo / "cortetsu/services/Notifs.qml").read_text(encoding="utf-8")
+players = (repo / "cortetsu/services/Players.qml").read_text(encoding="utf-8")
 
 for source in (toaster, view, item, panels, hub):
     for legacy in ("Caelestia", "GlobalConfig", "qs.services", "qs.components"):
@@ -61,6 +64,16 @@ assert "hubRoot.shown" in bottom_hub and "WlrKeyboardFocus.None" in bottom_hub
 assert "function onFocusRequested(id: int)" in bottom_hub
 assert "Qt.callLater(() => toasts.focusToast(id))" in bottom_hub
 assert "function requestFocusNewest(): void" in toaster
+for preference in ("toastCapsLockChanged", "toastNumLockChanged", "toastKbLayoutChanged"):
+    assert f"CortetsuConfig.{preference}" in hypr
+assert "CortetsuToaster.toast(qsTr(\"Caps Lock\")" in hypr
+assert "CortetsuToaster.toast(qsTr(\"Num Lock\")" in hypr
+assert "CortetsuToaster.toast(qsTr(\"Distribución del teclado\")" in hypr
+assert "running: root.keyboardWatchers > 0\n" in hypr and "led.reload()" in hypr  # LEDs in-process, no idle hyprctl
+assert "CortetsuConfig.toastDndChanged" in notifs
+assert "CortetsuToaster.toast(qsTr(\"No molestar\")" in notifs
+assert "CortetsuConfig.toastNowPlaying" in players
+assert "CortetsuToaster.toast(qsTr(\"Reproduciendo ahora\")" in players
 assert 'name: "focusToast"' in (repo / "cortetsu/modules/Shortcuts.qml").read_text(encoding="utf-8")
 keybinds = (repo / "dotfiles/home/.config/hypr/hyprland/keybinds.lua").read_text(encoding="utf-8")
 variables = (repo / "dotfiles/home/.config/hypr/variables.lua").read_text(encoding="utf-8")

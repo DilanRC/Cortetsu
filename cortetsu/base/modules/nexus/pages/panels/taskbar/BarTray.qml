@@ -30,12 +30,6 @@ PageBase {
         }
 
         ToggleRow {
-            text: qsTr("Compact")
-            checked: CortetsuConfig.bar.tray.compact
-            onToggled: CortetsuConfig.bar.tray.compact = checked
-        }
-
-        ToggleRow {
             last: true
             text: qsTr("Popout on hover")
             subtext: qsTr("Show the tray menu popout when hovering")

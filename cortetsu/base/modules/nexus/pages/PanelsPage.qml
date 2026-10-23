@@ -24,7 +24,7 @@ PageBase {
         NavRow {
             icon: "dock_to_bottom"
             text: qsTr("Taskbar")
-            subtext: CortetsuConfig.bar.persistent ? qsTr("Always visible") : CortetsuConfig.bar.showOnHover ? qsTr("Reveal on hover") : qsTr("Reveal on drag")
+            subtext: CortetsuConfig.bar.showOnHover ? qsTr("Reveal on hover") : qsTr("Reveal on drag")
             onClicked: root.nState.openSubPage(2)
         }
 

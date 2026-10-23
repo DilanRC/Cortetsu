@@ -17,6 +17,14 @@ sources = {path: path.read_text(encoding="utf-8") for path in SETTINGS.rglob("*.
 content = sources[SETTINGS / "Content.qml"]
 controller = sources[SETTINGS / "SettingsController.qml"]
 host = (SHELL / "modules/SettingsHost.qml").read_text(encoding="utf-8")
+legacy_panels = SHELL / "base/modules/nexus/pages"
+legacy_panel_sources = "\n".join(path.read_text(encoding="utf-8") for path in legacy_panels.rglob("*.qml"))
+retired_bar_preferences = (
+    "bar.persistent", "bar.tray.compact", "bar.activeWindow.compact",
+    "bar.scrollActions.brightness", "bar.scrollActions.workspaces", "bar.clock.showDate",
+)
+assert not [key for key in retired_bar_preferences if f"CortetsuConfig.{key}" in legacy_panel_sources], \
+    "Retired top-bar preferences must not have Settings controls"
 
 # Every destination of the Nexus opens a page, and no page is unreachable.
 categories = re.findall(r'\{ id: "([a-z]+)", group:', controller)

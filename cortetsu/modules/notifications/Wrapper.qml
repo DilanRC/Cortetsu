@@ -1,4 +1,5 @@
 import QtQuick
+import ".."
 import "../../theme"
 import "../../services"
 
@@ -46,7 +47,7 @@ Item {
                 width: list.width
                 modelData: Notifs.popups()[index]
                 props: ({})
-                expanded: false
+                expanded: CortetsuConfig.notificationOpenExpanded
                 screenState: root.screenState
             }
         }

@@ -96,7 +96,7 @@ no son críticas.
   indica al terminar. Por diseño: `install` no recarga el shell.
 - Transición de Pomodoro 14 s después de reanudar (suspensión del 22): la sesión de usuario se detuvo; la evidencia
   detallada se perdió con `/tmp`; no se repitió en la suspensión del 23 (no instrumentada).
-- Preferencias aún sin efecto (H-45): las de barra, lanzador y toasts de teclado.
+- H-45: las opciones de barra retiradas ya no forman parte del contrato; los límites del lanzador y los avisos de teclado ahora tienen efecto en sus superficies vivas.
 - Falta baseline de memoria con un solo monitor.
 
 ## 7. Rollback

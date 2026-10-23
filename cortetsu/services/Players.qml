@@ -11,6 +11,32 @@ Singleton {
     readonly property list<MprisPlayer> list: Mpris.players.values
     readonly property MprisPlayer active: manualActive ?? list.find(p => getIdentity(p) === CortetsuConfig.defaultPlayer) ?? list[0] ?? null
     property MprisPlayer manualActive: null
+    property bool activePlayerKnown: false
+    property string lastAnnouncedTrack: ""
+
+    function announceNowPlaying(player: MprisPlayer): void {
+        if (!player || player.playbackState !== MprisPlaybackState.Playing)
+            return;
+        const title = player.trackTitle?.trim() ?? "";
+        const key = `${player.identity}\u001f${title}`;
+        if (!title || key === lastAnnouncedTrack)
+            return;
+        lastAnnouncedTrack = key;
+        if (CortetsuConfig.toastNowPlaying)
+            CortetsuToaster.toast(qsTr("Reproduciendo ahora"), title, "music_note");
+    }
+
+    readonly property Connections trackAnnouncements: Connections {
+        target: root.active
+        function onTrackTitleChanged(): void { root.announceNowPlaying(target); }
+        function onPlaybackStateChanged(): void { root.announceNowPlaying(target); }
+    }
+
+    onActiveChanged: {
+        if (activePlayerKnown)
+            announceNowPlaying(active);
+        activePlayerKnown = true;
+    }
 
     function getIdentity(player: MprisPlayer): string {
         if (!player) return "";

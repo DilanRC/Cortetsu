@@ -18,12 +18,6 @@ PageBase {
 
         ToggleRow {
             first: true
-            text: qsTr("Compact")
-            checked: CortetsuConfig.bar.activeWindow.compact
-            onToggled: CortetsuConfig.bar.activeWindow.compact = checked
-        }
-
-        ToggleRow {
             text: qsTr("Inverted")
             checked: CortetsuConfig.bar.activeWindow.inverted
             onToggled: CortetsuConfig.bar.activeWindow.inverted = checked
