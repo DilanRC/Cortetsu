@@ -1,6 +1,7 @@
 import QtQuick
 import QtTest
 import "../../../components"
+import "../../../modules/settings/controls"
 
 // The same native controls used throughout Cortetsu must be reachable by
 // keyboard and by an assistive client's semantic actions.
@@ -48,6 +49,41 @@ TestCase {
     Component {
         id: actionFixture
         CortetsuActionRow { index: 1; title: "Abrir monitor"; subtitle: "Muestra rendimiento" }
+    }
+
+    Component {
+        id: settingsSwitchFixture
+        SettingToggleRow {
+            width: 380
+            title: "No molestar"
+            checked: true
+            property int requests: 0
+            onToggled: requests++
+        }
+    }
+
+    function test_settings_switch_has_one_semantic_owner() {
+        const row = createTemporaryObject(settingsSwitchFixture, testCase);
+        compare(row.Accessible.role, Accessible.Switch);
+        compare(row.Accessible.name, "No molestar");
+        verify(row.Accessible.checked);
+        const knob = findChild(row, "switch");
+        verify(knob !== null);
+        verify(knob.Accessible.ignored);
+        row.Accessible.toggleAction();
+        compare(row.requests, 1);
+        compare(row.checked, true);
+        row.disabled = true;
+        row.Accessible.pressAction();
+        compare(row.requests, 1);
+    }
+
+    function test_accessible_focus_follows_keyboard_and_disabled_state() {
+        const button = createTemporaryObject(buttonFixture, testCase);
+        button.forceActiveFocus();
+        tryCompare(button.Accessible, "focused", true);
+        button.disabled = true;
+        tryCompare(button.Accessible, "focused", false);
     }
 
     function test_button_exposes_and_executes_its_action() {
