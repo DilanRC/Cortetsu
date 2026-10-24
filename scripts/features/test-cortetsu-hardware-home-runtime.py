@@ -120,6 +120,21 @@ ShellRoot {
             screenState: screenState
             hardwareVisible: retained.hardware
         }
+        // The same center on a second screen where it is closed.
+        Content {
+            id: hidden
+            visible: false
+            width: 1280; height: 900
+            screen: null
+            screenState: screenState
+            hardwareVisible: false
+        }
+    }
+    function typed(item, type) {
+        if (!item) return null;
+        if (String(item).startsWith(type)) return item;
+        for (const child of item.children) { const hit = typed(child, type); if (hit) return hit; }
+        return null;
     }
 
     // Each step is [condition, action]. The action runs once the condition
@@ -265,6 +280,10 @@ ShellRoot {
             verify(find(content, "systemCopy").label === "Copiado", "the button confirms the copy");
             content.currentPage = 3;
             verify(CortetsuShellState.hardwarePage === 3, "a tab chosen by hand is the seat's page");
+            content.currentPage = 8;
+            verify(hidden.currentPage === 8, "the closed copy follows the seat's page");
+            verify(typed(content, "StartupPage") !== null, "the visible copy builds Arranque");
+            verify(typed(hidden, "StartupPage") === null, "the closed copy builds no page, so Arranque scans once");
         }]
     ]
 
@@ -404,7 +423,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-hardware-home-") as temporary:
     assert "HARDWARE_RUNTIME_PASS 8" in output, output
 
     output, calls = run(folder, "system", "ok")
-    assert "HARDWARE_RUNTIME_PASS 9" in output, output
+    assert "HARDWARE_RUNTIME_PASS 12" in output, output
 
     output, calls = run(folder, "missing", "ok", with_probe=False)
     assert "HARDWARE_RUNTIME_PASS 1" in output, output

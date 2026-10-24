@@ -261,6 +261,11 @@ FocusScope {
 
             Loader {
                 id: pageLoader
+                // Only the screen showing the center has a page. The page is
+                // shared by the seat, so a hidden copy would otherwise build
+                // it too, and some pages start work when created (Arranque
+                // scans on completion).
+                active: root.hardwareVisible
                 width: parent.width
                 height: parent.height - header.height - tabs.height - CortetsuDesign.spacingStandard * 2
                 sourceComponent: root.currentPage === 0
