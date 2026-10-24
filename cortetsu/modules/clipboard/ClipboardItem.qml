@@ -127,7 +127,6 @@ Rectangle {
         NumberAnimation {
             duration: CortetsuDesign.motionFastMs
             easing.type: Easing.OutCubic
-            easing.type: Easing.OutCubic
         }
     }
 

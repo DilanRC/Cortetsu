@@ -40,7 +40,7 @@ def main() -> None:
         for name in ('bash', 'sh', 'readlink', 'dirname', 'mkdir', 'mktemp', 'rm', 'chmod',
                      'cp', 'flock', 'git', 'date', 'find', 'sort', 'install', 'mv', 'tr',
                      'awk', 'sed', 'timeout', 'grep', 'tar', 'gzip', 'head', 'ln', 'cut',
-                     'stat', 'uname', 'sleep'):
+                     'stat', 'uname', 'sleep', 'cat', 'env', 'tail', 'weston', 'qs'):
             path = shutil.which(name)
             assert path, f'missing installation dependency: {name}'
             (commands / name).symlink_to(path)

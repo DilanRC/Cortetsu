@@ -152,6 +152,12 @@ do
     require_file "$STAGING/$required"
 done
 
+# The suites above only reach the components they import. Compile the whole
+# shell in Quickshell itself so a generation that would fail to load is never
+# sealed or promoted.
+printf '==> Quickshell compile of the complete shell\n'
+"$REPO/cortetsu/bin/check-qml-compile.sh" "$STAGING" || fail "la generación no compila en Quickshell"
+
 repo_revision="$(git -C "$REPO" rev-parse HEAD 2>/dev/null || printf unknown)"
 printf '%s\n' "$STAMP" > "$STAGING/BUILD_ID"
 "$PLATFORM" build-metadata "$STAGING/BUILD.json" "$STAMP" "$repo_revision"

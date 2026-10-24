@@ -380,6 +380,7 @@ test_cmd() {
     run_quickshell_fixture "cortetsu/StartupPageFixture.qml" "STARTUP_PAGE_PASS"
     run_quickshell_fixture "cortetsu/ExclusionsFixture.qml" "EXCLUSIONS_PASS"
     run_quickshell_fixture "cortetsu/ConnectivityWifiFixture.qml" "WIFI_OBSERVED_PASS"
+    bash "$ROOT/cortetsu/tests/test-qml-compile-check.sh"
     printf '\nCortetsu native regressions passed.\n'
 }
 
