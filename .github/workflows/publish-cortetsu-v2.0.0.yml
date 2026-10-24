@@ -1,0 +1,72 @@
+name: Publish Cortetsu 2.0.0
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/publish-cortetsu-v2.0.0.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: cortetsu-v2.0.0-release
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.repository == 'DilanRC/Cortetsu'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out exact release commit
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Verify release notes
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test -s docs/releases/v2.0.0.md
+          grep -q 'Cortetsu 2.0.0' docs/releases/v2.0.0.md
+
+      - name: Publish stable v2.0.0
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if gh release view v2.0.0 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release already exists; refusing to replace it."
+            exit 1
+          fi
+          if gh api "/repos/$GITHUB_REPOSITORY/git/ref/tags/v2.0.0" >/dev/null 2>&1; then
+            echo "Tag already exists; refusing to move or overwrite it."
+            exit 1
+          fi
+          gh release create v2.0.0 \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title 'Cortetsu 2.0.0 — Runtime nativo' \
+            --notes-file docs/releases/v2.0.0.md
+
+      - name: Verify published release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          draft=$(gh api "/repos/$GITHUB_REPOSITORY/releases/tags/v2.0.0" --jq '.draft')
+          prerelease=$(gh api "/repos/$GITHUB_REPOSITORY/releases/tags/v2.0.0" --jq '.prerelease')
+          test "$draft" = false
+          test "$prerelease" = false
+          object_sha=$(gh api "/repos/$GITHUB_REPOSITORY/git/ref/tags/v2.0.0" --jq '.object.sha')
+          object_type=$(gh api "/repos/$GITHUB_REPOSITORY/git/ref/tags/v2.0.0" --jq '.object.type')
+          if [ "$object_type" = tag ]; then
+            object_sha=$(gh api "/repos/$GITHUB_REPOSITORY/git/tags/$object_sha" --jq '.object.sha')
+          fi
+          test "$object_sha" = "$GITHUB_SHA"
+          gh release view v2.0.0 --repo "$GITHUB_REPOSITORY" --json url,tagName,isDraft,isPrerelease
