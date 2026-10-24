@@ -113,3 +113,10 @@ no son críticas.
 
 `cortetsu rollback` vuelve a `113f7a4` (probado). El checkpoint `b586c90` está fijado; su restauración se describe
 en `README.md` (GC y pins).
+
+## 8. Cierre de pendientes (2026-10-23, noche)
+
+Ver [`stabilization/CLOSURE-2026-10-23.md`](stabilization/CLOSURE-2026-10-23.md): el 1,2 % bimonitor no se reproduce
+(B/A en reposo: `qs` ≈ 0,15–0,2 %, Hyprland ≤ 0,09 %); el coste del HDMI es la dGPU en D0 (4–6 W) y ≈ 11 MiB por
+ventana de capa. Corregidos: ventanas `border-exclusion` sin efecto, bucle de binding de Wi-Fi y reglas de capa
+`caelestia-*`. Play/Pause PASS; Fn+Esc emite `KEY_FN_ESC` sin acción asignada; micrófono NOT_APPLICABLE.
