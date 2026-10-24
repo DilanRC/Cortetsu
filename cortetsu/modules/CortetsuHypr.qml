@@ -18,6 +18,7 @@ Singleton {
     readonly property var workspaces: Hyprland.workspaces
     readonly property var monitors: Hyprland.monitors
     readonly property bool usingLua: Hyprland.usingLua
+    readonly property var focusedToplevel: Hyprland.activeToplevel
     readonly property var activeToplevel: isTaskbarToplevel(Hyprland.activeToplevel) ? Hyprland.activeToplevel : null
     readonly property var focusedWorkspace: Hyprland.focusedWorkspace
     readonly property var focusedMonitor: Hyprland.focusedMonitor
@@ -154,10 +155,35 @@ Singleton {
     // so the compositor's own list decides what is open. Null until the first
     // answer: nothing hidden. A failed probe keeps the last good list.
     property var liveAddresses: null
+    property int clientsQueryCount: 0
+    property int clientsQueryTotalMs: 0
+    property int clientsQueryMaxMs: 0
+    property real clientsQueryStartedAt: 0
+    property int eventToplevelRefreshCalls: 0
+    property int windowTitleRefreshCalls: 0
 
     function refreshClients(): void {
-        if (!clientsProbe.running)
+        if (!clientsProbe.running) {
+            clientsQueryCount += 1;
+            clientsQueryStartedAt = Date.now();
             clientsProbe.running = true;
+        }
+    }
+
+    function finishClientsQuery(): void {
+        if (clientsQueryStartedAt <= 0)
+            return;
+        const elapsed = Math.max(0, Date.now() - clientsQueryStartedAt);
+        clientsQueryTotalMs += elapsed;
+        clientsQueryMaxMs = Math.max(clientsQueryMaxMs, elapsed);
+        clientsQueryStartedAt = 0;
+    }
+
+    function refreshToplevelsFromEvent(name: string): void {
+        eventToplevelRefreshCalls += 1;
+        if (name === "windowtitle")
+            windowTitleRefreshCalls += 1;
+        Hyprland.refreshToplevels();
     }
 
     function acceptClients(raw: string): void {
@@ -169,6 +195,7 @@ Singleton {
         id: clientsProbe
         command: ["hyprctl", "-j", "clients"]
         stdout: StdioCollector { onStreamFinished: root.acceptClients(text) }
+        onExited: root.finishClientsQuery()
     }
 
     // One probe per burst of window events. A probe already in flight may
@@ -236,14 +263,14 @@ Singleton {
                 Hyprland.refreshWorkspaces();
                 Hyprland.refreshMonitors();
             } else if (["openwindow", "closewindow", "movewindow"].includes(name)) {
-                Hyprland.refreshToplevels();
+                root.refreshToplevelsFromEvent(name);
                 Hyprland.refreshWorkspaces();
             } else if (name.includes("mon")) {
                 Hyprland.refreshMonitors();
             } else if (name.includes("workspace")) {
                 Hyprland.refreshWorkspaces();
             } else if (name.includes("window") || name.includes("group") || ["pin", "fullscreen", "changefloatingmode", "minimize"].includes(name)) {
-                Hyprland.refreshToplevels();
+                root.refreshToplevelsFromEvent(name);
             }
         }
     }

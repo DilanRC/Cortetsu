@@ -1,20 +1,22 @@
-# ADR-007: Socket de coordinación `cortetsu.ipc/1`
+# ADR-007: CLI por operación y coordinador `cortetsu.ipc`
 
 ## Estado
 
-**PROPOSED.** No hay evidencia suficiente para aceptar ni rechazar un coordinador residente. Este ADR fija las opciones, los
-hechos verificados y las pruebas que deciden. No se implementa nada (D-01 de `docs/migration/F0/RISKS.md`).
+**IMPLEMENTED — opción D, con coordinador por sesión solo para observación y políticas consentidas.** La CLI por operación sigue
+siendo el camino normal; el coordinador Go no ejecuta aplicaciones ni recibe órdenes arbitrarias. Las pruebas físicas de dos
+sesiones y el coste en reposo siguen pendientes, así que este estado no afirma que esas validaciones estén completas.
 
-Fecha: 2026-10-20. Base: `main` tras el baseline F0. Plan de referencia: `CORTETSU_MIGRACION_TOTAL_GO_RUST_2026-10-17.md`
-§5.1–5.3, §8.5 y §10 (fuera del repo).
+Fecha de decisión: 2026-10-24. Código: `cortetsu/protocol/daemon`, `cortetsu/protocol/ipcv1`,
+`cortetsu/protocol/observehypr` y `cortetsu/modules/CortetsuPolicyBridge.qml`. CLI: `scripts/cortetsu` y helpers nativos.
+Contratos de helpers: [`docs/migration/F0/CONTRACTS.md`](../migration/F0/CONTRACTS.md).
 
 ## Contexto
 
-Hechos verificados el 2026-10-20 en el equipo de referencia:
+Hechos históricos verificados el 2026-10-20 en el equipo de referencia. H1 quedó superado por la implementación descrita abajo:
 
 | # | Hecho | Fuente |
 |---|---|---|
-| H1 | Cortetsu no tiene socket propio. El IPC es `qs ipc` hacia el shell y procesos one-shot lanzados desde QML (Python y un binario Rust) | F0 `CONTRACTS.md`, `INVENTORY.md` |
+| H1 | En ese baseline, Cortetsu no tenía socket propio. El IPC era `qs ipc` hacia el shell y procesos one-shot lanzados desde QML | F0 `CONTRACTS.md`, `INVENTORY.md` |
 | H2 | Coste de un helper one-shot hoy: Rust `cortetsu-keybinds list` P50 2,0 ms; Python entre 27 ms (`gamemode status`) y 196 ms (`cortetsu status`); suelo del intérprete 11 ms | F0 `BASELINE.md` §2 |
 | H3 | Las automatizaciones que necesitan estar vivas ya son servicios residentes **por usuario**: `cortetsu-power-auto` (3,8 MiB PSS, 0,06 % CPU) y `cortetsu-wallpaper-color` (6,6 MiB, 0,28 %), ambos `Type=simple`, `Restart=on-failure` | F0 `BASELINE.md`; unidades en `~/.config/systemd/user/` |
 | H4 | `systemctl --user show-environment` contiene **un solo** `HYPRLAND_INSTANCE_SIGNATURE`, `WAYLAND_DISPLAY` y `XDG_RUNTIME_DIR`, y no contiene `XDG_SESSION_ID`. Un servicio de usuario ve la sesión que importó su entorno la última vez | `systemctl --user show-environment` |
@@ -83,25 +85,33 @@ lanzamiento, debe definirse en F1 como esquema de `cortetsu-launch-persistent` (
 uso incorrecto) y **ninguna opción de socket debe aceptar argv arbitrario**. El lanzamiento queda fuera del socket en las tres
 opciones.
 
-## Decisión provisional
+## Decisión
 
-Ninguna opción queda aprobada. Inclinación provisional, condicionada a P1–P4: **D**, con C como valor por defecto y un coordinador
-solo si P3 demuestra que hace falta. A queda descartada mientras H4 no tenga solución probada, porque mezcla sesiones por
-construcción. El lenguaje del coordinador (Go, Rust u otro) no es un criterio de este ADR.
+**D**, con C como camino por defecto y B limitado a observación/políticas por sesión. El coordinador usa un socket Unix privado
+por sesión, valida la firma de Hyprland, publica metadatos `cortetsu.ipc` y no acepta `argv` para lanzar procesos. El listener
+`ipcv1` ofrece solo las operaciones del contrato y aplica límites de peer, frame y conexión. Los servicios con estado por usuario
+siguen fuera del coordinador.
 
-## Pruebas necesarias para decidir
+La CLI `cortetsu shell inspect` devuelve un snapshot de solo lectura con `schema_version: 1`; superficies y foco se calculan en
+el shell de Quickshell. El inspector no crea un segundo canal de control.
 
-| ID | Prueba | Decide | Criterio |
-|---|---|---|---|
-| P1 | EVT-02 real: dos sesiones Hyprland del mismo usuario (TTY + sesión principal, o dos asientos), con `cortetsu-shell` en ambas. Registrar qué instancia ven `qs ipc`, `power-auto` y `wallpaper-color`, y qué `HYPRLAND_INSTANCE_SIGNATURE` queda en `show-environment` tras cada login | A frente a B, y si el estado por usuario ya se mezcla hoy | ninguna acción de una sesión cambia la otra; si hoy ya se mezclan, es un defecto previo a cualquier socket |
-| P2 | Prototipo desechable de `SocketServer` (Quickshell) o de un listener mínimo con `SO_PEERCRED`, fuera del árbol de producto, en el arnés con runtime corto: rechazo de otro UID, límite de 1 MiB, cliente lento sin bloquear eventos y reconexión tras `kill -9` | viabilidad de A/B con Quickshell 0.3.2 | las 4 condiciones en PASS, con mutantes |
-| P3 | Inventario de las políticas entre dominios que pide F1 (HDMI + energía + GameMode): cuáles necesitan serializar decisiones de dos fuentes de eventos y cuáles se resuelven en un solo servicio existente | C frente a coordinador | si ninguna necesita dos fuentes a la vez, C basta |
-| P4 | Coste residente de un coordinador en reposo frente a H3, medido con `docs/migration/F0/tools/bench_resident.py` (4 × 120 s) | si un residente nuevo cabe en el presupuesto | PSS y CPU en reposo menores que la suma de lo que sustituye (plan §10) |
+**R-11:** Quickshell 0.3.2 mantiene una sola conexión a `.socket2.sock` y no la reabre al desconectarse. El observador Go de
+`observehypr` sí reconecta con backoff acotado y exige un snapshot nuevo por época, pero ese snapshot no repara el estado interno
+de `Quickshell.Hyprland`. `inspect` declara que el estado de conexión de Quickshell no se expone a QML y que el cliente no tiene
+reconexión; no presenta al observador Go como failover del modelo QML. Corregir Quickshell queda fuera de este repo y debe
+validarse en upstream.
 
-Con P1–P4 en evidencia, este ADR pasa a `ACCEPTED` o `REJECTED` en un cambio propio.
+## Validación pendiente
 
-## Consecuencias mientras siga en PROPOSED
+| Estado | Prueba | Evidencia requerida |
+|---|---|---|
+| PENDIENTE | P1: dos sesiones Hyprland simultáneas del mismo usuario | Confirmar que cada coordinador y cada shell observan solo su sesión |
+| CÓDIGO + UNIT TESTS | P2: listener y reconexión | Pruebas Go de aislamiento, límites y `resync_required`; no sustituyen la prueba física de dos sesiones |
+| IMPLEMENTADO | P3: políticas entre dominios | El coordinador consume snapshots de Hyprland y D-Bus; las reglas requieren consentimiento |
+| PENDIENTE | P4: coste residente | Medición PSS/CPU en reposo frente a los servicios que reemplaza |
 
-- F1 puede escribir `contracts/*.json` de salidas de CLI con campo `schema`, que sirven en las tres opciones.
-- Ningún dominio que dependa del socket pasa a F2 o posterior.
+## Consecuencias operativas
+
+- El shell sigue usando `qs ipc` para acciones interactivas; el coordinador no transporta órdenes de ventanas ni `argv` arbitrario.
+- Cada observador recibe la firma de sesión explícita y vuelve a leer el dueño desde el socket de comandos después de reconectar.
 - Toda prueba nueva que abra sockets usa un `XDG_RUNTIME_DIR` corto propio (lección de H-01).

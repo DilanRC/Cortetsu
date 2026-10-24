@@ -142,6 +142,8 @@ for required in \
     services/Lyrics.qml \
     services/ShellState.qml \
     modules/CortetsuStateLayer.qml \
+    modules/CortetsuShellInspect.js \
+    modules/ShellLifecycle.qml \
     modules/CortetsuMask.qml \
     modules/areapicker/AreaPicker.qml \
     modules/areapicker/Picker.qml \

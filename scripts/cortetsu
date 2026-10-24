@@ -60,7 +60,7 @@ Usage:
   cortetsu system <action>         promote|verify|status|rollback|recover|gc
   cortetsu dotfiles <action>       plan|apply|verify|status|rollback|recover|gc
   cortetsu theme <action>          check|compile|adopt native desktop theme
-  cortetsu shell <action>          status|adopt|reconcile|reload|restart|disable|logs|ipc
+  cortetsu shell <action>          status|inspect [--path RUNTIME]|adopt|reconcile|reload|restart|disable|logs|ipc
   cortetsu legacy-processes <action> scan|migrate
   cortetsu config migrate         Import functional preferences to ~/.config/cortetsu
   cortetsu screenshot [-r] [-f]   Open the Cortetsu regional screenshot picker
@@ -178,6 +178,27 @@ shell_ipc() {
     qs ipc --pid "$pid" call "$target" "$method" "$@"
 }
 
+shell_inspect() {
+    local config="" pid
+    if [[ "${1:-}" == "--path" ]]; then
+        [[ $# -eq 2 && -n "$2" ]] || fail "uso: cortetsu shell inspect [--path RUNTIME]"
+        config="$2"
+    elif [[ $# -ne 0 ]]; then
+        fail "uso: cortetsu shell inspect [--path RUNTIME]"
+    fi
+    if [[ -n "$config" ]]; then
+        qs ipc --path "$config" call cortetsu-shell inspect
+        return
+    fi
+    pid="$(systemctl --user show "$SHELL_UNIT" -p MainPID --value 2>/dev/null || true)"
+    if [[ "$pid" =~ ^[1-9][0-9]*$ ]] && systemctl --user is-active --quiet "$SHELL_UNIT"; then
+        qs ipc --path "$CURRENT" call cortetsu-shell inspect
+        return
+    fi
+    require_repo
+    qs ipc --path "$ROOT/cortetsu" call cortetsu-shell inspect
+}
+
 # Quickshell processes of this user started with `-p` inside RUNTIME_ROOT and
 # outside the shell unit. Other Quickshell configs are never matched.
 unsupervised_cortetsu_qs_pids() {
@@ -241,6 +262,9 @@ shell_cmd() {
         reload)
             shell_reload
             ;;
+        inspect)
+            shell_inspect "$@"
+            ;;
         ipc)
             shell_ipc "$@"
             ;;
@@ -286,6 +310,7 @@ status_cmd() {
 
 run_node_test() { local relative="$1"; require_repo; require_file "$ROOT/$relative"; printf '==> %s\n' "$relative"; node "$ROOT/$relative"; }
 run_bash_test() { local relative="$1"; require_repo; require_file "$ROOT/$relative"; printf '==> %s\n' "$relative"; bash "$ROOT/$relative"; }
+run_python_test() { local relative="$1"; require_repo; require_file "$ROOT/$relative"; printf '==> %s\n' "$relative"; python3 "$ROOT/$relative"; }
 run_qml_test() {
     local relative="$1" test_files=()
     require_repo
@@ -371,6 +396,7 @@ test_cmd() {
     run_node_test "scripts/features/test-connectivity-wifi-policy.cjs"
     run_node_test "scripts/features/test-connectivity-bluetooth.mjs"
     run_node_test "scripts/features/test-hypr-shell-layer-rules.cjs"
+    run_python_test "scripts/features/test-cortetsu-surface-registry.py"
     local directory
     for directory in focus components hardware hypr keyboards settings surfaces calendar pomodoro bottomhub; do
         run_qml_test "cortetsu/tests/qml/$directory"

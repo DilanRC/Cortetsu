@@ -120,6 +120,16 @@ TestCase {
         }
     }
 
+    function test_focus_capture_and_fullscreen_transition_are_observable() {
+        const state = screenA.cortetsuState;
+        state.focusGrabRequested = true;
+        state.focusGrabActive = true;
+        state.fullscreenTransitionProgress = 0.5;
+        verify(state.focusGrabRequested);
+        verify(state.focusGrabActive);
+        compare(state.fullscreenTransitionProgress, 0.5);
+    }
+
     function test_close_other_panels_keeps_osd_and_bar() {
         for (const flag of Surfaces.names)
             screenA[flag] = true;

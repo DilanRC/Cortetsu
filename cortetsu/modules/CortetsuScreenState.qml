@@ -26,6 +26,9 @@ QtObject {
     // This screen's Bottom Hub window, set by BottomHub. The retained-surfaces
     // scrim covers the hub and asks it whether a click fell on the bell.
     property var bottomHub: null
+    property bool focusGrabRequested: false
+    property bool focusGrabActive: false
+    property real fullscreenTransitionProgress: 0
 
     function setFlag(flag: string, value: bool): bool {
         if (Surfaces.isRetained(flag))

@@ -175,6 +175,24 @@ StyledWindow {
         }
     }
 
+    Binding {
+        target: root.screenState?.cortetsuState ?? null
+        property: "focusGrabRequested"
+        value: root.wantsFocusGrab
+    }
+
+    Binding {
+        target: root.screenState?.cortetsuState ?? null
+        property: "focusGrabActive"
+        value: focusGrab.active
+    }
+
+    Binding {
+        target: root.screenState?.cortetsuState ?? null
+        property: "fullscreenTransitionProgress"
+        value: root.fsTransitionProg
+    }
+
     Rectangle {
         anchors.fill: parent
         opacity: root.screenState?.cortetsuState?.overview ? CortetsuDesign.scrimOpacity : (((root.screenState?.session ?? false) && CortetsuOverlayConfig.session.enabled) || panels.popouts.detachedMode !== "" ? 0.5 : 0)

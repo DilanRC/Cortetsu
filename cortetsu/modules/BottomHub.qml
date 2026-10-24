@@ -333,6 +333,7 @@ Scope {
             readonly property var monitor: CortetsuScreens.monitorFor(modelData)
             readonly property var screenState: CortetsuShellState.forScreen(modelData)
             readonly property var cortetsuState: screenState?.cortetsuState
+            readonly property bool hubShown: hubRoot.shown
             readonly property string activeAddress:
                 CortetsuHypr.activeToplevel?.lastIpcObject?.address ?? ""
             readonly property bool panelActive:

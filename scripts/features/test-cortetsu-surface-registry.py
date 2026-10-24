@@ -118,13 +118,18 @@ for path in sorted(list(MODULES.rglob("*.qml")) + list(MODULES.rglob("*.js"))):
 for controller in ("Calendar", "Clipboard", "Display", "Hardware", "Keyboards", "Wallpaper"):
     assert "RetainedSurfaceController {" in read(f"cortetsu/modules/{controller}Controller.qml"), controller
 
-# 5. The registry ships in every generation and its runtime test runs in both gates.
+# 5. The registry ships in every generation. The QML behavior suite runs in the
+#    generation builder and repository test gate; this source gate runs in the
+#    repository test command.
 build = read("cortetsu/bin/build-runtime.sh")
 cli = read("scripts/cortetsu")
 assert "modules/SurfaceRegistry.js" in build
-assert 'qmltestrunner -input "$REPO/cortetsu/tests/qml/surfaces"' in build
-assert 'run_qml_test "cortetsu/tests/qml/surfaces"' in cli
-assert '"scripts/features/test-cortetsu-surface-registry.py"' in cli
-assert "test-cortetsu-surface-registry.py" in build
+assert "modules/CortetsuShellInspect.js" in build
+assert "modules/ShellLifecycle.qml" in build
+assert 'for suite in hardware hypr surfaces calendar pomodoro' in build
+assert 'timeout 300 "$qml_runner" -input "$REPO/cortetsu/tests/qml/$suite"' in build
+assert 'for directory in focus components hardware hypr keyboards settings surfaces calendar pomodoro bottomhub' in cli
+assert 'run_qml_test "cortetsu/tests/qml/$directory"' in cli
+assert 'run_python_test "scripts/features/test-cortetsu-surface-registry.py"' in cli
 
 print(f"PASS: {len(names)} surfaces in one registry ({len(retained)} retained); no parallel lists in {len(consumers)} consumers")
