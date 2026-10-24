@@ -667,8 +667,11 @@ Scope {
                 hubRoot.toggleSidebarFor(win.modelData);
             }
 
+            // A screen's state goes away before its window when a monitor is
+            // unplugged; null keeps Binding.target (QObject*) from receiving
+            // undefined, which Qt logs as "Unable to assign".
             Binding {
-                target: win.cortetsuState
+                target: win.cortetsuState ?? null
                 property: "bottomHub"
                 value: win
                 when: !!win.cortetsuState
