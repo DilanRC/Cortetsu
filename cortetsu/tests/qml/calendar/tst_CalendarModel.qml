@@ -97,4 +97,26 @@ TestCase {
             date = new Date(date.getFullYear(), date.getMonth() - 1, 1);
         compare([date.getFullYear(), date.getMonth(), date.getDate()], [1926, 9, 1]);
     }
+
+    readonly property var keys: ({ left: Qt.Key_Left, right: Qt.Key_Right, up: Qt.Key_Up, down: Qt.Key_Down,
+                                   pageUp: Qt.Key_PageUp, pageDown: Qt.Key_PageDown, home: Qt.Key_Home })
+
+    function test_keyboard_moves_the_selected_day() {
+        const day = new Date(2026, 9, 31);
+        const today = new Date(2026, 9, 23, 15, 40);
+        verify(Model.sameDay(Model.dayForKey(Qt.Key_Right, day, today, keys), new Date(2026, 10, 1)), "crosses into November");
+        verify(Model.sameDay(Model.dayForKey(Qt.Key_Left, new Date(2026, 0, 1), today, keys), new Date(2025, 11, 31)), "crosses the year");
+        verify(Model.sameDay(Model.dayForKey(Qt.Key_Up, day, today, keys), new Date(2026, 9, 24)));
+        verify(Model.sameDay(Model.dayForKey(Qt.Key_Down, day, today, keys), new Date(2026, 10, 7)));
+        compare(Model.dayForKey(Qt.Key_Home, day, today, keys).getTime(), new Date(2026, 9, 23).getTime(), "today at midnight");
+        compare(Model.dayForKey(Qt.Key_A, day, today, keys), null, "other keys are not calendar moves");
+    }
+
+    function test_month_step_keeps_the_day_or_clamps() {
+        verify(Model.sameDay(Model.addMonths(new Date(2026, 0, 31), 1), new Date(2026, 1, 28)));
+        verify(Model.sameDay(Model.addMonths(new Date(2028, 0, 31), 1), new Date(2028, 1, 29)), "leap year");
+        verify(Model.sameDay(Model.addMonths(new Date(2026, 2, 31), -1), new Date(2026, 1, 28)));
+        verify(Model.sameDay(Model.addMonths(new Date(2026, 11, 15), 1), new Date(2027, 0, 15)));
+        verify(Model.sameDay(Model.addDays(new Date(2026, 2, 28), 1), new Date(2026, 2, 29)), "DST weekend stays one day");
+    }
 }

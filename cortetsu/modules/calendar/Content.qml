@@ -38,6 +38,21 @@ Item {
     function eventCount(count: int): string { return count === 1 ? qsTr("1 evento") : qsTr("%1 eventos").arg(count); }
     function changeMonth(delta: int): void { selectedDate = new Date(year, month + delta, 1); }
 
+    // Arrows move the selected day, PageUp/PageDown the month, Home goes to
+    // today. Keys reach here from any control in the surface that does not
+    // use them itself.
+    readonly property var moveKeys: ({ left: Qt.Key_Left, right: Qt.Key_Right, up: Qt.Key_Up, down: Qt.Key_Down,
+                                       pageUp: Qt.Key_PageUp, pageDown: Qt.Key_PageDown, home: Qt.Key_Home })
+    Keys.onPressed: event => {
+        if (event.modifiers & (Qt.ControlModifier | Qt.AltModifier | Qt.MetaModifier))
+            return;
+        const next = CalendarModel.dayForKey(event.key, selectedDate, today, moveKeys);
+        if (next) {
+            selectedDate = next;
+            event.accepted = true;
+        }
+    }
+
     // Minute precision is enough to notice midnight; off while closed.
     SystemClock {
         enabled: root.shown
@@ -77,7 +92,7 @@ Item {
                     RowLayout {
                         Layout.fillWidth: true
                         CortetsuButton { compact: true; icon: "chevron_left"; label: ""; tooltipText: qsTr("Mes anterior"); onClicked: root.changeMonth(-1) }
-                        CortetsuText { Layout.fillWidth: true; horizontalAlignment: Text.AlignHCenter; text: Qt.formatDate(root.selectedDate, "MMMM yyyy"); textSize: CortetsuTypography.titleMediumPx; color: CortetsuDesign.colorOnSurface }
+                        CortetsuText { Layout.fillWidth: true; horizontalAlignment: Text.AlignHCenter; text: CortetsuRegional.formatDate(root.selectedDate, "monthYear", true); textSize: CortetsuTypography.titleMediumPx; color: CortetsuDesign.colorOnSurface }
                         CortetsuButton { compact: true; icon: "today"; label: qsTr("Hoy"); onClicked: root.selectedDate = root.today }
                         CortetsuButton { compact: true; icon: "chevron_right"; label: ""; tooltipText: qsTr("Mes siguiente"); onClicked: root.changeMonth(1) }
                     }
@@ -96,8 +111,13 @@ Item {
                                 Layout.fillWidth: true; Layout.fillHeight: true
                                 readonly property int day: root.cells[index]
                                 readonly property var events: day ? root.monthEvents[day] ?? [] : []
-                                CortetsuSurface { outlined: false; anchors.centerIn: parent; width: 34; height: 34; radius: 17; color: root.isSelected(dayCell.day) ? CortetsuDesign.colorPrimary : (root.isToday(dayCell.day) ? CortetsuDesign.colorPrimaryContainer : "transparent") }
-                                CortetsuText { anchors.centerIn: parent; text: dayCell.day || ""; color: root.isSelected(dayCell.day) ? CortetsuDesign.colorOnPrimary : (root.isToday(dayCell.day) ? CortetsuDesign.colorOnPrimaryContainer : CortetsuDesign.colorOnSurface); textSize: CortetsuTypography.labelMediumPx }
+                                // Selected: primary fill. Today: a neutral ring, so the two never
+                                // read as the same blue (1.3:1 apart in the Cortetsu scheme).
+                                CortetsuSurface { objectName: "day-" + dayCell.day; anchors.centerIn: parent; width: 34; height: 34; radius: 17
+                                    outlined: root.isToday(dayCell.day) && !root.isSelected(dayCell.day)
+                                    outlineColor: CortetsuDesign.colorOnSurfaceVariant
+                                    color: root.isSelected(dayCell.day) ? CortetsuDesign.colorPrimary : dayMouse.containsMouse ? Qt.alpha(CortetsuDesign.colorOnSurface, 0.08) : "transparent" }
+                                CortetsuText { anchors.centerIn: parent; text: dayCell.day || ""; color: root.isSelected(dayCell.day) ? CortetsuDesign.colorOnPrimary : CortetsuDesign.colorOnSurface; font.weight: root.isToday(dayCell.day) ? Font.DemiBold : Font.Normal; textSize: CortetsuTypography.labelMediumPx }
                                 Row {
                                     anchors.horizontalCenter: parent.horizontalCenter; anchors.bottom: parent.bottom; spacing: 2
                                     Repeater {
@@ -106,7 +126,7 @@ Item {
                                     }
                                     CortetsuText { visible: dayCell.events.length > 3; text: "+"; color: CortetsuDesign.colorOnSurfaceVariant; textSize: CortetsuTypography.labelSmallPx }
                                 }
-                                MouseArea { anchors.fill: parent; enabled: dayCell.day > 0; hoverEnabled: true; onClicked: root.selectedDate = new Date(root.year, root.month, dayCell.day) }
+                                MouseArea { id: dayMouse; anchors.fill: parent; enabled: dayCell.day > 0; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: root.selectedDate = new Date(root.year, root.month, dayCell.day) }
                             }
                         }
                     }
@@ -116,10 +136,23 @@ Item {
                         spacing: CortetsuDesign.spacingCompact
                         Repeater {
                             model: CalendarService.calendars
-                            delegate: CortetsuSurface { outlined: false;
+                            delegate: CortetsuSurface {
                                 id: chip
                                 required property var modelData
                                 readonly property bool chosen: CalendarService.enabledCalendars.includes(modelData.calendarId)
+                                function toggle(): void { CalendarService.setCalendarEnabled(chip.modelData.calendarId, !chip.chosen); }
+                                activeFocusOnTab: true
+                                outlined: activeFocus
+                                focused: activeFocus
+                                Keys.onSpacePressed: toggle()
+                                Keys.onReturnPressed: toggle()
+                                Keys.onEnterPressed: toggle()
+                                Accessible.role: Accessible.CheckBox
+                                Accessible.name: root.friendlyName(chip.modelData)
+                                Accessible.checkable: true
+                                Accessible.checked: chip.chosen
+                                Accessible.onToggleAction: toggle()
+                                Accessible.onPressAction: toggle()
                                 implicitWidth: chipRow.implicitWidth + CortetsuDesign.spacingStandard * 2; implicitHeight: 30; radius: 999
                                 color: chosen ? CortetsuDesign.colorSecondaryContainer : CortetsuDesign.colorSurfaceHigh
                                 RowLayout {
@@ -128,7 +161,7 @@ Item {
                                     CortetsuText { text: root.friendlyName(chip.modelData); color: chip.chosen ? CortetsuDesign.colorOnSecondaryContainer : CortetsuDesign.colorOnSurfaceVariant; textSize: CortetsuTypography.labelMediumPx }
                                     CortetsuText { text: chip.chosen ? "✓" : "+"; color: chip.chosen ? CortetsuDesign.colorOnSecondaryContainer : CortetsuDesign.colorOnSurfaceVariant; textSize: CortetsuTypography.labelMediumPx }
                                 }
-                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: CalendarService.setCalendarEnabled(chip.modelData.calendarId, !chip.chosen) }
+                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: chip.toggle() }
                             }
                         }
                     }
@@ -147,7 +180,7 @@ Item {
                         color: CortetsuDesign.colorSurfaceHigh
                         ColumnLayout {
                             anchors.fill: parent; anchors.margins: CortetsuDesign.spacingStandard; spacing: CortetsuDesign.spacingCompact
-                            CortetsuText { Layout.fillWidth: true; text: Qt.formatDate(root.selectedDate, "dddd, MMMM d"); textSize: CortetsuTypography.titleMediumPx; color: CortetsuDesign.colorOnSurface }
+                            CortetsuText { Layout.fillWidth: true; objectName: "agendaTitle"; text: CortetsuRegional.formatDate(root.selectedDate, "longDay", true); textSize: CortetsuTypography.titleMediumPx; color: CortetsuDesign.colorOnSurface }
                             CortetsuText { text: root.selectedEvents.length ? root.eventCount(root.selectedEvents.length) : qsTr("Tu día está libre"); color: CortetsuDesign.colorPrimary; textSize: CortetsuTypography.labelMediumPx }
                             ColumnLayout {
                                 visible: !root.selectedEvents.length; Layout.fillWidth: true; Layout.fillHeight: true; spacing: CortetsuDesign.spacingCompact

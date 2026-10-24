@@ -84,3 +84,33 @@ function eventsByDay(events, year, month) {
     }
     return byDay;
 }
+
+// Keyboard moves of the selected day. Built from fields, so a DST day is
+// still one step.
+function addDays(value, days) {
+    return new Date(value.getFullYear(), value.getMonth(), value.getDate() + days);
+}
+
+// A month away, on the same day when that month has it, else its last day
+// (31 January + 1 month = 28 or 29 February, not 3 March).
+function addMonths(value, months) {
+    const first = new Date(value.getFullYear(), value.getMonth() + months, 1);
+    return new Date(first.getFullYear(), first.getMonth(),
+        Math.min(value.getDate(), daysInMonth(first.getFullYear(), first.getMonth())));
+}
+
+// The day a key selects from `selected`, or null when the key is not a
+// calendar move. Arrows move by day and week, PageUp/PageDown by month,
+// Home returns to `today`.
+function dayForKey(key, selected, today, keys) {
+    switch (key) {
+    case keys.left: return addDays(selected, -1);
+    case keys.right: return addDays(selected, 1);
+    case keys.up: return addDays(selected, -7);
+    case keys.down: return addDays(selected, 7);
+    case keys.pageUp: return addMonths(selected, -1);
+    case keys.pageDown: return addMonths(selected, 1);
+    case keys.home: return dayStart(today);
+    default: return null;
+    }
+}
