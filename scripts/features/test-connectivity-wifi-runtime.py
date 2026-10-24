@@ -50,8 +50,10 @@ else:
     for uuid in data["profiles"]: print(uuid + ":Different profile name:802-11-wireless:" + ("yes" if data["autoconnect"] else "no") + ":")
 ''')
     binary.chmod(0o700)
-    (root / "services").mkdir()
-    (root / "services/ConnectivitySecret.py").write_text('''import json, os, sys
+    # Shadows the native helper on PATH so the real NetworkManager is never reached.
+    helper = root / "cortetsu-connectivity-secret"
+    helper.write_text('''#!/usr/bin/env python3
+import json, os, sys
 from pathlib import Path
 assert len(sys.argv) == 2 and "example-only-passphrase" not in " ".join(sys.argv)
 assert sys.stdin.read() == "example-only-passphrase"
@@ -62,6 +64,7 @@ data.update(passwordReceived=True, flags=0, savedUuid=sys.argv[1])
 state.write_text(json.dumps(data))
 print("CREDENTIAL_SAVED")
 ''')
+    helper.chmod(0o700)
     (root / "shell.qml").write_text('''import QtQuick
 import Quickshell
 import "."
