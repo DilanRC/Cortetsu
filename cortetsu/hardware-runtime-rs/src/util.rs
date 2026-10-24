@@ -72,7 +72,11 @@ pub fn wait_interruptible(seconds: f64) -> bool {
             Some(mut wake) => {
                 // A zero timeout would mean "block forever".
                 let _ = wake.set_read_timeout(Some(left.max(Duration::from_millis(1))));
-                let _ = wake.read(&mut [0u8; 64]);
+                // EOF cannot happen while signal-hook holds the writers; if it
+                // did, sleeping keeps the loop from spinning.
+                if let Ok(0) = wake.read(&mut [0u8; 64]) {
+                    thread::sleep(left.min(Duration::from_millis(50)));
+                }
             }
             None => thread::sleep(left.min(Duration::from_millis(50))),
         }
