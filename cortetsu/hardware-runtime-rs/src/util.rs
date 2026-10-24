@@ -22,6 +22,8 @@ pub type Result<T> = std::result::Result<T, String>;
 static SEQUENCE: AtomicU64 = AtomicU64::new(0);
 static CANCELLATION: std::sync::OnceLock<Arc<std::sync::atomic::AtomicBool>> =
     std::sync::OnceLock::new();
+static TERMINATED_BY_SIGTERM: std::sync::OnceLock<Arc<std::sync::atomic::AtomicBool>> =
+    std::sync::OnceLock::new();
 static REQUEST_DEADLINE: std::sync::OnceLock<Instant> = std::sync::OnceLock::new();
 // Read end of a self-pipe: SIGTERM/SIGINT write a byte to it, so a wait can
 // block in read() until the timeout or the signal instead of polling a flag.
@@ -35,9 +37,18 @@ pub fn init_signals() -> Result<()> {
         let writer = writer.try_clone().map_err(|e| e.to_string())?;
         signal_hook::low_level::pipe::register(signal, writer).map_err(|e| e.to_string())?;
     }
+    let term = Arc::new(std::sync::atomic::AtomicBool::new(false));
+    signal_hook::flag::register(signal_hook::consts::SIGTERM, term.clone())
+        .map_err(|e| e.to_string())?;
     let _ = CANCELLATION.set(flag);
+    let _ = TERMINATED_BY_SIGTERM.set(term);
     let _ = WAKE.set(reader);
     Ok(())
+}
+pub fn terminated_by_sigterm() -> bool {
+    TERMINATED_BY_SIGTERM
+        .get()
+        .is_some_and(|f| f.load(Ordering::Relaxed))
 }
 pub fn cancelled() -> bool {
     CANCELLATION

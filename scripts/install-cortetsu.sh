@@ -161,20 +161,19 @@ fi
 
 # Preserve the user's explicit opt-in when migrating the renamed power service.
 if [[ -f "$DATA_ROOT/.power-auto-was-enabled" && -f "$SYSTEMD_USER_DIR/cortetsu-power-auto.service" ]]; then
-    if systemctl --user enable --now cortetsu-power-auto.service >/dev/null 2>&1; then
+    if systemctl --user enable cortetsu-power-auto.service >/dev/null 2>&1; then
         rm -f "$DATA_ROOT/.power-auto-was-enabled"
-        printf 'Power automation: opt-in restored\n'
+        printf 'Power automation: opt-in restored; start explicitly with systemctl --user start cortetsu-power-auto.service\n'
     else
         printf 'WARN: no se pudo reactivar cortetsu-power-auto.service; el marcador se conserva\n' >&2
     fi
 fi
 
-# Preserve the opt-in state of the power policy daemon while replacing an
-# already running legacy executable with the current native generation.
+# Installing a generation must not reapply power rules to the current session.
+# An already-running daemon keeps its current profile until an explicit restart.
 if systemctl --user is-enabled --quiet cortetsu-power-auto.service 2>/dev/null \
         && systemctl --user is-active --quiet cortetsu-power-auto.service 2>/dev/null; then
-    systemctl --user try-restart cortetsu-power-auto.service >/dev/null 2>&1 \
-        || printf 'WARN: native power daemon restart is pending\n' >&2
+    printf 'Power automation: unchanged; restart explicitly to adopt the new generation (systemctl --user restart cortetsu-power-auto.service)\n'
 fi
 
 # A running Pomodoro daemon re-executes itself into the promoted helpers when

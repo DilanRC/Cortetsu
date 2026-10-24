@@ -48,6 +48,13 @@ fn run() -> Result<i32> {
 fn main() {
     match run() {
         Ok(code) => std::process::exit(code),
+        Err(error)
+            if error
+                .downcast_ref::<std::io::Error>()
+                .is_some_and(|e| e.kind() == std::io::ErrorKind::BrokenPipe) =>
+        {
+            std::process::exit(0)
+        }
         Err(e) => {
             eprintln!("ERROR: {e}");
             std::process::exit(1)

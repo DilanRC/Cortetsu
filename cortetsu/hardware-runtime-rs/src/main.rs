@@ -57,5 +57,11 @@ fn main() {
     if !value.is_null() {
         println!("{value}");
     }
-    std::process::exit(if util::cancelled() { 130 } else { code });
+    std::process::exit(if util::terminated_by_sigterm() {
+        0
+    } else if util::cancelled() {
+        130
+    } else {
+        code
+    });
 }

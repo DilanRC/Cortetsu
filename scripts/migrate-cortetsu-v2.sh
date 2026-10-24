@@ -120,7 +120,10 @@ OLD_UNIT="caerice-power-auto.service"
 if systemctl --user is-enabled "$OLD_UNIT" >/dev/null 2>&1; then
     printf 'enabled\n' > "$DATA_ROOT/.power-auto-was-enabled"
 fi
-systemctl --user disable --now "$OLD_UNIT" >/dev/null 2>&1 || true
+systemctl --user disable "$OLD_UNIT" >/dev/null 2>&1 || true
+if systemctl --user is-active --quiet "$OLD_UNIT"; then
+    printf 'Legacy power automation remains active. To switch explicitly: systemctl --user stop %s && systemctl --user start cortetsu-power-auto.service\n' "$OLD_UNIT"
+fi
 if [[ -f "$CONFIG_HOME/systemd/user/$OLD_UNIT" ]]; then
     backup_path "$CONFIG_HOME/systemd/user/$OLD_UNIT" "systemd/$OLD_UNIT"
     rm -f "$CONFIG_HOME/systemd/user/$OLD_UNIT"

@@ -2,7 +2,9 @@ use crate::{dotfiles, util::*};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use std::{
+    fmt::Write as FmtWrite,
     fs,
+    io::Write as IoWrite,
     path::{Path, PathBuf},
 };
 pub fn managed(path: &Path, root: &Path) -> Result<PathBuf> {
@@ -274,10 +276,10 @@ pub fn run(a: &Args) -> Result<i32> {
         "recover" => recover()?,
         "verify" => println!("PASS: system generation {}", verify()?.display()),
         "status" => {
-            println!("System generations:");
+            let mut output = String::from("System generations:\n");
             for label in ["current", "previous"] {
                 if let Some(p) = resolve_link(&data_root()?.join("system").join(label)) {
-                    println!("  {label}={}", p.display());
+                    writeln!(output, "  {label}={}", p.display())?;
                     match validate_system(&p) {
                         Ok(v) => {
                             for (key, name) in [
@@ -287,16 +289,17 @@ pub fn run(a: &Args) -> Result<i32> {
                                 ("repositoryRevision", "revision"),
                             ] {
                                 if let Some(s) = v[key].as_str() {
-                                    println!("  {label}_{name}={s}");
+                                    writeln!(output, "  {label}_{name}={s}")?;
                                 }
                             }
                         }
-                        Err(e) => println!("  {label}_metadata=invalid ({e})"),
+                        Err(e) => writeln!(output, "  {label}_metadata=invalid ({e})")?,
                     }
                 } else {
-                    println!("  {label}=missing");
+                    writeln!(output, "  {label}=missing")?;
                 }
             }
+            std::io::stdout().lock().write_all(output.as_bytes())?;
         }
         "rollback" => {
             crate::install::check_mutation()?;
