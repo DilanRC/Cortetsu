@@ -98,6 +98,14 @@ hl.bind(
     hl.dsp.global("cortetsu:hardwareKey")
 )
 
+-- Fn+Esc (KEY_FN_ESC from HP WMI hotkeys → XF86Fn_Esc), «información del
+-- sistema» on the keycap: the Hardware Center's Sistema page, with the same
+-- fullscreen guard as OMEN (cortetsu:hardwareSystem).
+hl.bind(
+    "XF86Fn_Esc",
+    hl.dsp.global("cortetsu:hardwareSystem")
+)
+
 hl.bind(
     "SUPER + SHIFT + F23",
     hl.dsp.global("cortetsu:osd")

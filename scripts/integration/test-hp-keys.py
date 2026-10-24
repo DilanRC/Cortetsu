@@ -4,7 +4,7 @@
 A nested Hyprland with the latam layout loads the shipped bind strings, each
 bound to a marker command, plus the launcher's Super release bind, and a
 virtual keyboard sends the evdev codes the laptop produces (OMEN: KEY_PROG2
-on HP WMI hotkeys; Copilot: Super+Shift+F23 on the AT keyboard). Copilot must
+on HP WMI hotkeys; Fn+Esc: KEY_FN_ESC there; Copilot: Super+Shift+F23 on the AT keyboard). Copilot must
 fire only its own bind, not the launcher; plain F23 and Shift+F23 must fire
 nothing. This proves the keysym match; physical presses stay PENDING_PHYSICAL.
 """
@@ -28,9 +28,10 @@ import keybinds_helper  # noqa: E402
 from launcher_harness import build_vinput, wait_for  # noqa: E402
 from nested_gpu import compositor_env  # keeps a suspended dGPU asleep  # noqa: E402
 
-KEY_LEFTMETA, KEY_LEFTSHIFT, KEY_PROG2, KEY_F23 = 125, 42, 149, 193
+KEY_LEFTMETA, KEY_LEFTSHIFT, KEY_PROG2, KEY_F23, KEY_FN_ESC, KEY_ESC = 125, 42, 149, 193, 465, 1
 # chord as shipped -> (global it must dispatch, marker the nested bind writes)
 HP_BINDS = {"XF86Launch2": ("cortetsu:hardwareKey", "omen"),
+            "XF86Fn_Esc": ("cortetsu:hardwareSystem", "fnesc"),
             "SUPER + SHIFT + F23": ("cortetsu:osd", "copilot")}
 
 
@@ -119,6 +120,15 @@ def main() -> int:
             assert chord(KEY_PROG2) == ["omen"], "OMEN (KEY_PROG2 → XF86Launch2) must open the Hardware Center"
             assert chord(KEY_LEFTMETA, KEY_LEFTSHIFT, KEY_F23) == ["copilot"], \
                 "Copilot must fire its own bind and not the launcher's Super release"
+            assert chord(KEY_FN_ESC) == ["fnesc"], "Fn+Esc (KEY_FN_ESC → XF86Fn_Esc) must open the Sistema page"
+            assert chord(KEY_ESC) == [], "plain Esc belongs to applications"
+            # Held for a second: a bind without the repeat flag fires once.
+            fired.unlink(missing_ok=True)
+            send(KEY_FN_ESC, 1)
+            time.sleep(1.0)
+            send(KEY_FN_ESC, 0)
+            time.sleep(0.5)
+            assert fired.read_text().split() == ["fnesc"], "a held Fn+Esc must fire once"
             assert chord(KEY_F23) == [], "plain F23 belongs to applications"
             assert chord(KEY_LEFTSHIFT, KEY_F23) == [], "Shift+F23 belongs to applications"
         finally:
@@ -130,7 +140,7 @@ def main() -> int:
                     except subprocess.TimeoutExpired:
                         process.kill()
 
-    print("PASS: OMEN and Copilot binds fire from their key codes under latam; "
+    print("PASS: OMEN, Fn+Esc and Copilot binds fire from their key codes under latam; "
           "Copilot leaves the launcher closed; F23 and Shift+F23 stay with applications")
     return 0
 

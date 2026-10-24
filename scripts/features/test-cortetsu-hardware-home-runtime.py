@@ -47,6 +47,7 @@ SHELL = """import QtQuick
 import QtQuick.Window
 import Quickshell
 import Quickshell.Io
+import "modules"
 import "modules/hardware"
 
 ShellRoot {
@@ -141,9 +142,9 @@ ShellRoot {
                 process: find(content, "processRows").itemAt(0),
                 cpu: find(content, "cpuBlock")
             };
-            // Header, the nine tabs, then the page top to bottom and left to right.
+            // Header, the ten tabs, then the page top to bottom and left to right.
             const order = tabOrder().join(",");
-            verify(order === "hardwareRefresh,hardwareClose,-,-,-,-,-,-,-,-,-,cpuBlock,-,-,memoryBlock,diskBlock,processBlock,powerLink,networkLink,coolingLink",
+            verify(order === "hardwareRefresh,hardwareClose,-,-,-,-,-,-,-,-,-,-,cpuBlock,-,-,memoryBlock,diskBlock,processBlock,powerLink,networkLink,coolingLink",
                 `Tab follows the visual order (${order})`);
         }],
         [() => waitedMs >= 400, () => {
@@ -156,7 +157,7 @@ ShellRoot {
             verify(find(content, "gpuRows").itemAt(0) === kept.gpu, "a new reading keeps the GPU rows");
             verify(find(content, "processRows").itemAt(0) === kept.process, "a new reading keeps the process rows");
             verify(find(content, "cpuBlock") === kept.cpu, "a new reading keeps the page");
-            verify(tabOrder().indexOf("cpuBlock") === 13, "the two flagged rows come before the meters in the Tab order");
+            verify(tabOrder().indexOf("cpuBlock") === 14, "the two flagged rows come before the meters in the Tab order");
         }],
         [() => waitedMs >= 400, () => {
             render("attention");
@@ -238,6 +239,32 @@ ShellRoot {
         [() => telemetry.status === "live", () => {
             verify(text("cpuUsage") === "32 %", "the retry reaches a reading");
             verify(find(content, "overviewRetry") === null, "the error state is gone");
+        }]
+    ]
+
+    // Fn+Esc asks for the Sistema page through the seat-wide page, then opens.
+    readonly property var system: [
+        [null, () => {
+            CortetsuShellState.hardwarePage = 9;
+            retained.hardware = true;
+            content.openHardware();
+        }],
+        [() => telemetry.status === "live" && !!find(content, "systemCopy"), () => {
+            verify(content.currentPage === 9, "the shared page selects Sistema");
+            verify(find(content, "cpuBlock") === null, "the summary is not loaded behind it");
+        }],
+        [() => waitedMs >= 400, () => render("system")],
+        [() => waitedMs >= 400, () => {
+            find(content, "systemCopy").clicked();
+            const copied = Quickshell.clipboardText;
+            verify(copied.includes("Kernel: 7.2.8-1-cachyos"), `the report has the kernel (${copied})`);
+            verify(copied.includes("Gráficos: NVIDIA GeForce RTX 3050 6GB Laptop GPU · 6.0 GiB"), `one line per GPU (${copied})`);
+            verify(copied.includes("(rev ca) · 512 MiB"), "a shared VRAM under 1 GiB reads in MiB, not rounded up to 1 GiB");
+            verify(/Memoria: 14[.,][89] GiB/.test(copied), `total memory (${copied})`);
+            verify(!copied.includes("No disponible"), "missing facts are left out, not reported as text");
+            verify(find(content, "systemCopy").label === "Copiado", "the button confirms the copy");
+            content.currentPage = 3;
+            verify(CortetsuShellState.hardwarePage === 3, "a tab chosen by hand is the seat's page");
         }]
     ]
 
@@ -375,6 +402,9 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-hardware-home-") as temporary:
 
     output, calls = run(folder, "failing", "hang")
     assert "HARDWARE_RUNTIME_PASS 8" in output, output
+
+    output, calls = run(folder, "system", "ok")
+    assert "HARDWARE_RUNTIME_PASS 9" in output, output
 
     output, calls = run(folder, "missing", "ok", with_probe=False)
     assert "HARDWARE_RUNTIME_PASS 1" in output, output

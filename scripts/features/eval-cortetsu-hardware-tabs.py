@@ -17,7 +17,7 @@ assert "enabled: !root.disabled" in tab
 assert "activeFocusOnTab: true" in tab
 assert "Keys.onSpacePressed" in tab
 assert "outlined: root.activeFocus || root.selected" in tab
-assert content.count("{ label:") == 9
+assert content.count("{ label:") == 10
 assert "count: root.pageTabs.length" in content
 assert 'import "Navigation.js" as HardwareNavigation' in content
 assert "HardwareNavigation.pageForKey(" in content

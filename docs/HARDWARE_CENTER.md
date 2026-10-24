@@ -37,8 +37,8 @@ uses the same native surface as Launcher, Overview and Clipboard.
 6. **Energía** — Power Profiles choice (three options, the active one marked), CPU driver/governor/EPP/platform profile, AC and battery state, and one panel per GPU.
 7. **Automatización** — optional AC/battery/low-battery profile rules, the low-battery threshold, current state and the last five events. Disabled until explicitly enabled.
 8. **Consumo** — battery/CPU/GPU power figures and their histories, battery energy and health, and the estimated remaining or charge time when the kernel exposes enough data.
-9. **Atajos** — installed-app search, launcher metadata, application icons, direct reassignment and confirmed deletion with automatic snapshots.
-10. **Arranque** — inventory of XDG autostart, user/system systemd units, Hyprland Lua startup callbacks and Cortetsu-owned processes, filtered by source and state chips. XDG user entries and manageable user units can be disabled for future logins; system units and source-owned entries are read only.
+9. **Arranque** — inventory of XDG autostart, user/system systemd units, Hyprland Lua startup callbacks and Cortetsu-owned processes, filtered by source and state chips. XDG user entries and manageable user units can be disabled for future logins; system units and source-owned entries are read only.
+10. **Sistema** — what the machine is: manufacturer, model, SKU, board, chassis and BIOS read once from `/sys/class/dmi/id` (world-readable; the serial number is root-only and not read), the OS from `/etc/os-release`, and kernel, host, uptime, CPU, memory, GPUs and screens from the shared reading. **Copiar información** puts it on the clipboard as `label: value` lines, missing facts left out. `Fn+Esc` opens the center here.
 
 Every page is built from the same three pieces: `Panel.qml` (the glass
 surface), `FactRow.qml` (label and value, "No disponible" when the value is
@@ -46,12 +46,21 @@ empty) and `HistoryGraph.qml`. Values go through `Format.js`, so an unknown
 reading never renders as `0` or `NaN`. Lists that follow a reading use an
 index or a keyed `ScriptModel`, so rows update in place.
 
-Keyboard: `1`–`9` switches current pages, `0` opens Arranque, `R` refreshes main telemetry and `Esc` closes.
+Keyboard: `1`–`9` switches to pages 1–9, `0` opens Sistema, `R` refreshes main telemetry and `Esc` closes.
 `Tab` walks the header buttons, the tabs and then every block of the page in
 reading order; `Enter`, `Return` or `Space` activates the focused one.
 There is also an explicit close button. Clicking empty space inside the panel does
 not close it; only clicking outside the panel, `Esc`, the close button or
 `Super+H` closes/toggles it.
+
+The page shown belongs to the seat, not to a screen (`CortetsuShellState.hardwarePage`):
+the center reopens where it was left and on any monitor. `Fn+Esc`
+(`cortetsu:hardwareSystem`) opens it on Sistema, switches to Sistema when it
+shows another page, and closes it when it already shows Sistema. Like OMEN it
+does nothing over a fullscreen window on the focused monitor, and a second
+report within 400 ms is dropped (`Navigation.js`: `pageAction`, `acceptPress`).
+IPC: `qs ipc call hardwarePage show system` (no fullscreen guard) and
+`hardwarePage current`.
 
 Arranque scans when its page opens or when **Actualizar** is selected. It shows
 system services read only and keeps XDG global files untouched by writing a

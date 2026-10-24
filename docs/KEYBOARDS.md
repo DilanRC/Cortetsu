@@ -75,7 +75,7 @@ Los estados se combinan; una tecla puede ser VERIFIED, ASSIGNED y RESERVED.
 | ASSIGNED | Un bind efectivo usa su keysym o `code:N`, sola; o es una tecla dedicada usada en una combinación |
 | CANDIDATE | Tecla dedicada (multimedia, lanzamiento, programable, F13–F24, fabricante) con keysym, sin acción y no reservada |
 | RESERVED | Escritura, modificadores, navegación, F1–F12, AltGr, sistema (encendido, brillo, radio), capa Fn, o un keysym de esas funciones |
-| UNKNOWN | Sin clasificar, sin keysym, o KEY_FN_ESC hasta confirmar su comportamiento |
+| UNKNOWN | Sin clasificar o sin keysym |
 
 `confidence` dice cuánto sabemos de que la tecla existe físicamente:
 
@@ -219,7 +219,7 @@ Cada tecla CANDIDATE con un keysym conocido lleva `suggestion`
 (`XF86Calculator` → `Calculator`, `XF86Mail` → `Email`, `XF86Tools` →
 `Settings`…). La superficie propone las aplicaciones instaladas de esa
 categoría; elegir una abre la revisión normal, que hay que confirmar. Nunca
-se aplica sola. Las teclas reservadas (OMEN abre Hardware Center, Copilot las
+se aplica sola. Las teclas reservadas (OMEN abre Hardware Center, Fn+Esc su página Sistema, Copilot las
 acciones rápidas) ni son CANDIDATE ni reciben sugerencia.
 
 ## Superficie «Atajos y teclados»

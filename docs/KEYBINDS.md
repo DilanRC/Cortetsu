@@ -52,19 +52,22 @@ snapshot y recarga.
 | OMEN | `KEY_PROG2` en «HP WMI hotkeys» → `XF86Launch2` (latam) | Hardware Center salvo con pantalla completa (`cortetsu:hardwareKey`) |
 | Copilot | Super+Shift+`KEY_F23` en el teclado AT | Panel de acciones rápidas (`cortetsu:osd`) |
 | Calculadora | `KEY_CALC` → `XF86Calculator` | Sin asignar: no hay calculadora gráfica instalada; el cálculo del lanzador es `>calc` |
-| Fn+Esc | `KEY_FN_ESC` (465) en «HP WMI hotkeys» → `XF86Fn_Esc` (latam) | Sin asignar |
+| Fn+Esc | `KEY_FN_ESC` (465) en «HP WMI hotkeys» → `XF86Fn_Esc` (latam) | Hardware Center en la página Sistema salvo con pantalla completa (`cortetsu:hardwareSystem`) |
 
 - Los binds viven en `config/hypr-user.lua`; el editor («Atajos y teclados») los
   muestra como editables: cambiarlos o quitarlos es la reversión de cada uno.
 - Eventos comprobados por capacidad del dispositivo y keymap latam; la
   pulsación física está pendiente (abajo).
 - Fn+Esc: `libinput debug-events` registró `KEY_FN_ESC (465)` en el
-  dispositivo HP WMI (2026-10-14). Otra comprobación no vio nada porque buscaba
-  `hp_wmi: Unknown key code` en el journal, y ese mensaje solo sale para
-  códigos sin mapear; Fn+Esc está mapeado. Las dos observaciones son
-  compatibles. El keymap latam lo traduce a `XF86Fn_Esc`, así que se podría
-  enlazar; no se asigna hasta confirmar que llega en cada arranque y elegir
-  una acción.
+  dispositivo HP WMI en dos sesiones distintas (2026-10-14 y 2026-10-23). HP
+  la rotula «información del sistema», así que abre Hardware Center en
+  Sistema; otra pulsación con Sistema a la vista lo cierra, y con otra página
+  abierta cambia a Sistema. Igual que OMEN, no hace nada sobre una ventana a
+  pantalla completa del monitor enfocado (Fn+Esc está junto a Esc). Un
+  segundo informe de la misma pulsación en menos de 400 ms se descarta, y el
+  bind no lleva `repeat`: mantenerla pulsada dispara una vez
+  (`test-hp-keys.py` lo comprueba). El inventario de teclados la sigue
+  marcando reservada: no se ofrece como tecla libre.
 - `F23` y `Shift+F23` solos no se capturan; quedan para las aplicaciones, y
   Copilot no dispara el lanzador de la liberación de Super.
 - OMEN no hace nada si el monitor enfocado muestra una ventana a pantalla
@@ -91,11 +94,8 @@ comprobar que el touchpad lo reporta.
    a pantalla completa no debe pasar nada; `SUPER + H` sí lo abre.
 2. Copilot: abre el panel de acciones rápidas; con un juego en primer plano no
    debe interferir con el juego.
-3. Fn+Esc: `sudo libinput debug-events` y pulsar Fn+Esc en dos arranques
-   distintos; anotar si aparece `KEY_FN_ESC (465)` en el dispositivo «HP WMI
-   hotkeys» (el número `eventN` cambia entre arranques; búscalo en
-   `/proc/bus/input/devices`). Si no aparece, mirar `journalctl -kf` por
-   `hp_wmi: Unknown key code`.
+3. Fn+Esc: abre Hardware Center en Sistema; otra vez lo cierra. Con un juego
+   a pantalla completa no debe pasar nada.
 4. Calculadora: `KEY_CALC` en el teclado AT; sin acción hasta elegir una.
 5. Cinco dedos: `sudo libinput debug-events` con el touchpad ELAN y apoyar
    cinco dedos; si aparece `GESTURE_SWIPE_BEGIN ... 5`, el gesto es viable. En

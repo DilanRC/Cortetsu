@@ -17,7 +17,7 @@ FocusScope {
     required property var screenState
     required property bool hardwareVisible
 
-    property int currentPage: 0
+    property int currentPage: CortetsuShellState.hardwarePage
 
     readonly property var pageTabs: [
         { label: qsTr("Resumen"), icon: "dashboard" },
@@ -28,7 +28,8 @@ FocusScope {
         { label: qsTr("Energía"), icon: "bolt" },
         { label: qsTr("Automatización"), icon: "auto_mode" },
         { label: qsTr("Consumo"), icon: "electric_bolt" },
-        { label: qsTr("Arranque"), icon: "play_circle" }
+        { label: qsTr("Arranque"), icon: "play_circle" },
+        { label: qsTr("Sistema"), icon: "info" }
     ]
     // The summary names its destinations with the tab labels themselves.
     readonly property var pageLabels: {
@@ -89,7 +90,19 @@ FocusScope {
             tabs.contentX = Math.max(0, Math.min(tab.x, tabs.contentWidth - tabs.width));
     }
 
-    onCurrentPageChanged: Qt.callLater(() => root.revealPageTab(root.currentPage))
+    // One Hardware Center per seat: every screen's copy shows the same page,
+    // and a shortcut (Fn+Esc) can ask for one before the panel opens.
+    onCurrentPageChanged: {
+        CortetsuShellState.hardwarePage = root.currentPage;
+        Qt.callLater(() => root.revealPageTab(root.currentPage));
+    }
+
+    Connections {
+        target: CortetsuShellState
+        function onHardwarePageChanged(): void {
+            root.currentPage = CortetsuShellState.hardwarePage;
+        }
+    }
 
     HardwareTelemetry {
         id: telemetry
@@ -266,7 +279,9 @@ FocusScope {
                                             ? automationComponent
                                             : root.currentPage === 7
                                                 ? energyComponent
-                                                : startupComponent
+                                                : root.currentPage === 8
+                                                    ? startupComponent
+                                                    : systemComponent
             }
         }
     }
@@ -320,4 +335,5 @@ FocusScope {
     Component { id: automationComponent; PowerAutomationPage {} }
     Component { id: energyComponent; EnergyPage {} }
     Component { id: startupComponent; StartupPage {} }
+    Component { id: systemComponent; SystemPage { snapshot: telemetry.snapshot } }
 }

@@ -286,7 +286,7 @@ fn reserved_reason(category: Category, code: u16) -> Option<&'static str> {
         }
         Category::System => "Función del equipo: brillo, radio, pantalla o batería",
         Category::Firmware if code == KEY_FN_ESC => {
-            "Capa Fn del firmware: queda sin asignar hasta confirmar qué envía en cada arranque"
+            "Capa Fn del firmware: información del sistema (Hardware Center, página Sistema)"
         }
         Category::Firmware => "Capa Fn del firmware",
         _ => return None,
@@ -429,7 +429,7 @@ pub fn classify(
         if candidate {
             states.push(State::Candidate);
         }
-        if (reserved.is_none() && !dedicated) || unknown.is_some() || code == KEY_FN_ESC {
+        if (reserved.is_none() && !dedicated) || unknown.is_some() {
             states.push(State::Unknown);
         }
         let confidence = if verified.contains(&code) {
@@ -559,8 +559,13 @@ mod tests {
         let keymap = parse(LATAM_EXCERPT);
         let keys = classify(&keyboards[1], Some(&keymap), Some(&[]), &BTreeSet::new());
         let fn_esc = key(&keys, 0x1d1);
-        assert!(fn_esc.has(State::Reserved) && fn_esc.has(State::Unknown) && !fn_esc.has(State::Candidate));
+        assert!(fn_esc.has(State::Reserved) && !fn_esc.has(State::Unknown) && !fn_esc.has(State::Candidate));
         assert_eq!(fn_esc.keysym.as_deref(), Some("XF86Fn_Esc"));
+        // The shipped bind (cortetsu:hardwareSystem) makes it assigned, still reserved.
+        let binds = [bind(0, "XF86Fn_Esc", "")];
+        let keys = classify(&keyboards[1], Some(&keymap), Some(&binds), &BTreeSet::new());
+        let fn_esc = key(&keys, 0x1d1);
+        assert!(fn_esc.has(State::Assigned) && fn_esc.has(State::Reserved) && !fn_esc.has(State::Candidate));
     }
 
     #[test]

@@ -7,6 +7,8 @@ QtObject {
     property var components: []
     property var attachedPopupHoverOwner: null
     property bool screenshotActive: false
+    // Page the Hardware Center shows (hardware/Navigation.js indices).
+    property int hardwarePage: 0
 
     function registerState(screen, state): void {
         states = states.filter(entry => entry.screen !== screen).concat([{ screen, state }]);
