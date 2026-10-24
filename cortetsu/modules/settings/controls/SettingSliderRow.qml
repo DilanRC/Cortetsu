@@ -70,6 +70,8 @@ Item {
         CortetsuSlider {
             id: slider
             objectName: "slider"
+            accessibleName: root.title
+            accessibleValue: root.valueText || Math.round(slider.progress * 100) + " %"
             Layout.fillWidth: true
             disabled: root.disabled
             Accessible.name: root.title

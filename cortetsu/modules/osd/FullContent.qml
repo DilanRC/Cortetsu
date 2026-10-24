@@ -245,6 +245,7 @@ Item {
 
         CortetsuSlider {
             Layout.fillWidth: true
+            accessibleName: qsTr("Brillo")
             value: root.brightnessValue
             disabled: value < 0
             onMoved: nextValue => root.brightnessMonitor?.setBrightness(nextValue)
@@ -272,6 +273,7 @@ Item {
 
         CortetsuSlider {
             Layout.fillWidth: true
+            accessibleName: qsTr("Volumen")
             value: CortetsuAudio.volume
             onMoved: nextValue => CortetsuAudio.setVolume(nextValue)
         }

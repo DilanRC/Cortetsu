@@ -90,6 +90,7 @@ CortetsuPopupSurface {
 
                     CortetsuSlider {
                         Layout.fillWidth: true
+                        accessibleName: qsTr("Volumen")
                         value: CortetsuAudio.volume
                         disabled: !CortetsuAudio.sink
                         onMoved: value => CortetsuAudio.setVolume(value)

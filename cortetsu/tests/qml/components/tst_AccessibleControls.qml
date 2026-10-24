@@ -14,6 +14,16 @@ TestCase {
     height: 280
 
     Component {
+        id: sliderFixture
+        CortetsuSlider { width: 200; accessibleName: "Volumen"; value: 0.45 }
+    }
+
+    Component {
+        id: sliderRowFixture
+        SettingSliderRow { width: 400; title: "Brillo"; valueText: "70 %"; value: 0.7 }
+    }
+
+    Component {
         id: buttonFixture
         CortetsuButton {
             label: "Cerrar"
@@ -132,5 +142,17 @@ TestCase {
         const action = createTemporaryObject(actionFixture, testCase);
         compare(action.Accessible.role, Accessible.Button);
         compare(action.Accessible.name, "Abrir monitor");
+    }
+
+    // A slider says what it sets and where it is, not just "slider".
+    function test_slider_names_itself_and_its_value() {
+        const slider = createTemporaryObject(sliderFixture, testCase);
+        compare(slider.Accessible.role, Accessible.Slider);
+        compare(slider.Accessible.name, "Volumen");
+        compare(slider.Accessible.description, "45 %");
+        const row = createTemporaryObject(sliderRowFixture, testCase);
+        const inner = findChild(row, "slider");
+        compare(inner.Accessible.name, "Brillo");
+        compare(inner.Accessible.description, "70 %", "the row's own value text is spoken");
     }
 }

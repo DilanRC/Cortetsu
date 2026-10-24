@@ -20,12 +20,18 @@ Item {
     property real to: 1
     property bool disabled: false
     property real step: 0.05
+    // What the slider sets ("Volumen"); read by screen readers with the value.
+    property string accessibleName: ""
+    // Spoken value; the percentage of the range unless the caller has a unit.
+    property string accessibleValue: Math.round(root.progress * 100) + " %"
     signal moved(real value)
 
     implicitHeight: 30
     opacity: disabled ? 0.46 : 1
 
     Accessible.role: Accessible.Slider
+    Accessible.name: root.accessibleName
+    Accessible.description: root.accessibleValue
     Accessible.focusable: !disabled
     Accessible.focused: root.activeFocus
     Accessible.onIncreaseAction: if (!root.disabled) root.adjust(root.step)
