@@ -31,12 +31,23 @@ $XDG_CONFIG_HOME/cortetsu/calendar-selection.json
 $XDG_CACHE_HOME/cortetsu/calendar-events.json
 ```
 
+## Teclado
+
+- Flechas: día anterior/siguiente y semana anterior/siguiente; cruzan de mes y de año.
+- RePág/AvPág: mes anterior/siguiente en el mismo día, o el último del mes si no existe (31 de enero → 28 o 29 de febrero).
+- Inicio: hoy.
+- Tab llega a los chips de calendario; Espacio o Intro los activan o desactivan (rol `CheckBox` para lectores de pantalla).
+- Esc cierra, como en toda superficie retenida.
+
+Hoy se marca con un anillo neutro y el día elegido con relleno, para que no se confundan. Las fechas usan la
+configuración regional («Domingo, 11 de octubre»). Prueba: `scripts/features/test-cortetsu-calendar-keyboard-runtime.py`.
+
 ## Arquitectura en el shell
 
 | Pieza | Responsabilidad |
 |---|---|
 | `modules/calendar/CalendarService.qml` (singleton) | caché de eventos, selección de calendarios y el único proceso de sincronización; pide una sincronización cuando el Calendario se abre en cualquier pantalla |
-| `modules/calendar/CalendarModel.js` | reglas de fecha puras: rejilla del mes (lunes primero), eventos por día en una pasada, fin exclusivo de los eventos de día completo |
+| `modules/calendar/CalendarModel.js` | reglas de fecha puras: rejilla del mes (lunes primero), eventos por día en una pasada, fin exclusivo de los eventos de día completo, movimientos de teclado (`dayForKey`, `addMonths`) |
 | `modules/calendar/Content.qml`, `PomodoroCard.qml` | presentación; `SystemClock` por minutos solo con el panel abierto para que «hoy» cambie a medianoche |
 | `modules/pomodoro/Pomodoro.qml` (singleton) | estado leído del archivo del helper, órdenes, el daemon y el aviso de fin de fase |
 | `modules/pomodoro/PomodoroModel.js` | lo que se muestra: tiempo restante, progreso, botón principal y si un aviso es nuevo |
