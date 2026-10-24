@@ -3,23 +3,27 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import "../../components/containers"
-import "../../components"
 import ".."
 
-Scope {
+// Reserves the border on the edges whose panels are inset by it. The left
+// edge reserves nothing since the top bar was retired (panels start at x 0).
+// Every layer window costs a GL context, about 11 MiB and 4 threads each on
+// the reference laptop, so a 0 px zone gets no window at all.
+Variants {
     id: root
     required property ShellScreen screen
-    required property var bar
+    property int thickness: CortetsuConfig.borderThickness
 
-    ExclusionZone { anchors.left: true; exclusiveZone: root.bar.exclusiveZone }
-    ExclusionZone { anchors.top: true }
-    ExclusionZone { anchors.right: true }
-    ExclusionZone { anchors.bottom: true }
+    model: root.thickness > 0 ? ["top", "right", "bottom"] : []
 
-    component ExclusionZone: StyledWindow {
+    StyledWindow {
+        required property string modelData
         screen: root.screen
         name: "border-exclusion"
-        exclusiveZone: CortetsuConfig.borderThickness
+        anchors.top: modelData === "top"
+        anchors.right: modelData === "right"
+        anchors.bottom: modelData === "bottom"
+        exclusiveZone: root.thickness
         mask: Region {}
         implicitWidth: 1
         implicitHeight: 1
