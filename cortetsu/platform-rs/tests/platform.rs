@@ -62,6 +62,29 @@ fn fixture(s: &Sandbox) {
     s.put("home/.config/demo", "unmanaged\n");
 }
 #[test]
+fn system_generations_exits_cleanly_when_stdout_is_closed() {
+    use std::process::Stdio;
+
+    let s = Sandbox::new();
+    let mut child = Command::new(env!("CARGO_BIN_EXE_cortetsu-platform"))
+        .args(["system", "status"])
+        .env("HOME", s.0.join("home"))
+        .env("CORTETSU_DATA_ROOT", s.0.join("data"))
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .unwrap();
+    drop(child.stdout.take());
+    let output = child.wait_with_output().unwrap();
+    assert_eq!(output.status.code(), Some(0));
+    assert!(
+        output.stderr.is_empty(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
 fn dotfiles_roundtrip_preserves_backup_and_detects_drift() {
     let s = Sandbox::new();
     fixture(&s);

@@ -602,7 +602,7 @@ fn cpu_temp_reads_only_the_cpu_sensor_like_the_hardware_center() {
 // signal arrives. It used to check a flag every 50 ms: 20 wakeups per second
 // while idle (26/s measured on the running service, 2026-10-23).
 #[test]
-fn idle_power_watcher_blocks_instead_of_polling_and_stops_on_sigterm() {
+fn idle_power_watcher_blocks_instead_of_polling_and_handles_termination_signals() {
     use std::{
         process::Stdio,
         thread,
@@ -671,5 +671,38 @@ fn idle_power_watcher_blocks_instead_of_polling_and_stops_on_sigterm() {
         "SIGTERM took {:?}",
         sent.elapsed()
     );
-    assert_eq!(status.code(), Some(130));
+    assert_eq!(status.code(), Some(0), "SIGTERM is a normal systemd stop");
+
+    fs::remove_file(&owner).unwrap();
+    let mut child = Command::new(env!("CARGO_BIN_EXE_cortetsu-hardware-runtime"))
+        .arg("cortetsu-power-auto")
+        .env("HOME", t.path())
+        .env("XDG_STATE_HOME", t.path().join(".local/state"))
+        .env("XDG_RUNTIME_DIR", t.path().join("run"))
+        .env("CORTETSU_SYSFS_ROOT", t.path().join("sys"))
+        .env(
+            "PATH",
+            format!("{}:/usr/bin:/bin", t.path().join("bin").display()),
+        )
+        .stdout(Stdio::null())
+        .spawn()
+        .unwrap();
+    let deadline = Instant::now() + Duration::from_secs(5);
+    while !owner.exists() {
+        assert!(
+            Instant::now() < deadline,
+            "second watcher iteration never ran"
+        );
+        thread::sleep(Duration::from_millis(10));
+    }
+    nix::sys::signal::kill(
+        nix::unistd::Pid::from_raw(child.id() as i32),
+        nix::sys::signal::Signal::SIGINT,
+    )
+    .unwrap();
+    assert_eq!(
+        child.wait().unwrap().code(),
+        Some(130),
+        "SIGINT remains an interrupt"
+    );
 }
