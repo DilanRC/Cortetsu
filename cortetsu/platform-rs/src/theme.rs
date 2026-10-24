@@ -152,7 +152,10 @@ fn outputs(repo: &Path, v: &Value) -> Result<Vec<(PathBuf, String)>> {
                     .as_array()
                     .is_some_and(|roles| roles.iter().any(|r| r == name));
                 if text_role {
-                    ("color", format!("readable({read}, [colorTetsu, colorSurfaceHigh])"))
+                    (
+                        "color",
+                        format!("readable({read}, [colorTetsu, colorSurfaceHigh])"),
+                    )
                 } else {
                     ("color", read)
                 }

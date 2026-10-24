@@ -636,11 +636,16 @@ fn idle_power_watcher_blocks_instead_of_polling_and_stops_on_sigterm() {
         .env("XDG_STATE_HOME", t.path().join(".local/state"))
         .env("XDG_RUNTIME_DIR", t.path().join("run"))
         .env("CORTETSU_SYSFS_ROOT", t.path().join("sys"))
-        .env("PATH", format!("{}:/usr/bin:/bin", t.path().join("bin").display()))
+        .env(
+            "PATH",
+            format!("{}:/usr/bin:/bin", t.path().join("bin").display()),
+        )
         .stdout(Stdio::null())
         .spawn()
         .unwrap();
-    let owner = t.path().join(".local/state/cortetsu/hardware-owners/power.json");
+    let owner = t
+        .path()
+        .join(".local/state/cortetsu/hardware-owners/power.json");
     let deadline = Instant::now() + Duration::from_secs(5);
     while !owner.exists() {
         assert!(Instant::now() < deadline, "first iteration never ran");
@@ -650,10 +655,21 @@ fn idle_power_watcher_blocks_instead_of_polling_and_stops_on_sigterm() {
     let before = switches(child.id());
     thread::sleep(Duration::from_millis(1500));
     let idle = switches(child.id()) - before;
-    assert!(idle <= 3, "{idle} wakeups in 1.5 s while idle; a 50 ms poll makes about 30");
+    assert!(
+        idle <= 3,
+        "{idle} wakeups in 1.5 s while idle; a 50 ms poll makes about 30"
+    );
     let sent = Instant::now();
-    nix::sys::signal::kill(nix::unistd::Pid::from_raw(child.id() as i32), nix::sys::signal::Signal::SIGTERM).unwrap();
+    nix::sys::signal::kill(
+        nix::unistd::Pid::from_raw(child.id() as i32),
+        nix::sys::signal::Signal::SIGTERM,
+    )
+    .unwrap();
     let status = child.wait().unwrap();
-    assert!(sent.elapsed() < Duration::from_millis(500), "SIGTERM took {:?}", sent.elapsed());
+    assert!(
+        sent.elapsed() < Duration::from_millis(500),
+        "SIGTERM took {:?}",
+        sent.elapsed()
+    );
     assert_eq!(status.code(), Some(130));
 }
