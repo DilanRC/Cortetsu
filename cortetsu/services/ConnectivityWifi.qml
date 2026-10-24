@@ -202,7 +202,10 @@ Singleton {
     onScanningChanged: syncScanners()
     onWifiDevicesChanged: { syncScanners(); adapter.ensureMonitor(); adapter.refreshRadio(); observe(); }
     onNetworksChanged: observe()
-    onOperationConnectedChanged: observe()
+    // observe() may reassign `operation`, a dependency of operationConnected;
+    // running it inside this notification re-enters the binding (a loop that
+    // Qt reports and skips). Run it once the notification has finished.
+    onOperationConnectedChanged: Qt.callLater(observe)
     onWifiEnabledChanged: observe()
     onProfilesChanged: observe()
     onDetailsChanged: observe()
