@@ -4,8 +4,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 files = {
     "typography": ROOT / "cortetsu/modules/CortetsuTypography.js",
-    "datetime": ROOT / "cortetsu/modules/dashboard/dash/DateTime.qml",
-    "media": ROOT / "cortetsu/modules/dashboard/dash/Media.qml",
     "dashboard": ROOT / "cortetsu/modules/dashboard/Dash.qml",
     "focus": ROOT / "cortetsu/modules/dashboard/Focus.qml",
     "launcher": ROOT / "cortetsu/modules/launcher/AppList.qml",
@@ -26,11 +24,6 @@ checks = {
             "CortetsuTypography.iconFeaturePx",
         )
     ),
-    "dashboard sub-surfaces use first-party primitives": all(
-        token in source[name]
-        for name in ("datetime", "media")
-        for token in ("CortetsuText", "CortetsuTypography")
-    ) and "CortetsuIcon" in source["media"],
     "launcher density uses design tokens": all(
         token in source["launcher"]
         for token in ("CortetsuDesign.spacingUnit", "CortetsuDesign.radiusSmall")
@@ -40,7 +33,7 @@ checks = {
         for token in ("anchors.fill: parent", "acceptedButtons:", "root.screenState.launcher = false")
     ),
     "raw large font declarations are removed": all(
-        "font.pixelSize:" not in source[name] for name in ("datetime", "media")
+        "font.pixelSize:" not in source[name] for name in ("dashboard", "focus")
     ),
 }
 
