@@ -82,7 +82,7 @@ Item {
 
         CortetsuText {
             Layout.fillWidth: true
-            text: Qt.formatDate(root.dayAnchor, "dddd, d MMMM")
+            text: CortetsuRegional.formatDate(root.dayAnchor, "longDay", true)
             textSize: CortetsuTypography.titleMediumPx
             font.weight: Font.DemiBold
             elide: Text.ElideRight

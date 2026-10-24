@@ -26,7 +26,7 @@ vm.runInContext(
         "\nglobalThis.__EXPORTS__ = { clockPattern, hourPattern, toFahrenheit, formatTemperature, " +
         "parseLocationQuery, buildForecastUrl, buildGeocodeUrl, buildReverseGeocodeUrl, buildIpLookupUrl, " +
         "fixCityName, weatherCondition, parseForecastResponse, parseGeocodeResponse, " +
-        "parseReverseGeocodeResponse, parseIpLookupResponse, ipApiRateLimit };",
+        "parseReverseGeocodeResponse, parseIpLookupResponse, ipApiRateLimit, capitalize, datePatterns };",
     context,
     { filename: "CortetsuRegional.js" }
 );
@@ -164,6 +164,12 @@ check("ipApiRateLimit(429, {'x-ttl':'30'})", regional.ipApiRateLimit(429, { "x-t
 check("ipApiRateLimit(429, no ttl header)", regional.ipApiRateLimit(429, {}, 1000), { limited: true, delayMs: 61000, blockedUntil: 62000 });
 check("ipApiRateLimit(200, exhausted x-rl)", regional.ipApiRateLimit(200, { "x-rl": "0" }, 1000), { limited: true, delayMs: 61000, blockedUntil: 62000 });
 check("ipApiRateLimit(200, remaining x-rl)", regional.ipApiRateLimit(200, { "x-rl": "5" }, 1000), { limited: false });
+
+// -- Spanish date headings ------------------------------------------------
+check("capitalize(viernes, 23 de octubre)", regional.capitalize("viernes, 23 de octubre"), "Viernes, 23 de octubre");
+check("capitalize(empty)", regional.capitalize(""), "");
+check("capitalize(undefined)", regional.capitalize(undefined), "");
+check("datePatterns.longDay keeps 'de'", regional.datePatterns.longDay, "dddd, d 'de' MMMM");
 
 if (failures > 0) {
     console.error(`${failures} assertion(s) failed`);

@@ -23,6 +23,13 @@ QtObject {
     readonly property string clockPattern: RegionalLogic.clockPattern(useTwelveHourClock)
     readonly property string hourPattern: RegionalLogic.hourPattern(useTwelveHourClock)
 
+    // `pattern` is a key of RegionalLogic.datePatterns. Uses the session
+    // locale, so day and month names follow LANG/LC_TIME.
+    function formatDate(date: var, pattern: string, heading: bool): string {
+        const text = Qt.locale().toString(date, RegionalLogic.datePatterns[pattern]);
+        return heading ? RegionalLogic.capitalize(text) : text;
+    }
+
     function formatTemperature(celsius: var): string {
         return RegionalLogic.formatTemperature(celsius, root.useFahrenheit);
     }

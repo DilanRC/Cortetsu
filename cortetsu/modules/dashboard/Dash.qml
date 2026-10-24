@@ -105,7 +105,7 @@ Item {
                     Layout.alignment: Qt.AlignRight
                 }
                 CortetsuText {
-                    text: Qt.formatDate(Time.date, "dddd, d MMMM")
+                    text: CortetsuRegional.formatDate(Time.date, "longDay", true)
                     textSize: CortetsuTypography.bodySmallPx
                     color: CortetsuDesign.colorOnSurfaceVariant
                     Layout.alignment: Qt.AlignRight

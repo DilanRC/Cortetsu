@@ -194,3 +194,19 @@ function ipApiRateLimit(statusCode, headers, now) {
 
     return { limited: true, delayMs, blockedUntil: reference + delayMs };
 }
+
+// Date patterns with day or month names, in Spanish word order. Qt 6's
+// Qt.formatDate and Qt.formatDateTime ignore the locale for a pattern string
+// and print English names ("Fri 23"); format these with
+// Qt.locale().toString(date, pattern), as CortetsuRegional.formatDate does.
+var datePatterns = {
+    weekdayDay: "ddd d",             // vie 23
+    longDay: "dddd, d 'de' MMMM",    // viernes, 23 de octubre
+    monthYear: "MMMM 'de' yyyy"      // octubre de 2026
+};
+
+// Spanish names are lower case; a heading starts with a capital.
+function capitalize(text) {
+    const value = String(text ?? "");
+    return value.length > 0 ? value.charAt(0).toLocaleUpperCase() + value.slice(1) : "";
+}

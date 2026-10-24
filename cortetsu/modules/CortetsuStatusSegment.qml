@@ -273,7 +273,7 @@ Item {
 
                 CortetsuText {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    text: Qt.formatDateTime(root.now, "ddd d")
+                    text: CortetsuRegional.formatDate(root.now, "weekdayDay", false)
                     color: CortetsuDesign.colorMuted
                     textSize: CortetsuTypography.labelSmallPx
                 }

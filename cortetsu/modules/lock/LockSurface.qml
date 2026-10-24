@@ -143,7 +143,7 @@ WlSessionLockSurface {
 
         CortetsuText {
             Layout.alignment: Qt.AlignHCenter
-            text: Qt.formatDateTime(Time.date, "dddd, d MMMM")
+            text: CortetsuRegional.formatDate(Time.date, "longDay", true)
             textSize: CortetsuTypography.bodyPx
             color: CortetsuDesign.colorOnSurfaceVariant
         }
