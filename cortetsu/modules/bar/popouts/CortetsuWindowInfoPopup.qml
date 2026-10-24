@@ -150,28 +150,26 @@ CortetsuSurface {
         }
     }
 
-    function windowSelector(): string {
-        return `address:0x${root.client?.address ?? ""}`;
+    function windowAddress(): string {
+        return root.client?.lastIpcObject?.address ?? root.client?.address ?? "";
     }
 
     function dispatchWindow(action: string): void {
         if (!root.client)
             return;
-        const selector = root.windowSelector();
-        const commands = {
-            float: CortetsuHypr.usingLua ? `hl.dsp.window.float({ window = "${selector}" })` : `togglefloating ${selector}`,
-            pin: CortetsuHypr.usingLua ? `hl.dsp.window.pin({ window = "${selector}" })` : `pin ${selector}`,
-            kill: CortetsuHypr.usingLua ? `hl.dsp.window.kill({ window = "${selector}" })` : `killwindow ${selector}`
-        };
-        CortetsuHypr.dispatch(commands[action]);
+        const address = root.windowAddress();
+        if (action === "float")
+            CortetsuHypr.toggleFloat(address);
+        else if (action === "pin")
+            CortetsuHypr.togglePin(address);
+        else if (action === "kill")
+            CortetsuHypr.killWindow(address);
     }
 
     function moveToWorkspace(workspace: int): void {
         if (!root.client)
             return;
-        CortetsuHypr.dispatch(CortetsuHypr.usingLua
-            ? `hl.dsp.window.move({ window = "${root.windowSelector()}", workspace = "${workspace}", follow = true })`
-            : `movetoworkspace ${workspace},${root.windowSelector()}`);
+        CortetsuHypr.moveWindow(root.windowAddress(), workspace, true);
     }
 
     component Detail: RowLayout {

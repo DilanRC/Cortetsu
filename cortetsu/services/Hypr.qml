@@ -34,6 +34,17 @@ Singleton {
     }
 
     function dispatch(request: string): void { CortetsuHypr.dispatch(request); }
+    function focusWorkspace(workspace: var): bool { return CortetsuHypr.focusWorkspace(workspace); }
+    function toggleSpecialWorkspace(name: string): bool { return CortetsuHypr.toggleSpecialWorkspace(name); }
+    function focusWindow(address: string): bool { return CortetsuHypr.focusWindow(address); }
+    function closeWindow(address: string): bool { return CortetsuHypr.closeWindow(address); }
+    function toggleFloat(address: string): bool { return CortetsuHypr.toggleFloat(address); }
+    function togglePin(address: string): bool { return CortetsuHypr.togglePin(address); }
+    function killWindow(address: string): bool { return CortetsuHypr.killWindow(address); }
+    function moveWindow(address: string, workspace: var, follow: bool): bool { return CortetsuHypr.moveWindow(address, workspace, follow); }
+    function moveCursor(x: real, y: real): bool { return CortetsuHypr.moveCursor(x, y); }
+    function setDpms(on: bool): bool { return CortetsuHypr.setDpms(on); }
+    function exitHyprland(): bool { return CortetsuHypr.exitHyprland(); }
     function monitorFor(screen): var { return CortetsuHypr.monitorFor(screen); }
     function toplevelsForWs(ws: int): list<var> {
         return toplevels.values.filter(t => t.workspace && t.workspace.id === ws && isTaskbarToplevel(t));

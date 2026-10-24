@@ -46,9 +46,7 @@ Scope {
         else if (action === "dpms" || action === "dpms-on")
             // Any key or pointer motion also turns the outputs back on
             // (misc.key_press_enables_dpms), so a lost "on" cannot strand them.
-            CortetsuHypr.dispatch(CortetsuHypr.usingLua
-                ? `hl.dsp.dpms({ action = "${action === "dpms" ? "off" : "on"}" })`
-                : `dpms ${action === "dpms" ? "off" : "on"}`);
+            CortetsuHypr.setDpms(action === "dpms-on");
         else if (action === "suspend")
             CortetsuSession.suspend();
         else if (typeof action === "string")

@@ -47,7 +47,7 @@ Column {
             label: qsTr("Cerrar sesión"),
             detail: qsTr("Finalizar la sesión de Hyprland"),
             icon: "logout",
-            dispatch: CortetsuHypr.usingLua ? "hl.dsp.exit()" : "exit",
+            hyprAction: "exit",
             confirm: true,
             danger: true,
             lockBefore: false
@@ -100,7 +100,7 @@ Column {
     onVisibleChanged: if (visible) CortetsuSession.refreshCapabilities()
 
     function execute(action): void {
-        if (!action || !(action.sleepMode || action.command || action.dispatch || action.lockOnly) || !available(action))
+        if (!action || !(action.sleepMode || action.command || action.dispatch || action.hyprAction || action.lockOnly) || !available(action))
             return;
 
         pendingAction = "";
@@ -119,8 +119,8 @@ Column {
             return;
         }
 
-        if (action.dispatch) {
-            CortetsuHypr.dispatch(action.dispatch);
+        if (action.hyprAction === "exit") {
+            CortetsuHypr.exitHyprland();
             root.screenState.session = false;
             return;
         }

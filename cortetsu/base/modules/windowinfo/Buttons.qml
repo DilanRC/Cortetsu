@@ -94,7 +94,7 @@ ColumnLayout {
                 readonly property bool isCurrent: root.client?.workspace.id === wsId
 
                 onClicked: {
-                    Hypr.dispatch(Hypr.usingLua ? `hl.dsp.window.move({ window = "address:0x${root.client?.address}", workspace = "${wsId}", follow = true })` : `movetoworkspace ${wsId},address:0x${root.client?.address}`);
+                    Hypr.moveWindow(root.client?.address ?? "", wsId, true);
                 }
 
                 color: isCurrent ? CortetsuColours.tPalette.m3surfaceContainerHighest : CortetsuColours.palette.m3tertiaryContainer
@@ -117,7 +117,7 @@ ColumnLayout {
             color: CortetsuColours.palette.m3secondaryContainer
             onColor: CortetsuColours.palette.m3onSecondaryContainer
             text: root.client?.lastIpcObject.floating ? qsTr("Tile") : qsTr("Float")
-            onClicked: Hypr.dispatch(Hypr.usingLua ? `hl.dsp.window.float({ window = "address:0x${root.client?.address}" })` : `togglefloating address:0x${root.client?.address}`)
+            onClicked: Hypr.toggleFloat(root.client?.address ?? "")
         }
 
         Loader {
@@ -131,7 +131,7 @@ ColumnLayout {
                 color: CortetsuColours.palette.m3secondaryContainer
                 onColor: CortetsuColours.palette.m3onSecondaryContainer
                 text: root.client?.lastIpcObject.pinned ? qsTr("Unpin") : qsTr("Pin")
-                onClicked: Hypr.dispatch(Hypr.usingLua ? `hl.dsp.window.pin({ window = "address:0x${root.client?.address}" })` : `pin address:0x${root.client?.address}`)
+                onClicked: Hypr.togglePin(root.client?.address ?? "")
             }
         }
 
@@ -139,7 +139,7 @@ ColumnLayout {
             color: CortetsuColours.palette.m3errorContainer
             onColor: CortetsuColours.palette.m3onErrorContainer
             text: qsTr("Kill")
-            onClicked: Hypr.dispatch(Hypr.usingLua ? `hl.dsp.window.kill({ window = "address:0x${root.client?.address}" })` : `killwindow address:0x${root.client?.address}`)
+            onClicked: Hypr.killWindow(root.client?.address ?? "")
         }
     }
 

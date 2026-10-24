@@ -500,12 +500,7 @@ Scope {
                 ))
                     return;
 
-                const selector = `address:${address}`;
-                CortetsuHypr.dispatch(
-                    CortetsuHypr.usingLua
-                        ? `hl.dsp.focus({ window = \"${selector}\" })`
-                        : `focuswindow ${selector}`
-                );
+                CortetsuHypr.focusWindow(address);
             }
 
             function focusWindow(client): void {
@@ -524,12 +519,7 @@ Scope {
                 if (!address)
                     return;
 
-                const selector = `address:${address}`;
-                CortetsuHypr.dispatch(
-                    CortetsuHypr.usingLua
-                        ? `hl.dsp.window.close({ window = \"${selector}\" })`
-                        : `closewindow ${selector}`
-                );
+                CortetsuHypr.closeWindow(address);
             }
 
             function activeWindowFor(item): var {
@@ -726,10 +716,7 @@ Scope {
                 property int restoreY: 0
 
                 onTriggered: {
-                    if (CortetsuHypr.usingLua)
-                        CortetsuHypr.dispatch(`hl.dsp.cursor.move({ x = ${restoreX}, y = ${restoreY} })`);
-                    else
-                        CortetsuHypr.dispatch(`movecursor ${restoreX} ${restoreY}`);
+                    CortetsuHypr.moveCursor(restoreX, restoreY);
                 }
             }
 
@@ -814,11 +801,7 @@ Scope {
                 sessionActive: win.screenState?.session ?? false
 
                 onLauncherRequested: hubRoot.toggleLauncherFor(win.modelData)
-                onWorkspaceRequested: workspaceId => CortetsuHypr.dispatch(
-                    CortetsuHypr.usingLua
-                        ? `hl.dsp.focus({ workspace = \"${workspaceId}\" })`
-                        : `workspace ${workspaceId}`
-                )
+                onWorkspaceRequested: workspaceId => CortetsuHypr.focusWorkspace(workspaceId)
                 onAppActivateRequested: key => win.activateDockKey(key)
                 onAppTogglePinnedRequested: key => win.togglePinnedKey(key)
                 onAppCloseRequested: key => win.closeDockKey(key)

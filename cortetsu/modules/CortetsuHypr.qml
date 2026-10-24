@@ -9,6 +9,7 @@ import "."
 import "../services"
 import "CortetsuToplevels.js" as CortetsuToplevels
 import "CortetsuFullscreen.js" as Fullscreen
+import "CortetsuHyprActions.js" as HyprActions
 
 // First-party Hyprland contract. Keep backend access in one adapter so
 // consumers do not depend on inherited service names or implementation.
@@ -218,6 +219,60 @@ Singleton {
 
     function dispatch(request: string): void {
         Hyprland.dispatch(request)
+    }
+
+    function dispatchAction(action: var): bool {
+        if (!action || typeof action.lua !== "string" || typeof action.legacy !== "string")
+            return false;
+        const request = usingLua ? action.lua : action.legacy;
+        if (request.length === 0)
+            return false;
+        Hyprland.dispatch(request);
+        return true;
+    }
+
+    function focusWorkspace(workspace: var): bool {
+        return dispatchAction(HyprActions.focusWorkspace(workspace));
+    }
+
+    function toggleSpecialWorkspace(name: string): bool {
+        return dispatchAction(HyprActions.toggleSpecialWorkspace(name));
+    }
+
+    function focusWindow(address: string): bool {
+        return dispatchAction(HyprActions.focusWindow(address));
+    }
+
+    function closeWindow(address: string): bool {
+        return dispatchAction(HyprActions.closeWindow(address));
+    }
+
+    function toggleFloat(address: string): bool {
+        return dispatchAction(HyprActions.toggleFloat(address));
+    }
+
+    function togglePin(address: string): bool {
+        return dispatchAction(HyprActions.togglePin(address));
+    }
+
+    function killWindow(address: string): bool {
+        return dispatchAction(HyprActions.killWindow(address));
+    }
+
+    function moveWindow(address: string, workspace: var, follow: bool): bool {
+        return dispatchAction(HyprActions.moveWindow(address, workspace, follow));
+    }
+
+    function moveCursor(x: real, y: real): bool {
+        return dispatchAction(HyprActions.moveCursor(x, y));
+    }
+
+    function setDpms(on: bool): bool {
+        return dispatchAction(HyprActions.dpms(on));
+    }
+
+    function exitHyprland(): bool {
+        return dispatchAction(HyprActions.exit());
     }
 
     function monitorFor(screen): var {

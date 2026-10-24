@@ -126,6 +126,7 @@ for required in \
     modules/SurfaceRegistry.js \
     modules/CortetsuToplevels.js \
     modules/CortetsuHypr.qml \
+    modules/CortetsuHyprActions.js \
     modules/CortetsuScreens.qml \
     modules/CortetsuConfig.qml \
     modules/CortetsuShortcut.qml \

@@ -159,11 +159,6 @@ FocusScope {
         return client?.lastIpcObject?.address ?? "";
     }
 
-    function selectorFor(client): string {
-        const address = addressOf(client);
-        return address ? `address:${address}` : "";
-    }
-
     function windowCountForWorkspace(id): int {
         return clients.filter(
             c => c.workspace?.id === id
@@ -246,8 +241,7 @@ FocusScope {
         if (!client)
             return;
 
-        const selector =
-            selectorFor(client);
+        const address = addressOf(client);
 
         const ws =
             client.workspace;
@@ -256,34 +250,12 @@ FocusScope {
 
         Qt.callLater(() => {
             if (ws) {
-                if (CortetsuHypr.usingLua) {
-                    const workspaceValue =
-                        ws.name?.startsWith("special:")
-                            ? `"${ws.name}"`
-                            : ws.id;
-
-                    CortetsuHypr.dispatch(
-                        `hl.dsp.focus({ workspace = ${workspaceValue} })`
-                    );
-                } else {
-                    const target =
-                        ws.name?.startsWith("special:")
-                            ? ws.name
-                            : ws.id;
-
-                    CortetsuHypr.dispatch(
-                        `workspace ${target}`
-                    );
-                }
+                const target = ws.name?.startsWith("special:") ? ws.name : ws.id;
+                CortetsuHypr.focusWorkspace(target);
             }
 
-            if (selector) {
-                CortetsuHypr.dispatch(
-                    CortetsuHypr.usingLua
-                        ? `hl.dsp.focus({ window = "${selector}" })`
-                        : `focuswindow ${selector}`
-                );
-            }
+            if (address)
+                CortetsuHypr.focusWindow(address);
         });
     }
 
@@ -291,54 +263,35 @@ FocusScope {
         screenState.cortetsuState?.setRetained("overview", false);
 
         Qt.callLater(() => {
-            CortetsuHypr.dispatch(
-                CortetsuHypr.usingLua
-                    ? `hl.dsp.focus({ workspace = ${id} })`
-                    : `workspace ${id}`
-            );
+            CortetsuHypr.focusWorkspace(id);
         });
     }
 
     function closeClient(client): void {
-        const selector =
-            selectorFor(client);
+        const address = addressOf(client);
 
-        if (!selector)
+        if (!address)
             return;
 
-        CortetsuHypr.dispatch(
-            CortetsuHypr.usingLua
-                ? `hl.dsp.window.close({ window = "${selector}" })`
-                : `closewindow ${selector}`
-        );
+        CortetsuHypr.closeWindow(address);
     }
 
     function toggleFloating(client): void {
-        const selector =
-            selectorFor(client);
+        const address = addressOf(client);
 
-        if (!selector)
+        if (!address)
             return;
 
-        CortetsuHypr.dispatch(
-            CortetsuHypr.usingLua
-                ? `hl.dsp.window.float({ action = "toggle", window = "${selector}" })`
-                : `togglefloating ${selector}`
-        );
+        CortetsuHypr.toggleFloat(address);
     }
 
     function moveClientToWorkspace(client, workspaceId): void {
-        const selector =
-            selectorFor(client);
+        const address = addressOf(client);
 
-        if (!selector || workspaceId <= 0)
+        if (!address || workspaceId <= 0)
             return;
 
-        CortetsuHypr.dispatch(
-            CortetsuHypr.usingLua
-                ? `hl.dsp.window.move({ workspace = ${workspaceId}, follow = false, window = "${selector}" })`
-                : `movetoworkspacesilent ${workspaceId},${selector}`
-        );
+        CortetsuHypr.moveWindow(address, workspaceId, false);
     }
 
     function ensureSelectedVisible(): void {
