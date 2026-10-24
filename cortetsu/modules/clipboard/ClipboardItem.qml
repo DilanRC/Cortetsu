@@ -250,7 +250,7 @@ Rectangle {
 
                 text:
                     root.isImage
-                        ? qsTr("Image")
+                        ? qsTr("Imagen")
                         : root.value
 
                 maximumLineCount:

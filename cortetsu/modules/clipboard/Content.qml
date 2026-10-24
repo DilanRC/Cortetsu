@@ -125,7 +125,7 @@ FocusScope {
             )
                 selectedIndex = 0;
         } catch (error) {
-            statusText = qsTr("Could not read Clipse history");
+            statusText = qsTr("No se pudo leer el historial de Clipse");
             console.warn(`Clipboard QML: failed to parse history: ${error}`);
         }
     }
@@ -136,7 +136,7 @@ FocusScope {
                 JSON.stringify({ clipboardHistory: history }, null, 2)
             );
         } catch (error) {
-            statusText = qsTr("Could not save clipboard history");
+            statusText = qsTr("No se pudo guardar el historial del portapapeles");
             console.warn(`Clipboard QML: failed to save history: ${error}`);
         }
     }
@@ -199,7 +199,7 @@ FocusScope {
             Quickshell.clipboardText = String(item.value ?? "");
         }
 
-        statusText = qsTr("Copied");
+        statusText = qsTr("Copiado");
         screenState.cortetsuState?.setRetained("clipboard", false);
     }
 
@@ -217,7 +217,7 @@ FocusScope {
         history = next;
         saveHistory();
         normalizeSelection();
-        statusText = qsTr("Removed");
+        statusText = qsTr("Eliminado");
     }
 
     function togglePin(entry): void {
@@ -236,7 +236,7 @@ FocusScope {
         history = next;
         saveHistory();
         normalizeSelection();
-        statusText = copy.pinned ? qsTr("Pinned") : qsTr("Unpinned");
+        statusText = copy.pinned ? qsTr("Fijado") : qsTr("Ya no está fijado");
     }
 
     function clearNonPinned(): void {
@@ -284,7 +284,7 @@ FocusScope {
         onLoaded: root.reloadHistory()
 
         onSaveFailed: error => {
-            root.statusText = qsTr("Failed to save history");
+            root.statusText = qsTr("No se pudo guardar el historial");
             console.warn(`Clipboard QML save error: ${error}`);
         }
     }
@@ -438,14 +438,14 @@ FocusScope {
                     spacing: 0
 
                     CortetsuText {
-                        text: qsTr("Clipboard")
+                        text: qsTr("Portapapeles")
                         color: root.textPrimary
                         textSize: CortetsuTypography.titleLargePx
                     }
 
                     CortetsuText {
                         text:
-                            qsTr("%1 items · Clipse backend")
+                            qsTr("%1 elementos · Clipse")
                                 .arg(root.filteredEntries.length)
                         color: root.textMuted
                         textSize: CortetsuTypography.labelMediumPx
@@ -529,7 +529,7 @@ FocusScope {
                                 }
 
                                 CortetsuText {
-                                    text: qsTr("Pinned")
+                                    text: qsTr("Fijados")
                                     color:
                                         root.pinnedOnly
                                             ? root.accent
@@ -691,7 +691,7 @@ FocusScope {
                     visible: searchInput.text.length === 0
                     anchors.left: searchInput.left
                     anchors.verticalCenter: parent.verticalCenter
-                    text: qsTr("Search clipboard…")
+                    text: qsTr("Buscar en el portapapeles…")
                     color: root.textMuted
                     textSize: CortetsuTypography.bodyLargePx
                 }
@@ -797,11 +797,11 @@ FocusScope {
 
                 Repeater {
                     model: [
-                        { key: "↑ ↓", label: qsTr("Navigate") },
-                        { key: "Enter", label: qsTr("Copy") },
-                        { key: "Delete", label: qsTr("Remove") },
-                        { key: "P", label: qsTr("Pin") },
-                        { key: "Ctrl+F", label: qsTr("Search") }
+                        { key: "↑ ↓", label: qsTr("Navegar") },
+                        { key: "Enter", label: qsTr("Copiar") },
+                        { key: "Supr", label: qsTr("Eliminar") },
+                        { key: "P", label: qsTr("Fijar") },
+                        { key: "Ctrl+F", label: qsTr("Buscar") }
                     ]
 
                     Row {
@@ -863,7 +863,7 @@ FocusScope {
                 text:
                     root.query.length > 0
                         ? qsTr("No hay elementos coincidentes en el portapapeles")
-                        : qsTr("Clipboard history is empty")
+                        : qsTr("El historial del portapapeles está vacío")
                 color: root.textMuted
                 textSize: CortetsuTypography.bodyPx
             }
