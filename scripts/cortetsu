@@ -308,6 +308,7 @@ run_quickshell_fixture() {
     }
     printf '%s\n' "$output"
     [[ "$output" == *"$marker"* ]] || fail "Quickshell fixture did not report $marker"
+    [[ "$output" != *"Binding loop"* ]] || fail "Quickshell fixture reported a binding loop: $relative"
 }
 
 legacy_processes_cmd() {
@@ -369,6 +370,7 @@ test_cmd() {
     run_node_test "scripts/features/test-ascension-motion.js"
     run_node_test "scripts/features/test-connectivity-wifi-policy.cjs"
     run_node_test "scripts/features/test-connectivity-bluetooth.mjs"
+    run_node_test "scripts/features/test-hypr-shell-layer-rules.cjs"
     local directory
     for directory in focus components hardware hypr keyboards settings surfaces calendar pomodoro bottomhub; do
         run_qml_test "cortetsu/tests/qml/$directory"
@@ -376,6 +378,8 @@ test_cmd() {
     run_qml_test "cortetsu/modules/wallpaper/tests"
     run_quickshell_fixture "cortetsu/tests/qml/bottomhub/fixture_ScriptModelIdentity.qml" "SCRIPT_MODEL_IDENTITY_PASS"
     run_quickshell_fixture "cortetsu/StartupPageFixture.qml" "STARTUP_PAGE_PASS"
+    run_quickshell_fixture "cortetsu/ExclusionsFixture.qml" "EXCLUSIONS_PASS"
+    run_quickshell_fixture "cortetsu/ConnectivityWifiFixture.qml" "WIFI_OBSERVED_PASS"
     printf '\nCortetsu native regressions passed.\n'
 }
 
