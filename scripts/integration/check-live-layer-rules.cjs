@@ -64,6 +64,6 @@ const activatedMs = fs.lstatSync(current).mtimeMs;
 const stale = activatedMs > startedMs;
 console.log(`compositor started ${new Date(startedMs).toISOString()}, generation activated ${new Date(activatedMs).toISOString()}`);
 console.log(failed ? "VERDICT: FAIL" : stale
-    ? "VERDICT: RELOAD_REQUIRED (rules on disk are newer than the compositor; `hyprctl reload config-only` loads them)"
+    ? "VERDICT: RELOAD_REQUIRED unless `hyprctl reload` ran after the activation above (Hyprland logs no reload; `hyprctl reload config-only` loads them)"
     : "VERDICT: PASS (the compositor started with this generation)");
 process.exit(failed ? 1 : 0);

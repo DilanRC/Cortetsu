@@ -120,3 +120,9 @@ Ver [`stabilization/CLOSURE-2026-10-23.md`](stabilization/CLOSURE-2026-10-23.md)
 (B/A en reposo: `qs` ≈ 0,15–0,2 %, Hyprland ≤ 0,09 %); el coste del HDMI es la dGPU en D0 (4–6 W) y ≈ 11 MiB por
 ventana de capa. Corregidos: ventanas `border-exclusion` sin efecto, bucle de binding de Wi-Fi y reglas de capa
 `caelestia-*`. Play/Pause PASS; Fn+Esc emite `KEY_FN_ESC` sin acción asignada; micrófono NOT_APPLICABLE.
+
+## 9. Continuación y auditoría (2026-10-23, noche)
+
+Ver [`stabilization/AUDIT-2026-10-23.md`](stabilization/AUDIT-2026-10-23.md): Fn+Esc abre la nueva página Sistema de
+Hardware Center; reglas de capa cargadas tras medir su mecanismo de recarga; prueba HDMI + `s2idle` preparada sin
+ejecutar; auditorías visual y Rust/Go con 13 defectos corregidos y probados.
