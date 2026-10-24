@@ -95,11 +95,24 @@ siguen fuera del coordinador.
 La CLI `cortetsu shell inspect` devuelve un snapshot de solo lectura con `schema_version: 1`; superficies y foco se calculan en
 el shell de Quickshell. El inspector no crea un segundo canal de control.
 
+**R-04 — IMPLEMENTADO:** `CortetsuHyprEventPolicy.refreshPlan` deja que Quickshell procese `windowtitlev2` y `activewindowv2`
+en su modelo, sin pedir otro `j/clients` por sus aliases `windowtitle` y `activewindow`. Los refrescos se conservan para ventanas
+abiertas, cerradas o movidas, y para fullscreen, pin, grupos, workspaces y monitores. Pruebas físicas en Hyprland 0.56.2 y
+Quickshell 0.3.2: 600 cambios de título solicitados a Kitty durante 60 s; el handler anterior hizo 590 refrescos por
+`windowtitle` y 1180 llamadas a `refreshToplevels` en total; el nuevo hizo 0 y 0. El contador de snapshots `Process` de Cortetsu
+no aumentó durante el intervalo en ninguna fase; ese contador excluye los sondeos `hyprctl` del harness. El socket2 registró
+`windowtitle` y `windowtitlev2` y el shell y su IPC siguieron operativos.
+Las llamadas al método son solicitudes lógicas: Quickshell puede coalescer consultas en vuelo. Se midieron 10 consultas directas
+`hyprctl -j clients` antes y después (5,6–6,9 ms de media según fase); esos tiempos no miden la consulta interna de Quickshell y
+no se usan para afirmar una mejora de CPU o latencia.
+
 **R-11:** Quickshell 0.3.2 mantiene una sola conexión a `.socket2.sock` y no la reabre al desconectarse. El observador Go de
 `observehypr` sí reconecta con backoff acotado y exige un snapshot nuevo por época, pero ese snapshot no repara el estado interno
 de `Quickshell.Hyprland`. `inspect` declara que el estado de conexión de Quickshell no se expone a QML y que el cliente no tiene
 reconexión; no presenta al observador Go como failover del modelo QML. Corregir Quickshell queda fuera de este repo y debe
-validarse en upstream.
+validarse en upstream. En la prueba física C, una instancia Quickshell nueva recibió el evento `openwindow` tras arrancar; no se
+forzó el cierre del socket de eventos de una instancia viva. Ese caso no se puede observar ni provocar desde Cortetsu con la
+versión instalada y permanece como limitación de Quickshell.
 
 ## Validación pendiente
 

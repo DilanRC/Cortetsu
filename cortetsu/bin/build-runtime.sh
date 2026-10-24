@@ -127,6 +127,7 @@ for required in \
     modules/CortetsuToplevels.js \
     modules/CortetsuHypr.qml \
     modules/CortetsuHyprActions.js \
+    modules/CortetsuHyprEventPolicy.js \
     modules/CortetsuScreens.qml \
     modules/CortetsuConfig.qml \
     modules/CortetsuShortcut.qml \

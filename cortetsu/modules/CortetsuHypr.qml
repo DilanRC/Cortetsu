@@ -10,6 +10,7 @@ import "../services"
 import "CortetsuToplevels.js" as CortetsuToplevels
 import "CortetsuFullscreen.js" as Fullscreen
 import "CortetsuHyprActions.js" as HyprActions
+import "CortetsuHyprEventPolicy.js" as HyprEventPolicy
 
 // First-party Hyprland contract. Keep backend access in one adapter so
 // consumers do not depend on inherited service names or implementation.
@@ -312,21 +313,13 @@ Singleton {
                 clientsProbeDelay.restart();
             if (name === "activelayout")
                 root.refreshKeyboard();
-            if (name.endsWith("v2"))
-                return;
-            if (["workspace", "moveworkspace", "activespecial", "focusedmon"].includes(name)) {
-                Hyprland.refreshWorkspaces();
+            const plan = HyprEventPolicy.refreshPlan(name);
+            if (plan.refreshMonitors)
                 Hyprland.refreshMonitors();
-            } else if (["openwindow", "closewindow", "movewindow"].includes(name)) {
-                root.refreshToplevelsFromEvent(name);
+            if (plan.refreshWorkspaces)
                 Hyprland.refreshWorkspaces();
-            } else if (name.includes("mon")) {
-                Hyprland.refreshMonitors();
-            } else if (name.includes("workspace")) {
-                Hyprland.refreshWorkspaces();
-            } else if (name.includes("window") || name.includes("group") || ["pin", "fullscreen", "changefloatingmode", "minimize"].includes(name)) {
+            if (plan.refreshToplevels)
                 root.refreshToplevelsFromEvent(name);
-            }
         }
     }
 }
