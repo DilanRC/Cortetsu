@@ -13,10 +13,7 @@ Scope {
     readonly property bool isCharging: !CortetsuPower.onBattery
     // A fullscreen window on the focused screen: a game on a controller or a
     // video, activity the compositor cannot see.
-    readonly property bool hasFullscreen: {
-        const focused = CortetsuHypr.monitors.values.find(monitor => monitor?.focused);
-        return focused?.activeWorkspace?.toplevels.values.some(toplevel => (toplevel.lastIpcObject?.fullscreen ?? 0) > 1) ?? false;
-    }
+    readonly property bool hasFullscreen: CortetsuHypr.focusedFullscreen
     // ponytail: any output that is not an internal panel counts as external,
     // so a desktop or a virtual output never idle-suspends.
     readonly property bool hasExternalScreen: CortetsuHypr.monitors.values.some(monitor => !/^(eDP|LVDS|DSI)-/.test(monitor?.name ?? ""))

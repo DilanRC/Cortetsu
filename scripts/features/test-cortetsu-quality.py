@@ -114,3 +114,14 @@ orphans = [str(f.relative_to(repo)) for f in (repo / "cortetsu").rglob("*.qml")
 assert not orphans, f"root. used without id: root: {orphans}"
 
 print("PASS: Cortetsu quality gate: cold hidden pages, native visual primitives, canonical state; legacy QML shell exceptions explicitly registered")
+
+# Hyprland 0.56 (Lua) leaves HyprlandMonitor.focused false, so a lookup by it
+# finds no monitor and the fullscreen guard of Fn+Esc, OMEN and idle never
+# blocked. Focus comes from CortetsuHypr.focusedWorkspace / focusedMonitor.
+monitor_focused = re.compile(r"monitor\??\.focused\b|monitorFor\([^)]*\)\??\.focused\b")
+for group in (modules, repo / "cortetsu/components", repo / "cortetsu/services"):
+    for path in group.rglob("*.qml"):
+        if "/tests/" in path.as_posix():
+            continue
+        assert not monitor_focused.search(path.read_text(encoding="utf-8")), (
+            f"HyprlandMonitor.focused is unreliable: {path.relative_to(repo)}")

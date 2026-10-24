@@ -8,6 +8,7 @@ import Qt.labs.folderlistmodel
 import "."
 import "../services"
 import "CortetsuToplevels.js" as CortetsuToplevels
+import "CortetsuFullscreen.js" as Fullscreen
 
 // First-party Hyprland contract. Keep backend access in one adapter so
 // consumers do not depend on inherited service names or implementation.
@@ -22,8 +23,10 @@ Singleton {
     readonly property var focusedMonitor: Hyprland.focusedMonitor
     readonly property int activeWsId: focusedWorkspace?.id ?? 1
     // A fullscreen window on the focused workspace: shortcuts and IPC do not
-    // open guarded surfaces over it (SurfaceRegistry fullscreenGuard).
-    readonly property bool focusedFullscreen: focusedWorkspace?.toplevels.values.some(t => t.lastIpcObject.fullscreen > 1) ?? false
+    // open guarded surfaces over it, and idle holds the screen. Derived from
+    // focusedWorkspace: with Hyprland 0.56 (Lua) HyprlandMonitor.focused stays
+    // false, so never look for the focused monitor through that property.
+    readonly property bool focusedFullscreen: Fullscreen.hasFullscreen(focusedWorkspace?.toplevels.values.map(t => t.lastIpcObject))
 
     // Keyboard state has one reader. The layout follows Hyprland's
     // `activelayout` event; Caps Lock and Num Lock have no event, so they are

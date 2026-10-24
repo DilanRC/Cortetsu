@@ -108,7 +108,7 @@ Singleton {
 
     function getMonitor(query: string): var {
         if (query === "active")
-            return monitors.find(m => CortetsuHypr.monitorFor(m.modelData)?.focused) ?? monitors[0] ?? null;
+            return monitors.find(m => CortetsuHypr.focusedMonitor && CortetsuHypr.monitorFor(m.modelData) === CortetsuHypr.focusedMonitor) ?? monitors[0] ?? null;
         if (query.startsWith("model:"))
             return monitors.find(m => m.modelData.model === query.slice(6)) ?? null;
         if (query.startsWith("serial:"))

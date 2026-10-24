@@ -2,7 +2,6 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import Quickshell.Io
-import "CortetsuFullscreen.js" as Fullscreen
 import "hardware/Navigation.js" as HardwareNavigation
 
 // Hardware Center: global shortcuts "hardware", "hardwareKey" and
@@ -18,11 +17,7 @@ RetainedSurfaceController {
     // Accidental presses of the HP keys (OMEN, Fn+Esc beside Esc) must not
     // pull a fullscreen game or video out of focus.
     function focusedHasFullscreen(): bool {
-        const monitors = CortetsuHypr.monitors.values.map(monitor => ({
-            focused: monitor?.focused,
-            activeWorkspace: { toplevels: monitor?.activeWorkspace?.toplevels?.values?.map(toplevel => toplevel.lastIpcObject) ?? [] }
-        }));
-        return Fullscreen.focusedHasFullscreen(monitors);
+        return CortetsuHypr.focusedFullscreen;
     }
 
     // Opens the center on `target` (a Navigation.js page), switches to it
