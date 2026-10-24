@@ -597,3 +597,63 @@ fn cpu_temp_reads_only_the_cpu_sensor_like_the_hardware_center() {
         json!({"temp_c": null})
     );
 }
+
+// The watcher sleeps between polls by blocking until the period ends or a
+// signal arrives. It used to check a flag every 50 ms: 20 wakeups per second
+// while idle (26/s measured on the running service, 2026-10-23).
+#[test]
+fn idle_power_watcher_blocks_instead_of_polling_and_stops_on_sigterm() {
+    use std::{
+        process::Stdio,
+        thread,
+        time::{Duration, Instant},
+    };
+    fn switches(pid: u32) -> u64 {
+        fs::read_dir(format!("/proc/{pid}/task"))
+            .unwrap()
+            .filter_map(|task| fs::read_to_string(task.ok()?.path().join("status")).ok())
+            .flat_map(|status| {
+                status
+                    .lines()
+                    .filter(|l| l.starts_with("voluntary_ctxt_switches"))
+                    .filter_map(|l| l.split_whitespace().nth(1)?.parse::<u64>().ok())
+                    .collect::<Vec<_>>()
+            })
+            .sum()
+    }
+    let t = setup();
+    fake_power(&t);
+    let ac = t.path().join("sys/class/power_supply/AC");
+    fs::create_dir_all(&ac).unwrap();
+    fs::write(ac.join("type"), "Mains\n").unwrap();
+    fs::write(ac.join("online"), "1\n").unwrap();
+    let conf = t.path().join(".config/cortetsu");
+    fs::create_dir_all(&conf).unwrap();
+    fs::write(conf.join("power-auto.json"), json!({"enabled":true,"ac_profile":"performance","battery_profile":"balanced","poll_seconds":30}).to_string()).unwrap();
+    let mut child = Command::new(env!("CARGO_BIN_EXE_cortetsu-hardware-runtime"))
+        .arg("cortetsu-power-auto")
+        .env("HOME", t.path())
+        .env("XDG_STATE_HOME", t.path().join(".local/state"))
+        .env("XDG_RUNTIME_DIR", t.path().join("run"))
+        .env("CORTETSU_SYSFS_ROOT", t.path().join("sys"))
+        .env("PATH", format!("{}:/usr/bin:/bin", t.path().join("bin").display()))
+        .stdout(Stdio::null())
+        .spawn()
+        .unwrap();
+    let owner = t.path().join(".local/state/cortetsu/hardware-owners/power.json");
+    let deadline = Instant::now() + Duration::from_secs(5);
+    while !owner.exists() {
+        assert!(Instant::now() < deadline, "first iteration never ran");
+        thread::sleep(Duration::from_millis(10));
+    }
+    thread::sleep(Duration::from_millis(300));
+    let before = switches(child.id());
+    thread::sleep(Duration::from_millis(1500));
+    let idle = switches(child.id()) - before;
+    assert!(idle <= 3, "{idle} wakeups in 1.5 s while idle; a 50 ms poll makes about 30");
+    let sent = Instant::now();
+    nix::sys::signal::kill(nix::unistd::Pid::from_raw(child.id() as i32), nix::sys::signal::Signal::SIGTERM).unwrap();
+    let status = child.wait().unwrap();
+    assert!(sent.elapsed() < Duration::from_millis(500), "SIGTERM took {:?}", sent.elapsed());
+    assert_eq!(status.code(), Some(130));
+}

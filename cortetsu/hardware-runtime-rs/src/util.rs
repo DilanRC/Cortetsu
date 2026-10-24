@@ -8,7 +8,7 @@ use std::{
     env,
     fs::{self, File, OpenOptions},
     io::{Read, Write},
-    os::unix::{fs::OpenOptionsExt, process::CommandExt},
+    os::unix::{fs::OpenOptionsExt, net::UnixStream, process::CommandExt},
     path::{Path, PathBuf},
     process::{Command, Stdio},
     sync::{
@@ -23,12 +23,20 @@ static SEQUENCE: AtomicU64 = AtomicU64::new(0);
 static CANCELLATION: std::sync::OnceLock<Arc<std::sync::atomic::AtomicBool>> =
     std::sync::OnceLock::new();
 static REQUEST_DEADLINE: std::sync::OnceLock<Instant> = std::sync::OnceLock::new();
+// Read end of a self-pipe: SIGTERM/SIGINT write a byte to it, so a wait can
+// block in read() until the timeout or the signal instead of polling a flag.
+static WAKE: std::sync::OnceLock<UnixStream> = std::sync::OnceLock::new();
 pub fn init_signals() -> Result<()> {
     let flag = Arc::new(std::sync::atomic::AtomicBool::new(false));
+    let (reader, writer) = UnixStream::pair().map_err(|e| e.to_string())?;
+    writer.set_nonblocking(true).map_err(|e| e.to_string())?;
     for signal in [signal_hook::consts::SIGTERM, signal_hook::consts::SIGINT] {
         signal_hook::flag::register(signal, flag.clone()).map_err(|e| e.to_string())?;
+        let writer = writer.try_clone().map_err(|e| e.to_string())?;
+        signal_hook::low_level::pipe::register(signal, writer).map_err(|e| e.to_string())?;
     }
     let _ = CANCELLATION.set(flag);
+    let _ = WAKE.set(reader);
     Ok(())
 }
 pub fn cancelled() -> bool {
@@ -42,18 +50,33 @@ pub fn deadline_expired() -> bool {
 pub fn set_deadline(ms: u64) {
     let _ = REQUEST_DEADLINE.set(Instant::now() + Duration::from_millis(ms));
 }
+/// Sleeps `seconds`, returning false as soon as SIGTERM/SIGINT arrives or
+/// the request deadline passes. With init_signals() it blocks until one of
+/// those happens (an idle watcher wakes once per period); without it, it
+/// falls back to 50 ms slices.
 pub fn wait_interruptible(seconds: f64) -> bool {
     let end = Instant::now() + Duration::from_secs_f64(seconds.max(0.));
-    while Instant::now() < end {
+    loop {
         if cancelled() || deadline_expired() {
             return false;
         }
-        thread::sleep(
-            end.saturating_duration_since(Instant::now())
-                .min(Duration::from_millis(50)),
-        );
+        let now = Instant::now();
+        let mut left = end.saturating_duration_since(now);
+        if let Some(deadline) = REQUEST_DEADLINE.get() {
+            left = left.min(deadline.saturating_duration_since(now));
+        }
+        if left.is_zero() {
+            return !(cancelled() || deadline_expired());
+        }
+        match WAKE.get() {
+            Some(mut wake) => {
+                // A zero timeout would mean "block forever".
+                let _ = wake.set_read_timeout(Some(left.max(Duration::from_millis(1))));
+                let _ = wake.read(&mut [0u8; 64]);
+            }
+            None => thread::sleep(left.min(Duration::from_millis(50))),
+        }
     }
-    true
 }
 pub fn home() -> PathBuf {
     env::var_os("HOME")
