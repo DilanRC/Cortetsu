@@ -26,12 +26,17 @@ var identifier = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$`)
 
 // Event types are deliberately coarse. No event payload is kept because
 // openwindow/windowtitle events contain application names and sensitive titles.
+//
+// Hyprland sends workspace, activewindow, monitoradded and monitorremoved
+// twice, in the legacy form and as v2. Every accepted event makes the
+// coordinator re-read monitors, workspaces and the active window over the
+// command socket, and it ignores the payload, so only the v2 form is kept:
+// one change, one re-read.
 var allowed = map[string]string{
-	"workspace": "workspace_changed", "workspacev2": "workspace_changed",
-	"focusedmon": "focus_changed", "activewindow": "focus_changed", "activewindowv2": "focus_changed",
+	"workspacev2": "workspace_changed",
+	"focusedmon":  "focus_changed", "activewindowv2": "focus_changed",
 	"fullscreen": "fullscreen_changed", "fullscreenstate": "fullscreen_changed",
-	"monitoradded": "monitor_connected", "monitoraddedv2": "monitor_connected",
-	"monitorremoved": "monitor_disconnected", "monitorremovedv2": "monitor_disconnected",
+	"monitoraddedv2": "monitor_connected", "monitorremovedv2": "monitor_disconnected",
 	"openwindow": "window_opened", "closewindow": "window_closed",
 	"configreloaded": "configuration_reloaded", "submap": "keybind_layer_changed",
 }

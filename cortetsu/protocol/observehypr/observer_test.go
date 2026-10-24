@@ -183,3 +183,19 @@ func TestBoundedReconnectDelay(t *testing.T) {
 		})
 	}
 }
+
+// Hyprland emits the legacy and v2 form of the same change; each accepted
+// event costs three owner queries, so the legacy twin is dropped.
+func TestLegacyTwinsOfV2EventsAreDropped(t *testing.T) {
+	now := time.Now()
+	for _, line := range []string{"activewindow>>kitty,title", "workspace>>2", "monitoradded>>HDMI-A-1", "monitorremoved>>HDMI-A-1"} {
+		if _, ok := Normalize(line, "s1", 1, 1, now); ok {
+			t.Fatalf("%q must be dropped: its v2 twin carries the same change", line)
+		}
+	}
+	for _, line := range []string{"activewindowv2>>abc", "workspacev2>>2,2", "monitoraddedv2>>1,HDMI-A-1,desc", "monitorremovedv2>>1,HDMI-A-1,desc", "focusedmon>>eDP-1,2", "fullscreen>>1"} {
+		if _, ok := Normalize(line, "s1", 1, 1, now); !ok {
+			t.Fatalf("%q must be accepted", line)
+		}
+	}
+}
