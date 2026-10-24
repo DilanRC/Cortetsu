@@ -158,5 +158,9 @@
       "link_color",
       "link"
     ]
+  ],
+  "READABLE_TEXT_ROLES": [
+    "colorWashi",
+    "colorOnSurfaceVariant"
   ]
 }

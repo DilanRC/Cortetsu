@@ -147,7 +147,15 @@ fn outputs(repo: &Path, v: &Value) -> Result<Vec<(PathBuf, String)>> {
             let (ty, expr) = if !name.starts_with("color") {
                 ("real", format!("Defaults.{name}"))
             } else if let Some(role) = meta["SCHEME_ROLES"][name].as_str() {
-                ("color", format!("role(\"{role}\", Defaults.{name})"))
+                let read = format!("role(\"{role}\", Defaults.{name})");
+                let text_role = meta["READABLE_TEXT_ROLES"]
+                    .as_array()
+                    .is_some_and(|roles| roles.iter().any(|r| r == name));
+                if text_role {
+                    ("color", format!("readable({read}, [colorTetsu, colorSurfaceHigh])"))
+                } else {
+                    ("color", read)
+                }
             } else if value.starts_with('"') {
                 ("color", format!("Defaults.{name}"))
             } else {

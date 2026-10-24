@@ -19,3 +19,35 @@ QtObject {
         const hex = value.startsWith("#") ? value : `#${value}`;
         return /^#[0-9a-fA-F]{6}$/.test(hex) ? hex : fallback;
     }
+
+    // WCAG relative luminance and contrast ratio of two colours.
+    function luminance(value) {
+        const c = Qt.color(value);
+        const channel = x => x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4);
+        return 0.2126 * channel(c.r) + 0.7152 * channel(c.g) + 0.0722 * channel(c.b);
+    }
+
+    function contrast(a, b) {
+        const la = luminance(a);
+        const lb = luminance(b);
+        return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
+    }
+
+    // A text role of the scheme, moved toward white (dark surfaces) or
+    // black (light ones) only as far as it needs to read at 4.5:1 on every
+    // one of `surfaces`. Bundled schemes ship onSurfaceVariant as low as
+    // 1.7:1 and, in nebula and papercolor/dark, onSurface at 3-3.9:1. A
+    // scheme that already passes is returned unchanged.
+    function readable(value, surfaces) {
+        const from = Qt.color(value);
+        const dark = surfaces.every(surface => luminance(surface) < 0.18);
+        const to = dark ? Qt.rgba(1, 1, 1, 1) : Qt.rgba(0, 0, 0, 1);
+        for (let step = 0; step <= 20; ++step) {
+            const t = step / 20;
+            const mixed = Qt.rgba(from.r + (to.r - from.r) * t, from.g + (to.g - from.g) * t,
+                from.b + (to.b - from.b) * t, 1);
+            if (surfaces.every(surface => contrast(mixed, surface) >= 4.5))
+                return mixed;
+        }
+        return to;
+    }
