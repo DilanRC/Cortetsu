@@ -23,7 +23,10 @@ Item {
 
     Connections {
         target: Notifs
-        function onRevisionChanged(): void { root.refreshActiveNotifications(); }
+        // Deferred: a delegate destroyed by a model change unlocks its item,
+        // which bumps `revision` again while the ListView is still applying
+        // the model. callLater also folds a clear of N items into one update.
+        function onRevisionChanged(): void { Qt.callLater(root.refreshActiveNotifications); }
     }
 
     ColumnLayout {
