@@ -27,4 +27,14 @@ for (const pattern of shellRules) {
     for (const name of names)
         if (!declared.has(name)) throw new Error(`layer rule ${pattern}: ${name} is not a shell namespace (${[...declared].sort()})`);
 }
-console.log(`PASS: ${shellRules.length} shell layer rules match declared namespaces`);
+// Hyprland 0.56 matches a namespace pattern against the whole name: measured
+// in a nested compositor, `launcher` (Fuzzel, blur) blurs a layer named
+// `launcher` and not `cortetsu-launcher`. No other program's rule may reach
+// a shell surface.
+const allRules = [...rules.matchAll(/layer_rule\(\{ match = \{ namespace = "([^"]+)" \}/g)].map(m => m[1]);
+for (const pattern of allRules.filter(p => !shellRules.includes(p))) {
+    const full = new RegExp(`^(?:${pattern})$`);
+    for (const name of declared)
+        if (full.test(name)) throw new Error(`layer rule ${pattern} of another program matches shell surface ${name}`);
+}
+console.log(`PASS: ${shellRules.length} shell layer rules match declared namespaces; ${allRules.length - shellRules.length} others reach none`);

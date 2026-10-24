@@ -129,12 +129,29 @@ keyboard is listed in the PR.
 python3 scripts/integration/test-hp-keys.py
 ```
 
-Checks that `cortetsu-keybinds list` shows the OMEN (`XF86Launch2`) and
-Copilot (`SUPER + SHIFT + F23`) binds of `config/hypr-user.lua` as editable,
+Checks that `cortetsu-keybinds list` shows the OMEN (`XF86Launch2`), Fn+Esc
+(`XF86Fn_Esc`) and Copilot (`SUPER + SHIFT + F23`) binds of `config/hypr-user.lua` as editable,
 deletable and conflict-free, then sends their evdev codes with `vinput` in a
 nested Hyprland using the latam layout (`VINPUT_LAYOUT=latam`; `vinput.c`
 defaults to `us`). Copilot must not fire the launcher's Super-release bind;
-plain `F23` and `Shift+F23` must fire nothing.
+plain `F23`, `Shift+F23` and `Esc` must fire nothing, and a held Fn+Esc fires
+once.
+
+## Layer rules in the running compositor
+
+```sh
+node scripts/integration/check-live-layer-rules.cjs
+```
+
+Read only. Lists the shell surfaces Hyprland has now and checks each layer
+rule of the installed generation against them (full-name match, as Hyprland
+does). Hyprland cannot report the rules it has loaded and does not log a
+reload, so the script compares the compositor's start with the generation's
+activation: `RELOAD_REQUIRED` means the rules on disk are newer. Repointing
+`dotfiles/current` does not reload; `hyprctl reload config-only` does, and it
+applies to surfaces already mapped, so Quickshell does not need a restart for
+a rule change (measured in a nested Hyprland 0.56.2). Reloading Quickshell
+does not reload Hyprland rules.
 
 # Nested windows on one workspace
 
