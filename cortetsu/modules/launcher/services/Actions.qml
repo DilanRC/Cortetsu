@@ -32,10 +32,16 @@ Searcher {
         // whether they can run here.
         readonly property string sleepMode: ["suspend", "hibernate", "suspendThenHibernate"].includes(command[0] ?? "")
             ? command[0] : ""
-        readonly property bool available: !sleepMode || CortetsuSession.available(sleepMode)
+        // Light/dark actions inherited from the upstream defaults: no Cortetsu
+        // command switches the mode of the current scheme, so they would run
+        // nothing. Shown disabled with the reason instead of failing silently.
+        readonly property bool modeSwitch: command[0] === "setMode"
+        readonly property bool available: !modeSwitch && (!sleepMode || CortetsuSession.available(sleepMode))
         readonly property string desc: available
             ? (modelData.description ?? qsTr("Sin descripción"))
-            : CortetsuSession.reason(sleepMode)
+            : modeSwitch
+                ? qsTr("No disponible: Cortetsu no tiene una orden para cambiar el modo del esquema actual")
+                : CortetsuSession.reason(sleepMode)
         readonly property string icon: modelData.icon ?? "help_outline"
         readonly property list<string> command: modelData.command ?? []
         readonly property bool enabled: modelData.enabled ?? true
@@ -50,9 +56,6 @@ Searcher {
             } else if (sleepMode) {
                 list.screenState.launcher = false;
                 CortetsuSession.request(sleepMode);
-            } else if (command[0] === "setMode" && command.length > 1) {
-                list.screenState.launcher = false;
-                Quickshell.execDetached(["cortetsu", "theme", "set", command[1]]);
             } else {
                 list.screenState.launcher = false;
                 CortetsuProcessLauncher.launchPersistent(command, "", name);

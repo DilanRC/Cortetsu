@@ -100,7 +100,6 @@ Singleton {
         previewLight = currentLight;
         showPreview = false;
     }
-    function setMode(mode) { Quickshell.execDetached(["cortetsu", "scheme", "set", "--mode", mode]); }
 
     component CortetsuPalette: QtObject {
         readonly property color m3primary_paletteKeyColor: root.schemeColour("primary_paletteKeyColor", Defaults.colorPrimary)
