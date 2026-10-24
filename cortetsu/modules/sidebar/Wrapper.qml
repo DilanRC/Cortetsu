@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import "../../theme"
 
 Item {
     id: root
@@ -17,7 +18,7 @@ Item {
     opacity: 1 - offsetScale
 
     Behavior on offsetScale {
-        NumberAnimation { duration: 180; easing.type: Easing.OutCubic }
+        NumberAnimation { duration: CortetsuDesign.motionStandardMs; easing.type: Easing.OutCubic }
     }
 
     Loader {

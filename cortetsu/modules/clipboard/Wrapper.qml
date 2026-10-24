@@ -20,13 +20,15 @@ Item {
 
     Behavior on opacity {
         NumberAnimation {
-            duration: 110
+            duration: CortetsuDesign.motionFastMs
+            easing.type: Easing.OutCubic
         }
     }
 
     Behavior on scale {
         NumberAnimation {
-            duration: 110
+            duration: CortetsuDesign.motionFastMs
+            easing.type: Easing.OutCubic
         }
     }
 

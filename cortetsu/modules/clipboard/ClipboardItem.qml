@@ -111,19 +111,22 @@ Rectangle {
 
     Behavior on color {
         ColorAnimation {
-            duration: 105
+            duration: CortetsuDesign.motionFastMs
+            easing.type: Easing.OutCubic
         }
     }
 
     Behavior on border.color {
         ColorAnimation {
-            duration: 105
+            duration: CortetsuDesign.motionFastMs
+            easing.type: Easing.OutCubic
         }
     }
 
     Behavior on scale {
         NumberAnimation {
-            duration: 105
+            duration: CortetsuDesign.motionFastMs
+            easing.type: Easing.OutCubic
             easing.type: Easing.OutCubic
         }
     }

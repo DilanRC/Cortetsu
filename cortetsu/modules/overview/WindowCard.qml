@@ -125,7 +125,8 @@ Item {
 
         Behavior on color {
             ColorAnimation {
-                duration: 110
+                duration: CortetsuDesign.motionFastMs
+                easing.type: Easing.OutCubic
             }
         }
     }
@@ -296,7 +297,8 @@ Item {
 
             Behavior on opacity {
                 NumberAnimation {
-                    duration: 100
+                    duration: CortetsuDesign.motionFastMs
+                    easing.type: Easing.OutCubic
                 }
             }
 

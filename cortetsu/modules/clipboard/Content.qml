@@ -620,7 +620,8 @@ FocusScope {
 
                 Behavior on border.color {
                     ColorAnimation {
-                        duration: 110
+                        duration: CortetsuDesign.motionFastMs
+                        easing.type: Easing.OutCubic
                     }
                 }
 
