@@ -12,6 +12,14 @@ QtObject {
     // empty map leaves every token at its ui.toml default.
     property var scheme: ({})
 
+    // Settings > Appearance > Reduced motion. Every motion*Ms token reads 0
+    // while it is on; opacity and position still change, only instantly.
+    property bool reducedMotion: false
+
+    // While a tooltip is open, and for a short moment after it closes,
+    // the next one opens without its delay. CortetsuTooltip owns it.
+    property real tooltipWarmUntil: 0
+
     function role(name, fallback) {
         const value = scheme ? scheme[name] : undefined;
         if (typeof value !== "string")
@@ -33,12 +41,12 @@ QtObject {
         return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
     }
 
-    // A text role of the scheme, moved toward white (dark surfaces) or
-    // black (light ones) only as far as it needs to read at 4.5:1 on every
-    // one of `surfaces`. Bundled schemes ship onSurfaceVariant as low as
-    // 1.7:1 and, in nebula and papercolor/dark, onSurface at 3-3.9:1. A
-    // scheme that already passes is returned unchanged.
-    function readable(value, surfaces) {
+    // A scheme role, moved toward white (dark surfaces) or black (light
+    // ones) only as far as it needs to reach `ratio` on every one of
+    // `surfaces`: 4.5:1 for text, 3:1 for indicators. Bundled schemes ship
+    // onSurfaceVariant as low as 1.7:1 and, in nebula and papercolor/dark,
+    // onSurface at 3-3.9:1. A scheme that already passes is returned unchanged.
+    function readable(value, surfaces, ratio = 4.5) {
         const from = Qt.color(value);
         const dark = surfaces.every(surface => luminance(surface) < 0.18);
         const to = dark ? Qt.rgba(1, 1, 1, 1) : Qt.rgba(0, 0, 0, 1);
@@ -46,7 +54,7 @@ QtObject {
             const t = step / 20;
             const mixed = Qt.rgba(from.r + (to.r - from.r) * t, from.g + (to.g - from.g) * t,
                 from.b + (to.b - from.b) * t, 1);
-            if (surfaces.every(surface => contrast(mixed, surface) >= 4.5))
+            if (surfaces.every(surface => contrast(mixed, surface) >= ratio))
                 return mixed;
         }
         return to;
@@ -78,6 +86,7 @@ QtObject {
     readonly property color colorOnSurfaceMuted: Defaults.colorOnSurfaceMuted
     readonly property color colorSuccess: role("success", Defaults.colorSuccess)
     readonly property color colorWarning: Defaults.colorWarning
+    readonly property color colorIndicator: readable(role("primary", Defaults.colorIndicator), [colorTetsu, colorSurfaceHigh], 3)
     readonly property real radiusSmall: Defaults.radiusSmall
     readonly property real radiusMedium: Defaults.radiusMedium
     readonly property real radiusLarge: Defaults.radiusLarge
@@ -105,15 +114,25 @@ QtObject {
     readonly property real iconSmallPx: Defaults.iconSmallPx
     readonly property real iconMediumPx: Defaults.iconMediumPx
     readonly property real hoverScale: Defaults.hoverScale
-    readonly property real motionInstantMs: Defaults.motionInstantMs
-    readonly property real motionFastMs: Defaults.motionFastMs
-    readonly property real motionStandardMs: Defaults.motionStandardMs
-    readonly property real motionDeliberateMs: Defaults.motionDeliberateMs
-    readonly property real motionPanelMs: Defaults.motionPanelMs
+    readonly property real motionInstantMs: reducedMotion ? 0 : Defaults.motionInstantMs
+    readonly property real motionFastMs: reducedMotion ? 0 : Defaults.motionFastMs
+    readonly property real motionStandardMs: reducedMotion ? 0 : Defaults.motionStandardMs
+    readonly property real motionDeliberateMs: reducedMotion ? 0 : Defaults.motionDeliberateMs
+    readonly property real motionPanelMs: reducedMotion ? 0 : Defaults.motionPanelMs
+    readonly property real motionDrawerMs: reducedMotion ? 0 : Defaults.motionDrawerMs
+    readonly property real motionTooltipMs: reducedMotion ? 0 : Defaults.motionTooltipMs
+    readonly property real motionPopoverMs: reducedMotion ? 0 : Defaults.motionPopoverMs
+    readonly property real motionPopoverExitMs: reducedMotion ? 0 : Defaults.motionPopoverExitMs
+    readonly property real motionPanelExitMs: reducedMotion ? 0 : Defaults.motionPanelExitMs
+    readonly property real pressScale: Defaults.pressScale
+    readonly property real tooltipDelayMs: Defaults.tooltipDelayMs
+    readonly property var easeOut: Defaults.easeOut
+    readonly property var easeInOut: Defaults.easeInOut
+    readonly property var easeDrawer: Defaults.easeDrawer
     readonly property real wallUtilitySurfaceRadius: Defaults.wallUtilitySurfaceRadius
-    readonly property real wallUtilityPanelMotionMs: Defaults.wallUtilityPanelMotionMs
-    readonly property real wallUtilityOrbitMotionMs: Defaults.wallUtilityOrbitMotionMs
-    readonly property real wallUtilityCrossfadeMotionMs: Defaults.wallUtilityCrossfadeMotionMs
+    readonly property real wallUtilityPanelMotionMs: reducedMotion ? 0 : Defaults.wallUtilityPanelMotionMs
+    readonly property real wallUtilityOrbitMotionMs: reducedMotion ? 0 : Defaults.wallUtilityOrbitMotionMs
+    readonly property real wallUtilityCrossfadeMotionMs: reducedMotion ? 0 : Defaults.wallUtilityCrossfadeMotionMs
     readonly property real wallUtilityOrbitTopGap: Defaults.wallUtilityOrbitTopGap
     readonly property real wallUtilityOrbitBottomGap: Defaults.wallUtilityOrbitBottomGap
     readonly property real wallUtilityFooterGap: Defaults.wallUtilityFooterGap

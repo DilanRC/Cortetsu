@@ -29,6 +29,7 @@ var colorSurfaceGlassStrong = "{{s.surface_glass_strong}}"
 var colorOnSurfaceMuted = "{{s.on_surface_muted}}"
 var colorSuccess = "{{s.success}}"
 var colorWarning = "{{s.warning}}"
+var colorIndicator = "{{s.indicator}}"
 
 var radiusSmall = {{shape.radius_small}}
 var radiusMedium = {{shape.radius_medium}}
@@ -69,6 +70,19 @@ var motionFastMs = {{motion.fast_ms}}
 var motionStandardMs = {{motion.standard_ms}}
 var motionDeliberateMs = {{motion.deliberate_ms}}
 var motionPanelMs = {{motion.panel_ms}}
+var motionDrawerMs = {{motion.drawer_ms}}
+var motionTooltipMs = {{motion.tooltip_ms}}
+var motionPopoverMs = {{motion.popover_ms}}
+var motionPopoverExitMs = {{motion.popover_exit_ms}}
+var motionPanelExitMs = {{motion.panel_exit_ms}}
+var pressScale = {{motion.press_scale}}
+// Intent delay, not motion: Reduced motion leaves it alone.
+var tooltipDelayMs = {{motion.tooltip_delay_ms}}
+
+// Easing.BezierSpline lists: the two control points, then the end point.
+var easeOut = {{motion.ease_out}}.concat([1, 1])
+var easeInOut = {{motion.ease_in_out}}.concat([1, 1])
+var easeDrawer = {{motion.ease_drawer}}.concat([1, 1])
 
 // Wall Utility values resolve symbolic ui.toml references at compile time.
 var wallUtilitySurfaceRadius = {{wall_utility.surface_radius}}

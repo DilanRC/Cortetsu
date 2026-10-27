@@ -90,13 +90,15 @@ Item {
                         Behavior on anchors.topMargin {
                             NumberAnimation {
                                 duration: CortetsuDesign.motionFastMs
-                                easing.type: Easing.OutCubic
+                                easing.type: Easing.BezierSpline
+                                easing.bezierCurve: CortetsuDesign.easeOut
                             }
                         }
                         Behavior on opacity {
                             NumberAnimation {
                                 duration: CortetsuDesign.motionFastMs
-                                easing.type: Easing.OutCubic
+                                easing.type: Easing.BezierSpline
+                                easing.bezierCurve: CortetsuDesign.easeOut
                             }
                         }
                     }
@@ -136,7 +138,8 @@ Item {
                                 Behavior on width {
                                     NumberAnimation {
                                         duration: CortetsuDesign.motionFastMs
-                                        easing.type: Easing.OutCubic
+                                        easing.type: Easing.BezierSpline
+                                        easing.bezierCurve: CortetsuDesign.easeOut
                                     }
                                 }
                             }

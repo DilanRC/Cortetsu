@@ -19,7 +19,7 @@ Item {
     opacity: 1 - offsetScale
     onShouldBeActiveChanged: if (shouldBeActive) content.forceActiveFocus()
 
-    Behavior on offsetScale { NumberAnimation { duration: CortetsuDesign.motionStandardMs; easing.type: Easing.OutCubic } }
+    Behavior on offsetScale { NumberAnimation { duration: CortetsuDesign.motionStandardMs; easing.type: Easing.BezierSpline; easing.bezierCurve: CortetsuDesign.easeOut } }
 
     Content {
         id: content

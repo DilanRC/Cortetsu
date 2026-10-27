@@ -28,7 +28,7 @@ Item {
     readonly property bool hovered: mouse.containsMouse
     readonly property bool pressed: mouse.pressed
     property real visualScale: root.pressed
-        ? 0.992
+        ? CortetsuDesign.pressScale
         : root.hovered || root.activeFocus
             ? 1.008
             : 1
@@ -40,10 +40,9 @@ Item {
     opacity: root.disabled ? 0.46 : 1
     Behavior on visualScale {
         NumberAnimation {
-            duration: root.pressed
-                ? CortetsuDesign.motionInstantMs
-                : CortetsuDesign.motionFastMs
-            easing.type: Easing.OutCubic
+            duration: CortetsuDesign.motionFastMs
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: CortetsuDesign.easeOut
         }
     }
 

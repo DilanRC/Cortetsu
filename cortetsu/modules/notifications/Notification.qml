@@ -61,7 +61,8 @@ CortetsuSurface {
     Behavior on scale {
         NumberAnimation {
             duration: CortetsuDesign.motionFastMs
-            easing.type: Easing.OutCubic
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: CortetsuDesign.easeOut
         }
     }
 

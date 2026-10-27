@@ -25,7 +25,8 @@ Item {
             NumberAnimation {
                 properties: "y"
                 duration: CortetsuDesign.motionStandardMs
-                easing.type: Easing.OutCubic
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: CortetsuDesign.easeOut
             }
         }
 
@@ -35,7 +36,8 @@ Item {
                 from: 0
                 to: 1
                 duration: CortetsuDesign.motionStandardMs
-                easing.type: Easing.OutCubic
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: CortetsuDesign.easeOut
             }
         }
 

@@ -257,7 +257,7 @@ def contrast_findings() -> list[Finding]:
         ("colorOnSecondaryContainer", "colorSecondaryContainer", 4.5),
     ]
     # Non-text UI: 3:1 against the surfaces they sit on.
-    pairs += [(fg, bg, 3.0) for fg in ("colorPrimary", "colorVermillion", "colorOutline") for bg in ("colorTetsu", "colorSurfaceHigh")]
+    pairs += [(fg, bg, 3.0) for fg in ("colorIndicator", "colorVermillion", "colorOutline") for bg in ("colorTetsu", "colorSurfaceHigh")]
     out = []
     rel = DEFAULTS.relative_to(ROOT).as_posix()
     for fg, bg, need in pairs:

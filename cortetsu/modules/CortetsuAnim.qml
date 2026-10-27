@@ -1,6 +1,9 @@
 import QtQuick
 import "../theme"
 
+// Shared number animation. Entries and popovers use easeOut; Emphasized*
+// types move the interface itself and use easeInOut. Durations come from
+// CortetsuDesign, so Reduced motion reaches every consumer.
 NumberAnimation {
     enum Type { StandardSmall, Standard, StandardLarge, StandardExtraLarge,
         EmphasizedSmall, Emphasized, EmphasizedLarge, EmphasizedExtraLarge,
@@ -13,5 +16,7 @@ NumberAnimation {
             || type === CortetsuAnim.Standard || type === CortetsuAnim.Emphasized ? CortetsuDesign.motionStandardMs
         : type === CortetsuAnim.StandardExtraLarge || type === CortetsuAnim.EmphasizedExtraLarge ? CortetsuDesign.motionPanelMs
         : CortetsuDesign.motionDeliberateMs
-    easing.type: Easing.OutCubic
+    easing.type: Easing.BezierSpline
+    easing.bezierCurve: type >= CortetsuAnim.EmphasizedSmall && type <= CortetsuAnim.EmphasizedExtraLarge
+        ? CortetsuDesign.easeInOut : CortetsuDesign.easeOut
 }

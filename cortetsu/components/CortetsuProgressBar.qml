@@ -21,7 +21,8 @@ Item {
     Behavior on shownValue {
         NumberAnimation {
             duration: root.motionDuration
-            easing.type: Easing.OutCubic
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: CortetsuDesign.easeOut
         }
     }
 

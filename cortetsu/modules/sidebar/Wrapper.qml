@@ -18,7 +18,7 @@ Item {
     opacity: 1 - offsetScale
 
     Behavior on offsetScale {
-        NumberAnimation { duration: CortetsuDesign.motionStandardMs; easing.type: Easing.OutCubic }
+        NumberAnimation { duration: CortetsuDesign.motionStandardMs; easing.type: Easing.BezierSpline; easing.bezierCurve: CortetsuDesign.easeOut }
     }
 
     Loader {

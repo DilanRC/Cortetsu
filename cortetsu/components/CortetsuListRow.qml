@@ -28,15 +28,16 @@ Item {
 
     implicitHeight: CortetsuDesign.rowHeight
     opacity: disabled ? 0.46 : 1
-    property real visualScale: mouse.pressed ? 0.992 : 1
+    property real visualScale: mouse.pressed ? CortetsuDesign.pressScale : 1
     // Keep the row's pointer bounds and layout stable. Only its painted
     // content contracts for press feedback, matching CortetsuButton.
     scale: 1
 
     Behavior on visualScale {
         NumberAnimation {
-            duration: CortetsuDesign.motionInstantMs
-            easing.type: Easing.OutCubic
+            duration: CortetsuDesign.motionFastMs
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: CortetsuDesign.easeOut
         }
     }
 

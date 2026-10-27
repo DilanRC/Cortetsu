@@ -49,7 +49,8 @@ Item {
         Behavior on height {
             NumberAnimation {
                 duration: CortetsuDesign.motionFastMs
-                easing.type: Easing.OutCubic
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: CortetsuDesign.easeOut
             }
         }
 
@@ -63,7 +64,8 @@ Item {
                 enabled: !mouse.pressed
                 NumberAnimation {
                     duration: CortetsuDesign.motionFastMs
-                    easing.type: Easing.OutCubic
+                    easing.type: Easing.BezierSpline
+                    easing.bezierCurve: CortetsuDesign.easeOut
                 }
             }
         }
@@ -79,7 +81,8 @@ Item {
         Behavior on color {
             ColorAnimation {
                 duration: CortetsuDesign.motionFastMs
-                easing.type: Easing.OutCubic
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: CortetsuDesign.easeOut
             }
         }
     }
@@ -101,21 +104,24 @@ Item {
             enabled: !mouse.pressed
             NumberAnimation {
                 duration: CortetsuDesign.motionFastMs
-                easing.type: Easing.OutCubic
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: CortetsuDesign.easeOut
             }
         }
 
         Behavior on width {
             NumberAnimation {
                 duration: CortetsuDesign.motionFastMs
-                easing.type: Easing.OutCubic
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: CortetsuDesign.easeOut
             }
         }
 
         Behavior on color {
             ColorAnimation {
                 duration: CortetsuDesign.motionFastMs
-                easing.type: Easing.OutCubic
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: CortetsuDesign.easeOut
             }
         }
     }

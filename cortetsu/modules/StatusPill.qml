@@ -31,21 +31,24 @@ Item {
     Behavior on width {
         NumberAnimation {
             duration: CortetsuDesign.motionStandardMs
-            easing.type: Easing.OutCubic
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: CortetsuDesign.easeOut
         }
     }
 
     Behavior on opacity {
         NumberAnimation {
             duration: CortetsuDesign.motionFastMs
-            easing.type: Easing.OutCubic
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: CortetsuDesign.easeOut
         }
     }
 
     Behavior on scale {
         NumberAnimation {
             duration: CortetsuDesign.motionFastMs
-            easing.type: Easing.OutCubic
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: CortetsuDesign.easeOut
         }
     }
 
@@ -157,7 +160,7 @@ Item {
                 scale: item.pulse && root.recordingActive ? 1 : 0.9
 
                 SequentialAnimation on scale {
-                    running: item.pulse && root.recordingActive
+                    running: item.pulse && root.recordingActive && !CortetsuDesign.reducedMotion
                     loops: Animation.Infinite
 
                     NumberAnimation {

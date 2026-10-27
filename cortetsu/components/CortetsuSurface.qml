@@ -16,7 +16,12 @@ Rectangle {
     property color baseColor: CortetsuDesign.colorTetsu
     property color hoverColor: Qt.lighter(baseColor, 1.16)
     property color activeColor: danger ? CortetsuDesign.colorVermillion : CortetsuDesign.colorIndigo
-    property color outlineColor: focused ? CortetsuDesign.colorWashi : active || danger ? CortetsuDesign.colorVermillion : CortetsuDesign.colorOutlineVariant
+    // Indigo marks interaction and vermillion only danger. At rest the edge
+    // is a translucent hairline rather than a solid border.
+    property color outlineColor: focused ? CortetsuDesign.colorWashi
+        : danger ? CortetsuDesign.colorVermillion
+        : active ? CortetsuDesign.colorIndicator
+        : Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.56)
 
     readonly property real transparencyFactor: CortetsuConfig.transparencyEnabled ? 0.78 : 1
 
@@ -27,13 +32,15 @@ Rectangle {
 
     radius: radiusValue
     color: root.paintColor(pressed ? Qt.darker(active ? activeColor : hoverColor, 1.12) : active ? activeColor : hovered ? hoverColor : baseColor)
-    border.width: outlined || focused ? CortetsuDesign.outlineWidth : 0
+    // Keyboard focus reads at a glance: a 2 px washi ring.
+    border.width: focused ? CortetsuDesign.outlineWidth * 2 : outlined ? CortetsuDesign.outlineWidth : 0
     border.color: outlineColor
 
     Behavior on color {
         ColorAnimation {
             duration: CortetsuDesign.motionStandardMs
-            easing.type: Easing.OutCubic
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: CortetsuDesign.easeOut
         }
     }
 }

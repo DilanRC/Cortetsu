@@ -351,7 +351,8 @@ FocusScope {
         target: root
         property: "orbitPhase"
         duration: CortetsuDesign.wallUtilityOrbitMotionMs
-        easing.type: Easing.OutCubic
+        easing.type: Easing.BezierSpline
+        easing.bezierCurve: CortetsuDesign.easeOut
         onStopped: {
             root.windowIndex = root.currentIndex;
             root.orbitPhase = 0;
@@ -371,13 +372,14 @@ FocusScope {
         from: 0.2
         to: 1
         duration: CortetsuDesign.wallUtilityCrossfadeMotionMs
-        easing.type: Easing.OutCubic
+        easing.type: Easing.BezierSpline
+        easing.bezierCurve: CortetsuDesign.easeOut
     }
 
     ParallelAnimation {
         id: heroCrossfade
-        NumberAnimation { target: root; property: "newHeroOpacity"; to: 1; duration: CortetsuDesign.wallUtilityCrossfadeMotionMs; easing.type: Easing.OutCubic }
-        NumberAnimation { target: root; property: "oldHeroOpacity"; to: 0; duration: CortetsuDesign.wallUtilityCrossfadeMotionMs; easing.type: Easing.OutCubic }
+        NumberAnimation { target: root; property: "newHeroOpacity"; to: 1; duration: CortetsuDesign.wallUtilityCrossfadeMotionMs; easing.type: Easing.BezierSpline; easing.bezierCurve: CortetsuDesign.easeOut }
+        NumberAnimation { target: root; property: "oldHeroOpacity"; to: 0; duration: CortetsuDesign.wallUtilityCrossfadeMotionMs; easing.type: Easing.BezierSpline; easing.bezierCurve: CortetsuDesign.easeOut }
         onStopped: root.outgoingHeroPath = ""
     }
 

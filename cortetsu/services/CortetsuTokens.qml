@@ -1,6 +1,7 @@
 pragma Singleton
 
 import QtQuick
+import "../theme"
 import "../modules/CortetsuTokens.js" as CortetsuTokens
 import "../modules/CortetsuTypography.js" as CortetsuTypography
 
@@ -148,17 +149,23 @@ QtObject {
     }
 
     readonly property QtObject anim: QtObject {
+        // Decorative infinite loops stop while Reduced motion is on.
+        readonly property bool reduced: CortetsuDesign.reducedMotion
         readonly property QtObject durations: QtObject {
-            readonly property int small: 100
-            readonly property int normal: 160
-            readonly property int large: 220
-            readonly property int extraLarge: 320
+            // Legacy names read the CortetsuDesign motion tokens, so Reduced
+            // motion and the token budget reach base/ too.
+            readonly property int small: CortetsuDesign.motionFastMs
+            readonly property int normal: CortetsuDesign.motionStandardMs
+            readonly property int large: CortetsuDesign.motionPopoverMs
+            readonly property int extraLarge: CortetsuDesign.motionPanelMs
+            // Stays 1: it scales the infinite spinner loops, and a zero-length
+            // infinite animation would spin the render loop.
             readonly property real scale: 1
-            readonly property int expressiveDefaultEffects: 160
-            readonly property int expressiveDefaultSpatial: 220
-            readonly property int expressiveFastEffects: 100
-            readonly property int expressiveFastSpatial: 140
-            readonly property int expressiveSlowSpatial: 320
+            readonly property int expressiveDefaultEffects: CortetsuDesign.motionStandardMs
+            readonly property int expressiveDefaultSpatial: CortetsuDesign.motionPopoverMs
+            readonly property int expressiveFastEffects: CortetsuDesign.motionInstantMs
+            readonly property int expressiveFastSpatial: CortetsuDesign.motionFastMs
+            readonly property int expressiveSlowSpatial: CortetsuDesign.motionPanelMs
         }
         readonly property var standard: Easing.OutCubic
         readonly property var standardAccel: Easing.InCubic

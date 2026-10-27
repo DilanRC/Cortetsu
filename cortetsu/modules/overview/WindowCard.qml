@@ -85,7 +85,8 @@ Item {
     Behavior on visualScale {
         NumberAnimation {
             duration: CortetsuDesign.motionFastMs
-            easing.type: Easing.OutCubic
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: CortetsuDesign.easeOut
         }
     }
 
@@ -126,7 +127,8 @@ Item {
         Behavior on color {
             ColorAnimation {
                 duration: CortetsuDesign.motionFastMs
-                easing.type: Easing.OutCubic
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: CortetsuDesign.easeOut
             }
         }
     }
@@ -300,7 +302,8 @@ Item {
             Behavior on opacity {
                 NumberAnimation {
                     duration: CortetsuDesign.motionFastMs
-                    easing.type: Easing.OutCubic
+                    easing.type: Easing.BezierSpline
+                    easing.bezierCurve: CortetsuDesign.easeOut
                 }
             }
 

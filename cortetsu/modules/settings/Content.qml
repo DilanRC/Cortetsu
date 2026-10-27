@@ -102,7 +102,7 @@ FocusScope {
             spacing: CortetsuDesign.spacingStandard
 
             Behavior on Layout.preferredWidth {
-                NumberAnimation { duration: CortetsuDesign.motionStandardMs; easing.type: Easing.OutCubic }
+                NumberAnimation { duration: CortetsuDesign.motionStandardMs; easing.type: Easing.BezierSpline; easing.bezierCurve: CortetsuDesign.easeOut }
             }
 
             RowLayout {
@@ -211,7 +211,7 @@ FocusScope {
                 }
 
                 Behavior on contentY {
-                    NumberAnimation { duration: CortetsuDesign.motionFastMs; easing.type: Easing.OutCubic }
+                    NumberAnimation { duration: CortetsuDesign.motionFastMs; easing.type: Easing.BezierSpline; easing.bezierCurve: CortetsuDesign.easeOut }
                 }
 
                 Keys.onLeftPressed: nexus.focusSelected()
@@ -244,7 +244,8 @@ FocusScope {
                         from: 0
                         to: 1
                         duration: CortetsuDesign.motionFastMs
-                        easing.type: Easing.OutCubic
+                        easing.type: Easing.BezierSpline
+                        easing.bezierCurve: CortetsuDesign.easeOut
                     }
                 }
             }

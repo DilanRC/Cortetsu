@@ -18,7 +18,8 @@ Item {
     Behavior on offsetScale {
         NumberAnimation {
             duration: CortetsuDesign.motionStandardMs
-            easing.type: Easing.OutCubic
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: CortetsuDesign.easeOut
         }
     }
 

@@ -85,7 +85,8 @@ assert hub.count("CortetsuDesign.motionFastMs") >= 2
 assert "CortetsuDesign.motionStandardMs" in status
 assert "hoverScale = 1.025" in design
 assert "motionFastMs = 120" in design
-assert "motionPanelMs = 240" in design
+assert "motionPanelMs = 320" in design
+assert "motionPanelExitMs = 240" in design
 assert "mouse.containsMouse ? 1.06 : 1" not in hub
 assert "duration: 110" not in hub
 assert "root.screen?.height ?? 0" in visualiser

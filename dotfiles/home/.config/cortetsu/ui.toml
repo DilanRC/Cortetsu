@@ -18,7 +18,9 @@ primary_container = "#263E53"
 secondary = "#526D82"
 secondary_container = "#293B4A"
 outline_variant = "#505862"
-scrim = "#000000"
+scrim = "#0B0D10"
+# Indigo lifted to 3:1 on every surface for focus rings, tracks and fills.
+indicator = "#5F7FA0"
 surface_glass = "#1B2028"
 surface_glass_strong = "#202731"
 on_surface_muted = "#AAB1BA"
@@ -53,8 +55,21 @@ instant_ms = 80
 fast_ms = 120
 standard_ms = 180
 deliberate_ms = 240
-panel_ms = 240
+panel_ms = 320
+drawer_ms = 400
+tooltip_ms = 150
+# First tooltip waits this long; the next ones open at once (see tooltipWarmUntil).
+tooltip_delay_ms = 240
+popover_ms = 200
+# Exits are shorter than entries.
+popover_exit_ms = 150
+panel_exit_ms = 240
 hover_scale = 1.025
+press_scale = 0.97
+# Cubic-bezier control points (x1, y1, x2, y2).
+ease_out = [0.23, 1, 0.32, 1]
+ease_in_out = [0.77, 0, 0.175, 1]
+ease_drawer = [0.32, 0.72, 0, 1]
 
 [wall_utility]
 surface_radius = "shape.radius_surface"

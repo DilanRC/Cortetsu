@@ -28,7 +28,7 @@ for token in ("Keys.onEscapePressed", "dismissOnOutside", "WlrKeyboardFocus.OnDe
     assert token in host, f"popup host contract missing: {token}"
 
 tooltip = (components / "CortetsuTooltip.qml").read_text(encoding="utf-8")
-for token in ("property Item target", "property bool hovered", "property bool focused", "motionDeliberateMs", "CortetsuSurface", "CortetsuText"):
+for token in ("property Item target", "property bool hovered", "property bool focused", "tooltipDelayMs", "tooltipWarmUntil", "CortetsuSurface", "CortetsuText"):
     assert token in tooltip, f"tooltip contract missing: {token}"
 
 for name in ("HubButton.qml", "CortetsuAppRail.qml", "CortetsuTraySegment.qml", "StatusPill.qml"):

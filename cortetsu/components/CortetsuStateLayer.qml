@@ -39,7 +39,7 @@ MouseArea {
         radius: root.parent?.radius ?? 0
 
         Behavior on opacity {
-            NumberAnimation { duration: CortetsuDesign.motionFastMs; easing.type: Easing.OutCubic }
+            NumberAnimation { duration: CortetsuDesign.motionFastMs; easing.type: Easing.BezierSpline; easing.bezierCurve: CortetsuDesign.easeOut }
         }
     }
 }

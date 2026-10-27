@@ -106,14 +106,16 @@ Item {
                 property: "opacity"
                 to: 0
                 duration: root.transitionDuration
-                easing.type: Easing.OutCubic
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: CortetsuDesign.easeOut
             }
             NumberAnimation {
                 target: incomingMark
                 property: "opacity"
                 to: 1
                 duration: root.transitionDuration
-                easing.type: Easing.OutCubic
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: CortetsuDesign.easeOut
             }
         }
 

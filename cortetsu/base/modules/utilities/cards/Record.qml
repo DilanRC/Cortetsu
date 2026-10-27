@@ -201,7 +201,7 @@ CortetsuSurface {
                 }
 
                 SequentialAnimation on opacity {
-                    running: !CortetsuRecorder.paused
+                    running: !CortetsuRecorder.paused && !CortetsuTokens.anim.reduced
                     alwaysRunToEnd: true
                     loops: Animation.Infinite
 

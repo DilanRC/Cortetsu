@@ -27,7 +27,7 @@ Row {
     }
 
     Behavior on opacity {
-        NumberAnimation { duration: CortetsuDesign.motionStandardMs; easing.type: Easing.OutCubic }
+        NumberAnimation { duration: CortetsuDesign.motionStandardMs; easing.type: Easing.BezierSpline; easing.bezierCurve: CortetsuDesign.easeOut }
     }
 
     Timer {

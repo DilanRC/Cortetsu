@@ -39,14 +39,16 @@ Item {
                 Behavior on y {
                     NumberAnimation {
                         duration: CortetsuDesign.motionStandardMs
-                        easing.type: Easing.OutCubic
+                        easing.type: Easing.BezierSpline
+                        easing.bezierCurve: CortetsuDesign.easeOut
                     }
                 }
 
                 Behavior on opacity {
                     NumberAnimation {
                         duration: CortetsuDesign.motionFastMs
-                        easing.type: Easing.OutCubic
+                        easing.type: Easing.BezierSpline
+                        easing.bezierCurve: CortetsuDesign.easeOut
                     }
                 }
             }

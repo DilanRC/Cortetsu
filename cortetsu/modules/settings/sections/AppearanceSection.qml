@@ -160,6 +160,14 @@ ColumnLayout {
             onToggled: value => { CortetsuConfig.transparencyEnabled = value; CortetsuConfig.save(); }
         }
 
+        SettingToggleRow {
+            objectName: "reducedMotion"
+            title: qsTr("Reducir movimiento")
+            detail: qsTr("Los cambios de la interfaz ocurren sin animación")
+            checked: CortetsuConfig.reducedMotion
+            onToggled: value => { CortetsuConfig.reducedMotion = value; CortetsuConfig.save(); }
+        }
+
         SettingSliderRow {
             objectName: "borderThickness"
             title: qsTr("Grosor de bordes")

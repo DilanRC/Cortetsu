@@ -32,8 +32,8 @@ Item {
     scale: shouldBeActive ? 1 : 0.96
     transformOrigin: Item.Center
 
-    Behavior on opacity { NumberAnimation { duration: CortetsuDesign.wallUtilityPanelMotionMs; easing.type: Easing.OutCubic } }
-    Behavior on scale { NumberAnimation { duration: CortetsuDesign.wallUtilityPanelMotionMs; easing.type: Easing.OutCubic } }
+    Behavior on opacity { NumberAnimation { duration: CortetsuDesign.wallUtilityPanelMotionMs; easing.type: Easing.BezierSpline; easing.bezierCurve: CortetsuDesign.easeOut } }
+    Behavior on scale { NumberAnimation { duration: CortetsuDesign.wallUtilityPanelMotionMs; easing.type: Easing.BezierSpline; easing.bezierCurve: CortetsuDesign.easeOut } }
 
     Rectangle {
         anchors.fill: parent

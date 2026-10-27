@@ -31,7 +31,7 @@ Item {
     implicitHeight: compact ? 32 : CortetsuDesign.controlHeight
     opacity: disabled ? 0.48 : 1
     property real visualScale: mouse.pressed
-        ? 0.98
+        ? CortetsuDesign.pressScale
         : mouse.containsMouse
             ? 1.008
             : 1
@@ -42,10 +42,9 @@ Item {
 
     Behavior on visualScale {
         NumberAnimation {
-            duration: mouse.pressed
-                ? CortetsuDesign.motionInstantMs
-                : CortetsuDesign.motionFastMs
-            easing.type: Easing.OutCubic
+            duration: CortetsuDesign.motionFastMs
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: CortetsuDesign.easeOut
         }
     }
 

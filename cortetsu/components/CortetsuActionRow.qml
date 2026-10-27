@@ -33,7 +33,18 @@ Item {
     implicitHeight: 58
     opacity: root.disabled ? 0.46 : 1
 
+    // Press feedback scales the painted content only; the hitbox stays put.
+    property real visualScale: root.pressed ? CortetsuDesign.pressScale : 1
+    Behavior on visualScale {
+        NumberAnimation {
+            duration: CortetsuDesign.motionFastMs
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: CortetsuDesign.easeOut
+        }
+    }
+
     CortetsuSurface {
+        scale: root.visualScale
         anchors.fill: parent
         radiusValue: CortetsuDesign.radiusMedium
         active: false
@@ -59,6 +70,7 @@ Item {
     }
 
     RowLayout {
+        scale: root.visualScale
         anchors.fill: parent
         anchors.margins: CortetsuDesign.spacingStandard
         spacing: CortetsuDesign.spacingStandard

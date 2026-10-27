@@ -29,7 +29,7 @@ Item {
             color: root.kind === "error" ? CortetsuDesign.colorVermillion : CortetsuDesign.colorOnSurfaceVariant
 
             RotationAnimation on rotation {
-                running: root.kind === "loading" && root.visible
+                running: root.kind === "loading" && root.visible && !CortetsuDesign.reducedMotion
                 loops: Animation.Infinite
                 from: 0
                 to: 360

@@ -50,7 +50,8 @@ Row {
             Behavior on width {
                 NumberAnimation {
                     duration: CortetsuDesign.motionStandardMs
-                    easing.type: Easing.OutCubic
+                    easing.type: Easing.BezierSpline
+                    easing.bezierCurve: CortetsuDesign.easeOut
                 }
             }
 
@@ -78,7 +79,8 @@ Row {
                 Behavior on width {
                     NumberAnimation {
                         duration: CortetsuDesign.motionStandardMs
-                        easing.type: Easing.OutCubic
+                        easing.type: Easing.BezierSpline
+                        easing.bezierCurve: CortetsuDesign.easeOut
                     }
                 }
             }

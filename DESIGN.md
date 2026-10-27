@@ -12,6 +12,7 @@ colors:
   muted: "#8A919B"
   outline-variant: "#505862"
   indigo: "#334E68"
+  indicator: "#5F7FA0"
   primary-container: "#263E53"
   secondary: "#526D82"
   secondary-container: "#293B4A"
@@ -102,9 +103,10 @@ al día abre al instante; la expresividad se concentra en superficies ocasionale
 Paleta de tinta y acero con papel cálido; el color es escaso y siempre significa algo.
 
 ### Primary
-- **Índigo nocturno** (#334E68): selección, foco y acción primaria. Como relleno
-  lleva texto washi. Como indicador sobre tetsu no llega a 3:1; los anillos de
-  foco y pistas usan una variante aclarada (ver Named Rules).
+- **Índigo nocturno** (#334E68): selección y acción primaria como relleno, con
+  texto washi. Sobre tetsu no llega a 3:1, así que no se usa como indicador.
+- **Índigo indicador** (#5F7FA0, `colorIndicator`): pistas, rellenos de control y
+  contornos activos. Con un esquema dinámico, su primario se aclara hasta 3:1.
 
 ### Secondary
 - **Acero azulado** (#526D82) y su contenedor (#293B4A): estados secundarios y chips.
@@ -174,12 +176,37 @@ Primitivos en `cortetsu/components/`: `CortetsuButton`, `CortetsuToggle`,
 `CortetsuActionRow`, `CortetsuTab`, `CortetsuSectionHeader`, `CortetsuTooltip` y
 `CortetsuPopupHost`. Todos tienen estados deshabilitado, hover, pulsado, foco
 visible y seleccionado cuando aplica; se activan con Enter, Return o Space.
+La pulsación escala solo el contenido pintado a `pressScale` en 120 ms, para que
+el área de clic no cambie. El foco es un anillo washi de 2 px; el contorno en
+reposo es una línea translúcida, el activo es índigo y solo el peligro es bermellón.
 `CortetsuPopupHost` es el único dueño de Escape, clic fuera y foco.
 
 ## Motion
 
-Duraciones del token (`motion*Ms`): instantáneo 80, rápido 120, estándar 180,
-deliberado 240, panel 240. Curva actual: OutCubic. Reglas que verifica el linter:
+Tokens de `ui.toml [motion]`, leídos siempre desde `CortetsuDesign`:
+
+| Elemento | Token | Duración |
+|---|---|---|
+| Pulsación (escala `pressScale` 0.97) | `motionFastMs` | 120 ms |
+| Tooltip (entrada; retardo `tooltipDelayMs` 240 solo para el primero) | `motionTooltipMs` | 150 ms |
+| Popover y menú, entrada / salida | `motionPopoverMs` / `motionPopoverExitMs` | 200 / 150 ms |
+| Panel, entrada / salida | `motionPanelMs` / `motionPanelExitMs` | 320 / 240 ms |
+| Drawer y BottomHub | `motionDrawerMs` | 400 ms |
+| Cambios de contenido | `motionInstantMs` / `motionStandardMs` / `motionDeliberateMs` | 80 / 180 / 240 ms |
+
+Curvas (`Easing.BezierSpline` + `easing.bezierCurve`):
+
+- `easeOut` (0.23, 1, 0.32, 1): entradas y popovers. Es la curva por defecto de
+  `Anim`, `CAnim` y `CortetsuAnim`.
+- `easeInOut` (0.77, 0, 0.175, 1): la interfaz moviéndose en pantalla (tipos `Emphasized*`).
+- `easeDrawer` (0.32, 0.72, 0, 1): drawers y BottomHub.
+
+**Reducir movimiento** (Ajustes → Apariencia → Superficies) pone cada `motion*Ms`
+a 0 y detiene los bucles decorativos; las opacidades y posiciones siguen
+cambiando, solo que al instante. El retardo de los tooltips no es movimiento y se
+mantiene. Las barras de carga infinitas no dependen de esos tokens.
+
+Reglas que verifica el linter:
 
 - sin rebote, elástico ni sobreimpulso;
 - ease-in solo en salidas;

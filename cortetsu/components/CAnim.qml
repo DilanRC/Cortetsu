@@ -1,6 +1,8 @@
 import QtQuick
+import "../theme"
 
 ColorAnimation {
-    duration: 220
-    easing.type: Easing.OutCubic
+    duration: CortetsuDesign.motionPopoverMs
+    easing.type: Easing.BezierSpline
+    easing.bezierCurve: CortetsuDesign.easeOut
 }

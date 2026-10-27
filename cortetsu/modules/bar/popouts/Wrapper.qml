@@ -168,10 +168,10 @@ Item {
         }
     }
 
-    Behavior on implicitWidth { NumberAnimation { duration: root.animLength; easing.type: Easing.OutCubic } }
+    Behavior on implicitWidth { NumberAnimation { duration: root.animLength; easing.type: Easing.BezierSpline; easing.bezierCurve: CortetsuDesign.easeOut } }
     Behavior on implicitHeight {
         enabled: root.offsetScale < 1
-        NumberAnimation { duration: root.animLength; easing.type: Easing.OutCubic }
+        NumberAnimation { duration: root.animLength; easing.type: Easing.BezierSpline; easing.bezierCurve: CortetsuDesign.easeOut }
     }
 
     component Comp: Loader {
@@ -189,13 +189,13 @@ Item {
                 from: ""; to: "active"
                 SequentialAnimation {
                     PropertyAction { property: "active" }
-                    NumberAnimation { property: "opacity"; duration: comp.parent.animLength; easing.type: Easing.OutCubic }
+                    NumberAnimation { property: "opacity"; duration: comp.parent.animLength; easing.type: Easing.BezierSpline; easing.bezierCurve: CortetsuDesign.easeOut }
                 }
             },
             Transition {
                 from: "active"; to: ""
                 SequentialAnimation {
-                    NumberAnimation { property: "opacity"; duration: comp.parent.animLength; easing.type: Easing.OutCubic }
+                    NumberAnimation { property: "opacity"; duration: comp.parent.animLength; easing.type: Easing.BezierSpline; easing.bezierCurve: CortetsuDesign.easeOut }
                     PropertyAction { property: "active" }
                 }
             }

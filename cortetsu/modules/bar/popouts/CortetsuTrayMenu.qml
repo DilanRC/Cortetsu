@@ -40,14 +40,16 @@ CortetsuPopupSurface {
                     from: CortetsuDesign.spacingComfortable
                     to: 0
                     duration: CortetsuDesign.motionStandardMs
-                    easing.type: Easing.OutCubic
+                    easing.type: Easing.BezierSpline
+                    easing.bezierCurve: CortetsuDesign.easeOut
                 }
                 NumberAnimation {
                     property: "opacity"
                     from: 0
                     to: 1
                     duration: CortetsuDesign.motionFastMs
-                    easing.type: Easing.OutCubic
+                    easing.type: Easing.BezierSpline
+                    easing.bezierCurve: CortetsuDesign.easeOut
                 }
             }
         }
@@ -59,7 +61,8 @@ CortetsuPopupSurface {
                     from: 0
                     to: -CortetsuDesign.spacingCompact
                     duration: CortetsuDesign.motionStandardMs
-                    easing.type: Easing.OutCubic
+                    easing.type: Easing.BezierSpline
+                    easing.bezierCurve: CortetsuDesign.easeOut
                 }
                 NumberAnimation {
                     property: "opacity"
@@ -77,7 +80,8 @@ CortetsuPopupSurface {
                     from: -CortetsuDesign.spacingCompact
                     to: 0
                     duration: CortetsuDesign.motionStandardMs
-                    easing.type: Easing.OutCubic
+                    easing.type: Easing.BezierSpline
+                    easing.bezierCurve: CortetsuDesign.easeOut
                 }
                 NumberAnimation {
                     property: "opacity"

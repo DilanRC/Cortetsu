@@ -10,6 +10,8 @@ Item {
     property bool modal: true
     property bool dismissOnOutside: true
     property bool animate: true
+    // System prompts (share picker, polkit) take the keyboard outright.
+    property int keyboardFocus: WlrKeyboardFocus.OnDemand
     signal closed()
 
     anchors.fill: parent
@@ -41,18 +43,21 @@ Item {
         when: root.open
         target: QsWindow.window
         property: "WlrLayershell.keyboardFocus"
-        value: WlrKeyboardFocus.OnDemand
+        value: root.keyboardFocus
     }
 
     Keys.onEscapePressed: root.close()
 
+    // A modal dialog is a popover: it enters in motionPopoverMs from the
+    // centre and leaves faster than it came.
+    readonly property int motionMs: open ? CortetsuDesign.motionPopoverMs : CortetsuDesign.motionPopoverExitMs
     Behavior on opacity {
         enabled: root.animate
-        NumberAnimation { duration: CortetsuDesign.motionPanelMs; easing.type: Easing.OutCubic }
+        NumberAnimation { duration: root.motionMs; easing.type: Easing.BezierSpline; easing.bezierCurve: CortetsuDesign.easeOut }
     }
     Behavior on scale {
         enabled: root.animate
-        NumberAnimation { duration: CortetsuDesign.motionPanelMs; easing.type: Easing.OutCubic }
+        NumberAnimation { duration: root.motionMs; easing.type: Easing.BezierSpline; easing.bezierCurve: CortetsuDesign.easeOut }
     }
 
     function close(): void {

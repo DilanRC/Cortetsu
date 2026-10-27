@@ -88,7 +88,8 @@ TextField {
         Behavior on baseColor {
             ColorAnimation {
                 duration: CortetsuDesign.motionFastMs
-                easing.type: Easing.OutCubic
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: CortetsuDesign.easeOut
             }
         }
     }

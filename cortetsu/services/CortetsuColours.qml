@@ -53,6 +53,12 @@ Singleton {
         value: root.activeColours
     }
 
+    Binding {
+        target: CortetsuDesign
+        property: "reducedMotion"
+        value: CortetsuConfig.reducedMotion
+    }
+
     FileView {
         id: schemeFile
         path: root.schemePath

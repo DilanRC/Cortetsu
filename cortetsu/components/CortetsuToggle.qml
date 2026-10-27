@@ -27,12 +27,13 @@ Item {
     implicitWidth: 46
     implicitHeight: 26
     opacity: disabled ? 0.46 : 1
-    scale: mouse.pressed ? 0.98 : 1
+    scale: mouse.pressed ? CortetsuDesign.pressScale : 1
 
     Behavior on scale {
         NumberAnimation {
-            duration: CortetsuDesign.motionInstantMs
-            easing.type: Easing.OutCubic
+            duration: CortetsuDesign.motionFastMs
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: CortetsuDesign.easeOut
         }
     }
 
@@ -75,14 +76,16 @@ Item {
         Behavior on x {
             NumberAnimation {
                 duration: CortetsuDesign.motionFastMs
-                easing.type: Easing.OutCubic
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: CortetsuDesign.easeOut
             }
         }
 
         Behavior on color {
             ColorAnimation {
                 duration: CortetsuDesign.motionFastMs
-                easing.type: Easing.OutCubic
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: CortetsuDesign.easeOut
             }
         }
     }

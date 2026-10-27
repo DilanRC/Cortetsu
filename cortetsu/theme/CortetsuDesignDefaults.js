@@ -23,12 +23,13 @@ var colorOnSecondaryContainer = colorWashi
 var colorTertiary = colorVermillion
 var colorOutline = colorMuted
 var colorOutlineVariant = "#505862"
-var colorScrim = "#000000"
+var colorScrim = "#0B0D10"
 var colorSurfaceGlass = "#1B2028"
 var colorSurfaceGlassStrong = "#202731"
 var colorOnSurfaceMuted = "#AAB1BA"
 var colorSuccess = "#7A9B83"
 var colorWarning = "#C49A62"
+var colorIndicator = "#5F7FA0"
 
 var radiusSmall = 8
 var radiusMedium = 12
@@ -68,11 +69,24 @@ var motionInstantMs = 80
 var motionFastMs = 120
 var motionStandardMs = 180
 var motionDeliberateMs = 240
-var motionPanelMs = 240
+var motionPanelMs = 320
+var motionDrawerMs = 400
+var motionTooltipMs = 150
+var motionPopoverMs = 200
+var motionPopoverExitMs = 150
+var motionPanelExitMs = 240
+var pressScale = 0.97
+// Intent delay, not motion: Reduced motion leaves it alone.
+var tooltipDelayMs = 240
+
+// Easing.BezierSpline lists: the two control points, then the end point.
+var easeOut = [0.23,1,0.32,1].concat([1, 1])
+var easeInOut = [0.77,0,0.175,1].concat([1, 1])
+var easeDrawer = [0.32,0.72,0,1].concat([1, 1])
 
 // Wall Utility values resolve symbolic ui.toml references at compile time.
 var wallUtilitySurfaceRadius = 28
-var wallUtilityPanelMotionMs = 240
+var wallUtilityPanelMotionMs = 320
 var wallUtilityOrbitMotionMs = 180
 var wallUtilityCrossfadeMotionMs = 180
 var wallUtilityOrbitTopGap = 32

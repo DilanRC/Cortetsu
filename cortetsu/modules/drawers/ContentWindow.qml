@@ -211,7 +211,7 @@ StyledWindow {
         // opaque here avoids multiplying the scrim alpha and leaking desktop
         // content through the window-card composition.
         color: CortetsuDesign.colorScrim
-        Behavior on opacity { NumberAnimation { duration: CortetsuDesign.motionFastMs; easing.type: Easing.OutCubic } }
+        Behavior on opacity { NumberAnimation { duration: CortetsuDesign.motionFastMs; easing.type: Easing.BezierSpline; easing.bezierCurve: CortetsuDesign.easeOut } }
     }
 
     Item {

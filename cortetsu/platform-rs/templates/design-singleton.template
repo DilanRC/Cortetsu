@@ -12,6 +12,14 @@ QtObject {
     // empty map leaves every token at its ui.toml default.
     property var scheme: ({})
 
+    // Settings > Appearance > Reduced motion. Every motion*Ms token reads 0
+    // while it is on; opacity and position still change, only instantly.
+    property bool reducedMotion: false
+
+    // While a tooltip is open, and for a short moment after it closes,
+    // the next one opens without its delay. CortetsuTooltip owns it.
+    property real tooltipWarmUntil: 0
+
     function role(name, fallback) {
         const value = scheme ? scheme[name] : undefined;
         if (typeof value !== "string")
@@ -33,12 +41,12 @@ QtObject {
         return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
     }
 
-    // A text role of the scheme, moved toward white (dark surfaces) or
-    // black (light ones) only as far as it needs to read at 4.5:1 on every
-    // one of `surfaces`. Bundled schemes ship onSurfaceVariant as low as
-    // 1.7:1 and, in nebula and papercolor/dark, onSurface at 3-3.9:1. A
-    // scheme that already passes is returned unchanged.
-    function readable(value, surfaces) {
+    // A scheme role, moved toward white (dark surfaces) or black (light
+    // ones) only as far as it needs to reach `ratio` on every one of
+    // `surfaces`: 4.5:1 for text, 3:1 for indicators. Bundled schemes ship
+    // onSurfaceVariant as low as 1.7:1 and, in nebula and papercolor/dark,
+    // onSurface at 3-3.9:1. A scheme that already passes is returned unchanged.
+    function readable(value, surfaces, ratio = 4.5) {
         const from = Qt.color(value);
         const dark = surfaces.every(surface => luminance(surface) < 0.18);
         const to = dark ? Qt.rgba(1, 1, 1, 1) : Qt.rgba(0, 0, 0, 1);
@@ -46,7 +54,7 @@ QtObject {
             const t = step / 20;
             const mixed = Qt.rgba(from.r + (to.r - from.r) * t, from.g + (to.g - from.g) * t,
                 from.b + (to.b - from.b) * t, 1);
-            if (surfaces.every(surface => contrast(mixed, surface) >= 4.5))
+            if (surfaces.every(surface => contrast(mixed, surface) >= ratio))
                 return mixed;
         }
         return to;

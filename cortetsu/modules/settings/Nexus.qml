@@ -124,7 +124,7 @@ CortetsuSurface {
             boundsBehavior: Flickable.StopAtBounds
 
             Behavior on contentY {
-                NumberAnimation { duration: CortetsuDesign.motionFastMs; easing.type: Easing.OutCubic }
+                NumberAnimation { duration: CortetsuDesign.motionFastMs; easing.type: Easing.BezierSpline; easing.bezierCurve: CortetsuDesign.easeOut }
             }
 
             Column {

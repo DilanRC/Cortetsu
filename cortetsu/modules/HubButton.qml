@@ -52,7 +52,8 @@ Item {
             duration: root.pressed
                 ? CortetsuDesign.motionInstantMs
                 : CortetsuDesign.motionFastMs
-            easing.type: Easing.OutCubic
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: CortetsuDesign.easeOut
         }
     }
 
@@ -89,14 +90,16 @@ Item {
         Behavior on color {
             ColorAnimation {
                 duration: CortetsuDesign.motionFastMs
-                easing.type: Easing.OutCubic
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: CortetsuDesign.easeOut
             }
         }
 
         Behavior on anchors.verticalCenterOffset {
             NumberAnimation {
                 duration: CortetsuDesign.motionFastMs
-                easing.type: Easing.OutCubic
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: CortetsuDesign.easeOut
             }
         }
     }
@@ -121,14 +124,16 @@ Item {
         Behavior on opacity {
             NumberAnimation {
                 duration: CortetsuDesign.motionFastMs
-                easing.type: Easing.OutCubic
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: CortetsuDesign.easeOut
             }
         }
 
         Behavior on anchors.verticalCenterOffset {
             NumberAnimation {
                 duration: CortetsuDesign.motionFastMs
-                easing.type: Easing.OutCubic
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: CortetsuDesign.easeOut
             }
         }
     }
@@ -162,7 +167,8 @@ Item {
         Behavior on width {
             NumberAnimation {
                 duration: CortetsuDesign.motionFastMs
-                easing.type: Easing.OutCubic
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: CortetsuDesign.easeOut
             }
         }
     }

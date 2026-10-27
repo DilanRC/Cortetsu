@@ -44,6 +44,7 @@ fn load(repo: &Path) -> Result<Value> {
         "secondary_container",
         "outline_variant",
         "scrim",
+        "indicator",
     ] {
         if !v["palette"]["semantic"][name]
             .as_str()
@@ -52,13 +53,47 @@ fn load(repo: &Path) -> Result<Value> {
             return fail(format!("invalid palette.semantic.{name}"));
         }
     }
-    for name in ["instant_ms", "fast_ms", "standard_ms", "deliberate_ms"] {
-        if v["motion"][name].as_i64().unwrap_or(0) <= 0 {
+    let m = &v["motion"];
+    for name in [
+        "instant_ms",
+        "fast_ms",
+        "standard_ms",
+        "deliberate_ms",
+        "panel_ms",
+        "drawer_ms",
+        "tooltip_ms",
+        "popover_ms",
+        "popover_exit_ms",
+        "panel_exit_ms",
+        "tooltip_delay_ms",
+    ] {
+        if m[name].as_i64().unwrap_or(0) <= 0 {
             return fail(format!("invalid motion.{name}"));
         }
     }
-    if v["motion"]["hover_scale"].as_f64().unwrap_or(0.0) <= 1.0 {
+    for (exit, entry) in [("popover_exit_ms", "popover_ms"), ("panel_exit_ms", "panel_ms")] {
+        if m[exit].as_i64() >= m[entry].as_i64() {
+            return fail(format!("motion.{exit} must be shorter than motion.{entry}"));
+        }
+    }
+    if m["hover_scale"].as_f64().unwrap_or(0.0) <= 1.0 {
         return fail("invalid motion.hover_scale");
+    }
+    // Emil Kowalski: a press never scales below 0.95.
+    if !m["press_scale"]
+        .as_f64()
+        .is_some_and(|s| (0.95..1.0).contains(&s))
+    {
+        return fail("invalid motion.press_scale");
+    }
+    for name in ["ease_out", "ease_in_out", "ease_drawer"] {
+        let points: Vec<f64> = m[name]
+            .as_array()
+            .map(|a| a.iter().filter_map(Value::as_f64).collect())
+            .unwrap_or_default();
+        if points.len() != 4 || ![points[0], points[2]].iter().all(|x| (0.0..=1.0).contains(x)) {
+            return fail(format!("invalid motion.{name}: expected [x1, y1, x2, y2] with x in 0..1"));
+        }
     }
     wall(&v)?;
     Ok(v)
@@ -144,17 +179,29 @@ fn outputs(repo: &Path, v: &Value) -> Result<Vec<(PathBuf, String)>> {
             let (name, value) = l.split_once('=').ok_or("invalid design var")?;
             let name = name.trim();
             let value = value.trim();
-            let (ty, expr) = if !name.starts_with("color") {
+            let (ty, expr) = if value.starts_with('[') {
+                ("var", format!("Defaults.{name}"))
+            } else if name.starts_with("motion") || name.ends_with("MotionMs") {
+                ("real", format!("reducedMotion ? 0 : Defaults.{name}"))
+            } else if !name.starts_with("color") {
                 ("real", format!("Defaults.{name}"))
             } else if let Some(role) = meta["SCHEME_ROLES"][name].as_str() {
                 let read = format!("role(\"{role}\", Defaults.{name})");
                 let text_role = meta["READABLE_TEXT_ROLES"]
                     .as_array()
                     .is_some_and(|roles| roles.iter().any(|r| r == name));
+                let indicator_role = meta["INDICATOR_ROLES"]
+                    .as_array()
+                    .is_some_and(|roles| roles.iter().any(|r| r == name));
                 if text_role {
                     (
                         "color",
                         format!("readable({read}, [colorTetsu, colorSurfaceHigh])"),
+                    )
+                } else if indicator_role {
+                    (
+                        "color",
+                        format!("readable({read}, [colorTetsu, colorSurfaceHigh], 3)"),
                     )
                 } else {
                     ("color", read)

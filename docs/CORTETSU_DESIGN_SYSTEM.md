@@ -34,9 +34,12 @@ Popup hosts still own Escape and outside-click dismissal.
 ## Density and motion
 
 The base grid is four pixels. Rows are 52 px, ordinary controls are 36 px, and
-large surfaces use the 14/22 px radius pair. Motion is short and OutCubic:
-content changes use fast motion, surface entry uses panel motion, and no visual
-state depends on animation completing.
+large surfaces use the 14/22 px radius pair. Motion is short and uses the
+`easeOut`, `easeInOut` and `easeDrawer` bezier tokens; exits are shorter than
+entries, presses scale painted content to `pressScale` (0.97) in 120 ms, and no
+visual state depends on animation completing. `CortetsuDesign.reducedMotion`
+(Settings > Appearance) zeroes every `motion*Ms` token. The full table is in
+`DESIGN.md`; `scripts/verification/qml-design-lint.py` checks the rules.
 
 ## Typography and icon font contract
 
