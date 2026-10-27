@@ -417,7 +417,11 @@ fn other_gpus() -> Vec<Value> {
     for card in gpu_cards() {
         let dev = card.join("device");
         let vendor_id = read(&dev.join("vendor")).to_lowercase();
-        if ["0x1002", "0x10de"].contains(&vendor_id.as_str()) {
+        // Only PCI display controllers: simpledrm, vkms or a DisplayLink (evdi)
+        // dock also create cardN, without a PCI vendor or display class.
+        if ["", "0x1002", "0x10de"].contains(&vendor_id.as_str())
+            || !read(&dev.join("class")).starts_with("0x03")
+        {
             continue;
         }
         let temp = children(&dev.join("hwmon")).iter().find_map(|h| temperatures(h));

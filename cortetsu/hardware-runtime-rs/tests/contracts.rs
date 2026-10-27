@@ -160,12 +160,19 @@ fn intel_unknown_and_unread_amd_gpus_never_report_invented_load() {
         fs::create_dir_all(&dev).unwrap();
         fs::write(dev.join("vendor"), format!("{vendor}\n")).unwrap();
         fs::write(dev.join("device"), "0x0001\n").unwrap();
+        fs::write(dev.join("class"), "0x030000\n").unwrap();
         if let Some(b) = busy {
             fs::write(dev.join("gpu_busy_percent"), format!("{b}\n")).unwrap();
         }
     }
+    // A DisplayLink dock (evdi) and simpledrm: DRM cards that are not GPUs.
+    fs::create_dir_all(t.path().join("sys/class/drm/card3/device")).unwrap();
+    let evdi = t.path().join("sys/class/drm/card4/device");
+    fs::create_dir_all(&evdi).unwrap();
+    fs::write(evdi.join("vendor"), "0x17e9\n").unwrap();
     let p = output(run(&t, &["cortetsu-hardware-probe", "--gpus"]));
     let gpus = p["gpus"].as_array().unwrap();
+    assert_eq!(gpus.len(), 3, "{p}");
     let by = |v: &str| gpus.iter().find(|g| g["vendor"] == v).unwrap_or_else(|| panic!("{v} missing: {p}")).clone();
     assert!(by("AMD")["usage"].is_null());
     assert!(by("Intel")["usage"].is_null());
