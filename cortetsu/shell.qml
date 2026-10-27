@@ -9,6 +9,7 @@ import "modules"
 import "modules/drawers"
 import "modules/background"
 import "modules/areapicker"
+import "modules/screenshare"
 import "modules/lock"
 import "modules/pomodoro"
 import "services"
@@ -41,7 +42,9 @@ ShellRoot {
     Background {}
     Drawers {}
     BottomHub {}
-    AreaPicker {}
+    AreaPicker { id: areaPicker }
+    // Screencast picker for xdg-desktop-portal-hyprland (cortetsu-share-picker).
+    ScreenShare { areaPicker: areaPicker }
     DashboardHost {}
     LauncherHost {}
     SettingsHost {}

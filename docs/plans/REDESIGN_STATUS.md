@@ -8,8 +8,8 @@ Sin push, sin merge y sin instalar en la sesión real.
 | 0.1 Skills Emil e Impeccable en `~/.claude/skills` | Hecho (antes de esta rama) | `ls ~/.claude/skills` |
 | 0.2 `PRODUCT.md` y `DESIGN.md` | Hecho | raíz del repo |
 | 0.3 `qml-design-lint.py` (informa, no bloquea) | Hecho | `scripts/features/test-qml-design-lint.py` |
-| 1 Tokens de movimiento y primitivos | Pendiente | |
-| 2.1 Selector de compartir pantalla | Pendiente | |
+| 1 Tokens de movimiento y primitivos | Hecho | `tst_MotionTokens.qml`; features 127 → 127 |
+| 2.1 Selector de compartir pantalla | Hecho en código; pendiente físico | `docs/SCREENSHARE.md` |
 | 2.2 Agente polkit | Pendiente | |
 
 ## Línea base del linter (fase 0)

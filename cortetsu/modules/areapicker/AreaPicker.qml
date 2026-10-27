@@ -15,6 +15,8 @@ Scope {
     property bool freeze: false
     property bool closing: false
     property bool clipboardOnly: false
+    // Set by pickRegion(): the selection is returned instead of captured.
+    property var regionHandler: null
 
     onActiveChanged: CortetsuShellState.screenshotActive = active
     Component.onDestruction: CortetsuShellState.screenshotActive = false
@@ -29,6 +31,23 @@ Scope {
     function close(): void {
         closing = true;
         active = false;
+        // Escape or an empty drag while picking a share region is a cancel.
+        root.returnRegion(null);
+    }
+
+    // Region tab of the screen share picker: `handler` receives
+    // { output, x, y, w, h } in the output's logical coordinates, or null.
+    function pickRegion(handler: var): void {
+        root.returnRegion(null);
+        regionHandler = handler;
+        open(false, false);
+    }
+
+    function returnRegion(region: var): void {
+        const handler = regionHandler;
+        regionHandler = null;
+        if (handler)
+            handler(region);
     }
 
     Variants {

@@ -24,6 +24,11 @@ target = ".config/hypr/hypr-user.lua"
 tags = ["hyprland", "shell-bridge"]
 
 [[entry]]
+source = "dotfiles/home/.config/hypr/xdph.conf"
+target = ".config/hypr/xdph.conf"
+tags = ["hyprland", "portal"]
+
+[[entry]]
 source = "config/systemd/user/cortetsu-power-auto.service"
 target = ".config/systemd/user/cortetsu-power-auto.service"
 tags = ["services"]

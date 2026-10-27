@@ -19,6 +19,7 @@ cortetsu-emoji	cortetsu-desktop-runtime	cortetsu-emoji
 cortetsu-startup	cortetsu-desktop-runtime	cortetsu-startup
 cortetsu-area-capture	cortetsu-desktop-runtime	cortetsu-area-capture
 cortetsu-record	cortetsu-desktop-runtime	cortetsu-record
+cortetsu-share-picker	cortetsu-desktop-runtime	cortetsu-share-picker
 cortetsu-scheme	cortetsu-desktop-runtime	cortetsu-scheme
 cortetsu-scheme-posthook	cortetsu-desktop-runtime	cortetsu-scheme-posthook
 cortetsu-wallpaper-color-daemon	cortetsu-desktop-runtime	cortetsu-wallpaper-color-daemon

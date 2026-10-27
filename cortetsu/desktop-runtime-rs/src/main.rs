@@ -5,6 +5,7 @@ mod palette;
 mod pomodoro;
 mod quantizer;
 mod recorder;
+mod sharepicker;
 mod startup;
 mod utilities;
 
@@ -24,6 +25,7 @@ fn main() {
         "cortetsu-connectivity-secret" | "ConnectivitySecret.py" => connectivity::main(&args),
         "cortetsu-startup" => startup::main(&args),
         "cortetsu-record" => recorder::main(&args),
+        "cortetsu-share-picker" => sharepicker::main(&args),
         _ => {
             eprintln!("unknown desktop helper: {helper}");
             Ok(2)

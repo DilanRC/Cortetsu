@@ -75,6 +75,11 @@ MouseArea {
             close();
             return;
         }
+        if (root.state.regionHandler) {
+            root.state.returnRegion({ output: screen.name, x: Math.round(left), y: Math.round(top), w: width, h: height });
+            close();
+            return;
+        }
         const path = `/tmp/cortetsu-picker-${Quickshell.processId}-${Date.now()}.png`;
         const geometry = `${x},${y} ${width}x${height}`;
         const command = ["cortetsu-area-capture", geometry, path];
@@ -189,7 +194,7 @@ MouseArea {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: parent.top
         anchors.topMargin: CortetsuDesign.spacingComfortable
-        text: root.state.freeze ? qsTr("Selecciona un área para capturar") : qsTr("Selecciona un área")
+        text: root.state.regionHandler ? qsTr("Selecciona el área que quieres compartir") : root.state.freeze ? qsTr("Selecciona un área para capturar") : qsTr("Selecciona un área")
         textSize: CortetsuTypography.bodyLargePx
         color: CortetsuDesign.colorOnSurface
     }
