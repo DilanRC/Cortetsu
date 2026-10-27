@@ -96,7 +96,8 @@ def assert_controller(text: str) -> None:
         "CortetsuConfig.favouriteApps",
         "SystemTray.items.values",
         "Apps.launch(item.entry)",
-        "CortetsuHypr.dispatch(",
+        "CortetsuHypr.focusWindow(address)",
+        "CortetsuHypr.closeWindow(address)",
         "Audio.incrementVolume()",
         "Audio.decrementVolume()",
         "CortetsuNetwork.activeEthernet",
@@ -115,7 +116,7 @@ def assert_controller(text: str) -> None:
         "deferred focus must revalidate that the client still exists before dispatching"
     )
     assert "if (!CortetsuHypr.toplevels.values.some(" in focus
-    assert focus.index("CortetsuHypr.toplevels.values.some(") < focus.index("CortetsuHypr.dispatch("), (
+    assert focus.index("CortetsuHypr.toplevels.values.some(") < focus.index("CortetsuHypr.focusWindow("), (
         "client liveness check must occur before the Hyprland focus dispatch"
     )
 
