@@ -10,6 +10,7 @@ for suite in hardware hypr surfaces calendar pomodoro policy; do
     QT_QPA_PLATFORM=offscreen /usr/lib/qt6/bin/qmltestrunner -input "$REPO/cortetsu/tests/qml/$suite"
 done
 python3 "$REPO/scripts/features/test-native-bottom-hub.py" --runtime "$STAGING/modules/BottomHub.qml"
+python3 "$REPO/scripts/features/test-cortetsu-surface-registry.py"
 python3 "$REPO/scripts/features/test-cortetsu-quality.py"
 python3 "$REPO/scripts/features/test-cortetsu-settings.py"
 python3 "$REPO/scripts/features/test-cortetsu-v2-bridge.py"

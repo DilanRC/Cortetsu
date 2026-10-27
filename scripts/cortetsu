@@ -310,7 +310,6 @@ status_cmd() {
 
 run_node_test() { local relative="$1"; require_repo; require_file "$ROOT/$relative"; printf '==> %s\n' "$relative"; node "$ROOT/$relative"; }
 run_bash_test() { local relative="$1"; require_repo; require_file "$ROOT/$relative"; printf '==> %s\n' "$relative"; bash "$ROOT/$relative"; }
-run_python_test() { local relative="$1"; require_repo; require_file "$ROOT/$relative"; printf '==> %s\n' "$relative"; python3 "$ROOT/$relative"; }
 run_qml_test() {
     local relative="$1" test_files=()
     require_repo
@@ -396,7 +395,6 @@ test_cmd() {
     run_node_test "scripts/features/test-connectivity-wifi-policy.cjs"
     run_node_test "scripts/features/test-connectivity-bluetooth.mjs"
     run_node_test "scripts/features/test-hypr-shell-layer-rules.cjs"
-    run_python_test "scripts/features/test-cortetsu-surface-registry.py"
     run_python_test "scripts/features/test-hypr-actions.py"
     run_python_test "scripts/features/test-hypr-event-policy.py"
     local directory

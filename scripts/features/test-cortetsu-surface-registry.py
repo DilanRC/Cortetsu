@@ -130,6 +130,9 @@ assert 'for suite in hardware hypr surfaces calendar pomodoro' in build
 assert 'timeout 300 "$qml_runner" -input "$REPO/cortetsu/tests/qml/$suite"' in build
 assert 'for directory in focus components hardware hypr keyboards settings surfaces calendar pomodoro bottomhub' in cli
 assert 'run_qml_test "cortetsu/tests/qml/$directory"' in cli
-assert 'run_python_test "scripts/features/test-cortetsu-surface-registry.py"' in cli
+# The installed CLI is interpreter-free (build-native.sh rejects python3);
+# this check runs from the build regressions instead.
+assert "python3" not in cli
+assert "scripts/features/test-cortetsu-surface-registry.py" in read("scripts/verification/build-regressions.sh")
 
 print(f"PASS: {len(names)} surfaces in one registry ({len(retained)} retained); no parallel lists in {len(consumers)} consumers")
