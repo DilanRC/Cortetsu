@@ -13,6 +13,8 @@ python3 "$REPO/scripts/features/test-native-bottom-hub.py" --runtime "$STAGING/m
 python3 "$REPO/scripts/features/test-cortetsu-surface-registry.py"
 python3 "$REPO/scripts/features/test-hypr-actions.py"
 python3 "$REPO/scripts/features/test-hypr-event-policy.py"
+python3 "$REPO/scripts/features/test-qml-design-lint.py"
+python3 "$REPO/scripts/verification/qml-design-lint.py" --summary
 python3 "$REPO/scripts/features/test-cortetsu-quality.py"
 python3 "$REPO/scripts/features/test-cortetsu-settings.py"
 python3 "$REPO/scripts/features/test-cortetsu-v2-bridge.py"
