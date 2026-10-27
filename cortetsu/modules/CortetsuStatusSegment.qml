@@ -187,10 +187,6 @@ Item {
             width: implicitWidth
             height: implicitHeight
 
-            // When the current pointer press began; 0 outside a pointer press
-            // and its click (keyboard activation never sets it).
-            property real pressedAt: 0
-
             HubButton {
                 anchors.fill: parent
                 buttonSize: 44
@@ -198,12 +194,6 @@ Item {
                 icon: "notifications"
                 active: root.sidebarActive
                 tooltip: qsTr("Notificaciones")
-                onPressedChanged: {
-                    if (pressed)
-                        bellButton.pressedAt = Date.now();
-                    else
-                        Qt.callLater(() => bellButton.pressedAt = 0);
-                }
                 onClicked: root.notificationsRequested()
             }
 

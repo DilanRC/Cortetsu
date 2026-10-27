@@ -187,7 +187,7 @@ def main() -> None:
     require(status, "onClicked: root.calendarRequested()", "clock-click calendar request")
 
     require(bottom, "onLauncherRequested: hubRoot.toggleLauncherFor(win.modelData)", "launcher action")
-    require(bottom, "onNotificationsRequested: hubRoot.toggleSidebarFor(win.modelData, bottomHubView.notificationsButton.pressedAt)", "sidebar action")
+    require(bottom, "onNotificationsRequested: hubRoot.toggleSidebarFor(win.modelData)", "sidebar action")
     require(bottom, "onAppTogglePinnedRequested: key => win.togglePinnedKey(key)", "pin controller action")
     require(bottom, "onAppCloseRequested: key => win.closeDockKey(key)", "close controller action")
     require(bottom, "onAppCycleRequested: (key, direction) => win.cycleDockKey(key, direction)", "cycle controller action")

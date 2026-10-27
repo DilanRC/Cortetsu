@@ -175,8 +175,6 @@ StyledWindow {
         // it open again.
         windows: [root, root.screenState?.cortetsuState?.bottomHub].filter(window => !!window)
         onCleared: {
-            if (root.screenState.sidebar)
-                root.screenState.sidebarGrabClearedAt = Date.now();
             root.screenState.launcher = false;
             root.screenState.session = false;
             root.screenState.sidebar = false;

@@ -35,7 +35,7 @@ assert "return !keyboards.dismissBlocked" in host
 assert "notificationsButtonContains(x, y)" in host and "ScrimHit.backdropOnly(surfaces, x, y)" in host
 assert "enabled: window.surfaceOpen && !(window.screenState?.cortetsuState?.overview ?? false)" in host
 assert "onClicked: window.screenState?.cortetsuState?.bottomHub?.activateNotifications()" in host
-assert "onNotificationsRequested: hubRoot.toggleSidebarFor(win.modelData, bottomHubView.notificationsButton.pressedAt)" in hub
+assert "onNotificationsRequested: hubRoot.toggleSidebarFor(win.modelData)" in hub
 assert "function activateNotifications(): void {\n                hubRoot.toggleSidebarFor(win.modelData);" in hub
 assert 'property: "bottomHub"' in hub
 assert "opacity: shouldBeActive ? 1 : 0" in wallpaper
