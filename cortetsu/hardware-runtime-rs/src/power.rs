@@ -234,6 +234,7 @@ fn gpu_power() -> Vec<Value> {
     for d in devices.iter().filter(|d| hardware::asleep(d)) {
         out.push(json!({"vendor":"NVIDIA","name":d["name"],"state":"suspended","power_w":null,"temp_c":null}));
     }
+    let before = out.len();
     if let Some(raw) = hardware::nvidia_query(
         "name,pstate,power.draw,power.limit,temperature.gpu,clocks.gr,clocks.mem",
         &devices,
@@ -245,6 +246,11 @@ fn gpu_power() -> Vec<Value> {
             }
             let n = |i: usize| p[i].parse::<f64>().ok();
             out.push(json!({"vendor":"NVIDIA","name":p[0],"state":"active","pstate":p[1],"power_w":rounded(n(2),2),"power_limit_w":rounded(n(3),2),"temp_c":rounded(n(4),1),"graphics_clock_mhz":rounded(n(5),0),"memory_clock_mhz":rounded(n(6),0)}));
+        }
+    }
+    if out.len() == before {
+        for d in devices.iter().filter(|d| !hardware::asleep(d)) {
+            out.push(json!({"vendor":"NVIDIA","name":d["name"],"state":"unavailable","power_w":null,"temp_c":null}));
         }
     }
     out

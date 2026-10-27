@@ -132,6 +132,46 @@ fn suspended_nvidia_is_reported_without_nvidia_smi() {
     assert!(!t.path().join("gpu-woken").exists());
 }
 
+#[test]
+fn awake_nvidia_that_nvidia_smi_cannot_read_stays_listed() {
+    let t = setup();
+    let d = t.path().join("sys/bus/pci/devices/0000:01:00.0");
+    fs::create_dir_all(d.join("power")).unwrap();
+    fs::write(d.join("vendor"), "0x10de\n").unwrap();
+    fs::write(d.join("class"), "0x030000\n").unwrap();
+    fs::write(d.join("device"), "0x25a2\n").unwrap();
+    fs::write(d.join("power/runtime_status"), "active\n").unwrap();
+    exe(&t.path().join("bin/nvidia-smi"), "#!/bin/sh\nexit 9\n");
+    let p = output(run(&t, &["cortetsu-hardware-probe", "--gpus"]));
+    assert_eq!(p["gpus"][0]["vendor"], "NVIDIA");
+    assert_eq!(p["gpus"][0]["state"], "unavailable");
+    assert!(p["gpus"][0]["usage"].is_null());
+    assert_eq!(p["simulated"], true);
+    let power = output(run(&t, &["cortetsu-hardware-power"]));
+    let nvidia = power["gpus"].as_array().unwrap().iter().find(|g| g["vendor"] == "NVIDIA").unwrap().clone();
+    assert_eq!(nvidia["state"], "unavailable");
+}
+#[test]
+fn intel_unknown_and_unread_amd_gpus_never_report_invented_load() {
+    let t = setup();
+    for (card, vendor, busy) in [("card0", "0x1002", None), ("card1", "0x8086", None), ("card2", "0x1a03", Some("37"))] {
+        let dev = t.path().join("sys/class/drm").join(card).join("device");
+        fs::create_dir_all(&dev).unwrap();
+        fs::write(dev.join("vendor"), format!("{vendor}\n")).unwrap();
+        fs::write(dev.join("device"), "0x0001\n").unwrap();
+        if let Some(b) = busy {
+            fs::write(dev.join("gpu_busy_percent"), format!("{b}\n")).unwrap();
+        }
+    }
+    let p = output(run(&t, &["cortetsu-hardware-probe", "--gpus"]));
+    let gpus = p["gpus"].as_array().unwrap();
+    let by = |v: &str| gpus.iter().find(|g| g["vendor"] == v).unwrap_or_else(|| panic!("{v} missing: {p}")).clone();
+    assert!(by("AMD")["usage"].is_null());
+    assert!(by("Intel")["usage"].is_null());
+    assert_eq!(by("Desconocida")["usage"], 37.0);
+    assert_eq!(by("Desconocida")["vendor_id"], "0x1a03");
+}
+
 fn request(
     t: &TempDir,
     operation: &str,

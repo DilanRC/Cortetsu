@@ -24,18 +24,17 @@ NavBlock {
         return vendor && name.startsWith(`${vendor} `) ? name.slice(vendor.length + 1) : name;
     }
     readonly property string vram: Format.ratioGib(root.gpu?.vram_used_gb, root.gpu?.vram_total_gb)
-    // A runtime-suspended dGPU is not queried: asking would wake it.
-    readonly property bool asleep: root.gpu?.state === "suspended"
+    readonly property string stateText: Format.gpuState(root.gpu)
 
     height: 84
-    accessibleName: root.asleep
-        ? qsTr("GPU %1 en reposo").arg(root.gpu?.vendor ?? "")
+    accessibleName: root.stateText
+        ? qsTr("GPU %1 · %2").arg(root.gpu?.vendor ?? "").arg(root.stateText)
         : qsTr("GPU %1 al %2").arg(root.gpu?.vendor ?? "").arg(Format.percent(root.gpu?.usage))
 
     SummaryLabel {
         icon: "view_in_ar"
         text: root.gpu?.vendor ? qsTr("GPU %1").arg(root.gpu.vendor) : qsTr("GPU")
-        detail: root.asleep ? qsTr("%1 · en reposo").arg(root.model) : root.model
+        detail: Format.join([root.model, root.stateText.toLowerCase()])
     }
 
     CortetsuText {

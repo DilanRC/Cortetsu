@@ -155,7 +155,7 @@ Item {
                 icon: "view_in_ar"
                 available: gpuGraph.gpu !== null
                 unavailableText: qsTr("No hay una segunda GPU")
-                headline: gpuGraph.gpu?.state === "suspended" ? qsTr("En reposo") : Format.percent(gpuGraph.gpu?.usage)
+                headline: Format.gpuState(gpuGraph.gpu) || Format.percent(gpuGraph.gpu?.usage)
                 subtitle: Format.join([
                     Format.celsius(gpuGraph.gpu?.temp_c),
                     Format.watts(gpuGraph.gpu?.power_w),

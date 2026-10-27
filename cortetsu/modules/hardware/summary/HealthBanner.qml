@@ -37,7 +37,9 @@ Item {
         : root.tone === "critical"
             ? qsTr("Requiere atención ahora")
             : root.tone === "warning" ? qsTr("Conviene revisar") : qsTr("Todo en orden")
-    readonly property string detail: root.stale
+    // A probe reading a simulated sysfs tree must never pass for this machine.
+    readonly property string detail: Format.join([root.snapshot?.simulated === true ? qsTr("Datos simulados") : "", root.baseDetail])
+    readonly property string baseDetail: root.stale
         ? qsTr("La sonda no responde. Los datos son de las %1.").arg(root.timeText)
         : root.tone === "ok"
             ? qsTr("Temperaturas, memoria, disco y batería dentro de lo normal · Lectura de las %1").arg(root.timeText)

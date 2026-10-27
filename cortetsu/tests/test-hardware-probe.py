@@ -8,7 +8,7 @@ from pathlib import Path
 
 PROBE = Path(__file__).resolve().parents[1] / "bin/cortetsu-hardware-probe"
 SECTIONS = {"timestamp", "host", "kernel", "uptime_sec", "load", "cpu", "memory", "disk", "disk_io",
-            "disks_io", "battery", "network", "gpus", "fans", "processes", "process_count"}
+            "disks_io", "battery", "network", "gpus", "fans", "processes", "process_count", "simulated"}
 
 
 def sample(runtime: str, *args: str) -> tuple[dict, int]:

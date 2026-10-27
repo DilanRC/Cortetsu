@@ -404,6 +404,30 @@ pub fn nvidia_query(query: &str, devices: &[Value]) -> Option<String> {
         .filter(|r| r.code == 0)
         .map(|r| r.stdout)
 }
+// A driver without gpu_busy_percent has no load reading: null, not 0 %.
+fn busy_percent(dev: &Path) -> Value {
+    rounded(number(&dev.join("gpu_busy_percent"), 1.).map(|x| x.clamp(0., 100.)), 1)
+}
+// DRM cards from vendors without a dedicated reader (Intel, unknown): listed
+// with whatever sysfs exposes, so the GPU is never silently missing.
+fn other_gpus() -> Vec<Value> {
+    let mut out = vec![];
+    for card in gpu_cards() {
+        let dev = card.join("device");
+        let vendor_id = read(&dev.join("vendor")).to_lowercase();
+        if ["0x1002", "0x10de"].contains(&vendor_id.as_str()) {
+            continue;
+        }
+        let temp = children(&dev.join("hwmon")).iter().find_map(|h| temperatures(h));
+        let name = pci_ids_name(
+            vendor_id.trim_start_matches("0x"),
+            read(&dev.join("device")).to_lowercase().trim_start_matches("0x"),
+        );
+        let vendor = if vendor_id == "0x8086" { "Intel" } else { "Desconocida" };
+        out.push(json!({"vendor":vendor,"vendor_id":vendor_id,"card":basename(&card),"name":if name.is_empty(){format!("GPU {vendor}")}else{name},"usage":busy_percent(&dev),"temp_c":rounded(temp,1),"vram_total_gb":null,"vram_used_gb":null,"power_w":null}));
+    }
+    out
+}
 pub fn amd_gpus() -> Vec<Value> {
     let mut out = vec![];
     for card in gpu_cards() {
@@ -433,13 +457,14 @@ pub fn amd_gpus() -> Vec<Value> {
                 .and_then(|r| r.stdout.trim().split_once(": ").map(|(_, s)| s.to_string()))
         }
         .unwrap_or_else(|| "AMD Radeon GPU".into());
-        out.push(json!({"vendor":"AMD","card":basename(&card),"name":name,"usage":round(number(&dev.join("gpu_busy_percent"),1.).unwrap_or(0.).clamp(0.,100.),1),"temp_c":rounded(temp,1),"vram_total_gb":number(&dev.join("mem_info_vram_total"),1.).filter(|x|*x!=0.).map(gib),"vram_used_gb":number(&dev.join("mem_info_vram_used"),1.).filter(|x|*x!=0.).map(gib),"power_w":rounded(power,1)}));
+        out.push(json!({"vendor":"AMD","card":basename(&card),"name":name,"usage":busy_percent(&dev),"temp_c":rounded(temp,1),"vram_total_gb":number(&dev.join("mem_info_vram_total"),1.).filter(|x|*x!=0.).map(gib),"vram_used_gb":number(&dev.join("mem_info_vram_used"),1.).filter(|x|*x!=0.).map(gib),"power_w":rounded(power,1)}));
     }
     out
 }
 fn nvidia_gpus() -> Vec<Value> {
     let devices = nvidia_devices();
     let mut out=devices.iter().filter(|d|asleep(d)).map(|d|json!({"vendor":"NVIDIA","name":d["name"],"state":"suspended","usage":null,"temp_c":null,"vram_used_gb":null,"vram_total_gb":null,"power_w":null})).collect::<Vec<_>>();
+    let before = out.len();
     if let Some(raw) = nvidia_query(
         "name,utilization.gpu,temperature.gpu,memory.used,memory.total,power.draw",
         &devices,
@@ -453,12 +478,25 @@ fn nvidia_gpus() -> Vec<Value> {
             out.push(json!({"vendor":"NVIDIA","name":p[0],"state":"active","usage":round(n(1).unwrap_or(0.).clamp(0.,100.),1),"temp_c":rounded(n(2),1),"vram_used_gb":rounded(n(3).map(|n|n/1024.),2),"vram_total_gb":rounded(n(4).map(|n|n/1024.),2),"power_w":rounded(n(5),1)}));
         }
     }
+    // An awake GPU nvidia-smi could not read (missing, failing, timed out)
+    // is still present: listed without readings instead of disappearing.
+    if out.len() == before {
+        for d in devices.iter().filter(|d| !asleep(d)) {
+            out.push(json!({"vendor":"NVIDIA","name":d["name"],"state":"unavailable","usage":null,"temp_c":null,"vram_used_gb":null,"vram_total_gb":null,"power_w":null}));
+        }
+    }
     out
 }
 pub fn gpus() -> Vec<Value> {
     let mut out = amd_gpus();
     out.extend(nvidia_gpus());
+    out.extend(other_gpus());
     out
+}
+// Readings from a sysfs tree other than /sys come from a test or a
+// simulation; the UI marks them so they are never taken for real hardware.
+pub fn simulated() -> bool {
+    sysfs() != Path::new("/sys")
 }
 fn fans() -> Vec<Value> {
     let mut out = vec![];
@@ -588,7 +626,7 @@ pub fn main(args: &[String]) -> (Value, i32) {
         }
     }
     if only_gpus {
-        return (json!({"gpus":gpus()}), 0);
+        return (json!({"gpus":gpus(),"simulated":simulated()}), 0);
     }
     if only_cpu_temp {
         return (json!({"temp_c": rounded(cpu_temp(), 1)}), 0);
@@ -623,7 +661,7 @@ pub fn main(args: &[String]) -> (Value, i32) {
         .map(|n| round(n, 2))
         .collect::<Vec<_>>();
     (
-        json!({"timestamp":now()as i64,"host":read(&procfs().join("sys/kernel/hostname")),"kernel":read(&procfs().join("sys/kernel/osrelease")),"uptime_sec":round(uptime,0),"load":load,"cpu":cpu,"memory":memory,"disk":disk(),"disk_io":disk_io,"disks_io":disks_io,"battery":battery(),"network":net,"gpus":gpus(),"fans":fans(),"processes":processes,"process_count":count}),
+        json!({"timestamp":now()as i64,"host":read(&procfs().join("sys/kernel/hostname")),"kernel":read(&procfs().join("sys/kernel/osrelease")),"uptime_sec":round(uptime,0),"load":load,"cpu":cpu,"memory":memory,"disk":disk(),"disk_io":disk_io,"disks_io":disks_io,"battery":battery(),"network":net,"gpus":gpus(),"fans":fans(),"processes":processes,"process_count":count,"simulated":simulated()}),
         0,
     )
 }

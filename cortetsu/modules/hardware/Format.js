@@ -7,6 +7,13 @@ function known(value) {
     return value !== null && value !== undefined && value !== "" && Number.isFinite(Number(value));
 }
 
+// A GPU the probe lists without readings: asleep (not queried, querying
+// would wake it) or awake but unreadable (its tool missing or failing).
+function gpuState(gpu) {
+    const state = gpu?.state ?? "";
+    return state === "suspended" ? qsTr("En reposo") : state === "unavailable" ? qsTr("Sin lectura") : "";
+}
+
 function fixed(value, digits) {
     return known(value) ? Number(value).toFixed(digits === undefined ? 1 : digits) : "";
 }

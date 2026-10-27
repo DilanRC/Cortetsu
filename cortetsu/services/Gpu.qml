@@ -40,7 +40,9 @@ Singleton {
                     gpus = [];
                 }
                 const nvidia = gpus.find(gpu => gpu.vendor === "NVIDIA");
-                const shown = nvidia?.state === "active" ? nvidia : (gpus.find(gpu => gpu.vendor === "AMD") ?? null);
+                // An integrated GPU from another vendor (Intel) is shown when it is the only readable one.
+                const shown = nvidia?.state === "active" ? nvidia
+                    : (gpus.find(gpu => gpu.vendor === "AMD") ?? gpus.find(gpu => gpu.vendor !== "NVIDIA") ?? null);
                 root.dgpuAsleep = nvidia?.state === "suspended";
                 if (!shown) {
                     root.type = root.noneType;
