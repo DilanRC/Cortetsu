@@ -277,9 +277,11 @@ Item {
 
         /*
          * Direct window actions appear only when useful.
-         * z > pointer ensures these controls receive clicks first.
+         * The card-wide `pointer` area sits above this preview (z only orders
+         * siblings), so it routes clicks on these buttons through actionAt().
          */
         Row {
+            id: actions
             z: 20
 
             anchors.top: parent.top
@@ -527,6 +529,10 @@ Item {
         }
     }
 
+    function actionAt(button: Item, x: real, y: real): bool {
+        return actions.opacity > 0 && button.contains(button.mapFromItem(pointer, x, y));
+    }
+
     MouseArea {
         id: pointer
 
@@ -553,7 +559,11 @@ Item {
             root.selectRequested(root.client)
 
         onClicked: event => {
-            if (event.button === Qt.LeftButton)
+            if (event.button === Qt.LeftButton && root.actionAt(closeMouse, event.x, event.y))
+                root.closeRequested(root.client);
+            else if (event.button === Qt.LeftButton && root.actionAt(floatMouse, event.x, event.y))
+                root.toggleFloatingRequested(root.client);
+            else if (event.button === Qt.LeftButton)
                 root.activate(root.client);
             else if (event.button === Qt.MiddleButton)
                 root.closeRequested(root.client);

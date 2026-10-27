@@ -31,4 +31,10 @@ assert "DragHandler" in card
 assert "dragHandler.active" in card
 assert "CanTakeOverFromAnything" in card
 
+# The card-wide pointer area sits above the preview that holds the window
+# buttons (z only orders siblings), so a left click on X or float must be
+# routed to them instead of activating the window.
+assert "root.actionAt(closeMouse, event.x, event.y)" in card
+assert "root.actionAt(floatMouse, event.x, event.y)" in card
+
 print("PASS: Overview wrapper and window cards use Cortetsu visual primitives")
