@@ -21,9 +21,12 @@ for (const mode of ['network', 'audio', 'traymenu0']) {
     const context = vm.createContext({ ...popup, closeTimer: { stop() { pending = false; } } });
     popup.cancelClose = () => { vm.runInContext(body(wrapper, 'cancelClose'), context); popup.closing = context.closing; };
     const screen = {};
+    const ownState = {};
+    let cleared = null;
     const open = vm.createContext({ popouts: popup, screen, mode, anchorCenter: 720,
         CortetsuScreens: { screens: [screen] },
-        CortetsuShellState: { componentsFor: () => ({ popouts: popup }) },
+        CortetsuShellState: { componentsFor: () => ({ popouts: popup }), forScreen: s => s === screen ? ownState : null },
+        OverlayPolicy: { closeExclusiveEverywhere(states) { cleared = states; } },
         closeAllLaunchers() {}, closeAllPanels() {} });
     vm.runInContext('(function() {' + body(read('BottomHub.qml'), 'openAttachedControlNow') + '})()', open);
     assert.equal(pending, false, 'old close must be cancelled even when hasCurrent was already true');
@@ -32,6 +35,7 @@ for (const mode of ['network', 'audio', 'traymenu0']) {
     assert.equal(popup.detachedMode, '');
     assert.equal(popup.bottomAnchorCenter, 720);
     assert.equal(popup.hasCurrent, true);
+    assert(cleared.length === 1 && cleared[0] === ownState, 'an attached popout only clears its own screen');
 }
 assert(body(wrapper, 'detach').includes('cancelClose();'), 'detached opening must cancel pending close');
 const clip = read('bar/popouts/ClipWrapper.qml');

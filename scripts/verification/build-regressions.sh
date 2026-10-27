@@ -11,6 +11,8 @@ for suite in hardware hypr surfaces calendar pomodoro policy; do
 done
 python3 "$REPO/scripts/features/test-native-bottom-hub.py" --runtime "$STAGING/modules/BottomHub.qml"
 python3 "$REPO/scripts/features/test-cortetsu-surface-registry.py"
+python3 "$REPO/scripts/features/test-hypr-actions.py"
+python3 "$REPO/scripts/features/test-hypr-event-policy.py"
 python3 "$REPO/scripts/features/test-cortetsu-quality.py"
 python3 "$REPO/scripts/features/test-cortetsu-settings.py"
 python3 "$REPO/scripts/features/test-cortetsu-v2-bridge.py"

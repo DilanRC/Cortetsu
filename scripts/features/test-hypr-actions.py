@@ -25,8 +25,11 @@ for action in (
 
 build = (ROOT / "cortetsu/bin/build-runtime.sh").read_text()
 cli = (ROOT / "scripts/cortetsu").read_text()
+regressions = (ROOT / "scripts/verification/build-regressions.sh").read_text()
 assert "modules/CortetsuHyprActions.js" in build
-assert '"scripts/features/test-hypr-actions.py"' in cli
+# The installed CLI is interpreter-free; Python checks run from build-regressions.sh.
+assert '"$REPO/scripts/features/test-hypr-actions.py"' in regressions
+assert "python3" not in cli
 assert 'for directory in focus components hardware hypr keyboards settings surfaces calendar pomodoro bottomhub' in cli
 
 print("PASS: all generated Hyprland Lua actions use CortetsuHyprActions.js")

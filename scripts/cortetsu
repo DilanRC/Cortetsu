@@ -395,8 +395,6 @@ test_cmd() {
     run_node_test "scripts/features/test-connectivity-wifi-policy.cjs"
     run_node_test "scripts/features/test-connectivity-bluetooth.mjs"
     run_node_test "scripts/features/test-hypr-shell-layer-rules.cjs"
-    run_python_test "scripts/features/test-hypr-actions.py"
-    run_python_test "scripts/features/test-hypr-event-policy.py"
     local directory
     for directory in focus components hardware hypr keyboards settings surfaces calendar pomodoro bottomhub; do
         run_qml_test "cortetsu/tests/qml/$directory"
