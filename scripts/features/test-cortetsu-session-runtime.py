@@ -18,6 +18,7 @@ QtObject {
     property bool usingLua: true
     property var dispatched: []
     function dispatch(request: string): void { dispatched = dispatched.concat([request]); }
+    function exitHyprland(): bool { dispatch(usingLua ? "hl.dsp.exit()" : "exit"); return true; }
 }
 """
 
