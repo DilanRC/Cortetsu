@@ -20,5 +20,11 @@ for name, (path, flag) in hosts.items():
     )
     assert mask_contract, name
     assert "Region { id: emptyRegion }" in source, name
+    # A closed host must not stay mapped: an idle Overlay layer keeps a
+    # fullscreen window from being the solitary client (no direct scanout).
+    assert "visible: true" not in source, f"{name} host is always mapped"
 
-print("PASS: inactive first-party overlay hosts expose an empty input region")
+drawers = (ROOT / "cortetsu/modules/drawers/ContentWindow.qml").read_text(encoding="utf-8")
+assert "visible: fsTransitionProg < 1 || hasVisibleContent" in drawers, "drawers stays mapped over fullscreen"
+
+print("PASS: inactive first-party overlay hosts expose an empty input region and are unmapped while closed")

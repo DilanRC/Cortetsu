@@ -25,7 +25,9 @@ Scope {
 
             screen: modelData
             name: "session"
-            visible: true
+            // Mapped only while open: an idle full-screen Overlay layer keeps a
+            // fullscreen game from being the monitor's solitary client.
+            visible: open
             WlrLayershell.exclusionMode: ExclusionMode.Ignore
             WlrLayershell.layer: WlrLayer.Overlay
             WlrLayershell.keyboardFocus: open ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None

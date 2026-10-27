@@ -18,7 +18,9 @@ Scope {
             readonly property var screenState: CortetsuShellState.forScreen(modelData)
             screen: modelData
             name: "launcher"
-            visible: true
+            // Mapped only while open: an idle full-screen Overlay layer keeps a
+            // fullscreen game from being the monitor's solitary client.
+            visible: screenState?.launcher ?? false
             WlrLayershell.exclusionMode: ExclusionMode.Ignore
             WlrLayershell.layer: WlrLayer.Overlay
             WlrLayershell.keyboardFocus: screenState?.launcher ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None

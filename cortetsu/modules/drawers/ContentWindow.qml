@@ -72,6 +72,16 @@ StyledWindow {
         panels.popouts.close();
     }
 
+    // Over a fullscreen window this is an Overlay layer. Once the border has
+    // faded out and none of its panels shows, unmap it: an idle Overlay layer
+    // keeps the fullscreen client from being the monitor's solitary client.
+    // A notification, the OSD or any opened panel maps it again.
+    readonly property bool hasVisibleContent: panels.notifications.visible || panels.osd.visible
+        || panels.popouts.hasCurrent || panels.popouts.detachedMode !== ""
+        || panels.utilities.visible || panels.sidebar.visible || focusGrab.active
+        || (screenState?.cortetsuState?.overview ?? false)
+    visible: fsTransitionProg < 1 || hasVisibleContent
+
     name: "drawers"
     WlrLayershell.exclusionMode: ExclusionMode.Ignore
     WlrLayershell.layer: screenState?.cortetsuState?.overview ? WlrLayer.Overlay : ((fsTransitionProg > 0 && CortetsuOverlayConfig.general.showOverFullscreen) || (hasSpecialWorkspace && hasFullscreenOnNormalWs) ? WlrLayer.Overlay : WlrLayer.Top)

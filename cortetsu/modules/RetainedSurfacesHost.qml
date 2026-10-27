@@ -31,7 +31,10 @@ Scope {
 
             screen: modelData
             name: "retained-surfaces"
-            visible: true
+            // Mapped only while a surface is open or still animating out: an
+            // idle full-screen Overlay layer keeps a fullscreen game from being
+            // the monitor's solitary client.
+            visible: surfaceOpen || surfaces.children.some(child => child.visible)
             WlrLayershell.exclusionMode: ExclusionMode.Ignore
             WlrLayershell.layer: WlrLayer.Overlay
             WlrLayershell.keyboardFocus: surfaceOpen ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None

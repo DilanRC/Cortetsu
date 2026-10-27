@@ -21,7 +21,9 @@ Scope {
                 && CortetsuConfig.dashboard.showDashboard
             screen: modelData
             name: "dashboard"
-            visible: true
+            // Mapped only while open: an idle full-screen Overlay layer keeps a
+            // fullscreen game from being the monitor's solitary client.
+            visible: window.dashboardEnabled && (screenState?.dashboard ?? false)
             WlrLayershell.exclusionMode: ExclusionMode.Ignore
             WlrLayershell.layer: WlrLayer.Overlay
             WlrLayershell.keyboardFocus: window.dashboardEnabled && screenState?.dashboard
