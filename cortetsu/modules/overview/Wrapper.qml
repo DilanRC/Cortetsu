@@ -33,6 +33,7 @@ Item {
             screen: root.screen
             screenState: root.screenState
             overviewVisible: root.shouldBeActive
+            tracking: root.shouldBeActive || root.visible
         }
     }
 

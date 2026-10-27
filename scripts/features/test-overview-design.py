@@ -38,3 +38,9 @@ assert "root.actionAt(closeMouse, event.x, event.y)" in card
 assert "root.actionAt(floatMouse, event.x, event.y)" in card
 
 print("PASS: Overview wrapper and window cards use Cortetsu visual primitives")
+
+# A hidden Overview does not track the window list (R-06): opening, closing
+# and moving windows must not rebuild cards nobody sees.
+wrapper = (overview / "Wrapper.qml").read_text()
+assert "tracking: root.shouldBeActive || root.visible" in wrapper
+assert "if (!root.tracking)\n            return [];" in overview_content

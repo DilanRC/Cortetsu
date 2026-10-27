@@ -14,10 +14,15 @@ FocusScope {
     required property ShellScreen screen
     required property var screenState
     required property bool overviewVisible
+    // Open or still fading out. While hidden the window list is not tracked:
+    // every open, close and move would rebuild cards nobody sees.
+    property bool tracking: true
 
     property int selectedIndex: -1
 
     readonly property var clients: {
+        if (!root.tracking)
+            return [];
         const values =
             CortetsuHypr.toplevels.values.filter(c => {
                 if (!CortetsuHypr.isTaskbarToplevel(c))
