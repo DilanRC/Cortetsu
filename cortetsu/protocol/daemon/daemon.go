@@ -115,7 +115,7 @@ func Serve(ctx context.Context, options Options) error {
 			return nil, errors.New("OWNER_UNAVAILABLE")
 		}
 		state.SetOwner(owner)
-		return map[string]string{"source": "hyprland", "monitor_count": strconv.Itoa(owner.MonitorCount), "focused_fullscreen": strconv.FormatBool(owner.FocusedFullscreen)}, nil
+		return map[string]string{"source": "hyprland", "monitor_count": strconv.Itoa(owner.MonitorCount), "focused_fullscreen": strconv.FormatBool(owner.FocusedFullscreen), "focused_game": strconv.FormatBool(owner.FocusedGame)}, nil
 	}
 	var systemMu sync.RWMutex
 	systemState := map[string]map[string]string{}

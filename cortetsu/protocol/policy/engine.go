@@ -17,7 +17,7 @@ var name = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9._:-]{0,127}$`)
 var allowedEventFields = map[string]bool{
 	"level": true, "source": true, "profile": true, "ac_online": true,
 	"percentage_band": true, "monitor_count": true,
-	"focused_fullscreen": true, "connected": true,
+	"focused_fullscreen": true, "focused_game": true, "connected": true,
 	"state": true, "game_running": true,
 }
 

@@ -36,7 +36,7 @@ func TestOwnerSnapshotWhitelistsCountsAndClosesConnections(t *testing.T) {
 			} else if req == "j/workspaces" {
 				_, _ = conn.Write([]byte(`[{"id":1,"name":"personal-secret"},{"id":2}]`))
 			} else {
-				_, _ = conn.Write([]byte(`{"fullscreen":2,"title":"DO-NOT-RETAIN","class":"personal-app"}`))
+				_, _ = conn.Write([]byte(`{"fullscreen":2,"title":"DO-NOT-RETAIN","class":"personal-app","tags":["opaque*","game*"]}`))
 			}
 			conn.Close()
 		}
@@ -45,7 +45,7 @@ func TestOwnerSnapshotWhitelistsCountsAndClosesConnections(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if state.MonitorCount != 2 || state.WorkspaceCount != 2 || !state.FocusedMonitor || !state.FocusedFullscreen {
+	if state.MonitorCount != 2 || state.WorkspaceCount != 2 || !state.FocusedMonitor || !state.FocusedFullscreen || !state.FocusedGame {
 		t.Fatal(state)
 	}
 	data, err := json.Marshal(state)

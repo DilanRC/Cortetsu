@@ -17,11 +17,14 @@ import (
 // All details are counters/booleans; monitor names, workspaces names, window
 // titles, EDID, addresses and individual app properties are discarded.
 type OwnerState struct {
-	MonitorCount      int   `json:"monitor_count"`
-	WorkspaceCount    int   `json:"workspace_count"`
-	FocusedMonitor    bool  `json:"focused_monitor"`
-	FocusedFullscreen bool  `json:"focused_fullscreen"`
-	ObservedUnixMs    int64 `json:"observed_at_unix_ms"`
+	MonitorCount      int  `json:"monitor_count"`
+	WorkspaceCount    int  `json:"workspace_count"`
+	FocusedMonitor    bool `json:"focused_monitor"`
+	FocusedFullscreen bool `json:"focused_fullscreen"`
+	// FocusedGame: the focused window carries the "game" tag that rules.lua
+	// gives Steam, Lutris and Gamescope windows. A fullscreen video does not.
+	FocusedGame    bool  `json:"focused_game"`
+	ObservedUnixMs int64 `json:"observed_at_unix_ms"`
 }
 
 const ownerMaxReply = 512 * 1024
@@ -109,7 +112,8 @@ func ReadOwner(socketPath string) (OwnerState, error) {
 		return OwnerState{}, errors.New("impossible owner counts")
 	}
 	var active struct {
-		Fullscreen int `json:"fullscreen"`
+		Fullscreen int      `json:"fullscreen"`
+		Tags       []string `json:"tags"`
 	}
 	if err := queryOwner(socketPath, "j/activewindow", &active); err != nil {
 		return OwnerState{}, err
@@ -119,6 +123,12 @@ func ReadOwner(socketPath string) (OwnerState, error) {
 	}
 	state := OwnerState{WorkspaceCount: len(workspaces), ObservedUnixMs: time.Now().UnixMilli()}
 	state.FocusedFullscreen = active.Fullscreen == 2 || active.Fullscreen == 3
+	for _, tag := range active.Tags {
+		// Hyprland lists tags set by a window rule with a trailing "*".
+		if strings.TrimSuffix(tag, "*") == "game" {
+			state.FocusedGame = true
+		}
+	}
 	for _, m := range monitors {
 		if !m.Disabled {
 			state.MonitorCount++

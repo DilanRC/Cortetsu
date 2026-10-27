@@ -20,8 +20,11 @@ func DefaultRules() []policy.Rule {
 	return []policy.Rule{
 		rule("fullscreen-dnd-on", "hyprland", "notifications", "notifications.dnd.set", []policy.Condition{{Field: "focused_fullscreen", Equals: "true"}}, `{"enabled":true}`, 10),
 		rule("fullscreen-dnd-off", "hyprland", "notifications", "notifications.dnd.set", []policy.Condition{{Field: "focused_fullscreen", Equals: "false"}}, `{"enabled":false}`, 10),
-		rule("fullscreen-gamemode-on", "hyprland", "gamemode", "gamemode.set", []policy.Condition{{Field: "focused_fullscreen", Equals: "true"}}, `{"enabled":true}`, 10),
+		// Game mode needs a fullscreen window tagged "game": a fullscreen video
+		// or browser only gets do-not-disturb.
+		rule("fullscreen-gamemode-on", "hyprland", "gamemode", "gamemode.set", []policy.Condition{{Field: "focused_fullscreen", Equals: "true"}, {Field: "focused_game", Equals: "true"}}, `{"enabled":true}`, 10),
 		rule("fullscreen-gamemode-off", "hyprland", "gamemode", "gamemode.set", []policy.Condition{{Field: "focused_fullscreen", Equals: "false"}}, `{"enabled":false}`, 10),
+		rule("non-game-gamemode-off", "hyprland", "gamemode", "gamemode.set", []policy.Condition{{Field: "focused_game", Equals: "false"}}, `{"enabled":false}`, 10),
 		rule("battery-low-power", "power", "power", "power.profile.set", []policy.Condition{{Field: "ac_online", Equals: "false"}, {Field: "percentage_band", Equals: "low"}}, `{"profile":"power-saver"}`, 20),
 		rule("ac-balanced-power", "power", "power", "power.profile.set", []policy.Condition{{Field: "ac_online", Equals: "true"}}, `{"profile":"balanced"}`, 10),
 	}
