@@ -171,8 +171,11 @@ Scope {
         if (!popouts)
             return;
 
-        closeAllLaunchers();
-        closeAllPanels();
+        // An attached popout follows the pointer and never takes the
+        // keyboard, so it only clears its own screen: a surface opened on
+        // another monitor stays open (F1a O-4).
+        const state = CortetsuShellState.forScreen(screen);
+        OverlayPolicy.closeExclusiveEverywhere(state ? [state] : []);
         // One attached control at a time: the hover controller is shared by
         // every screen, so entering the hub of another screen stops the close
         // that would have dismissed this one. Detached popouts and a Wi-Fi

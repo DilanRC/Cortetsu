@@ -154,4 +154,11 @@ for content_file, flag in (
 ):
     content_text = (repo / "cortetsu/modules" / content_file).read_text(encoding="utf-8")
     assert f'setRetained("{flag}", false)' in content_text, content_file
+# F1a O-4: an attached popout opened on one monitor (hover, click or IPC)
+# must not close a surface opened on another monitor.
+hub = (repo / "cortetsu/modules/BottomHub.qml").read_text(encoding="utf-8")
+attached = hub[hub.index("function openAttachedControlNow"):hub.index("function showAttachedControlFor")]
+assert "closeAllPanels()" not in attached and "closeAllLaunchers()" not in attached, attached
+assert "OverlayPolicy.closeExclusiveEverywhere(state ? [state] : [])" in attached, attached
+
 print("PASS: Cortetsu screen state and overlay policy preserve monitor-local ownership and the legacy boundary")
