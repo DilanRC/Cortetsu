@@ -13,6 +13,8 @@ INSTALLER = REPO / "scripts/install-cortetsu.sh"
 
 unit_text = UNIT.read_text(encoding="utf-8")
 assert "Type=simple" in unit_text
+# A shell started before PipeWire must still connect once the socket appears.
+assert "Environment=QS_PIPEWIRE_IMMEDIATE_RECONNECT=1" in unit_text
 exec_start = next(line for line in unit_text.splitlines() if line.startswith("ExecStart="))
 assert "/usr/bin/qs" in exec_start
 assert " -n" in exec_start

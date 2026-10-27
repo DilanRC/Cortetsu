@@ -6,6 +6,9 @@ ConditionPathExists=%h/.config/quickshell/cortetsu/current/shell.qml
 
 [Service]
 Type=simple
+# Without it, a shell started before PipeWire never connects: Quickshell only
+# watches for the socket on request. Mid-session restarts reconnect anyway.
+Environment=QS_PIPEWIRE_IMMEDIATE_RECONNECT=1
 ExecStart=/usr/bin/qs -p %h/.config/quickshell/cortetsu/current -n
 Restart=on-failure
 RestartSec=1
