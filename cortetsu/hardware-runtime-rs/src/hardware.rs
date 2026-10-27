@@ -383,7 +383,9 @@ pub fn asleep(d: &Value) -> bool {
     ["suspended", "suspending"].contains(&d["status"].as_str().unwrap_or(""))
 }
 pub fn nvidia_query(query: &str, devices: &[Value]) -> Option<String> {
-    if !devices.is_empty() && devices.iter().all(asleep) {
+    // No NVIDIA display device, or all of them asleep: nothing to ask, and
+    // asking would wake a sleeping one.
+    if devices.iter().all(asleep) {
         return None;
     }
     let mut args = vec![

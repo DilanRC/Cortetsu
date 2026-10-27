@@ -154,6 +154,7 @@ fn awake_nvidia_that_nvidia_smi_cannot_read_stays_listed() {
 #[test]
 fn intel_unknown_and_unread_amd_gpus_never_report_invented_load() {
     let t = setup();
+    exe(&t.path().join("bin/nvidia-smi"), "#!/bin/sh\ntouch \"$HOME/smi-called\"\nexit 9\n");
     for (card, vendor, busy) in [("card0", "0x1002", None), ("card1", "0x8086", None), ("card2", "0x1a03", Some("37"))] {
         let dev = t.path().join("sys/class/drm").join(card).join("device");
         fs::create_dir_all(&dev).unwrap();
@@ -170,6 +171,7 @@ fn intel_unknown_and_unread_amd_gpus_never_report_invented_load() {
     assert!(by("Intel")["usage"].is_null());
     assert_eq!(by("Desconocida")["usage"], 37.0);
     assert_eq!(by("Desconocida")["vendor_id"], "0x1a03");
+    assert!(!t.path().join("smi-called").exists(), "no NVIDIA device: nvidia-smi must not run");
 }
 
 fn request(
@@ -346,6 +348,11 @@ fn cancellation_terminates_spawned_process_group() {
         time::{Duration, Instant},
     };
     let t = setup();
+    let d = t.path().join("sys/bus/pci/devices/0000:01:00.0");
+    fs::create_dir_all(d.join("power")).unwrap();
+    fs::write(d.join("vendor"), "0x10de\n").unwrap();
+    fs::write(d.join("class"), "0x030000\n").unwrap();
+    fs::write(d.join("power/runtime_status"), "active\n").unwrap();
     exe(
         &t.path().join("bin/nvidia-smi"),
         "#!/bin/sh\necho $$ > \"$HOME/child-pid\"\nsleep 30\n",
