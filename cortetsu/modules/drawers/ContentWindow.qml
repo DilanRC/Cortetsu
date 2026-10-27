@@ -170,7 +170,10 @@ StyledWindow {
         id: focusGrab
 
         active: root.wantsFocusGrab
-        windows: [root]
+        // The hub is a separate Top layer. Without it here, a press on the
+        // bell clears the grab (closing the sidebar) before the bell toggles
+        // it open again.
+        windows: [root, root.screenState?.cortetsuState?.bottomHub].filter(window => !!window)
         onCleared: {
             if (root.screenState.sidebar)
                 root.screenState.sidebarGrabClearedAt = Date.now();

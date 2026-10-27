@@ -152,6 +152,12 @@ def main() -> None:
     assert "root.screenState?.cortetsuState?.overview ? CortetsuDesign.scrimOpacity" in text
     print("PASS input-mask-focus-scrim-still-wired")
 
+    # R-02: the hub is a separate Top layer. Outside the grab, a press on the
+    # bell clears the grab and the bell then reopens the sidebar.
+    grab = block_between(text, "    HyprlandFocusGrab {", "        onCleared:")
+    assert "windows: [root, root.screenState?.cortetsuState?.bottomHub]" in grab, grab
+    print("PASS focus-grab-includes-bottom-hub")
+
     # Panels can be null while the QML graph starts or shuts down. Regions
     # must then subtract an empty geometry instead of dereferencing a null
     # alias and leaving the input mask in an invalid state.
