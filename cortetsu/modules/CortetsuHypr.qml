@@ -164,6 +164,52 @@ Singleton {
     property int eventToplevelRefreshCalls: 0
     property int windowTitleRefreshCalls: 0
 
+    // Quickshell connects to Hyprland's event socket once and never reconnects,
+    // and Hyprland drops a client that has 64 events queued (EventManager,
+    // MAX_QUEUED_EVENTS), for example after the shell stalled during a burst.
+    // From then on every Hyprland-driven value goes stale. A workspace change
+    // always produces an event, so after one of our own workspace dispatches
+    // the lack of any event is checked once against j/activeworkspace. No
+    // polling: the check only follows user actions.
+    property double lastEventAt: 0
+    property bool eventStreamLost: false
+    property double streamCheckSince: 0
+
+    function expectWorkspaceEvent(): void {
+        streamCheckSince = Date.now();
+        streamCheck.restart();
+    }
+
+    function acceptActiveWorkspace(raw: string): void {
+        let live = null;
+        try {
+            live = JSON.parse(raw)?.id;
+        } catch (_) {}
+        if (!Number.isInteger(live) || live === focusedWorkspace?.id || lastEventAt >= streamCheckSince)
+            return;
+        if (!eventStreamLost)
+            console.warn("CortetsuHypr: Hyprland event stream lost; restart the shell to recover live updates");
+        eventStreamLost = true;
+        Hyprland.refreshMonitors();
+        Hyprland.refreshWorkspaces();
+        Hyprland.refreshToplevels();
+    }
+
+    Timer {
+        id: streamCheck
+        interval: 1500
+        onTriggered: {
+            if (root.lastEventAt < root.streamCheckSince && !activeWorkspaceProbe.running)
+                activeWorkspaceProbe.running = true;
+        }
+    }
+
+    Process {
+        id: activeWorkspaceProbe
+        command: ["hyprctl", "-j", "activeworkspace"]
+        stdout: StdioCollector { onStreamFinished: root.acceptActiveWorkspace(text) }
+    }
+
     function refreshClients(): void {
         if (!clientsProbe.running) {
             clientsQueryCount += 1;
@@ -233,7 +279,10 @@ Singleton {
     }
 
     function focusWorkspace(workspace: var): bool {
-        return dispatchAction(HyprActions.focusWorkspace(workspace));
+        const sent = dispatchAction(HyprActions.focusWorkspace(workspace));
+        if (sent && workspace !== focusedWorkspace?.id)
+            expectWorkspaceEvent();
+        return sent;
     }
 
     function toggleSpecialWorkspace(name: string): bool {
@@ -308,6 +357,7 @@ Singleton {
     Connections {
         target: Hyprland
         function onRawEvent(event): void {
+            root.lastEventAt = Date.now();
             const name = event.name;
             if (name === "openwindow" || name === "closewindow")
                 clientsProbeDelay.restart();

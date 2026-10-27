@@ -25,7 +25,7 @@ TestCase {
             fullscreen: { focused: false, windows: [] },
             hyprlandQueries: { clientSnapshots: { count: 4, totalMs: 12, maxMs: 5 },
                 toplevelRefreshCalls: 7, windowTitleRefreshCalls: 2 },
-            eventStream: { quickshellReconnectSupported: false, quickshellStatusObservable: false,
+            eventStream: { quickshellReconnectSupported: false, quickshellStatusObservable: false, lost: true,
                 cortetsuObserverReconnectSupported: true }
         });
 
@@ -47,6 +47,7 @@ TestCase {
         compare(snapshot.hyprland_queries.windowtitle_refresh_calls, 2);
         compare(snapshot.hyprland_event_stream.quickshell_reconnect_supported, false);
         compare(snapshot.hyprland_event_stream.cortetsu_observer_reconnect_supported, true);
+        compare(snapshot.hyprland_event_stream.lost, true);
         compare(snapshot.open_states, [{ monitor: "eDP-1", surface: "launcher" }]);
         compare(snapshot.overlays, []);
         compare(snapshot.conflicts, []);
@@ -109,6 +110,7 @@ TestCase {
         compare(snapshot.hyprland_queries.toplevel_refresh_calls, 0);
         compare(snapshot.hyprland_queries.windowtitle_refresh_calls, 0);
         compare(snapshot.hyprland_event_stream.quickshell_reconnect_supported, false);
+        compare(snapshot.hyprland_event_stream.lost, false);
         verify(JSON.parse(JSON.stringify(snapshot)).schema_version === 1);
     }
 }

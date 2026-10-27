@@ -130,6 +130,7 @@ function buildSnapshot(input) {
         hyprland_event_stream: {
             quickshell_reconnect_supported: eventStream.quickshellReconnectSupported === true,
             quickshell_status_observable: eventStream.quickshellStatusObservable === true,
+            lost: eventStream.lost === true,
             cortetsu_observer_reconnect_supported: eventStream.cortetsuObserverReconnectSupported === true
         }
     };

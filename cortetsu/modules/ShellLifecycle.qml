@@ -126,6 +126,7 @@ Scope {
             eventStream: {
                 quickshellReconnectSupported: false,
                 quickshellStatusObservable: false,
+                lost: CortetsuHypr.eventStreamLost,
                 cortetsuObserverReconnectSupported: true
             }
         };
