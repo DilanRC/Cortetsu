@@ -146,8 +146,10 @@ reading dimmed, retry in the verdict strip) and live.
 - RAM used/available/cache/buffers plus swap.
 - Root filesystem usage.
 - Physical block-device throughput, IOPS and cumulative read/write totals, with model/serial where exposed by sysfs.
-- AMD telemetry from `/sys/class/drm`.
-- NVIDIA telemetry from `nvidia-smi` when available.
+- AMD telemetry from `/sys/class/drm`. A reading the driver does not expose (load, temperature, VRAM, draw) is `null`, never 0.
+- Other PCI display controllers in `/sys/class/drm` (Intel, unknown vendors) are listed with whatever sysfs exposes. Cards without a PCI vendor and display class (simpledrm, vkms, DisplayLink/evdi) are not GPUs and are skipped.
+- NVIDIA telemetry from `nvidia-smi`, only when an NVIDIA display device exists and at least one is awake. A suspended dGPU is shown «En reposo» without querying it (querying would wake it); an awake one `nvidia-smi` cannot read stays listed as `unavailable` («Sin lectura»).
+- A sysfs root other than `/sys` (`CORTETSU_SYSFS_ROOT`, used by tests and Agent Realms GPU scenarios) marks the whole reading `simulated`; the Resumen banner then says «Datos simulados».
 - Battery percentage/status/power.
 - Active network interface, RX/TX rates/totals, IPv4/MAC and Wi-Fi SSID/signal/link bitrate when available.
 - Exposed fan RPM values.
