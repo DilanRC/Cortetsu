@@ -31,7 +31,7 @@ commands = ["fish"]
 
 [group.desktop-integrations]
 required = false
-packages = ["networkmanager", "pipewire", "wireplumber", "libsecret", "power-profiles-daemon"]
+packages = ["networkmanager", "pipewire", "wireplumber", "libsecret", "power-profiles-daemon", "polkit-gnome"]
 commands = ["nmcli", "wpctl", "secret-tool", "powerprofilesctl"]
 
 [group.optional-tools]
