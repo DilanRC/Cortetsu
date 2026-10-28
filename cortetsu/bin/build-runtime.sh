@@ -92,7 +92,7 @@ install -m 0644 "$WALL_UTILITY_CONTRACT" "$STAGING/wall-utility.json"
 printf '==> Qt Quick runtime regressions\n'
 qml_runner="${CORTETSU_QMLTESTRUNNER:-/usr/lib/qt6/bin/qmltestrunner}"
 [[ -x "$qml_runner" ]] || fail "falta Qt Quick Test: $qml_runner"
-for suite in hardware hypr surfaces calendar pomodoro polkit; do
+for suite in hardware hypr surfaces calendar pomodoro polkit prompt; do
     QT_QPA_PLATFORM=offscreen timeout 300 "$qml_runner" -input "$REPO/cortetsu/tests/qml/$suite"
 done
 

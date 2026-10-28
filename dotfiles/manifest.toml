@@ -24,6 +24,11 @@ target = ".config/hypr/hypr-user.lua"
 tags = ["hyprland", "shell-bridge"]
 
 [[entry]]
+source = "dotfiles/home/.local/share/dbus-1/services/org.gnome.keyring.SystemPrompter.service"
+target = ".local/share/dbus-1/services/org.gnome.keyring.SystemPrompter.service"
+tags = ["services"]
+
+[[entry]]
 source = "config/systemd/user/cortetsu-power-auto.service"
 target = ".config/systemd/user/cortetsu-power-auto.service"
 tags = ["services"]

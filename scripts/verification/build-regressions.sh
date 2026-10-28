@@ -6,7 +6,7 @@ REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 STAGING="${1:?usage: build-regressions.sh STAGED_RUNTIME}"
 python3 "$REPO/scripts/verification/test-native-source.py"
 python3 "$REPO/cortetsu/tests/test-startup-inventory.py"
-for suite in hardware hypr surfaces calendar pomodoro policy polkit; do
+for suite in hardware hypr surfaces calendar pomodoro policy polkit prompt; do
     QT_QPA_PLATFORM=offscreen /usr/lib/qt6/bin/qmltestrunner -input "$REPO/cortetsu/tests/qml/$suite"
 done
 python3 "$REPO/scripts/features/test-native-bottom-hub.py" --runtime "$STAGING/modules/BottomHub.qml"

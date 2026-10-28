@@ -27,3 +27,4 @@ cortetsu-connectivity-secret	cortetsu-desktop-runtime	cortetsu-connectivity-secr
 cortetsu-import-desktop	cortetsu-platform	import_desktop
 cortetsu-import-hyprland	cortetsu-platform	import_hyprland
 cortetsu-import-fish	cortetsu-platform	import_fish
+cortetsu-prompter	cortetsu-desktop-runtime	cortetsu-prompter

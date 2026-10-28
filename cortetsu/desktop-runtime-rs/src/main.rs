@@ -3,9 +3,11 @@ mod common;
 mod connectivity;
 mod palette;
 mod pomodoro;
+mod prompter;
 mod quantizer;
 mod recorder;
 mod startup;
+mod sxaes;
 mod utilities;
 
 fn main() {
@@ -24,6 +26,7 @@ fn main() {
         "cortetsu-connectivity-secret" | "ConnectivitySecret.py" => connectivity::main(&args),
         "cortetsu-startup" => startup::main(&args),
         "cortetsu-record" => recorder::main(&args),
+        "cortetsu-prompter" => prompter::main(&args),
         _ => {
             eprintln!("unknown desktop helper: {helper}");
             Ok(2)

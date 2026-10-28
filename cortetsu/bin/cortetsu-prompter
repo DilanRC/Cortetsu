@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Stable entry point. All behavior lives in the generation's native owner.
+set -euo pipefail
+SELF="$(readlink -f "${BASH_SOURCE[0]}")"
+BUNDLE="$(dirname "$SELF")"
+if [[ ! -x "$BUNDLE/cortetsu-desktop-runtime" ]]; then
+    REPO="$(cd "$BUNDLE/../.." && pwd)"
+    BUNDLE="$REPO/dist/native"
+    export CORTETSU_REPO_ROOT="${CORTETSU_REPO_ROOT:-$REPO}"
+fi
+if [[ -z "${CORTETSU_RESOURCE_ROOT:-}" && -x "$BUNDLE/cortetsu-resource-root" ]]; then
+    export CORTETSU_RESOURCE_ROOT="$("$BUNDLE/cortetsu-resource-root")"
+fi
+[[ -x "$BUNDLE/cortetsu-desktop-runtime" ]] || { printf 'ERROR: construye el runtime con scripts/build-native.sh\n' >&2; exit 1; }
+exec "$BUNDLE/cortetsu-desktop-runtime" cortetsu-prompter "$@"

@@ -1,0 +1,7 @@
+# Managed by Cortetsu (docs/SECRET-PROMPTS.md). Shadows gcr's own file in
+# /usr/share/dbus-1/services: keyring and GPG (pinentry-gnome3) prompts open
+# the shell's dialog. Without a running shell the helper becomes
+# /usr/lib/gcr-prompter, so prompts keep working.
+[D-BUS Service]
+Name=org.gnome.keyring.SystemPrompter
+Exec=/bin/sh -c 'exec "$HOME/.local/bin/cortetsu-prompter"'
