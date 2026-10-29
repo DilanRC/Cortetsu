@@ -68,6 +68,30 @@
     "manageable": false
   },
   {
+    "id": "cortetsu:polkit-fallback",
+    "name": "Fallback polkit agent",
+    "source": "modules/PolkitHost.qml",
+    "qmlId": null,
+    "startupPhase": "conditional",
+    "condition": "Si el agente polkit del shell no se registra en 5 segundos (otro agente ocupa la sesión o el registro falla)",
+    "command": [
+      "/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1"
+    ],
+    "manageable": false
+  },
+  {
+    "id": "cortetsu:agents",
+    "name": "Wi-Fi and Bluetooth agents",
+    "source": "modules/SecretPromptHost.qml",
+    "qmlId": "agents",
+    "startupPhase": "always-on",
+    "condition": "Se inicia con el shell y muere con él; pide contraseñas Wi-Fi a NetworkManager y códigos de emparejamiento a BlueZ",
+    "command": [
+      "cortetsu-agents"
+    ],
+    "manageable": false
+  },
+  {
     "id": "cortetsu:spectrum",
     "name": "Cava visualizer",
     "source": "services/CortetsuSpectrum.qml",

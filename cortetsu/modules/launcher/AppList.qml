@@ -39,6 +39,8 @@ GridView {
             return 2;
         case "calc":
             return 1;
+        case "emoji":
+            return 8;
         case "scheme":
         case "variant":
             return 3;
@@ -47,13 +49,13 @@ GridView {
         }
     }
 
-    readonly property int visibleRows: state === "actions" ? 4 : state === "calc" ? 1 : 4
+    readonly property int visibleRows: state === "calc" ? 1 : 4
 
     function stateForText(text: string): string {
         const prefix = CortetsuConfig.actionPrefix;
 
         if (text.startsWith(prefix)) {
-            for (const action of ["calc", "scheme", "variant"])
+            for (const action of ["calc", "emoji", "scheme", "variant"])
                 if (text.startsWith(`${prefix}${action} `))
                     return action;
 
@@ -69,6 +71,8 @@ GridView {
             return Actions.query(text);
         case "calc":
             return [0];
+        case "emoji":
+            return Emojis.query(text);
         case "scheme":
             return Schemes.query(text);
         case "variant":
@@ -188,6 +192,8 @@ GridView {
             return 88;
         case "calc":
             return 118;
+        case "emoji":
+            return 88;
         case "scheme":
             return 154;
         case "variant":
@@ -214,7 +220,9 @@ GridView {
         ? actionDelegate
         : root.state === "calc"
             ? calcDelegate
-            : root.state === "scheme"
+            : root.state === "emoji"
+                ? emojiDelegate
+                : root.state === "scheme"
                 ? schemeDelegate
                 : root.state === "variant"
                     ? variantDelegate
@@ -522,6 +530,76 @@ GridView {
                     text: "open_in_new"
                 iconSize: CortetsuTypography.iconMediumPx
                 }
+            }
+        }
+    }
+
+    Component {
+        id: emojiDelegate
+
+        Item {
+            id: emoji
+
+            required property var modelData
+            required property int index
+
+            width: root.cellWidth
+            height: root.cellHeight
+
+            readonly property bool selected: GridView.isCurrentItem
+
+            CortetsuSurface {
+                anchors.fill: parent
+                anchors.margins: CortetsuDesign.spacingUnit
+                radius: CortetsuDesign.radiusLarge
+                color: emoji.selected
+                    ? CortetsuDesign.colorSecondaryContainer
+                    : "transparent"
+            }
+
+            CortetsuStateLayer {
+                anchors.fill: parent
+                anchors.margins: CortetsuDesign.spacingUnit
+                radius: CortetsuDesign.radiusLarge
+
+                onEntered: root.currentIndex = index
+                onClicked: emoji.modelData?.onClicked(root)
+            }
+
+            // Kaomoji and glyph runs are wider than one emoji: they shrink
+            // to the cell instead of spilling into the next one.
+            CortetsuText {
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.top: parent.top
+                anchors.leftMargin: 8
+                anchors.rightMargin: 8
+                anchors.topMargin: 12
+                height: 42
+
+                text: emoji.modelData?.glyph ?? ""
+                font.pixelSize: 34
+                fontSizeMode: Text.HorizontalFit
+                minimumPixelSize: 12
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+                maximumLineCount: 1
+            }
+
+            CortetsuText {
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.bottom: parent.bottom
+                anchors.leftMargin: 7
+                anchors.rightMargin: 7
+                anchors.bottomMargin: 9
+
+                text: emoji.modelData?.name ?? ""
+                color: CortetsuDesign.colorOutline
+                font.pixelSize: CortetsuTypography.labelSmallPx
+                horizontalAlignment: Text.AlignHCenter
+                elide: Text.ElideRight
+                maximumLineCount: 1
             }
         }
     }

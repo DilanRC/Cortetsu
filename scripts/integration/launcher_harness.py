@@ -67,8 +67,10 @@ def compose_runtime(destination: Path) -> Path:
     shutil.copytree(src / "assets/branding", destination / "assets/branding", dirs_exist_ok=True)
     (destination / "base/modules/bar").mkdir(parents=True, exist_ok=True)
     shutil.copy(src / "base/modules/bar/SystemTrayIdentity.js", destination / "base/modules/bar/SystemTrayIdentity.js")
-    subprocess.run(["python3", str(src / "bin/compose-panels.py"), str(destination)], check=True,
-                   stdout=subprocess.DEVNULL)
+    # build-runtime.sh composes with the native platform helper; compose-panels.py
+    # left with the native migration (c372e67).
+    platform = os.environ.get("CORTETSU_PLATFORM") or str(REPO / "dist/native/cortetsu-platform")
+    subprocess.run([platform, "compose-panels", str(destination)], check=True, stdout=subprocess.DEVNULL)
     return destination
 
 

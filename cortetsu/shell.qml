@@ -49,6 +49,8 @@ ShellRoot {
     LauncherHost {}
     SettingsHost {}
     SessionHost { lockController: lock }
+    PolkitHost {}
+    SecretPromptHost {}
     RetainedSurfacesHost {}
     Lock { id: lock }
     Shortcuts {}

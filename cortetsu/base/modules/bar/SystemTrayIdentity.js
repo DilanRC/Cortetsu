@@ -13,6 +13,8 @@ function instanceKey(item) {
     return key;
 }
 
+// `items` must be the full SystemTray list: every key missing from it is
+// dropped, and a tray that still shows that item would get a new key.
 function entries(items) {
     for (let index = instanceIds.length - 1; index >= 0; index--) {
         if (!items.some(item => item === instanceIds[index].item))

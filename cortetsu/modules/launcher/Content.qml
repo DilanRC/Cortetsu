@@ -19,6 +19,10 @@ Item {
     readonly property int padding: CortetsuDesign.spacingStandard
     readonly property int rounding: CortetsuDesign.radiusLarge
     function focusSearch(): void {
+        if (root.screenState?.launcher && CortetsuShellState.launcherQuery) {
+            search.text = CortetsuShellState.launcherQuery;
+            CortetsuShellState.launcherQuery = "";
+        }
         search.forceActiveFocus();
         search.cursorPosition = search.text.length;
     }

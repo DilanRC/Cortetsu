@@ -25,7 +25,6 @@ MouseArea {
     property real rsy: Math.min(sy, ey)
     property real sw: Math.abs(sx - ex)
     property real sh: Math.abs(sy - ey)
-    property var pendingCommand: []
     readonly property real dragThreshold: 8
 
     readonly property var clients: {
@@ -80,32 +79,11 @@ MouseArea {
             close();
             return;
         }
-        const path = `/tmp/cortetsu-picker-${Quickshell.processId}-${Date.now()}.png`;
-        const geometry = `${x},${y} ${width}x${height}`;
-        const command = ["cortetsu-area-capture", geometry, path];
-        if (root.state.clipboardOnly)
-            command.push("--clipboard");
-        root.pendingCommand = command;
         close();
-        captureTimer.restart();
+        root.state.capture(`${x},${y} ${width}x${height}`, root.screen);
     }
 
     function close(): void { root.state.close(); }
-
-    // Let the layer-shell commit the hidden state before grim reads the
-    // compositor. Without this frame, screenshots occasionally contain the
-    // picker's dimming layer and look darker than the selected desktop area.
-    Timer {
-        id: captureTimer
-        interval: 120
-        repeat: false
-        onTriggered: {
-            if (root.pendingCommand.length > 0) {
-                Quickshell.execDetached(root.pendingCommand);
-                root.pendingCommand = [];
-            }
-        }
-    }
 
     anchors.fill: parent
     opacity: root.state.active ? 1 : 0

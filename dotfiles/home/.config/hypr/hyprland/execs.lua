@@ -4,9 +4,9 @@ local fn   = require("utils.functions")
 local nvibrant_apply = os.getenv("HOME") .. "/.local/bin/cortetsu-nvibrant apply --default 128"
 
 hl.on("hyprland.start", function()
-    -- Keyring and auth
+    -- Keyring. The shell is the polkit agent (PolkitHost.qml) and falls back
+    -- to polkit-gnome itself if it cannot register.
     hl.exec_cmd("gnome-keyring-daemon --start --components=secrets")
-    hl.exec_cmd("/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1")
 
     -- Clipboard history
     hl.exec_cmd("clipse -listen")

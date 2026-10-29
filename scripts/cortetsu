@@ -65,7 +65,7 @@ Usage:
   cortetsu config migrate         Import functional preferences to ~/.config/cortetsu
   cortetsu screenshot [-r] [-f]   Open the Cortetsu regional screenshot picker
   cortetsu record <action>        status|stop for GPU Screen Recorder
-  cortetsu emoji [-p] [-f]        Emoji/glyph picker (-p) or data refresh (-f)
+  cortetsu emoji [-p] [-f]        Launcher emoji mode (-p) or data refresh (-f)
   cortetsu test                    Run native Rust/Go, Qt and JavaScript regressions
   cortetsu test --developer        Run historical source-contract oracles
   cortetsu recover                Recover interrupted installation or promotion
@@ -371,13 +371,18 @@ record_cmd() {
 }
 
 emoji_cmd() {
-    for arg in "$@"; do
-        case "$arg" in
-            -p|--picker|-f|--fetch) ;;
-            *) fail "opción de emoji desconocida: $arg" ;;
-        esac
-    done
-    exec "$(helper_path cortetsu-emoji)" "$@"
+    case "${1:-}" in
+        -p|--picker)
+            [[ $# -eq 1 ]] || fail "opción de emoji desconocida: $2"
+            # The picker is the launcher's emoji mode.
+            [[ -f "$CURRENT/shell.qml" ]] || fail "no hay un runtime Cortetsu promovido"
+            exec qs -p "$CURRENT" ipc call customDock emoji
+            ;;
+        ""|-f|--fetch)
+            [[ $# -le 1 ]] || fail "opción de emoji desconocida: $2"
+            exec "$(helper_path cortetsu-emoji)" "$@" ;;
+        *) fail "opción de emoji desconocida: $1" ;;
+    esac
 }
 
 test_cmd() {
@@ -396,7 +401,7 @@ test_cmd() {
     run_node_test "scripts/features/test-connectivity-bluetooth.mjs"
     run_node_test "scripts/features/test-hypr-shell-layer-rules.cjs"
     local directory
-    for directory in focus components hardware hypr keyboards settings surfaces calendar pomodoro bottomhub; do
+    for directory in focus components hardware hypr keyboards settings surfaces calendar pomodoro bottomhub polkit prompt launcher areapicker; do
         run_qml_test "cortetsu/tests/qml/$directory"
     done
     run_qml_test "cortetsu/modules/wallpaper/tests"
@@ -405,6 +410,7 @@ test_cmd() {
     run_quickshell_fixture "cortetsu/ExclusionsFixture.qml" "EXCLUSIONS_PASS"
     run_quickshell_fixture "cortetsu/ConnectivityWifiFixture.qml" "WIFI_OBSERVED_PASS"
     run_quickshell_fixture "cortetsu/ScreenShareFixture.qml" "SCREENSHARE_PASS"
+    run_quickshell_fixture "cortetsu/SecretPromptFixture.qml" "SECRETPROMPT_PASS"
     bash "$ROOT/cortetsu/tests/test-qml-compile-check.sh"
     printf '\nCortetsu native regressions passed.\n'
 }

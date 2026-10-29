@@ -7,6 +7,8 @@ QtObject {
     property var components: []
     property var attachedPopupHoverOwner: null
     property bool screenshotActive: false
+    // Text the launcher starts with the next time it opens (the emoji mode).
+    property string launcherQuery: ""
     // Page the Hardware Center shows (hardware/Navigation.js indices).
     property int hardwarePage: 0
 
