@@ -200,7 +200,11 @@ create_bind(vars.kbScreenshotRegion, hl.dsp.global("cortetsu:screenshot"))
 create_bind(vars.kbRecord, hl.dsp.exec_cmd("cortetsu-record start"))
 create_bind(vars.kbRecordSound, hl.dsp.exec_cmd("cortetsu-record start -s"))
 create_bind(vars.kbRecordRegion, hl.dsp.exec_cmd("cortetsu-record start -r"))
-create_bind(vars.kbColorPicker, hl.dsp.exec_cmd("hyprpicker -a"))
+-- hyprpicker copies the colour itself and prints it; Esc prints nothing.
+create_bind(
+    vars.kbColorPicker,
+    hl.dsp.exec_cmd([[c="$(hyprpicker -a)" && [ -n "$c" ] && cortetsu shell ipc toaster info "Color copiado" "$c" colorize]])
+)
 
 -- Brightness
 create_bind("XF86MonBrightnessUp", hl.dsp.global("cortetsu:brightnessUp"), locked)
@@ -236,7 +240,8 @@ create_bind(vars.kbSleep, hl.dsp.exec_cmd(vars.sleepCmd), locked)
 create_bind(vars.kbKeepAwake, hl.dsp.global("cortetsu:keepAwake"))
 
 -- Clipboard and emoji picker
-create_bind(vars.kbEmoji, hl.dsp.exec_cmd("pkill fuzzel || cortetsu emoji -p"))
+-- The launcher in emoji mode; pressing it again closes the launcher.
+create_bind(vars.kbEmoji, hl.dsp.exec_cmd("cortetsu emoji -p"))
 create_bind(
     vars.kbClipboardPasteLatest,
     -- Not `locked`: it would type the last clipboard entry into the lock

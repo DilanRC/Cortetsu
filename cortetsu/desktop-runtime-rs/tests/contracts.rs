@@ -1,5 +1,5 @@
 use serde_json::{Value, json};
-use std::{fs, os::unix::fs::PermissionsExt, process::Command};
+use std::{fs, os::unix::fs::PermissionsExt, path::PathBuf, process::Command};
 use tempfile::TempDir;
 
 fn command(home: &TempDir, helper: &str, args: &[&str]) -> Command {
@@ -430,6 +430,77 @@ fn area_capture_uses_argv_and_always_removes_temporary_image() {
     .unwrap();
     assert_eq!(out.status.code(), Some(2));
     assert!(path.exists());
+}
+
+#[test]
+fn area_capture_keeps_the_preview_image_and_runs_its_actions() {
+    let home = TempDir::new().unwrap();
+    script(&home, "grim", "printf 'PNG' > \"$3\"");
+    script(&home, "wl-copy", "cat > \"$HOME/copied\"");
+    script(&home, "swappy", "printf 'EDITED' > \"$4\"");
+    let pictures = home.path().join("Imágenes");
+    script(
+        &home,
+        "xdg-user-dir",
+        &format!("printf '%s\\n' '{}'", pictures.display()),
+    );
+    let run = |args: &[&str]| {
+        isolated(&home, "cortetsu-area-capture", args)
+            .output()
+            .unwrap()
+    };
+    // The capture lands in a new private directory and stays for the preview.
+    let shot = home.path().join("run/cortetsu/cortetsu-shot-1.png");
+    let s = shot.to_str().unwrap();
+    assert!(run(&["0,0 10x10", s]).status.success());
+    assert_eq!(fs::read(&shot).unwrap(), b"PNG");
+    let mode = fs::metadata(shot.parent().unwrap())
+        .unwrap()
+        .permissions()
+        .mode();
+    assert_eq!(mode & 0o777, 0o700);
+
+    assert!(run(&["--copy", s]).status.success());
+    assert_eq!(fs::read(home.path().join("copied")).unwrap(), b"PNG");
+    assert!(run(&["--edit", s]).status.success());
+    assert_eq!(fs::read(&shot).unwrap(), b"EDITED");
+
+    let out = run(&["--save", s]);
+    assert!(out.status.success());
+    let dest = PathBuf::from(String::from_utf8(out.stdout).unwrap().trim());
+    assert_eq!(dest.parent().unwrap(), pictures.join("Capturas"));
+    assert_eq!(fs::read(&dest).unwrap(), b"EDITED");
+    assert!(!shot.exists());
+
+    // A second save in the same second gets its own name.
+    assert!(run(&["0,0 10x10", s]).status.success());
+    let again = PathBuf::from(
+        String::from_utf8(run(&["--save", s]).stdout)
+            .unwrap()
+            .trim(),
+    );
+    assert_ne!(again, dest);
+    assert!(again.is_file() && dest.is_file());
+
+    assert!(run(&["0,0 10x10", s]).status.success());
+    assert!(run(&["--discard", s]).status.success());
+    assert!(!shot.exists());
+
+    // Actions refuse any file this helper did not capture.
+    let other = home.path().join("notes.png");
+    fs::write(&other, "keep").unwrap();
+    for action in ["--discard", "--save", "--copy", "--edit"] {
+        assert_eq!(
+            run(&[action, other.to_str().unwrap()]).status.code(),
+            Some(2)
+        );
+    }
+    assert_eq!(fs::read(&other).unwrap(), b"keep");
+
+    // A failed capture leaves nothing behind.
+    script(&home, "grim", "printf 'partial' > \"$3\"; exit 1");
+    assert!(!run(&["0,0 10x10", s]).status.success());
+    assert!(!shot.exists());
 }
 
 #[test]

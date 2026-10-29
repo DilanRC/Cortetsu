@@ -100,4 +100,12 @@ Scope {
         function launcherScreens(): string { return CortetsuShellState.states.filter(entry => !!entry.state?.launcher).map(entry => entry.screen?.name ?? "").join("\n"); }
         function isOpen(drawer: string): string { const state = CortetsuShellState.forActive(); return !state || !Surfaces.isKnown(drawer) ? "unknown" : state[drawer] ? "1" : "0"; }
     }
+
+    // Toasts for Hyprland binds and scripts: `cortetsu shell ipc toaster info
+    // <title> <message> <icon>`. `error` shows the urgent style.
+    IpcHandler {
+        target: "toaster"
+        function info(title: string, message: string, icon: string): void { CortetsuToaster.toast(title, message, icon || "info"); }
+        function error(title: string, message: string): void { CortetsuToaster.toast(title, message, "error", 2); }
+    }
 }

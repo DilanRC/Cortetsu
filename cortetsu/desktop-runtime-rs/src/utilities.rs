@@ -3,12 +3,21 @@ use serde_json::Value;
 use std::{
     env, fs,
     io::Write,
-    path::PathBuf,
-    process::{Command, Stdio},
+    os::unix::fs::DirBuilderExt,
+    path::{Path, PathBuf},
+    process::Command,
     time::Duration,
 };
 
+/// `cortetsu-area-capture <geometry> <png> [--clipboard]` captures an area.
+/// With --clipboard the image is copied and removed; otherwise it stays for
+/// the shell's preview, which then runs one of the actions below on it.
 pub fn area(args: &[String]) -> Result<i32> {
+    if let [action, path] = args
+        && let Some(code) = shot_action(action, Path::new(path))?
+    {
+        return Ok(code);
+    }
     let clipboard = args.iter().any(|a| a == "--clipboard");
     let values: Vec<_> = args
         .iter()
@@ -23,6 +32,12 @@ pub fn area(args: &[String]) -> Result<i32> {
         eprintln!("invalid capture geometry");
         return Ok(2);
     }
+    if let Some(dir) = path.parent().filter(|d| !d.as_os_str().is_empty()) {
+        fs::DirBuilder::new()
+            .recursive(true)
+            .mode(0o700)
+            .create(dir)?;
+    }
     let result = (|| -> Result<i32> {
         let status = Command::new("grim")
             .args(["-g", geometry])
@@ -31,32 +46,95 @@ pub fn area(args: &[String]) -> Result<i32> {
         if !status.success() {
             return Ok(status.code().unwrap_or(1));
         }
-        if clipboard {
-            let status = Command::new("wl-copy")
-                .args(["--type", "image/png"])
-                .stdin(fs::File::open(&path)?)
-                .status()?;
-            if !status.success() {
-                return Ok(status.code().unwrap_or(1));
-            }
-            let _ = Command::new("notify-send")
-                .args(["-a", "cortetsu", "-i"])
-                .arg(&path)
-                .args(["Screenshot taken", "Screenshot copied to clipboard"])
-                .status();
-            Ok(0)
-        } else {
-            Ok(Command::new("swappy")
-                .arg("-f")
-                .arg(&path)
-                .status()?
-                .code()
-                .unwrap_or(1))
+        if !clipboard {
+            return Ok(0);
         }
+        let status = Command::new("wl-copy")
+            .args(["--type", "image/png"])
+            .stdin(fs::File::open(&path)?)
+            .status()?;
+        if !status.success() {
+            return Ok(status.code().unwrap_or(1));
+        }
+        let _ = Command::new("notify-send")
+            .args(["-a", "cortetsu", "-i"])
+            .arg(&path)
+            .args(["Captura hecha", "Copiada al portapapeles"])
+            .status();
+        Ok(0)
     })();
-    let _ = fs::remove_file(&path);
+    // Only a kept preview image outlives this call.
+    if clipboard || !matches!(result, Ok(0)) {
+        let _ = fs::remove_file(&path);
+    }
     result
 }
+
+/// The preview's actions. Each takes only a capture this helper made, named
+/// `cortetsu-shot-*.png`, so a wrong path never moves or deletes another file.
+/// Returns None when `action` is not one of them.
+fn shot_action(action: &str, path: &Path) -> Result<Option<i32>> {
+    if !["--copy", "--save", "--edit", "--discard"].contains(&action) {
+        return Ok(None);
+    }
+    let name = path.file_name().and_then(|n| n.to_str()).unwrap_or("");
+    if !(name.starts_with("cortetsu-shot-") && name.ends_with(".png") && path.is_file()) {
+        eprintln!("not a Cortetsu capture: {}", path.display());
+        return Ok(Some(2));
+    }
+    let status = match action {
+        "--copy" => Command::new("wl-copy")
+            .args(["--type", "image/png"])
+            .stdin(fs::File::open(path)?)
+            .status()?,
+        // swappy writes the edit back over the capture, so the preview shows it.
+        "--edit" => Command::new("swappy")
+            .arg("-f")
+            .arg(path)
+            .arg("-o")
+            .arg(path)
+            .status()?,
+        "--discard" => {
+            fs::remove_file(path)?;
+            return Ok(Some(0));
+        }
+        _ => {
+            let dest = save_shot(path)?;
+            println!("{}", dest.display());
+            return Ok(Some(0));
+        }
+    };
+    Ok(Some(status.code().unwrap_or(1)))
+}
+
+/// Moves a capture to <Pictures>/Capturas under a dated, unused name.
+fn save_shot(path: &Path) -> Result<PathBuf> {
+    let pictures = run(
+        Command::new("xdg-user-dir").arg("PICTURES"),
+        None,
+        Duration::from_secs(5),
+    )
+    .ok()
+    .filter(|o| o.status.success())
+    .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_owned())
+    .filter(|p| !p.is_empty())
+    .map(PathBuf::from)
+    .unwrap_or_else(|| home().join("Pictures"));
+    let dir = pictures.join("Capturas");
+    fs::create_dir_all(&dir)?;
+    let stamp = chrono::Local::now().format("Captura_%Y-%m-%d_%H-%M-%S");
+    let mut dest = dir.join(format!("{stamp}.png"));
+    let mut n = 2;
+    while dest.exists() {
+        dest = dir.join(format!("{stamp}_{n}.png"));
+        n += 1;
+    }
+    // The capture lives on the runtime tmpfs, so a rename would cross devices.
+    fs::copy(path, &dest)?;
+    fs::remove_file(path)?;
+    Ok(dest)
+}
+
 fn emoji_path(fetch: bool) -> PathBuf {
     if let Some(path) = env::var_os("CORTETSU_EMOJI_DATA") {
         return PathBuf::from(path);
@@ -79,37 +157,6 @@ pub fn emoji(args: &[String]) -> Result<i32> {
                 return Ok(1);
             }
         },
-        ["-p"] | ["--picker"] => {
-            if !path.is_file() {
-                eprintln!("cortetsu-emoji: no such data file: {}", path.display());
-                return Ok(1);
-            }
-            let entries = fs::read(&path)?;
-            let mut child = Command::new("fuzzel")
-                .args(["--dmenu", "--placeholder=Type to search emojis"])
-                .stdin(Stdio::piped())
-                .stdout(Stdio::piped())
-                .spawn()?;
-            child
-                .stdin
-                .take()
-                .ok_or("picker stdin unavailable")?
-                .write_all(&entries)?;
-            let out = child.wait_with_output()?;
-            if !out.status.success() {
-                return Ok(out.status.code().unwrap_or(1));
-            }
-            let chosen = String::from_utf8(out.stdout)?;
-            let glyph = chosen.split_whitespace().next().unwrap_or("");
-            let out = run(
-                &mut Command::new("wl-copy"),
-                Some(glyph.as_bytes()),
-                Duration::from_secs(10),
-            )?;
-            if !out.status.success() {
-                return Ok(out.status.code().unwrap_or(1));
-            }
-        }
         ["-f"] | ["--fetch"] => {
             let agent = ureq::AgentBuilder::new()
                 .timeout(Duration::from_secs(30))

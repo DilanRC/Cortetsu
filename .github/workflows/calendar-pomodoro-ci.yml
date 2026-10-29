@@ -75,7 +75,7 @@ jobs:
       - name: Real Qt Quick Test for shared controls, focus and Settings
         if: ${{ !cancelled() && steps.native-build.outcome == 'success' }}
         run: |
-          for group in components focus settings hardware hypr keyboards surfaces calendar pomodoro bottomhub; do
+          for group in components focus settings hardware hypr keyboards surfaces calendar pomodoro bottomhub launcher areapicker; do
             echo "::group::Qt Quick Test $group"
             QT_QPA_PLATFORM=offscreen /usr/lib/qt6/bin/qmltestrunner -input "cortetsu/tests/qml/$group"
             echo "::endgroup::"

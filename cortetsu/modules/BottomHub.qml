@@ -320,6 +320,18 @@ Scope {
                 return;
             hubRoot.toggleLauncherFor(state.modelData);
         }
+        // Opens the launcher in emoji mode, or closes it like launcher().
+        function emoji(): void {
+            const state = CortetsuShellState.forActive();
+            if (!state)
+                return;
+            if (!CortetsuShellState.launcherOpenAnywhere())
+                CortetsuShellState.launcherQuery = `${CortetsuConfig.actionPrefix}emoji `;
+            hubRoot.toggleLauncherFor(state.modelData);
+            // A launcher that did not open must not start in emoji mode later.
+            if (!state.launcher)
+                CortetsuShellState.launcherQuery = "";
+        }
     }
 
     Variants {
