@@ -39,16 +39,6 @@ ColumnLayout {
     SettingsGroup {
         title: qsTr("Avisos")
 
-        SettingSliderRow {
-            title: qsTr("Avisos visibles por grupo")
-            valueText: String(CortetsuConfig.notificationGroupPreviewNum)
-            from: 1
-            to: 6
-            step: 1
-            value: CortetsuConfig.notificationGroupPreviewNum
-            onMoved: next => { CortetsuConfig.notificationGroupPreviewNum = Math.round(next); CortetsuConfig.save(); }
-        }
-
         SettingToggleRow {
             title: qsTr("Avisar del modo de juego")
             detail: qsTr("Un aviso breve al entrar o salir del modo de juego")

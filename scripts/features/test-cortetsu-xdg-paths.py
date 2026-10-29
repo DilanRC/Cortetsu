@@ -2,7 +2,6 @@ from pathlib import Path
 
 repo = Path(__file__).resolve().parents[2]
 paths = (repo / "cortetsu/utils/Paths.qml").read_text(encoding="utf-8")
-file_dialog = (repo / "cortetsu/base/components/filedialog/FolderContents.qml").read_text(encoding="utf-8")
 
 for root in ("data", "state", "cache", "config"):
     assert f"readonly property string {root}" in paths
@@ -27,6 +26,4 @@ for name, fallback in (
 assert "function userDirectory(name: string)" in paths
 for name in ("Downloads", "Desktop", "Documents", "Music", "Pictures", "Videos", "Templates", "Public"):
     assert f'case "{name}"' in paths
-assert "Paths.userDirectory(root.dialog.cwd[1])" in file_dialog
-assert "root.dialog.cwd.slice(2)" in file_dialog
 print("PASS: compatibility Paths routes all XDG runtime roots to Cortetsu")

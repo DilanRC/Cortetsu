@@ -60,94 +60,25 @@ for retired_bar_preference in (
     assert retired_bar_preference not in snapshot, retired_bar_preference
 assert "key in bar && typeof data.bar[key] === \"boolean\"" in config
 assert 'property bool showDate' not in config and 'property bool persistent' not in config
-panel_sources = "\n".join(path.read_text(encoding="utf-8") for path in (repo / "cortetsu/base/modules/nexus/pages/panels").glob("*.qml"))
-workspace_sources = "\n".join(path.read_text(encoding="utf-8") for path in (repo / "cortetsu/base/modules/bar/components/workspaces").glob("*.qml"))
-bar_sources = "\n".join(path.read_text(encoding="utf-8") for path in (repo / "cortetsu/base/modules/bar").rglob("*.qml"))
-nexus_sources = "\n".join(path.read_text(encoding="utf-8") for path in (repo / "cortetsu/base/modules/nexus/pages").rglob("*.qml"))
-lock_sources = "\n".join(path.read_text(encoding="utf-8") for path in (repo / "cortetsu/base/modules/lock").rglob("*.qml"))
-for marker in ("CortetsuConfig.dashboard", "CortetsuConfig.launcher", "CortetsuConfig.sidebar", "CortetsuConfig.utilities", "CortetsuConfig.bar", "CortetsuConfig.bar.workspaces", "CortetsuConfig.bar.tray", "CortetsuConfig.bar.activeWindow", "CortetsuConfig.bar.popouts", "CortetsuConfig.bar.clock", "CortetsuConfig.toastFullscreen", "CortetsuConfig.maxToasts", "CortetsuConfig.lockRecolourLogo", "CortetsuConfig.lockEnableFprint", "CortetsuConfig.notificationGroupPreviewNum", "CortetsuConfig.dashboardMediaUpdateInterval", "CortetsuConfig.nexusNetworkRescanInterval", "CortetsuConfig.useFuzzyActions", "CortetsuConfig.useFuzzySchemes", "CortetsuConfig.useFuzzyVariants", "CortetsuConfig.audioCommand", "CortetsuConfig.playbackCommand", "CortetsuConfig.explorerCommand", "CortetsuConfig.gpuType", "CortetsuConfig.statusIcons", "CortetsuConfig.quickToggles"):
-    assert marker in (panel_sources + workspace_sources + bar_sources + nexus_sources + lock_sources), marker
+# The Caelestia migration is finished across the whole tree, not file by file.
+all_qml = {path: path.read_text(encoding="utf-8") for path in (repo / "cortetsu").rglob("*.qml")}
+for path, text in all_qml.items():
+    for legacy in ("import Caelestia", "GlobalConfig", "GlobalCortetsuConfig", "CUtils.", "ServiceRef", "caelestiaLogo"):
+        assert legacy not in text, (path, legacy)
+consumers = "\n".join(text for path, text in all_qml.items() if path.name != "CortetsuConfig.qml")
+for marker in ("CortetsuConfig.dashboard", "CortetsuConfig.launcher", "CortetsuConfig.sidebar", "CortetsuConfig.utilities", "CortetsuConfig.bar", "CortetsuConfig.bar.workspaces", "CortetsuConfig.bar.popouts", "CortetsuConfig.lockEnableFprint", "CortetsuConfig.useFuzzyActions", "CortetsuConfig.useFuzzySchemes"):
+    assert marker in consumers, marker
 assert "CortetsuConfig.vpn.providers" in vpn_service
-toggles = (repo / "cortetsu/base/modules/utilities/cards/Toggles.qml").read_text(encoding="utf-8")
-assert "Caelestia" not in toggles and "GlobalConfig" not in toggles
-wallpaper_style = (repo / "cortetsu/base/modules/nexus/pages/WallpaperAndStyle.qml").read_text(encoding="utf-8")
-assert "GlobalConfig" not in wallpaper_style and "GlobalCortetsuConfig" not in wallpaper_style
-assert "CortetsuConfig.transparencyEnabled" in wallpaper_style
-notifications_page = (repo / "cortetsu/base/modules/nexus/pages/services/NotificationsPage.qml").read_text(encoding="utf-8")
-assert "GlobalCortetsuConfig" not in notifications_page
-assert "CortetsuConfig.notificationGroupPreviewNum" in notifications_page
-fetch = (repo / "cortetsu/base/modules/lock/Fetch.qml").read_text(encoding="utf-8")
-assert "import Caelestia" not in fetch and "CUtils.clamp" not in fetch
-assert "function clamp(value: real, low: real, high: real)" in fetch
-cached_image = (repo / "cortetsu/base/components/images/CachingImage.qml").read_text(encoding="utf-8")
-coloured_icon = (repo / "cortetsu/base/components/effects/ColouredIcon.qml").read_text(encoding="utf-8")
-assert "import Caelestia.Images" not in cached_image and "IUtils." not in cached_image
-assert "Paths.absolutePath(path)" in cached_image
-assert "import Caelestia.Images" not in coloured_icon and "ImageAnalyser" not in coloured_icon
-assert 'sourceColor: "black"' in coloured_icon and "Colouriser" in coloured_icon
-cover_visualiser = (repo / "cortetsu/base/modules/dashboard/media/CoverVisualiser.qml").read_text(encoding="utf-8")
-assert "import Caelestia.Services" not in cover_visualiser and "ServiceRef" not in cover_visualiser
-assert "Audio.cava" in cover_visualiser
-for wallpaper_page in (
-    repo / "cortetsu/base/modules/nexus/pages/wallandstyle/WallpaperCategory.qml",
-    repo / "cortetsu/base/modules/nexus/pages/wallandstyle/WallpaperSelect.qml",
-):
-    wallpaper_text = wallpaper_page.read_text(encoding="utf-8")
-    assert "import Caelestia.Models" not in wallpaper_text
-    assert "FileSystemEntry" not in wallpaper_text
-file_model = (repo / "cortetsu/base/components/filedialog/FileSystemModel.qml").read_text(encoding="utf-8")
-assert "ListModel" in file_model and "find --" in file_model
-assert "nameFilters" in file_model and "sortReverse" in file_model
-for blob_name in ("BlobGroup.qml", "BlobRect.qml", "BlobInvertedRect.qml"):
-    blob = repo / "cortetsu/base/components/blobs" / blob_name
-    assert blob.is_file()
-    blob_text = blob.read_text(encoding="utf-8")
-    assert "property var group" in blob_text or blob_name == "BlobGroup.qml"
-for blob_consumer in (
-    repo / "cortetsu/base/modules/nexus/Nexus.qml",
-    repo / "cortetsu/base/modules/nexus/common/BlobPopup.qml",
-    repo / "cortetsu/base/modules/nexus/common/DialogRowButton.qml",
-    repo / "cortetsu/base/modules/dashboard/media/LyricsInfo.qml",
-):
-    assert "import Caelestia.Blobs" not in blob_consumer.read_text(encoding="utf-8")
-for model_consumer in (
-    repo / "cortetsu/base/components/filedialog/FolderContents.qml",
-    repo / "cortetsu/base/modules/utilities/cards/RecordingList.qml",
-):
-    model_text = model_consumer.read_text(encoding="utf-8")
-    assert "import Caelestia.Models" not in model_text
-    assert "FileSystemEntry" not in model_text
-assert "import qs.components.filedialog" in (repo / "cortetsu/base/modules/utilities/cards/RecordingList.qml").read_text(encoding="utf-8")
-bar_source = (repo / "cortetsu/base/modules/bar/Bar.qml").read_text(encoding="utf-8")
-workspace_source = (repo / "cortetsu/base/modules/bar/components/workspaces/Workspace.qml").read_text(encoding="utf-8")
-assert "import Caelestia.Config" not in bar_source and "CortetsuConfig.bar.entries" in bar_source
-assert "import Caelestia.Config" not in workspace_source and "CortetsuConfig.bar.workspaces" in workspace_source
-for notif_dock in (
-    repo / "cortetsu/base/modules/lock/NotifDock.qml",
-    repo / "cortetsu/base/modules/sidebar/NotifDock.qml",
-):
-    dock_text = notif_dock.read_text(encoding="utf-8")
-    assert "import Caelestia.Config" not in dock_text
+# Base code that nothing imported was deleted in phase 3.9; it must not return.
+for gone in ("modules/nexus", "modules/dashboard", "modules/sidebar", "modules/windowinfo", "modules/utilities",
+             "modules/notifications", "modules/bar/components", "components/filedialog", "components/blobs",
+             "components/images", "components/controls", "components/effects"):
+    assert not (repo / "cortetsu/base" / gone).exists(), gone
+assert not [p for p in (repo / "cortetsu/base/modules/lock").glob("*.qml") if p.name != "Pam.qml"]
 assert "noNotifsPic" in (repo / "cortetsu/utils/Paths.qml").read_text(encoding="utf-8")
 utils_service = (repo / "cortetsu/utils/CortetsuUtils.qml").read_text(encoding="utf-8")
 assert "function clamp" in utils_service and "function deleteFile" in utils_service
-assert "Caelestia" not in "\n".join(
-    (repo / path).read_text(encoding="utf-8")
-    for path in (
-        "cortetsu/base/modules/utilities/RecordingDeleteModal.qml",
-        "cortetsu/base/modules/notifications/Content.qml",
-        "cortetsu/base/modules/dashboard/Content.qml",
-        "cortetsu/base/modules/nexus/pages/AboutPage.qml",
-    )
-)
 assert "caelestia" not in (repo / "cortetsu/base/assets/wrap_term_launch.sh").read_text(encoding="utf-8")
-for logo_consumer in (
-    repo / "cortetsu/base/modules/lock/Fetch.qml",
-    repo / "cortetsu/base/modules/dashboard/dash/User.qml",
-    repo / "cortetsu/base/modules/bar/components/OsIcon.qml",
-):
-    logo_text = logo_consumer.read_text(encoding="utf-8")
-    assert "caelestiaLogo" not in logo_text and "caelestiafetch" not in logo_text, logo_consumer
 metrics = {
     "Cpu.qml": ("/proc/stat", "property real percentage"),
     "Memory.qml": ("/proc/meminfo", "property real used"),
@@ -169,59 +100,12 @@ for qml in (repo / "cortetsu").rglob("*.qml"):
 storage = (repo / "cortetsu/services/Storage.qml").read_text(encoding="utf-8")
 assert "match[4].startsWith(\"/\")" in storage
 assert "match[5].startsWith(\"/\")" not in storage
-for metric_consumer in (
-    repo / "cortetsu/base/modules/dashboard/Performance.qml",
-    repo / "cortetsu/base/modules/dashboard/dash/Resources.qml",
-    repo / "cortetsu/base/modules/dashboard/performance/BatteryTank.qml",
-    repo / "cortetsu/base/modules/dashboard/performance/MemoryCard.qml",
-    repo / "cortetsu/base/modules/dashboard/performance/NetworkCard.qml",
-    repo / "cortetsu/base/modules/dashboard/performance/StorageCard.qml",
-    repo / "cortetsu/base/modules/lock/Resources.qml",
-):
-    metric_text = metric_consumer.read_text(encoding="utf-8")
-    assert "import Caelestia.Services" not in metric_text, metric_consumer
-    assert "ServiceRef" not in metric_text, metric_consumer
-assert "SparklineItem" not in (repo / "cortetsu/base/modules/dashboard/performance/NetworkCard.qml").read_text(encoding="utf-8")
 session_service = (repo / "cortetsu/services/CortetsuSession.qml").read_text(encoding="utf-8")
 assert 'org.freedesktop.login1.Manager' in session_service and 'signal resumed' in session_service
-assert "import Caelestia.Services" not in (repo / "cortetsu/base/modules/lock/Pam.qml").read_text(encoding="utf-8")
 assert "CortetsuSession" in (repo / "cortetsu/base/modules/lock/Pam.qml").read_text(encoding="utf-8")
 lyrics_service = (repo / "cortetsu/services/Lyrics.qml").read_text(encoding="utf-8")
 for marker in ("parseLrc", "indexForTime", "timeForIndex", "lrclib.net/api/search", "CORTETSU_LYRICS_DIR"):
     assert marker in lyrics_service, marker
-for lyrics_consumer in (
-    repo / "cortetsu/base/modules/dashboard/media/LyricList.qml",
-    repo / "cortetsu/base/modules/dashboard/media/LyricsInfo.qml",
-):
-    assert "import Caelestia" not in lyrics_consumer.read_text(encoding="utf-8"), lyrics_consumer
-apps_page = (repo / "cortetsu/base/modules/nexus/pages/AppsPage.qml").read_text(encoding="utf-8")
-assert "import Caelestia\n" not in apps_page and "CUtils.clamp" not in apps_page
-for path in (
-    repo / "cortetsu/base/modules/utilities/cards/RecordingList.qml",
-    repo / "cortetsu/base/modules/sidebar/NotifDock.qml",
-    repo / "cortetsu/base/modules/nexus/pages/AppsPage.qml",
-    repo / "cortetsu/base/modules/lock/Pam.qml",
-    repo / "cortetsu/base/modules/nexus/pages/ServicesPage.qml",
-    repo / "cortetsu/base/modules/lock/center/PasswordInput.qml",
-    repo / "cortetsu/base/modules/nexus/pages/WallpaperAndStyle.qml",
-    repo / "cortetsu/base/modules/lock/center/StateMessage.qml",
-    repo / "cortetsu/base/modules/launcher/items/CalcItem.qml",
-    repo / "cortetsu/base/modules/nexus/pages/panels/UtilitiesPanel.qml",
-    repo / "cortetsu/base/modules/nexus/pages/panels/taskbar/BarStatusIcons.qml",
-    repo / "cortetsu/base/modules/bar/popouts/kblayout/KbLayoutModel.qml",
-):
-    assert "import Caelestia.Config" not in path.read_text(encoding="utf-8"), path
-assert "import Caelestia" not in (repo / "cortetsu/base/modules/launcher/items/CalcItem.qml").read_text(encoding="utf-8")
-assert "import Caelestia" not in (repo / "cortetsu/base/modules/bar/popouts/kblayout/KbLayoutModel.qml").read_text(encoding="utf-8")
-button_row = (repo / "cortetsu/base/components/controls/ButtonRow.qml").read_text(encoding="utf-8")
-assert "RowLayout" in button_row and "property real spacing" in button_row
-for primitive in ("CircularIndicatorManager.qml", "LinearIndicatorManager.qml"):
-    assert (repo / "cortetsu/base/components/controls" / primitive).is_file()
-assert (repo / "cortetsu/base/components/controls/WavyLine.qml").is_file()
-assert (repo / "cortetsu/base/components/controls/LinearIndicatorSegment.qml").is_file()
-for primitive in ("CircularIndicator.qml", "CircularProgress.qml", "StyledProgressBar.qml", "StyledSlider.qml"):
-    primitive_text = (repo / "cortetsu/base/components/controls" / primitive).read_text(encoding="utf-8")
-    assert "Caelestia.Components" not in primitive_text and "CUtils.clamp" not in primitive_text
 assert "GlobalConfig.launcher.favouriteApps" not in hub
 assert "GlobalConfig.bar.tray.hiddenIcons" not in hub
 assert "GlobalConfig.bar.workspaces.shown" not in hub

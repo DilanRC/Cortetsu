@@ -416,7 +416,6 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-startup-test-") as temp:
         "cortetsu:brightness-discovery", "cortetsu:brightness-connector", "cortetsu:brightness-read", "cortetsu:nvibrant-status",
         "cortetsu:cpu-temperature", "cortetsu:gpu-probe", "cortetsu:storage-probe",
         "cortetsu:network-usage-probe", "cortetsu:recorder-status", "cortetsu:lock-keyboard-probe",
-        "cortetsu:about-quickshell-version", "cortetsu:about-cortetsu-version",
         "cortetsu:launcher-scheme-list", "cortetsu:calendar-sync",
         "cortetsu:display-presets", "cortetsu:display-preview-status", "cortetsu:hardware-probe",
         "cortetsu:hardware-power-probe", "cortetsu:hardware-power-automation-status",

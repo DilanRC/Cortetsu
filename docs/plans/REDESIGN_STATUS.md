@@ -22,6 +22,7 @@ Se fusiona en `main` al cerrar cada bloque; no se instala en la sesión real.
 | 3.6 Hardware Center | Hecho en código; pendiente revisión en la sesión real | `test-cortetsu-hardware-home-runtime.py`, `tests/qml/hardware`, lint `--strict` a 0 |
 | 3.7 Lock | Hecho en código; pendiente prueba manual de desbloqueo en la sesión real | `test-cortetsu-lock-card-runtime.py`, `test-cortetsu-lock-runtime.py`, lint `--strict` a 0 |
 | 3.8 Wallpaper, calendario, teclados, pantalla y sesión | Hecho en código; pendiente revisión en la sesión real | `test-cortetsu-calendar-keyboard-runtime.py`, `test-cortetsu-wallpaper-orbital-runtime.py`, `test-cortetsu-keyboards-runtime.py`, `test-cortetsu-session-runtime.py`, lint `--strict` a 0 |
+| 3.9 Restos de base/ | Hecho | `test-cortetsu-config.py` (no vuelve el código borrado), `scripts/integration/test-shell-boot-clean.py` (arranque anidado) |
 
 ## Línea base del linter (fase 0)
 
@@ -221,4 +222,31 @@ Fallan también en la línea base y no son de esta fase: siete
 `cortetsu/tests/test-*.py` (calendar-credentials, calendar-pomodoro-services,
 gpu-passive, hardware-probe, notifications, pomodoro, runtime-contract), que
 ejecutan con Python helpers de `bin/` que ahora son shell.
+
+## 3.9 Restos de base/
+
+`build-runtime.sh` copia `base/` y encima `modules/`; un archivo de `base/` solo
+corre si algo lo importa. Se recorrió el grafo de imports desde `shell.qml`
+sobre una generación construida (imports por ruta, `qs.*`, alias `as X`,
+singletons de `qmldir`, JS y `shellPath`), contando como uso solo una
+instancia (`Tipo {`), un acceso (`Tipo.`) o un tipo declarado. No hay carga
+dinámica de QML (`createComponent`, `source` calculado).
+
+- Borrados 204 QML/JS que nada importaba: Nexus, el dashboard, la barra y sus
+  componentes, sidebar, windowinfo, utilities, el lock de base salvo
+  `Pam.qml`, filedialog, blobs, controles y efectos. Fuera también
+  `bongocat.gif`, `kurukuru.gif` y Google Sans Flex (3,9 MB), sin referencias.
+- Quedan 10 vivos: `Pam.qml`, `VPN.qml`, `Searcher.qml`, `Strings.qml`, fzf y
+  fuzzysort, `SystemTrayIdentity.js` y tres de `bar/popouts`. Lint 0.
+- Ajustes tenía «Avisos visibles por grupo», que solo leía código muerto: no
+  hacía nada. Se quita la fila; la clave sigue en `CortetsuConfig` para no
+  perder datos al guardar.
+- Dos entradas de `startup-components.json` apuntaban a la página About de
+  Nexus borrada; fuera.
+- Sin lector desde antes (solo los leía código muerto), siguen en el esquema
+  de preferencias: `audioCommand`, `playbackCommand`, `explorerCommand`,
+  `gpuType`, `statusIcons`, `quickToggles`, `maxToasts`, `toastFullscreen`,
+  `useFuzzyVariants`, `lockRecolourLogo`, `notificationGroupPreviewNum`,
+  `dashboardMediaUpdateInterval`, `nexusNetworkRescanInterval`, `bar.clock`,
+  `bar.tray`, `bar.activeWindow`. Retirarlas es un cambio de esquema aparte.
 

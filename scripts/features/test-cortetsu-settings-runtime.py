@@ -412,7 +412,7 @@ ShellRoot {
                 verify(item.enabled, `a Tab stop is enabled (${stops[stops.length - 1]})`);
                 key(Qt.Key_Tab);
             }
-            verify(stops.join(",") === "dnd,Ocultar en pantalla completa,slider,Avisar del modo de juego,Avisar de Bloq Mayús,Avisar de Bloq Num,Avisar del cambio de distribución,Avisar de No molestar,Avisar de la pista en reproducción,Abrir avisos expandidos,action", `Tab visits each control once, top to bottom (${stops.join(",")})`);
+            verify(stops.join(",") === "dnd,Ocultar en pantalla completa,Avisar del modo de juego,Avisar de Bloq Mayús,Avisar de Bloq Num,Avisar del cambio de distribución,Avisar de No molestar,Avisar de la pista en reproducción,Abrir avisos expandidos,action", `Tab visits each control once, top to bottom (${stops.join(",")})`);
             memo.clear = page("clearHistory");
             find(memo.clear, "action").forceActiveFocus();
             key(Qt.Key_Return);
@@ -875,7 +875,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     host = run_host(folder)
     assert not host or "SETTINGS_HOST_PASS 1" in host, host
 
-assert (reactivity, navigation, states, unwritable, pages) == (47, 46, 41, 3, 15), (reactivity, navigation, states, unwritable, pages)
+assert (reactivity, navigation, states, unwritable, pages) == (47, 45, 41, 3, 15), (reactivity, navigation, states, unwritable, pages)
 assert policies == 16, policies
 print(f"Settings builds in {opened.split()[0]} ms ({opened.split()[1]} items); "
       f"20 cycles of open, 15 pages and close take {cycles} ms")

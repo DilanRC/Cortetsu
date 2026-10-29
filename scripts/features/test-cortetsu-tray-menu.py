@@ -9,7 +9,7 @@ source = (ROOT / "cortetsu/modules/bar/popouts/CortetsuTrayMenu.qml").read_text(
 identity = (ROOT / "cortetsu/base/modules/bar/SystemTrayIdentity.js").read_text(encoding="utf-8")
 bottom_hub = (ROOT / "cortetsu/modules/BottomHubTray.js").read_text(encoding="utf-8")
 bottom_hub_qml = (ROOT / "cortetsu/modules/BottomHub.qml").read_text(encoding="utf-8")
-base_bar = (ROOT / "cortetsu/base/modules/bar/Bar.qml").read_text(encoding="utf-8")
+hub_tray = (ROOT / "cortetsu/modules/BottomHubTray.js").read_text(encoding="utf-8")
 popouts = (ROOT / "cortetsu/base/modules/bar/popouts/Content.qml").read_text(encoding="utf-8")
 popout_state = (ROOT / "cortetsu/base/modules/bar/popouts/PopoutState.qml").read_text(encoding="utf-8")
 popout_wrapper = (ROOT / "cortetsu/modules/bar/popouts/Wrapper.qml").read_text(encoding="utf-8")
@@ -49,7 +49,7 @@ assert "modelData?.text ?? \"\"" in source
 assert "modelData?.hasChildren ?? false" in source
 assert "new WeakMap()" not in identity and "function entries(items)" in identity
 assert "TrayIdentity.instanceKey(item)" in bottom_hub
-assert "TrayIdentity.popupName(trayItem.modelData.key)" in base_bar
+assert "TrayIdentity.popupName(itemKey)" in hub_tray
 assert "TrayIdentity.popupName(modelData.key)" in popouts
 assert "function popupName(key)" in identity
 

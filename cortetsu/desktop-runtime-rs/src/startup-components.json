@@ -352,32 +352,6 @@
     "manageable": false
   },
   {
-    "id": "cortetsu:about-quickshell-version",
-    "name": "Quickshell version check",
-    "source": "base/modules/nexus/pages/AboutPage.qml",
-    "qmlId": null,
-    "startupPhase": "on-demand",
-    "condition": "Al abrir la página Acerca de",
-    "command": [
-      "quickshell",
-      "--version"
-    ],
-    "manageable": false
-  },
-  {
-    "id": "cortetsu:about-cortetsu-version",
-    "name": "Cortetsu version check",
-    "source": "base/modules/nexus/pages/AboutPage.qml",
-    "qmlId": null,
-    "startupPhase": "on-demand",
-    "condition": "Al abrir la página Acerca de",
-    "command": [
-      "cortetsu",
-      "--version"
-    ],
-    "manageable": false
-  },
-  {
     "id": "cortetsu:launcher-scheme-list",
     "name": "Scheme list query",
     "source": "modules/launcher/services/Schemes.qml",
