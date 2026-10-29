@@ -47,6 +47,7 @@ ShellRoot {
         id: pam
         property int state: 0
         property string buffer: ""
+        property bool checking: false
         signal flashMsg()
     }
 
@@ -78,7 +79,11 @@ ShellRoot {
         () => { verify(shown("• • • • • • "), "typed characters show as dots");
                 grab("typing"); return true; },
         () => grabs === 2,
-        () => { pam.buffer = ""; pam.state = 3; pam.flashMsg(); return true; },
+        // Enter: PAM takes the buffer and is checking; a previous error must not show.
+        () => { pam.state = 3; pam.buffer = ""; pam.checking = true; return true; },
+        () => { verify(shown("Comprobando…") && !shown("Contraseña incorrecta. Inténtalo de nuevo."),
+                       "while PAM checks, the field says so and hides the old error");
+                pam.checking = false; pam.flashMsg(); return true; },
         () => card.passwordField.transform[0].x === 0 && root.shakeSeen > 0,
         () => { verify(root.shakeSeen >= 6, `a rejected attempt shakes the field (${root.shakeSeen} px)`);
                 verify(Qt.colorEqual(card.passwordField.border.color, CortetsuDesign.colorVermillion), "the field edge turns vermillion");
@@ -132,7 +137,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-lock-card-") as temporary:
     result = subprocess.run(["quickshell", "-p", str(folder / "shell.qml")], env=env,
                             capture_output=True, text=True, timeout=90)
     output = result.stdout + result.stderr
-    assert "LOCK_CARD_PASS 9" in output, output
+    assert "LOCK_CARD_PASS 10" in output, output
     for marker in ("LOCK_FAIL", "TypeError", "ReferenceError", "Binding loop", "is not a type"):
         assert marker not in output, output
 

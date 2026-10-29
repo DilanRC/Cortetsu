@@ -38,11 +38,12 @@ CortetsuSurface {
     focus: false
     activeFocusOnTab: true
     focused: root.activeFocus
+    // Opaque: a popup sits over windows, and their text showed through.
     baseColor: root.urgent
-        ? Qt.alpha(CortetsuDesign.colorVermillion, 0.10)
+        ? Qt.tint(CortetsuDesign.colorSurfaceHigh, Qt.alpha(CortetsuDesign.colorVermillion, 0.10))
         : root.hovered
-            ? Qt.alpha(CortetsuDesign.colorSurfaceHigh, 0.98)
-            : Qt.alpha(CortetsuDesign.colorSurfaceHigh, 0.92)
+            ? Qt.tint(CortetsuDesign.colorSurfaceHigh, Qt.alpha(CortetsuDesign.colorOnSurface, 0.04))
+            : CortetsuDesign.colorSurfaceHigh
     outlineColor: root.activeFocus
         ? Qt.alpha(CortetsuDesign.colorWashi, 0.82)
         : root.urgent
@@ -145,6 +146,8 @@ CortetsuSurface {
                     Layout.fillWidth: true
                     text: root.summary
                     textSize: CortetsuTypography.bodyLargePx
+                    wrapMode: Text.Wrap
+                    maximumLineCount: 2
                     elide: Text.ElideRight
                     font.weight: Font.DemiBold
                     color: CortetsuDesign.colorOnSurface
@@ -161,6 +164,7 @@ CortetsuSurface {
             }
 
             CortetsuText {
+                Layout.alignment: Qt.AlignTop
                 text: root.timeLabel
                 textSize: CortetsuTypography.labelSmallPx
                 color: CortetsuDesign.colorOnSurfaceVariant
@@ -225,7 +229,6 @@ CortetsuSurface {
             CortetsuButton {
                 compact: true
                 label: qsTr("Descartar")
-                icon: "close"
                 danger: root.urgent
                 onClicked: if (root.hasModelData) root.modelData.close()
             }

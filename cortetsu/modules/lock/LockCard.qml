@@ -26,6 +26,8 @@ Item {
     readonly property bool failed: root.pam.state === 2 || root.pam.state === 3
     readonly property alias passwordField: field
 
+    readonly property bool checking: root.pam.checking ?? false
+
     signal focusRequested()
 
     // Each rejected attempt shakes the field twice in 200 ms, without bounce.
@@ -93,7 +95,8 @@ Item {
                 anchors.right: capsBadge.visible ? capsBadge.left : parent.right
                 anchors.margins: CortetsuDesign.spacingStandard
                 anchors.verticalCenter: parent.verticalCenter
-                text: root.pam.buffer.length ? "• ".repeat(root.pam.buffer.length) : qsTr("Contraseña")
+                text: root.checking ? qsTr("Comprobando…")
+                    : root.pam.buffer.length ? "• ".repeat(root.pam.buffer.length) : qsTr("Contraseña")
                 textSize: CortetsuTypography.bodyLargePx
                 color: root.pam.buffer.length ? CortetsuDesign.colorOnSurface : CortetsuDesign.colorOnSurfaceVariant
                 elide: Text.ElideLeft
@@ -132,7 +135,7 @@ Item {
         CortetsuText {
             Layout.alignment: Qt.AlignHCenter
             Layout.preferredHeight: implicitHeight
-            opacity: root.pam.state > 0 ? 1 : 0
+            opacity: root.pam.state > 0 && !root.checking ? 1 : 0
             text: root.failed
                 ? qsTr("Contraseña incorrecta. Inténtalo de nuevo.")
                 : root.pam.state === 2

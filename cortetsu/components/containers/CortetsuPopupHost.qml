@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell
 import Quickshell.Wayland
 import "../../theme"
 
@@ -33,9 +34,13 @@ Item {
         }
     }
 
+    // Sized by its child: an empty Item put the panel's corner, not its
+    // centre, at the middle of the screen.
     Item {
         id: content
         anchors.centerIn: parent
+        width: childrenRect.width
+        height: childrenRect.height
         z: 1
     }
 

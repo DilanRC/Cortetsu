@@ -22,6 +22,7 @@ import QtQuick.Window
 import QtTest
 import Quickshell
 import "modules/screenshare" as Share
+import "components/containers"
 
 ShellRoot {
     id: root
@@ -45,14 +46,22 @@ ShellRoot {
     }
 
     Window {
-        width: 900; height: 640; visible: true; color: "#0B0D10"
-        Share.ScreenSharePanel { id: panel; anchors.centerIn: parent; controller: controller; maxWidth: 900; maxHeight: 640 }
+        id: window
+        width: 1600; height: 1000; visible: true; color: "#0B0D10"
+        // As in ScreenSharePicker: the host, not the panel, centres it.
+        CortetsuPopupHost {
+            open: true; animate: false
+            Share.ScreenSharePanel { id: panel; controller: controller; maxWidth: 900; maxHeight: 640 }
+        }
     }
     TestEvent { id: events }
     function key(k, mods) { events.keyClick(k, mods ?? Qt.NoModifier, panel); }
 
     readonly property var steps: [
-        () => { panel.forceActiveFocus(); return panel.activeFocus; },
+        () => { panel.forceActiveFocus(); return panel.activeFocus && panel.width > 0; },
+        () => { const c = panel.mapToItem(null, panel.width / 2, panel.height / 2);
+                verify(Math.abs(c.x - window.width / 2) < 2 && Math.abs(c.y - window.height / 2) < 2,
+                       `the picker opens centred: centre ${c.x},${c.y} on ${window.width}x${window.height}`); return true; },
         () => { grab("screens"); key(Qt.Key_1); return true; },
         () => { verify(controller.calls.length === 1 && controller.calls[0][0] === "screen"
                     && controller.calls[0][2] === false, "1 shares the first screen"); key(Qt.Key_Tab); return true; },
@@ -99,7 +108,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-share-") as temporary:
     result = subprocess.run(["quickshell", "-p", str(folder / "shell.qml")], env=env,
                             capture_output=True, text=True, timeout=90)
     output = result.stdout + result.stderr
-    assert "SHARE_RUNTIME_PASS 8" in output, output
+    assert "SHARE_RUNTIME_PASS 9" in output, output
     for marker in ("SHARE_FAIL", "TypeError", "ReferenceError", "Binding loop", "Unable to assign", "is not a type"):
         assert marker not in output, output
 

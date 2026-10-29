@@ -28,6 +28,8 @@ Scope {
     property int state
     property string buffer
     property bool successPending: false
+    // True from Enter until PAM answers, so the card can say it is checking.
+    readonly property bool checking: passwd.active
 
     signal flashMsg
     signal authenticationSucceeded

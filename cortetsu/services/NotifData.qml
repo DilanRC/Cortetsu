@@ -14,7 +14,7 @@ QtObject {
     property var locks: new Set()
     property bool dismissalRequested: false
     property date time: new Date()
-    property string timeStr: "now"
+    property string timeStr: qsTr("ahora")
     property Notification notification
     property string notificationId: ""
     property string key: ""
@@ -41,10 +41,10 @@ QtObject {
 
     function updateTimeStr(): void {
         const minutes = Math.floor((Date.now() - root.time.getTime()) / 60000);
-        if (minutes < 1) root.timeStr = "now";
-        else if (minutes < 60) root.timeStr = `${minutes}m`;
-        else if (minutes < 1440) root.timeStr = `${Math.floor(minutes / 60)}h`;
-        else root.timeStr = `${Math.floor(minutes / 1440)}d`;
+        if (minutes < 1) root.timeStr = qsTr("ahora");
+        else if (minutes < 60) root.timeStr = qsTr("%1 min").arg(minutes);
+        else if (minutes < 1440) root.timeStr = qsTr("%1 h").arg(Math.floor(minutes / 60));
+        else root.timeStr = qsTr("%1 d").arg(Math.floor(minutes / 1440));
     }
     function lock(item: Item): void { locks.add(item); }
     function unlock(item: Item): void {
