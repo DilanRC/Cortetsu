@@ -1,7 +1,7 @@
 # Estado del rediseño (rama `redesign/v2`)
 
 Plan: rediseño QML y superficies nuevas. Worktree `~/Documentos/Cortetsu-redesign`.
-Sin push, sin merge y sin instalar en la sesión real.
+Se fusiona en `main` al cerrar cada bloque; no se instala en la sesión real.
 
 | Fase | Estado | Evidencia |
 |---|---|---|
@@ -10,7 +10,11 @@ Sin push, sin merge y sin instalar en la sesión real.
 | 0.3 `qml-design-lint.py` (informa, no bloquea) | Hecho | `scripts/features/test-qml-design-lint.py` |
 | 1 Tokens de movimiento y primitivos | Hecho | `tst_MotionTokens.qml`; features 127 → 127 |
 | 2.1 Selector de compartir pantalla | Hecho en código; pendiente físico | `docs/SCREENSHARE.md` |
-| 2.2 Agente polkit | Pendiente | |
+| 2.2 Agente polkit | Hecho | `docs/POLKIT.md` |
+| 2.3 Llavero y GPG | Hecho | `docs/SECRET-PROMPTS.md` |
+| 2.4 Wi-Fi y Bluetooth | Hecho | `docs/SECRET-PROMPTS.md` |
+| 2.5 Atajos | Hecho | `docs/UTILITY-SHORTCUTS.md` |
+| 3.1 BottomHub, barra y popouts | En curso | |
 
 ## Línea base del linter (fase 0)
 

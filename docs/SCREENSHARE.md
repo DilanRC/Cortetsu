@@ -27,7 +27,15 @@ Nombres verificados en el binario de xdph 1.4.1 (`screencopy:custom_picker_binar
    token. El helper valida que nombre algo ofrecido y escribe
    `[SELECTION]<r>/screen:DP-1`, `window:<handle>` o `region:<salida>@x,y,w,h`.
 5. Cancelar, un token distinto o 60 s sin respuesta: código ≠ 0 y sin salida.
-   Sin shell (la llamada IPC falla o se cuelga): `exec hyprland-share-picker`.
+   Sin shell (la llamada IPC falla, se cuelga o `qs` imprime `Target not found.`
+   con código 0): `exec hyprland-share-picker`.
+
+Chromium y Electron abren varias sesiones por cada compartición. La última
+elección se guarda 15 s en `$XDG_RUNTIME_DIR/cortetsu/share-picker-last.json`
+(0600; `CORTETSU_SHARE_PICKER_REUSE_MS` cambia el plazo) y responde a las
+peticiones siguientes si lo que nombra sigue ofrecido. Cancelar la borra.
+Límite conocido: xdph no dice al selector qué app pide, así que otra app que
+pida dentro de esos 15 s recibe la misma elección sin preguntar.
 
 «Recordar para esta app» (Alt+R) añade la marca `r`: xdph emite un token de
 restauración y Chromium/Electron no vuelven a preguntar.
