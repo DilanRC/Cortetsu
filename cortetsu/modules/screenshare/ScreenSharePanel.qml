@@ -223,7 +223,9 @@ Item {
                                 Layout.fillWidth: true
                                 spacing: CortetsuDesign.spacingCompact
 
+                                // The digit that picks this tile.
                                 CortetsuText {
+                                    Layout.alignment: Qt.AlignTop
                                     visible: tile.index < 9
                                     text: String(tile.index + 1)
                                     textSize: CortetsuTypography.labelSmallPx
@@ -235,7 +237,7 @@ Item {
                                     spacing: 0
                                     CortetsuText {
                                         Layout.fillWidth: true
-                                        text: tile.isScreen ? tile.modelData.name : (tile.modelData.title || tile.modelData.class)
+                                        text: tile.isScreen ? (tile.modelData.name || qsTr("Pantalla %1").arg(tile.index + 1)) : (tile.modelData.title || tile.modelData.class)
                                         elide: Text.ElideRight
                                     }
                                     CortetsuText {

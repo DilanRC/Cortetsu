@@ -8,6 +8,10 @@
 //! waits for one answer line. It composes the selection line itself, so the
 //! shell can only pick among the outputs and windows it was offered.
 //!
+//! Electron and Chromium open several screencast sessions for one share. A
+//! choice is reused for the requests that follow it within a few seconds,
+//! when what it names is still offered, so one share asks once.
+//!
 //! Without a running shell it hands over to `hyprland-share-picker`, so screen
 //! sharing never depends on the shell being up. A cancel or a 60 s timeout
 //! exits non-zero and prints nothing, which xdph reports as a refused request.
@@ -20,11 +24,12 @@ use std::{
         fs::{DirBuilderExt, PermissionsExt},
         net::{UnixListener, UnixStream},
         process::CommandExt,
+        fs::OpenOptionsExt,
     },
     path::{Path, PathBuf},
     process::{Command, Stdio},
     thread,
-    time::{Duration, Instant},
+    time::{Duration, Instant, SystemTime, UNIX_EPOCH},
 };
 
 #[derive(Debug, Clone, PartialEq)]
@@ -146,7 +151,7 @@ fn ask_shell(socket: &Path, token: &str) -> bool {
         .arg(socket)
         .arg(token)
         .stdin(Stdio::null())
-        .stdout(Stdio::null())
+        .stdout(Stdio::piped())
         .stderr(Stdio::null())
         .spawn()
     else {
@@ -155,7 +160,15 @@ fn ask_shell(socket: &Path, token: &str) -> bool {
     let deadline = Instant::now() + Duration::from_secs(5);
     loop {
         match child.try_wait() {
-            Ok(Some(status)) => return status.success(),
+            // `qs ipc call` exits 0 and prints "Target not found." when the
+            // running shell lacks the target; `request` itself prints nothing.
+            Ok(Some(status)) => {
+                let mut out = String::new();
+                if let Some(mut stdout) = child.stdout.take() {
+                    let _ = stdout.read_to_string(&mut out);
+                }
+                return status.success() && out.trim().is_empty();
+            }
             Ok(None) if Instant::now() < deadline => thread::sleep(Duration::from_millis(20)),
             _ => {
                 let _ = child.kill();
@@ -194,14 +207,70 @@ fn accept(listener: &UnixListener, deadline: Instant) -> Result<Option<UnixStrea
     }
 }
 
+fn now_ms() -> u64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_millis() as u64)
+        .unwrap_or(0)
+}
+
+/// The last choice, kept so the sessions that follow it reuse it.
+fn last_path() -> Result<PathBuf> {
+    Ok(socket_dir()?.join("share-picker-last.json"))
+}
+
+/// The selection a recent choice gives for this request, if it is recent
+/// enough and still names something offered now.
+pub fn reuse(saved: &Value, now: u64, window_ms: u64, token: &str, windows: &[Window]) -> Option<String> {
+    let at = saved["at"].as_u64()?;
+    if now < at || now - at > window_ms {
+        return None;
+    }
+    let mut answer = saved["answer"].clone();
+    answer["token"] = Value::from(token);
+    selection(&answer, token, windows)
+}
+
+fn remember(answer: &Value) {
+    let Ok(path) = last_path() else { return };
+    let mut kept = answer.clone();
+    if let Some(map) = kept.as_object_mut() {
+        map.remove("token");
+    }
+    let tmp = path.with_extension("tmp");
+    let saved = json!({"at": now_ms(), "answer": kept}).to_string();
+    let written = fs::OpenOptions::new()
+        .write(true)
+        .create(true)
+        .truncate(true)
+        .mode(0o600)
+        .open(&tmp)
+        .and_then(|mut f| f.write_all(saved.as_bytes()));
+    if written.is_ok() {
+        let _ = fs::rename(&tmp, &path);
+    }
+}
+
 pub fn main(_args: &[String]) -> Result<i32> {
     let windows = parse_list(&env::var("XDPH_WINDOW_SHARING_LIST").unwrap_or_default());
+    let reuse_ms = env::var("CORTETSU_SHARE_PICKER_REUSE_MS")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(15_000);
     let timeout = env::var("CORTETSU_SHARE_PICKER_TIMEOUT_MS")
         .ok()
         .and_then(|v| v.parse().ok())
         .unwrap_or(60_000);
     let deadline = Instant::now() + Duration::from_millis(timeout);
     let token = token()?;
+    let saved = last_path()
+        .ok()
+        .and_then(|p| fs::read_to_string(p).ok())
+        .and_then(|t| serde_json::from_str::<Value>(&t).ok());
+    if let Some(sel) = saved.and_then(|s| reuse(&s, now_ms(), reuse_ms, &token, &windows)) {
+        std::io::stdout().lock().write_all(sel.as_bytes())?;
+        return Ok(0);
+    }
     let path = socket_dir()?.join(format!("share-picker-{}-{}.sock", std::process::id(), &token[..8]));
     let _ = fs::remove_file(&path);
     let listener = UnixListener::bind(&path)?;
@@ -232,10 +301,16 @@ pub fn main(_args: &[String]) -> Result<i32> {
     let answer: Value = serde_json::from_str(line.trim()).unwrap_or(Value::Null);
     match selection(&answer, &token, &windows) {
         Some(sel) => {
+            remember(&answer);
             std::io::stdout().lock().write_all(sel.as_bytes())?;
             Ok(0)
         }
-        None => Ok(1),
+        None => {
+            if let Ok(p) = last_path() {
+                let _ = fs::remove_file(p);
+            }
+            Ok(1)
+        }
     }
 }
 
@@ -287,6 +362,18 @@ mod tests {
         assert_eq!(s(json!({"token": t, "type": "region", "output": "DP-1", "x": 0, "y": 0, "w": 0, "h": 5})), None);
         assert_eq!(s(json!({"token": t, "type": "cancel"})), None);
         assert_eq!(s(Value::Null), None);
+    }
+
+    #[test]
+    fn reuses_a_recent_choice_only_while_it_is_offered() {
+        let windows = parse_list(LIST);
+        let saved = json!({"at": 1_000, "answer": {"type": "window", "handle": 12, "remember": false}});
+        assert_eq!(reuse(&saved, 5_000, 15_000, "t", &windows).as_deref(), Some("[SELECTION]/window:12\n"));
+        assert!(reuse(&saved, 20_000, 15_000, "t", &windows).is_none(), "too old");
+        assert!(reuse(&saved, 500, 15_000, "t", &windows).is_none(), "clock went back");
+        assert!(reuse(&saved, 5_000, 15_000, "t", &[]).is_none(), "window gone");
+        let screen = json!({"at": 1_000, "answer": {"type": "screen", "output": "DP-1"}});
+        assert_eq!(reuse(&screen, 2_000, 15_000, "t", &[]).as_deref(), Some("[SELECTION]/screen:DP-1\n"));
     }
 
     #[test]
