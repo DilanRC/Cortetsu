@@ -111,6 +111,10 @@ Scope {
             return;
         const all = CortetsuShellState.allStates();
         if (CortetsuShellState.launcherOpenAnywhere()) {
+            if (state.launcher && OverlayPolicy.isPreview(state, "launcher")) {
+                OverlayPolicy.promotePreview(all, state, "launcher");
+                return;
+            }
             OverlayPolicy.close(all, "launcher");
             return;
         }
@@ -345,6 +349,7 @@ Scope {
             readonly property var screenState: CortetsuShellState.forScreen(modelData)
             readonly property var cortetsuState: screenState?.cortetsuState
             readonly property bool hubShown: hubRoot.shown
+            readonly property string keyboardFocusPolicyName: hubRoot.shown ? "on_demand" : "none"
             readonly property string activeAddress:
                 CortetsuHypr.activeToplevel?.lastIpcObject?.address ?? ""
             readonly property bool panelActive:
@@ -353,6 +358,15 @@ Scope {
                 || (screenState?.sidebar ?? false)
                 || (screenState?.session ?? false)
                 || (cortetsuState?.calendar ?? false)
+
+            // A bell click opens Sidebar while the focus grab whitelists this
+            // window. Keep Escape available from that keyboard target too.
+            Shortcut {
+                sequence: "Escape"
+                enabled: win.hubShown && (win.screenState?.sidebar ?? false)
+                onActivated: OverlayPolicy.closeOn(win.screenState, "sidebar")
+            }
+
             // Attached popouts live outside the screen-state flags, so the
             // exclusivity policy closes them from here when a full surface opens.
             readonly property bool fullSurfaceOpen: Exclusion.hasCompetingPanel(screenState)
@@ -662,6 +676,24 @@ Scope {
             function notificationsButtonContains(x: real, y: real): bool {
                 const r = notificationsButtonRect();
                 return x >= r.x && x < r.x + r.width && y >= r.y && y < r.y + r.height;
+            }
+
+            function launcherButtonRect(): rect {
+                const button = bottomHubView.launcherButton;
+                if (!visible || !hubRoot.shown || !button?.visible)
+                    return Qt.rect(0, 0, 0, 0);
+                const p = button.mapToItem(contentItem, 0, 0);
+                return Qt.rect(Math.round((modelData.width - width) / 2) + p.x,
+                    modelData.height - margins.bottom - height + p.y, button.width, button.height);
+            }
+
+            function launcherButtonContains(x: real, y: real): bool {
+                const r = launcherButtonRect();
+                return x >= r.x && x < r.x + r.width && y >= r.y && y < r.y + r.height;
+            }
+
+            function activateLauncher(): void {
+                hubRoot.toggleLauncherFor(win.modelData);
             }
 
             // What the bell does, also for a click that reached it through the scrim.

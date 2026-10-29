@@ -92,8 +92,33 @@ por sesión, valida la firma de Hyprland, publica metadatos `cortetsu.ipc` y no 
 `ipcv1` ofrece solo las operaciones del contrato y aplica límites de peer, frame y conexión. Los servicios con estado por usuario
 siguen fuera del coordinador.
 
-La CLI `cortetsu shell inspect` devuelve un snapshot de solo lectura con `schema_version: 1`; superficies y foco se calculan en
+La CLI `cortetsu shell inspect` devuelve un snapshot de solo lectura con `schema_version: 2`; superficies y foco se calculan en
 el shell de Quickshell. El inspector no crea un segundo canal de control.
+
+**Contrato de foco del shell:** `keyboard_owner.state` es `observed` solo cuando existe una señal única: un `HyprlandFocusGrab`
+activo, una ventana de capa activa (`QQuickWindow.active`) que pide teclado o un `Hyprland.focusedToplevel`. El grab es una
+propiedad compartida: Quickshell informa el propietario como `drawers.focus_grab` y `focus_grabs[].windows` enumera las
+ventanas permitidas (`drawers`, `bottom_hub`); el protocolo no expone cuál de esas ventanas recibió la última tecla. Si el shell pidió
+teclado pero ninguna señal confirma quién lo recibió, el estado es `requested_unobserved` o `ambiguous_requested`; si dos
+señales observadas compiten, es `ambiguous`; si ninguna fuente identifica al dueño, es `unobservable`. `candidates` enumera
+las políticas de teclado pedidas, no afirma que sean dueñas. `observed_candidates` enumera las señales que compiten cuando
+hay más de un propietario observado. Una superficie retenida solicita teclado de forma explícita; si Hyprland no confirma la ventana
+activa, el inspector conserva el estado como no observable. La fuente y la política observadas viajan en el mismo objeto.
+El fallback `toplevel` informa el monitor del cliente de Hyprland, no el monitor bajo el puntero. Sidebar atiende Escape tanto en
+drawers como en BottomHub, dado que cualquiera de los dos puede recibir teclado durante el grab.
+
+Cada superficie abierta incluye `activation_cause`: `explicit`, `hover_preview` o `drag_preview`. Una apertura explícita cierra
+otras superficies exclusivas antes de solicitar foco. Una previsualización conserva una superficie explícita de otro monitor,
+no solicita teclado y no puede competir con otra superficie exclusiva del mismo monitor. Una superficie retenida solicita
+`Exclusive` cuando su monitor tiene el foco; al enfocar otro monitor o mientras siga abierta una previsualización remota, cambia
+a `OnDemand`. Permanece en `OnDemand` hasta que la previsualización recibe la salida del puntero y se cierra; entonces restaura
+`Exclusive` si su monitor vuelve a tener el foco. Launcher, Dashboard y Session de previsualización se cierran cuando el puntero
+sale de su panel y zonas de activación durante 250 ms, o inmediatamente al salir del monitor. El botón Launcher de BottomHub
+promueve una previsualización a apertura explícita aunque la capa superpuesta reciba el clic. En esa transición el propietario
+observable puede pasar al toplevel enfocado. `cortetsu shell inspect`
+informa la causa de activación y el estado del dueño de teclado por separado. `focus_grabs[].cleared_at_epoch_ms` expone la última limpieza de un grab
+que coincidió con la sidebar abierta y permite comprobar si el BottomHub mantiene el grab al activar su campana. Esta es la
+versión 4 del snapshot.
 
 **R-04 — IMPLEMENTADO:** `CortetsuHyprEventPolicy.refreshPlan` deja que Quickshell procese `windowtitlev2` y `activewindowv2`
 en su modelo, sin pedir otro `j/clients` por sus aliases `windowtitle` y `activewindow`. Los refrescos se conservan para ventanas

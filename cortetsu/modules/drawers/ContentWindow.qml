@@ -7,6 +7,7 @@ import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Wayland
 import ".."
+import "../CortetsuOverlayPolicy.js" as SurfacePolicy
 import "../../components"
 import "../../components/containers"
 import "../../services"
@@ -25,6 +26,17 @@ StyledWindow {
     readonly property ScreenState screenState: CortetsuShellState.forScreen(screen)
 
     readonly property HyprlandMonitor monitor: Hypr.monitorFor(screen)
+    readonly property int keyboardFocusMode: {
+        if (panels.popouts.isDetached || panels.popouts.currentName === "wirelesspassword")
+            return WlrKeyboardFocus.Exclusive;
+        if (panels.popouts.hasCurrent || wantsFocusGrab
+                || (screenState?.cortetsuState?.requiresWindowKeyboardFocus
+                    && !(screenState?.launcher ?? false) && !(screenState?.session ?? false)))
+            return WlrKeyboardFocus.OnDemand;
+        return WlrKeyboardFocus.None;
+    }
+    readonly property string keyboardFocusPolicyName: keyboardFocusMode === WlrKeyboardFocus.Exclusive
+        ? "exclusive" : keyboardFocusMode === WlrKeyboardFocus.OnDemand ? "on_demand" : "none"
     readonly property bool hasSpecialWorkspace: (monitor?.lastIpcObject.specialWorkspace?.name.length ?? 0) > 0
     readonly property bool hasFullscreenOnNormalWs: monitor?.activeWorkspace?.toplevels.values.some(t => t.lastIpcObject.fullscreen > 1) ?? false
     readonly property bool hasFullscreen: {
@@ -65,9 +77,9 @@ StyledWindow {
         const state = screenState;
         if (!state)
             return;
-        state.launcher = false;
-        state.session = false;
-        state.dashboard = false;
+        SurfacePolicy.closeOn(state, "launcher");
+        SurfacePolicy.closeOn(state, "session");
+        SurfacePolicy.closeOn(state, "dashboard");
         state.cortetsuState?.closeRetainedOverlays();
         panels.popouts.close();
     }
@@ -95,12 +107,7 @@ StyledWindow {
     // to `none` (LayerSurface::onCommit -> refocusLastWindow), which closed the
     // sidebar when it opened in the same transition that closed a retained
     // surface (O-3).
-    WlrLayershell.keyboardFocus: (panels.popouts.isDetached || panels.popouts.currentName === "wirelesspassword")
-        ? WlrKeyboardFocus.Exclusive
-        : (panels.popouts.hasCurrent || wantsFocusGrab
-           || (screenState?.cortetsuState?.requiresWindowKeyboardFocus && !(screenState?.launcher ?? false) && !(screenState?.session ?? false)))
-            ? WlrKeyboardFocus.OnDemand
-            : WlrKeyboardFocus.None
+    WlrLayershell.keyboardFocus: keyboardFocusMode
 
     mask: screenState?.cortetsuState?.requiresFullInputMask ? null : (hasFullscreen ? emptyRegion : regions)
 
@@ -112,11 +119,11 @@ StyledWindow {
         sequence: "Escape"
         enabled: focusGrab.active || panels.popouts.hasCurrent
         onActivated: {
-            root.screenState.launcher = false;
-            root.screenState.session = false;
+            SurfacePolicy.closeOn(root.screenState, "launcher");
+            SurfacePolicy.closeOn(root.screenState, "session");
             root.screenState.sidebar = false;
             root.screenState.utilities = false;
-            root.screenState.dashboard = false;
+            SurfacePolicy.closeOn(root.screenState, "dashboard");
             root.screenState.cortetsuState?.closeRetainedOverlays();
             panels.popouts.close();
             bar.closeTray();
@@ -175,15 +182,22 @@ StyledWindow {
         // it open again.
         windows: [root, root.screenState?.cortetsuState?.bottomHub].filter(window => !!window)
         onCleared: {
-            root.screenState.launcher = false;
-            root.screenState.session = false;
+            SurfacePolicy.closeOn(root.screenState, "launcher");
+            SurfacePolicy.closeOn(root.screenState, "session");
             root.screenState.sidebar = false;
             root.screenState.utilities = false;
-            root.screenState.dashboard = false;
+            SurfacePolicy.closeOn(root.screenState, "dashboard");
             root.screenState.cortetsuState?.closeRetainedOverlays();
             panels.popouts.close();
             bar.closeTray();
         }
+    }
+
+    Binding {
+        target: root.screenState?.cortetsuState ?? null
+        property: "drawerWindow"
+        value: root
+        when: !!root.screenState?.cortetsuState
     }
 
     Binding {

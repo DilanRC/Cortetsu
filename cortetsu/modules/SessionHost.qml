@@ -9,6 +9,8 @@ import "."
 import "session" as Session
 import "../theme"
 import "CortetsuTypography.js" as CortetsuTypography
+import "CortetsuOverlayPolicy.js" as SurfacePolicy
+import "drawers"
 
 Scope {
     id: root
@@ -22,7 +24,9 @@ Scope {
             required property ShellScreen modelData
             readonly property var screenState: CortetsuShellState.forScreen(modelData)
             readonly property bool open: screenState?.session ?? false
-
+            readonly property bool preview: SurfacePolicy.isPreview(screenState, "session")
+            readonly property string keyboardFocusPolicyName: open
+                ? (preview ? "none" : "exclusive") : "none"
             screen: modelData
             name: "session"
             // Mapped only while open: an idle full-screen Overlay layer keeps a
@@ -30,7 +34,8 @@ Scope {
             visible: open
             WlrLayershell.exclusionMode: ExclusionMode.Ignore
             WlrLayershell.layer: WlrLayer.Overlay
-            WlrLayershell.keyboardFocus: open ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+            WlrLayershell.keyboardFocus: open && !preview
+                ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
             mask: open ? null : emptyRegion
             anchors.top: true
             anchors.bottom: true
@@ -90,7 +95,26 @@ Scope {
                 }
             }
 
-            Shortcut { sequence: "Escape"; enabled: window.open; onActivated: window.screenState.session = false }
+            HoverPreviewTracker {
+                hostWindow: window
+                screen: window.modelData
+                screenState: window.screenState
+                surface: "session"
+                panel: panel
+                previewTriggerContains: (x, y) => CortetsuShellState.componentsFor(window.modelData)
+                    ?.interactionWrapper?.previewTriggerContains("session", x, y) ?? false
+            }
+            Binding {
+                target: window.screenState?.cortetsuState ?? null
+                property: "sessionWindow"
+                value: window
+                when: !!window.screenState?.cortetsuState
+            }
+            Shortcut {
+                sequence: "Escape"
+                enabled: window.open
+                onActivated: SurfacePolicy.closeOn(window.screenState, "session")
+            }
         }
     }
 }

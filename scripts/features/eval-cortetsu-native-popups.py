@@ -37,6 +37,6 @@ content_window = (ROOT / "cortetsu/modules/drawers/ContentWindow.qml").read_text
 # An open popout keeps the drawer window keyboard-focusable. One binding owns
 # the mode: `focusable` writes the same Quickshell property, so it is not bound.
 assert "\n    focusable:" not in content_window
-assert ": (panels.popouts.hasCurrent || wantsFocusGrab\n" in content_window
-assert "? WlrKeyboardFocus.OnDemand" in content_window
+assert "if (panels.popouts.hasCurrent || wantsFocusGrab\n" in content_window
+assert "return WlrKeyboardFocus.OnDemand;" in content_window
 print("PASS: native popup eval covers network, audio and Bluetooth hierarchy and states")

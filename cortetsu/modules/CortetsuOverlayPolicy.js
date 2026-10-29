@@ -18,6 +18,12 @@ function legacyOf(state) {
     return state?.legacyState ?? state;
 }
 
+function sameState(left, right) {
+    const canonical = state => state?.cortetsuState?.legacyState
+        ?? state?.cortetsuState ?? state?.legacyState ?? state;
+    return canonical(left) === canonical(right);
+}
+
 function isOpen(state, flag) {
     return !!legacyOf(state)?.[flag];
 }
@@ -30,9 +36,16 @@ function openAnywhere(states, flag) {
 // keyboard of the whole seat, and a transient panel arms a focus grab that a
 // surface on another screen would clear. OSD and the bar are not exclusive and
 // stay as they are.
-function closeExclusiveEverywhere(states) {
-    for (const state of states ?? [])
-        Exclusion.closeOtherPanels(state);
+function closeExclusiveEverywhere(states, exceptTarget = null, exceptFlag = "") {
+    for (const state of states ?? []) {
+        if (!sameState(state, exceptTarget)) {
+            Exclusion.closeOtherPanels(state);
+            continue;
+        }
+        for (const flag of Surfaces.exclusive)
+            if (flag !== exceptFlag)
+                Exclusion.setFlag(state, flag, false);
+    }
 }
 
 // Opens `flag` on `target`. Opening an exclusive surface first closes every
@@ -41,16 +54,69 @@ function closeExclusiveEverywhere(states) {
 function open(states, target, flag) {
     if (!target || !Surfaces.isSettable(flag))
         return false;
+    target.cortetsuState?.setOpenCause(flag, "explicit");
     if (Surfaces.find(flag).exclusive)
-        closeExclusiveEverywhere(states);
+        closeExclusiveEverywhere(states, target, flag);
     return Exclusion.setFlag(target, flag, true);
+}
+
+// A hover or drag preview can coexist with an explicit surface on another
+// monitor (F1a O-4), but cannot compete with one on its own monitor. Preview
+// causes never request keyboard focus.
+function openPreview(states, target, flag, cause) {
+    if (!target || !Surfaces.isPreviewable(flag) || !["hover", "drag"].includes(cause))
+        return false;
+    const typed = target.cortetsuState;
+    if ((states ?? []).length > 0 && !states.includes(target))
+        return false;
+    const hasLocalExclusive = Surfaces.exclusive.some(name => name !== flag
+        && isOpen(target, name));
+    if (hasLocalExclusive || (isOpen(target, flag) && !typed?.isPreview(flag)))
+        return false;
+    const openCause = `${cause}_preview`;
+    if (isOpen(target, flag) && typed?.openCause(flag) === openCause)
+        return true;
+    typed?.setOpenCause(flag, openCause);
+    return Exclusion.setFlag(target, flag, true);
+}
+
+function isPreview(target, flag) {
+    return target?.cortetsuState?.isPreview(flag) === true;
+}
+
+// Keep an explicit layer from reverting to Exclusive before a preview on a
+// different monitor receives the pointer-leave event that closes it.
+function hasPreviewOnOtherScreen(states, target) {
+    return (states ?? []).some(state => !sameState(state, target)
+        && Surfaces.previewable.some(flag => isPreview(state, flag)));
+}
+
+// Promoting a preview uses the ordinary explicit policy, so the seat keeps a
+// single keyboard owner after the user chooses to interact with it.
+function promotePreview(states, target, flag) {
+    if (!isPreview(target, flag))
+        return false;
+    return open(states, target, flag);
+}
+
+function closeOn(target, flag) {
+    if (!target || !Surfaces.isSettable(flag))
+        return false;
+    target.cortetsuState?.setOpenCause(flag, "closed");
+    return Exclusion.setFlag(target, flag, false);
+}
+
+function closePreview(target, flag) {
+    if (!isPreview(target, flag))
+        return false;
+    return closeOn(target, flag);
 }
 
 function close(states, flag) {
     if (!Surfaces.isSettable(flag))
         return false;
     for (const state of states ?? [])
-        Exclusion.setFlag(state, flag, false);
+        closeOn(state, flag);
     return true;
 }
 
@@ -61,7 +127,9 @@ function toggleOn(states, target, flag) {
     if (!target || !Surfaces.isSettable(flag))
         return false;
     if (isOpen(target, flag)) {
-        Exclusion.setFlag(target, flag, false);
+        if (isPreview(target, flag))
+            return promotePreview(states, target, flag);
+        closeOn(target, flag);
         return false;
     }
     return open(states, target, flag);

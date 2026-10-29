@@ -19,16 +19,43 @@ QtObject {
     readonly property bool keyboards: !!legacyState.keyboards
 
     readonly property bool retainedOverlayOpen: Surfaces.anyOpen(legacyState, Surfaces.retained)
-    readonly property bool requiresOverlayLayer: Surfaces.anyOpen(legacyState, Surfaces.keyboardOwners)
+    readonly property bool requiresOverlayLayer: Surfaces.keyboardOwners.some(flag =>
+        !!legacyState[flag] && !isPreview(flag))
     readonly property bool requiresFullInputMask: retainedOverlayOpen
     readonly property bool requiresWindowKeyboardFocus: requiresOverlayLayer
 
     // This screen's Bottom Hub window, set by BottomHub. The retained-surfaces
     // scrim covers the hub and asks it whether a click fell on the bell.
     property var bottomHub: null
+    property var drawerWindow: null
+    property var launcherWindow: null
+    property var dashboardWindow: null
+    property var sessionWindow: null
+    property var retainedSurfacesWindow: null
     property bool focusGrabRequested: false
     property bool focusGrabActive: false
     property real fullscreenTransitionProgress: 0
+    property var openCauses: ({})
+
+    function openCause(flag: string): string {
+        return String(openCauses[flag] ?? "explicit");
+    }
+
+    function setOpenCause(flag: string, cause: string): bool {
+        if (!Surfaces.isSettable(flag))
+            return false;
+        const next = Object.assign({}, openCauses);
+        if (!cause || cause === "closed")
+            delete next[flag];
+        else
+            next[flag] = cause;
+        openCauses = next;
+        return true;
+    }
+
+    function isPreview(flag: string): bool {
+        return ["hover_preview", "drag_preview"].includes(openCause(flag));
+    }
 
     function setFlag(flag: string, value: bool): bool {
         if (Surfaces.isRetained(flag))
@@ -56,5 +83,23 @@ QtObject {
             return false;
         legacyState[flag] = value;
         return true;
+    }
+
+    // Compatibility callers still write previewable legacy flags directly.
+    // Clear their cause on close so a later direct reopen is explicit.
+    property var legacyCauseObserver: Connections {
+        target: legacyState
+        function onLauncherChanged(): void {
+            if (!legacyState.launcher)
+                setOpenCause("launcher", "closed");
+        }
+        function onSessionChanged(): void {
+            if (!legacyState.session)
+                setOpenCause("session", "closed");
+        }
+        function onDashboardChanged(): void {
+            if (!legacyState.dashboard)
+                setOpenCause("dashboard", "closed");
+        }
     }
 }

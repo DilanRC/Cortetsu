@@ -70,6 +70,14 @@ TestCase {
             verify(screenA[flag] !== undefined, `ScreenState fixture lacks ${flag}`);
     }
 
+    function test_previewable_surfaces_come_from_the_registry() {
+        const previewable = Surfaces.previewable ?? [];
+        compare(previewable.slice().sort(), ["dashboard", "launcher", "session"]);
+        for (const flag of Surfaces.names)
+            verify(typeof Surfaces.isPreviewable === "function"
+                && Surfaces.isPreviewable(flag) === previewable.includes(flag), flag);
+    }
+
     function test_registry_is_frozen() {
         verify(Object.isFrozen(Surfaces.surfaces));
         verify(Object.isFrozen(Surfaces.retained));
@@ -160,7 +168,8 @@ TestCase {
         compare(spy.writes, Surfaces.exclusive.map(flag => flag + "=false"));
         spy.writes = [];
         CortetsuOverlayPolicy.open([{ cortetsuState: spy }], { cortetsuState: spy }, "hardware");
-        compare(spy.writes, Surfaces.exclusive.map(flag => flag + "=false").concat(["hardware=true"]));
+        compare(spy.writes, Surfaces.exclusive.filter(flag => flag !== "hardware")
+            .map(flag => flag + "=false").concat(["hardware=true"]));
     }
 
     function test_open_exclusive_is_idempotent() {
@@ -174,6 +183,66 @@ TestCase {
         verify(!CortetsuOverlayPolicy.open([screenA], screenA, "bar"));
         verify(!CortetsuOverlayPolicy.open([screenA], screenA, "bogus"));
         compare(openFlags(screenA).sort(), ["calendar", "osd"]);
+    }
+
+    function test_hover_preview_preserves_an_exclusive_surface_on_another_monitor() {
+        const states = [screenA, screenB];
+        verify(CortetsuOverlayPolicy.open(states, screenA, "hardware"));
+        verify(CortetsuOverlayPolicy.openPreview(states, screenB, "launcher", "hover"));
+        verify(screenA.hardware);
+        verify(screenB.launcher);
+        compare(screenB.cortetsuState.openCause("launcher"), "hover_preview");
+        verify(screenB.cortetsuState.isPreview("launcher"));
+        verify(!screenB.cortetsuState.requiresWindowKeyboardFocus);
+    }
+
+    function test_drag_preview_cannot_compete_locally_and_promotes_explicitly() {
+        const states = [screenA, screenB];
+        verify(CortetsuOverlayPolicy.open(states, screenB, "hardware"));
+        verify(!CortetsuOverlayPolicy.openPreview(states, screenB, "session", "drag"));
+        verify(!screenB.session);
+        verify(screenB.hardware);
+
+        CortetsuOverlayPolicy.closeOn(screenB, "hardware");
+        verify(CortetsuOverlayPolicy.openPreview(states, screenB, "session", "drag"));
+        verify(!screenB.cortetsuState.requiresWindowKeyboardFocus);
+        verify(CortetsuOverlayPolicy.promotePreview(states, screenB, "session"));
+        compare(screenB.cortetsuState.openCause("session"), "explicit");
+        verify(!screenB.cortetsuState.isPreview("session"));
+        verify(screenB.cortetsuState.requiresWindowKeyboardFocus);
+    }
+
+    function test_preview_close_does_not_close_an_explicit_surface() {
+        verify(CortetsuOverlayPolicy.open([screenA], screenA, "dashboard"));
+        verify(!CortetsuOverlayPolicy.closePreview(screenA, "dashboard"));
+        verify(screenA.dashboard);
+        compare(screenA.cortetsuState.openCause("dashboard"), "explicit");
+    }
+
+    function test_legacy_close_turns_a_later_preview_reopen_into_explicit_open() {
+        verify(CortetsuOverlayPolicy.openPreview([screenA, screenB], screenB, "launcher", "hover"));
+        verify(screenB.cortetsuState.isPreview("launcher"));
+
+        // Legacy callers such as `showall` and launcher actions still write flags.
+        screenB.launcher = false;
+        verify(screenB.cortetsuState.openCauses.launcher === undefined);
+        screenB.launcher = true;
+
+        compare(screenB.cortetsuState.openCause("launcher"), "explicit");
+        verify(!screenB.cortetsuState.isPreview("launcher"));
+        verify(screenB.cortetsuState.requiresWindowKeyboardFocus);
+    }
+
+    function test_close_preview_is_scoped_to_its_screen() {
+        verify(CortetsuOverlayPolicy.openPreview([screenA, screenB], screenA, "launcher", "hover"));
+        verify(screenA.launcher);
+        verify(CortetsuOverlayPolicy.isPreview(screenA, "launcher"));
+        verify(CortetsuOverlayPolicy.hasPreviewOnOtherScreen([screenA, screenB], screenB));
+        verify(CortetsuOverlayPolicy.closePreview(screenA, "launcher"));
+        verify(!screenA.launcher);
+        verify(!CortetsuOverlayPolicy.isPreview(screenA, "launcher"));
+        verify(!CortetsuOverlayPolicy.hasPreviewOnOtherScreen([screenA, screenB], screenB));
+        verify(!screenB.launcher);
     }
 
     function test_close_and_reopen_cycles_leave_nothing_retained() {

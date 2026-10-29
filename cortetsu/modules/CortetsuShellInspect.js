@@ -1,5 +1,76 @@
 .pragma library
 
+// Resolve only from direct active-window signals. A focused toplevel is not
+// treated as the keyboard owner while a layer surface explicitly requests
+// exclusive keyboard focus; Quickshell may not expose that layer's active
+// state, so that case remains requested_unobserved.
+function resolveKeyboardOwner(input) {
+    input = input ?? {};
+    const focusGrabs = Array.isArray(input.focusGrabs) ? input.focusGrabs : [];
+    const hosts = Array.isArray(input.hosts) ? input.hosts : [];
+    const candidates = hosts.filter(host => String(host.policy ?? "none") !== "none");
+    const candidateNames = candidates.map(host =>
+        `${host.monitor}:${host.surface}:${host.policy}`);
+    const observed = candidates.filter(host => host.active === true
+        && !((host.surface === "drawers" || host.surface === "bottom_hub")
+            && focusGrabs.some(grab => grab.monitor === host.monitor))
+    ).map(host => ({
+        monitor: host.monitor,
+        surface: host.surface,
+        policy: host.policy,
+        source: "QQuickWindow.active"
+    }));
+    for (const grab of focusGrabs.filter(entry => entry.active === true))
+        observed.push({ monitor: grab.monitor, surface: "drawers.focus_grab",
+            policy: "focus_grab", source: "HyprlandFocusGrab.active" });
+
+    if (observed.length === 1) {
+        const owner = observed[0];
+        return { state: "observed", observable: true, surface: owner.surface,
+            monitor: owner.monitor, source: owner.source, policy: owner.policy,
+            candidates: candidateNames, observed_candidates: [owner] };
+    }
+    if (observed.length > 1)
+        return { state: "ambiguous", observable: false, surface: null,
+            monitor: null, source: null, policy: null,
+            candidates: candidateNames, observed_candidates: observed };
+
+    const exclusive = candidates.filter(host => host.policy === "exclusive");
+    if (exclusive.length === 1) {
+        const owner = exclusive[0];
+        return { state: "requested_unobserved", observable: false,
+            surface: owner.surface, monitor: owner.monitor,
+            source: "WlrLayershell.keyboardFocus", policy: owner.policy,
+            candidates: candidateNames, observed_candidates: [] };
+    }
+    if (exclusive.length > 1)
+        return { state: "ambiguous_requested", observable: false,
+            surface: null, monitor: null, source: "WlrLayershell.keyboardFocus",
+            policy: null, candidates: candidateNames, observed_candidates: [] };
+
+    if (input.focusedToplevel)
+        return { state: "observed", observable: true, surface: "toplevel",
+            monitor: input.focusedToplevel.monitor ?? null,
+            source: "Hyprland.focusedToplevel", policy: "toplevel",
+            candidates: candidateNames, observed_candidates: [{
+                monitor: input.focusedToplevel.monitor ?? null,
+                surface: "toplevel", policy: "toplevel", source: "Hyprland.focusedToplevel"
+            }] };
+    if (candidates.length === 1) {
+        const owner = candidates[0];
+        return { state: "requested_unobserved", observable: false,
+            surface: owner.surface, monitor: owner.monitor,
+            source: "WlrLayershell.keyboardFocus", policy: owner.policy,
+            candidates: candidateNames, observed_candidates: [] };
+    }
+    if (candidates.length > 1)
+        return { state: "ambiguous_requested", observable: false,
+            surface: null, monitor: null, source: "WlrLayershell.keyboardFocus",
+            policy: null, candidates: candidateNames, observed_candidates: [] };
+    return { state: "unobservable", observable: false, surface: null,
+        monitor: null, source: null, policy: null, candidates: [], observed_candidates: [] };
+}
+
 function buildSnapshot(input) {
     input = input ?? {};
     const screens = Array.isArray(input.screens) ? input.screens : [];
@@ -21,7 +92,9 @@ function buildSnapshot(input) {
                     : surface.kind === "chrome" ? "bar" : "drawers",
                 open: surface.open === true,
                 exclusive: surface.exclusive === true,
-                owns_keyboard: surface.ownsKeyboard === true
+                owns_keyboard: surface.ownsKeyboard === true,
+                activation_cause: surface.open === true
+                    ? String(surface.openCause ?? "explicit") : null
             };
             surfaces.push(entry);
             if (entry.open) {
@@ -37,7 +110,11 @@ function buildSnapshot(input) {
                 requested: screen.focusGrab.requested === true,
                 active: screen.focusGrab.active === true,
                 observable: screen.focusGrab.observable !== false,
-                surface: screen.focusGrab.surface ?? "drawers"
+                surface: screen.focusGrab.surface ?? "drawers",
+                windows: Array.isArray(screen.focusGrab.windows)
+                    ? screen.focusGrab.windows.map(name => String(name)) : [],
+                cleared_at_epoch_ms: Number.isFinite(screen.focusGrab.clearedAt)
+                    ? screen.focusGrab.clearedAt : 0
             });
         }
         if (screen.bottomHub) {
@@ -90,7 +167,7 @@ function buildSnapshot(input) {
     const keyboardOwner = focus.keyboardOwner ?? {};
 
     return {
-        schema_version: 1,
+        schema_version: 2,
         observed_at: input.observedAt ?? null,
         monitors: Array.isArray(input.monitors) ? input.monitors : [],
         surfaces,
@@ -100,11 +177,15 @@ function buildSnapshot(input) {
             workspace: focus.workspace ?? null,
             window: focus.window ?? null,
             keyboard_owner: {
+                state: String(keyboardOwner.state ?? (keyboardOwner.observable === true ? "observed" : "unobservable")),
                 observable: keyboardOwner.observable === true,
                 surface: keyboardOwner.surface ?? null,
                 monitor: keyboardOwner.monitor ?? null,
                 source: keyboardOwner.source ?? null,
-                candidates: Array.isArray(keyboardOwner.candidates) ? keyboardOwner.candidates : []
+                policy: keyboardOwner.policy ?? null,
+                candidates: Array.isArray(keyboardOwner.candidates) ? keyboardOwner.candidates : [],
+                observed_candidates: Array.isArray(keyboardOwner.observed_candidates)
+                    ? keyboardOwner.observed_candidates : []
             }
         },
         focus_grabs: focusGrabs,

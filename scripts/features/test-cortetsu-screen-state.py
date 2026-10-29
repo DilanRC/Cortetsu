@@ -49,7 +49,7 @@ assert "for (const flag of Surfaces.names)" in screen_component
 for signature in ("function open(states, target, flag)", "function close(states, flag)",
                   "function toggle(states, target, flag)", "function toggleOn(states, target, flag)",
                   "function toggleGuarded(states, target, flag, fullscreen)",
-                  "function closeExclusiveEverywhere(states)", "function isRetainedFlag(flag)"):
+                  "function closeExclusiveEverywhere(states, exceptTarget = null, exceptFlag = \"\")", "function isRetainedFlag(flag)"):
     assert signature in policy, signature
 assert "function openExclusive" not in policy and "function closeOtherRetained" not in policy
 assert "function allStates(): var" in shell_state

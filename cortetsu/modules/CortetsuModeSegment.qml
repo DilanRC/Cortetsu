@@ -13,6 +13,7 @@ Item {
 
     signal launcherRequested()
     signal workspaceRequested(int workspaceId)
+    readonly property Item launcherButtonItem: launcherButton
 
     implicitWidth: content.implicitWidth + CortetsuDesign.spacingCompact
     implicitHeight: 50

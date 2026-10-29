@@ -84,8 +84,8 @@ assert "closeFlags(state, Surfaces.exclusive)" in policy
 # exclusive group on every screen before opening (both orders, both screens).
 transitions = (MODULES / "CortetsuOverlayPolicy.js").read_text(encoding="utf-8")
 shared = (MODULES / "RetainedSurfaceController.qml").read_text(encoding="utf-8")
-assert "for (const state of states ?? [])\n        Exclusion.closeOtherPanels(state);" in transitions
-assert "if (Surfaces.find(flag).exclusive)\n        closeExclusiveEverywhere(states);" in transitions
+assert "if (!sameState(state, exceptTarget)) {\n            Exclusion.closeOtherPanels(state);" in transitions
+assert "closeExclusiveEverywhere(states, target, flag);" in transitions
 for controller_file in ("ClipboardController.qml", "HardwareController.qml", "DisplayController.qml", "WallpaperController.qml"):
     assert "RetainedSurfaceController {" in (MODULES / controller_file).read_text(encoding="utf-8"), controller_file
 assert 'OverlayPolicy.open(CortetsuShellState.allStates(), state, "overview")' in (MODULES / "OverviewController.qml").read_text(encoding="utf-8")

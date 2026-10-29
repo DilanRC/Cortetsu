@@ -5,6 +5,7 @@ import QtQuick.Controls
 import ".."
 import "../../components"
 import "../../theme"
+import "../CortetsuOverlayPolicy.js" as SurfacePolicy
 import "../CortetsuSearchBar.qml"
 import "services"
 
@@ -19,6 +20,8 @@ Item {
     readonly property int padding: CortetsuDesign.spacingStandard
     readonly property int rounding: CortetsuDesign.radiusLarge
     function focusSearch(): void {
+        if (SurfacePolicy.isPreview(root.screenState, "launcher"))
+            return;
         if (root.screenState?.launcher && CortetsuShellState.launcherQuery) {
             search.text = CortetsuShellState.launcherQuery;
             CortetsuShellState.launcherQuery = "";
@@ -33,7 +36,7 @@ Item {
             return;
         if (target === CortetsuWallpapers.actualCurrent) {
             pendingWallpaperPath = "";
-            root.screenState.launcher = false;
+            SurfacePolicy.closeOn(root.screenState, "launcher");
             return;
         }
         if (CortetsuWallpapers.apply(target))
@@ -57,6 +60,10 @@ Item {
     CortetsuSearchBar {
         id: search
         objectName: "launcherSearch"
+        onActiveFocusChanged: {
+            if (activeFocus && SurfacePolicy.isPreview(root.screenState, "launcher"))
+                SurfacePolicy.promotePreview(CortetsuShellState.allStates(), root.screenState, "launcher");
+        }
         anchors.top: parent.top
         anchors.left: parent.left
         anchors.right: parent.right
@@ -77,7 +84,7 @@ Item {
                         currentItem.modelData.onClicked(list.currentList);
                 } else {
                     Apps.launch(currentItem.modelData);
-                    root.screenState.launcher = false;
+                    SurfacePolicy.closeOn(root.screenState, "launcher");
                 }
             }
         }
@@ -149,7 +156,7 @@ Item {
 
             function onSessionChanged(): void {
                 if (!root.screenState.session)
-                    search.forceActiveFocus();
+                    root.focusSearch();
             }
 
             target: root.screenState

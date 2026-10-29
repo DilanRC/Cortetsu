@@ -15,6 +15,7 @@ import "calendar" as Calendar
 import "keyboards" as Keyboards
 import "../theme"
 import "ScrimHit.js" as ScrimHit
+import "CortetsuOverlayPolicy.js" as OverlayPolicy
 
 // Retained surfaces have their own overlay window. Keeping them out of the
 // shared drawer window gives every full surface a stable layer, focus policy,
@@ -28,6 +29,13 @@ Scope {
             required property ShellScreen modelData
             readonly property var screenState: CortetsuShellState.forScreen(modelData)
             readonly property bool surfaceOpen: screenState?.cortetsuState?.retainedOverlayOpen ?? false
+            readonly property bool keyboardOwnerMonitorFocused: surfaceOpen
+                && (CortetsuHypr.monitorFor(modelData) === CortetsuHypr.focusedMonitor)
+            readonly property bool remotePreviewOpen: OverlayPolicy.hasPreviewOnOtherScreen(
+                CortetsuShellState.allStates(), screenState)
+            readonly property bool exclusiveFocusRequested: keyboardOwnerMonitorFocused && !remotePreviewOpen
+            readonly property string keyboardFocusPolicyName: !surfaceOpen ? "none"
+                : exclusiveFocusRequested ? "exclusive" : "on_demand"
 
             screen: modelData
             name: "retained-surfaces"
@@ -37,7 +45,12 @@ Scope {
             visible: surfaceOpen || surfaces.children.some(child => child.visible)
             WlrLayershell.exclusionMode: ExclusionMode.Ignore
             WlrLayershell.layer: WlrLayer.Overlay
-            WlrLayershell.keyboardFocus: surfaceOpen ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+            // Keep explicit keyboard ownership on the focused monitor. When
+            // focus moves to another monitor, OnDemand lets its hover previews
+            // receive pointer input; it stays OnDemand until that preview sees
+            // the pointer leave and closes.
+            WlrLayershell.keyboardFocus: !surfaceOpen ? WlrKeyboardFocus.None
+                : exclusiveFocusRequested ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.OnDemand
             mask: surfaceOpen ? null : emptyRegion
             anchors.top: true
             anchors.bottom: true
@@ -120,6 +133,12 @@ Scope {
                 sequence: "Escape"
                 enabled: window.surfaceOpen
                 onActivated: window.screenState?.cortetsuState?.closeRetainedOverlays()
+            }
+            Binding {
+                target: window.screenState?.cortetsuState ?? null
+                property: "retainedSurfacesWindow"
+                value: window
+                when: !!window.screenState?.cortetsuState
             }
         }
     }

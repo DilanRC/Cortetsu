@@ -74,6 +74,7 @@ Item {
     signal sessionRequested()
 
     readonly property Item notificationsButton: statusSegment.notificationsButton
+    readonly property Item launcherButton: leftSegment.launcherButtonItem
 
     readonly property real rightOccupiedWidth:
         (statusSegment.visible ? statusSegment.width : 0)

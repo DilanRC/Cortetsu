@@ -9,6 +9,8 @@ import "../services"
 import "."
 import "dashboard"
 import "../theme"
+import "CortetsuOverlayPolicy.js" as SurfacePolicy
+import "drawers"
 
 Scope {
     Variants {
@@ -20,6 +22,7 @@ Scope {
             readonly property bool dashboardEnabled: CortetsuConfig.dashboard.enabled
                 && CortetsuConfig.dashboard.showDashboard
             readonly property bool open: window.dashboardEnabled && (screenState?.dashboard ?? false)
+            readonly property string keyboardFocusPolicyName: open ? "exclusive" : "none"
             screen: modelData
             name: "dashboard"
             // Mapped only while open: an idle full-screen Overlay layer keeps a
@@ -49,6 +52,12 @@ Scope {
                 sequence: "Escape"
                 enabled: window.open
                 onActivated: layer.close()
+            }
+            Binding {
+                target: window.screenState?.cortetsuState ?? null
+                property: "dashboardWindow"
+                value: window
+                when: !!window.screenState?.cortetsuState
             }
         }
     }

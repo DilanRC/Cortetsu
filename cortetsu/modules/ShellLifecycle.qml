@@ -33,13 +33,17 @@ Scope {
                     kind: surface.kind,
                     exclusive: surface.exclusive,
                     ownsKeyboard: surface.ownsKeyboard,
-                    open: state?.[surface.name] === true
+                    open: state?.[surface.name] === true,
+                    openCause: state?.[surface.name] === true
+                        ? typed?.openCause(surface.name) ?? "explicit" : null
                 })),
                 focusGrab: {
                     requested: typed?.focusGrabRequested === true,
                     active: typed?.focusGrabActive === true,
                     observable: true,
-                    surface: "drawers"
+                    clearedAt: Number(state?.sidebarGrabClearedAt ?? 0),
+                    surface: "drawers",
+                    windows: typed?.bottomHub ? ["drawers", "bottom_hub"] : ["drawers"]
                 },
                 bottomHub: {
                     shown: typed?.bottomHub?.hubShown === true,
@@ -51,8 +55,22 @@ Scope {
                     closing: popup?.closing === true,
                     detached: popup?.detachedMode ?? "",
                     activeFocus: typed?.bottomHub?.active === true,
-                    keyboardFocusPolicy: typed?.bottomHub?.hubShown === true ? "on_demand" : "none"
+                    keyboardFocusPolicy: typed?.bottomHub?.keyboardFocusPolicyName ?? "none"
                 },
+                keyboardHosts: [
+                    { surface: "drawers", window: typed?.drawerWindow,
+                        policy: typed?.drawerWindow?.keyboardFocusPolicyName ?? "none" },
+                    { surface: "launcher", window: typed?.launcherWindow,
+                        policy: typed?.launcherWindow?.keyboardFocusPolicyName ?? "none" },
+                    { surface: "dashboard", window: typed?.dashboardWindow,
+                        policy: typed?.dashboardWindow?.keyboardFocusPolicyName ?? "none" },
+                    { surface: "session", window: typed?.sessionWindow,
+                        policy: typed?.sessionWindow?.keyboardFocusPolicyName ?? "none" },
+                    { surface: "retained_surfaces", window: typed?.retainedSurfacesWindow,
+                        policy: typed?.retainedSurfacesWindow?.keyboardFocusPolicyName ?? "none" },
+                    { surface: "bottom_hub", window: typed?.bottomHub,
+                        policy: typed?.bottomHub?.keyboardFocusPolicyName ?? "none" }
+                ],
                 transitions,
                 focusGrabActive: typed?.focusGrabActive === true
             };
@@ -79,6 +97,9 @@ Scope {
             ?? workspaceToplevels.find(toplevel => Number(toplevel.lastIpcObject?.focusHistoryID) === 0)
             ?? null;
         const window = activeWindow?.lastIpcObject ?? null;
+        const windowMonitor = window && Number.isFinite(Number(window.monitor))
+            ? screens.find(entry => Number(entry.monitor?.id) === Number(window.monitor))?.name ?? null
+            : null;
         const fullscreenWindows = (CortetsuHypr.focusedWorkspace?.toplevels?.values ?? [])
             .filter(toplevel => Number(toplevel.lastIpcObject?.fullscreen ?? 0) > 1)
             .map(toplevel => ({
@@ -86,20 +107,23 @@ Scope {
                 class: String(toplevel.lastIpcObject?.class ?? "")
             }));
         const activeFocusGrabs = screens.filter(entry => entry.focusGrabActive);
-        const activeKeyboardSurfaces = [];
+        const keyboardCandidates = [];
         for (const entry of screens) {
-            for (const surface of entry.surfaces) {
-                if (surface.open && surface.ownsKeyboard)
-                    activeKeyboardSurfaces.push({ monitor: entry.name, surface: surface.name });
+            for (const host of entry.keyboardHosts) {
+                if (host.policy !== "none")
+                    keyboardCandidates.push({
+                        monitor: entry.name,
+                        surface: host.surface,
+                        policy: host.policy,
+                        active: host.window?.active === true
+                    });
             }
         }
-        const keyboardOwner = activeFocusGrabs.length === 1
-            ? { observable: true, surface: "drawers.focus_grab", monitor: activeFocusGrabs[0].name,
-                source: "HyprlandFocusGrab.active", candidates: [] }
-            : { observable: false, surface: null, monitor: null, source: null,
-                candidates: activeFocusGrabs.length > 1
-                    ? activeFocusGrabs.map(entry => `${entry.name}:drawers.focus_grab`)
-                    : activeKeyboardSurfaces.map(entry => `${entry.monitor}:${entry.surface}`) };
+        const keyboardOwner = ShellInspect.resolveKeyboardOwner({
+            focusGrabs: activeFocusGrabs.map(entry => ({ monitor: entry.name, active: true })),
+            hosts: keyboardCandidates,
+            focusedToplevel: window ? { monitor: windowMonitor } : null
+        });
 
         return {
             observedAt: new Date().toISOString(),
@@ -112,7 +136,8 @@ Scope {
                     : null,
                 window: window ? {
                     address: String(window.address ?? ""),
-                    class: String(window.class ?? "")
+                    class: String(window.class ?? ""),
+                    monitor: windowMonitor
                 } : null,
                 keyboardOwner
             },

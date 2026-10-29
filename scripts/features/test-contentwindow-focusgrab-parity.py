@@ -146,7 +146,8 @@ def main() -> None:
     assert "active: root.wantsFocusGrab" in text
     # O-3: while the grab is wanted the window stays OnDemand, so it never
     # switches to `none` under a live grab (Hyprland then clears the grab).
-    keyboard = block_between(text, "WlrLayershell.keyboardFocus:", "    mask:")
+    keyboard = block_between(text, "readonly property int keyboardFocusMode:", "readonly property string keyboardFocusPolicyName")
+    assert "WlrLayershell.keyboardFocus: keyboardFocusMode" in text
     assert "wantsFocusGrab" in keyboard and "WlrKeyboardFocus.OnDemand" in keyboard, keyboard
     assert "\n    focusable:" not in text, "a second binding would write the same keyboard mode"
     assert "root.screenState?.cortetsuState?.overview ? CortetsuDesign.scrimOpacity" in text

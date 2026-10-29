@@ -29,8 +29,11 @@ retained = registry.group("retained")
 # 1. The table itself: unique names, known kinds, groups derived from it.
 assert len(names) == len(set(names)) == len(surfaces) == 15, names
 assert {entry["kind"] for entry in surfaces} == {"retained", "transient", "chrome"}
+base_fields = {"name", "kind", "exclusive", "ownsKeyboard", "fullscreenGuard"}
 for entry in surfaces:
-    assert set(entry) == {"name", "kind", "exclusive", "ownsKeyboard", "fullscreenGuard"}, entry
+    assert set(entry) in (base_fields, base_fields | {"previewable"}), entry
+    if "previewable" in entry:
+        assert entry["previewable"] is True, entry
     if entry["kind"] == "retained":
         assert entry["exclusive"] and entry["ownsKeyboard"] and not entry["fullscreenGuard"], entry
     if entry["kind"] == "chrome":
@@ -38,6 +41,7 @@ for entry in surfaces:
     # Every shortcut-driven panel is guarded the same way by its shortcut and by IPC.
     if entry["kind"] == "transient":
         assert entry["fullscreenGuard"], entry
+assert {entry["name"] for entry in surfaces if entry.get("previewable")} == {"launcher", "session", "dashboard"}
 # Parity with F0: OSD coexists, the bar is never part of the policy.
 osd = next(entry for entry in surfaces if entry["name"] == "osd")
 assert osd["kind"] == "transient" and not osd["exclusive"], osd
@@ -72,7 +76,16 @@ for relative, marker in consumers.items():
     assert marker in text, f"{relative} must import the registry"
     found = literal_list.findall(text)
     assert not found, f"{relative} keeps a parallel surface list: {found}"
-    if relative.endswith((".js", "ScreenState.qml")):
+    if relative == "cortetsu/modules/CortetsuScreenState.qml":
+        previewable = set(registry.group("previewable"))
+        synchronized_handlers = {
+            handler[0].lower() + handler[1:]
+            for handler in re.findall(r"function on([A-Z][A-Za-z0-9]*)Changed\(", text)
+        }
+        synchronized_causes = re.findall(r'setOpenCause\("([A-Za-z]+)", "closed"\)', text)
+        assert synchronized_handlers == previewable, synchronized_handlers
+        assert sorted(synchronized_causes) == sorted(previewable), synchronized_causes
+    elif relative.endswith((".js", "ScreenState.qml")):
         for flag in names:
             assert f'"{flag}"' not in text, f"{relative} spells {flag} itself"
 
@@ -84,6 +97,22 @@ allowed = {
     ("cortetsu/modules/drawers/ContentWindow.qml", '["dashboard", "launcher", "session", "sidebar"]'),
     # Config migration of the launcher/sidebar sections.
     ("cortetsu/modules/CortetsuConfig.qml", '["launcher", "sidebar"]'),
+    # This is a candidate list of live window hosts for keyboard ownership,
+    # not another inventory of open surface flags.
+    ("cortetsu/modules/ShellLifecycle.qml", """[
+                    { surface: "drawers", window: typed?.drawerWindow,
+                        policy: typed?.drawerWindow?.keyboardFocusPolicyName ?? "none" },
+                    { surface: "launcher", window: typed?.launcherWindow,
+                        policy: typed?.launcherWindow?.keyboardFocusPolicyName ?? "none" },
+                    { surface: "dashboard", window: typed?.dashboardWindow,
+                        policy: typed?.dashboardWindow?.keyboardFocusPolicyName ?? "none" },
+                    { surface: "session", window: typed?.sessionWindow,
+                        policy: typed?.sessionWindow?.keyboardFocusPolicyName ?? "none" },
+                    { surface: "retained_surfaces", window: typed?.retainedSurfacesWindow,
+                        policy: typed?.retainedSurfacesWindow?.keyboardFocusPolicyName ?? "none" },
+                    { surface: "bottom_hub", window: typed?.bottomHub,
+                        policy: typed?.bottomHub?.keyboardFocusPolicyName ?? "none" }
+                ]"""),
 }
 for path in sorted(list(MODULES.rglob("*.qml")) + list(MODULES.rglob("*.js")) + list((ROOT / "cortetsu/components").rglob("*.qml"))):
     relative = path.relative_to(ROOT).as_posix()

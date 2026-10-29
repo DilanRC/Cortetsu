@@ -17,15 +17,17 @@
 //               and the overlay layer (CortetsuScreenState derived flags).
 // fullscreenGuard  shortcuts and `drawers toggle` do not open it while the
 //                  focused workspace is fullscreen (closing still works).
+// previewable      may open as a hover or drag preview without taking focus
+//                  or closing an exclusive surface on another monitor.
 //
 // Opening, closing and toggling go through CortetsuOverlayPolicy.open, close
 // and toggle for every caller.
 //
 // The order is the closing order used by OverlayPolicy.closeOtherPanels.
 const surfaces = Object.freeze([
-    { name: "launcher", kind: "transient", exclusive: true, ownsKeyboard: true, fullscreenGuard: true },
-    { name: "session", kind: "transient", exclusive: true, ownsKeyboard: true, fullscreenGuard: true },
-    { name: "dashboard", kind: "transient", exclusive: true, ownsKeyboard: false, fullscreenGuard: true },
+    { name: "launcher", kind: "transient", exclusive: true, ownsKeyboard: true, fullscreenGuard: true, previewable: true },
+    { name: "session", kind: "transient", exclusive: true, ownsKeyboard: true, fullscreenGuard: true, previewable: true },
+    { name: "dashboard", kind: "transient", exclusive: true, ownsKeyboard: false, fullscreenGuard: true, previewable: true },
     { name: "utilities", kind: "transient", exclusive: true, ownsKeyboard: false, fullscreenGuard: true },
     { name: "settings", kind: "transient", exclusive: true, ownsKeyboard: false, fullscreenGuard: true },
     { name: "sidebar", kind: "transient", exclusive: true, ownsKeyboard: false, fullscreenGuard: true },
@@ -53,6 +55,7 @@ const exclusive = namesWhere(entry => entry.exclusive);
 const competingWithWallpaper = namesWhere(entry => entry.exclusive && entry.name !== "wallpaperManager");
 const keyboardOwners = namesWhere(entry => entry.ownsKeyboard);
 const fullscreenGuarded = namesWhere(entry => entry.fullscreenGuard);
+const previewable = namesWhere(entry => entry.previewable);
 
 function find(name) {
     return surfaces.find(entry => entry.name === name) ?? null;
@@ -74,6 +77,10 @@ function isSettable(name) {
 
 function isFullscreenGuarded(name) {
     return find(name)?.fullscreenGuard === true;
+}
+
+function isPreviewable(name) {
+    return find(name)?.previewable === true;
 }
 
 function anyOpen(state, flags) {

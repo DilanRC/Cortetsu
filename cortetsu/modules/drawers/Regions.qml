@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import "../bar" as Bar
+import "HoverEdges.js" as HoverEdges
 import ".."
 
 Region {
@@ -16,9 +17,9 @@ Region {
     readonly property real clampedThickness: CortetsuConfig.borderThickness
 
     x: bar.clampedWidth + win.dragMaskPadding
-    y: clampedThickness + win.dragMaskPadding
+    y: HoverEdges.dragRegionInset(clampedThickness, win.dragMaskPadding)
     width: win.width - bar.clampedWidth - clampedThickness - win.dragMaskPadding * 2
-    height: win.height - clampedThickness * 2 - win.dragMaskPadding * 2
+    height: HoverEdges.dragRegionHeight(win.height, clampedThickness, win.dragMaskPadding)
     intersection: Intersection.Xor
 
     R {

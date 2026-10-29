@@ -2,6 +2,8 @@ import QtQuick
 import QtQuick.Controls
 import Quickshell
 import ".."
+import "../CortetsuOverlayPolicy.js" as SurfacePolicy
+import "HoverEdges.js" as HoverEdges
 import "../../components"
 import "../../components/controls"
 import "../bar" as Bar
@@ -55,12 +57,12 @@ CustomMouseArea {
 
     function inTopPanel(panel: Item, x: real, y: real): bool {
         const panelHeight = panel.height * (1 - (panel.offsetScale ?? 0)); // qmllint disable missing-property
-        return y < Math.max(CortetsuOverlayConfig.border.minThickness, CortetsuOverlayConfig.border.thickness + panelHeight) && withinPanelWidth(panel, x, y);
+        return HoverEdges.containsTop(y, CortetsuOverlayConfig.border.minThickness, CortetsuOverlayConfig.border.thickness, panelHeight) && withinPanelWidth(panel, x, y);
     }
 
     function inBottomPanel(panel: Item, x: real, y: real, isCorner = false): bool {
         const panelHeight = panel.height * (1 - (panel.offsetScale ?? 0)); // qmllint disable missing-property
-        return y > height - Math.max(CortetsuOverlayConfig.border.minThickness, CortetsuOverlayConfig.border.thickness + panelHeight) - (isCorner ? CortetsuOverlayConfig.border.rounding : 0) && withinPanelWidth(panel, x, y);
+        return HoverEdges.containsBottom(y, height, CortetsuOverlayConfig.border.minThickness, CortetsuOverlayConfig.border.thickness, panelHeight, isCorner ? CortetsuOverlayConfig.border.rounding : 0) && withinPanelWidth(panel, x, y);
     }
 
     function insidePanel(panel: Item, x: real, y: real): bool {
@@ -68,6 +70,16 @@ CustomMouseArea {
         const panelY = root.borderThickness + panel.y;
         return x >= panelX && x <= panelX + panel.width
             && y >= panelY && y <= panelY + panel.height;
+    }
+
+    function previewTriggerContains(surface: string, x: real, y: real): bool {
+        if (surface === "launcher")
+            return inBottomPanel(panels.launcher, x, y);
+        if (surface === "dashboard")
+            return inTopPanel(panels.dashboard, x, y);
+        if (surface === "session")
+            return inRightPanel(panels.sessionWrapper, x, y);
+        return false;
     }
 
     function onWheel(event: WheelEvent): void {
@@ -118,13 +130,13 @@ CustomMouseArea {
     }
 
     onPositionChanged: event => {
+        const x = event.x;
+        const y = event.y;
         if (popouts.isDetached)
             return;
         if (CortetsuShellState.screenshotActive)
             return;
 
-        const x = event.x;
-        const y = event.y;
         const dragX = x - dragStart.x;
         const dragY = y - dragStart.y;
 
@@ -168,9 +180,9 @@ CustomMouseArea {
             // Show/hide session on drag
             if (pressed && inRightPanel(panels.sessionWrapper, dragStart.x, dragStart.y) && withinPanelHeight(panels.sessionWrapper, x, y)) {
                 if (dragX < -CortetsuOverlayConfig.session.dragThreshold)
-                    screenState.session = true;
+                    SurfacePolicy.openPreview(CortetsuShellState.allStates(), screenState, "session", "drag");
                 else if (dragX > CortetsuOverlayConfig.session.dragThreshold)
-                    screenState.session = false;
+                    SurfacePolicy.closePreview(screenState, "session");
 
             }
         } else {
@@ -191,22 +203,24 @@ CustomMouseArea {
             // Show/hide session on drag
             if (pressed && outOfSidebar && inRightPanel(panels.sessionWrapper, dragStart.x, dragStart.y) && withinPanelHeight(panels.sessionWrapper, x, y)) {
                 if (dragX < -CortetsuOverlayConfig.session.dragThreshold)
-                    screenState.session = true;
+                    SurfacePolicy.openPreview(CortetsuShellState.allStates(), screenState, "session", "drag");
                 else if (dragX > CortetsuOverlayConfig.session.dragThreshold)
-                    screenState.session = false;
+                    SurfacePolicy.closePreview(screenState, "session");
             }
 
         }
 
         // Show launcher on hover, or show/hide on drag if hover is disabled
         if (CortetsuOverlayConfig.launcher.showOnHover) {
-            if (!screenState.launcher && inBottomPanel(panels.launcher, x, y))
-                screenState.launcher = true;
+            if (!screenState.launcher && inBottomPanel(panels.launcher, x, y)) {
+                SurfacePolicy.closePreview(screenState, "dashboard");
+                SurfacePolicy.openPreview(CortetsuShellState.allStates(), screenState, "launcher", "hover");
+            }
         } else if (pressed && inBottomPanel(panels.launcher, dragStart.x, dragStart.y) && withinPanelWidth(panels.launcher, x, y)) {
             if (dragY < -CortetsuOverlayConfig.launcher.dragThreshold)
-                screenState.launcher = true;
+                SurfacePolicy.openPreview(CortetsuShellState.allStates(), screenState, "launcher", "drag");
             else if (dragY > CortetsuOverlayConfig.launcher.dragThreshold)
-                screenState.launcher = false;
+                SurfacePolicy.closePreview(screenState, "launcher");
         }
 
         // Show dashboard on hover
@@ -225,9 +239,9 @@ CustomMouseArea {
         // Show/hide dashboard on drag (for touchscreen devices)
         if (pressed && inTopPanel(panels.dashboard, dragStart.x, dragStart.y) && withinPanelWidth(panels.dashboard, x, y)) {
             if (dragY > CortetsuOverlayConfig.dashboard.dragThreshold)
-                screenState.dashboard = true;
+                SurfacePolicy.openPreview(CortetsuShellState.allStates(), screenState, "dashboard", "drag");
             else if (dragY < -CortetsuOverlayConfig.dashboard.dragThreshold)
-                screenState.dashboard = false;
+                SurfacePolicy.closePreview(screenState, "dashboard");
         }
 
         // Show popouts on hover
