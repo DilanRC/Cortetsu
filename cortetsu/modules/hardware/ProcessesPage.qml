@@ -254,7 +254,7 @@ Item {
                     readonly property bool selected: Number(processRow.modelData?.pid) === root.selectedPid
 
                     width: processList.width
-                    height: 32
+                    height: 36
 
                     CortetsuSurface {
                         anchors.fill: parent

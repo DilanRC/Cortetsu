@@ -19,6 +19,7 @@ Se fusiona en `main` al cerrar cada bloque; no se instala en la sesión real.
 | 3.3 Notificaciones, OSD y toasts | Hecho en código; pendiente revisión en la sesión real | `test-cortetsu-notice-cards-runtime.py`, lint `--strict` a 0 |
 | 3.4 Dashboard | Hecho en código; pendiente revisión en la sesión real | `test-cortetsu-dashboard-dismiss-runtime.py`, lint `--strict` a 0 |
 | 3.5 Ajustes | Hecho en código; pendiente revisión en la sesión real | `test-cortetsu-settings-runtime.py`, regla `type-field-font`, lint `--strict` a 0 |
+| 3.6 Hardware Center | Hecho en código; pendiente revisión en la sesión real | `test-cortetsu-hardware-home-runtime.py`, `tests/qml/hardware`, lint `--strict` a 0 |
 
 ## Línea base del linter (fase 0)
 
@@ -174,3 +175,15 @@ borra con los restos de `base/`.
   pantallas, polkit y secretos salían en monoespaciada (sin `font.family`).
   Ahora usan Rubik, y la regla nueva `type-field-font` lo exige en todo el
   árbol (0 hallazgos).
+
+## 3.6 Hardware Center
+
+La superficie ya venía del plan de elevación (veredicto, estados, unidades).
+Lint 4 → 0:
+
+- Marco con `radiusSurface` (antes 24 literal).
+- Filas de procesos de 32 → 36 px (objetivo de clic).
+- El giro de 900 ms del indicador de perfil queda permitido con motivo: es el
+  periodo de un bucle, no una transición.
+- Energía y Consumo tenían el mismo rayo; ahora `battery_charging_full` y
+  `electric_meter`. Icono de cabecera en `colorIndicator`.

@@ -73,7 +73,8 @@ Item {
             loops: Animation.Infinite
             from: 0
             to: 360
-            duration: 900
+            // design-lint: allow token-literal-duration: one turn of a spinner, not a transition
+            duration: 900 // design-lint: allow motion-duration: a loop period, not a transition
             onRunningChanged: if (!running) icon.rotation = 0
         }
     }

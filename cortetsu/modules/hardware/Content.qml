@@ -25,9 +25,9 @@ FocusScope {
         { label: qsTr("Procesos"), icon: "account_tree" },
         { label: qsTr("Sensores"), icon: "device_thermostat" },
         { label: qsTr("E/S"), icon: "lan" },
-        { label: qsTr("Energía"), icon: "bolt" },
+        { label: qsTr("Energía"), icon: "battery_charging_full" },
         { label: qsTr("Automatización"), icon: "auto_mode" },
-        { label: qsTr("Consumo"), icon: "electric_bolt" },
+        { label: qsTr("Consumo"), icon: "electric_meter" },
         { label: qsTr("Arranque"), icon: "play_circle" },
         { label: qsTr("Sistema"), icon: "info" }
     ]
@@ -132,7 +132,7 @@ FocusScope {
         height: Math.min(820, parent.height - 72)
         x: Math.round((parent.width - width) / 2)
         y: Math.round((parent.height - height) / 2)
-        radius: 24
+        radius: CortetsuDesign.radiusSurface
         color: Qt.alpha(CortetsuDesign.colorTetsu, 0.97)
         border.width: 1
         border.color: Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.22)
@@ -152,7 +152,7 @@ FocusScope {
                 CortetsuIcon {
                     anchors.verticalCenter: parent.verticalCenter
                     text: "monitor_heart"
-                    color: CortetsuDesign.colorPrimary
+                    color: CortetsuDesign.colorIndicator
                     iconSize: CortetsuTypography.iconLargePx
                 }
 

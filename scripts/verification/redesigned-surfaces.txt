@@ -27,3 +27,6 @@ cortetsu/modules/dashboard
 cortetsu/modules/settings
 cortetsu/modules/SettingsHost.qml
 cortetsu/modules/CortetsuSearchBar.qml
+# 3.6 Hardware Center
+cortetsu/modules/hardware
+cortetsu/modules/HardwareController.qml
