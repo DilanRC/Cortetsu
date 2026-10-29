@@ -299,6 +299,7 @@ version = "0.2.0"
 dependencies = [
  "aes",
  "base64",
+ "blocking",
  "chrono",
  "fs2",
  "hmac",

@@ -80,6 +80,18 @@
     "manageable": false
   },
   {
+    "id": "cortetsu:agents",
+    "name": "Wi-Fi and Bluetooth agents",
+    "source": "modules/SecretPromptHost.qml",
+    "qmlId": "agents",
+    "startupPhase": "always-on",
+    "condition": "Se inicia con el shell y muere con él; pide contraseñas Wi-Fi a NetworkManager y códigos de emparejamiento a BlueZ",
+    "command": [
+      "cortetsu-agents"
+    ],
+    "manageable": false
+  },
+  {
     "id": "cortetsu:spectrum",
     "name": "Cava visualizer",
     "source": "services/CortetsuSpectrum.qml",

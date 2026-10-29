@@ -33,6 +33,7 @@ ShellRoot {
     SecretPromptHost {
         id: host
         dialogEnabled: false
+        agentsEnabled: false
     }
 
     SocketServer {
@@ -73,17 +74,17 @@ ShellRoot {
                     return;
                 if (host.prompt.message !== "Desbloquear llavero" || host.waiting)
                     return fixture.fail(`prompt=${JSON.stringify(host.prompt)} waiting=${host.waiting}`);
-                host.answer(true, "mal", false);
+                host.answer(true, "mal", false, "ana");
                 if (!host.waiting)
                     return fixture.fail("waiting not set after answering");
-                host.answer(true, "otra", false);
+                host.answer(true, "otra", false, "");
                 fixture.step = 3;
                 break;
             case 3: {
                 if (fixture.replies.length < 1)
                     return;
                 const r = fixture.replies[0];
-                if (r.token !== "tok-1" || r.reply !== "yes" || r.password !== "mal" || r.choice !== false)
+                if (r.token !== "tok-1" || r.reply !== "yes" || r.password !== "mal" || r.choice !== false || r.identity !== "ana")
                     return fixture.fail(`reply=${JSON.stringify(r)}`);
                 fixture.send("tok-1", { warning: "La contraseña no es correcta" });
                 fixture.step = 4;
@@ -94,10 +95,10 @@ ShellRoot {
                     return;
                 if (fixture.replies.length !== 1)
                     return fixture.fail("a second answer was sent while waiting");
-                host.answer(true, "otra-vez", false);
+                host.answer(true, "otra-vez", false, "");
                 // Escape while the client checks: no answer now, a refusal
                 // of the next prompt instead, which never shows.
-                host.answer(false, "", false);
+                host.answer(false, "", false, "");
                 if (!host.cancelPending || fixture.replies.length !== 1)
                     return fixture.fail(`cancel while waiting pending=${host.cancelPending}`);
                 fixture.send("tok-1", { warning: "Otra vez" });

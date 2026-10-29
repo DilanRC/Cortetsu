@@ -1,4 +1,4 @@
-# Diálogos de llavero y GPG
+# Diálogos de contraseña: llavero, GPG, Wi‑Fi y Bluetooth
 
 Cortetsu abre su propio diálogo cuando gnome-keyring pide la contraseña de un
 llavero (desbloquear o crear uno) y cuando GPG pide una frase de contraseña.
@@ -89,6 +89,79 @@ comprobar el shell.
 
 El desbloqueo del llavero al iniciar sesión no usa ningún diálogo: lo hace
 `pam_gnome_keyring` (`/etc/pam.d/sddm`) con la contraseña de inicio de sesión.
+
+## Wi‑Fi y Bluetooth
+
+`cortetsu-agents` (`cortetsu/desktop-runtime-rs/src/agents.rs`) es el agente
+de secretos de NetworkManager y el agente `org.bluez.Agent1` de BlueZ. Antes
+no había ninguno en la sesión: una red que pedía contraseña nueva o un
+dispositivo que pedía PIN fallaban sin diálogo. Usa el mismo diálogo y el
+mismo socket que `cortetsu-prompter` (`src/shellprompt.rs`).
+
+- Lo arranca el shell (`SecretPromptHost.qml`, entrada `cortetsu:agents` del
+  inventario de arranque) y lo reinicia a los 5 s si termina. Muere con el
+  shell (`PR_SET_PDEATHSIG`). Un candado en
+  `/run/user/<uid>/cortetsu-agents.lock` (no `$XDG_RUNTIME_DIR`, para que
+  una sesión anidada tampoco abra otro) impide que haya dos: el segundo
+  espera a que el primero termine.
+- Se registra en el bus del sistema con
+  `AgentManager.RegisterWithCapabilities("org.cortetsu.agents")` y con
+  `AgentManager1.RegisterAgent(…, "KeyboardDisplay")` + `RequestDefaultAgent`.
+  Si NetworkManager o BlueZ se reinician, vuelve a registrarse al ver el
+  nuevo dueño del nombre.
+
+### NetworkManager
+
+`GetSecrets` solo abre un diálogo con `ALLOW_INTERACTION`; sin esa marca
+responde `NoSecrets` y NetworkManager prueba el siguiente agente.
+
+| Seguridad | Qué pide |
+|---|---|
+| WPA/WPA2 personal (`wpa-psk`) | Contraseña, 8–64 caracteres |
+| WPA3 (`sae`) | Contraseña, sin límite de longitud (SAE admite cualquiera) |
+| WEP (`none`) | La clave del índice activo |
+| 802.1X (PEAP, TTLS…) | Identidad (rellenada si el perfil la tiene) y contraseña |
+| 802.1X TLS | Contraseña de la clave privada |
+
+Con `REQUEST_NEW` (la contraseña guardada falló) el diálogo muestra el aviso
+«La contraseña guardada no fue aceptada. Escribe la actual.». `CancelGetSecrets` cierra el diálogo y
+Cancelar responde `UserCanceled`. El agente no guarda nada: `SaveSecrets` y
+`DeleteSecrets` no hacen nada, y NetworkManager guarda el secreto según las
+marcas del perfil. VPN y otros secretos no se piden (`NoSecrets`).
+
+El diálogo de contraseña de Ajustes y del BottomHub sigue siendo el camino
+normal para conectarse; el agente cubre lo que NetworkManager pide por su
+cuenta: una contraseña que cambió, redes ocultas y 802.1X. Si el diálogo
+tarda más que el plazo de 35 s de la operación de conexión, la UI informa del
+plazo aunque NetworkManager siga esperando la respuesta del diálogo.
+
+### Bluetooth
+
+| Petición de BlueZ | Diálogo |
+|---|---|
+| `RequestConfirmation` | Muestra el código de 6 cifras: Emparejar o Cancelar |
+| `RequestPinCode` / `RequestPasskey` | Campo para el PIN (1–16) o la clave numérica (hasta 6 cifras) |
+| `DisplayPinCode` / `DisplayPasskey` | Muestra el código que hay que teclear en el dispositivo; solo Cancelar |
+| `RequestAuthorization` | Pregunta si se empareja el dispositivo |
+| `AuthorizeService` | Pregunta si el dispositivo usa el servicio (audio, HID…), con «Confiar siempre» |
+
+Cancelar responde `org.bluez.Error.Canceled` (o `Rejected` al rechazar). Un
+diálogo de «teclea este código» se cierra cuando el dispositivo queda
+emparejado, a los 120 s o con `Cancel` de BlueZ; si lo cierra el usuario, el
+agente llama a `Device1.CancelPairing`. «Confiar siempre» pone `Trusted` en el
+dispositivo, y BlueZ no vuelve a preguntar por sus servicios.
+
+### Verificación
+
+- `cargo test --test agents`: un `dbus-daemon` privado hace de bus del
+  sistema con NetworkManager, BlueZ y un dispositivo falsos, y un `qs` falso
+  responde a los diálogos. Cubre contraseña Wi‑Fi, petición sin interacción,
+  `CancelGetSecrets`, cada petición de BlueZ, `Cancel` con un diálogo abierto,
+  la confianza, el registro tras reiniciar NetworkManager/BlueZ y el candado.
+- `qmltestrunner -input cortetsu/tests/qml/prompt`: código grande, sin botón
+  Continuar en los de mostrar, identidad, longitud mínima y solo cifras.
+- Emparejar un dispositivo físico y conectarse a una red real se comprueban a
+  mano: el agente no se prueba contra el NetworkManager y el BlueZ del sistema.
 
 ## Instalación
 

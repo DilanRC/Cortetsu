@@ -5,21 +5,29 @@ import "../../components"
 import "../../theme"
 import "../CortetsuTypography.js" as CortetsuTypography
 
-// One gcr prompt: a keyring unlock or creation from gnome-keyring, or a GPG
-// passphrase from pinentry-gnome3. `prompt` is the request line from
-// cortetsu-prompter (desktop-runtime-rs/src/prompter.rs); `waiting` is true
-// between an answer and the client's next prompt or its close.
+// One password or confirmation request. cortetsu-prompter
+// (desktop-runtime-rs/src/prompter.rs) sends keyring unlocks and GPG
+// passphrases; cortetsu-agents (src/agents.rs) sends Wi-Fi passwords,
+// WPA-Enterprise logins and Bluetooth pairing codes. `prompt` is the request
+// line; `waiting` is true between an answer and the client's next prompt or
+// its close. A "display" request only shows a code until it is closed.
 CortetsuSurface {
     id: root
     required property var prompt
     property bool waiting: false
-    signal answered(bool accepted, string password, bool choice)
+    signal answered(bool accepted, string password, bool choice, string identity)
 
     readonly property bool asksPassword: prompt?.kind === "password"
+    readonly property bool isDisplay: prompt?.kind === "display"
+    readonly property bool asksIdentity: asksPassword && (prompt?.identityLabel ?? "").length > 0
     readonly property bool isNew: asksPassword && !!prompt?.passwordNew
+    readonly property int minLength: asksPassword ? (prompt?.minLength ?? 0) : 0
+    readonly property bool tooShort: password.text.length > 0 && password.text.length < minLength
     readonly property bool mismatch: isNew && confirmField.text.length > 0 && confirmField.text !== password.text
-    readonly property bool canContinue: !waiting
+    readonly property bool canContinue: !waiting && !isDisplay
         && (!asksPassword || isNew || password.text.length > 0)
+        && !tooShort
+        && !(asksIdentity && identityField.text.trim().length === 0)
         && !(isNew && confirmField.text !== password.text)
     property bool choice: !!prompt?.choiceChosen
 
@@ -44,18 +52,23 @@ CortetsuSurface {
         if (!root.canContinue)
             return;
         const secret = root.asksPassword ? password.text : "";
+        const identity = root.asksIdentity ? identityField.text.trim() : "";
         root.clear();
-        root.answered(true, secret, root.choice);
+        root.answered(true, secret, root.choice, identity);
     }
 
     function cancel(): void {
         root.clear();
-        root.answered(false, "", root.choice);
+        root.answered(false, "", root.choice, "");
     }
 
     function refocus(): void {
-        if (root.asksPassword)
+        if (root.asksIdentity && identityField.text.length === 0)
+            identityField.forceActiveFocus();
+        else if (root.asksPassword)
             password.forceActiveFocus();
+        else if (root.isDisplay)
+            cancelButton.forceActiveFocus();
         else
             continueButton.forceActiveFocus();
     }
@@ -65,6 +78,7 @@ CortetsuSurface {
     onPromptChanged: {
         root.clear();
         root.choice = !!prompt?.choiceChosen;
+        identityField.text = prompt?.identity ?? "";
         Qt.callLater(root.refocus);
     }
     onWaitingChanged: if (!waiting) Qt.callLater(root.refocus)
@@ -92,7 +106,7 @@ CortetsuSurface {
             Layout.fillWidth: true
             spacing: CortetsuDesign.spacingStandard
             CortetsuIcon {
-                text: root.asksPassword ? "key" : "help"
+                text: root.prompt?.icon || (root.asksPassword ? "key" : "help")
                 color: CortetsuDesign.colorPrimary
             }
             CortetsuText {
@@ -127,14 +141,58 @@ CortetsuSurface {
             wrapMode: Text.WordWrap
         }
 
+        // A pairing code to compare or to type on the other device.
+        CortetsuText {
+            objectName: "code"
+            Layout.fillWidth: true
+            visible: text.length > 0
+            text: root.prompt?.code ?? ""
+            horizontalAlignment: Text.AlignHCenter
+            font.features: { "tnum": 1 }
+            font.letterSpacing: 4
+            textSize: CortetsuTypography.displaySmallPx
+            color: CortetsuDesign.colorOnSurface
+            Accessible.name: qsTr("Código %1").arg(text.split("").join(" "))
+        }
+
+        TextField {
+            id: identityField
+            objectName: "identity"
+            Layout.fillWidth: true
+            visible: root.asksIdentity
+            implicitHeight: CortetsuDesign.controlHeight
+            placeholderText: root.prompt?.identityLabel ?? ""
+            enabled: !root.waiting
+            color: CortetsuDesign.colorOnSurface
+            placeholderTextColor: CortetsuDesign.colorOnSurfaceVariant
+            Accessible.name: placeholderText
+            background: CortetsuSurface {
+                anchors.fill: parent
+                radiusValue: CortetsuDesign.radiusSmall
+                baseColor: CortetsuDesign.colorSurfaceGlassStrong
+                outlined: true
+            }
+            Keys.onReturnPressed: password.forceActiveFocus()
+            Keys.onEnterPressed: password.forceActiveFocus()
+        }
+
+        RegularExpressionValidator {
+            id: digitsValidator
+            regularExpression: /[0-9]*/
+        }
+
         TextField {
             id: password
             objectName: "password"
             Layout.fillWidth: true
             visible: root.asksPassword
             implicitHeight: CortetsuDesign.controlHeight
-            placeholderText: root.isNew ? qsTr("Contraseña nueva") : qsTr("Contraseña")
-            echoMode: TextInput.Password
+            placeholderText: root.isNew ? qsTr("Contraseña nueva") : (root.prompt?.passwordLabel || qsTr("Contraseña"))
+            // A Bluetooth PIN or passkey is read off a screen, not a secret to hide.
+            echoMode: root.prompt?.reveal ? TextInput.Normal : TextInput.Password
+            maximumLength: root.prompt?.maxLength || 32767
+            validator: root.prompt?.digits ? digitsValidator : null
+            inputMethodHints: root.prompt?.digits ? Qt.ImhDigitsOnly : Qt.ImhSensitiveData | Qt.ImhNoPredictiveText
             enabled: !root.waiting
             focus: true
             color: CortetsuDesign.colorOnSurface
@@ -175,10 +233,11 @@ CortetsuSurface {
         CortetsuText {
             objectName: "feedback"
             Layout.fillWidth: true
-            readonly property bool isError: !root.waiting && (root.mismatch || !!root.prompt?.warning)
+            readonly property bool isError: !root.waiting && !root.tooShort && (root.mismatch || !!root.prompt?.warning)
             visible: text.length > 0
             text: root.waiting ? qsTr("Comprobando…")
                 : root.mismatch ? qsTr("Las contraseñas no coinciden.")
+                : root.tooShort ? qsTr("Al menos %1 caracteres.").arg(root.minLength)
                 : (root.prompt?.warning ?? "")
             textSize: CortetsuDesign.labelSmallPx
             color: isError ? CortetsuDesign.colorVermillion : CortetsuDesign.colorOnSurfaceVariant
@@ -210,6 +269,7 @@ CortetsuSurface {
             Layout.fillWidth: true
             Item { Layout.fillWidth: true }
             CortetsuButton {
+                id: cancelButton
                 objectName: "cancel"
                 compact: true
                 label: root.label(root.prompt?.cancelLabel ?? "", qsTr("Cancelar"))
@@ -218,6 +278,7 @@ CortetsuSurface {
             CortetsuButton {
                 id: continueButton
                 objectName: "continue"
+                visible: !root.isDisplay
                 compact: true
                 active: true
                 label: root.label(root.prompt?.continueLabel ?? "", qsTr("Continuar"))

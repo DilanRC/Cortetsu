@@ -9,12 +9,13 @@ import "../theme"
 import "prompt" as Prompt
 import "."
 
-// Keyring and GPG password dialogs. cortetsu-prompter
-// (desktop-runtime-rs/src/prompter.rs) opens a private socket per client and
-// calls `qs ipc call secretprompt request <socket> <token>`. This scope
-// connects, shows each prompt line it reads and writes one answer line back.
-// The helper closes the socket when the client is done, which closes the
-// dialog. Passwords only cross that socket, never `qs ipc`.
+// Password and confirmation dialogs for native helpers: cortetsu-prompter
+// (keyring and GPG, desktop-runtime-rs/src/prompter.rs) and cortetsu-agents
+// (Wi-Fi and Bluetooth, src/agents.rs). A helper opens a private socket per
+// dialog and calls `qs ipc call secretprompt request <socket> <token>`. This
+// scope connects, shows each prompt line it reads and writes one answer line
+// back. The helper closes the socket when its client is done, which closes
+// the dialog. Passwords only cross that socket, never `qs ipc`.
 Scope {
     id: root
 
@@ -29,6 +30,8 @@ Scope {
     property var requestScreen: null
     // Fixtures turn the window off and drive the protocol only.
     property bool dialogEnabled: true
+    // Fixtures also leave the system's Wi-Fi and Bluetooth agents alone.
+    property bool agentsEnabled: true
 
     function activeScreen(): var {
         const monitor = CortetsuHypr.focusedMonitor;
@@ -68,7 +71,7 @@ Scope {
             root.cancelPending = false;
             root.prompt = data;
             root.waiting = false;
-            root.answer(false, "", false);
+            root.answer(false, "", false, "");
             return;
         }
         if (!root.prompt)
@@ -77,7 +80,7 @@ Scope {
         root.prompt = data;
     }
 
-    function answer(accepted: bool, password: string, choice: bool): void {
+    function answer(accepted: bool, password: string, choice: bool, identity: string): void {
         if (!root.prompt)
             return;
         if (root.waiting) {
@@ -86,7 +89,7 @@ Scope {
             return;
         }
         root.waiting = true;
-        socket.write(JSON.stringify({ token: root.token, reply: accepted ? "yes" : "no", password, choice }) + "\n");
+        socket.write(JSON.stringify({ token: root.token, reply: accepted ? "yes" : "no", password, choice, identity }) + "\n");
         socket.flush();
     }
 
@@ -149,9 +152,32 @@ Scope {
                 prompt: root.prompt
                 waiting: root.waiting
                 focus: true
-                onAnswered: (accepted, password, choice) => root.answer(accepted, password, choice)
+                onAnswered: (accepted, password, choice, identity) => root.answer(accepted, password, choice, identity)
             }
         }
+    }
+
+    // NetworkManager's secret agent and BlueZ's pairing agent. The helper
+    // dies with the shell; if it stops on its own (a crash, or the system bus
+    // restarting), it is started again after a pause.
+    // startup inventory: cortetsu:agents
+    Process {
+        id: agents
+        command: [`${Quickshell.env("HOME")}/.local/bin/cortetsu-agents`]
+        running: root.agentsEnabled
+        stderr: SplitParser {
+            onRead: line => console.info(line)
+        }
+        onExited: (code, status) => {
+            if (root.agentsEnabled)
+                agentsRestart.restart();
+        }
+    }
+
+    Timer {
+        id: agentsRestart
+        interval: 5000
+        onTriggered: agents.running = root.agentsEnabled
     }
 
     IpcHandler {

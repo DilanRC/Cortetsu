@@ -13,27 +13,23 @@
 //! D-Bus activates the helper. If no shell answers then, it becomes
 //! gcr-prompter before taking the name, so a prompt never depends on the
 //! shell being up. It exits after a few idle seconds, as gcr-prompter does.
-use crate::{common::Result, sxaes::Exchange};
+use crate::{
+    common::Result,
+    shellprompt::{ShellLink, qs_ipc},
+    sxaes::Exchange,
+};
 use serde_json::{Value, json};
 use std::{
     collections::{HashMap, VecDeque},
-    env, fs,
-    io::{BufRead, BufReader, ErrorKind, Write},
-    net::Shutdown,
-    os::unix::{
-        fs::{DirBuilderExt, PermissionsExt},
-        net::{UnixListener, UnixStream},
-        process::CommandExt,
-    },
-    path::PathBuf,
+    env,
+    os::unix::process::CommandExt,
     process::Command,
     sync::{
         Arc, Mutex,
-        atomic::{AtomicU64, Ordering},
         mpsc::{self, RecvTimeoutError, Sender},
     },
     thread,
-    time::{Duration, Instant},
+    time::Duration,
 };
 use zbus::{
     blocking::{Connection, connection::Builder, fdo::DBusProxy},
@@ -173,126 +169,10 @@ impl Prompter {
 
 // --- shell link ---------------------------------------------------------
 
-// Link ids start at 1; `Worker::answer(0, None)` is the cancel sent when no
-// dialog could be opened at all.
-static LINKS: AtomicU64 = AtomicU64::new(1);
-
-fn shell_path() -> PathBuf {
-    env::var_os("CORTETSU_SHELL_PATH")
-        .map(PathBuf::from)
-        .unwrap_or_else(|| crate::common::config().join("quickshell/cortetsu/current"))
-}
-
-/// Runs `qs ipc call secretprompt <args>` and returns its stdout, or None when
-/// no shell answers within `limit`, so a wedged shell never holds a prompt.
-/// `qs` exits 0 even for a target the shell lacks ("Target not found."), so
-/// callers check the output, not only the exit code.
-fn qs_ipc(args: &[&std::ffi::OsStr], limit: Duration) -> Option<String> {
-    let qs = env::var_os("CORTETSU_QS_BIN").unwrap_or_else(|| "qs".into());
-    let mut command = Command::new(qs);
-    command
-        .arg("-p")
-        .arg(shell_path())
-        .args(["ipc", "call", "secretprompt"])
-        .args(args);
-    let out = crate::common::run(&mut command, None, limit).ok()?;
-    out.status
-        .success()
-        .then(|| String::from_utf8_lossy(&out.stdout).trim().to_owned())
-}
-
-fn socket_dir() -> Result<PathBuf> {
-    let runtime = env::var_os("XDG_RUNTIME_DIR")
-        .filter(|s| !s.is_empty())
-        .ok_or("XDG_RUNTIME_DIR is not set")?;
-    let dir = PathBuf::from(runtime).join("cortetsu");
-    fs::DirBuilder::new()
-        .recursive(true)
-        .mode(0o700)
-        .create(&dir)?;
-    fs::set_permissions(&dir, fs::Permissions::from_mode(0o700))?;
-    Ok(dir)
-}
-
-/// One shell dialog. Dropping it closes the socket, which closes the dialog.
-struct ShellLink {
-    id: u64,
-    token: String,
-    stream: UnixStream,
-}
-
-impl Drop for ShellLink {
-    fn drop(&mut self) {
-        let _ = self.stream.shutdown(Shutdown::Both);
-    }
-}
-
-fn accept(listener: &UnixListener, deadline: Instant) -> Result<UnixStream> {
-    listener.set_nonblocking(true)?;
-    loop {
-        match listener.accept() {
-            Ok((stream, _)) => {
-                stream.set_nonblocking(false)?;
-                return Ok(stream);
-            }
-            Err(e) if e.kind() == ErrorKind::WouldBlock && Instant::now() < deadline => {
-                thread::sleep(Duration::from_millis(20));
-            }
-            Err(e) if e.kind() == ErrorKind::WouldBlock => {
-                return Err("the shell did not connect".into());
-            }
-            Err(e) => return Err(e.into()),
-        }
-    }
-}
-
-impl ShellLink {
-    fn open(events: Sender<Event>) -> Result<Self> {
-        let token: String = crate::sxaes::random(16)?
-            .iter()
-            .map(|b| format!("{b:02x}"))
-            .collect();
-        let path = socket_dir()?.join(format!(
-            "prompter-{}-{}.sock",
-            std::process::id(),
-            &token[..8]
-        ));
-        let _ = fs::remove_file(&path);
-        let listener = UnixListener::bind(&path)?;
-        fs::set_permissions(&path, fs::Permissions::from_mode(0o600))?;
-        // `request` returns nothing; a shell that lacks it fails the accept.
-        let asked = qs_ipc(
-            &["request".as_ref(), path.as_os_str(), token.as_ref()],
-            Duration::from_secs(5),
-        );
-        let stream = if asked.is_some() {
-            accept(&listener, Instant::now() + Duration::from_secs(5))
-        } else {
-            Err("no shell".into())
-        };
-        let _ = fs::remove_file(&path);
-        let stream = stream?;
-        let id = LINKS.fetch_add(1, Ordering::Relaxed);
-        let reader = stream.try_clone()?;
-        thread::spawn(move || {
-            for line in BufReader::new(reader).lines() {
-                let Ok(line) = line.map(Zeroizing::new) else {
-                    break;
-                };
-                let _ = events.send(Event::Answer(id, serde_json::from_str(&line).ok()));
-            }
-            let _ = events.send(Event::Answer(id, None));
-        });
-        Ok(Self { id, token, stream })
-    }
-
-    fn send(&mut self, request: &Value) -> bool {
-        let line = format!("{request}\n");
-        self.stream
-            .write_all(line.as_bytes())
-            .and_then(|_| self.stream.flush())
-            .is_ok()
-    }
+fn open_link(events: Sender<Event>) -> Result<ShellLink> {
+    ShellLink::open("prompter", move |id, answer| {
+        let _ = events.send(Event::Answer(id, answer));
+    })
 }
 
 /// What the shell is asked to show, from the accumulated gcr properties.
@@ -423,7 +303,7 @@ impl Worker {
         };
         let link = needs_link
             .then(|| {
-                ShellLink::open(self.events.clone())
+                open_link(self.events.clone())
                     .inspect_err(|e| eprintln!("cortetsu-prompter: {e}"))
                     .ok()
             })

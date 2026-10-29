@@ -2,9 +2,10 @@ import QtQuick
 import QtTest
 import "../../../modules/prompt"
 
-// SecretPrompt shows one cortetsu-prompter request line and reports the
-// answer through `answered`. Each case uses the shape gnome-keyring or
-// pinentry-gnome3 sends.
+// SecretPrompt shows one request line and reports the answer through
+// `answered`. Each case uses the shape gnome-keyring or pinentry-gnome3 sends
+// through cortetsu-prompter, or NetworkManager and BlueZ through
+// cortetsu-agents (desktop-runtime-rs/src/agents.rs).
 TestCase {
     id: testCase
     name: "SecretPrompt"
@@ -17,7 +18,11 @@ TestCase {
         id: dialogComponent
         SecretPrompt {
             property var answers: []
-            onAnswered: (accepted, password, choice) => answers = answers.concat([[accepted, password, choice]])
+            property var identities: []
+            onAnswered: (accepted, password, choice, identity) => {
+                answers = answers.concat([[accepted, password, choice]]);
+                identities = identities.concat([identity]);
+            }
         }
     }
 
@@ -168,5 +173,80 @@ TestCase {
         const t = make({ message: "" });
         compare(findChild(t.dialog, "heading").text, "Contraseña requerida");
         verify(!findChild(t.dialog, "caller").visible);
+    }
+
+    function test_wifi_password_needs_eight_characters() {
+        const t = make({ icon: "wifi_password", message: "Contraseña de «Casa 5G»", minLength: 8, maxLength: 64,
+            passwordLabel: "Contraseña", continueLabel: "Conectar" });
+        tryVerify(() => t.field.activeFocus);
+        compare(t.field.echoMode, TextInput.Password);
+        type("corta");
+        const feedback = findChild(t.dialog, "feedback");
+        compare(feedback.text, "Al menos 8 caracteres.");
+        verify(!feedback.isError, "a hint while typing, not an error");
+        keyClick(Qt.Key_Return);
+        compare(t.dialog.answers.length, 0);
+        type("larga");
+        verify(!feedback.visible);
+        keyClick(Qt.Key_Return);
+        compare(t.dialog.answers, [[true, "cortalarga", false]]);
+    }
+
+    function test_enterprise_sends_user_and_password() {
+        const t = make({ message: "Inicio de sesión en «Campus»", identityLabel: "Usuario", identity: "",
+            passwordLabel: "Contraseña" });
+        const identity = findChild(t.dialog, "identity");
+        verify(identity.visible);
+        tryVerify(() => identity.activeFocus, 1000, "an empty user field takes the focus first");
+        type("ana");
+        keyClick(Qt.Key_Return);
+        verify(t.field.activeFocus, "Enter moves to the password");
+        type("pw");
+        keyClick(Qt.Key_Return);
+        compare(t.dialog.answers, [[true, "pw", false]]);
+        compare(t.dialog.identities, ["ana"]);
+    }
+
+    function test_enterprise_prefills_the_saved_user() {
+        const t = make({ identityLabel: "Usuario", identity: "ana@una.ac.cr" });
+        compare(findChild(t.dialog, "identity").text, "ana@una.ac.cr");
+        tryVerify(() => t.field.activeFocus);
+        findChild(t.dialog, "identity").clear();
+        type("x");
+        verify(findChild(t.dialog, "continue").disabled, "a blank user cannot be sent");
+    }
+
+    function test_bluetooth_passkey_takes_six_visible_digits() {
+        const t = make({ icon: "bluetooth", message: "Clave de «Teclado»", reveal: true, digits: true, maxLength: 6,
+            passwordLabel: "Clave" });
+        tryVerify(() => t.field.activeFocus);
+        compare(t.field.echoMode, TextInput.Normal);
+        type("12a34567");
+        compare(t.field.text, "123456");
+        keyClick(Qt.Key_Return);
+        compare(t.dialog.answers, [[true, "123456", false]]);
+    }
+
+    function test_bluetooth_confirmation_shows_the_code() {
+        const t = make({ kind: "confirm", icon: "bluetooth", message: "¿Emparejar con «ZON»?", code: "012345",
+            continueLabel: "Emparejar" });
+        const code = findChild(t.dialog, "code");
+        verify(code.visible);
+        compare(code.text, "012345");
+        verify(!t.field.visible);
+        tryVerify(() => findChild(t.dialog, "continue").activeFocus);
+        keyClick(Qt.Key_Return);
+        compare(t.dialog.answers, [[true, "", false]]);
+    }
+
+    function test_display_code_only_offers_cancel() {
+        const t = make({ kind: "display", icon: "bluetooth", message: "Escribe este código en «Teclado»", code: "987654" });
+        verify(!findChild(t.dialog, "continue").visible);
+        verify(t.dialog.isDisplay && !t.dialog.canContinue);
+        tryVerify(() => findChild(t.dialog, "cancel").activeFocus);
+        t.dialog.accept();
+        compare(t.dialog.answers.length, 0);
+        keyClick(Qt.Key_Escape);
+        compare(t.dialog.answers, [[false, "", false]]);
     }
 }

@@ -1,3 +1,4 @@
+mod agents;
 mod calendar;
 mod common;
 mod connectivity;
@@ -6,6 +7,7 @@ mod pomodoro;
 mod prompter;
 mod quantizer;
 mod recorder;
+mod shellprompt;
 mod startup;
 mod sxaes;
 mod utilities;
@@ -27,6 +29,7 @@ fn main() {
         "cortetsu-startup" => startup::main(&args),
         "cortetsu-record" => recorder::main(&args),
         "cortetsu-prompter" => prompter::main(&args),
+        "cortetsu-agents" => agents::main(&args),
         _ => {
             eprintln!("unknown desktop helper: {helper}");
             Ok(2)
