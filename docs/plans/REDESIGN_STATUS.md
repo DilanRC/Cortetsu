@@ -21,6 +21,7 @@ Se fusiona en `main` al cerrar cada bloque; no se instala en la sesión real.
 | 3.5 Ajustes | Hecho en código; pendiente revisión en la sesión real | `test-cortetsu-settings-runtime.py`, regla `type-field-font`, lint `--strict` a 0 |
 | 3.6 Hardware Center | Hecho en código; pendiente revisión en la sesión real | `test-cortetsu-hardware-home-runtime.py`, `tests/qml/hardware`, lint `--strict` a 0 |
 | 3.7 Lock | Hecho en código; pendiente prueba manual de desbloqueo en la sesión real | `test-cortetsu-lock-card-runtime.py`, `test-cortetsu-lock-runtime.py`, lint `--strict` a 0 |
+| 3.8 Wallpaper, calendario, teclados, pantalla y sesión | Hecho en código; pendiente revisión en la sesión real | `test-cortetsu-calendar-keyboard-runtime.py`, `test-cortetsu-wallpaper-orbital-runtime.py`, `test-cortetsu-keyboards-runtime.py`, `test-cortetsu-session-runtime.py`, lint `--strict` a 0 |
 
 ## Línea base del linter (fase 0)
 
@@ -203,4 +204,21 @@ pasa a `LockCard.qml`, que solo lee el estado de PAM.
 - Emblema de 64 → 56 px. «Batería 86 %» con espacio.
 - Sin probar: desbloqueo real con WlSessionLock; el emblema no se dibuja en
   offscreen.
+
+## 3.8 Wallpaper, calendario, teclados, pantalla y sesión
+
+Lint 9 → 0. Sesión ya estaba limpia.
+
+- Calendario: el día, el chip y el panel de agenda dejan de ser superficies
+  anidadas (rectángulos dentro del marco). Hoy es un anillo; el chip con foco,
+  un borde índigo de 2 px. Radios `width / 2` y `height / 2`.
+- Agenda vacía: «Día libre» y «No hay eventos»; fuera «Tómate el tiempo para ti».
+- Pantalla: marco con `radiusSurface` (antes 30). Wallpaper: insignia de
+  aplicado con `height / 2`.
+- Teclados: la cuenta atrás de borrado de 4 s queda permitida con motivo.
+
+Fallan también en la línea base y no son de esta fase: siete
+`cortetsu/tests/test-*.py` (calendar-credentials, calendar-pomodoro-services,
+gpu-passive, hardware-probe, notifications, pomodoro, runtime-contract), que
+ejecutan con Python helpers de `bin/` que ahora son shell.
 

@@ -69,7 +69,8 @@ Item {
         property: "deleteRemaining"
         from: 1
         to: 0
-        duration: 4000
+        // design-lint: allow motion-duration: armed delete countdown, not a transition
+        duration: 4000 // design-lint: allow token-literal-duration: the countdown length
         onFinished: root.deleteArmed = false
     }
 

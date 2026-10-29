@@ -66,7 +66,7 @@ Item {
         anchors.margins: 6
         width: 18
         height: 18
-        radius: 9
+        radius: height / 2
         color: CortetsuDesign.colorSecondaryContainer
         border.width: 1
         border.color: CortetsuDesign.colorSecondary

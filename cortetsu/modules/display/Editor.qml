@@ -316,7 +316,7 @@ FocusScope {
         height: Math.min(900, parent.height - 64)
         x: Math.round((parent.width - width) / 2)
         y: Math.round((parent.height - height) / 2)
-        radius: 30
+        radius: CortetsuDesign.radiusSurface
         color: CortetsuDesign.colorSurfaceHigh
         border.width: 1
         border.color: CortetsuDesign.colorOutlineVariant

@@ -23,7 +23,6 @@ for expected in (
     'label: qsTr("Saltar descanso")',
     'Pomodoro.run("skip")',
     'text: qsTr("No hay eventos")',
-    'text: qsTr("Tómate el tiempo para ti.")',
     'root.eventTime(modelData)',
     'modelData.location',
     'implicitWidth: chipRow.implicitWidth',
@@ -67,3 +66,4 @@ assert "onOpenChanged: if (open) requestSync(false)" in service
 assert "// startup inventory: cortetsu:calendar-sync" in service
 assert "// startup inventory: cortetsu:pomodoro" in pomodoro
 print("PASS: Calendar view, services and Pomodoro card keep their design and boundaries")
+assert "Tómate el tiempo" not in view, "filler under the empty agenda"

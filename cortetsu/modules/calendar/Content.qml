@@ -113,9 +113,9 @@ Item {
                                 readonly property var events: day ? root.monthEvents[day] ?? [] : []
                                 // Selected: primary fill. Today: a neutral ring, so the two never
                                 // read as the same blue (1.3:1 apart in the Cortetsu scheme).
-                                CortetsuSurface { objectName: "day-" + dayCell.day; anchors.centerIn: parent; width: 34; height: 34; radius: 17
-                                    outlined: root.isToday(dayCell.day) && !root.isSelected(dayCell.day)
-                                    outlineColor: CortetsuDesign.colorOnSurfaceVariant
+                                Rectangle { objectName: "day-" + dayCell.day; anchors.centerIn: parent; width: 34; height: 34; radius: width / 2
+                                    border.width: root.isToday(dayCell.day) && !root.isSelected(dayCell.day) ? 1 : 0
+                                    border.color: CortetsuDesign.colorOnSurfaceVariant
                                     color: root.isSelected(dayCell.day) ? CortetsuDesign.colorPrimary : dayMouse.containsMouse ? Qt.alpha(CortetsuDesign.colorOnSurface, 0.08) : "transparent" }
                                 CortetsuText { anchors.centerIn: parent; text: dayCell.day || ""; color: root.isSelected(dayCell.day) ? CortetsuDesign.colorOnPrimary : CortetsuDesign.colorOnSurface; font.weight: root.isToday(dayCell.day) ? Font.DemiBold : Font.Normal; textSize: CortetsuTypography.labelMediumPx }
                                 Row {
@@ -136,14 +136,14 @@ Item {
                         spacing: CortetsuDesign.spacingCompact
                         Repeater {
                             model: CalendarService.calendars
-                            delegate: CortetsuSurface {
+                            delegate: Rectangle {
                                 id: chip
                                 required property var modelData
                                 readonly property bool chosen: CalendarService.enabledCalendars.includes(modelData.calendarId)
                                 function toggle(): void { CalendarService.setCalendarEnabled(chip.modelData.calendarId, !chip.chosen); }
                                 activeFocusOnTab: true
-                                outlined: activeFocus
-                                focused: activeFocus
+                                border.width: activeFocus ? 2 : 0
+                                border.color: CortetsuDesign.colorIndicator
                                 Keys.onSpacePressed: toggle()
                                 Keys.onReturnPressed: toggle()
                                 Keys.onEnterPressed: toggle()
@@ -153,7 +153,7 @@ Item {
                                 Accessible.checked: chip.chosen
                                 Accessible.onToggleAction: toggle()
                                 Accessible.onPressAction: toggle()
-                                implicitWidth: chipRow.implicitWidth + CortetsuDesign.spacingStandard * 2; implicitHeight: 30; radius: 999
+                                implicitWidth: chipRow.implicitWidth + CortetsuDesign.spacingStandard * 2; implicitHeight: 30; radius: height / 2
                                 color: chosen ? CortetsuDesign.colorSecondaryContainer : CortetsuDesign.colorSurfaceHigh
                                 RowLayout {
                                     id: chipRow; anchors.centerIn: parent; spacing: CortetsuDesign.spacingCompact
@@ -173,7 +173,7 @@ Item {
                     Layout.preferredWidth: 350
                     spacing: CortetsuDesign.spacingStandard
 
-                    CortetsuSurface { outlined: false;
+                    Rectangle {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
                         radius: CortetsuDesign.radiusMedium
@@ -181,13 +181,12 @@ Item {
                         ColumnLayout {
                             anchors.fill: parent; anchors.margins: CortetsuDesign.spacingStandard; spacing: CortetsuDesign.spacingCompact
                             CortetsuText { Layout.fillWidth: true; objectName: "agendaTitle"; text: CortetsuRegional.formatDate(root.selectedDate, "longDay", true); textSize: CortetsuTypography.titleMediumPx; color: CortetsuDesign.colorOnSurface }
-                            CortetsuText { text: root.selectedEvents.length ? root.eventCount(root.selectedEvents.length) : qsTr("Tu día está libre"); color: CortetsuDesign.colorPrimary; textSize: CortetsuTypography.labelMediumPx }
+                            CortetsuText { text: root.selectedEvents.length ? root.eventCount(root.selectedEvents.length) : qsTr("Día libre"); color: CortetsuDesign.colorPrimary; textSize: CortetsuTypography.labelMediumPx }
                             ColumnLayout {
                                 visible: !root.selectedEvents.length; Layout.fillWidth: true; Layout.fillHeight: true; spacing: CortetsuDesign.spacingCompact
                                 Item { Layout.fillHeight: true }
                                 CortetsuIcon { Layout.alignment: Qt.AlignHCenter; text: "event_available"; color: CortetsuDesign.colorOnSurfaceVariant; iconSize: CortetsuTypography.iconLargePx }
                                 CortetsuText { Layout.alignment: Qt.AlignHCenter; text: qsTr("No hay eventos"); color: CortetsuDesign.colorOnSurface; textSize: CortetsuTypography.titleSmallPx }
-                                CortetsuText { Layout.alignment: Qt.AlignHCenter; text: qsTr("Tómate el tiempo para ti."); color: CortetsuDesign.colorOnSurfaceVariant; textSize: CortetsuTypography.bodySmallPx }
                                 Item { Layout.fillHeight: true }
                             }
                             ListView {

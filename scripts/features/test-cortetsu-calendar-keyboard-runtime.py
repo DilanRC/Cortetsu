@@ -28,6 +28,7 @@ import QtTest
 import Quickshell
 import Quickshell.Io
 import "modules/calendar" as Calendar
+import "theme"
 
 ShellRoot {
     id: root
@@ -82,7 +83,7 @@ ShellRoot {
             verify(chips.length === 2, `both calendars are in the Tab order (${chips.length})`);
             verify(chips[0].Accessible.name === "Personal" && chips[0].Accessible.checked, "the chip names its calendar and state");
             chips[1].forceActiveFocus();
-            verify(chips[1].outlined, "the focused chip shows a ring");
+            verify(chips[1].border.width > 0 && Qt.colorEqual(chips[1].border.color, CortetsuDesign.colorIndicator) && chips[0].border.width === 0, "the focused chip shows a ring");
             events.keyClick(Qt.Key_Space, Qt.NoModifier, -1);
             // Arrows on a chip still move the day: the surface owns them.
             content.selectedDate = new Date(2026, 9, 10);
