@@ -17,6 +17,7 @@ Se fusiona en `main` al cerrar cada bloque; no se instala en la sesión real.
 | 3.1 BottomHub, barra y popouts | Hecho en código; pendiente revisión en la sesión real | `tst_HubControls.qml`, `test-cortetsu-hub-controls-runtime.py`, lint `--strict` a 0 |
 | 3.2 Launcher y Overview | Hecho en código; pendiente revisión en la sesión real | `tst_MotionTokens.qml`, `eval-retained-surfaces-host.py`, lint `--strict` a 0 |
 | 3.3 Notificaciones, OSD y toasts | Hecho en código; pendiente revisión en la sesión real | `test-cortetsu-notice-cards-runtime.py`, lint `--strict` a 0 |
+| 3.4 Dashboard | Hecho en código; pendiente revisión en la sesión real | `test-cortetsu-dashboard-dismiss-runtime.py`, lint `--strict` a 0 |
 
 ## Línea base del linter (fase 0)
 
@@ -131,3 +132,30 @@ rediseñadas se listan en `scripts/verification/redesigned-surfaces.txt`;
   cerrada se desvanece.
 - Las tarjetas de `base/modules/utilities` y `base/modules/notifications` no
   las usa nada; se borran en el paso de restos de `base/`.
+
+## 3.4 Dashboard
+
+El lint ya estaba a 0 en `modules/dashboard`; el trabajo es de comportamiento y
+de contenido (H-22).
+
+- Hover en el borde superior: desde b18b607 la capa del Dashboard solo se
+  mapea abierta. Al abrir por hover, el puntero pasaba a esa capa, la ventana
+  drawers perdía el puntero y lo cerraba; la capa se desmapeaba y el borde lo
+  volvía a abrir (bucle). Ahora `ScreenState.dashboardOpenedBy = "hover"` y la
+  capa decide: salir del panel tras entrar lo cierra; el trayecto desde el
+  borde no.
+- Clic fuera del panel lo cierra (antes la capa a pantalla completa se comía
+  el clic). Un clic en una zona vacía del panel no.
+- Escape: foco exclusivo mientras está abierto (antes a demanda, Escape solo
+  llegaba tras un clic) y atajo a nivel de ventana.
+- `DashboardLayer.qml` separa el contenido del host para probarlo sin
+  compositor.
+- Texto: todo en español, sin relleno («Your desktop», «The shell is ready»,
+  «Ambient conditions», «Desktop context», «Live context»).
+- Estados: sin lectura del tiempo, «Tiempo no disponible» y no «--»; sin
+  reproductor, «Nada en reproducción» y sin controles deshabilitados.
+- Fila de sistema: `SystemFact` sin hover ni foco (antes `CortetsuListRow`,
+  que parecía pulsable). Unidades con espacio (`57 °C`, `44 %`, `GiB`); CPU
+  sin sensor lo dice en vez de `0°C`.
+- Tamaño: 1180 × 620 cuando cabe; en una pantalla menor se ajusta.
+- Etiquetas de sección en `colorOnSurfaceVariant` (4,5:1) en vez de primario.

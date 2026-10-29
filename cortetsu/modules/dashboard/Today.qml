@@ -65,7 +65,7 @@ Item {
             CortetsuText {
                 text: qsTr("HOY")
                 textSize: CortetsuTypography.labelSmallPx
-                color: CortetsuDesign.colorPrimary
+                color: CortetsuDesign.colorOnSurfaceVariant
                 font.weight: Font.DemiBold
             }
 

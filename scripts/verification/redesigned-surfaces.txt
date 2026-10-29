@@ -20,3 +20,6 @@ cortetsu/modules/notifications
 cortetsu/modules/osd
 cortetsu/modules/utilities
 cortetsu/modules/sidebar
+# 3.4 Dashboard
+cortetsu/modules/DashboardHost.qml
+cortetsu/modules/dashboard

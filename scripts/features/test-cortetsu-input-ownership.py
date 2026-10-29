@@ -13,7 +13,8 @@ hosts = {
 for name, (path, flag) in hosts.items():
     source = path.read_text(encoding="utf-8")
     mask_contract = (
-        "mask: window.dashboardEnabled && window.screenState?.dashboard ? null : emptyRegion" in source
+        "mask: window.open ? null : emptyRegion" in source
+        and "readonly property bool open: window.dashboardEnabled && (screenState?.dashboard ?? false)" in source
         if name == "dashboard"
         else f"mask: window.screenState?.{flag} ? null : emptyRegion" in source
         or f"mask: {flag} ? null : emptyRegion" in source

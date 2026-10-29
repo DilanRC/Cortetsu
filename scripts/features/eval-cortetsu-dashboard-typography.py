@@ -21,7 +21,6 @@ checks = {
             "CortetsuTypography.displayClockPx",
             "CortetsuTypography.displayHeroPx",
             "CortetsuTypography.displayLargePx",
-            "CortetsuTypography.iconFeaturePx",
         )
     ),
     "launcher density uses design tokens": all(

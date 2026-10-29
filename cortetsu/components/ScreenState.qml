@@ -16,6 +16,9 @@ PersistentProperties {
     property bool session
     property bool launcher
     property bool dashboard
+    // Opened by touching the top edge. DashboardHost then owns closing it,
+    // because its layer takes the pointer away from the drawers window.
+    property string dashboardOpenedBy: ""
     property bool utilities
     property bool settings
     property bool sidebar

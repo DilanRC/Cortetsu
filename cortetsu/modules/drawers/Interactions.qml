@@ -93,7 +93,9 @@ CustomMouseArea {
                 root.panels.osd.hovered = false;
             }
 
-            if (!dashboardShortcutActive)
+            // A hover-opened dashboard maps its own layer under the pointer,
+            // which is what makes this window lose it; DashboardHost closes it.
+            if (!dashboardShortcutActive && screenState.dashboardOpenedBy !== "hover")
                 screenState.dashboard = false;
 
             if (!utilitiesShortcutActive)
@@ -212,6 +214,8 @@ CustomMouseArea {
 
         // Always update visibility based on hover if not in shortcut mode
         if (!dashboardShortcutActive) {
+            if (showDashboard && !screenState.dashboard)
+                screenState.dashboardOpenedBy = "hover";
             screenState.dashboard = showDashboard;
         } else if (showDashboard) {
             // If hovering over dashboard area while in shortcut mode, transition to hover control
@@ -268,6 +272,7 @@ CustomMouseArea {
             } else {
                 // Dashboard hidden, clear shortcut flag
                 root.dashboardShortcutActive = false;
+                root.screenState.dashboardOpenedBy = "";
             }
         }
 

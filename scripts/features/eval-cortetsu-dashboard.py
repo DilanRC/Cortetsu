@@ -7,9 +7,9 @@ shortcuts = (ROOT / "cortetsu/modules/Shortcuts.qml").read_text(encoding="utf-8"
 
 assert "CortetsuShellState.forScreen(modelData)" in host
 assert "CortetsuShellState.forActive()" not in host
-assert "Desktop context" in dash
-assert "No hay contenido activo" in dash
-assert "Live context" in dash
+# H-22: honest empty states and readings without a fake action.
+assert "Tiempo no disponible" in dash and "Nada en reproducción" in dash
+assert "SystemFact" in dash and "CortetsuListRow" not in dash
 assert "Weather" in dash
 assert "Today" in dash and "Focus" in dash
 assert "batterySubtitle" in dash and "networkSubtitle" in dash
@@ -19,7 +19,7 @@ checks = {
     "host respects enabled and showDashboard": all(marker in host for marker in (
         "readonly property bool dashboardEnabled: CortetsuConfig.dashboard.enabled",
         "CortetsuConfig.dashboard.showDashboard",
-        "window.dashboardEnabled && window.screenState?.dashboard",
+        "window.dashboardEnabled && (screenState?.dashboard ?? false)",
     )),
     "weather module is loadable": all(marker in dash for marker in (
         "active: root.showWeather",

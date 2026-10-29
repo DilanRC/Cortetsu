@@ -19,17 +19,18 @@ Scope {
             readonly property var screenState: CortetsuShellState.forScreen(modelData)
             readonly property bool dashboardEnabled: CortetsuConfig.dashboard.enabled
                 && CortetsuConfig.dashboard.showDashboard
+            readonly property bool open: window.dashboardEnabled && (screenState?.dashboard ?? false)
             screen: modelData
             name: "dashboard"
             // Mapped only while open: an idle full-screen Overlay layer keeps a
             // fullscreen game from being the monitor's solitary client.
-            visible: window.dashboardEnabled && (screenState?.dashboard ?? false)
+            visible: window.open
             WlrLayershell.exclusionMode: ExclusionMode.Ignore
             WlrLayershell.layer: WlrLayer.Overlay
-            WlrLayershell.keyboardFocus: window.dashboardEnabled && screenState?.dashboard
-                ? WlrKeyboardFocus.OnDemand
-                : WlrKeyboardFocus.None
-            mask: window.dashboardEnabled && window.screenState?.dashboard ? null : emptyRegion
+            // Exclusive like the launcher: the layer covers the screen, so
+            // Escape must reach it however it was opened.
+            WlrLayershell.keyboardFocus: window.open ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+            mask: window.open ? null : emptyRegion
             anchors.top: true
             anchors.bottom: true
             anchors.left: true
@@ -37,21 +38,17 @@ Scope {
 
             Region { id: emptyRegion }
 
-            Rectangle {
+            DashboardLayer {
+                id: layer
                 anchors.fill: parent
-                visible: window.dashboardEnabled && (window.screenState?.dashboard ?? false)
-                color: Qt.alpha(CortetsuDesign.colorScrim, 0.34)
-            }
-            Dash {
-                anchors.centerIn: parent
-                visible: window.dashboardEnabled && (window.screenState?.dashboard ?? false)
+                open: window.open
                 screenState: window.screenState
-                facePicker: null
             }
+            // Window-wide, so Escape closes it wherever focus sits inside.
             Shortcut {
                 sequence: "Escape"
-                enabled: window.dashboardEnabled && (window.screenState?.dashboard ?? false)
-                onActivated: window.screenState.dashboard = false
+                enabled: window.open
+                onActivated: layer.close()
             }
         }
     }

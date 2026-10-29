@@ -9,10 +9,10 @@ panels = (ROOT / "cortetsu/modules/drawers/Panels.qml").read_text(encoding="utf-
 shell = (ROOT / "cortetsu/shell.qml").read_text(encoding="utf-8")
 shortcuts = (ROOT / "cortetsu/modules/Shortcuts.qml").read_text(encoding="utf-8")
 
-for marker in ('name: "dashboard"', "WlrLayer.Overlay", "CortetsuShellState.forScreen(modelData)", "Dash", "screenState.dashboard"):
+for marker in ('name: "dashboard"', "WlrLayer.Overlay", "CortetsuShellState.forScreen(modelData)", "DashboardLayer", "screenState?.dashboard"):
     assert marker in host, marker
 assert "CortetsuShellState.forActive()" not in host
-for marker in ("NOW", "NOW PLAYING", "SYSTEM", "Cpu.percentage", "Memory.percentage", "Players.active", "CortetsuSurface", "Today", "Focus"):
+for marker in ("TIEMPO", "REPRODUCIENDO", "SISTEMA", "Cpu.percentage", "Memory.percentage", "Players.active", "CortetsuSurface", "Today", "Focus"):
     assert marker in dash, marker
 assert 'icon: "close"' in dash
 assert "onClicked: root.screenState.dashboard = false" in dash

@@ -66,7 +66,7 @@ Item {
             CortetsuText {
                 text: qsTr("CONCENTRACIÓN")
                 textSize: CortetsuTypography.labelSmallPx
-                color: CortetsuDesign.colorPrimary
+                color: CortetsuDesign.colorOnSurfaceVariant
                 font.weight: Font.DemiBold
             }
 
