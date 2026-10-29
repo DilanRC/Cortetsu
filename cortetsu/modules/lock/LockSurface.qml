@@ -24,7 +24,7 @@ WlSessionLockSurface {
     readonly property int batteryPercent: CortetsuPower.percent
     readonly property bool batteryCharging: CortetsuPower.charging
     readonly property string batteryLabel: CortetsuPower.hasBattery
-        ? qsTr("Batería %1%").arg(CortetsuPower.percent)
+        ? qsTr("Batería %1 %").arg(CortetsuPower.percent)
         : qsTr("Corriente eléctrica")
     readonly property string networkLabel: CortetsuNetwork.activeEthernet
         ? qsTr("Ethernet")
@@ -120,186 +120,18 @@ WlSessionLockSurface {
             keyboardProbe.running = true
     }
 
-    ColumnLayout {
-        anchors.centerIn: parent
-        width: Math.min(parent.width - 64, 560)
-        spacing: CortetsuDesign.spacingStandard
-
-        CortetsuEvolvingMark {
-            phase: root.markPhase
-            monochrome: true
-            monochromeColor: CortetsuDesign.colorWashi
-            Layout.preferredWidth: 64
-            Layout.preferredHeight: 64
-            Layout.alignment: Qt.AlignHCenter
-        }
-
-        CortetsuText {
-            Layout.alignment: Qt.AlignHCenter
-            text: qsTr("Cortetsu")
-            textSize: 28
-            font.weight: Font.DemiBold
-        }
-
-        CortetsuText {
-            Layout.alignment: Qt.AlignHCenter
-            text: CortetsuRegional.formatDate(Time.date, "longDay", true)
-            textSize: CortetsuTypography.bodyPx
-            color: CortetsuDesign.colorOnSurfaceVariant
-        }
-
-        CortetsuText {
-            Layout.alignment: Qt.AlignHCenter
-            text: `${Time.hourStr}:${Time.minuteStr}`
-            textSize: 72
-            font.weight: Font.DemiBold
-        }
-
-        CortetsuText {
-            Layout.alignment: Qt.AlignHCenter
-            text: root.userLabel
-            textSize: CortetsuTypography.titleMediumPx
-            font.weight: Font.DemiBold
-        }
-
-        CortetsuSurface {
-            Layout.fillWidth: true
-            implicitHeight: 72
-            radiusValue: CortetsuDesign.radiusLarge
-            baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlassStrong, 0.92)
-            focused: true
-            outlined: true
-
-            ColumnLayout {
-                anchors.fill: parent
-                anchors.margins: CortetsuDesign.spacingStandard
-                spacing: 2
-
-                CortetsuText {
-                    text: qsTr("Contraseña")
-                    textSize: CortetsuTypography.labelSmallPx
-                    color: CortetsuDesign.colorOnSurfaceVariant
-                }
-
-                CortetsuText {
-                    text: pam.buffer.length ? "• ".repeat(pam.buffer.length) : qsTr("Escribe tu contraseña y pulsa Enter")
-                    textSize: CortetsuTypography.bodyPx
-                    color: pam.buffer.length ? CortetsuDesign.colorOnSurface : CortetsuDesign.colorOnSurfaceVariant
-                }
-            }
-
-            MouseArea {
-                anchors.fill: parent
-                onClicked: keyboardFocus.forceActiveFocus()
-            }
-        }
-
-        CortetsuText {
-            Layout.alignment: Qt.AlignHCenter
-            visible: pam.state > 0
-            text: pam.state === 3 ? qsTr("La autenticación falló. Inténtalo de nuevo.") : qsTr("Autenticación no disponible")
-            textSize: CortetsuTypography.bodySmallPx
-            color: CortetsuDesign.colorVermillion
-        }
-
-        RowLayout {
-            Layout.fillWidth: true
-            spacing: CortetsuDesign.spacingCompact
-
-            CortetsuSurface {
-                Layout.fillWidth: true
-                implicitHeight: 48
-                radiusValue: CortetsuDesign.radiusMedium
-                baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.68)
-                outlined: true
-
-                RowLayout {
-                    anchors.fill: parent
-                    anchors.margins: CortetsuDesign.spacingCompact
-                    spacing: CortetsuDesign.spacingCompact
-                    CortetsuIcon {
-                        text: CortetsuPower.hasBattery
-                            ? Icons.getBatteryIcon(CortetsuPower.value, root.batteryCharging)
-                            : "power"
-                        iconSize: CortetsuTypography.iconSmallPx
-                        color: CortetsuDesign.colorOnSurfaceVariant
-                    }
-                    CortetsuText {
-                        Layout.fillWidth: true
-                        text: root.batteryLabel
-                        textSize: CortetsuTypography.labelSmallPx
-                        color: CortetsuDesign.colorOnSurfaceVariant
-                        elide: Text.ElideRight
-                    }
-                }
-            }
-
-            CortetsuSurface {
-                Layout.fillWidth: true
-                implicitHeight: 48
-                radiusValue: CortetsuDesign.radiusMedium
-                baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.68)
-                outlined: true
-
-                RowLayout {
-                    anchors.fill: parent
-                    anchors.margins: CortetsuDesign.spacingCompact
-                    spacing: CortetsuDesign.spacingCompact
-                    CortetsuIcon {
-                        text: CortetsuNetwork.activeEthernet ? "cable" : (CortetsuNetwork.active ? "wifi" : "wifi_off")
-                        iconSize: CortetsuTypography.iconSmallPx
-                        color: CortetsuDesign.colorOnSurfaceVariant
-                    }
-                    CortetsuText {
-                        Layout.fillWidth: true
-                        text: root.networkLabel
-                        textSize: CortetsuTypography.labelSmallPx
-                        color: CortetsuDesign.colorOnSurfaceVariant
-                        elide: Text.ElideRight
-                    }
-                }
-            }
-        }
-
-        RowLayout {
-            Layout.alignment: Qt.AlignHCenter
-            spacing: CortetsuDesign.spacingCompact
-
-            CortetsuIcon {
-                text: "keyboard"
-                iconSize: CortetsuTypography.iconSmallPx
-                color: CortetsuDesign.colorOnSurfaceVariant
-            }
-
-            CortetsuText {
-                text: root.keyboardLayout
-                textSize: CortetsuTypography.labelSmallPx
-                color: CortetsuDesign.colorOnSurfaceVariant
-            }
-
-            CortetsuText {
-                visible: root.capsLock
-                text: qsTr("CAPS")
-                textSize: CortetsuTypography.labelSmallPx
-                font.weight: Font.DemiBold
-                color: CortetsuDesign.colorWarning
-            }
-
-            CortetsuText {
-                visible: root.numLock
-                text: qsTr("NUM")
-                textSize: CortetsuTypography.labelSmallPx
-                font.weight: Font.DemiBold
-                color: CortetsuDesign.colorOnSurfaceVariant
-            }
-        }
-
-        CortetsuText {
-            Layout.alignment: Qt.AlignHCenter
-            text: qsTr("Pulsa Enter para autenticarte")
-            textSize: CortetsuTypography.labelSmallPx
-            color: CortetsuDesign.colorOnSurfaceVariant
-        }
+    LockCard {
+        anchors.fill: parent
+        pam: root.pam
+        markPhase: root.markPhase
+        userLabel: root.userLabel
+        keyboardLayout: root.keyboardLayout
+        capsLock: root.capsLock
+        numLock: root.numLock
+        batteryLabel: root.batteryLabel
+        batteryCharging: root.batteryCharging
+        networkLabel: root.networkLabel
+        onFocusRequested: keyboardFocus.forceActiveFocus()
     }
 
     Connections {

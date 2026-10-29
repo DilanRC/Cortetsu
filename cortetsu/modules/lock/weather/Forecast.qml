@@ -27,7 +27,7 @@ CortetsuSurface {
                 readonly property var condition: Weather.hourlyForecast[index]
                 Layout.fillWidth: true; spacing: 4
                 Rectangle {
-                    Layout.alignment: Qt.AlignHCenter; implicitWidth: 48; implicitHeight: 38; radius: 12
+                    Layout.alignment: Qt.AlignHCenter; implicitWidth: 48; implicitHeight: 38; radius: CortetsuDesign.radiusMedium
                     color: index === 0 ? CortetsuDesign.colorPrimary : "transparent"
                     CortetsuText { anchors.centerIn: parent; text: Weather.formatTemp(condition.tempC).slice(0, -1); textSize: 16; color: index === 0 ? CortetsuDesign.colorOnPrimary : CortetsuDesign.colorOnSurface }
                 }

@@ -2,7 +2,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 lock = (ROOT / "cortetsu/modules/lock/Lock.qml").read_text(encoding="utf-8")
-surface = (ROOT / "cortetsu/modules/lock/LockSurface.qml").read_text(encoding="utf-8")
+surface_only = (ROOT / "cortetsu/modules/lock/LockSurface.qml").read_text(encoding="utf-8")
+# LockSurface owns keys, focus and PAM; LockCard draws what they show.
+card = (ROOT / "cortetsu/modules/lock/LockCard.qml").read_text(encoding="utf-8")
+surface = surface_only + card
 pam = (ROOT / "cortetsu/base/modules/lock/Pam.qml").read_text(encoding="utf-8")
 shell = (ROOT / "cortetsu/shell.qml").read_text(encoding="utf-8")
 
@@ -14,7 +17,7 @@ for marker in (
     'import ".."',
     "pam.handleKey",
     "Contraseña",
-    "La autenticación falló. Inténtalo de nuevo.",
+    "Contraseña incorrecta. Inténtalo de nuevo.",
     "ScreencopyView",
     "CortetsuEvolvingMark",
     'phase: root.markPhase',
@@ -47,10 +50,10 @@ for marker in (
 assert "Keyboard layout · Enter to authenticate" not in surface
 assert "root.keyboardLayout" in surface
 assert "root.userLabel" in surface
-mark_start = surface.index("readonly property string markPhase")
-assert "pam.state" not in surface[mark_start:mark_start + 320]
-assert 'text: qsTr("CAPS")' in surface
-assert 'text: qsTr("Pulsa Enter para autenticarte")' in surface
+mark_start = surface_only.index("readonly property string markPhase")
+assert "pam.state" not in surface_only[mark_start:mark_start + 320]
+assert 'qsTr("Bloq Mayús")' in card and 'qsTr("CAPS")' not in surface
+assert "Pulsa Enter" not in surface
 assert "Lock { id: lock }" in shell
 assert "SessionHost { lockController: lock }" in shell
 for marker in ("signal authenticationSucceeded", "property bool successPending", "root.authenticationSucceeded()", "function releaseAfterSuccess"):
@@ -59,11 +62,11 @@ assert "if (passwd.active || successPending)" in pam
 # The session lock is released in exactly one place: Pam.releaseAfterSuccess.
 assert pam.count("locked = false") == 1
 idle = (ROOT / "cortetsu/modules/IdleMonitors.qml").read_text(encoding="utf-8")
-for name, source in (("Lock.qml", lock), ("LockSurface.qml", surface), ("IdleMonitors.qml", idle)):
+for name, source in (("Lock.qml", lock), ("LockSurface.qml", surface_only), ("LockCard.qml", card), ("IdleMonitors.qml", idle)):
     assert "locked = false" not in source, name
 # No unauthenticated unlock route: shortcut, IPC, signal or idle return action.
 config = (ROOT / "cortetsu/modules/CortetsuConfig.qml").read_text(encoding="utf-8")
-for name, source in (("Lock.qml", lock), ("LockSurface.qml", surface), ("IdleMonitors.qml", idle), ("Pam.qml", pam)):
+for name, source in (("Lock.qml", lock), ("LockSurface.qml", surface_only), ("LockCard.qml", card), ("IdleMonitors.qml", idle), ("Pam.qml", pam)):
     assert "unlock()" not in source and "onUnlock" not in source and '"unlock"' not in source, name
 assert 'returnAction: "unlock"' not in config
 assert 'value.returnAction !== "unlock"' in config and "delete migrated.returnAction" in config

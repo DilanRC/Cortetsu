@@ -9,7 +9,7 @@ SURFACES = {
     "Settings": ROOT / "cortetsu/modules/settings/Content.qml",
 }
 QSD = ROOT / "cortetsu/modules/osd/FullContent.qml"
-LOCK = ROOT / "cortetsu/modules/lock/LockSurface.qml"
+LOCK = ROOT / "cortetsu/modules/lock/LockCard.qml"
 
 checks = {}
 for name, path in SURFACES.items():
@@ -30,7 +30,7 @@ checks["OSD keeps brand color private"] = "monochromeColor: CortetsuDesign.color
 lock = LOCK.read_text(encoding="utf-8")
 checks["Lock uses renderer"] = "CortetsuEvolvingMark" in lock
 checks["Lock uses contextual phase"] = 'phase: root.markPhase' in lock
-checks["Lock keeps fixed 64px slot"] = "Layout.preferredWidth: 64" in lock and "Layout.preferredHeight: 64" in lock
+checks["Lock keeps fixed 56px slot"] = "Layout.preferredWidth: 56" in lock and "Layout.preferredHeight: 56" in lock
 checks["Lock keeps brand color private"] = "monochromeColor: CortetsuDesign.colorWashi" in lock
 
 assert all(checks.values()), [name for name, passed in checks.items() if not passed]

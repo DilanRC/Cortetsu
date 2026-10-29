@@ -10,7 +10,7 @@ SURFACES = {
 }
 OSD = ROOT / "cortetsu/modules/osd/FullContent.qml"
 HUB_BUTTON = ROOT / "cortetsu/modules/HubButton.qml"
-LOCK = ROOT / "cortetsu/modules/lock/LockSurface.qml"
+LOCK = ROOT / "cortetsu/modules/lock/LockCard.qml"
 SESSION = ROOT / "cortetsu/modules/SessionHost.qml"
 
 for name, (path, size_marker) in SURFACES.items():
@@ -39,7 +39,7 @@ assert "root.buttonSize * 0.68" in hub_button
 lock = LOCK.read_text(encoding="utf-8")
 assert "CortetsuEvolvingMark" in lock
 assert 'phase: root.markPhase' in lock
-assert "Layout.preferredWidth: 64" in lock and "Layout.preferredHeight: 64" in lock
+assert "Layout.preferredWidth: 56" in lock and "Layout.preferredHeight: 56" in lock
 assert "monochrome: true" in lock
 assert "monochromeColor: CortetsuDesign.colorWashi" in lock
 assert 'source: Quickshell.shellPath("assets/branding/cortetsu-mark-ascended.svg")' not in lock

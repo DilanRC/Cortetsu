@@ -20,6 +20,7 @@ Se fusiona en `main` al cerrar cada bloque; no se instala en la sesión real.
 | 3.4 Dashboard | Hecho en código; pendiente revisión en la sesión real | `test-cortetsu-dashboard-dismiss-runtime.py`, lint `--strict` a 0 |
 | 3.5 Ajustes | Hecho en código; pendiente revisión en la sesión real | `test-cortetsu-settings-runtime.py`, regla `type-field-font`, lint `--strict` a 0 |
 | 3.6 Hardware Center | Hecho en código; pendiente revisión en la sesión real | `test-cortetsu-hardware-home-runtime.py`, `tests/qml/hardware`, lint `--strict` a 0 |
+| 3.7 Lock | Hecho en código; pendiente prueba manual de desbloqueo en la sesión real | `test-cortetsu-lock-card-runtime.py`, `test-cortetsu-lock-runtime.py`, lint `--strict` a 0 |
 
 ## Línea base del linter (fase 0)
 
@@ -187,3 +188,19 @@ Lint 4 → 0:
   periodo de un bucle, no una transición.
 - Energía y Consumo tenían el mismo rayo; ahora `battery_charging_full` y
   `electric_meter`. Icono de cabecera en `colorIndicator`.
+
+## 3.7 Lock
+
+`LockSurface.qml` conserva teclas, foco, PAM y liberación sin cambios; lo visual
+pasa a `LockCard.qml`, que solo lee el estado de PAM.
+
+- Punto focal: la hora. Se quitan el título «Cortetsu», la segunda pista de
+  Enter y el texto CAPS/NUM.
+- Campo de contraseña de 52 px con borde índigo; bermellón y una sacudida de
+  200 ms en cada rechazo (`flashMsg`), también con demasiados intentos.
+- «Bloq Mayús» dentro del campo. Batería, red y teclado en una fila sin
+  tarjetas.
+- Emblema de 64 → 56 px. «Batería 86 %» con espacio.
+- Sin probar: desbloqueo real con WlSessionLock; el emblema no se dibuja en
+  offscreen.
+

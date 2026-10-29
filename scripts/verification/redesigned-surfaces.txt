@@ -30,3 +30,5 @@ cortetsu/modules/CortetsuSearchBar.qml
 # 3.6 Hardware Center
 cortetsu/modules/hardware
 cortetsu/modules/HardwareController.qml
+# 3.7 Lock
+cortetsu/modules/lock

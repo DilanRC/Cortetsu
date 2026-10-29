@@ -2,12 +2,14 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 surface = (ROOT / "cortetsu/modules/lock/LockSurface.qml").read_text(encoding="utf-8")
+card = (ROOT / "cortetsu/modules/lock/LockCard.qml").read_text(encoding="utf-8")
 pam = (ROOT / "cortetsu/base/modules/lock/Pam.qml").read_text(encoding="utf-8")
 
 assert "Qt.alpha(CortetsuDesign.colorSumi" in surface
 assert 'import ".."' in surface
-assert "secure" not in surface.lower() or "contraseña" in surface.lower()
-assert "repeat(pam.buffer.length)" in surface
+assert "contraseña" in card.lower()
+surface = surface + card
+assert "repeat(root.pam.buffer.length)" in card
 assert "CortetsuPower" in surface and "CortetsuNetwork.active" in surface
 assert "Icons.getBatteryIcon" in surface and "batteryCharging" in surface
 assert 'command: ["hyprctl", "-j", "devices"]' in surface
