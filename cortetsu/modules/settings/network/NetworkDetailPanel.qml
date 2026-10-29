@@ -273,6 +273,8 @@ Item {
         }
 
         TextField {
+
+            font.family: CortetsuTypography.uiFamily
             Layout.fillWidth: true
             visible: !root.page.showingProfiles && root.page.selectedNeedsPassword
             placeholderText: qsTr("Contraseña de Wi‑Fi")

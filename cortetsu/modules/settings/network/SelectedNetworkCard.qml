@@ -27,23 +27,12 @@ CortetsuSurface {
         RowLayout {
             Layout.fillWidth: true
 
-            CortetsuSurface {
+            CortetsuIconBadge {
                 Layout.preferredWidth: 54
                 Layout.preferredHeight: 54
-                baseColor: root.page.selectedIsActive
-                    ? Qt.alpha(CortetsuDesign.colorSuccess, 0.16)
-                    : Qt.alpha(CortetsuDesign.colorPrimary, 0.14)
-                outlined: false
-                radiusValue: CortetsuDesign.radiusMedium
-
-                CortetsuIcon {
-                    anchors.centerIn: parent
-                    text: root.page.selectedIsActive ? "wifi" : "wifi_find"
-                    color: root.page.selectedIsActive
-                        ? CortetsuDesign.colorSuccess
-                        : CortetsuDesign.colorPrimary
-                    iconSize: CortetsuTypography.iconLargePx
-                }
+                icon: root.page.selectedIsActive ? "wifi" : "wifi_find"
+                iconSize: CortetsuTypography.iconLargePx
+                tone: root.page.selectedIsActive ? CortetsuDesign.colorSuccess : CortetsuDesign.colorIndicator
             }
 
             ColumnLayout {

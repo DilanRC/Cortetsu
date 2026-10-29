@@ -18,6 +18,7 @@ Se fusiona en `main` al cerrar cada bloque; no se instala en la sesión real.
 | 3.2 Launcher y Overview | Hecho en código; pendiente revisión en la sesión real | `tst_MotionTokens.qml`, `eval-retained-surfaces-host.py`, lint `--strict` a 0 |
 | 3.3 Notificaciones, OSD y toasts | Hecho en código; pendiente revisión en la sesión real | `test-cortetsu-notice-cards-runtime.py`, lint `--strict` a 0 |
 | 3.4 Dashboard | Hecho en código; pendiente revisión en la sesión real | `test-cortetsu-dashboard-dismiss-runtime.py`, lint `--strict` a 0 |
+| 3.5 Ajustes | Hecho en código; pendiente revisión en la sesión real | `test-cortetsu-settings-runtime.py`, regla `type-field-font`, lint `--strict` a 0 |
 
 ## Línea base del linter (fase 0)
 
@@ -159,3 +160,17 @@ de contenido (H-22).
   sin sensor lo dice en vez de `0°C`.
 - Tamaño: 1180 × 620 cuando cabe; en una pantalla menor se ajusta.
 - Etiquetas de sección en `colorOnSurfaceVariant` (4,5:1) en vez de primario.
+
+## 3.5 Ajustes
+
+Las páginas ya estaban migradas a `modules/settings/sections`;
+`base/modules/nexus` no lo importa nada (80 hallazgos de lint muertos) y se
+borra con los restos de `base/`.
+
+- Lint de la superficie: 5 → 0. Franjas de selección sin radio, punto de
+  aviso con `width / 2`, barras de señal en `colorIndicator` y la tarjeta de
+  red seleccionada con `CortetsuIconBadge`.
+- Campos de texto: `CortetsuSearchBar` y los campos de red, portapapeles,
+  pantallas, polkit y secretos salían en monoespaciada (sin `font.family`).
+  Ahora usan Rubik, y la regla nueva `type-field-font` lo exige en todo el
+  árbol (0 hallazgos).

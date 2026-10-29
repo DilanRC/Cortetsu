@@ -156,6 +156,8 @@ CortetsuSurface {
         }
 
         TextField {
+
+            font.family: CortetsuTypography.uiFamily
             id: identityField
             objectName: "identity"
             Layout.fillWidth: true
@@ -182,6 +184,8 @@ CortetsuSurface {
         }
 
         TextField {
+
+            font.family: CortetsuTypography.uiFamily
             id: password
             objectName: "password"
             Layout.fillWidth: true
@@ -209,6 +213,8 @@ CortetsuSurface {
         }
 
         TextField {
+
+            font.family: CortetsuTypography.uiFamily
             id: confirmField
             objectName: "confirm"
             Layout.fillWidth: true

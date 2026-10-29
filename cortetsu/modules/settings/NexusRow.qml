@@ -53,7 +53,6 @@ Item {
         visible: root.selected
         width: 2
         height: 20
-        radius: 1
         color: CortetsuDesign.colorWashi
     }
 
@@ -105,7 +104,7 @@ Item {
         visible: root.alerting
         width: 6
         height: 6
-        radius: 3
+        radius: width / 2
         color: CortetsuDesign.colorVermillion
         anchors.verticalCenter: root.collapsed ? undefined : parent.verticalCenter
         anchors.right: parent.right

@@ -7,7 +7,7 @@ import "../../../theme"
 Row {
     id: bars
     property real signalValue: 0
-    property color activeColor: CortetsuDesign.colorPrimary
+    property color activeColor: CortetsuDesign.colorIndicator
     property int barCount: 5
     spacing: 3
     height: 24
@@ -19,7 +19,7 @@ Row {
             width: 5
             height: 8 + index * 4
             y: bars.height - height
-            radius: 2
+            radius: CortetsuDesign.radiusSmall / 4
             color: index < Math.ceil(Math.max(0, bars.signalValue) / (100 / bars.barCount))
                 ? bars.activeColor
                 : Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.48)

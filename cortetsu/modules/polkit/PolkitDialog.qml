@@ -131,6 +131,8 @@ CortetsuSurface {
         }
 
         TextField {
+
+            font.family: CortetsuTypography.uiFamily
             id: password
             objectName: "password"
             Layout.fillWidth: true

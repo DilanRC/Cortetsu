@@ -5,6 +5,8 @@ import "CortetsuTypography.js" as CortetsuTypography
 
 TextField {
     id: root
+    // Without it a field falls back to the monospace system font.
+    font.family: CortetsuTypography.uiFamily
 
     property alias searchIcon: root
     property alias clearIcon: root

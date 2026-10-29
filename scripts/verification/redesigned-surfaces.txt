@@ -23,3 +23,7 @@ cortetsu/modules/sidebar
 # 3.4 Dashboard
 cortetsu/modules/DashboardHost.qml
 cortetsu/modules/dashboard
+# 3.5 Settings
+cortetsu/modules/settings
+cortetsu/modules/SettingsHost.qml
+cortetsu/modules/CortetsuSearchBar.qml

@@ -641,6 +641,8 @@ FocusScope {
                 }
 
                 TextInput {
+
+                    font.family: CortetsuTypography.uiFamily
                     id: searchInput
 
                     anchors.left: searchIcon.right

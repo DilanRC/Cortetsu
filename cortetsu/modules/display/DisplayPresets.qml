@@ -126,6 +126,8 @@ Item {
                 }
 
                 TextInput {
+
+                    font.family: CortetsuTypography.uiFamily
                     id: nameInput
                     anchors.fill: parent
                     anchors.leftMargin: CortetsuDesign.spacingStandard

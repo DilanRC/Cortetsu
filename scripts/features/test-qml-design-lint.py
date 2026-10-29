@@ -29,6 +29,7 @@ Item {
     Behavior on height { NumberAnimation { duration: 900; easing.type: Easing.OutBounce } }
     NumberAnimation { property: "width"; easing.type: Easing.InCubic }
     Item { scale: shown ? 1 : 0 }
+    TextField { placeholderText: "Buscar" }
 }
 """
 
@@ -45,6 +46,7 @@ Item {
     }
     Behavior on opacity { NumberAnimation { duration: CortetsuDesign.motionFastMs; easing.type: Easing.BezierSpline } }
     Item { scale: pressed ? 0.97 : 1 }
+    TextField { font.family: CortetsuTypography.uiFamily }
 }
 """
 

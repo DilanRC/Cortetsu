@@ -51,6 +51,7 @@ RULES = {
     "token-literal-color": "colour literal outside CortetsuDesign",
     "token-literal-radius": "radius literal outside CortetsuDesign",
     "token-literal-duration": "duration literal outside CortetsuDesign",
+    "type-field-font": "text field without the shell font family (falls back to monospace)",
 }
 
 
@@ -224,6 +225,9 @@ def lint_file(path: Path) -> list[Finding]:
                 p = p.parent
             if p is not None:
                 add("layout-nested-surface", obj.start, f"inside the surface at line {line_of(text, p.start)}")
+        if obj.type in ("TextField", "TextInput", "TextArea") and not re.search(
+                r"\bfont\.family\s*:|\bfont\s*:", own_text(text, obj, objs)):
+            add("type-field-font", obj.start, obj.type)
         if obj.type in INTERACTIVE:
             mine = own_text(text, obj, objs)
             target = obj

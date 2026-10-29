@@ -135,7 +135,6 @@ Item {
                     anchors.verticalCenter: parent.verticalCenter
                     width: 2
                     height: 30
-                    radius: 1
                     visible: index === root.page.selectedIndex
                     color: CortetsuDesign.colorWashi
                 }
