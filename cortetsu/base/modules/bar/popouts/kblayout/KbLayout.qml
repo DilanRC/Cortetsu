@@ -49,11 +49,11 @@ ColumnLayout {
                 properties: "opacity"
                 from: 0
                 to: 1
-                duration: 140
+                duration: CortetsuTokens.anim.durations.small
             }
             NumberAnimation {
                 properties: "y"
-                duration: 180
+                duration: CortetsuTokens.anim.durations.normal
                 easing.type: Easing.OutCubic
             }
         }
@@ -61,20 +61,20 @@ ColumnLayout {
             NumberAnimation {
                 properties: "opacity"
                 to: 0
-                duration: 100
+                duration: CortetsuTokens.anim.durations.small
             }
         }
         move: Transition {
             NumberAnimation {
                 properties: "y"
-                duration: 180
+                duration: CortetsuTokens.anim.durations.normal
                 easing.type: Easing.OutCubic
             }
         }
         displaced: Transition {
             NumberAnimation {
                 properties: "y"
-                duration: 180
+                duration: CortetsuTokens.anim.durations.normal
                 easing.type: Easing.OutCubic
             }
         }
@@ -168,42 +168,17 @@ ColumnLayout {
             target: kb
         }
 
-        SequentialAnimation {
+        // A layout switch usually comes from the keyboard: the new label
+        // fades in briefly and does not move or overshoot.
+        NumberAnimation {
             id: popIn
 
-            running: false
-
-            ParallelAnimation {
-                NumberAnimation {
-                    target: activeRow
-                    property: "opacity"
-                    to: 0.0
-                    duration: 70
-                }
-                NumberAnimation {
-                    target: activeRow
-                    property: "scale"
-                    to: 0.92
-                    duration: 70
-                }
-            }
-
-            ParallelAnimation {
-                NumberAnimation {
-                    target: activeRow
-                    property: "opacity"
-                    to: 1.0
-                    duration: 160
-                    easing.type: Easing.OutCubic
-                }
-                NumberAnimation {
-                    target: activeRow
-                    property: "scale"
-                    to: 1.0
-                    duration: 220
-                    easing.type: Easing.OutBack
-                }
-            }
+            target: activeRow
+            property: "opacity"
+            from: 0.4
+            to: 1
+            duration: CortetsuTokens.anim.durations.small
+            easing.type: Easing.OutCubic
         }
     }
 }

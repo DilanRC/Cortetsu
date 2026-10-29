@@ -39,28 +39,11 @@ CortetsuPopupSurface {
                 anchors.margins: CortetsuDesign.spacingStandard
                 spacing: CortetsuDesign.spacingStandard
 
-                Item {
-                    Layout.preferredWidth: 42
-                    Layout.preferredHeight: 42
-
-                    CortetsuSurface {
-                        anchors.fill: parent
-                        radiusValue: CortetsuDesign.radiusMedium
-                        baseColor: CortetsuAudio.muted
-                            ? Qt.alpha(CortetsuDesign.colorVermillion, 0.12)
-                            : Qt.alpha(CortetsuDesign.colorPrimary, 0.14)
-                    }
-
-                    CortetsuIcon {
-                        anchors.centerIn: parent
-                        text: CortetsuAudio.muted ? "volume_off"
-                            : CortetsuAudio.volume <= 0 ? "volume_mute"
-                            : CortetsuAudio.volume < 0.5 ? "volume_down" : "volume_up"
-                        iconSize: CortetsuDesign.iconMediumPx + 4
-                        color: CortetsuAudio.muted
-                            ? CortetsuDesign.colorVermillion
-                            : CortetsuDesign.colorPrimary
-                    }
+                CortetsuIconBadge {
+                    icon: CortetsuAudio.muted ? "volume_off"
+                        : CortetsuAudio.volume <= 0 ? "volume_mute"
+                        : CortetsuAudio.volume < 0.5 ? "volume_down" : "volume_up"
+                    tone: CortetsuAudio.muted ? CortetsuDesign.colorVermillion : CortetsuDesign.colorIndicator
                 }
 
                 ColumnLayout {

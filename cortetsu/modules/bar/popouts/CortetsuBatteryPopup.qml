@@ -71,28 +71,11 @@ CortetsuPopupSurface {
                     width: parent.width
                     spacing: CortetsuDesign.spacingStandard
 
-                    Item {
-                        width: 44
-                        height: 44
-
-                        CortetsuSurface {
-                            anchors.fill: parent
-                            radiusValue: CortetsuDesign.radiusMedium
-                            baseColor: root.critical
-                                ? Qt.alpha(CortetsuDesign.colorVermillion, 0.14)
-                                : Qt.alpha(CortetsuDesign.colorPrimary, 0.14)
-                        }
-
-                        CortetsuIcon {
-                            anchors.centerIn: parent
-                            text: root.hasBattery
-                                ? Icons.getBatteryIcon(CortetsuPower.value, root.batteryCharging)
-                                : "balance"
-                            iconSize: CortetsuDesign.iconMediumPx + 4
-                            color: root.critical
-                                ? CortetsuDesign.colorVermillion
-                                : CortetsuDesign.colorPrimary
-                        }
+                    CortetsuIconBadge {
+                        icon: root.hasBattery
+                            ? Icons.getBatteryIcon(CortetsuPower.value, root.batteryCharging)
+                            : "balance"
+                        tone: root.critical ? CortetsuDesign.colorVermillion : CortetsuDesign.colorIndicator
                     }
 
                     Column {
@@ -128,7 +111,7 @@ CortetsuPopupSurface {
                     trackColor: Qt.alpha(CortetsuDesign.colorSurfaceGlassStrong, 0.9)
                     fillColor: root.critical
                         ? CortetsuDesign.colorVermillion
-                        : CortetsuDesign.colorPrimary
+                        : CortetsuDesign.colorIndicator
                     motionDuration: CortetsuDesign.motionStandardMs
                 }
             }
@@ -153,8 +136,8 @@ CortetsuPopupSurface {
         }
 
         CortetsuSectionHeader {
+            // The selected button already names the profile.
             title: qsTr("Perfil de energía")
-            detail: PowerProfile.toString(PowerProfiles.profile)
         }
 
         Row {
@@ -230,7 +213,7 @@ CortetsuPopupSurface {
                 text: profileButton.icon
                 color: profileButton.selected
                     ? CortetsuDesign.colorWashi
-                    : CortetsuDesign.colorPrimary
+                    : CortetsuDesign.colorIndicator
             }
 
             CortetsuText {

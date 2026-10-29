@@ -156,21 +156,14 @@ Item {
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 4
         visible: root.active
+        // Focus arrives by keyboard, so the wider mark appears at once.
         width: root.activeFocus ? 20 : 16
         height: 2
-        radius: 1
+        radius: height / 2
         color: root.activeColor === CortetsuDesign.colorVermillion
             ? CortetsuDesign.colorVermillion
             : CortetsuDesign.colorWashi
         opacity: root.disabled ? 0 : 0.9
-
-        Behavior on width {
-            NumberAnimation {
-                duration: CortetsuDesign.motionFastMs
-                easing.type: Easing.BezierSpline
-                easing.bezierCurve: CortetsuDesign.easeOut
-            }
-        }
     }
 
     CortetsuTooltip {

@@ -5,6 +5,7 @@ import "../../../components"
 import "../../../services"
 import "../../../theme"
 import "../.."
+import "../../CortetsuTypography.js" as CortetsuTypography
 
 CortetsuSurface {
     id: root
@@ -45,14 +46,18 @@ CortetsuSurface {
             implicitHeight: CortetsuDesign.controlHeight
             placeholderText: qsTr("Contraseña")
             echoMode: TextInput.Password
+            font.family: CortetsuTypography.uiFamily
+            font.pixelSize: CortetsuTypography.bodyPx
             enabled: !root.connecting
             color: CortetsuDesign.colorOnSurface
             placeholderTextColor: CortetsuDesign.colorOnSurfaceVariant
-            background: CortetsuSurface {
-                anchors.fill: parent
-                radiusValue: CortetsuDesign.radiusSmall
-                baseColor: CortetsuDesign.colorSurfaceGlassStrong
-                outlined: true
+            background: Rectangle {
+                radius: CortetsuDesign.radiusMedium
+                color: CortetsuDesign.colorSurfaceGlassStrong
+                border.width: 1
+                border.color: password.activeFocus
+                    ? CortetsuDesign.colorIndicator
+                    : Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.56)
             }
             Keys.onReturnPressed: root.connect()
 

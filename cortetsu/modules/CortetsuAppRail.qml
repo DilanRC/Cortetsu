@@ -111,7 +111,7 @@ Item {
                         anchors.rightMargin: 5
                         width: 5
                         height: 5
-                        radius: 3
+                        radius: height / 2
                         color: Qt.alpha(CortetsuDesign.colorMuted, 0.66)
                     }
 
@@ -129,12 +129,13 @@ Item {
                                 required property int index
                                 width: appItem.modelData.active ? 10 : 4
                                 height: 3
-                                radius: 2
+                                radius: height / 2
                                 color: appItem.modelData.active
                                     ? CortetsuDesign.colorWashi
                                     : CortetsuDesign.colorMuted
                                 opacity: index < 3 ? 0.88 : 0.48
 
+                                // design-lint: allow motion-layout-property: the active window bar widens inside a row of at most four
                                 Behavior on width {
                                     NumberAnimation {
                                         duration: CortetsuDesign.motionFastMs

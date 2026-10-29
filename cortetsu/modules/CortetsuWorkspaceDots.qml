@@ -44,9 +44,10 @@ Row {
             }
 
             width: active ? 18 : 8
-            height: 28
+            height: 36
             activeFocusOnTab: true
 
+            // design-lint: allow motion-layout-property: the active dot widens and the row of ten follows it
             Behavior on width {
                 NumberAnimation {
                     duration: CortetsuDesign.motionStandardMs
@@ -65,7 +66,7 @@ Row {
 
             Rectangle {
                 anchors.centerIn: parent
-                width: workspaceDot.active ? 18 : 8
+                width: parent.width
                 height: 8
                 radius: height / 2
                 color: workspaceDot.active
@@ -75,18 +76,14 @@ Row {
                         : Qt.darker(CortetsuDesign.colorMuted, 1.35)
                 border.width: workspaceDot.activeFocus ? 1 : 0
                 border.color: CortetsuDesign.colorWashi
-
-                Behavior on width {
-                    NumberAnimation {
-                        duration: CortetsuDesign.motionStandardMs
-                        easing.type: Easing.BezierSpline
-                        easing.bezierCurve: CortetsuDesign.easeOut
-                    }
-                }
             }
 
+            // The dot is 8 px wide; the hit area covers half the gap on each
+            // side, so the row has no dead pixels between workspaces.
             MouseArea {
                 anchors.fill: parent
+                anchors.leftMargin: -root.spacing / 2
+                anchors.rightMargin: -root.spacing / 2
                 cursorShape: Qt.PointingHandCursor
                 onPressed: workspaceDot.forceActiveFocus()
                 onClicked: workspaceDot.activateWorkspace(workspaceDot.wsId)

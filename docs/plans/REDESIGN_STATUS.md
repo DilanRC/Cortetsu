@@ -14,7 +14,8 @@ Se fusiona en `main` al cerrar cada bloque; no se instala en la sesión real.
 | 2.3 Llavero y GPG | Hecho | `docs/SECRET-PROMPTS.md` |
 | 2.4 Wi-Fi y Bluetooth | Hecho | `docs/SECRET-PROMPTS.md` |
 | 2.5 Atajos | Hecho | `docs/UTILITY-SHORTCUTS.md` |
-| 3.1 BottomHub, barra y popouts | En curso | |
+| 3.1 BottomHub, barra y popouts | Hecho en código; pendiente revisión en la sesión real | `tst_HubControls.qml`, `test-cortetsu-hub-controls-runtime.py`, lint `--strict` a 0 |
+| 3.2 Launcher y Overview | Pendiente | |
 
 ## Línea base del linter (fase 0)
 
@@ -70,3 +71,29 @@ by surface:
       1  modules/sidebar
       1  modules/wallpaper
 ```
+
+## 3.1 BottomHub, barra y popouts
+
+Lint de la superficie: 15 hallazgos → 0. Global: 317 → 284.
+
+- Puntos de espacio de trabajo: objetivo de 28 → 36 px de alto y el hueco
+  entre puntos también cambia de espacio (antes era zona muerta).
+- Píldora de estado: elementos de 36 px; ya no toman el foco al cargar (REC
+  aparecía con anillo de foco); la grabación respira en opacidad, no en escala.
+- Insignia de avisos: círculo con una cifra, crece con «9+» (antes se salía).
+- Indicador del botón activo: el ensanche por foco de teclado es inmediato.
+- Popouts: el cuadrado de icono es `CortetsuIconBadge` (40 px, antes 36/42/44
+  y superficies anidadas). Iconos, relleno de batería y perfil usan
+  `colorIndicator` (H-37: `colorPrimary` quedaba por debajo de 3:1).
+- Wi-Fi: el campo marca el foco y usa la fuente del shell (antes monoespaciada).
+- Batería: se quita el detalle «Balanced» en inglés, que repetía el botón.
+- Popouts anclados: tamaño sin animación (la posición usa el tamaño final);
+  la transición de contenido dura `motionStandardMs` desde el arranque (antes
+  0 hasta el primer desacople).
+- Distribución de teclado: sin rebote ni escala; fundido de 120 ms.
+
+Excepciones justificadas en el código: ancho de la píldora y de los puntos
+activos (los vecinos se recolocan), morph de popouts desacoplados, salidas con
+ease-in y la escala 0,975..1 del popup.
+
+Capturas: `CORTETSU_RENDER_DIR=<dir> python3 scripts/features/test-cortetsu-hub-controls-runtime.py`.

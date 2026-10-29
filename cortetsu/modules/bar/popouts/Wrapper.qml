@@ -33,13 +33,9 @@ Item {
     property real bottomRightMargin: 4
     property real bottomAnchorCenter: -1
 
-    property int animLength: 0
-    property var animCurve
-
-    function setAnims(detach: bool): void {
-        animLength = detach ? 220 : 160;
-        animCurve = Easing.OutCubic;
-    }
+    // Content crossfade and the detached size morph. It used to start at 0
+    // and only took a value after the first detach.
+    readonly property int animLength: CortetsuDesign.motionStandardMs
 
     function cancelClose(): void {
         closeTimer.stop();
@@ -51,7 +47,6 @@ Item {
         hasCurrent = true;
         bottomAttached = false;
         bottomAnchorCenter = -1;
-        setAnims(true);
         if (mode === "winfo") {
             queuedMode = "";
             detachedMode = mode;
@@ -59,7 +54,6 @@ Item {
             queuedMode = mode;
             detachedMode = "any";
         }
-        setAnims(false);
         focus = true;
     }
 
@@ -168,9 +162,16 @@ Item {
         }
     }
 
-    Behavior on implicitWidth { NumberAnimation { duration: root.animLength; easing.type: Easing.BezierSpline; easing.bezierCurve: CortetsuDesign.easeOut } }
+    // The placement reads the final size, so an attached popup snaps to it;
+    // animating it there would grow the popup off its icon.
+    // design-lint: allow motion-layout-property: a detached popup morphs into the next mode instead of swapping
+    Behavior on implicitWidth {
+        enabled: !root.bottomAttached
+        NumberAnimation { duration: root.animLength; easing.type: Easing.BezierSpline; easing.bezierCurve: CortetsuDesign.easeOut }
+    }
+    // design-lint: allow motion-layout-property: same morph as the width, only while the popup is opening
     Behavior on implicitHeight {
-        enabled: root.offsetScale < 1
+        enabled: !root.bottomAttached && root.offsetScale < 1
         NumberAnimation { duration: root.animLength; easing.type: Easing.BezierSpline; easing.bezierCurve: CortetsuDesign.easeOut }
     }
 

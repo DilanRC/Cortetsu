@@ -37,12 +37,12 @@ CortetsuSurface {
         spacing: CortetsuDesign.spacingComfortable
         z: 1
 
-        CortetsuSurface {
+        Rectangle {
             Layout.preferredWidth: 300
             Layout.preferredHeight: 300
             Layout.fillHeight: true
             color: CortetsuDesign.colorSurfaceGlass
-            radiusValue: CortetsuDesign.radiusMedium
+            radius: CortetsuDesign.radiusMedium
 
             Column {
                 anchors.fill: parent
@@ -177,7 +177,7 @@ CortetsuSurface {
         required property string text
         Layout.fillWidth: true
         spacing: CortetsuDesign.spacingCompact
-        CortetsuIcon { text: parent.icon; color: CortetsuDesign.colorPrimary }
+        CortetsuIcon { text: parent.icon; color: CortetsuDesign.colorIndicator }
         CortetsuText { Layout.fillWidth: true; text: parent.text; elide: Text.ElideRight; textSize: CortetsuDesign.bodySmallPx }
     }
 }

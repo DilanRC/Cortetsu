@@ -76,7 +76,10 @@ Fuente normativa: `dotfiles/home/.config/cortetsu/ui.toml`, compilada a
 `cortetsu/theme/CortetsuDesign.qml`. Este archivo describe esos tokens para
 agentes; si discrepan, gana `ui.toml`. Las reglas de primitivos siguen en
 `docs/CORTETSU_DESIGN_SYSTEM.md`. La verificación estática es
-`scripts/verification/qml-design-lint.py`.
+`scripts/verification/qml-design-lint.py`. Un hallazgo intencionado lleva
+`// design-lint: allow <regla>: <motivo>` en su línea o en la anterior; sin
+motivo no cuenta. Cada superficie rediseñada queda a cero en `--strict` dentro
+de `scripts/verification/build-regressions.sh`.
 
 ## Overview
 

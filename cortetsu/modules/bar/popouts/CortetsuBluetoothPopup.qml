@@ -57,26 +57,9 @@ CortetsuPopupSurface {
                 anchors.margins: CortetsuDesign.spacingStandard
                 spacing: CortetsuDesign.spacingStandard
 
-                Item {
-                    Layout.preferredWidth: 36
-                    Layout.preferredHeight: 36
-
-                    CortetsuSurface {
-                        anchors.fill: parent
-                        radiusValue: CortetsuDesign.radiusSmall
-                        baseColor: root.adapterEnabled
-                            ? Qt.alpha(CortetsuDesign.colorPrimary, 0.14)
-                            : Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.7)
-                    }
-
-                    CortetsuIcon {
-                        anchors.centerIn: parent
-                        text: root.connectedCount > 0 ? "bluetooth_connected" : "bluetooth"
-                        iconSize: CortetsuDesign.iconMediumPx + 4
-                        color: root.adapterEnabled
-                            ? CortetsuDesign.colorPrimary
-                            : CortetsuDesign.colorOnSurfaceMuted
-                    }
+                CortetsuIconBadge {
+                    icon: root.connectedCount > 0 ? "bluetooth_connected" : "bluetooth"
+                    tone: root.adapterEnabled ? CortetsuDesign.colorIndicator : CortetsuDesign.colorOnSurfaceMuted
                 }
 
                 ColumnLayout {

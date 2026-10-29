@@ -76,25 +76,11 @@ CortetsuPopupSurface {
                 anchors.margins: CortetsuDesign.spacingStandard
                 spacing: CortetsuDesign.spacingStandard
 
-                Item {
-                    width: 42
-                    height: 42
+                CortetsuIconBadge {
                     anchors.verticalCenter: parent.verticalCenter
-
-                    CortetsuSurface {
-                        anchors.fill: parent
-                        radiusValue: CortetsuDesign.radiusMedium
-                        baseColor: Qt.alpha(CortetsuDesign.colorPrimary, 0.16)
-                    }
-
-                    CortetsuIcon {
-                        anchors.centerIn: parent
-                        text: CortetsuNetwork.active !== null
-                            ? Icons.getNetworkIcon(CortetsuNetwork.active?.strength ?? 0)
-                            : "lan"
-                        iconSize: CortetsuDesign.iconMediumPx + 4
-                        color: CortetsuDesign.colorWashi
-                    }
+                    icon: CortetsuNetwork.active !== null
+                        ? Icons.getNetworkIcon(CortetsuNetwork.active?.strength ?? 0)
+                        : "lan"
                 }
 
                 Column {

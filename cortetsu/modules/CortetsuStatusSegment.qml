@@ -59,7 +59,6 @@ Item {
         anchors.verticalCenter: parent.verticalCenter
         width: 1
         height: 22
-        radius: 1
         color: Qt.alpha(CortetsuDesign.colorMuted, 0.14)
     }
 
@@ -203,13 +202,14 @@ Item {
                 anchors.right: parent.right
                 anchors.topMargin: 1
                 anchors.rightMargin: 1
-                width: 17
-                height: 17
-                radius: 9
+                width: Math.max(height, badgeText.implicitWidth + CortetsuDesign.spacingUnit * 2)
+                height: 18
+                radius: height / 2
                 color: CortetsuDesign.colorIndigo
                 border.width: 0
 
                 CortetsuText {
+                    id: badgeText
                     anchors.centerIn: parent
                     text: root.notificationCount > 9 ? qsTr("9+") : root.notificationCount
                     color: CortetsuDesign.colorWashi

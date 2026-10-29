@@ -99,6 +99,7 @@ CortetsuPopupSurface {
                     from: 0
                     to: CortetsuDesign.spacingComfortable
                     duration: CortetsuDesign.motionFastMs
+                    // design-lint: allow motion-ease-in: popExit is the leaving submenu
                     easing.type: Easing.InCubic
                 }
                 NumberAnimation {

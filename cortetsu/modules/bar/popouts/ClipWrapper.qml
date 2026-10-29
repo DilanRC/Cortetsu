@@ -45,6 +45,7 @@ Item {
     Behavior on offsetScale {
         NumberAnimation {
             duration: content.closing ? CortetsuDesign.motionFastMs : CortetsuDesign.motionStandardMs
+            // design-lint: allow motion-ease-in: the close is an exit and accelerates away
             easing.type: content.closing ? Easing.InCubic : Easing.OutCubic
         }
     }
@@ -60,6 +61,7 @@ Item {
         x: 0
         transformOrigin: Item.Bottom
         opacity: 1 - root.offsetScale
+        // design-lint: allow motion-scale-from-zero: offsetScale is 0..1, so the scale stays in 0.975..1
         scale: 1 - 0.025 * root.offsetScale
         transform: Translate { y: 12 * root.offsetScale }
     }

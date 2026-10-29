@@ -71,4 +71,22 @@ with tempfile.TemporaryDirectory(dir=ROOT / "cortetsu") as tmp:
     durations = [f for f in lint.lint_file(path) if f.rule == "motion-duration"]
     assert len(durations) == 1 and durations[0].line == 16, durations
 
+# An allow comment with a reason silences its rule on that line or the next;
+# one without a reason, or naming another rule, does not.
+ALLOWED = """
+import QtQuick
+Item {
+    // design-lint: allow motion-layout-property: the gap grows with the pill
+    Behavior on width { NumberAnimation {} }
+    Behavior on height { NumberAnimation {} } // design-lint: allow motion-layout-property:
+    // design-lint: allow motion-bounce: wrong rule
+    Behavior on implicitWidth { NumberAnimation {} }
+}
+"""
+with tempfile.TemporaryDirectory(dir=ROOT / "cortetsu") as tmp:
+    path = Path(tmp) / "Sample.qml"
+    path.write_text(ALLOWED, encoding="utf-8")
+    lines = sorted(f.line for f in lint.lint_file(path) if f.rule == "motion-layout-property")
+    assert lines == [6, 8], lines
+
 print("PASS: qml-design-lint rules fire on bad QML and stay quiet on token-based QML")

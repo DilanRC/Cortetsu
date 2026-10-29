@@ -28,6 +28,7 @@ Item {
     transformOrigin: Item.Center
     clip: true
 
+    // design-lint: allow motion-layout-property: the hub row opens the gap with the pill; without it the neighbours jump
     Behavior on width {
         NumberAnimation {
             duration: CortetsuDesign.motionStandardMs
@@ -129,8 +130,7 @@ Item {
         signal clicked()
 
         implicitWidth: content.implicitWidth + CortetsuDesign.spacingCompact
-        implicitHeight: 28
-        focus: true
+        implicitHeight: 36
         activeFocusOnTab: true
 
         CortetsuSurface {
@@ -157,19 +157,21 @@ Item {
                 text: item.icon
                 color: item.iconColor
                 iconSize: CortetsuTypography.iconSmallPx
-                scale: item.pulse && root.recordingActive ? 1 : 0.9
 
-                SequentialAnimation on scale {
+                // A recording in progress is the one live state here: the dot
+                // breathes in opacity and stays still in size.
+                SequentialAnimation on opacity {
                     running: item.pulse && root.recordingActive && !CortetsuDesign.reducedMotion
                     loops: Animation.Infinite
+                    onRunningChanged: if (!running) iconLabel.opacity = 1
 
                     NumberAnimation {
-                        to: 1.08
+                        to: 0.45
                         duration: CortetsuDesign.motionDeliberateMs * 2
                         easing.type: Easing.InOutSine
                     }
                     NumberAnimation {
-                        to: 0.9
+                        to: 1
                         duration: CortetsuDesign.motionDeliberateMs * 2
                         easing.type: Easing.InOutSine
                     }

@@ -8,6 +8,10 @@ the measurable version of docs/CORTETSU_DESIGN_SYSTEM.md for QML.
 It reports and exits 0 by default. `--strict` exits 1 on any finding and is
 meant for the per-surface gate of the redesign (phase 3).
 
+A finding that is intended carries `// design-lint: allow <rule>: <reason>`
+on its line or the line above. The reason is required; without it the
+comment does not count.
+
 Two rules are not statically decidable and stay manual: "keyboard-initiated
 actions do not animate" and "no grey text on a coloured background".
 """
@@ -48,6 +52,9 @@ RULES = {
     "token-literal-radius": "radius literal outside CortetsuDesign",
     "token-literal-duration": "duration literal outside CortetsuDesign",
 }
+
+
+ALLOW = re.compile(r"//\s*design-lint:\s*allow\s+([a-z-]+)\s*:\s*\S")
 
 
 @dataclass
@@ -228,7 +235,13 @@ def lint_file(path: Path) -> list[Finding]:
                 if m and 0 < float(m.group(1)) < MIN_TARGET:
                     add("layout-small-target", target.start, f"{target.type}.{prop}: {m.group(1)}")
                     break
-    return found
+    lines = raw.splitlines()
+
+    def allowed(f: Finding) -> bool:
+        near = lines[max(0, f.line - 2):f.line]
+        return any(m.group(1) == f.rule for line in near for m in [ALLOW.search(line)] if m)
+
+    return [f for f in found if not allowed(f)]
 
 
 def contrast_findings() -> list[Finding]:
