@@ -15,7 +15,7 @@ Se fusiona en `main` al cerrar cada bloque; no se instala en la sesión real.
 | 2.4 Wi-Fi y Bluetooth | Hecho | `docs/SECRET-PROMPTS.md` |
 | 2.5 Atajos | Hecho | `docs/UTILITY-SHORTCUTS.md` |
 | 3.1 BottomHub, barra y popouts | Hecho en código; pendiente revisión en la sesión real | `tst_HubControls.qml`, `test-cortetsu-hub-controls-runtime.py`, lint `--strict` a 0 |
-| 3.2 Launcher y Overview | Pendiente | |
+| 3.2 Launcher y Overview | Hecho en código; pendiente revisión en la sesión real | `tst_MotionTokens.qml`, `eval-retained-surfaces-host.py`, lint `--strict` a 0 |
 
 ## Línea base del linter (fase 0)
 
@@ -97,3 +97,19 @@ activos (los vecinos se recolocan), morph de popouts desacoplados, salidas con
 ease-in y la escala 0,975..1 del popup.
 
 Capturas: `CORTETSU_RENDER_DIR=<dir> python3 scripts/features/test-cortetsu-hub-controls-runtime.py`.
+
+## 3.2 Launcher y Overview
+
+Lint de la superficie: 11 hallazgos → 0.
+
+- Apertura con tecla: tokens nuevos `motionSummonMs` 140 y
+  `motionSummonExitMs` 100 (`ui.toml` → generador del tema). Solo opacidad.
+- Launcher real (`LauncherHost`): antes aparecía de golpe; ahora un fundido de
+  140 ms al abrir. Al cerrar la ventana se desmapea, sin salida que animar.
+- Overview: entrada de 180 → 140 ms y salida con ease-out en 100 ms (antes
+  ease-in).
+- Lista del launcher: el tamaño sigue a los resultados al instante; antes cada
+  tecla animaba ancho y alto.
+- Mensaje de vacío: solo opacidad (antes crecía desde 0,5).
+- Carrusel de fondos: los vecinos a 0,95 (antes 0,5 y 0,8).
+- Píldoras de Overview: radio `height / 2` en vez del literal 999.

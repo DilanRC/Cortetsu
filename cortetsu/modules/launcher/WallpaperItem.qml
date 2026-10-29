@@ -13,12 +13,12 @@ Item {
     required property var screenState
     required property var applyOwner
 
-    scale: 0.5
+    scale: 0.95
     opacity: 0
     z: PathView.z ?? 0 // qmllint disable missing-property
 
     Component.onCompleted: {
-        scale = Qt.binding(() => PathView.isCurrentItem ? 1 : PathView.onPath ? 0.8 : 0);
+        scale = Qt.binding(() => PathView.isCurrentItem ? 1 : 0.95);
         opacity = Qt.binding(() => PathView.onPath ? 1 : 0);
     }
 

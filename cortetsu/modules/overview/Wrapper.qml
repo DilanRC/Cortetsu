@@ -18,10 +18,9 @@ Item {
 
     Behavior on visibilityProgress {
         NumberAnimation {
-            duration: root.shouldBeActive
-                ? CortetsuDesign.motionStandardMs
-                : CortetsuDesign.motionFastMs
-            easing.type: root.shouldBeActive ? Easing.OutCubic : Easing.InCubic
+            // Opened from a key: only opacity, under 150 ms.
+            duration: root.shouldBeActive ? CortetsuDesign.motionSummonMs : CortetsuDesign.motionSummonExitMs
+            easing.type: Easing.OutCubic
         }
     }
 

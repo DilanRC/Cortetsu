@@ -39,7 +39,7 @@ Item {
             name: "apps"
 
             PropertyChanges {
-                root.implicitWidth: Math.max(760, 760)
+                root.implicitWidth: 760
                 root.implicitHeight: Math.min(root.maxHeight, appList.implicitHeight > 0 ? appList.implicitHeight : empty.implicitHeight)
                 appList.active: true
             }
@@ -119,7 +119,6 @@ Item {
         id: empty
 
         opacity: !root.listLoading && root.currentList?.count === 0 ? 1 : 0
-        scale: root.currentList?.count === 0 ? 1 : 0.5
 
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.verticalCenter: parent.verticalCenter
@@ -134,10 +133,6 @@ Item {
             CortetsuAnim {
                 type: CortetsuAnim.DefaultEffects
             }
-        }
-
-        Behavior on scale {
-            CortetsuAnim {}
         }
     }
 
@@ -154,15 +149,4 @@ Item {
         detail: qsTr("Preparando la biblioteca de fondos")
     }
 
-    Behavior on implicitWidth {
-        enabled: root.screenState?.launcher ?? false
-
-        CortetsuAnim {}
-    }
-
-    Behavior on implicitHeight {
-        enabled: root.screenState?.launcher ?? false
-
-        CortetsuAnim {}
-    }
 }

@@ -54,6 +54,17 @@ Scope {
                 screenState: window.screenState
                 panels: null
                 maxHeight: parent.height * 0.72
+
+                // Opened from a key: a short fade, nothing moves. The window
+                // unmaps on close, so there is no exit to animate.
+                NumberAnimation on opacity {
+                    id: openFade
+                    running: false
+                    from: 0
+                    to: 1
+                    duration: CortetsuDesign.motionSummonMs
+                    easing.type: Easing.OutCubic
+                }
             }
             Connections {
                 target: window.screenState
@@ -63,6 +74,7 @@ Scope {
                     // Whatever path opened it (shortcut, IPC, hover, showall),
                     // no other screen keeps a launcher holding the keyboard.
                     CortetsuShellState.closeLaunchers(window.screenState);
+                    openFade.restart();
                     Qt.callLater(() => launcher.focusSearch());
                 }
             }

@@ -64,6 +64,9 @@ popover_ms = 200
 # Exits are shorter than entries.
 popover_exit_ms = 150
 panel_exit_ms = 240
+# Launcher and Overview open from a key: a short fade, nothing moves.
+summon_ms = 140
+summon_exit_ms = 100
 hover_scale = 1.025
 press_scale = 0.97
 # Cubic-bezier control points (x1, y1, x2, y2).

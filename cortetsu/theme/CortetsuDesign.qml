@@ -124,6 +124,8 @@ QtObject {
     readonly property real motionPopoverMs: reducedMotion ? 0 : Defaults.motionPopoverMs
     readonly property real motionPopoverExitMs: reducedMotion ? 0 : Defaults.motionPopoverExitMs
     readonly property real motionPanelExitMs: reducedMotion ? 0 : Defaults.motionPanelExitMs
+    readonly property real motionSummonMs: reducedMotion ? 0 : Defaults.motionSummonMs
+    readonly property real motionSummonExitMs: reducedMotion ? 0 : Defaults.motionSummonExitMs
     readonly property real pressScale: Defaults.pressScale
     readonly property real tooltipDelayMs: Defaults.tooltipDelayMs
     readonly property var easeOut: Defaults.easeOut

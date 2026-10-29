@@ -54,6 +54,9 @@ TestCase {
         verify(CortetsuDesign.motionPanelExitMs < CortetsuDesign.motionPanelMs);
         verify(CortetsuDesign.motionPopoverMs <= 300);
         verify(CortetsuDesign.motionDrawerMs <= 500);
+        // Launcher and Overview open from a key: under 150 ms, exit faster.
+        verify(CortetsuDesign.motionSummonMs <= 150);
+        verify(CortetsuDesign.motionSummonExitMs < CortetsuDesign.motionSummonMs);
         verify(CortetsuDesign.pressScale >= 0.95 && CortetsuDesign.pressScale < 1);
     }
 
@@ -62,7 +65,7 @@ TestCase {
         CortetsuDesign.reducedMotion = true;
         for (const name of ["motionInstantMs", "motionFastMs", "motionStandardMs", "motionDeliberateMs",
                 "motionPanelMs", "motionDrawerMs", "motionTooltipMs", "motionPopoverMs",
-                "motionPopoverExitMs", "motionPanelExitMs", "wallUtilityPanelMotionMs"])
+                "motionPopoverExitMs", "motionPanelExitMs", "motionSummonMs", "motionSummonExitMs", "wallUtilityPanelMotionMs"])
             compare(CortetsuDesign[name], 0, name);
         compare(CortetsuDesign.tooltipDelayMs, delay);
         CortetsuDesign.reducedMotion = false;

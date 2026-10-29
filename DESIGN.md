@@ -193,6 +193,7 @@ Tokens de `ui.toml [motion]`, leídos siempre desde `CortetsuDesign`:
 | Pulsación (escala `pressScale` 0.97) | `motionFastMs` | 120 ms |
 | Tooltip (entrada; retardo `tooltipDelayMs` 240 solo para el primero) | `motionTooltipMs` | 150 ms |
 | Popover y menú, entrada / salida | `motionPopoverMs` / `motionPopoverExitMs` | 200 / 150 ms |
+| Launcher y Overview (se abren con una tecla; solo opacidad) | `motionSummonMs` / `motionSummonExitMs` | 140 / 100 ms |
 | Panel, entrada / salida | `motionPanelMs` / `motionPanelExitMs` | 320 / 240 ms |
 | Drawer y BottomHub | `motionDrawerMs` | 400 ms |
 | Cambios de contenido | `motionInstantMs` / `motionStandardMs` / `motionDeliberateMs` | 80 / 180 / 240 ms |

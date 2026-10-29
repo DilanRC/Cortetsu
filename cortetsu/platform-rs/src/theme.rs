@@ -65,13 +65,15 @@ fn load(repo: &Path) -> Result<Value> {
         "popover_ms",
         "popover_exit_ms",
         "panel_exit_ms",
+        "summon_ms",
+        "summon_exit_ms",
         "tooltip_delay_ms",
     ] {
         if m[name].as_i64().unwrap_or(0) <= 0 {
             return fail(format!("invalid motion.{name}"));
         }
     }
-    for (exit, entry) in [("popover_exit_ms", "popover_ms"), ("panel_exit_ms", "panel_ms")] {
+    for (exit, entry) in [("popover_exit_ms", "popover_ms"), ("panel_exit_ms", "panel_ms"), ("summon_exit_ms", "summon_ms")] {
         if m[exit].as_i64() >= m[entry].as_i64() {
             return fail(format!("motion.{exit} must be shorter than motion.{entry}"));
         }

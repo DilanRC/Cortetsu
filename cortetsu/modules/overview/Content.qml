@@ -559,7 +559,7 @@ FocusScope {
                     implicitHeight: 34
 
                     radius:
-                        999
+                        height / 2
 
                     color:
                         Qt.alpha(

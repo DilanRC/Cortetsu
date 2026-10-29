@@ -75,6 +75,9 @@ var motionTooltipMs = {{motion.tooltip_ms}}
 var motionPopoverMs = {{motion.popover_ms}}
 var motionPopoverExitMs = {{motion.popover_exit_ms}}
 var motionPanelExitMs = {{motion.panel_exit_ms}}
+// Launcher and Overview open from a key: a short fade, nothing moves.
+var motionSummonMs = {{motion.summon_ms}}
+var motionSummonExitMs = {{motion.summon_exit_ms}}
 var pressScale = {{motion.press_scale}}
 // Intent delay, not motion: Reduced motion leaves it alone.
 var tooltipDelayMs = {{motion.tooltip_delay_ms}}

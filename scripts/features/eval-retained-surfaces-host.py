@@ -38,7 +38,8 @@ checks = {
     "full surfaces own overlay layer": "WlrLayer.Overlay" in source,
     "drawer resolves bar through explicit import boundary": 'import "../bar" as Bar' in drawers and "Bar.BarWrapper {" in drawers,
     "retained wrappers tolerate transient null state": all(f"screenState?.cortetsuState?.{flag}" in path.read_text(encoding="utf-8") for path, flag in wrappers),
-    "launcher geometry tolerates transient null state": launcher_list.count("root.screenState?.launcher ?? false") == 2,
+    # The launcher resizes with its results at once: typing must not animate layout.
+    "launcher size follows its results without layout animation": "Behavior on implicit" not in launcher_list,
     "drawer wrappers tolerate transient null state": all(all(marker in (ROOT / "cortetsu/modules" / path).read_text(encoding="utf-8") for marker in markers) for path, markers in null_safe_wrappers.items()),
 }
 for label, passed in checks.items():

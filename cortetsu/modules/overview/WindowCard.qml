@@ -180,7 +180,7 @@ Item {
             implicitWidth: selectedLabel.implicitWidth + 18
             implicitHeight: 28
 
-            radius: 999
+            radius: height / 2
             color: CortetsuDesign.colorSecondaryContainer
             border.width: 1
             border.color: CortetsuDesign.colorPrimary
@@ -245,7 +245,7 @@ Item {
             implicitHeight:
                 workspaceLabel.implicitHeight + 8
 
-            radius: 999
+            radius: height / 2
 
             color:
                 Qt.alpha(
@@ -312,7 +312,7 @@ Item {
                 implicitHeight: 36
                 activeFocusOnTab: true
 
-                radius: 999
+                radius: height / 2
 
                 color:
                     floatMouse.containsMouse
@@ -375,7 +375,7 @@ Item {
                 implicitHeight: 36
                 activeFocusOnTab: true
 
-                radius: 999
+                radius: height / 2
 
                 color:
                     closeMouse.containsMouse
