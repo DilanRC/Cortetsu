@@ -72,7 +72,9 @@ CortetsuSurface {
             id: items
 
             model: ScriptModel {
-                values: TrayIdentity.entries(SystemTray.items.values.filter(i => i.status !== Status.Passive && !CortetsuConfig.hiddenTrayIcons.includes(i.id)))
+                // Keys come from the full list: a filtered call would drop the keys
+                // other trays still use for the filtered-out items.
+                values: TrayIdentity.entries(SystemTray.items.values).filter(e => e.item.status !== Status.Passive && !CortetsuConfig.hiddenTrayIcons.includes(e.item.id))
                 objectProp: "key"
             }
 

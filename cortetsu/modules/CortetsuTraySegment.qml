@@ -51,12 +51,17 @@ Item {
                 height: implicitHeight
                 activeFocusOnTab: enabled
 
+                // In segment coordinates: the row is centred inside the pill.
+                function centerX(): real {
+                    return trayRow.x + x + width / 2;
+                }
+
                 function activatePrimary(): void {
                     const action = BottomHubTray.primaryAction(modelData);
                     if (action === "activate")
                         root.activateRequested(modelData.key);
                     else if (action === "menu")
-                        root.secondaryRequested(modelData.key, x + width / 2);
+                        root.secondaryRequested(modelData.key, centerX());
                 }
 
                 CortetsuSurface {
@@ -119,14 +124,14 @@ Item {
                     }
                     onEntered: root.hoverRequested(
                         trayItem.modelData.key,
-                        trayItem.x + trayItem.width / 2
+                        trayItem.centerX()
                     )
                     onClicked: event => {
                         if (event.button === Qt.LeftButton)
                             trayItem.activatePrimary();
                         else if (event.button === Qt.RightButton) {
                             if (BottomHubTray.contextAction(trayItem.modelData) === "menu")
-                                root.secondaryRequested(trayItem.modelData.key, trayItem.x + trayItem.width / 2);
+                                root.secondaryRequested(trayItem.modelData.key, trayItem.centerX());
                         } else
                             root.secondaryActivateRequested(trayItem.modelData.key);
                     }
@@ -137,7 +142,7 @@ Item {
                 Keys.onSpacePressed: trayItem.activatePrimary()
                 Keys.onMenuPressed: root.secondaryRequested(
                     trayItem.modelData.key,
-                    trayItem.x + trayItem.width / 2
+                    trayItem.centerX()
                 )
 
                 CortetsuTooltip {

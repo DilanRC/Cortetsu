@@ -46,4 +46,18 @@ TestCase {
         compare(before[1], after[0]);
         verify(before[0] !== before[1]);
     }
+
+    function test_keys_survive_filtering_by_another_tray() {
+        const active = { id: "active", status: 1 };
+        const passive = { id: "passive", status: 0 };
+        const all = [active, passive];
+        const first = TrayPolicy.instanceKey(passive);
+        // The bar shows only active items; the hub may show both.
+        TrayPolicy.visibleEntries(all, [], 0);
+        TrayPolicy.visibleEntries(all, [], 0);
+        compare(TrayPolicy.instanceKey(passive), first);
+        // An item that left the tray loses its key.
+        TrayPolicy.visibleEntries([active], [], 0);
+        verify(TrayPolicy.instanceKey(passive) !== first);
+    }
 }
