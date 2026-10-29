@@ -16,6 +16,7 @@ Se fusiona en `main` al cerrar cada bloque; no se instala en la sesión real.
 | 2.5 Atajos | Hecho | `docs/UTILITY-SHORTCUTS.md` |
 | 3.1 BottomHub, barra y popouts | Hecho en código; pendiente revisión en la sesión real | `tst_HubControls.qml`, `test-cortetsu-hub-controls-runtime.py`, lint `--strict` a 0 |
 | 3.2 Launcher y Overview | Hecho en código; pendiente revisión en la sesión real | `tst_MotionTokens.qml`, `eval-retained-surfaces-host.py`, lint `--strict` a 0 |
+| 3.3 Notificaciones, OSD y toasts | Hecho en código; pendiente revisión en la sesión real | `test-cortetsu-notice-cards-runtime.py`, lint `--strict` a 0 |
 
 ## Línea base del linter (fase 0)
 
@@ -113,3 +114,20 @@ Lint de la superficie: 11 hallazgos → 0.
 - Mensaje de vacío: solo opacidad (antes crecía desde 0,5).
 - Carrusel de fondos: los vecinos a 0,95 (antes 0,5 y 0,8).
 - Píldoras de Overview: radio `height / 2` en vez del literal 999.
+
+## 3.3 Notificaciones, OSD y toasts
+
+Lint de la superficie: 15 hallazgos → 0. Global: 284 → 261. Las superficies
+rediseñadas se listan en `scripts/verification/redesigned-surfaces.txt`;
+`build-regressions.sh` les pasa el lint con `--strict`.
+
+- Notificación, toast, panel de utilidades y cabecera de avisos de la barra
+  lateral usan `CortetsuIconBadge` (antes una `CortetsuSurface` anidada por
+  tarjeta) con tono `colorIndicator`; bermellón si es urgente.
+- La franja de urgencia es una línea de 2 px sin radio.
+- Salidas de notificación, OSD y utilidades con ease-out (antes ease-in).
+- Prueba nueva con datos extremos (resumen, app y cuerpo de 300 caracteres,
+  toast sin icono): el texto se corta dentro de la tarjeta y una notificación
+  cerrada se desvanece.
+- Las tarjetas de `base/modules/utilities` y `base/modules/notifications` no
+  las usa nada; se borran en el paso de restos de `base/`.

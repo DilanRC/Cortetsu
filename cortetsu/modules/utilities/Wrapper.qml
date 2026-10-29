@@ -27,6 +27,7 @@ Item {
     implicitHeight: content.implicitHeight + totalPadding
     implicitWidth: Math.min(520, parent.width - CortetsuDesign.spacingComfortable)
     opacity: 1 - offsetScale
+    // design-lint: allow motion-scale-from-zero: 0.98 to 1, slides in with the fade
     scale: 1 - 0.018 * offsetScale
     transformOrigin: Item.Bottom
 
@@ -35,7 +36,7 @@ Item {
             duration: root.shouldBeActive
                 ? CortetsuDesign.motionStandardMs
                 : CortetsuDesign.motionFastMs
-            easing.type: root.shouldBeActive ? Easing.OutCubic : Easing.InCubic
+            easing.type: Easing.OutCubic
         }
     }
 

@@ -11,13 +11,10 @@ for suite in hardware hypr surfaces calendar pomodoro policy polkit prompt; do
 done
 python3 "$REPO/scripts/features/test-native-bottom-hub.py" --runtime "$STAGING/modules/BottomHub.qml"
 python3 "$REPO/scripts/features/test-cortetsu-hub-controls-runtime.py"
+python3 "$REPO/scripts/features/test-cortetsu-notice-cards-runtime.py"
 # Redesigned surfaces stay at zero design-lint findings (phase 3).
-python3 "$REPO/scripts/verification/qml-design-lint.py" --strict \
-    "$REPO/cortetsu/modules/BottomHub.qml" "$REPO/cortetsu/modules/CortetsuBottomHubView.qml" \
-    "$REPO/cortetsu/modules/HubButton.qml" "$REPO/cortetsu/modules/StatusPill.qml" \
-    "$REPO/cortetsu/modules/CortetsuWorkspaceDots.qml" "$REPO/cortetsu/modules/CortetsuAppRail.qml" \
-    "$REPO/cortetsu/modules/CortetsuStatusSegment.qml" "$REPO/cortetsu/modules/bar" \
-    "$REPO/cortetsu/base/modules/bar/popouts/kblayout" "$REPO/cortetsu/components/CortetsuIconBadge.qml"
+mapfile -t redesigned < <(grep -Ev '^(#|$)' "$REPO/scripts/verification/redesigned-surfaces.txt" | sed "s|^|$REPO/|")
+python3 "$REPO/scripts/verification/qml-design-lint.py" --strict "${redesigned[@]}"
 python3 "$REPO/scripts/features/test-cortetsu-surface-registry.py"
 python3 "$REPO/scripts/features/test-hypr-actions.py"
 python3 "$REPO/scripts/features/test-hypr-event-policy.py"

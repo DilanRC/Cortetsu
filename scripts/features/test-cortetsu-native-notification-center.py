@@ -35,8 +35,8 @@ assert 'import "../CortetsuTypography.js" as CortetsuTypography' in notification
 assert "modelData.appName" in notification
 assert "modelData.image" in notification
 assert "readonly property bool urgent: urgency >= 2" in notification
-assert "Qt.alpha(CortetsuDesign.colorPrimary, 0.12)" in notification
-assert ": CortetsuDesign.colorPrimary" in notification
+# The icon badge is shared with the hub; its tone keeps 3:1 (H-37).
+assert "CortetsuIconBadge" in notification and "CortetsuDesign.colorIndicator" in notification
 assert "id: notificationHover" in notification
 assert "onHoveredChanged: root.hovered = hovered" in notification
 assert "onEntered: root.hovered = true" not in notification

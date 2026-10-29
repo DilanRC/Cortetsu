@@ -33,6 +33,7 @@ Item {
     implicitWidth: content.implicitWidth
     implicitHeight: content.implicitHeight
     opacity: 1 - offsetScale
+    // design-lint: allow motion-scale-from-zero: 0.98 to 1, slides in with the fade
     scale: 1 - 0.015 * offsetScale
     transformOrigin: Item.Right
 
@@ -61,7 +62,7 @@ Item {
             duration: screenState?.osd
                 ? CortetsuDesign.motionStandardMs
                 : CortetsuDesign.motionFastMs
-            easing.type: screenState?.osd ? Easing.OutCubic : Easing.InCubic
+            easing.type: Easing.OutCubic
         }
     }
 

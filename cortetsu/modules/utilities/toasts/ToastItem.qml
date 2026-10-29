@@ -1,4 +1,5 @@
 import QtQuick
+import "../../../components"
 import "../.."
 import "../../../theme"
 
@@ -38,8 +39,7 @@ CortetsuSurface {
         anchors.verticalCenter: parent.verticalCenter
         width: 2
         height: Math.max(24, parent.height - CortetsuDesign.spacingStandard * 2)
-        radius: 1
-        color: root.urgent ? CortetsuDesign.colorVermillion : CortetsuDesign.colorPrimary
+        color: root.urgent ? CortetsuDesign.colorVermillion : CortetsuDesign.colorIndicator
         opacity: 0.82
     }
 
@@ -49,27 +49,13 @@ CortetsuSurface {
         anchors.margins: CortetsuDesign.spacingStandard
         spacing: CortetsuDesign.spacingStandard
 
-        Item {
+        CortetsuIconBadge {
             width: 36
             height: 36
             anchors.verticalCenter: parent.verticalCenter
-
-            CortetsuSurface {
-                anchors.fill: parent
-                radiusValue: CortetsuDesign.radiusSmall
-                baseColor: root.urgent
-                    ? Qt.alpha(CortetsuDesign.colorVermillion, 0.14)
-                    : Qt.alpha(CortetsuDesign.colorPrimary, 0.14)
-            }
-
-            CortetsuIcon {
-                anchors.centerIn: parent
-                text: root.toast.icon || "info"
-                color: root.urgent
-                    ? CortetsuDesign.colorVermillion
-                    : CortetsuDesign.colorPrimary
-                iconSize: CortetsuDesign.iconMediumPx
-            }
+            icon: root.toast.icon || "info"
+            iconSize: CortetsuDesign.iconMediumPx
+            tone: root.urgent ? CortetsuDesign.colorVermillion : CortetsuDesign.colorIndicator
         }
 
         Column {

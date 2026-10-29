@@ -51,26 +51,12 @@ Item {
                     anchors.margins: CortetsuDesign.spacingStandard
                     spacing: CortetsuDesign.spacingStandard
 
-                    Item {
+                    CortetsuIconBadge {
                         Layout.preferredWidth: 40
                         Layout.preferredHeight: 40
-
-                        CortetsuSurface {
-                            anchors.fill: parent
-                            radiusValue: CortetsuDesign.radiusMedium
-                            baseColor: CortetsuRecorder.running
-                                ? Qt.alpha(CortetsuDesign.colorVermillion, 0.14)
-                                : Qt.alpha(CortetsuDesign.colorPrimary, 0.14)
-                        }
-
-                        CortetsuIcon {
-                            anchors.centerIn: parent
-                            text: CortetsuRecorder.running ? "radio_button_checked" : "tune"
-                            iconSize: CortetsuDesign.iconMediumPx + 3
-                            color: CortetsuRecorder.running
-                                ? CortetsuDesign.colorVermillion
-                                : CortetsuDesign.colorPrimary
-                        }
+                        icon: CortetsuRecorder.running ? "radio_button_checked" : "tune"
+                        iconSize: CortetsuDesign.iconMediumPx + 3
+                        tone: CortetsuRecorder.running ? CortetsuDesign.colorVermillion : CortetsuDesign.colorIndicator
                     }
 
                     ColumnLayout {

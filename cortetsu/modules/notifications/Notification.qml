@@ -54,7 +54,8 @@ CortetsuSurface {
     Behavior on opacity {
         NumberAnimation {
             duration: CortetsuDesign.motionFastMs
-            easing.type: Easing.InCubic
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: CortetsuDesign.easeOut
         }
     }
 
@@ -97,7 +98,6 @@ CortetsuSurface {
         visible: root.urgent
         width: 2
         height: Math.max(28, parent.height - CortetsuDesign.spacingComfortable * 2)
-        radius: 1
         color: CortetsuDesign.colorVermillion
         opacity: 0.88
     }
@@ -128,26 +128,13 @@ CortetsuSurface {
             Layout.fillWidth: true
             spacing: CortetsuDesign.spacingStandard
 
-            Item {
-                Layout.preferredWidth: 30
-                Layout.preferredHeight: 30
-
-                CortetsuSurface {
-                    anchors.fill: parent
-                    radiusValue: CortetsuDesign.radiusSmall
-                    baseColor: root.urgent
-                        ? Qt.alpha(CortetsuDesign.colorVermillion, 0.13)
-                        : Qt.alpha(CortetsuDesign.colorPrimary, 0.12)
-                }
-
-                CortetsuIcon {
-                    anchors.centerIn: parent
-                    text: Icons.getNotifIcon(root.summary, root.urgency)
-                    iconSize: CortetsuTypography.iconMediumPx
-                    color: root.urgent
-                        ? CortetsuDesign.colorVermillion
-                        : CortetsuDesign.colorPrimary
-                }
+            // Same badge as the hub popouts; colorIndicator keeps 3:1 (H-37).
+            CortetsuIconBadge {
+                Layout.preferredWidth: implicitWidth
+                Layout.preferredHeight: implicitHeight
+                icon: Icons.getNotifIcon(root.summary, root.urgency)
+                iconSize: CortetsuTypography.iconMediumPx
+                tone: root.urgent ? CortetsuDesign.colorVermillion : CortetsuDesign.colorIndicator
             }
 
             ColumnLayout {
@@ -184,12 +171,12 @@ CortetsuSurface {
             Layout.fillWidth: true
             spacing: CortetsuDesign.spacingStandard
 
-            CortetsuSurface {
+            Rectangle {
                 visible: image.source.length > 0
                 Layout.preferredWidth: visible ? 58 : 0
                 Layout.preferredHeight: visible ? 58 : 0
-                radiusValue: CortetsuDesign.radiusSmall
-                baseColor: CortetsuDesign.colorSurfaceGlass
+                radius: CortetsuDesign.radiusSmall
+                color: CortetsuDesign.colorSurfaceGlass
                 clip: true
 
                 Image {

@@ -29,8 +29,7 @@ assert "model: Notifs.popups()" in wrapper
 assert "expanded: CortetsuConfig.notificationOpenExpanded" in wrapper
 assert "visibleNotifications" not in wrapper
 assert "implicitWidth: 320" in wrapper
-assert "Layout.preferredWidth: 30" in view
-assert "Layout.preferredHeight: 30" in view
+assert "CortetsuIconBadge" in view
 for text in (notifs, notif_data, view):
     assert "Caelestia" not in text and "GlobalConfig" not in text
 print("PASS: Bottom Hub notification state is Cortetsu-owned and XDG-backed")

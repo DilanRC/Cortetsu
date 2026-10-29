@@ -1,0 +1,22 @@
+# Paths (relative to the repo) redesigned in phase 3. build-regressions.sh
+# runs qml-design-lint.py --strict on them, so each stays at zero findings.
+# 3.1 BottomHub, bar and popouts
+cortetsu/modules/BottomHub.qml
+cortetsu/modules/CortetsuBottomHubView.qml
+cortetsu/modules/HubButton.qml
+cortetsu/modules/StatusPill.qml
+cortetsu/modules/CortetsuWorkspaceDots.qml
+cortetsu/modules/CortetsuAppRail.qml
+cortetsu/modules/CortetsuStatusSegment.qml
+cortetsu/modules/bar
+cortetsu/base/modules/bar/popouts/kblayout
+cortetsu/components/CortetsuIconBadge.qml
+# 3.2 Launcher and Overview
+cortetsu/modules/LauncherHost.qml
+cortetsu/modules/launcher
+cortetsu/modules/overview
+# 3.3 Notifications, OSD and toasts
+cortetsu/modules/notifications
+cortetsu/modules/osd
+cortetsu/modules/utilities
+cortetsu/modules/sidebar

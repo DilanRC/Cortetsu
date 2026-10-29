@@ -76,26 +76,12 @@ Item {
                 anchors.margins: CortetsuDesign.spacingStandard
                 spacing: CortetsuDesign.spacingStandard
 
-                Item {
+                CortetsuIconBadge {
                     Layout.preferredWidth: 36
                     Layout.preferredHeight: 36
-
-                    CortetsuSurface {
-                        anchors.fill: parent
-                        radiusValue: CortetsuDesign.radiusSmall
-                        baseColor: CortetsuNotifications.dnd
-                            ? Qt.alpha(CortetsuDesign.colorWarning, 0.14)
-                            : Qt.alpha(CortetsuDesign.colorPrimary, 0.14)
-                    }
-
-                    CortetsuIcon {
-                        anchors.centerIn: parent
-                        text: CortetsuNotifications.dnd ? "notifications_off" : "notifications_active"
-                        iconSize: CortetsuDesign.iconMediumPx
-                        color: CortetsuNotifications.dnd
-                            ? CortetsuDesign.colorWarning
-                            : CortetsuDesign.colorPrimary
-                    }
+                    icon: CortetsuNotifications.dnd ? "notifications_off" : "notifications_active"
+                    iconSize: CortetsuDesign.iconMediumPx
+                    tone: CortetsuNotifications.dnd ? CortetsuDesign.colorWarning : CortetsuDesign.colorIndicator
                 }
 
                 ColumnLayout {
