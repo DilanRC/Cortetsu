@@ -794,7 +794,11 @@ Scope {
             margins.bottom: 2
 
             WlrLayershell.layer: WlrLayer.Top
-            WlrLayershell.exclusionMode: ExclusionMode.Ignore
+            // Windows stop above the islands. The window also grows for
+            // toasts, so the zone is the hub row only, not the window height.
+            // The old opaque bar hid windows running under it; floating
+            // islands would show them, so the row is reserved while shown.
+            exclusiveZone: hubRoot.shown ? bottomHubView.implicitHeight + margins.bottom : 0
 
             implicitWidth: (modelData?.width ?? 0) - hubMargin * 2
             implicitHeight: bottomHubView.implicitHeight + 6 + toasts.implicitHeight + toasts.spacing
