@@ -24,6 +24,9 @@ ShellRoot {
     readonly property var colours: CortetsuColours
     // Owns the Pomodoro daemon and its phase-end toasts from startup.
     readonly property var pomodoro: Pomodoro
+    // Owns the lyrics bridge from startup, so the spicetify extension's
+    // answer for the current song is there before the dashboard opens.
+    readonly property var lyrics: Lyrics
     // Restores a saved display colour filter at start.
     readonly property var displayCalibration: DisplayCalibration
     Binding { target: ShellState; property: "shellRoot"; value: root }

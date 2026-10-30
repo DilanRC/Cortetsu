@@ -2,7 +2,6 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Shapes
 import Quickshell
 import Quickshell.Services.Mpris
 import "../../components"
@@ -12,21 +11,15 @@ import ".."
 import "../../theme"
 import "../CortetsuTypography.js" as CortetsuTypography
 
+// What is playing. Compact, it is a margin note: a small cover, the title in
+// ink and the line being sung. Full, the cover and controls stand on the
+// left and the lyrics fill the rest.
 Item {
     id: player
     property bool compact: true
     property bool dashboardOpen: true
     readonly property MprisPlayer active: Players.active
     readonly property string art: Players.getArtUrl(active)
-
-    CortetsuStateMessage {
-        anchors.centerIn: parent
-        width: parent.width
-        visible: !player.active
-        icon: "music_off"
-        title: qsTr("Nada en reproducción")
-        detail: qsTr("Los controles aparecen al reproducir en una app con MPRIS")
-    }
 
     Timer {
         running: !!player.active && player.active.isPlaying && player.dashboardOpen
@@ -35,112 +28,150 @@ Item {
         onTriggered: player.active.positionChanged()
     }
 
-    GridLayout {
-        anchors.fill: parent
-        visible: !!player.active
-        columns: player.compact ? 1 : 2
-        columnSpacing: CortetsuDesign.spacingSection
-        rowSpacing: CortetsuDesign.spacingStandard
+    function clock(seconds: real): string {
+        const s = Math.max(0, Math.floor(seconds));
+        return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+    }
 
-        Rectangle {
-            Layout.preferredWidth: player.compact ? parent.width : 300
-            Layout.preferredHeight: Layout.preferredWidth
-            Layout.alignment: Qt.AlignTop
-            Layout.rowSpan: player.compact ? 1 : 2
-            radius: CortetsuDesign.radiusLarge
-            color: Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.6)
-            clip: true
-            CortetsuIcon { anchors.centerIn: parent; text: "music_note"; iconSize: CortetsuTypography.iconHeroPx; color: CortetsuDesign.colorOnPrimaryContainer; visible: cover.status !== Image.Ready }
-            Image {
-                id: cover
-                anchors.fill: parent
-                source: player.art
-                fillMode: Image.PreserveAspectCrop
-                asynchronous: true
-                sourceSize.width: 600
-                sourceSize.height: 600
-            }
+    // ------------------------------------------------------------ nothing on
+
+    ColumnLayout {
+        anchors.centerIn: parent
+        width: parent.width
+        visible: !player.active
+        spacing: CortetsuDesign.spacingCompact
+        Text {
+            Layout.alignment: player.compact ? Qt.AlignLeft : Qt.AlignHCenter
+            visible: !player.compact
+            text: "静"
+            font.family: CortetsuTypography.kanjiFamily
+            font.pixelSize: CortetsuTypography.inkHeroPx
+            color: CortetsuDesign.colorWashi
+            opacity: 0.08
         }
+        DashInk {
+            Layout.alignment: player.compact ? Qt.AlignLeft : Qt.AlignHCenter
+            text: qsTr("Nada en reproducción")
+            textSize: player.compact ? CortetsuTypography.titleMediumPx : CortetsuTypography.inkTitlePx
+            font.italic: true
+        }
+        CortetsuText {
+            Layout.alignment: player.compact ? Qt.AlignLeft : Qt.AlignHCenter
+            Layout.fillWidth: player.compact
+            text: qsTr("Los controles aparecen al reproducir en una app con MPRIS")
+            color: CortetsuDesign.colorOnSurfaceVariant
+            textSize: CortetsuTypography.bodySmallPx
+            wrapMode: Text.Wrap
+        }
+    }
+
+    // --------------------------------------------------------------- compact
+
+    ColumnLayout {
+        anchors.fill: parent
+        visible: !!player.active && player.compact
+        spacing: CortetsuDesign.spacingCompact
+
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: CortetsuDesign.spacingStandard
+            DashCover { size: 56; art: player.art }
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 0
+                DashInk {
+                    Layout.fillWidth: true
+                    text: player.active?.trackTitle || qsTr("Pista sin título")
+                    textSize: CortetsuTypography.titleMediumPx
+                    font.weight: Font.Normal
+                    elide: Text.ElideRight
+                }
+                CortetsuText {
+                    Layout.fillWidth: true
+                    text: player.active?.trackArtist ?? ""
+                    color: CortetsuDesign.colorOnSurfaceVariant
+                    textSize: CortetsuTypography.bodySmallPx
+                    elide: Text.ElideRight
+                }
+            }
+            CortetsuButton { compact: true; active: true; icon: player.active?.isPlaying ? "pause" : "play_arrow"; label: ""; tooltipText: player.active?.isPlaying ? qsTr("Pausar") : qsTr("Reproducir"); onClicked: player.active?.togglePlaying() }
+        }
+    }
+
+    // ------------------------------------------------------------------ full
+
+    RowLayout {
+        anchors.fill: parent
+        visible: !!player.active && !player.compact
+        spacing: CortetsuDesign.spacingSection * 1.5
 
         ColumnLayout {
-            Layout.fillWidth: true
+            Layout.preferredWidth: 300
+            Layout.maximumWidth: 300
             Layout.fillHeight: true
             spacing: CortetsuDesign.spacingCompact
 
-            DashLabel { visible: !player.compact; text: Players.getIdentity(player.active).toUpperCase() }
-            CortetsuText {
+            DashCover { size: 232; art: player.art }
+            Item { Layout.preferredHeight: CortetsuDesign.spacingCompact }
+            DashInk {
                 Layout.fillWidth: true
                 text: player.active?.trackTitle || qsTr("Pista sin título")
-                textSize: player.compact ? CortetsuTypography.titleSmallPx : CortetsuTypography.displayLargePx
-                font.weight: Font.DemiBold
+                textSize: CortetsuTypography.inkTitlePx * 0.85
+                font.weight: Font.Normal
                 elide: Text.ElideRight
                 maximumLineCount: 2
                 wrapMode: Text.Wrap
             }
             CortetsuText {
                 Layout.fillWidth: true
-                text: player.active?.trackArtist ?? ""
-                color: CortetsuDesign.colorOnSurfaceVariant
-                textSize: player.compact ? CortetsuTypography.bodyPx : CortetsuTypography.titleSmallPx
-                elide: Text.ElideRight
-            }
-            CortetsuText {
-                Layout.fillWidth: true
-                visible: !player.compact && (player.active?.trackAlbum ?? "") !== ""
-                text: player.active?.trackAlbum ?? ""
+                text: [player.active?.trackArtist, player.active?.trackAlbum].filter(s => !!s).join(" · ")
                 color: CortetsuDesign.colorOnSurfaceVariant
                 elide: Text.ElideRight
             }
-
             Item { Layout.fillHeight: true }
 
-            CortetsuProgressBar {
+            // Progress as a brush stroke over a faint one.
+            Item {
                 Layout.fillWidth: true
+                Layout.preferredHeight: 8
                 visible: (player.active?.length ?? 0) > 0
-                value: player.active && player.active.length > 0 ? player.active.position / player.active.length : 0
-                barHeight: 6
+                CortetsuBrushStroke { anchors.fill: parent; ink: CortetsuDesign.colorWashi; inkAlpha: 0.08 }
+                CortetsuBrushStroke {
+                    height: parent.height
+                    width: Math.max(height * 3, parent.width * (player.active && player.active.length > 0 ? player.active.position / player.active.length : 0))
+                }
             }
             RowLayout {
                 Layout.fillWidth: true
-                visible: !player.compact && (player.active?.length ?? 0) > 0
+                visible: (player.active?.length ?? 0) > 0
                 CortetsuText { text: player.clock(player.active?.position ?? 0); color: CortetsuDesign.colorOnSurfaceVariant; textSize: CortetsuTypography.bodySmallPx }
                 Item { Layout.fillWidth: true }
                 CortetsuText { text: player.clock(player.active?.length ?? 0); color: CortetsuDesign.colorOnSurfaceVariant; textSize: CortetsuTypography.bodySmallPx }
             }
-
             RowLayout {
-                Layout.alignment: Qt.AlignHCenter
-                spacing: CortetsuDesign.spacingStandard
-                CortetsuButton { compact: true; icon: "skip_previous"; label: ""; tooltipText: qsTr("Pista anterior"); disabled: !player.active?.canGoPrevious; onClicked: player.active?.previous() }
-                CortetsuButton { compact: true; active: true; icon: player.active?.isPlaying ? "pause" : "play_arrow"; label: ""; tooltipText: player.active?.isPlaying ? qsTr("Pausar") : qsTr("Reproducir"); onClicked: player.active?.togglePlaying() }
-                CortetsuButton { compact: true; icon: "skip_next"; label: ""; tooltipText: qsTr("Pista siguiente"); disabled: !player.active?.canGoNext; onClicked: player.active?.next() }
-            }
-
-            // Other players: one chip each, the active one filled.
-            Flow {
                 Layout.fillWidth: true
-                visible: !player.compact && Players.list.length > 1
-                spacing: CortetsuDesign.spacingCompact
+                DashTransport { active: player.active }
+                Item { Layout.fillWidth: true }
+                // Other players, by name; the one in control is in ink.
                 Repeater {
-                    model: Players.list
-                    Rectangle {
+                    model: Players.list.length > 1 ? Players.list : []
+                    CortetsuText {
                         id: chip
                         required property MprisPlayer modelData
                         readonly property bool selected: chip.modelData === player.active
-                        width: chipLabel.implicitWidth + 28
-                        height: 40
-                        radius: height / 2
-                        color: selected ? CortetsuDesign.colorPrimary : Qt.alpha(CortetsuDesign.colorSurfaceHigh, 0.8)
-                        CortetsuText { id: chipLabel; anchors.centerIn: parent; text: Players.getIdentity(chip.modelData); color: chip.selected ? CortetsuDesign.colorOnPrimary : CortetsuDesign.colorOnSurface }
-                        MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: Players.manualActive = chip.modelData }
+                        text: Players.getIdentity(chip.modelData)
+                        color: selected ? CortetsuDesign.colorPrimary : CortetsuDesign.colorOnSurfaceVariant
+                        font.weight: selected ? Font.DemiBold : Font.Normal
+                        textSize: CortetsuTypography.bodySmallPx
+                        MouseArea { anchors.fill: parent; anchors.margins: -12; cursorShape: Qt.PointingHandCursor; onClicked: Players.manualActive = chip.modelData }
                     }
                 }
             }
         }
-    }
 
-    function clock(seconds: real): string {
-        const s = Math.max(0, Math.floor(seconds));
-        return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+        DashLyrics {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+        }
     }
 }

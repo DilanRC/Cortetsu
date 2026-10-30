@@ -600,5 +600,31 @@
       "merge"
     ],
     "manageable": false
+  },
+  {
+    "id": "cortetsu:lyrics-bridge",
+    "name": "Spotify lyrics bridge",
+    "source": "services/Lyrics.qml",
+    "qmlId": "bridge",
+    "startupPhase": "always-on",
+    "condition": "Se inicia con el shell; espera en 127.0.0.1:47853 la letra que envía la extensión de spicetify",
+    "command": [
+      "cortetsu-lyrics",
+      "serve"
+    ],
+    "manageable": false
+  },
+  {
+    "id": "cortetsu:lyrics-lookup",
+    "name": "Lyrics lookup",
+    "source": "services/Lyrics.qml",
+    "qmlId": "lookup",
+    "startupPhase": "on-demand",
+    "condition": "Al cambiar de canción si Spotify no trae letra; busca un .lrc local y luego en lrclib.net",
+    "command": [
+      "cortetsu-lyrics",
+      "lookup"
+    ],
+    "manageable": false
   }
 ]

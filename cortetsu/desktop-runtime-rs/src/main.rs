@@ -2,6 +2,7 @@ mod agents;
 mod calendar;
 mod common;
 mod connectivity;
+mod lyrics;
 mod palette;
 mod pomodoro;
 mod prompter;
@@ -20,6 +21,7 @@ fn main() {
     let result = match helper.as_str() {
         "cortetsu-pomodoro" => pomodoro::main(&args),
         "cortetsu-calendar" => calendar::main(&args),
+        "cortetsu-lyrics" => lyrics::main(&args),
         "cortetsu-scheme" => palette::scheme(&args),
         "cortetsu-scheme-posthook" => palette::posthook(),
         "cortetsu-wallpaper-colours" => palette::wallpaper_colours(&args),

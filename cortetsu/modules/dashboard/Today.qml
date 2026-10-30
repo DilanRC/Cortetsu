@@ -46,28 +46,24 @@ Item {
         onTriggered: root.dayAnchor = new Date()
     }
 
-    CortetsuSurface {
-        anchors.fill: parent
-        radiusValue: CortetsuDesign.radiusLarge
-        baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.78)
-        outlined: true
-        outlineColor: Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.56)
-    }
-
+    // A margin note, no card: the kanji for day, the label, the events.
     ColumnLayout {
         anchors.fill: parent
-        anchors.margins: CortetsuDesign.spacingStandard
         spacing: CortetsuDesign.spacingCompact
 
         RowLayout {
             Layout.fillWidth: true
+            spacing: CortetsuDesign.spacingCompact
 
-            CortetsuText {
-                text: qsTr("HOY")
-                textSize: CortetsuTypography.labelSmallPx
-                color: CortetsuDesign.colorOnSurfaceVariant
-                font.weight: Font.DemiBold
+            Text {
+                text: "日"
+                font.family: CortetsuTypography.kanjiFamily
+                font.pixelSize: CortetsuTypography.labelLargePx
+                color: CortetsuDesign.colorIndicator
+                opacity: 0.85
             }
+
+            DashLabel { text: qsTr("HOY") }
 
             Item { Layout.fillWidth: true }
 
@@ -78,14 +74,6 @@ Item {
                 tooltipText: qsTr("Abrir calendario")
                 onClicked: root.openCalendar()
             }
-        }
-
-        CortetsuText {
-            Layout.fillWidth: true
-            text: CortetsuRegional.formatDate(root.dayAnchor, "longDay", true)
-            textSize: CortetsuTypography.titleMediumPx
-            font.weight: Font.DemiBold
-            elide: Text.ElideRight
         }
 
         ColumnLayout {

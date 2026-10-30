@@ -47,28 +47,24 @@ Item {
         onDateChanged: root.nowMs = Date.now()
     }
 
-    CortetsuSurface {
-        anchors.fill: parent
-        radiusValue: CortetsuDesign.radiusLarge
-        baseColor: Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.22)
-        outlined: true
-        outlineColor: Qt.alpha(CortetsuDesign.colorPrimary, 0.26)
-    }
-
+    // A margin note: the time left in ink, the phase, a brush of progress.
     ColumnLayout {
         anchors.fill: parent
-        anchors.margins: CortetsuDesign.spacingStandard
         spacing: CortetsuDesign.spacingCompact
 
         RowLayout {
             Layout.fillWidth: true
+            spacing: CortetsuDesign.spacingCompact
 
-            CortetsuText {
-                text: qsTr("CONCENTRACIÓN")
-                textSize: CortetsuTypography.labelSmallPx
-                color: CortetsuDesign.colorOnSurfaceVariant
-                font.weight: Font.DemiBold
+            Text {
+                text: "心"
+                font.family: CortetsuTypography.kanjiFamily
+                font.pixelSize: CortetsuTypography.labelLargePx
+                color: CortetsuDesign.colorIndicator
+                opacity: 0.85
             }
+
+            DashLabel { text: qsTr("CONCENTRACIÓN") }
 
             Item { Layout.fillWidth: true }
 
@@ -87,10 +83,9 @@ Item {
                 Layout.fillWidth: true
                 spacing: 0
 
-                CortetsuText {
+                DashInk {
                     text: Model.timeLeft(root.pomodoro, root.nowMs)
-                    textSize: CortetsuTypography.displayClockPx
-                    font.weight: Font.DemiBold
+                    textSize: CortetsuTypography.inkTitlePx
                 }
 
                 CortetsuText {
@@ -112,12 +107,15 @@ Item {
             }
         }
 
-        CortetsuProgressBar {
+        Item {
             Layout.fillWidth: true
-            value: Model.progress(root.pomodoro, root.nowMs)
-            barHeight: 4
-            barRadius: 2
-            trackColor: Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.28)
+            Layout.preferredHeight: 6
+            CortetsuBrushStroke { anchors.fill: parent; ink: CortetsuDesign.colorWashi; inkAlpha: 0.08 }
+            CortetsuBrushStroke {
+                height: parent.height
+                width: Math.max(height * 3, parent.width * Model.progress(root.pomodoro, root.nowMs))
+                visible: Model.progress(root.pomodoro, root.nowMs) > 0
+            }
         }
 
         RowLayout {

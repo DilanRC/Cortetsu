@@ -98,7 +98,9 @@ ShellRoot {
             })(layer.panel);
             verify(shown.includes("Tiempo no disponible"), "no weather reading says so");
             // The session bus is real: with music playing the card shows its controls.
-            verify(shown.includes("Nada en reproducción") || shown.includes("skip_next"), `the player card says there is no player or shows controls: ${JSON.stringify(shown)}`);
+            // Pomodoro has its own play_arrow, so a playing track shows a second one or pause.
+            const playerControls = shown.includes("pause") || shown.filter(text => text === "play_arrow").length > 1;
+            verify(shown.includes("Nada en reproducción") || playerControls, "the player card says there is no player or shows its controls");
             const filler = shown.filter(text => /^--$|Your desktop|Ambient|shell is ready|NOW|Live context|Desktop context/.test(text));
             verify(filler.length === 0, `no filler or placeholder data: ${filler}`);
             if (root.renderDir) layer.grabToImage(r => { r.saveToFile(`${root.renderDir}/dashboard-narrow.png`); root.grabbed = true; });

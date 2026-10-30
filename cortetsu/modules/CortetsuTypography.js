@@ -27,3 +27,13 @@ var iconLargePx = 28
 var iconExtraLargePx = 34
 var iconFeaturePx = 32
 var iconHeroPx = 44
+
+// Ink language: a serif for the big moments (hour, zone names, song titles,
+// the line being sung) and CJK for seals and margin marks. Data stays in
+// the UI family.
+var inkFamily = "Noto Serif"
+var kanjiFamily = "Noto Sans CJK JP"
+var inkHeroPx = 148
+var inkDisplayPx = 64
+var inkTitlePx = 30
+var inkLinePx = 22

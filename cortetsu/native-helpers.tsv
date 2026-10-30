@@ -30,3 +30,4 @@ cortetsu-import-hyprland	cortetsu-platform	import_hyprland
 cortetsu-import-fish	cortetsu-platform	import_fish
 cortetsu-prompter	cortetsu-desktop-runtime	cortetsu-prompter
 cortetsu-agents	cortetsu-desktop-runtime	cortetsu-agents
+cortetsu-lyrics	cortetsu-desktop-runtime	cortetsu-lyrics

@@ -3,183 +3,166 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Quickshell.Services.Mpris
 import "../modules"
 import "../utils"
 
+// Lyrics for the active player.
+//
+// Spotify's own lyrics arrive from the spicetify extension through
+// `cortetsu-lyrics serve`, one JSON line per song. For any other player, or
+// a Spotify track the extension had nothing for, `cortetsu-lyrics lookup`
+// tries an `Artist - Title.lrc` file in the lyrics folder, then lrclib.net.
+// The backend setting (Auto, Local, LRCLIB, NetEase) narrows that: Local
+// never goes online and ignores Spotify, LRCLIB skips the folder. NetEase
+// is no longer offered and behaves as Auto. `lines` is [{t: ms, text}], sorted; `index` is the line
+// being sung, and only advances while someone shows the lyrics.
 Singleton {
     id: root
 
-    enum Backend { Auto, Local, Lrclib, NetEase }
-
-    property list<string> lyrics: []
-    property int backend: Backend.Auto
-    property int preferredBackend: CortetsuConfig.lyricsBackend
-    property list<var> lyricCandidates: []
-    property var selectedCandidate: ({ title: "", artist: "", album: "", id: "", backend: Backend.Auto })
-    property bool loading: false
-    readonly property bool hasLyrics: lyrics.length > 0
-    property real offset: 0
-    property string trackArtist: ""
-    property string trackTitle: ""
-    property string trackAlbum: ""
-    property real trackDuration: 0
-    property list<var> parsedLines: []
+    property int consumers: 0
+    readonly property string helper: `${Quickshell.env("HOME")}/.local/bin/cortetsu-lyrics`
     readonly property string lyricsDir: Quickshell.env("CORTETSU_LYRICS_DIR") || `${Paths.home}/Music/Lyrics`
+    readonly property int backend: CortetsuConfig.lyricsBackend
+    readonly property bool localOnly: backend === 1
 
-    function backendName(value: int): string {
-        return [qsTr("Auto"), qsTr("Local"), "LRCLIB", "NetEase"][value] ?? qsTr("Auto");
+    readonly property MprisPlayer player: Players.active
+    readonly property bool isSpotify: (player?.identity ?? "").toLowerCase().includes("spotify")
+    readonly property string spotifyId: {
+        const id = String(player?.metadata?.["mpris:trackid"] ?? "");
+        return id.match(/track[:/]([A-Za-z0-9]+)$/)?.[1] ?? "";
     }
+    readonly property string title: player?.trackTitle ?? ""
+    readonly property string artist: player?.trackArtist ?? ""
+    readonly property string trackKey: isSpotify && spotifyId && !localOnly ? `spotify:${spotifyId}` : title ? `${artist}\u001f${title}` : ""
 
-    function parseLrc(raw: string): var {
-        const result = [];
-        for (const line of raw.split("\n")) {
-            const tags = [...line.matchAll(/\[(\d+):(\d+(?:\.\d+)?)\]/g)];
-            const text = line.replace(/\[[^\]]+\]/g, "").trim();
-            for (const tag of tags)
-                result.push({ time: Number(tag[1]) * 60 + Number(tag[2]), text });
+    // trackKey -> {source, synced, lines}; a handful of recent songs.
+    property var cache: ({})
+    property var cacheOrder: []
+    readonly property var entry: trackKey ? cache[trackKey] ?? null : null
+    readonly property var lines: entry?.lines ?? []
+    readonly property bool synced: entry?.synced ?? false
+    readonly property string source: entry?.source ?? ""
+    readonly property bool loading: !!trackKey && !entry
+    property real positionMs: 0
+    readonly property int index: {
+        if (!synced || lines.length === 0)
+            return -1;
+        let lo = 0, hi = lines.length - 1, found = -1;
+        while (lo <= hi) {
+            const mid = (lo + hi) >> 1;
+            if (lines[mid].t <= positionMs + 250) { found = mid; lo = mid + 1; } else hi = mid - 1;
         }
-        result.sort((a, b) => a.time - b.time);
-        return result;
+        return found;
+    }
+    readonly property string currentLine: index >= 0 ? lines[index].text : ""
+
+    function store(key: string, value: var): void {
+        const next = Object.assign({}, cache);
+        next[key] = value;
+        const order = cacheOrder.filter(k => k !== key).concat([key]);
+        while (order.length > 12)
+            delete next[order.shift()];
+        cacheOrder = order;
+        cache = next;
     }
 
-    function clearLines(): void {
-        root.parsedLines = [];
-        root.lyrics = [];
-        root.backend = Backend.Auto;
-        root.selectedCandidate = ({ title: root.trackTitle, artist: root.trackArtist, album: root.trackAlbum, id: "", backend: Backend.Auto });
-    }
+    // ---------------------------------------------------------- Spotify bridge
 
-    function setParsedLines(raw: string, source: int): void {
-        root.parsedLines = parseLrc(raw);
-        root.lyrics = root.parsedLines.map(line => line.text);
-        root.backend = source;
-        root.loading = false;
-    }
-
-    function indexForTime(time: real): int {
-        const target = time - root.offset + 0.1;
-        let low = 0, high = root.parsedLines.length;
-        while (low < high) {
-            const mid = Math.floor((low + high) / 2);
-            if (root.parsedLines[mid].time <= target) low = mid + 1;
-            else high = mid;
-        }
-        return low - 1;
-    }
-
-    function timeForIndex(index: int): real {
-        return index >= 0 && index < root.parsedLines.length ? root.parsedLines[index].time + root.offset : -1;
-    }
-
-    function selectCandidate(candidate: var): void {
-        root.selectedCandidate = candidate;
-        if (candidate.syncedLyrics) {
-            root.setParsedLines(candidate.syncedLyrics, candidate.backend);
-            return;
-        }
-        if (candidate.backend === Backend.Local) {
-            localFile.path = candidate.id;
-            return;
-        }
-        const endpoint = candidate.backend === Backend.Lrclib ? `https://lrclib.net/api/get/${encodeURIComponent(candidate.id)}` : "";
-        if (!endpoint) {
-            root.loading = false;
-            return;
-        }
-        root.loading = true;
-        Requests.get(endpoint, root.handleFetch, () => root.loading = false, { "User-Agent": "Cortetsu/1.0" });
-    }
-
-    function handleFetch(output: string): void {
-        try {
-            const payload = JSON.parse(output);
-            const text = payload.syncedLyrics || payload.lyrics || "";
-            if (text) root.setParsedLines(text, root.selectedCandidate.backend);
-            else root.loading = false;
-        } catch (error) {
-            root.loading = false;
-        }
-    }
-
-    function searchOnline(): void {
-        const query = `https://lrclib.net/api/search?track_name=${encodeURIComponent(root.trackTitle)}&artist_name=${encodeURIComponent(root.trackArtist)}`;
-        Requests.get(query, output => {
-            try {
-                const items = JSON.parse(output).filter(item => item && item.id && item.syncedLyrics).slice(0, 20).map(item => ({
-                    id: String(item.id), title: item.trackName || root.trackTitle, artist: item.artistName || root.trackArtist,
-                    album: item.albumName || root.trackAlbum, backend: Backend.Lrclib, syncedLyrics: item.syncedLyrics
-                }));
-                root.lyricCandidates = items;
-                if (items.length) root.selectCandidate(items[0]);
-                else root.loading = false;
-            } catch (error) {
-                root.loading = false;
-            }
-        }, () => root.loading = false, { "User-Agent": "Cortetsu/1.0" });
-    }
-
-    function localCandidates(raw: string): void {
-        const expected = `${root.trackArtist} - ${root.trackTitle}`.toLowerCase();
-        const files = raw.split("\n").map(path => path.trim()).filter(path => path && path.toLowerCase().includes(expected));
-        if (files.length) {
-            const candidate = { id: files[0], title: root.trackTitle, artist: root.trackArtist, album: root.trackAlbum, backend: Backend.Local };
-            root.lyricCandidates = [candidate];
-            root.selectCandidate(candidate);
-        } else if (root.preferredBackend !== Backend.Local) {
-            root.searchOnline();
-        } else {
-            root.loading = false;
-        }
-    }
-
-    function setTrack(artist, title, album = "", duration = 0): void {
-        if (artist.trim() === root.trackArtist && title.trim() === root.trackTitle && album === root.trackAlbum && duration === root.trackDuration)
-            return;
-        root.trackArtist = artist.trim();
-        root.trackTitle = title.trim();
-        root.trackAlbum = album;
-        root.trackDuration = duration;
-        root.lyricCandidates = [];
-        root.clearLines();
-        if (!root.trackTitle) {
-            root.loading = false;
-            return;
-        }
-        root.loading = true;
-        localSearch.running = true;
-    }
-
-    function clearTrack(): void {
-        localSearch.running = false;
-        root.trackArtist = "";
-        root.trackTitle = "";
-        root.trackAlbum = "";
-        root.trackDuration = 0;
-        root.lyricCandidates = [];
-        root.clearLines();
-        root.loading = false;
-    }
-
-    function refresh(): void {
-        const artist = root.trackArtist, title = root.trackTitle, album = root.trackAlbum, duration = root.trackDuration;
-        root.trackArtist = "";
-        root.setTrack(artist, title, album, duration);
-    }
-
-    onPreferredBackendChanged: {
-        if (CortetsuConfig.lyricsBackend !== preferredBackend)
-            CortetsuConfig.lyricsBackend = preferredBackend;
-    }
-
-    FileView {
-        id: localFile
-        path: ""
-        onLoaded: root.setParsedLines(text(), Backend.Local)
-    }
-
+    // startup inventory: cortetsu:lyrics-bridge
     Process {
-        id: localSearch
-        command: ["find", root.lyricsDir, "-type", "f", "-iname", "*.lrc", "-print"]
-        stdout: StdioCollector { onStreamFinished: root.localCandidates(text) }
+        id: bridge
+        running: true
+        command: [root.helper, "serve"]
+        stdout: SplitParser {
+            onRead: data => {
+                let doc;
+                try { doc = JSON.parse(data); } catch (e) { return; }
+                if (!doc?.trackId || !Array.isArray(doc.lines))
+                    return;
+                const key = `spotify:${doc.trackId}`;
+                // An empty answer from Spotify leaves room for lrclib.
+                if (doc.lines.length === 0) {
+                    if (key === root.trackKey && !root.entry)
+                        lookup.startFor(key);
+                    return;
+                }
+                root.store(key, { source: "spotify", synced: !!doc.synced, lines: doc.lines });
+            }
+        }
+        // Port taken or helper missing: try again later, quietly.
+        onExited: restart.start()
+    }
+
+    Timer {
+        id: restart
+        interval: 30000
+        onTriggered: bridge.running = true
+    }
+
+    // ----------------------------------------------------- local and lrclib
+
+    // Spotify gets a moment for its extension to answer first.
+    Timer {
+        id: fallbackDelay
+        interval: root.isSpotify ? 2500 : 300
+        onTriggered: if (root.trackKey && !root.entry) lookup.startFor(root.trackKey)
+    }
+
+    onTrackKeyChanged: {
+        positionMs = (player?.position ?? 0) * 1000;
+        if (trackKey && !entry)
+            fallbackDelay.restart();
+    }
+
+    // startup inventory: cortetsu:lyrics-lookup
+    Process {
+        id: lookup
+        property string key: ""
+        function startFor(k: string): void {
+            if (running || !root.title)
+                return;
+            key = k;
+            const length = root.player?.length ?? 0;
+            command = [root.helper, "lookup", "--title", root.title, "--artist", root.artist,
+                "--album", root.player?.trackAlbum ?? "", "--duration", String(Math.round(length)),
+                "--local-dir", root.lyricsDir].concat(root.localOnly ? ["--offline"] : root.backend === 2 ? ["--online-only"] : []);
+            running = true;
+        }
+        stdout: StdioCollector {
+            onStreamFinished: {
+                let doc = null;
+                try { doc = JSON.parse(text); } catch (e) {}
+                const k = lookup.key;
+                // A Spotify answer that came in meanwhile wins.
+                if (k && !root.cache[k])
+                    root.store(k, { source: doc?.source ?? "lrclib", synced: !!doc?.synced, lines: doc?.lines ?? [] });
+            }
+        }
+        onExited: code => {
+            if (code !== 0 && lookup.key && !root.cache[lookup.key])
+                root.store(lookup.key, { source: "", synced: false, lines: [] });
+        }
+    }
+
+    // --------------------------------------------------------------- position
+
+    Timer {
+        running: root.consumers > 0 && root.synced && !!root.player?.isPlaying
+        interval: 200
+        repeat: true
+        triggeredOnStart: true
+        onTriggered: {
+            root.player.positionChanged();
+            root.positionMs = root.player.position * 1000;
+        }
+    }
+
+    // Diagnostics: where the current lyrics came from, never their text.
+    IpcHandler {
+        target: "lyrics"
+        function status(): string {
+            return JSON.stringify({ track: root.trackKey, source: root.source, synced: root.synced, lines: root.lines.length, loading: root.loading, bridge: bridge.running });
+        }
     }
 }

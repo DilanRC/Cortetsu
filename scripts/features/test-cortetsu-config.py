@@ -104,7 +104,7 @@ session_service = (repo / "cortetsu/services/CortetsuSession.qml").read_text(enc
 assert 'org.freedesktop.login1.Manager' in session_service and 'signal resumed' in session_service
 assert "CortetsuSession" in (repo / "cortetsu/base/modules/lock/Pam.qml").read_text(encoding="utf-8")
 lyrics_service = (repo / "cortetsu/services/Lyrics.qml").read_text(encoding="utf-8")
-for marker in ("parseLrc", "indexForTime", "timeForIndex", "lrclib.net/api/search", "CORTETSU_LYRICS_DIR"):
+for marker in ("cortetsu-lyrics", "\"lookup\"", "\"serve\"", "CORTETSU_LYRICS_DIR", "CortetsuConfig.lyricsBackend"):
     assert marker in lyrics_service, marker
 assert "GlobalConfig.launcher.favouriteApps" not in hub
 assert "GlobalConfig.bar.tray.hiddenIcons" not in hub
