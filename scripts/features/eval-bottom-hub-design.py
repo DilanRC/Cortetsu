@@ -18,16 +18,8 @@ interactions = (modules / "drawers/Interactions.qml").read_text(encoding="utf-8"
 
 criteria = {
     "superficie exterior transparente": 'color: "transparent"' in hub,
-    "dock continuo": all(
-        token in view
-        for token in (
-            "CortetsuSurface {",
-            "id: dockBackdrop",
-            "anchors.fill: parent",
-            "baseColor: Qt.alpha(CortetsuDesign.colorSumi",
-            "outlined: false",
-        )
-    ),
+    "islas flotantes sin fondo continuo": "id: dockBackdrop" not in view
+        and all("CortetsuIsland {}" in text for text in (rail, tray, status, mode)),
     "segmentos con CortetsuDesign": all("CortetsuDesign" in text for text in (rail, tray, status, mode)),
     "launcher first-party": "CortetsuModeSegment" in view and "launcherRequested" in view,
     "bottomhub sin controles duplicados": all(

@@ -60,7 +60,7 @@ Item {
     CortetsuSurface {
         anchors.fill: parent
         anchors.margins: 3
-        radiusValue: CortetsuDesign.radiusMedium
+        radiusValue: height / 2
         baseColor: "transparent"
         hoverColor: root.hoverColor
         activeColor: root.activeColor

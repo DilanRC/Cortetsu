@@ -18,18 +18,13 @@ Item {
     signal secondaryActivateRequested(string itemKey)
     signal scrollRequested(string itemKey, int delta, bool horizontal)
 
-    implicitWidth: trayRow.implicitWidth + CortetsuDesign.spacingStandard
+    implicitWidth: trayRow.implicitWidth + 20
     implicitHeight: 52
     width: visible ? implicitWidth : 0
     height: implicitHeight
     visible: items.length > 0
 
-    CortetsuSurface {
-        anchors.fill: parent
-        radiusValue: CortetsuDesign.radiusLarge
-        baseColor: CortetsuDesign.colorTetsu
-        outlined: true
-    }
+    CortetsuIsland {}
 
     Row {
         id: trayRow
@@ -67,7 +62,7 @@ Item {
                 CortetsuSurface {
                     anchors.fill: parent
                     anchors.margins: 2
-                    radiusValue: CortetsuDesign.radiusSmall
+                    radiusValue: height / 2
                     baseColor: "transparent"
                     hoverColor: Qt.lighter(CortetsuDesign.colorTetsu, 1.18)
                     hovered: trayMouse.containsMouse

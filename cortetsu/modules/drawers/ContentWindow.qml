@@ -316,9 +316,10 @@ StyledWindow {
         y: (panel?.y ?? 0) + root.borderThickness
         width: panel?.width ?? 0
         height: panel?.height ?? 0
-        radius: root.borderRounding
-        color: Qt.alpha(root.surfaceColour, Math.max(0, 1 - (panel?.offsetScale ?? 1)))
-        border.width: root.borderThickness
-        border.color: CortetsuDesign.colorOutlineVariant
+        // Floating cards, same material as the BottomHub islands.
+        radius: CortetsuDesign.radiusLarge
+        color: Qt.alpha(root.surfaceColour, 0.94 * Math.max(0, 1 - (panel?.offsetScale ?? 1)))
+        border.width: 1
+        border.color: Qt.alpha(CortetsuDesign.colorWashi, 0.08 * Math.max(0, 1 - (panel?.offsetScale ?? 1)))
     }
 }

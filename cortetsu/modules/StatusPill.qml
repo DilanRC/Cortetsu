@@ -59,7 +59,7 @@ Item {
         anchors.centerIn: parent
         implicitWidth: statusRow.implicitWidth + CortetsuDesign.spacingStandard * 2
         implicitHeight: 36
-        radiusValue: CortetsuDesign.radiusLarge
+        radiusValue: height / 2
         baseColor: Qt.lighter(CortetsuDesign.colorTetsu, 1.04)
         outlined: true
 
@@ -135,7 +135,7 @@ Item {
 
         CortetsuSurface {
             anchors.fill: parent
-            radiusValue: CortetsuDesign.radiusSmall
+            radiusValue: height / 2
             baseColor: "transparent"
             hoverColor: Qt.lighter(CortetsuDesign.colorTetsu, 1.18)
             hovered: mouse.containsMouse

@@ -17,7 +17,7 @@ Row {
             target.forceActiveFocus();
     }
 
-    spacing: 5
+    spacing: 6
 
     Item {
         width: 3
@@ -43,7 +43,7 @@ Row {
                 restoreFocus.restart();
             }
 
-            width: active ? 18 : 8
+            width: active ? 20 : 6
             height: 36
             activeFocusOnTab: true
 
@@ -67,18 +67,19 @@ Row {
             Rectangle {
                 anchors.centerIn: parent
                 width: parent.width
-                height: 8
+                height: 6
                 radius: height / 2
+                // Active: scheme accent. Occupied and empty: the scheme's text
+                // colour at two strengths, so the row follows the wallpaper.
                 color: workspaceDot.active
-                    ? CortetsuDesign.colorIndigo
-                    : workspaceDot.occupied
-                        ? CortetsuDesign.colorMuted
-                        : Qt.darker(CortetsuDesign.colorMuted, 1.35)
+                    ? CortetsuDesign.colorPrimary
+                    : Qt.alpha(CortetsuDesign.colorOnSurface, workspaceDot.occupied ? 0.6 : 0.25)
+                Behavior on color { ColorAnimation { duration: CortetsuDesign.motionStandardMs } }
                 border.width: workspaceDot.activeFocus ? 1 : 0
                 border.color: CortetsuDesign.colorWashi
             }
 
-            // The dot is 8 px wide; the hit area covers half the gap on each
+            // The dot is 6 px wide; the hit area covers half the gap on each
             // side, so the row has no dead pixels between workspaces.
             MouseArea {
                 anchors.fill: parent

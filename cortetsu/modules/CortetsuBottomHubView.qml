@@ -87,39 +87,15 @@ Item {
 
     implicitHeight: 60
 
-    // The dock is one restrained steel surface; individual segments keep
-    // their own hierarchy only for interaction, keyboard focus and anchoring.
-    CortetsuSurface {
-        id: dockBackdrop
-
-        anchors.fill: parent
-        radiusValue: 0
-        baseColor: Qt.alpha(CortetsuDesign.colorSumi, 0.9)
-        outlined: false
-    }
-
-    Rectangle {
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.top: parent.top
-        height: 1
-        color: Qt.alpha(CortetsuDesign.colorWashi, 0.16)
-    }
-
-    Rectangle {
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.bottom: parent.bottom
-        height: 1
-        color: Qt.alpha(CortetsuDesign.colorSumi, 0.72)
-    }
+    // No backdrop: each segment is its own floating island (CortetsuIsland)
+    // and the wallpaper shows between them.
 
     CortetsuModeSegment {
         id: leftSegment
 
         visible: root.modeVisible
         anchors.left: parent.left
-        anchors.leftMargin: 6
+        anchors.leftMargin: 8
         anchors.verticalCenter: parent.verticalCenter
         launcherActive: root.launcherActive
         workspaceCount: root.workspaceCount
@@ -133,7 +109,7 @@ Item {
     CortetsuAppRail {
         id: appSegment
 
-        visible: root.appsVisible
+        visible: root.appsVisible && root.dockItems.length > 0
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.verticalCenter: parent.verticalCenter
         items: root.dockItems
@@ -150,7 +126,7 @@ Item {
 
         visible: root.trayVisible && root.trayItems.length > 0
         anchors.right: statusSegment.visible ? statusSegment.left : parent.right
-        anchors.rightMargin: 6
+        anchors.rightMargin: 8
         anchors.verticalCenter: parent.verticalCenter
         items: root.trayItems
         delegateModel: root.trayDelegateModel
@@ -173,7 +149,7 @@ Item {
 
         visible: root.statusVisible
         anchors.right: parent.right
-        anchors.rightMargin: 6
+        anchors.rightMargin: 8
         anchors.verticalCenter: parent.verticalCenter
         volumeIcon: root.volumeIcon
         volumeMuted: root.volumeMuted

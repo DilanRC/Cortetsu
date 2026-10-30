@@ -64,15 +64,22 @@ Scope {
                 panels: null
                 maxHeight: parent.height * 0.72
 
-                // Opened from a key: a short fade, nothing moves. The window
+                // The launcher belongs to no edge, so it pops in place: a fade
+                // with a quick scale from its centre (no bounce: design lint). The window
                 // unmaps on close, so there is no exit to animate.
-                NumberAnimation on opacity {
+                transformOrigin: Item.Center
+                ParallelAnimation {
                     id: openFade
-                    running: false
-                    from: 0
-                    to: 1
-                    duration: CortetsuDesign.motionSummonMs
-                    easing.type: Easing.OutCubic
+                    NumberAnimation {
+                        target: launcher; property: "opacity"; from: 0; to: 1
+                        duration: CortetsuDesign.motionSummonMs
+                        easing.type: Easing.OutCubic
+                    }
+                    NumberAnimation {
+                        target: launcher; property: "scale"; from: 0.92; to: 1
+                        duration: CortetsuDesign.motionSummonMs * 1.6
+                        easing.type: Easing.OutQuint
+                    }
                 }
             }
             HoverPreviewTracker {

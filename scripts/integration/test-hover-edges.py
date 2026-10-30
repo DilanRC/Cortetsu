@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""The top edge opens the dashboard across its middle; the right edge the OSD.
+"""The top edge opens the dashboard across its middle; the right edge the
+notification drawer, which closes again once the pointer leaves it.
 
 Runs with and without a window on the workspace, since a window removes the
 drag padding and leaves the input frame one pixel thick.
@@ -32,15 +33,17 @@ def main() -> int:
                 cases = {"top-centre": ((w // 2, 0), "dashboard", True),
                          "top-quarter": ((w // 4, 0), "dashboard", True),
                          "top-corner": ((40, 0), "dashboard", False),
-                         "right-middle": ((w - 1, h // 2), "osd", True)}
+                         "right-middle": ((w - 1, h // 2), "sidebar", True),
+                         "left-again": ((w // 2, h // 2), "sidebar", False)}
                 for name, ((x, y), surface, expected) in cases.items():
-                    session.move(m["x"] + w // 2, m["y"] + h // 2)
-                    time.sleep(0.6)
+                    if name != "left-again":
+                        session.move(m["x"] + w // 2, m["y"] + h // 2)
+                        time.sleep(0.6)
                     session.move(m["x"] + x, m["y"] + y)
                     time.sleep(0.9)
                     got = opened(session)
                     assert (surface in got) == expected, f"{name} client={client}: open={got}"
-            print("HOVER_EDGES_PASS 8")
+            print("HOVER_EDGES_PASS 10")
             return 0
         finally:
             session.stop()

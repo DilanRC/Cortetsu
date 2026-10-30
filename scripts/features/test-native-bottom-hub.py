@@ -189,7 +189,7 @@ def assert_view_contract(source: dict[str, str]) -> None:
     assert "modelData.title" in tray
     assert "CortetsuTooltip" in tray
     assert "onPressed: trayItem.forceActiveFocus()" in tray
-    assert "baseColor: CortetsuDesign.colorTetsu" in tray
+    assert "CortetsuIsland {}" in tray
     assert "CortetsuTooltip" in tray
 
     status = source["CortetsuStatusSegment.qml"]

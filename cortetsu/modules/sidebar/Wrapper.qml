@@ -12,13 +12,20 @@ Item {
     property real offsetScale: shouldBeActive ? 0 : 1
 
     visible: offsetScale < 1
-    anchors.bottomMargin: 66 + (-implicitHeight - 5 - 66) * offsetScale
-    implicitWidth: Math.min(440, parent.width - 16)
-    implicitHeight: Math.min(380, parent.height * 0.50)
-    opacity: 1 - offsetScale
+    // Right-edge drawer: full height between the screen top and the
+    // BottomHub, sliding in from the edge it is opened from.
+    anchors.topMargin: 8
+    anchors.bottomMargin: 66
+    anchors.rightMargin: 8 + (-implicitWidth - 16) * offsetScale
+    implicitWidth: Math.min(420, parent.width - 16)
+    opacity: Math.min(1, (1 - offsetScale) * 2)
 
     Behavior on offsetScale {
-        NumberAnimation { duration: CortetsuDesign.motionStandardMs; easing.type: Easing.BezierSpline; easing.bezierCurve: CortetsuDesign.easeOut }
+        NumberAnimation {
+            duration: root.shouldBeActive ? CortetsuDesign.motionStandardMs * 1.4 : CortetsuDesign.motionStandardMs
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: root.shouldBeActive ? CortetsuDesign.easeDrawer : CortetsuDesign.easeOut
+        }
     }
 
     Loader {

@@ -50,7 +50,7 @@ Item {
         return statusRow.x + systemControls.x + item.x + item.width / 2;
     }
 
-    implicitWidth: statusRow.implicitWidth + CortetsuDesign.spacingUnit
+    implicitWidth: statusRow.implicitWidth + 20
     implicitHeight: 50
     width: implicitWidth
     height: implicitHeight
@@ -62,15 +62,7 @@ Item {
         color: Qt.alpha(CortetsuDesign.colorMuted, 0.14)
     }
 
-    CortetsuSurface {
-        anchors.fill: parent
-        anchors.margins: 1
-        z: -1
-        radiusValue: CortetsuDesign.radiusLarge
-        baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.72)
-        outlineColor: Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.38)
-        outlined: true
-    }
+    CortetsuIsland {}
 
     Row {
         id: statusRow
@@ -239,7 +231,7 @@ Item {
             CortetsuSurface {
                 anchors.fill: parent
                 anchors.margins: 2
-                radiusValue: CortetsuDesign.radiusSmall
+                radiusValue: height / 2
                 baseColor: "transparent"
                 hoverColor: Qt.alpha(CortetsuDesign.colorSurfaceGlassStrong, 0.72)
                 outlineColor: parent.activeFocus

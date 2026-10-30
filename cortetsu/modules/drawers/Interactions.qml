@@ -24,17 +24,34 @@ CustomMouseArea {
     property bool dashboardShortcutActive
     property bool osdShortcutActive
     property bool utilitiesShortcutActive
-    property bool osdEdgePending
+    // Right edge: resting the pointer there for 180 ms opens the
+    // notification drawer. One opened this way closes when the pointer
+    // leaves it; one opened by click or shortcut stays.
+    property bool sidebarEdgePending
+    property bool sidebarHoverOpened
 
     Timer {
-        id: osdEdgeOpenTimer
+        id: sidebarEdgeOpenTimer
         interval: 180
         onTriggered: {
-            if (!root.pressed && root.osdEdgePending && !root.fullscreen) {
-                root.screenState.osd = true;
-                root.osdShortcutActive = true;
-            }
+            if (root.pressed || !root.sidebarEdgePending || root.fullscreen || root.screenState.sidebar
+                    || !CortetsuOverlayConfig.sidebar.showOnHover)
+                return;
+            SurfacePolicy.open(CortetsuShellState.allStates(), root.screenState, "sidebar");
+            root.sidebarHoverOpened = root.screenState.sidebar;
         }
+    }
+
+    Timer {
+        id: sidebarHoverCloseTimer
+        interval: 250
+        onTriggered: root.closeHoverSidebar()
+    }
+
+    function closeHoverSidebar(): void {
+        if (root.sidebarHoverOpened && root.screenState.sidebar)
+            SurfacePolicy.closeOn(root.screenState, "sidebar");
+        root.sidebarHoverOpened = false;
     }
 
     function withinPanelHeight(panel: Item, x: real, y: real): bool {
@@ -104,11 +121,21 @@ CustomMouseArea {
     acceptedButtons: fullscreen ? Qt.NoButton : Qt.AllButtons
     hoverEnabled: true
 
-    onPressed: event => dragStart = Qt.point(event.x, event.y)
+    onPressed: event => {
+        dragStart = Qt.point(event.x, event.y);
+        // A click inside a hover-opened drawer keeps it: it is in use now.
+        if (root.sidebarHoverOpened && insidePanel(panels.sidebar, event.x, event.y)) {
+            root.sidebarHoverOpened = false;
+            sidebarHoverCloseTimer.stop();
+        }
+    }
     onContainsMouseChanged: {
         if (CortetsuShellState.screenshotActive)
             return;
         if (!containsMouse) {
+            sidebarEdgeOpenTimer.stop();
+            if (root.sidebarHoverOpened)
+                sidebarHoverCloseTimer.restart();
             // Only hide if not activated by shortcut
             if (!osdShortcutActive) {
                 screenState.osd = false;
@@ -150,11 +177,17 @@ CustomMouseArea {
         const dragX = x - dragStart.x;
         const dragY = y - dragStart.y;
 
-        root.osdEdgePending = x >= width - 6;
-        if (root.osdEdgePending && !root.pressed && !root.screenState.osd)
-            osdEdgeOpenTimer.restart();
-        else if (!root.osdEdgePending)
-            osdEdgeOpenTimer.stop();
+        root.sidebarEdgePending = x >= width - 2;
+        if (root.sidebarEdgePending && !root.pressed && !root.screenState.sidebar)
+            sidebarEdgeOpenTimer.restart();
+        else if (!root.sidebarEdgePending)
+            sidebarEdgeOpenTimer.stop();
+        if (root.sidebarHoverOpened) {
+            if (insidePanel(panels.sidebar, x, y) || root.sidebarEdgePending)
+                sidebarHoverCloseTimer.stop();
+            else if (!sidebarHoverCloseTimer.running)
+                sidebarHoverCloseTimer.restart();
+        }
 
         if (fullscreen) {
             root.panels.osd.hovered = inRightPanel(panels.osdWrapper, x, y);
@@ -175,7 +208,7 @@ CustomMouseArea {
 
         if (panels.sidebar.offsetScale === 1) {
             // Show osd on hover
-            const showOsd = inRightPanel(panels.osdWrapper, x, y);
+            const showOsd = root.screenState.osd && inRightPanel(panels.osdWrapper, x, y);
 
             // Always update visibility based on hover if not in shortcut mode
             if (!osdShortcutActive) {
@@ -198,7 +231,7 @@ CustomMouseArea {
         } else {
             const outOfSidebar = x < width - panels.sidebar.width * (1 - panels.sidebar.offsetScale);
             // Show osd on hover
-            const showOsd = outOfSidebar && inRightPanel(panels.osdWrapper, x, y);
+            const showOsd = root.screenState.osd && outOfSidebar && inRightPanel(panels.osdWrapper, x, y);
 
             // Always update visibility based on hover if not in shortcut mode
             if (!osdShortcutActive) {
@@ -284,6 +317,11 @@ CustomMouseArea {
                     root.panels.osd.hovered = false;
                 }
             }
+        }
+
+        function onSidebarChanged() {
+            if (!root.screenState.sidebar)
+                root.sidebarHoverOpened = false;
         }
 
         function onDashboardChanged() {

@@ -4,7 +4,7 @@ ROOT = Path(__file__).resolve().parents[2]
 segment = (ROOT / "cortetsu/modules/CortetsuStatusSegment.qml").read_text(encoding="utf-8")
 hub = (ROOT / "cortetsu/modules/BottomHub.qml").read_text(encoding="utf-8")
 hover = (ROOT / "cortetsu/modules/CortetsuHoverSurfaceController.qml").read_text(encoding="utf-8")
-assert "radiusValue: CortetsuDesign.radiusLarge" in segment
+assert "CortetsuIsland {}" in segment
 assert "buttonSize: 40" in segment
 assert "onHoveredChanged" in segment
 assert "id: systemControlsHover" in segment

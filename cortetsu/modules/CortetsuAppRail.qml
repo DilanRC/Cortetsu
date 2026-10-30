@@ -17,17 +17,19 @@ Item {
     signal closeRequested(string key)
     signal cycleRequested(string key, int direction)
 
-    implicitWidth: Math.min(appRailContent.implicitWidth + CortetsuDesign.spacingCompact, maxWidth)
+    implicitWidth: Math.min(appRailContent.implicitWidth + 24, maxWidth)
     implicitHeight: 50
     width: implicitWidth
     height: implicitHeight
     clip: true
 
+    CortetsuIsland {}
+
     Flickable {
         id: appRail
         anchors.fill: parent
-        anchors.leftMargin: CortetsuDesign.spacingUnit
-        anchors.rightMargin: CortetsuDesign.spacingUnit
+        anchors.leftMargin: 12
+        anchors.rightMargin: 12
         contentWidth: appRailContent.implicitWidth
         contentHeight: height
         boundsBehavior: Flickable.StopAtBounds
@@ -57,7 +59,7 @@ Item {
                     CortetsuSurface {
                         anchors.fill: parent
                         anchors.margins: 3
-                        radiusValue: CortetsuDesign.radiusMedium
+                        radiusValue: height / 2
                         baseColor: appItem.modelData.active
                             ? Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.62)
                             : "transparent"

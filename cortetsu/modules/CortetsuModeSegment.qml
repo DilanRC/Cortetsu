@@ -15,10 +15,12 @@ Item {
     signal workspaceRequested(int workspaceId)
     readonly property Item launcherButtonItem: launcherButton
 
-    implicitWidth: content.implicitWidth + CortetsuDesign.spacingCompact
+    implicitWidth: content.implicitWidth + 18
     implicitHeight: 50
     width: implicitWidth
     height: implicitHeight
+
+    CortetsuIsland {}
 
     Row {
         id: content

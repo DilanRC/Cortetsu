@@ -124,8 +124,8 @@ Item {
     Sidebar.Wrapper {
         id: sidebar
         screenState: root.screenState
+        anchors.top: parent.top
         anchors.bottom: parent.bottom
         anchors.right: root.screenState?.utilities ? utilities.left : parent.right
-        anchors.rightMargin: root.screenState?.utilities ? CortetsuDesign.spacingStandard : 0
     }
 }
