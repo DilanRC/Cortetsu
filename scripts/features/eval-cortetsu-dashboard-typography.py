@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 
 
@@ -16,13 +17,9 @@ checks = {
         f"var {alias} =" in source["typography"]
         for alias in ("displaySmallPx", "displayMediumPx", "displayClockPx", "displayLargePx", "displayHeroPx")
     ),
-    "dashboard uses shared display roles": all(
-        token in source["dashboard"]
-        for token in (
-            "CortetsuTypography.displayClockPx",
-            "CortetsuTypography.displayHeroPx",
-            "CortetsuTypography.displayLargePx",
-        )
+    "dashboard uses the shared ink scale": all(
+        f"CortetsuTypography.{role}" in source["dashboard"]
+        for role in ("inkHeroPx", "inkDisplayPx", "inkTitlePx", "inkLinePx")
     ),
     "launcher density uses design tokens": all(
         token in source["launcher"]
@@ -32,8 +29,9 @@ checks = {
         token in source["launcher"]
         for token in ("anchors.fill: parent", "acceptedButtons:", "root.screenState.launcher = false")
     ),
-    "raw large font declarations are removed": all(
-        "font.pixelSize:" not in source[name] for name in ("dashboard", "focus")
+    # Kanji marks set font.pixelSize from the scale; raw numbers are out.
+    "raw font sizes are removed": all(
+        not re.search(r"(font\.pixelSize|textSize):\s*\d", source[name]) for name in ("dashboard", "focus")
     ),
 }
 

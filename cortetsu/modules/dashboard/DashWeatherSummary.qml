@@ -27,8 +27,8 @@ DashNote {
     RowLayout {
         visible: !!Weather.cc
         spacing: CortetsuDesign.spacingStandard
-        DashInk { text: Weather.temp; textSize: CortetsuTypography.inkTitlePx }
-        CortetsuText { text: Weather.icon; textSize: CortetsuTypography.iconLargePx; color: CortetsuDesign.colorIndicator }
+        DashInk { text: Weather.temp; textSize: CortetsuTypography.inkLinePx }
+        CortetsuText { text: Weather.icon; textSize: CortetsuTypography.iconMediumPx; color: CortetsuDesign.colorIndicator }
     }
     CortetsuText {
         visible: !!Weather.cc

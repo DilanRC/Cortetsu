@@ -202,35 +202,33 @@ FocusScope {
             Component.onCompleted: Lyrics.consumers += 1
             Component.onDestruction: Lyrics.consumers -= 1
 
+            // The date, the hour and the lines around the one being sung,
+            // centred as one block in the free side of the zone.
             ColumnLayout {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                spacing: 0
+                spacing: CortetsuDesign.spacingStandard
 
+                Item { Layout.fillHeight: true }
                 DashInk {
+                    Layout.alignment: Qt.AlignHCenter
                     text: CortetsuRegional.formatDate(Time.date, "longDay", true)
                     textSize: CortetsuTypography.inkLinePx
                     font.italic: true
                     color: CortetsuDesign.colorOnSurfaceVariant
                 }
-                Item { Layout.fillHeight: true }
                 DashInk {
+                    Layout.alignment: Qt.AlignHCenter
                     text: `${Time.hourStr}:${Time.minuteStr}`
                     textSize: CortetsuTypography.inkHeroPx
                     font.weight: Font.Thin
                     color: CortetsuDesign.colorWashi
                 }
-                // The line being sung, under the hour.
-                DashInk {
+                DashLyricLines {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: implicitHeight
-                    visible: CortetsuConfig.dashboard.showMedia
-                    text: Lyrics.currentLine ? `— ${Lyrics.currentLine}` : " "
-                    textSize: CortetsuTypography.inkLinePx
-                    font.italic: true
-                    color: CortetsuDesign.colorIndicator
-                    elide: Text.ElideRight
+                    visible: CortetsuConfig.dashboard.showMedia && Lyrics.synced && Lyrics.index >= 0
                 }
+                Item { Layout.fillHeight: true }
             }
 
             ColumnLayout {
@@ -270,36 +268,36 @@ FocusScope {
         DashMediaPlayer { compact: false; dashboardOpen: root.open }
     }
 
-    // Rendimiento: the processor as a large ensō; the rest smaller, and the
-    // network and power as notes.
+    // Rendimiento: four ensō meters of one size in a row; the network and
+    // power as notes under them.
     Component {
         id: performanceZone
 
-        RowLayout {
-            spacing: CortetsuDesign.spacingSection * 2
+        ColumnLayout {
+            spacing: 0
 
             Component.onCompleted: { Cpu.consumers += 1; Gpu.consumers += 1; Memory.consumers += 1; Storage.consumers += 1; NetworkUsage.consumers += 1; }
             Component.onDestruction: { Cpu.consumers -= 1; Gpu.consumers -= 1; Memory.consumers -= 1; Storage.consumers -= 1; NetworkUsage.consumers -= 1; }
-
-            DashGauge {
-                Layout.alignment: Qt.AlignVCenter
-                visible: CortetsuConfig.dashboard.performance.showCpu
-                size: 280
-                mark: "脳"; label: qsTr("CPU"); value: Cpu.percentage
-                detail: Cpu.temperature > 0 ? qsTr("%1 °C").arg(Math.round(Cpu.temperature)) : qsTr("Sin sensor")
-            }
 
             ColumnLayout {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 spacing: CortetsuDesign.spacingSection
 
+                Item { Layout.fillHeight: true }
+                // The four meters side by side, all the same size.
                 RowLayout {
                     Layout.fillWidth: true
-                    spacing: CortetsuDesign.spacingSection
+                    spacing: 0
                     DashGauge {
+                        Layout.fillWidth: true
+                        visible: CortetsuConfig.dashboard.performance.showCpu
+                        mark: "脳"; label: qsTr("CPU"); value: Cpu.percentage
+                        detail: Cpu.temperature > 0 ? qsTr("%1 °C").arg(Math.round(Cpu.temperature)) : qsTr("Sin sensor")
+                    }
+                    DashGauge {
+                        Layout.fillWidth: true
                         visible: CortetsuConfig.dashboard.performance.showGpu
-                        size: 128
                         mark: "画"; label: qsTr("GPU")
                         value: Gpu.type === Gpu.noneType ? 0 : Gpu.percentage
                         detail: Gpu.type === Gpu.noneType
@@ -307,18 +305,17 @@ FocusScope {
                             : qsTr("%1 °C").arg(Math.round(Gpu.temperature))
                     }
                     DashGauge {
+                        Layout.fillWidth: true
                         visible: CortetsuConfig.dashboard.performance.showMemory
-                        size: 128
                         mark: "記"; label: qsTr("MEMORIA"); value: Memory.percentage
                         detail: qsTr("%1 de %2 GiB").arg((Memory.used / 1048576).toFixed(1)).arg((Memory.total / 1048576).toFixed(1))
                     }
                     DashGauge {
+                        Layout.fillWidth: true
                         visible: CortetsuConfig.dashboard.performance.showStorage
-                        size: 128
                         mark: "蔵"; label: qsTr("DISCO"); value: Storage.percentage
                         detail: Storage.primaryDisk?.mount ?? qsTr("Volumen principal")
                     }
-                    Item { Layout.fillWidth: true }
                 }
 
                 Item { Layout.fillHeight: true }
@@ -404,7 +401,7 @@ FocusScope {
                     Item { Layout.fillHeight: true }
                     RowLayout {
                         spacing: CortetsuDesign.spacingStandard
-                        DashInk { text: Weather.temp; textSize: CortetsuTypography.inkHeroPx * 0.78; font.weight: Font.Thin }
+                        DashInk { text: Weather.temp; textSize: CortetsuTypography.inkDisplayPx; font.weight: Font.Thin }
                         CortetsuText { Layout.alignment: Qt.AlignTop; text: Weather.icon; textSize: CortetsuTypography.iconHeroPx; color: CortetsuDesign.colorIndicator }
                     }
                     DashInk { text: Weather.description; textSize: CortetsuTypography.inkLinePx; font.italic: true }

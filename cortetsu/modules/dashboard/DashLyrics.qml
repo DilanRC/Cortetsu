@@ -15,7 +15,6 @@ import "../CortetsuTypography.js" as CortetsuTypography
 // there. Plain lyrics just scroll.
 Item {
     id: root
-    property bool large: true
 
     Component.onCompleted: Lyrics.consumers += 1
     Component.onDestruction: Lyrics.consumers -= 1
@@ -75,7 +74,9 @@ Item {
                 text: line.modelData.text || "♪"
                 wrapMode: Text.Wrap
                 textFormat: Text.PlainText
-                textSize: line.sung ? (root.large ? CortetsuTypography.inkTitlePx : CortetsuTypography.inkLinePx) : (root.large ? CortetsuTypography.inkLinePx : CortetsuTypography.titleSmallPx)
+                // One size for every line: the sung one stands out by ink and
+                // weight, so the list never reflows as the song moves on.
+                textSize: CortetsuTypography.inkLinePx
                 font.weight: line.sung ? Font.Normal : Font.Light
                 color: line.sung ? CortetsuDesign.colorWashi : CortetsuDesign.colorOnSurfaceVariant
                 opacity: !Lyrics.synced ? 0.85 : line.sung ? 1 : Math.max(0.14, 0.62 - line.distance * 0.14)
@@ -94,7 +95,7 @@ Item {
     CortetsuText {
         anchors.right: parent.right
         anchors.bottom: parent.bottom
-        visible: !root.empty && root.large
+        visible: !root.empty
         text: Lyrics.source === "spotify" ? qsTr("Letra de Spotify") : Lyrics.source === "local" ? qsTr("Archivo local") : qsTr("Letra de LRCLIB")
         color: CortetsuDesign.colorOnSurfaceVariant
         textSize: CortetsuTypography.labelSmallPx

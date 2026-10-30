@@ -85,7 +85,7 @@ Item {
 
                 DashInk {
                     text: Model.timeLeft(root.pomodoro, root.nowMs)
-                    textSize: CortetsuTypography.inkTitlePx
+                    textSize: CortetsuTypography.inkLinePx
                 }
 
                 CortetsuText {

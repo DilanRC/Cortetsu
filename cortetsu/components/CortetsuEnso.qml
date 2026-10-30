@@ -17,8 +17,10 @@ Item {
     readonly property real cx: width / 2
     readonly property real cy: height / 2
     readonly property real r: Math.min(width, height) / 2 - stroke
-    // A brush starts at the lower left and sweeps clockwise.
-    readonly property real start: 112
+    // The stroke starts at the top and sweeps clockwise, so it reads as a
+    // gauge: a low value is a short stroke at twelve o'clock, not a blot at
+    // the lower left.
+    readonly property real start: -90
 
     Shape {
         anchors.fill: parent
@@ -31,6 +33,15 @@ Item {
             fillColor: "transparent"
             PathAngleArc { centerX: root.cx; centerY: root.cy; radiusX: root.r; radiusY: root.r; startAngle: 0; sweepAngle: 360 }
         }
+    }
+
+    // The ink. Round caps on a zero-length arc still leave a dot, so the
+    // ink is hidden while there is nothing to show.
+    Shape {
+        anchors.fill: parent
+        visible: root.shown > 0.005
+        preferredRendererType: Shape.CurveRenderer
+
         ShapePath {
             strokeWidth: 1.2
             strokeColor: Qt.alpha(root.ink, 0.35)

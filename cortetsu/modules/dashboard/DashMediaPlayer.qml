@@ -52,7 +52,7 @@ Item {
         DashInk {
             Layout.alignment: player.compact ? Qt.AlignLeft : Qt.AlignHCenter
             text: qsTr("Nada en reproducción")
-            textSize: player.compact ? CortetsuTypography.titleMediumPx : CortetsuTypography.inkTitlePx
+            textSize: player.compact ? CortetsuTypography.inkLinePx : CortetsuTypography.inkTitlePx
             font.italic: true
         }
         CortetsuText {
@@ -82,7 +82,7 @@ Item {
                 DashInk {
                     Layout.fillWidth: true
                     text: player.active?.trackTitle || qsTr("Pista sin título")
-                    textSize: CortetsuTypography.titleMediumPx
+                    textSize: CortetsuTypography.inkLinePx
                     font.weight: Font.Normal
                     elide: Text.ElideRight
                 }
@@ -116,7 +116,7 @@ Item {
             DashInk {
                 Layout.fillWidth: true
                 text: player.active?.trackTitle || qsTr("Pista sin título")
-                textSize: CortetsuTypography.inkTitlePx * 0.85
+                textSize: CortetsuTypography.inkTitlePx
                 font.weight: Font.Normal
                 elide: Text.ElideRight
                 maximumLineCount: 2
