@@ -63,3 +63,10 @@ assert "deferredTimer" in content
 assert "interval: 1000" in content
 
 print("PASS: session actions dispatch full first-party action records with safe lock/suspend flow and confirmation")
+
+# Ink: each action carries a kanji seal; confirming presses it in vermillion.
+for glyph in ("錠", "眠", "出", "冬", "再", "止"):
+    assert f'seal: "{glyph}"' in content, glyph
+assert "seal: actionRow.modelData.seal" in content
+assert "onSelectedChanged: if (selected && seal !== \"\") hanko.stamp()" in action_row
+assert "CortetsuInkPanel" in host

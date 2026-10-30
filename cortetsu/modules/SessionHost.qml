@@ -46,16 +46,20 @@ Scope {
 
             Rectangle { anchors.fill: parent; visible: window.open; color: Qt.alpha(CortetsuDesign.colorScrim, 0.54) }
 
-            CortetsuSurface {
+            Item {
                 id: panel
                 anchors.centerIn: parent
                 visible: window.open
                 width: Math.min(440, parent.width - 48)
                 implicitHeight: contentColumn.implicitHeight + CortetsuDesign.spacingComfortable * 2
-                baseColor: Qt.alpha(CortetsuDesign.colorSurface, 0.98)
-                outlined: true
-                radiusValue: CortetsuDesign.radiusSurface
-                outlineColor: Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.72)
+                height: implicitHeight
+
+                // The session speaks the dashboard's ink: sumi, wash, grain.
+                CortetsuInkPanel {
+                    anchors.fill: parent
+                    radius: CortetsuDesign.radiusSurface
+                    groundAlpha: 0.98
+                }
 
                     Column {
                         id: contentColumn
@@ -79,12 +83,12 @@ Scope {
                         Column {
                             anchors.verticalCenter: parent.verticalCenter
                             spacing: 2
-                            CortetsuText { text: qsTr("Sesión"); textSize: CortetsuTypography.titleMediumPx; color: CortetsuDesign.colorOnSurface }
+                            CortetsuText { text: qsTr("Sesión"); font.family: CortetsuTypography.inkFamily; font.weight: Font.Light; textSize: CortetsuTypography.inkTitlePx; color: CortetsuDesign.colorWashi }
                             CortetsuText { text: qsTr("Acciones de energía y sesión"); textSize: CortetsuTypography.bodySmallPx; color: CortetsuDesign.colorOnSurfaceVariant }
                         }
                     }
 
-                    Rectangle { width: parent.width; height: 1; color: CortetsuDesign.colorOutlineVariant; opacity: 0.45 }
+                    CortetsuBrushStroke { width: parent.width; height: 3; ink: CortetsuDesign.colorWashi; inkAlpha: 0.1 }
 
                     Session.Content {
                         width: parent.width

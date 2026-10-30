@@ -1,6 +1,5 @@
 import QtQuick
 import QtQuick.Effects
-import Quickshell
 
 // Paper grain over a rounded area. The texture tiles; the mask keeps it
 // inside the corners. It is static, so the layer renders once.
@@ -12,7 +11,8 @@ Item {
     Image {
         id: grain
         anchors.fill: parent
-        source: Quickshell.shellPath("assets/texture/grain.png")
+        // Relative to this file, so it loads without Quickshell (qmltestrunner).
+        source: Qt.resolvedUrl("../assets/texture/grain.png")
         fillMode: Image.Tile
         visible: false
         smooth: false

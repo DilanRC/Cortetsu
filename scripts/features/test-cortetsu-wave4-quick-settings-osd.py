@@ -17,7 +17,7 @@ qsd = (ROOT / "cortetsu/modules/osd/FullContent.qml").read_text(encoding="utf-8"
 assert "CortetsuActionTile" in qsd
 assert 'title: qsTr("Controles")' in qsd
 assert 'title: qsTr("Niveles")' in qsd
-assert 'title: qsTr("Energía")' not in qsd  # energy is a card label, not a section
+assert 'CortetsuInkLabel { mark: "電"; title: qsTr("Energía") }' in qsd  # energy is a margin note, not a section
 assert "CortetsuSlider" in qsd
 assert "CortetsuPower" in qsd
 assert "Math.max(0, Math.min(1, root.value))" in progress

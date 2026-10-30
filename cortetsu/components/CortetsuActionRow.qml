@@ -20,6 +20,9 @@ Item {
     Accessible.onPressAction: if (!root.disabled) root.clicked()
 
     property string icon: ""
+    // A kanji mark in place of the icon. While the row waits for its
+    // confirmation the mark becomes a vermillion seal, pressed in.
+    property string seal: ""
     property string title: ""
     property string subtitle: ""
     property string trailingIcon: "chevron_right"
@@ -29,6 +32,8 @@ Item {
     readonly property bool hovered: mouse.containsMouse
     readonly property bool pressed: mouse.pressed
     signal clicked()
+
+    onSelectedChanged: if (selected && seal !== "") hanko.stamp()
 
     implicitHeight: 58
     opacity: root.disabled ? 0.46 : 1
@@ -52,12 +57,13 @@ Item {
         focused: root.activeFocus
         hovered: root.hovered
         pressed: root.pressed
+        // Ink: rows are bare paper until hovered; danger only tints them.
         baseColor: root.danger
-            ? Qt.alpha(CortetsuDesign.colorVermillion, 0.08)
-            : CortetsuDesign.colorSurface
+            ? Qt.alpha(CortetsuDesign.colorVermillion, 0.05)
+            : Qt.alpha(CortetsuDesign.colorWashi, 0.02)
         hoverColor: root.danger
-            ? Qt.alpha(CortetsuDesign.colorVermillion, 0.14)
-            : CortetsuDesign.colorSurfaceHigh
+            ? Qt.alpha(CortetsuDesign.colorVermillion, 0.12)
+            : Qt.alpha(CortetsuDesign.colorWashi, 0.07)
         activeColor: root.danger
             ? Qt.alpha(CortetsuDesign.colorVermillion, 0.20)
             : Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.48)
@@ -76,9 +82,31 @@ Item {
         spacing: CortetsuDesign.spacingStandard
 
         CortetsuIcon {
+            visible: root.seal === ""
             text: root.icon
             iconSize: CortetsuTypography.iconMediumPx
             color: root.danger ? CortetsuDesign.colorVermillion : CortetsuDesign.colorPrimary
+        }
+
+        Item {
+            visible: root.seal !== ""
+            Layout.preferredWidth: 30
+            Layout.preferredHeight: 30
+            Text {
+                anchors.centerIn: parent
+                visible: !root.selected
+                text: root.seal
+                font.family: CortetsuTypography.kanjiFamily
+                font.pixelSize: CortetsuTypography.iconMediumPx
+                color: root.danger ? CortetsuDesign.colorVermillion : CortetsuDesign.colorIndicator
+            }
+            CortetsuHanko {
+                id: hanko
+                anchors.centerIn: parent
+                visible: root.selected
+                size: 30
+                glyph: root.seal
+            }
         }
 
         ColumnLayout {

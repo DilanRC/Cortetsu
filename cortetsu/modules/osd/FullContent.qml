@@ -82,19 +82,12 @@ Item {
                 Layout.preferredHeight: 32
             }
 
-            ColumnLayout {
+            CortetsuText {
                 Layout.fillWidth: true
-                spacing: 0
-                CortetsuText {
-                    text: qsTr("Cortetsu")
-                    textSize: CortetsuTypography.titleMediumPx
-                    font.weight: Font.DemiBold
-                }
-                CortetsuText {
-                    text: qsTr("Ajustes rápidos")
-                    textSize: CortetsuTypography.labelSmallPx
-                    color: CortetsuDesign.colorOnSurfaceVariant
-                }
+                text: qsTr("Ajustes rápidos")
+                font.family: CortetsuTypography.inkFamily
+                font.weight: Font.Light
+                textSize: CortetsuTypography.inkLinePx
             }
 
             CortetsuButton {
@@ -114,10 +107,10 @@ Item {
             }
         }
 
-        CortetsuSectionHeader {
-            Layout.fillWidth: true
+        CortetsuInkLabel {
+            Layout.topMargin: CortetsuDesign.spacingCompact
+            mark: "制"
             title: qsTr("Controles")
-            detail: qsTr("Estado actual del sistema")
         }
 
         GridLayout {
@@ -128,6 +121,7 @@ Item {
 
             CortetsuActionTile {
                 id: soundTile
+                seal: "音"
                 focus: true
                 Layout.fillWidth: true
                 label: CortetsuAudio.muted ? qsTr("Sonido silenciado") : qsTr("Sonido")
@@ -142,6 +136,7 @@ Item {
 
             CortetsuActionTile {
                 id: dndTile
+                seal: "静"
                 Layout.fillWidth: true
                 label: CortetsuNotifications.dnd ? qsTr("No molestar") : qsTr("Notificaciones")
                 detail: CortetsuNotifications.dnd ? qsTr("Silenciadas") : qsTr("Permitidas")
@@ -154,6 +149,7 @@ Item {
 
             CortetsuActionTile {
                 id: bluetoothTile
+                seal: "青"
                 Layout.fillWidth: true
                 label: qsTr("Bluetooth")
                 detail: root.bluetoothEnabled
@@ -185,6 +181,7 @@ Item {
 
             CortetsuActionTile {
                 Layout.fillWidth: true
+                seal: "録"
                 label: CortetsuRecorder.running ? qsTr("Detener grabación") : qsTr("Grabar pantalla")
                 detail: CortetsuRecorder.running ? qsTr("Grabando") : qsTr("Iniciar captura")
                 icon: CortetsuRecorder.running ? "stop_circle" : "radio_button_checked"
@@ -195,6 +192,7 @@ Item {
 
             CortetsuActionTile {
                 Layout.fillWidth: true
+                seal: "醒"
                 label: CortetsuIdleInhibitor.enabled ? qsTr("Permitir reposo") : qsTr("Mantener activo")
                 detail: CortetsuIdleInhibitor.enabled ? qsTr("Desactivado") : qsTr("Activo mientras trabajas")
                 icon: CortetsuIdleInhibitor.enabled ? "bedtime" : "bedtime_off"
@@ -206,6 +204,7 @@ Item {
             CortetsuActionTile {
                 Layout.columnSpan: 2
                 Layout.fillWidth: true
+                seal: "遊"
                 label: GameMode.enabled ? qsTr("Desactivar modo juego") : qsTr("Activar modo juego")
                 detail: GameMode.busy ? qsTr("Un momento…")
                     : GameMode.needsRecovery ? qsTr("Error al aplicar: pulsa para restaurar")
@@ -218,10 +217,10 @@ Item {
             }
         }
 
-        CortetsuSectionHeader {
-            Layout.fillWidth: true
+        CortetsuInkLabel {
+            Layout.topMargin: CortetsuDesign.spacingCompact
+            mark: "量"
             title: qsTr("Niveles")
-            detail: qsTr("Lectura del hardware")
         }
 
         RowLayout {
@@ -234,7 +233,8 @@ Item {
             CortetsuText {
                 Layout.fillWidth: true
                 text: qsTr("Brillo")
-                textSize: CortetsuTypography.labelMediumPx
+                textSize: CortetsuTypography.bodyPx
+                font.weight: Font.DemiBold
             }
             CortetsuText {
                 text: root.brightnessValue < 0 ? qsTr("No disponible") : qsTr("%1%").arg(Math.round(root.brightnessValue * 100))
@@ -262,7 +262,8 @@ Item {
             CortetsuText {
                 Layout.fillWidth: true
                 text: qsTr("Volumen")
-                textSize: CortetsuTypography.labelMediumPx
+                textSize: CortetsuTypography.bodyPx
+                font.weight: Font.DemiBold
             }
             CortetsuText {
                 text: qsTr("%1%").arg(root.volumePercent)
@@ -278,62 +279,50 @@ Item {
             onMoved: nextValue => CortetsuAudio.setVolume(nextValue)
         }
 
-        CortetsuSurface {
+        // Energy and connection as two margin notes under a brush rule.
+        CortetsuBrushStroke {
             Layout.fillWidth: true
-            Layout.preferredHeight: 78
-            Layout.minimumHeight: 78
-            radiusValue: CortetsuDesign.radiusLarge
-            baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.66)
-            outlined: true
-            outlineColor: Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.52)
+            Layout.topMargin: CortetsuDesign.spacingCompact
+            Layout.preferredHeight: 3
+            ink: CortetsuDesign.colorWashi
+            inkAlpha: 0.1
+        }
 
-            RowLayout {
-                anchors.fill: parent
-                anchors.margins: CortetsuDesign.spacingStandard
-                spacing: CortetsuDesign.spacingStandard
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: CortetsuDesign.spacingSection
 
-                ColumnLayout {
+            ColumnLayout {
+                Layout.fillWidth: true
+                Layout.preferredWidth: 1
+                spacing: 2
+                CortetsuInkLabel { mark: "電"; title: qsTr("Energía") }
+                CortetsuText {
                     Layout.fillWidth: true
-                    spacing: 1
-                    CortetsuText {
-                        text: qsTr("Energía")
-                        textSize: CortetsuTypography.labelSmallPx
-                        color: CortetsuDesign.colorOnSurfaceVariant
-                    }
-                    CortetsuText {
-                        text: root.laptopBatteryAvailable
-                            ? qsTr("Batería %1%").arg(root.batteryPercent)
-                            : CortetsuPower.laptopBattery
-                                ? qsTr("Batería no disponible")
-                                : CortetsuPower.devicePresent
-                                    ? qsTr("Alimentación externa")
-                                    : qsTr("Energía no disponible")
-                        textSize: CortetsuTypography.bodyPx
-                        font.weight: Font.DemiBold
-                    }
+                    text: root.laptopBatteryAvailable
+                        ? qsTr("Batería %1%").arg(root.batteryPercent)
+                        : CortetsuPower.laptopBattery
+                            ? qsTr("Batería no disponible")
+                            : CortetsuPower.devicePresent
+                                ? qsTr("Alimentación externa")
+                                : qsTr("Energía no disponible")
+                    textSize: CortetsuTypography.bodyPx
+                    font.weight: Font.DemiBold
+                    elide: Text.ElideRight
                 }
+            }
 
-                Rectangle {
-                    Layout.preferredWidth: 1
-                    Layout.fillHeight: true
-                    color: Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.52)
-                }
-
-                ColumnLayout {
+            ColumnLayout {
+                Layout.fillWidth: true
+                Layout.preferredWidth: 1
+                spacing: 2
+                CortetsuInkLabel { mark: "網"; title: qsTr("Conexión") }
+                CortetsuText {
                     Layout.fillWidth: true
-                    spacing: 1
-                    CortetsuText {
-                        text: qsTr("Conexión")
-                        textSize: CortetsuTypography.labelSmallPx
-                        color: CortetsuDesign.colorOnSurfaceVariant
-                    }
-                    CortetsuText {
-                        Layout.fillWidth: true
-                        text: root.networkName
-                        textSize: CortetsuTypography.bodyPx
-                        font.weight: Font.DemiBold
-                        elide: Text.ElideRight
-                    }
+                    text: root.networkName
+                    textSize: CortetsuTypography.bodyPx
+                    font.weight: Font.DemiBold
+                    elide: Text.ElideRight
                 }
             }
         }

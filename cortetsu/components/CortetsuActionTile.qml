@@ -24,9 +24,13 @@ Item {
     property bool warning: false
     property bool clickable: true
     property bool disabled: false
+    // A kanji pressed as a seal in the corner while the tile is on.
+    property string seal: ""
     readonly property bool hovered: root.clickable && mouse.containsMouse
     readonly property bool pressed: root.clickable && mouse.pressed
     signal activated()
+
+    onHighlightedChanged: if (highlighted && seal !== "") hanko.stamp()
 
     implicitHeight: 76
     opacity: root.disabled ? 0.46 : 1
@@ -50,16 +54,18 @@ Item {
         focused: root.activeFocus
         hovered: root.hovered
         pressed: root.pressed
+        // Ink: an off tile is bare paper with a hairline; an on tile takes a
+        // wash of the indicator colour.
         baseColor: root.warning
             ? Qt.alpha(CortetsuDesign.colorWarning, 0.10)
             : root.highlighted
-                ? Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.64)
-                : Qt.alpha(CortetsuDesign.colorSurfaceGlassStrong, 0.78)
+                ? Qt.alpha(CortetsuDesign.colorIndicator, 0.16)
+                : Qt.alpha(CortetsuDesign.colorWashi, 0.03)
         hoverColor: root.warning
             ? Qt.alpha(CortetsuDesign.colorWarning, 0.16)
             : root.highlighted
-                ? Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.82)
-                : Qt.alpha(CortetsuDesign.colorSurfaceHigh, 0.92)
+                ? Qt.alpha(CortetsuDesign.colorIndicator, 0.24)
+                : Qt.alpha(CortetsuDesign.colorWashi, 0.07)
         activeColor: root.warning
             ? Qt.alpha(CortetsuDesign.colorWarning, 0.22)
             : Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.92)
@@ -68,8 +74,8 @@ Item {
             : root.warning
                 ? Qt.alpha(CortetsuDesign.colorWarning, 0.44)
                 : root.highlighted
-                    ? Qt.alpha(CortetsuDesign.colorPrimary, 0.38)
-                    : Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.52)
+                    ? Qt.alpha(CortetsuDesign.colorIndicator, 0.34)
+                    : Qt.alpha(CortetsuDesign.colorWashi, 0.08)
         outlined: true
     }
 
@@ -108,6 +114,14 @@ Item {
                 color: CortetsuDesign.colorOnSurfaceVariant
                 elide: Text.ElideRight
             }
+        }
+
+        CortetsuHanko {
+            id: hanko
+            Layout.alignment: Qt.AlignTop
+            size: 28
+            glyph: root.seal
+            visible: root.seal !== "" && root.highlighted && !root.warning
         }
     }
 

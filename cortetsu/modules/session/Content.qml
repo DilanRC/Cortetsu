@@ -24,6 +24,7 @@ Column {
     readonly property var actions: [
         {
             id: "lock",
+            seal: "錠",
             label: qsTr("Bloquear"),
             detail: qsTr("Proteger esta sesión"),
             icon: "lock",
@@ -34,6 +35,7 @@ Column {
         },
         {
             id: "suspend",
+            seal: "眠",
             label: qsTr("Suspender"),
             detail: qsTr("Bloquear y suspender"),
             icon: "mode_standby",
@@ -44,6 +46,7 @@ Column {
         },
         {
             id: "logout",
+            seal: "出",
             label: qsTr("Cerrar sesión"),
             detail: qsTr("Finalizar la sesión de Hyprland"),
             icon: "logout",
@@ -54,6 +57,7 @@ Column {
         },
         {
             id: "hibernate",
+            seal: "冬",
             label: qsTr("Hibernar"),
             detail: qsTr("Guardar la memoria en el disco"),
             icon: "bedtime",
@@ -64,6 +68,7 @@ Column {
         },
         {
             id: "reboot",
+            seal: "再",
             label: qsTr("Reiniciar"),
             detail: qsTr("Reiniciar el equipo"),
             icon: "restart_alt",
@@ -74,6 +79,7 @@ Column {
         },
         {
             id: "shutdown",
+            seal: "止",
             label: qsTr("Apagar"),
             detail: qsTr("Apagar el equipo"),
             icon: "power_settings_new",
@@ -209,6 +215,7 @@ Column {
 
             width: root.width
             icon: actionRow.modelData.icon
+            seal: actionRow.modelData.seal
             title: root.pendingAction === actionRow.modelData.id
                 ? qsTr("Confirmar %1").arg(actionRow.modelData.label)
                 : actionRow.modelData.label
