@@ -24,7 +24,10 @@ const home = process.env.HOME;
 const current = path.join(home, ".local/share/cortetsu/dotfiles/current");
 const rulesPath = path.join(current, "home/.config/hypr/hyprland/rules.lua");
 // Mapped only while in use; absent from `hyprctl layers` most of the time.
-const onDemand = new Set(["cortetsu-area-picker", "cortetsu-border-exclusion"]);
+// Surfaces mapped only while open (phase 3 on-demand hosts).
+const onDemand = new Set(["cortetsu-area-picker", "cortetsu-border-exclusion", "cortetsu-launcher",
+    "cortetsu-dashboard", "cortetsu-session", "cortetsu-polkit", "cortetsu-secret-prompt",
+    "cortetsu-share-picker", "cortetsu-retained-surfaces"]);
 
 const layers = JSON.parse(execFileSync("hyprctl", ["layers", "-j"], { encoding: "utf8" }));
 const live = new Set();
