@@ -2,7 +2,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 host = (ROOT / "cortetsu/modules/DashboardHost.qml").read_text(encoding="utf-8")
-dash = (ROOT / "cortetsu/modules/dashboard/Dash.qml").read_text(encoding="utf-8")
+# The dashboard is Dash.qml plus its Dash*.qml pieces.
+dash = "\n".join(p.read_text(encoding="utf-8") for p in sorted((ROOT / "cortetsu/modules/dashboard").glob("Dash*.qml")))
 shortcuts = (ROOT / "cortetsu/modules/Shortcuts.qml").read_text(encoding="utf-8")
 
 assert "CortetsuShellState.forScreen(modelData)" in host

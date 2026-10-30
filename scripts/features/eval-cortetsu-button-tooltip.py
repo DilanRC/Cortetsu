@@ -13,6 +13,7 @@ paths = [
     ROOT / "cortetsu/modules/osd/FullContent.qml",
     ROOT / "cortetsu/modules/settings/Content.qml",
     ROOT / "cortetsu/modules/dashboard/Dash.qml",
+    ROOT / "cortetsu/modules/dashboard/DashMediaPlayer.qml",
     ROOT / "cortetsu/modules/dashboard/Today.qml",
     ROOT / "cortetsu/modules/calendar/Content.qml",
     ROOT / "cortetsu/modules/wallpaper/Content.qml",

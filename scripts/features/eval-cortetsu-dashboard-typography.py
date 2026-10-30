@@ -9,6 +9,7 @@ files = {
     "launcher": ROOT / "cortetsu/modules/launcher/AppList.qml",
 }
 source = {name: path.read_text(encoding="utf-8") for name, path in files.items()}
+source["dashboard"] = "\n".join(p.read_text(encoding="utf-8") for p in sorted((ROOT / "cortetsu/modules/dashboard").glob("Dash*.qml")))
 
 checks = {
     "display aliases exist": all(

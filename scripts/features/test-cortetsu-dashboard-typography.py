@@ -3,7 +3,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 typography = (ROOT / "cortetsu/modules/CortetsuTypography.js").read_text(encoding="utf-8")
-dashboard = (ROOT / "cortetsu/modules/dashboard/Dash.qml").read_text(encoding="utf-8")
+dashboard = "\n".join(p.read_text(encoding="utf-8") for p in sorted((ROOT / "cortetsu/modules/dashboard").glob("Dash*.qml")))
 focus = (ROOT / "cortetsu/modules/dashboard/Focus.qml").read_text(encoding="utf-8")
 launcher = (ROOT / "cortetsu/modules/launcher/AppList.qml").read_text(encoding="utf-8")
 

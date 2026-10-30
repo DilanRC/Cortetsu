@@ -160,5 +160,5 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-dashboard-") as temporary:
     for marker in ("DASH_FAIL", "TypeError", "ReferenceError", "Binding loop", "is not a type"):
         assert marker not in output, output
 
-print("PASS: the dashboard closes on leaving after a hover open, on a click outside and on Escape, "
+print("PASS: the dashboard switches zones by keyboard in one fixed frame, closes on a click outside and on Escape, and stays for a click inside")
       "and stays for a shortcut open and a click inside")
