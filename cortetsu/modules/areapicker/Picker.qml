@@ -13,6 +13,7 @@ MouseArea {
     required property var state
     required property ShellScreen screen
     property bool onClient: false
+    readonly property bool recording: !state.regionHandler && state.mode === "record"
     property real realBorderWidth: 2
     property real realRounding: 0
     property real ssx
@@ -80,7 +81,10 @@ MouseArea {
             return;
         }
         close();
-        root.state.capture(`${x},${y} ${width}x${height}`, root.screen);
+        if (root.recording)
+            root.state.record(`${width}x${height}+${x}+${y}`);
+        else
+            root.state.capture(`${x},${y} ${width}x${height}`, root.screen);
     }
 
     function close(): void { root.state.close(); }
@@ -141,6 +145,13 @@ MouseArea {
         }
     }
     Keys.onEscapePressed: root.close()
+    Keys.onTabPressed: if (!root.state.regionHandler) root.state.mode = root.recording ? "capture" : "record"
+    Keys.onPressed: event => {
+        if (event.key === Qt.Key_S && root.recording) {
+            root.state.recordSound = !root.state.recordSound;
+            event.accepted = true;
+        }
+    }
 
     Rectangle {
         anchors.fill: parent
@@ -165,15 +176,94 @@ MouseArea {
         color: "transparent"
         radius: root.realRounding > 0 ? root.realRounding + root.realBorderWidth : 0
         border.width: root.realBorderWidth
-        border.color: CortetsuDesign.colorPrimary
+        border.color: root.recording ? CortetsuDesign.colorVermillion : CortetsuDesign.colorPrimary
     }
 
     CortetsuText {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: parent.top
         anchors.topMargin: CortetsuDesign.spacingComfortable
-        text: root.state.regionHandler ? qsTr("Selecciona el área que quieres compartir") : root.state.freeze ? qsTr("Selecciona un área para capturar") : qsTr("Selecciona un área")
+        text: root.recording ? qsTr("Selecciona el área que quieres grabar") : root.state.regionHandler ? qsTr("Selecciona el área que quieres compartir") : root.state.freeze ? qsTr("Selecciona un área para capturar") : qsTr("Selecciona un área")
         textSize: CortetsuTypography.bodyLargePx
         color: CortetsuDesign.colorOnSurface
+    }
+
+    // Capture / record switch. Hidden while choosing a share region, which
+    // has its own purpose. Tab switches, S toggles sound while recording.
+    Row {
+        id: modeSwitch
+        visible: !root.state.regionHandler
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: CortetsuDesign.spacingSection * 3
+        spacing: CortetsuDesign.spacingStandard
+
+        Rectangle {
+            width: modes.implicitWidth + 8
+            height: 44
+            radius: height / 2
+            color: Qt.alpha(CortetsuDesign.colorSurface, 0.92)
+            border.width: 1
+            border.color: Qt.alpha(CortetsuDesign.colorOnSurface, 0.08)
+
+            Row {
+                id: modes
+                anchors.centerIn: parent
+                Repeater {
+                    model: [{ mode: "capture", label: qsTr("Captura"), icon: "screenshot_region" },
+                            { mode: "record", label: qsTr("Grabar"), icon: "radio_button_checked" }]
+                    delegate: Rectangle {
+                        id: chip
+                        required property var modelData
+                        readonly property bool selected: root.state.mode === modelData.mode
+                        width: chipRow.implicitWidth + 28
+                        height: 36
+                        radius: height / 2
+                        color: selected ? (modelData.mode === "record" ? CortetsuDesign.colorVermillion : CortetsuDesign.colorPrimary) : "transparent"
+                        Behavior on color { ColorAnimation { duration: CortetsuDesign.motionStandardMs } }
+                        Row {
+                            id: chipRow
+                            anchors.centerIn: parent
+                            spacing: 6
+                            CortetsuIcon {
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: chip.modelData.icon
+                                color: chip.selected ? (chip.modelData.mode === "record" ? CortetsuDesign.colorWashi : CortetsuDesign.colorOnPrimary) : CortetsuDesign.colorOnSurface
+                            }
+                            CortetsuText {
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: chip.modelData.label
+                                color: chip.selected ? (chip.modelData.mode === "record" ? CortetsuDesign.colorWashi : CortetsuDesign.colorOnPrimary) : CortetsuDesign.colorOnSurface
+                            }
+                        }
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onPressed: event => event.accepted = true
+                            onClicked: root.state.mode = chip.modelData.mode
+                        }
+                    }
+                }
+            }
+        }
+
+        Rectangle {
+            visible: root.recording
+            width: 44
+            height: 44
+            radius: height / 2
+            color: root.state.recordSound ? CortetsuDesign.colorPrimary : Qt.alpha(CortetsuDesign.colorSurface, 0.92)
+            CortetsuIcon {
+                anchors.centerIn: parent
+                text: root.state.recordSound ? "mic" : "mic_off"
+                color: root.state.recordSound ? CortetsuDesign.colorOnPrimary : CortetsuDesign.colorOnSurface
+            }
+            MouseArea {
+                anchors.fill: parent
+                cursorShape: Qt.PointingHandCursor
+                onPressed: event => event.accepted = true
+                onClicked: root.state.recordSound = !root.state.recordSound
+            }
+        }
     }
 }

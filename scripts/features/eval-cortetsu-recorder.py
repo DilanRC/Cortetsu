@@ -9,7 +9,7 @@ criteria = {
     "plain recording bind": 'create_bind(vars.kbRecord, hl.dsp.exec_cmd("cortetsu-record start"))',
     "sound recording bind": 'create_bind(vars.kbRecordSound, hl.dsp.exec_cmd("cortetsu-record start -s"))',
     "sound records output and microphone": '"-a", "default_output", "-a", "default_input"' in helper,
-    "region recording bind": 'create_bind(vars.kbRecordRegion, hl.dsp.exec_cmd("cortetsu-record start -r"))',
+    "region recording bind": 'create_bind(vars.kbRecordRegion, hl.dsp.global("cortetsu:recordRegion"))',
     "no legacy recording command": "caelestia record" not in source,
     "pid reuse guard": '"starttime"' in helper and "proc/{pid}/stat" in helper,
     "controlled lock contention": "return 75" in helper and "busy:" in helper,

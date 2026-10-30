@@ -219,6 +219,7 @@ Singleton {
         function get(): string { return root.actualCurrent; }
         function set(path: string): void { root.setWallpaper(path); }
         function list(): string { return root.list.map(w => w.path).join("\n"); }
+        function random(): void { root.applyRandom(); }
     }
 
     QtObject {

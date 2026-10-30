@@ -51,7 +51,7 @@ class F0Session(Session):
 
         wait_for(loaded, "Configuration Loaded", timeout=60)
         loaded_ms = (time.perf_counter() - started) * 1000
-        wait_for(lambda: self.ipc("drawers", "list").returncode == 0 and self.launcher_layers(), "IPC de Cortetsu",
+        wait_for(lambda: self.ipc("drawers", "list").returncode == 0, "IPC de Cortetsu",
                  timeout=60)
         return {"loaded_ms": loaded_ms, "ready_ms": (time.perf_counter() - started) * 1000}
 

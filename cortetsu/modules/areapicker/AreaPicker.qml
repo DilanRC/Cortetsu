@@ -18,11 +18,15 @@ Scope {
     property bool clipboardOnly: false
     // Set by pickRegion(): the selection is returned instead of captured.
     property var regionHandler: null
+    // "capture" takes a screenshot; "record" starts a region recording.
+    property string mode: "capture"
+    property bool recordSound: false
 
     onActiveChanged: CortetsuShellState.screenshotActive = active
     Component.onDestruction: CortetsuShellState.screenshotActive = false
 
     function open(freezeFrame: bool, copyToClipboard: bool): void {
+        mode = "capture";
         freeze = freezeFrame;
         clipboardOnly = copyToClipboard;
         closing = false;
@@ -38,6 +42,34 @@ Scope {
 
     // Region tab of the screen share picker: `handler` receives
     // { output, x, y, w, h } in the output's logical coordinates, or null.
+    function openRecord(): void {
+        if (CortetsuRecorder.running) {
+            CortetsuRecorder.stop();
+            return;
+        }
+        open(false, false);
+        mode = "record";
+    }
+
+    // Same deferral as capture(): the recorder must start after the dimming
+    // layer is gone, or its first frames show the picker.
+    function record(geometry: string): void {
+        pendingRecord = geometry;
+        recordTimer.restart();
+    }
+    property string pendingRecord: ""
+
+    Timer {
+        id: recordTimer
+        interval: 160
+        onTriggered: {
+            const region = root.pendingRecord;
+            root.pendingRecord = "";
+            if (region && !CortetsuRecorder.running)
+                CortetsuRecorder.start(["--region", region, ...(root.recordSound ? ["--sound"] : [])]);
+        }
+    }
+
     function pickRegion(handler: var): void {
         root.returnRegion(null);
         regionHandler = handler;
@@ -214,10 +246,12 @@ Scope {
         function openFreeze(): void { root.open(true, false); }
         function openClip(): void { root.open(false, true); }
         function openFreezeClip(): void { root.open(true, true); }
+        function record(): void { root.openRecord(); }
     }
 
     CustomShortcut { name: "screenshot"; description: "Open screenshot tool"; onPressed: root.open(false, false) }
     CustomShortcut { name: "screenshotFreeze"; description: "Open screenshot tool (freeze mode)"; onPressed: root.open(true, false) }
     CustomShortcut { name: "screenshotClip"; description: "Open screenshot tool (clipboard)"; onPressed: root.open(false, true) }
+    CustomShortcut { name: "recordRegion"; description: "Record a screen region (again to stop)"; onPressed: root.openRecord() }
     CustomShortcut { name: "screenshotFreezeClip"; description: "Open screenshot tool (freeze mode, clipboard)"; onPressed: root.open(true, true) }
 }

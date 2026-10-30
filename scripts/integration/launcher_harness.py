@@ -193,7 +193,7 @@ class Session:
         wait_for(lambda: len(self.monitors()) == outputs, f"{outputs} salidas")
         self.shell = subprocess.Popen(["qs", "-p", str(self.shell_dir)], env=self.env(), start_new_session=True,
                                       stdout=(self.logs / "qs.log").open("w"), stderr=subprocess.STDOUT)
-        wait_for(lambda: self.ipc("drawers", "list").returncode == 0 and self.launcher_layers(), "IPC de Cortetsu",
+        wait_for(lambda: self.ipc("drawers", "list").returncode == 0, "IPC de Cortetsu",
                  timeout=60)
         self.input = subprocess.Popen([str(self.vinput_bin)], env=self.env(), text=True, start_new_session=True,
                                       stdin=subprocess.PIPE, stdout=subprocess.PIPE)

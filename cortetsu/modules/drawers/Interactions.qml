@@ -60,6 +60,16 @@ CustomMouseArea {
         return HoverEdges.containsTop(y, CortetsuOverlayConfig.border.minThickness, CortetsuOverlayConfig.border.thickness, panelHeight) && withinPanelWidth(panel, x, y);
     }
 
+    // Opening the dashboard only needs the pointer at the top edge across the
+    // middle 60% of the screen, or the panel's width if wider. The panel's own
+    // width (about 16% of a 1920 px screen) was too narrow to find by feel.
+    function inTopTrigger(panel: Item, x: real, y: real): bool {
+        const half = Math.max(panel.width / 2, width * 0.3);
+        const centre = bar.implicitWidth + panel.x + panel.width / 2;
+        return inTopPanel(panel, x, y) || (y <= CortetsuOverlayConfig.border.thickness + 2
+            && x >= centre - half && x <= centre + half);
+    }
+
     function inBottomPanel(panel: Item, x: real, y: real, isCorner = false): bool {
         const panelHeight = panel.height * (1 - (panel.offsetScale ?? 0)); // qmllint disable missing-property
         return HoverEdges.containsBottom(y, height, CortetsuOverlayConfig.border.minThickness, CortetsuOverlayConfig.border.thickness, panelHeight, isCorner ? CortetsuOverlayConfig.border.rounding : 0) && withinPanelWidth(panel, x, y);
@@ -76,7 +86,7 @@ CustomMouseArea {
         if (surface === "launcher")
             return inBottomPanel(panels.launcher, x, y);
         if (surface === "dashboard")
-            return inTopPanel(panels.dashboard, x, y);
+            return inTopTrigger(panels.dashboard, x, y);
         if (surface === "session")
             return inRightPanel(panels.sessionWrapper, x, y);
         return false;
@@ -224,7 +234,7 @@ CustomMouseArea {
         }
 
         // Show dashboard on hover
-        const showDashboard = CortetsuOverlayConfig.dashboard.showOnHover && inTopPanel(panels.dashboard, x, y);
+        const showDashboard = CortetsuOverlayConfig.dashboard.showOnHover && inTopTrigger(panels.dashboard, x, y);
 
         // Always update visibility based on hover if not in shortcut mode
         if (!dashboardShortcutActive) {

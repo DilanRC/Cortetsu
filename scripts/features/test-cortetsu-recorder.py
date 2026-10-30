@@ -29,6 +29,6 @@ assert "CortetsuRecorder.running" in hub and "CortetsuRecorder.stop()" in hub
 assert "record) record_cmd" in cli
 assert 'create_bind(vars.kbRecord, hl.dsp.exec_cmd("cortetsu-record start"))' in keybinds
 assert 'create_bind(vars.kbRecordSound, hl.dsp.exec_cmd("cortetsu-record start -s"))' in keybinds
-assert 'create_bind(vars.kbRecordRegion, hl.dsp.exec_cmd("cortetsu-record start -r"))' in keybinds
+assert 'create_bind(vars.kbRecordRegion, hl.dsp.global("cortetsu:recordRegion"))' in keybinds
 assert 'caelestia record' not in keybinds
 print("PASS: recorder status and stop use the owned exact-process contract")

@@ -199,7 +199,7 @@ create_bind(vars.kbScreenshotFreeze, hl.dsp.global("cortetsu:screenshotFreeze"))
 create_bind(vars.kbScreenshotRegion, hl.dsp.global("cortetsu:screenshot"))
 create_bind(vars.kbRecord, hl.dsp.exec_cmd("cortetsu-record start"))
 create_bind(vars.kbRecordSound, hl.dsp.exec_cmd("cortetsu-record start -s"))
-create_bind(vars.kbRecordRegion, hl.dsp.exec_cmd("cortetsu-record start -r"))
+create_bind(vars.kbRecordRegion, hl.dsp.global("cortetsu:recordRegion"))
 -- hyprpicker copies the colour itself and prints it; Esc prints nothing.
 create_bind(
     vars.kbColorPicker,
