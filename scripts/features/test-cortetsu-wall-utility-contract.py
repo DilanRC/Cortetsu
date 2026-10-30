@@ -134,9 +134,9 @@ assert "CortetsuDesign.wallUtilityOrbitBottomGap" in content
 assert contract["modularity"]["dashboard"]["host"] == "modules/DashboardHost.qml"
 assert contract["modularity"]["dashboard"]["content"] == "modules/dashboard/Dash.qml"
 assert "readonly property bool dashboardEnabled" in dashboard_host
-assert "sourceComponent: weatherCard" in dashboard
-assert "sourceComponent: mediaCard" in dashboard
-assert "sourceComponent: systemSummary" in dashboard
+assert "sourceComponent: root.currentKey" in dashboard
+assert "id: mediaZone" in dashboard
+assert "id: performanceZone" in dashboard
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--runtime", type=Path)

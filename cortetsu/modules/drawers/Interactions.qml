@@ -21,7 +21,6 @@ CustomMouseArea {
     required property bool fullscreen
 
     property point dragStart
-    property bool dashboardShortcutActive
     property bool osdShortcutActive
     property bool utilitiesShortcutActive
     // Right edge: resting the pointer there for 180 ms opens the
@@ -77,16 +76,6 @@ CustomMouseArea {
         return HoverEdges.containsTop(y, CortetsuOverlayConfig.border.minThickness, CortetsuOverlayConfig.border.thickness, panelHeight) && withinPanelWidth(panel, x, y);
     }
 
-    // Opening the dashboard only needs the pointer at the top edge across the
-    // middle 60% of the screen, or the panel's width if wider. The panel's own
-    // width (about 16% of a 1920 px screen) was too narrow to find by feel.
-    function inTopTrigger(panel: Item, x: real, y: real): bool {
-        const half = Math.max(panel.width / 2, width * 0.3);
-        const centre = bar.implicitWidth + panel.x + panel.width / 2;
-        return inTopPanel(panel, x, y) || (y <= CortetsuOverlayConfig.border.thickness + 2
-            && x >= centre - half && x <= centre + half);
-    }
-
     function inBottomPanel(panel: Item, x: real, y: real, isCorner = false): bool {
         const panelHeight = panel.height * (1 - (panel.offsetScale ?? 0)); // qmllint disable missing-property
         return HoverEdges.containsBottom(y, height, CortetsuOverlayConfig.border.minThickness, CortetsuOverlayConfig.border.thickness, panelHeight, isCorner ? CortetsuOverlayConfig.border.rounding : 0) && withinPanelWidth(panel, x, y);
@@ -102,8 +91,6 @@ CustomMouseArea {
     function previewTriggerContains(surface: string, x: real, y: real): bool {
         if (surface === "launcher")
             return inBottomPanel(panels.launcher, x, y);
-        if (surface === "dashboard")
-            return inTopTrigger(panels.dashboard, x, y);
         if (surface === "session")
             return inRightPanel(panels.sessionWrapper, x, y);
         return false;
@@ -141,11 +128,6 @@ CustomMouseArea {
                 screenState.osd = false;
                 root.panels.osd.hovered = false;
             }
-
-            // A hover-opened dashboard maps its own layer under the pointer,
-            // which is what makes this window lose it; DashboardHost closes it.
-            if (!dashboardShortcutActive && screenState.dashboardOpenedBy !== "hover")
-                screenState.dashboard = false;
 
             if (!utilitiesShortcutActive)
                 screenState.utilities = false;
@@ -266,27 +248,6 @@ CustomMouseArea {
                 SurfacePolicy.closePreview(screenState, "launcher");
         }
 
-        // Show dashboard on hover
-        const showDashboard = CortetsuOverlayConfig.dashboard.showOnHover && inTopTrigger(panels.dashboard, x, y);
-
-        // Always update visibility based on hover if not in shortcut mode
-        if (!dashboardShortcutActive) {
-            if (showDashboard && !screenState.dashboard)
-                screenState.dashboardOpenedBy = "hover";
-            screenState.dashboard = showDashboard;
-        } else if (showDashboard) {
-            // If hovering over dashboard area while in shortcut mode, transition to hover control
-            dashboardShortcutActive = false;
-        }
-
-        // Show/hide dashboard on drag (for touchscreen devices)
-        if (pressed && inTopPanel(panels.dashboard, dragStart.x, dragStart.y) && withinPanelWidth(panels.dashboard, x, y)) {
-            if (dragY > CortetsuOverlayConfig.dashboard.dragThreshold)
-                SurfacePolicy.openPreview(CortetsuShellState.allStates(), screenState, "dashboard", "drag");
-            else if (dragY < -CortetsuOverlayConfig.dashboard.dragThreshold)
-                SurfacePolicy.closePreview(screenState, "dashboard");
-        }
-
         // Show popouts on hover
         if (x < bar.implicitWidth) {
             bar.checkPopout(y);
@@ -299,19 +260,15 @@ CustomMouseArea {
     // Monitor individual visibility changes
     Connections {
         function onLauncherChanged() {
-            // If launcher is hidden, clear shortcut flags for dashboard and OSD
+            // If launcher is hidden, clear shortcut flags for OSD and utilities.
+            // The dashboard opens only by shortcut or click and owns its close.
             if (!root.screenState.launcher) {
-                root.dashboardShortcutActive = false;
                 root.osdShortcutActive = false;
                 root.utilitiesShortcutActive = false;
 
-                // Also hide dashboard and OSD if they're not being hovered
-                const inDashboardArea = root.inTopPanel(root.panels.dashboard, root.mouseX, root.mouseY);
+                // Also hide the OSD if it is not being hovered
                 const inOsdArea = root.inRightPanel(root.panels.osdWrapper, root.mouseX, root.mouseY);
 
-                if (!inDashboardArea) {
-                    root.screenState.dashboard = false;
-                }
                 if (!inOsdArea) {
                     root.screenState.osd = false;
                     root.panels.osd.hovered = false;
@@ -325,17 +282,8 @@ CustomMouseArea {
         }
 
         function onDashboardChanged() {
-            if (root.screenState.dashboard) {
-                // Dashboard became visible, immediately check if this should be shortcut mode
-                const inDashboardArea = root.inTopPanel(root.panels.dashboard, root.mouseX, root.mouseY);
-                if (!inDashboardArea) {
-                    root.dashboardShortcutActive = true;
-                }
-            } else {
-                // Dashboard hidden, clear shortcut flag
-                root.dashboardShortcutActive = false;
+            if (!root.screenState.dashboard)
                 root.screenState.dashboardOpenedBy = "";
-            }
         }
 
         function onOsdChanged() {

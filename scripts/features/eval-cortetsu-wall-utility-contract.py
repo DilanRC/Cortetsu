@@ -34,9 +34,9 @@ checks = {
     "generation transport": 'install -m 0644 "$WALL_UTILITY_CONTRACT" "$STAGING/wall-utility.json"' in build,
     "dashboard modularity contract": contract["modularity"]["dashboard"]["host"] == "modules/DashboardHost.qml"
         and contract["modularity"]["dashboard"]["content"] == "modules/dashboard/Dash.qml"
-        and "sourceComponent: weatherCard" in dashboard
-        and "sourceComponent: mediaCard" in dashboard
-        and "sourceComponent: systemSummary" in dashboard
+        and "sourceComponent: root.currentKey" in dashboard
+        and "id: mediaZone" in dashboard
+        and "id: performanceZone" in dashboard
         and "readonly property bool dashboardEnabled" in dashboard_host,
     "configuration authorities are explicit": contract["configSource"] == "dotfiles/home/.config/cortetsu/ui.toml"
         and contract["runtimePreferences"] == "XDG config file cortetsu/preferences.json",

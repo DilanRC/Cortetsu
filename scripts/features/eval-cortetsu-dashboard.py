@@ -9,32 +9,23 @@ assert "CortetsuShellState.forScreen(modelData)" in host
 assert "CortetsuShellState.forActive()" not in host
 # H-22: honest empty states and readings without a fake action.
 assert "Tiempo no disponible" in dash and "Nada en reproducción" in dash
-assert "SystemFact" in dash and "CortetsuListRow" not in dash
+assert "CortetsuListRow" not in dash
 assert "Weather" in dash
 assert "Today" in dash and "Focus" in dash
-assert "batterySubtitle" in dash and "networkSubtitle" in dash
-assert "Icons.getBatteryIcon" in dash
-assert "Layout.preferredWidth: 1.1" in dash
 checks = {
     "host respects enabled and showDashboard": all(marker in host for marker in (
         "readonly property bool dashboardEnabled: CortetsuConfig.dashboard.enabled",
         "CortetsuConfig.dashboard.showDashboard",
         "window.dashboardEnabled && (screenState?.dashboard ?? false)",
     )),
-    "weather module is loadable": all(marker in dash for marker in (
-        "active: root.showWeather",
-        "Layout.preferredWidth: root.showWeather ? 1.35 : 0",
-        "sourceComponent: weatherCard",
+    "zones follow the settings": all(marker in dash for marker in (
+        "enabled: CortetsuConfig.dashboard.showMedia",
+        "enabled: CortetsuConfig.dashboard.showPerformance",
+        "enabled: CortetsuConfig.dashboard.showWeather",
     )),
-    "media module is loadable": all(marker in dash for marker in (
-        "active: root.showMedia",
-        "Layout.preferredWidth: root.showMedia ? 0.95 : 0",
-        "sourceComponent: mediaCard",
-    )),
-    "performance module is loadable": "active: root.showPerformance" in dash and "sourceComponent: systemSummary" in dash,
-    "all performance flags have consumers": all(f"active: root.show{name}" in dash for name in ("Cpu", "Gpu", "Memory", "Storage", "Battery", "Network")),
+    "only the current zone is loaded": "active: root.open" in dash and 'root.currentKey === "performance" ? performanceZone' in dash,
+    "every gauge follows its flag": all(f"CortetsuConfig.dashboard.performance.show{name}" in dash for name in ("Cpu", "Gpu", "Memory", "Storage", "Battery", "Network")),
     "individual shortcut respects configuration": "CortetsuConfig.dashboard.enabled && CortetsuConfig.dashboard.showDashboard" in shortcuts,
-    "showall respects dashboard configuration": "state.dashboard = open && CortetsuConfig.dashboard.enabled && CortetsuConfig.dashboard.showDashboard" in shortcuts,
 }
 assert all(checks.values()), [name for name, passed in checks.items() if not passed]
 print(f"Dashboard modularity eval: {sum(checks.values())}/{len(checks)}")

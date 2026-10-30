@@ -48,7 +48,7 @@ ShellRoot {
         property date dashboardDate: new Date(2026, 9, 28, 12, 0)
     }
 
-    property real openedAt: 0
+    property rect frame
     TestEvent { id: events }
 
     Window {
@@ -64,18 +64,16 @@ ShellRoot {
 
     readonly property var steps: [
         () => window.active,
-        // Hover open: the pointer is at the top edge, outside the panel.
-        () => { state.dashboardOpenedBy = "hover"; state.dashboard = true; root.openedAt = Date.now(); move(800, 2); return true; },
-        // A panel that slides in under a still pointer crosses it: entering
-        // and leaving while it settles is not the user leaving.
-        () => { const p = onPanel(); move(p.x, p.y); move(800, 2); return true; },
-        () => { verify(state.dashboard, "a crossing while the panel settles keeps a hover open");
-                return Date.now() - root.openedAt > 600; },
-        () => { verify(state.dashboard, "a hover open stays while the pointer travels to the panel");
-                const p = onPanel(); move(p.x, p.y); return true; },
-        () => { verify(layer.pointerOnPanel, "the pointer is on the panel");
-                move(4, 990); return true; },
-        () => { verify(!state.dashboard, "leaving the panel after reaching it closes a hover open"); return true; },
+        // Zones: arrows and number keys move between them; the frame keeps
+        // its place and size.
+        () => { state.dashboardOpenedBy = ""; state.dashboard = true; root.frame = Qt.rect(layer.panel.x, layer.panel.y, layer.panel.width, layer.panel.height); return true; },
+        () => layer.panel.activeFocus || layer.activeFocus,
+        () => { events.keyClick(Qt.Key_Right, Qt.NoModifier, -1); return true; },
+        () => { verify(state.dashboardTab === 1, `Right moves to the next zone: ${state.dashboardTab}`); events.keyClick(Qt.Key_4, Qt.NoModifier, -1); return true; },
+        () => { verify(state.dashboardTab === 3, `4 jumps to the fourth zone: ${state.dashboardTab}`); events.keyClick(Qt.Key_Right, Qt.NoModifier, -1); return true; },
+        () => { verify(state.dashboardTab === 0, `Right wraps to the first zone: ${state.dashboardTab}`);
+                verify(layer.panel.x === root.frame.x && layer.panel.width === root.frame.width && layer.panel.height === root.frame.height, "every zone fills the same frame");
+                state.dashboard = false; return true; },
         // Shortcut open.
         () => { state.dashboardOpenedBy = ""; state.dashboard = true; const p = onPanel(); move(p.x, p.y); return true; },
         () => { move(4, 990); return true; },
@@ -99,7 +97,8 @@ ShellRoot {
                 for (const kid of item.children ?? []) walk(kid);
             })(layer.panel);
             verify(shown.includes("Tiempo no disponible"), "no weather reading says so");
-            verify(shown.includes("Nada en reproducción"), "no player says so");
+            // The session bus is real: with music playing the card shows its controls.
+            verify(shown.includes("Nada en reproducción") || shown.includes("skip_next"), `the player card says there is no player or shows controls: ${JSON.stringify(shown)}`);
             const filler = shown.filter(text => /^--$|Your desktop|Ambient|shell is ready|NOW|Live context|Desktop context/.test(text));
             verify(filler.length === 0, `no filler or placeholder data: ${filler}`);
             if (root.renderDir) layer.grabToImage(r => { r.saveToFile(`${root.renderDir}/dashboard-narrow.png`); root.grabbed = true; });
@@ -157,7 +156,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-dashboard-") as temporary:
     result = subprocess.run(["quickshell", "-p", str(folder / "shell.qml")], env=env,
                             capture_output=True, text=True, timeout=90)
     output = result.stdout + result.stderr
-    assert "DASH_RUNTIME_PASS 16" in output, output
+    assert "DASH_RUNTIME_PASS 12" in output, output
     for marker in ("DASH_FAIL", "TypeError", "ReferenceError", "Binding loop", "is not a type"):
         assert marker not in output, output
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""The top edge opens the dashboard across its middle; the right edge the
-notification drawer, which closes again once the pointer leaves it.
+"""The top edge opens nothing (the dashboard is SUPER+K or a click); the right
+edge opens the notification drawer, which closes once the pointer leaves it.
 
 Runs with and without a window on the workspace, since a window removes the
 drag padding and leaves the input frame one pixel thick.
@@ -30,8 +30,8 @@ def main() -> int:
                 w, h = round(m["width"] / m["scale"]), round(m["height"] / m["scale"])
                 # (point, surface, should it be open). The OSD fades on its own
                 # timer, so each case only asserts the surface it targets.
-                cases = {"top-centre": ((w // 2, 0), "dashboard", True),
-                         "top-quarter": ((w // 4, 0), "dashboard", True),
+                cases = {"top-centre": ((w // 2, 0), "dashboard", False),
+                         "top-quarter": ((w // 4, 0), "dashboard", False),
                          "top-corner": ((40, 0), "dashboard", False),
                          "right-middle": ((w - 1, h // 2), "sidebar", True),
                          "left-again": ((w // 2, h // 2), "sidebar", False)}

@@ -166,8 +166,9 @@ StyledWindow {
             return false;
         if ((s.sidebar && conf.sidebar.enabled) || (s.utilities && conf.utilities.enabled))
             return true;
-        if (!conf.dashboard.showOnHover && s.dashboard && conf.dashboard.enabled)
-            return true;
+        // The dashboard is its own full-screen layer (DashboardHost) that
+        // closes on Escape and on a click outside: a drawer grab would not
+        // include it and would close it the moment it opened.
         if (panels.popouts.currentName.startsWith("traymenu") && (panels.popouts.current as StackView)?.depth > 1)
             return true;
         return false;

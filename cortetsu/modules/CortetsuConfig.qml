@@ -201,7 +201,7 @@ QtObject {
     readonly property QtObject dashboard: QtObject {
         property bool enabled: true
         onEnabledChanged: if (root.loaded) root.save()
-        property bool showOnHover: true
+        property bool showOnHover: false
         onShowOnHoverChanged: if (root.loaded) root.save()
         property bool showDashboard: true
         onShowDashboardChanged: if (root.loaded) root.save()

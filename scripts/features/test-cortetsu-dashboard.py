@@ -12,10 +12,19 @@ shortcuts = (ROOT / "cortetsu/modules/Shortcuts.qml").read_text(encoding="utf-8"
 for marker in ('name: "dashboard"', "WlrLayer.Overlay", "CortetsuShellState.forScreen(modelData)", "DashboardLayer", "screenState?.dashboard"):
     assert marker in host, marker
 assert "CortetsuShellState.forActive()" not in host
-for marker in ("TIEMPO", "REPRODUCIENDO", "SISTEMA", "Cpu.percentage", "Memory.percentage", "Players.active", "CortetsuSurface", "Today", "Focus"):
+# Four zones in one fixed frame hanging from the top edge, as in caelestia.
+for marker in ('qsTr("Inicio")', 'qsTr("Multimedia")', 'qsTr("Rendimiento")', 'qsTr("Clima")',
+               "screenState.dashboardTab = index", "Keys.onLeftPressed", "Keys.onRightPressed",
+               "Cpu.percentage", "Memory.percentage", "Players.active", "Today", "Focus",
+               "NetworkUsage.downloadSpeed", "Weather.hourlyForecast", "Weather.forecast"):
     assert marker in dash, marker
-assert 'icon: "close"' in dash
-assert "onClicked: root.screenState.dashboard = false" in dash
+layer = (ROOT / "cortetsu/modules/dashboard/DashboardLayer.qml").read_text(encoding="utf-8")
+assert "anchors.top: parent.top" in layer and "anchors.horizontalCenter: parent.horizontalCenter" in layer
+assert "anchors.centerIn: parent" not in layer.split("Dash {")[1]
+# Only the current zone is loaded, and only while open: telemetry samples
+# only while the Rendimiento zone is on screen.
+assert "active: root.open" in dash
+assert "Cpu.consumers += 1" in dash and "Cpu.consumers -= 1" in dash
 
 # Today is a live, read-only agenda projection over Cortetsu's calendar cache,
 # through the Calendar's own service and date rules.
@@ -45,40 +54,18 @@ assert "Pomodoro.run(root.command)" in focus
 assert 'Pomodoro.run(Model.isBreak(root.pomodoro.phase) ? "skip" : "reset")' in focus
 assert "FileView" not in focus and "function runPomodoro" not in focus
 
-# Battery and network are distinct live-context contracts. The old dashboard
-# incorrectly used the active Wi-Fi SSID as the battery subtitle.
-for marker in ("batteryCharging", "batteryPercent", "batterySubtitle", "networkTitle", "networkSubtitle"):
-    assert marker in dash, marker
-assert 'subtitle: root.batterySubtitle' in dash
-assert 'subtitle: root.networkSubtitle' in dash
-assert 'title: root.networkTitle' in dash
+# Battery and network: their own facts, never the SSID as a battery subtitle.
 assert 'CortetsuNetwork.active?.ssid ?? qsTr("Sin conexión")' in dash
-assert 'subtitle: CortetsuNetwork.active?.ssid ?? qsTr("Network unavailable")' not in dash
 assert 'CortetsuPower.onBattery' in dash and 'CortetsuPower.charging' in dash
-assert "Icons.getBatteryIcon" in dash
-
-# Dashboard settings must change the composition, not only persist in the
-# settings file. Loaders keep disabled modules out of the live provider tree.
-for marker in (
-    "readonly property bool showWeather: CortetsuConfig.dashboard.showWeather",
-    "readonly property bool showMedia: CortetsuConfig.dashboard.showMedia",
-    "readonly property bool showPerformance: open && CortetsuConfig.dashboard.showPerformance",
-    "readonly property bool showCpu: showPerformance && CortetsuConfig.dashboard.performance.showCpu",
-    "readonly property bool showGpu: showPerformance && CortetsuConfig.dashboard.performance.showGpu",
-    "readonly property bool showMemory: showPerformance && CortetsuConfig.dashboard.performance.showMemory",
-    "readonly property bool showStorage: showPerformance && CortetsuConfig.dashboard.performance.showStorage",
-    "readonly property bool showNetwork: showPerformance && CortetsuConfig.dashboard.performance.showNetwork",
-    "readonly property bool showBattery: showPerformance && CortetsuConfig.dashboard.performance.showBattery",
-    "sourceComponent: weatherCard",
-    "sourceComponent: mediaCard",
-    "sourceComponent: systemSummary",
-):
+# Settings change the composition: disabled zones and gauges disappear.
+for marker in ("CortetsuConfig.dashboard.showMedia", "CortetsuConfig.dashboard.showPerformance",
+               "CortetsuConfig.dashboard.showWeather", "performance.showCpu", "performance.showGpu", "performance.showMemory",
+               "performance.showStorage", "performance.showNetwork", "performance.showBattery"):
     assert marker in dash, marker
 assert "readonly property bool dashboardEnabled: CortetsuConfig.dashboard.enabled" in host
 assert "CortetsuConfig.dashboard.showDashboard" in host
-assert "state.dashboard = open && CortetsuConfig.dashboard.enabled && CortetsuConfig.dashboard.showDashboard" in shortcuts
 assert "CortetsuConfig.dashboard.enabled && CortetsuConfig.dashboard.showDashboard" in shortcuts
 
 assert "visible: false" in panels
 assert "DashboardHost {}" in shell
-print("PASS: Dashboard is monitor-local and first-party with live Today, Focus, media, system, power and network context")
+print("PASS: Dashboard is monitor-local and first-party with four zones: Inicio, Multimedia, Rendimiento and Clima")

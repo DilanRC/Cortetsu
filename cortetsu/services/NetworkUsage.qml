@@ -45,9 +45,13 @@ Singleton {
             upload += Number(fields[9]) || 0;
         }
         const now = Date.now();
-        const elapsed = root.previousTimestamp > 0 ? Math.max(0.1, (now - root.previousTimestamp) / 1000) : 1;
-        root.downloadSpeed = Math.max(0, (download - root.previousDownload) / elapsed);
-        root.uploadSpeed = Math.max(0, (upload - root.previousUpload) / elapsed);
+        // The first sample, and the first after sampling was paused, only
+        // sets the baseline: a rate needs two readings close together, or the
+        // whole counter since boot shows up as one second of traffic.
+        const elapsed = (now - root.previousTimestamp) / 1000;
+        const baseline = root.previousTimestamp <= 0 || elapsed > 10;
+        root.downloadSpeed = baseline ? 0 : Math.max(0, (download - root.previousDownload) / Math.max(0.1, elapsed));
+        root.uploadSpeed = baseline ? 0 : Math.max(0, (upload - root.previousUpload) / Math.max(0.1, elapsed));
         root.downloadTotal = download;
         root.uploadTotal = upload;
         root.previousDownload = download;
