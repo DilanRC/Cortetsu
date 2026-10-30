@@ -21,8 +21,17 @@ FocusScope {
     }
 
     onOpenChanged: {
-        if (root.open)
+        if (root.open) {
             root.forceActiveFocus();
+            settle.restart();
+        }
+    }
+
+    // While the panel appears, it can pass under a still pointer (a
+    // compositor slide, a reflow): that crossing is not the user leaving.
+    Timer {
+        id: settle
+        interval: 450
     }
 
     Keys.onEscapePressed: event => {
@@ -53,6 +62,11 @@ FocusScope {
         visible: root.open
         screenState: root.screenState
         facePicker: root.facePicker
+        transformOrigin: Item.Top
+        opacity: root.open ? 1 : 0
+        scale: root.open ? 1 : 0.96
+        Behavior on opacity { NumberAnimation { duration: CortetsuDesign.motionStandardMs; easing.type: Easing.OutCubic } }
+        Behavior on scale { NumberAnimation { duration: CortetsuDesign.motionStandardMs * 1.4; easing.type: Easing.OutQuint } }
 
         // Empty parts of the panel keep their clicks.
         MouseArea {
@@ -65,7 +79,7 @@ FocusScope {
         // began, so the trip from the top edge to the panel keeps it open.
         HoverHandler {
             id: panelHover
-            onHoveredChanged: if (!hovered && root.screenState?.dashboardOpenedBy === "hover") root.close()
+            onHoveredChanged: if (!hovered && !settle.running && root.screenState?.dashboardOpenedBy === "hover") root.close()
         }
     }
 }

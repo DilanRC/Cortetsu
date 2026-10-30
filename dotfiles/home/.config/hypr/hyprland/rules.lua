@@ -228,5 +228,8 @@ hl.layer_rule({ match = { namespace = "wayfreeze" }, animation = "fade" })      
 hl.layer_rule({ match = { namespace = "launcher" }, animation = "popin 80%", blur = true }) -- Fuzzel
 
 -- Shell
-hl.layer_rule({ match = { namespace = "cortetsu-(border-exclusion|area-picker)" }, no_anim = true })
+-- Surfaces that animate themselves in QML (the launcher pops in place,
+-- dialogs and retained apps scale from the centre). The global slide of
+-- layersIn would otherwise move them in from an edge on top of that.
+hl.layer_rule({ match = { namespace = "cortetsu-(border-exclusion|area-picker|launcher|dashboard|session|polkit|secret-prompt|share-picker|retained-surfaces)" }, no_anim = true })
 hl.layer_rule({ match = { namespace = "cortetsu-(drawers|background)" }, animation = "fade" })

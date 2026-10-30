@@ -48,6 +48,7 @@ ShellRoot {
         property date dashboardDate: new Date(2026, 9, 28, 12, 0)
     }
 
+    property real openedAt: 0
     TestEvent { id: events }
 
     Window {
@@ -64,7 +65,12 @@ ShellRoot {
     readonly property var steps: [
         () => window.active,
         // Hover open: the pointer is at the top edge, outside the panel.
-        () => { state.dashboardOpenedBy = "hover"; state.dashboard = true; move(800, 2); return true; },
+        () => { state.dashboardOpenedBy = "hover"; state.dashboard = true; root.openedAt = Date.now(); move(800, 2); return true; },
+        // A panel that slides in under a still pointer crosses it: entering
+        // and leaving while it settles is not the user leaving.
+        () => { const p = onPanel(); move(p.x, p.y); move(800, 2); return true; },
+        () => { verify(state.dashboard, "a crossing while the panel settles keeps a hover open");
+                return Date.now() - root.openedAt > 600; },
         () => { verify(state.dashboard, "a hover open stays while the pointer travels to the panel");
                 const p = onPanel(); move(p.x, p.y); return true; },
         () => { verify(layer.pointerOnPanel, "the pointer is on the panel");
@@ -151,7 +157,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-dashboard-") as temporary:
     result = subprocess.run(["quickshell", "-p", str(folder / "shell.qml")], env=env,
                             capture_output=True, text=True, timeout=90)
     output = result.stdout + result.stderr
-    assert "DASH_RUNTIME_PASS 11" in output, output
+    assert "DASH_RUNTIME_PASS 16" in output, output
     for marker in ("DASH_FAIL", "TypeError", "ReferenceError", "Binding loop", "is not a type"):
         assert marker not in output, output
 
