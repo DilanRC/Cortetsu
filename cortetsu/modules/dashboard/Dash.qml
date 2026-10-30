@@ -226,7 +226,9 @@ FocusScope {
                 }
                 DashLyricLines {
                     Layout.fillWidth: true
-                    visible: CortetsuConfig.dashboard.showMedia && Lyrics.synced && Lyrics.index >= 0
+                    // Shown for the whole song, before the first line too (it then
+                    // previews what is coming), so the hour never jumps.
+                    visible: CortetsuConfig.dashboard.showMedia && Lyrics.synced && Lyrics.lines.length > 0
                 }
                 Item { Layout.fillHeight: true }
             }

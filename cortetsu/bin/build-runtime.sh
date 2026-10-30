@@ -78,6 +78,9 @@ mkdir -p "$STAGING/data"
 cp -a "$REPO/cortetsu/data/." "$STAGING/data/"
 mkdir -p "$STAGING/assets/branding"
 cp -a "$REPO/cortetsu/assets/branding/." "$STAGING/assets/branding/"
+# The paper grain of the ink surfaces (CortetsuGrain).
+mkdir -p "$STAGING/assets/texture"
+cp -a "$REPO/cortetsu/assets/texture/." "$STAGING/assets/texture/"
 # Cortetsu JS imports retain their source-tree ../base path after the base
 # modules are flattened into the runtime root. Keep that referenced helper at
 # its source-relative runtime path as well.
