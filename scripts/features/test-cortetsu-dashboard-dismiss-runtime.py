@@ -161,4 +161,3 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-dashboard-") as temporary:
         assert marker not in output, output
 
 print("PASS: the dashboard switches zones by keyboard in one fixed frame, closes on a click outside and on Escape, and stays for a click inside")
-      "and stays for a shortcut open and a click inside")
