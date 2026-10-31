@@ -7,6 +7,7 @@ STAGING="${1:?usage: build-regressions.sh STAGED_RUNTIME}"
 python3 "$REPO/scripts/verification/test-native-source.py"
 python3 "$REPO/cortetsu/tests/test-startup-inventory.py"
 python3 "$REPO/scripts/verification/test-staged-assets.py" "$STAGING"
+python3 "$REPO/scripts/features/test-cortetsu-ink-material.py"
 for suite in hardware hypr surfaces calendar pomodoro policy polkit prompt; do
     QT_QPA_PLATFORM=offscreen /usr/lib/qt6/bin/qmltestrunner -input "$REPO/cortetsu/tests/qml/$suite"
 done

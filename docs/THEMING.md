@@ -77,6 +77,17 @@ Cortetsu-owned QML imports the `theme` directory and reads `CortetsuDesign.<toke
 - spacing rhythm
 - hover scale
 - instant / fast / standard / deliberate motion durations
+- the ink material (`[material]`): ground opacity, wash strength, grain and hairline, for full surfaces and for popouts
+
+### The ink material
+
+Every surface sits on one material, drawn in one place: `CortetsuInkPanel`. The dashboard and the session use it directly; Quick Settings, the launcher and every bar popout reach it through `CortetsuPopupSurface`. Its strengths are the `material.*` tokens and its colours are the scheme roles (sumi ground, primary wash, washi hairline), so:
+
+- a new scheme or wallpaper palette repaints every surface live;
+- editing `[material]` in `ui.toml` and running `cortetsu theme compile` changes every surface in the next generation;
+- changing how the material looks (a different texture, no wash, a flat ground) is an edit to `CortetsuInkPanel` alone.
+
+`scripts/features/test-cortetsu-ink-material.py` (part of the install gate) fails if a surface paints its own wash, hard-codes a grain strength or stops using the shared pieces.
 
 Upstream `Colours` and `Tokens` may still appear in unported Caelestia components. New Cortetsu components should prefer the Cortetsu contract, and existing owned components should migrate progressively until the upstream visual adapter reaches zero.
 

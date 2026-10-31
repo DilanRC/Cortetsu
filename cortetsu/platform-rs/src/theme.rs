@@ -171,7 +171,7 @@ fn template(t: &str, v: &Value) -> Result<String> {
 fn outputs(repo: &Path, v: &Value) -> Result<Vec<(PathBuf, String)>> {
     let defaults = template(
         include_str!("../templates/design.js.template"),
-        &json!({"p":v["palette"],"s":v["palette"]["semantic"],"shape":v["shape"],"spacing":v["spacing"],"density":v["density"],"motion":v["motion"],"wall_utility":wall(v)?}),
+        &json!({"p":v["palette"],"s":v["palette"]["semantic"],"shape":v["shape"],"spacing":v["spacing"],"density":v["density"],"material":v["material"],"motion":v["motion"],"wall_utility":wall(v)?}),
     )?;
     let meta = metadata();
     let mut singleton = include_str!("../templates/design-singleton.template").to_owned();

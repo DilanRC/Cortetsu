@@ -47,6 +47,8 @@ Item {
     }
 
     // A margin note, no card: the kanji for day, the label, the events.
+    // Clipped, so nothing can ever spill over the note below.
+    clip: true
     ColumnLayout {
         anchors.fill: parent
         spacing: CortetsuDesign.spacingCompact
@@ -84,14 +86,42 @@ Item {
             Repeater {
                 model: root.todayEvents.slice(0, 2)
 
-                delegate: CortetsuListRow {
+                // One line per event, like a margin note: the time, then
+                // the title. A list row is 52 px tall and two of them spilled
+                // over the note below.
+                delegate: Item {
+                    id: event
                     required property var modelData
                     Layout.fillWidth: true
-                    icon: modelData.allDay ? "event" : "schedule"
-                    title: modelData.title || qsTr("Evento sin título")
-                    subtitle: root.eventTime(modelData)
-                    selected: false
-                    onClicked: root.openCalendar()
+                    Layout.preferredHeight: eventLine.implicitHeight + 6
+
+                    RowLayout {
+                        id: eventLine
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.verticalCenter: parent.verticalCenter
+                        spacing: CortetsuDesign.spacingCompact
+
+                        CortetsuText {
+                            Layout.preferredWidth: 76
+                            text: root.eventTime(event.modelData)
+                            textSize: CortetsuTypography.labelSmallPx
+                            color: CortetsuDesign.colorIndicator
+                            font.features: { "tnum": 1 }
+                        }
+                        CortetsuText {
+                            Layout.fillWidth: true
+                            text: event.modelData.title || qsTr("Evento sin título")
+                            textSize: CortetsuTypography.bodySmallPx
+                            elide: Text.ElideRight
+                        }
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: root.openCalendar()
+                    }
                 }
             }
 

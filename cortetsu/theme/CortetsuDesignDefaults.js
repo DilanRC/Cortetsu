@@ -47,6 +47,13 @@ var spacingSection = 32
 // shared clearance used by transient cards that must sit above the lower bar.
 var bottomHubHeight = 66
 
+var materialGroundAlpha = 0.95
+var materialWashAlpha = 0.34
+var materialPopupWashAlpha = 0.22
+var materialGrain = 0.11
+var materialPopupGrain = 0.09
+var materialHairlineAlpha = 0.07
+
 var overlayOpacity = 0.94
 var scrimOpacity = 0.22
 var outlineWidth = 1

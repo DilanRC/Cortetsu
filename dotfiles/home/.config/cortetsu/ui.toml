@@ -50,6 +50,18 @@ outline_width = 1
 overlay_opacity = 0.94
 scrim_opacity = 0.22
 
+# The ink material every Cortetsu surface sits on (CortetsuInkPanel): a sumi
+# ground, a wash of the scheme's primary colour bleeding from one corner,
+# paper grain and a hairline edge. Change it here and every surface follows.
+[material]
+ground_alpha = 0.95
+wash_alpha = 0.34
+# Popouts are small and dense; a lighter wash keeps their rows legible.
+popup_wash_alpha = 0.22
+grain = 0.11
+popup_grain = 0.09
+hairline_alpha = 0.07
+
 [motion]
 instant_ms = 80
 fast_ms = 120

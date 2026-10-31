@@ -40,6 +40,6 @@ Item {
             sourceSize.width: 600
             sourceSize.height: 600
         }
-        CortetsuGrain { anchors.fill: parent; radius: CortetsuDesign.radiusSmall; strength: 0.1 }
+        CortetsuGrain { anchors.fill: parent; radius: CortetsuDesign.radiusSmall; strength: CortetsuDesign.materialGrain }
     }
 }

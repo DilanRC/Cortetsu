@@ -99,6 +99,12 @@ QtObject {
     readonly property real spacingSpacious: Defaults.spacingSpacious
     readonly property real spacingSection: Defaults.spacingSection
     readonly property real bottomHubHeight: Defaults.bottomHubHeight
+    readonly property real materialGroundAlpha: Defaults.materialGroundAlpha
+    readonly property real materialWashAlpha: Defaults.materialWashAlpha
+    readonly property real materialPopupWashAlpha: Defaults.materialPopupWashAlpha
+    readonly property real materialGrain: Defaults.materialGrain
+    readonly property real materialPopupGrain: Defaults.materialPopupGrain
+    readonly property real materialHairlineAlpha: Defaults.materialHairlineAlpha
     readonly property real overlayOpacity: Defaults.overlayOpacity
     readonly property real scrimOpacity: Defaults.scrimOpacity
     readonly property real outlineWidth: Defaults.outlineWidth

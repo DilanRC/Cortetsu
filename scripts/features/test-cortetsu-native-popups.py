@@ -91,7 +91,7 @@ assert content_window.count("panels.popouts.close();") >= 3
 panels = (ROOT / "cortetsu/modules/drawers/Panels.qml").read_text(encoding="utf-8")
 assert "CortetsuWindowInfoPopup" in panels
 popup_surface = (ROOT / "cortetsu/components/CortetsuPopupSurface.qml").read_text(encoding="utf-8")
-assert "colorSumi" in popup_surface and "CortetsuGrain" in popup_surface
+assert "CortetsuInkPanel" in popup_surface
 assert "radiusLarge" in popup_surface
 window_info = (popouts / "CortetsuWindowInfoPopup.qml").read_text(encoding="utf-8")
 assert "CortetsuSurface" in window_info and "CortetsuButton" in window_info
