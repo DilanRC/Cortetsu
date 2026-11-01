@@ -96,7 +96,7 @@ Item {
                 anchors.centerIn: parent
                 visible: !root.selected
                 text: root.seal
-                font.family: CortetsuTypography.kanjiFamily
+                font.family: CortetsuDesign.fontKanji
                 font.pixelSize: CortetsuTypography.iconMediumPx
                 color: root.danger ? CortetsuDesign.colorVermillion : CortetsuDesign.colorIndicator
             }

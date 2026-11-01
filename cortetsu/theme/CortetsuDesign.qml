@@ -99,6 +99,9 @@ QtObject {
     readonly property real spacingSpacious: Defaults.spacingSpacious
     readonly property real spacingSection: Defaults.spacingSection
     readonly property real bottomHubHeight: Defaults.bottomHubHeight
+    readonly property string fontUi: Defaults.fontUi
+    readonly property string fontInk: Defaults.fontInk
+    readonly property string fontKanji: Defaults.fontKanji
     readonly property real materialGroundAlpha: Defaults.materialGroundAlpha
     readonly property real materialWashAlpha: Defaults.materialWashAlpha
     readonly property real materialPopupWashAlpha: Defaults.materialPopupWashAlpha

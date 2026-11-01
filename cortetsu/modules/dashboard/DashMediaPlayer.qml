@@ -44,7 +44,7 @@ Item {
             Layout.alignment: player.compact ? Qt.AlignLeft : Qt.AlignHCenter
             visible: !player.compact
             text: "静"
-            font.family: CortetsuTypography.kanjiFamily
+            font.family: CortetsuDesign.fontKanji
             font.pixelSize: CortetsuTypography.inkHeroPx
             color: CortetsuDesign.colorWashi
             opacity: 0.08

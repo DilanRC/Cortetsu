@@ -11,7 +11,7 @@ import "../CortetsuTypography.js" as CortetsuTypography
 // WPA-Enterprise logins and Bluetooth pairing codes. `prompt` is the request
 // line; `waiting` is true between an answer and the client's next prompt or
 // its close. A "display" request only shows a code until it is closed.
-CortetsuSurface {
+CortetsuPopupSurface {
     id: root
     required property var prompt
     property bool waiting: false
@@ -34,9 +34,6 @@ CortetsuSurface {
     implicitWidth: 460
     implicitHeight: body.implicitHeight + CortetsuDesign.spacingComfortable * 2
     radiusValue: CortetsuDesign.radiusSurface
-    baseColor: Qt.alpha(CortetsuDesign.colorSurface, 0.98)
-    outlined: true
-    outlineColor: Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.72)
 
     // gcr labels may carry GTK mnemonics ("_Unlock"); "__" is a literal "_".
     function label(text: string, fallback: string): string {
@@ -157,7 +154,7 @@ CortetsuSurface {
 
         TextField {
 
-            font.family: CortetsuTypography.uiFamily
+            font.family: CortetsuDesign.fontUi
             id: identityField
             objectName: "identity"
             Layout.fillWidth: true
@@ -185,7 +182,7 @@ CortetsuSurface {
 
         TextField {
 
-            font.family: CortetsuTypography.uiFamily
+            font.family: CortetsuDesign.fontUi
             id: password
             objectName: "password"
             Layout.fillWidth: true
@@ -214,7 +211,7 @@ CortetsuSurface {
 
         TextField {
 
-            font.family: CortetsuTypography.uiFamily
+            font.family: CortetsuDesign.fontUi
             id: confirmField
             objectName: "confirm"
             Layout.fillWidth: true

@@ -25,7 +25,7 @@ Rectangle {
             Layout.alignment: Qt.AlignHCenter
             text: Time.hourStr + ":" + Time.minuteStr
             color: root.colour
-            font.family: CortetsuTypography.uiFamily
+            font.family: CortetsuDesign.fontUi
             font.pixelSize: CortetsuTypography.labelLargePx
             font.weight: Font.DemiBold
         }
@@ -34,7 +34,7 @@ Rectangle {
             Layout.alignment: Qt.AlignHCenter
             text: Time.format("ddd d")
             color: CortetsuDesign.colorOnSurfaceVariant
-            font.family: CortetsuTypography.uiFamily
+            font.family: CortetsuDesign.fontUi
             font.pixelSize: CortetsuTypography.labelSmallPx
         }
     }

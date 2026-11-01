@@ -47,26 +47,26 @@ QtObject {
 
     readonly property QtObject font: QtObject {
         readonly property QtObject body: QtObject {
-            readonly property font small: Qt.font({ family: CortetsuTypography.uiFamily, pixelSize: CortetsuTypography.bodySmallPx })
-            readonly property font medium: Qt.font({ family: CortetsuTypography.uiFamily, pixelSize: CortetsuTypography.bodyPx })
-            readonly property font large: Qt.font({ family: CortetsuTypography.uiFamily, pixelSize: CortetsuTypography.bodyLargePx })
-            readonly property var builders: CortetsuTokens.builders(CortetsuTypography.uiFamily, CortetsuTypography.bodySmallPx, CortetsuTypography.bodyPx, CortetsuTypography.bodyLargePx)
+            readonly property font small: Qt.font({ family: CortetsuDesign.fontUi, pixelSize: CortetsuTypography.bodySmallPx })
+            readonly property font medium: Qt.font({ family: CortetsuDesign.fontUi, pixelSize: CortetsuTypography.bodyPx })
+            readonly property font large: Qt.font({ family: CortetsuDesign.fontUi, pixelSize: CortetsuTypography.bodyLargePx })
+            readonly property var builders: CortetsuTokens.builders(CortetsuDesign.fontUi, CortetsuTypography.bodySmallPx, CortetsuTypography.bodyPx, CortetsuTypography.bodyLargePx)
         }
         readonly property QtObject label: QtObject {
-            readonly property font small: Qt.font({ family: CortetsuTypography.uiFamily, pixelSize: CortetsuTypography.labelSmallPx })
-            readonly property font medium: Qt.font({ family: CortetsuTypography.uiFamily, pixelSize: CortetsuTypography.labelMediumPx })
-            readonly property font large: Qt.font({ family: CortetsuTypography.uiFamily, pixelSize: CortetsuTypography.labelLargePx })
-            readonly property var builders: CortetsuTokens.builders(CortetsuTypography.uiFamily, CortetsuTypography.labelSmallPx, CortetsuTypography.labelMediumPx, CortetsuTypography.labelLargePx)
+            readonly property font small: Qt.font({ family: CortetsuDesign.fontUi, pixelSize: CortetsuTypography.labelSmallPx })
+            readonly property font medium: Qt.font({ family: CortetsuDesign.fontUi, pixelSize: CortetsuTypography.labelMediumPx })
+            readonly property font large: Qt.font({ family: CortetsuDesign.fontUi, pixelSize: CortetsuTypography.labelLargePx })
+            readonly property var builders: CortetsuTokens.builders(CortetsuDesign.fontUi, CortetsuTypography.labelSmallPx, CortetsuTypography.labelMediumPx, CortetsuTypography.labelLargePx)
         }
         readonly property QtObject title: QtObject {
-            readonly property font small: Qt.font({ family: CortetsuTypography.uiFamily, pixelSize: CortetsuTypography.titleSmallPx })
-            readonly property font medium: Qt.font({ family: CortetsuTypography.uiFamily, pixelSize: CortetsuTypography.titleMediumPx })
-            readonly property font large: Qt.font({ family: CortetsuTypography.uiFamily, pixelSize: CortetsuTypography.titleLargePx })
-            readonly property var builders: CortetsuTokens.builders(CortetsuTypography.uiFamily, CortetsuTypography.titleSmallPx, CortetsuTypography.titleMediumPx, CortetsuTypography.titleLargePx)
+            readonly property font small: Qt.font({ family: CortetsuDesign.fontUi, pixelSize: CortetsuTypography.titleSmallPx })
+            readonly property font medium: Qt.font({ family: CortetsuDesign.fontUi, pixelSize: CortetsuTypography.titleMediumPx })
+            readonly property font large: Qt.font({ family: CortetsuDesign.fontUi, pixelSize: CortetsuTypography.titleLargePx })
+            readonly property var builders: CortetsuTokens.builders(CortetsuDesign.fontUi, CortetsuTypography.titleSmallPx, CortetsuTypography.titleMediumPx, CortetsuTypography.titleLargePx)
         }
         readonly property QtObject headline: QtObject {
-            readonly property font medium: Qt.font({ family: CortetsuTypography.uiFamily, pixelSize: 24 })
-            readonly property var builders: CortetsuTokens.builders(CortetsuTypography.uiFamily, 20, 24, 32)
+            readonly property font medium: Qt.font({ family: CortetsuDesign.fontUi, pixelSize: 24 })
+            readonly property var builders: CortetsuTokens.builders(CortetsuDesign.fontUi, 20, 24, 32)
         }
         readonly property QtObject mono: QtObject {
             readonly property font small: Qt.font({ family: "monospace", pixelSize: CortetsuTypography.bodySmallPx })
@@ -82,7 +82,7 @@ QtObject {
             readonly property var builders: CortetsuTokens.builders(CortetsuTypography.iconFamily, CortetsuTypography.iconSmallPx, CortetsuTypography.iconMediumPx, CortetsuTypography.iconLargePx)
             readonly property var size: function(value) { return CortetsuTokens.iconSize(CortetsuTypography.iconFamily, value); }
         }
-        readonly property font workspaces: Qt.font({ family: CortetsuTypography.uiFamily, pixelSize: CortetsuTypography.labelSmallPx })
+        readonly property font workspaces: Qt.font({ family: CortetsuDesign.fontUi, pixelSize: CortetsuTypography.labelSmallPx })
     }
 
     readonly property QtObject sizes: QtObject {

@@ -438,16 +438,13 @@ FocusScope {
         }
     }
 
-    Rectangle {
+    CortetsuInkPanel {
         id: panelSurface
         z: 1
         anchors.centerIn: parent
         width: Math.min(parent.width - 48, 1040)
         height: Math.min(parent.height - 48, 760)
         radius: CortetsuDesign.wallUtilitySurfaceRadius
-        color: Qt.alpha(CortetsuDesign.colorSurface, 0.84)
-        border.width: 1
-        border.color: Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.55)
 
         // Clicks and wheel turns inside the panel never reach the dismiss area.
         MouseArea {

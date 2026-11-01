@@ -84,13 +84,11 @@ Item {
         event.accepted = true;
     }
 
-    CortetsuSurface {
+    CortetsuPopupSurface {
         id: card
         width: Math.min(win.maxWidth - CortetsuDesign.spacingSection * 2, 760)
         height: Math.min(win.maxHeight - CortetsuDesign.spacingSection * 2, column.implicitHeight + CortetsuDesign.spacingSpacious * 2)
         radiusValue: CortetsuDesign.radiusSurface
-        baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, CortetsuDesign.overlayOpacity)
-        outlined: true
 
         // Swallow clicks so only the scrim dismisses.
         MouseArea { anchors.fill: parent }

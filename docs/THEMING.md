@@ -78,16 +78,17 @@ Cortetsu-owned QML imports the `theme` directory and reads `CortetsuDesign.<toke
 - hover scale
 - instant / fast / standard / deliberate motion durations
 - the ink material (`[material]`): ground opacity, wash strength, grain and hairline, for full surfaces and for popouts
+- the type families (`[typography]`): `ui_family` for data and controls, `ink_family` for the serif of the big moments, `kanji_family` for seals and margin marks, read as `CortetsuDesign.fontUi` / `fontInk` / `fontKanji` (sizes stay in `CortetsuTypography.js`; icons stay Material Symbols)
 
 ### The ink material
 
-Every surface sits on one material, drawn in one place: `CortetsuInkPanel`. The dashboard and the session use it directly; Quick Settings, the launcher and every bar popout reach it through `CortetsuPopupSurface`. Its strengths are the `material.*` tokens and its colours are the scheme roles (sumi ground, primary wash, washi hairline), so:
+Every surface sits on one material, drawn in one place: `CortetsuInkPanel`. The dashboard, the session, Settings, Hardware, Keyboards, Displays, Clipboard, Wallpaper, Calendar and the notification sidebar use it directly; Quick Settings, the launcher, every bar popout and the polkit, secret and screen-share dialogs reach it through `CortetsuPopupSurface`. Its strengths are the `material.*` tokens and its colours are the scheme roles (sumi ground, primary wash, washi hairline), so:
 
 - a new scheme or wallpaper palette repaints every surface live;
 - editing `[material]` in `ui.toml` and running `cortetsu theme compile` changes every surface in the next generation;
 - changing how the material looks (a different texture, no wash, a flat ground) is an edit to `CortetsuInkPanel` alone.
 
-`scripts/features/test-cortetsu-ink-material.py` (part of the install gate) fails if a surface paints its own wash, hard-codes a grain strength or stops using the shared pieces.
+`scripts/features/test-cortetsu-ink-material.py` (part of the install gate) fails if a surface paints its own wash, hard-codes a grain strength or a font family, or stops using the shared pieces.
 
 Upstream `Colours` and `Tokens` may still appear in unported Caelestia components. New Cortetsu components should prefer the Cortetsu contract, and existing owned components should migrate progressively until the upstream visual adapter reaches zero.
 

@@ -229,7 +229,7 @@ def assert_view_contract(source: dict[str, str]) -> None:
     assert 'CortetsuTypography.iconFamily' in icon
     assert 'property font fontStyle' in icon
     text = source["CortetsuText.qml"]
-    assert 'font.family: CortetsuTypography.uiFamily' in text
+    assert 'font.family: CortetsuDesign.fontUi' in text
 
 
 def load_source_contract() -> tuple[str, dict[str, str]]:

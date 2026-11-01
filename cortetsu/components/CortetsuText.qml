@@ -13,7 +13,7 @@ Text {
     renderType: Text.NativeRendering
     textFormat: Text.PlainText
     color: CortetsuDesign.colorOnSurface
-    font.family: CortetsuTypography.uiFamily
+    font.family: CortetsuDesign.fontUi
     font.pixelSize: textSize
     font.weight: Font.Normal
 

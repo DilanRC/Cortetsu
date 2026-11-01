@@ -15,7 +15,7 @@ RowLayout {
     Text {
         visible: root.mark !== ""
         text: root.mark
-        font.family: CortetsuTypography.kanjiFamily
+        font.family: CortetsuDesign.fontKanji
         font.pixelSize: CortetsuTypography.labelLargePx
         color: CortetsuDesign.colorIndicator
         opacity: 0.85

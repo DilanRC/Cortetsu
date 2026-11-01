@@ -24,7 +24,7 @@ ColumnLayout {
         Text {
             text: note.mark
             visible: note.mark !== ""
-            font.family: CortetsuTypography.kanjiFamily
+            font.family: CortetsuDesign.fontKanji
             font.pixelSize: CortetsuTypography.labelLargePx
             color: CortetsuDesign.colorIndicator
             opacity: 0.85

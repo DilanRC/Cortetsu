@@ -85,7 +85,7 @@ Item {
             CortetsuText {
                 Layout.fillWidth: true
                 text: qsTr("Ajustes rápidos")
-                font.family: CortetsuTypography.inkFamily
+                font.family: CortetsuDesign.fontInk
                 font.weight: Font.Light
                 textSize: CortetsuTypography.inkLinePx
             }

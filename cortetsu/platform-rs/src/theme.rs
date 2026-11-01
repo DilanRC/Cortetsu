@@ -97,6 +97,20 @@ fn load(repo: &Path) -> Result<Value> {
             return fail(format!("invalid motion.{name}: expected [x1, y1, x2, y2] with x in 0..1"));
         }
     }
+    // Family names land inside a JS string literal in the generated theme.
+    for name in ["ui_family", "ink_family", "kanji_family"] {
+        if !v["typography"][name]
+            .as_str()
+            .is_some_and(|s| {
+                !s.trim().is_empty()
+                    && !s.chars().any(|c| {
+                        c.is_control() || matches!(c, '"' | '\\' | '\u{2028}' | '\u{2029}')
+                    })
+            })
+        {
+            return fail(format!("invalid typography.{name}"));
+        }
+    }
     wall(&v)?;
     Ok(v)
 }
@@ -171,7 +185,7 @@ fn template(t: &str, v: &Value) -> Result<String> {
 fn outputs(repo: &Path, v: &Value) -> Result<Vec<(PathBuf, String)>> {
     let defaults = template(
         include_str!("../templates/design.js.template"),
-        &json!({"p":v["palette"],"s":v["palette"]["semantic"],"shape":v["shape"],"spacing":v["spacing"],"density":v["density"],"material":v["material"],"motion":v["motion"],"wall_utility":wall(v)?}),
+        &json!({"p":v["palette"],"s":v["palette"]["semantic"],"shape":v["shape"],"spacing":v["spacing"],"density":v["density"],"material":v["material"],"typography":v["typography"],"motion":v["motion"],"wall_utility":wall(v)?}),
     )?;
     let meta = metadata();
     let mut singleton = include_str!("../templates/design-singleton.template").to_owned();
@@ -185,6 +199,8 @@ fn outputs(repo: &Path, v: &Value) -> Result<Vec<(PathBuf, String)>> {
                 ("var", format!("Defaults.{name}"))
             } else if name.starts_with("motion") || name.ends_with("MotionMs") {
                 ("real", format!("reducedMotion ? 0 : Defaults.{name}"))
+            } else if name.starts_with("font") {
+                ("string", format!("Defaults.{name}"))
             } else if !name.starts_with("color") {
                 ("real", format!("Defaults.{name}"))
             } else if let Some(role) = meta["SCHEME_ROLES"][name].as_str() {

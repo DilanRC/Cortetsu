@@ -119,7 +119,7 @@ FocusScope {
                     Text {
                         anchors.baseline: tabLabel.baseline
                         text: tab.modelData.glyph
-                        font.family: CortetsuTypography.kanjiFamily
+                        font.family: CortetsuDesign.fontKanji
                         font.pixelSize: CortetsuTypography.labelLargePx
                         color: tab.selected ? CortetsuDesign.colorPrimary : CortetsuDesign.colorOnSurfaceVariant
                         opacity: tab.selected ? 1 : 0.6
@@ -379,7 +379,7 @@ FocusScope {
                 Text {
                     Layout.alignment: Qt.AlignHCenter
                     text: "空"
-                    font.family: CortetsuTypography.kanjiFamily
+                    font.family: CortetsuDesign.fontKanji
                     font.pixelSize: CortetsuTypography.inkHeroPx
                     color: CortetsuDesign.colorWashi
                     opacity: 0.08

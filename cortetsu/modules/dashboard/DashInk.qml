@@ -12,7 +12,7 @@ import "../CortetsuTypography.js" as CortetsuTypography
 
 // Serif text for the big moments of the ink language.
 CortetsuText {
-    font.family: CortetsuTypography.inkFamily
+    font.family: CortetsuDesign.fontInk
     font.weight: Font.Light
     textSize: CortetsuTypography.inkTitlePx
 }

@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Shapes
 import "../theme"
+import "../modules"
 
 // The ink material: sumi ground, a wash of the wallpaper colour bleeding
 // from one corner, paper grain and a hairline edge. It is the one place the
@@ -11,7 +12,9 @@ Item {
     id: root
     property real radius: CortetsuDesign.radiusSurface
     property color ground: CortetsuDesign.colorSumi
-    property real groundAlpha: CortetsuDesign.materialGroundAlpha
+    // "Superficies transparentes" thins the ground with the same factor as
+    // CortetsuSurface, so every ink surface lets the wallpaper through.
+    property real groundAlpha: CortetsuDesign.materialGroundAlpha * (CortetsuConfig.transparencyEnabled ? 0.78 : 1)
     property color wash: CortetsuDesign.colorPrimary
     property real washAlpha: CortetsuDesign.materialWashAlpha
     // Where the wash bleeds from, in fractions of the panel.

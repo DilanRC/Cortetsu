@@ -1,6 +1,7 @@
 .pragma library
 
-var uiFamily = "Rubik"
+// Text families are theme tokens (ui.toml [typography] ->
+// CortetsuDesign.fontUi / fontInk / fontKanji). Icons are not themed.
 var iconFamily = "Material Symbols Rounded"
 
 var labelSmallPx = 11
@@ -28,11 +29,8 @@ var iconExtraLargePx = 34
 var iconFeaturePx = 32
 var iconHeroPx = 44
 
-// Ink language: a serif for the big moments (hour, zone names, song titles,
-// the line being sung) and CJK for seals and margin marks. Data stays in
-// the UI family.
-var inkFamily = "Noto Serif"
-var kanjiFamily = "Noto Sans CJK JP"
+// Ink language sizes: the serif (CortetsuDesign.fontInk) for the big
+// moments and CJK (fontKanji) for seals and margin marks.
 var inkHeroPx = 148
 var inkDisplayPx = 64
 var inkTitlePx = 30

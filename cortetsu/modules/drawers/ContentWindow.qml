@@ -240,8 +240,8 @@ StyledWindow {
             width: panels.session.width
             deformAmount: 0.2
         }
-        PanelBg { id: sidebarBg; panel: panels.sidebar; deformAmount: 0.03 }
-        PanelBg { id: notifsBg; panel: panels.notifications }
+        PanelBg { id: sidebarBg; panel: panels.sidebar; deformAmount: 0.03; ink: true }
+        PanelBg { id: notifsBg; panel: panels.notifications; ink: true }
         PanelBg { id: utilsBg; panel: panels.utilities; deformAmount: 0.12 }
     }
 
@@ -317,10 +317,23 @@ StyledWindow {
         y: (panel?.y ?? 0) + root.borderThickness
         width: panel?.width ?? 0
         height: panel?.height ?? 0
-        // Floating cards, same material as the BottomHub islands.
+        // Panels that draw no ground of their own (the sidebar and the
+        // notification stack) sit on the ink material; the others paint
+        // their own CortetsuInkPanel and keep this flat backing card.
+        property bool ink: false
+        readonly property real shown: Math.max(0, 1 - (panel?.offsetScale ?? 1))
         radius: CortetsuDesign.radiusLarge
-        color: Qt.alpha(root.surfaceColour, 0.94 * Math.max(0, 1 - (panel?.offsetScale ?? 1)))
-        border.width: 1
-        border.color: Qt.alpha(CortetsuDesign.colorWashi, 0.08 * Math.max(0, 1 - (panel?.offsetScale ?? 1)))
+        color: ink ? "transparent" : Qt.alpha(root.surfaceColour, 0.94 * shown)
+        border.width: ink ? 0 : 1
+        border.color: Qt.alpha(CortetsuDesign.colorWashi, 0.08 * shown)
+
+        CortetsuInkPanel {
+            anchors.fill: parent
+            visible: parent.ink
+            opacity: parent.shown
+            radius: parent.radius
+            washAlpha: CortetsuDesign.materialPopupWashAlpha
+            grain: CortetsuDesign.materialPopupGrain
+        }
     }
 }

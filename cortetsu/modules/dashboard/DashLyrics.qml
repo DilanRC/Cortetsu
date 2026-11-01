@@ -29,7 +29,7 @@ Item {
         Text {
             Layout.alignment: Qt.AlignHCenter
             text: Lyrics.loading ? "詞" : "静"
-            font.family: CortetsuTypography.kanjiFamily
+            font.family: CortetsuDesign.fontKanji
             font.pixelSize: CortetsuTypography.inkDisplayPx
             color: CortetsuDesign.colorWashi
             opacity: 0.12

@@ -42,7 +42,7 @@ Item {
             Text {
                 text: Time.hourStr
                 color: root.primary
-                font.family: CortetsuTypography.uiFamily
+                font.family: CortetsuDesign.fontUi
                 font.pixelSize: CortetsuTypography.titleLargePx * 3 * root.clockScale
                 font.weight: Font.Bold
             }
@@ -50,13 +50,13 @@ Item {
                 text: ":"
                 color: root.tertiary
                 opacity: 0.8
-                font.family: CortetsuTypography.uiFamily
+                font.family: CortetsuDesign.fontUi
                 font.pixelSize: CortetsuTypography.titleLargePx * 3 * root.clockScale
             }
             Text {
                 text: Time.minuteStr
                 color: root.secondary
-                font.family: CortetsuTypography.uiFamily
+                font.family: CortetsuDesign.fontUi
                 font.pixelSize: CortetsuTypography.titleLargePx * 3 * root.clockScale
                 font.weight: Font.Bold
             }
@@ -64,7 +64,7 @@ Item {
                 visible: CortetsuRegional.useTwelveHourClock
                 text: Time.amPmStr
                 color: root.secondary
-                font.family: CortetsuTypography.uiFamily
+                font.family: CortetsuDesign.fontUi
                 font.pixelSize: CortetsuTypography.titleMediumPx * root.clockScale
                 Layout.alignment: Qt.AlignTop
             }
@@ -82,21 +82,21 @@ Item {
             Text {
                 text: Time.format("MMMM").toUpperCase()
                 color: root.secondary
-                font.family: CortetsuTypography.uiFamily
+                font.family: CortetsuDesign.fontUi
                 font.pixelSize: CortetsuTypography.titleMediumPx * root.clockScale
                 font.weight: Font.Bold
             }
             Text {
                 text: Time.format("dd")
                 color: root.primary
-                font.family: CortetsuTypography.uiFamily
+                font.family: CortetsuDesign.fontUi
                 font.pixelSize: CortetsuTypography.titleLargePx * root.clockScale
                 font.weight: Font.Medium
             }
             Text {
                 text: Time.format("dddd")
                 color: root.secondary
-                font.family: CortetsuTypography.uiFamily
+                font.family: CortetsuDesign.fontUi
                 font.pixelSize: CortetsuTypography.bodyLargePx * root.clockScale
             }
         }

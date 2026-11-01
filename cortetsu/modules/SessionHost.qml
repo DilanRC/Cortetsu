@@ -83,7 +83,7 @@ Scope {
                         Column {
                             anchors.verticalCenter: parent.verticalCenter
                             spacing: 2
-                            CortetsuText { text: qsTr("Sesión"); font.family: CortetsuTypography.inkFamily; font.weight: Font.Light; textSize: CortetsuTypography.inkTitlePx; color: CortetsuDesign.colorWashi }
+                            CortetsuText { text: qsTr("Sesión"); font.family: CortetsuDesign.fontInk; font.weight: Font.Light; textSize: CortetsuTypography.inkTitlePx; color: CortetsuDesign.colorWashi }
                             CortetsuText { text: qsTr("Acciones de energía y sesión"); textSize: CortetsuTypography.bodySmallPx; color: CortetsuDesign.colorOnSurfaceVariant }
                         }
                     }

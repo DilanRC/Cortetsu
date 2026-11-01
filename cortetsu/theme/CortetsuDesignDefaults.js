@@ -47,6 +47,10 @@ var spacingSection = 32
 // shared clearance used by transient cards that must sit above the lower bar.
 var bottomHubHeight = 66
 
+var fontUi = "Rubik"
+var fontInk = "Noto Serif"
+var fontKanji = "Noto Sans CJK JP"
+
 var materialGroundAlpha = 0.95
 var materialWashAlpha = 0.34
 var materialPopupWashAlpha = 0.22

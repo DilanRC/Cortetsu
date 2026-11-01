@@ -9,7 +9,7 @@ Text {
     property int textSize: CortetsuTypography.bodyPx
 
     color: CortetsuDesign.colorWashi
-    font.family: CortetsuTypography.uiFamily
+    font.family: CortetsuDesign.fontUi
     font.pixelSize: textSize
     font.weight: Font.Normal
     renderType: Text.NativeRendering

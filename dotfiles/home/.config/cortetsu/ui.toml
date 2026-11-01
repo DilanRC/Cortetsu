@@ -62,6 +62,14 @@ grain = 0.11
 popup_grain = 0.09
 hairline_alpha = 0.07
 
+# Type families. The UI family carries data and controls; the ink family is
+# the serif of the big moments (hour, titles, the line being sung); the
+# kanji family draws seals and margin marks. Icons stay Material Symbols.
+[typography]
+ui_family = "Rubik"
+ink_family = "Noto Serif"
+kanji_family = "Noto Sans CJK JP"
+
 [motion]
 instant_ms = 80
 fast_ms = 120

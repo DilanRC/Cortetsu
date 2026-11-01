@@ -60,10 +60,9 @@ Item {
         onDateChanged: root.today = CalendarModel.dayStart(date)
     }
 
-    CortetsuSurface { outlined: false;
+    CortetsuInkPanel {
         anchors.fill: parent
         radius: CortetsuDesign.radiusLarge
-        color: CortetsuDesign.colorSurface
 
         ColumnLayout {
             anchors.fill: parent
@@ -154,7 +153,7 @@ Item {
                                 Accessible.onToggleAction: toggle()
                                 Accessible.onPressAction: toggle()
                                 implicitWidth: chipRow.implicitWidth + CortetsuDesign.spacingStandard * 2; implicitHeight: 30; radius: height / 2
-                                color: chosen ? CortetsuDesign.colorSecondaryContainer : CortetsuDesign.colorSurfaceHigh
+                                color: chosen ? CortetsuDesign.colorSecondaryContainer : Qt.alpha(CortetsuDesign.colorWashi, 0.06)
                                 RowLayout {
                                     id: chipRow; anchors.centerIn: parent; spacing: CortetsuDesign.spacingCompact
                                     Rectangle { implicitWidth: 8; implicitHeight: 8; radius: 4; color: chip.modelData.calendarColor || CortetsuDesign.colorSecondary }
@@ -173,11 +172,9 @@ Item {
                     Layout.preferredWidth: 350
                     spacing: CortetsuDesign.spacingStandard
 
-                    Rectangle {
+                    CortetsuInkWell {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
-                        radius: CortetsuDesign.radiusMedium
-                        color: CortetsuDesign.colorSurfaceHigh
                         ColumnLayout {
                             anchors.fill: parent; anchors.margins: CortetsuDesign.spacingStandard; spacing: CortetsuDesign.spacingCompact
                             CortetsuText { Layout.fillWidth: true; objectName: "agendaTitle"; text: CortetsuRegional.formatDate(root.selectedDate, "longDay", true); textSize: CortetsuTypography.titleMediumPx; color: CortetsuDesign.colorOnSurface }

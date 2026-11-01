@@ -39,7 +39,7 @@ Item {
         Text {
             anchors.centerIn: parent
             text: root.glyph
-            font.family: CortetsuTypography.kanjiFamily
+            font.family: CortetsuDesign.fontKanji
             font.weight: Font.Black
             font.pixelSize: root.size * 0.52
             color: Qt.alpha(CortetsuDesign.colorSumi, 0.88)

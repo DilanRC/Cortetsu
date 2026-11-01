@@ -7,7 +7,7 @@ import "../CortetsuTypography.js" as CortetsuTypography
 
 // One polkit request. `flow` is a Quickshell AuthFlow, or a stand-in with the
 // same properties and methods in tests.
-CortetsuSurface {
+CortetsuPopupSurface {
     id: root
     required property var flow
     readonly property var identities: flow?.identities ?? []
@@ -17,9 +17,6 @@ CortetsuSurface {
     implicitWidth: 440
     implicitHeight: body.implicitHeight + CortetsuDesign.spacingComfortable * 2
     radiusValue: CortetsuDesign.radiusSurface
-    baseColor: Qt.alpha(CortetsuDesign.colorSurface, 0.98)
-    outlined: true
-    outlineColor: Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.72)
 
     function identityName(identity): string {
         return identity?.displayName || identity?.string || qsTr("Usuario desconocido");
@@ -132,7 +129,7 @@ CortetsuSurface {
 
         TextField {
 
-            font.family: CortetsuTypography.uiFamily
+            font.family: CortetsuDesign.fontUi
             id: password
             objectName: "password"
             Layout.fillWidth: true

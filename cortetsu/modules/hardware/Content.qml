@@ -125,7 +125,7 @@ FocusScope {
         }
     }
 
-    Rectangle {
+    CortetsuInkPanel {
         id: panel
 
         width: Math.min(1120, parent.width - 96)
@@ -133,9 +133,6 @@ FocusScope {
         x: Math.round((parent.width - width) / 2)
         y: Math.round((parent.height - height) / 2)
         radius: CortetsuDesign.radiusSurface
-        color: Qt.alpha(CortetsuDesign.colorTetsu, 0.97)
-        border.width: 1
-        border.color: Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.22)
         clip: true
 
         Column {

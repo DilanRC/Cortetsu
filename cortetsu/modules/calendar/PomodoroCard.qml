@@ -13,7 +13,7 @@ import "../CortetsuTypography.js" as CortetsuTypography
 // Pomodoro card of the Calendar surface. It shows the helper's state and sends
 // its commands; the countdown ticks once a second only while the card is on
 // screen and a phase is running.
-CortetsuSurface {
+CortetsuInkWell {
     id: card
 
     readonly property var pomodoroState: Pomodoro.state
@@ -32,9 +32,6 @@ CortetsuSurface {
         return count === 1 ? qsTr("1 sesión") : qsTr("%1 sesiones").arg(count);
     }
 
-    outlined: false
-    radius: CortetsuDesign.radiusMedium
-    color: CortetsuDesign.colorSecondaryContainer
     onPomodoroStateChanged: nowMs = Date.now()
 
     SystemClock {
@@ -50,14 +47,14 @@ CortetsuSurface {
 
         RowLayout {
             Layout.fillWidth: true
-            CortetsuText { Layout.fillWidth: true; text: card.phaseLabel(); color: CortetsuDesign.colorOnSecondaryContainer; textSize: CortetsuTypography.labelLargePx }
-            CortetsuText { text: card.sessionsLabel(Number(card.pomodoroState.completedSessions || 0)); color: CortetsuDesign.colorOnSecondaryContainer; textSize: CortetsuTypography.labelSmallPx }
+            CortetsuText { Layout.fillWidth: true; text: card.phaseLabel(); color: CortetsuDesign.colorOnSurface; textSize: CortetsuTypography.labelLargePx }
+            CortetsuText { text: card.sessionsLabel(Number(card.pomodoroState.completedSessions || 0)); color: CortetsuDesign.colorOnSurfaceVariant; textSize: CortetsuTypography.labelSmallPx }
         }
         CortetsuText {
             Layout.fillWidth: true
             horizontalAlignment: Text.AlignHCenter
             text: Model.timeLeft(card.pomodoroState, card.nowMs)
-            color: CortetsuDesign.colorOnSecondaryContainer
+            color: CortetsuDesign.colorOnSurface
             textSize: CortetsuTypography.titleLargePx
         }
         CortetsuProgressBar {
@@ -65,8 +62,8 @@ CortetsuSurface {
             value: Model.progress(card.pomodoroState, card.nowMs)
             barHeight: 5
             barRadius: 3
-            trackColor: CortetsuDesign.colorSecondary
-            fillColor: CortetsuDesign.colorOnSecondaryContainer
+            trackColor: Qt.alpha(CortetsuDesign.colorWashi, 0.14)
+            fillColor: CortetsuDesign.colorPrimary
             motionDuration: CortetsuDesign.motionFastMs
         }
         RowLayout {

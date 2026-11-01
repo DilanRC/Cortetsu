@@ -47,6 +47,10 @@ var spacingSection = {{spacing.section}}
 // shared clearance used by transient cards that must sit above the lower bar.
 var bottomHubHeight = 66
 
+var fontUi = "{{typography.ui_family}}"
+var fontInk = "{{typography.ink_family}}"
+var fontKanji = "{{typography.kanji_family}}"
+
 var materialGroundAlpha = {{material.ground_alpha}}
 var materialWashAlpha = {{material.wash_alpha}}
 var materialPopupWashAlpha = {{material.popup_wash_alpha}}

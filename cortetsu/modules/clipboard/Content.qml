@@ -7,6 +7,7 @@ import Quickshell
 import Quickshell.Io
 import ".."
 import "../../theme"
+import "../../components"
 import "../CortetsuTypography.js" as CortetsuTypography
 
 FocusScope {
@@ -25,7 +26,7 @@ FocusScope {
     readonly property url historyPath:
         StandardPaths.writableLocation(StandardPaths.ConfigLocation) + "/clipse/clipboard_history.json"
 
-    // Opaque first-party surfaces keep clipboard content readable over any wallpaper.
+    // The panel sits on the ink material; these are the cards inside it.
     readonly property color panelSurface: CortetsuDesign.colorSurfaceHigh
     readonly property color elevatedSurface: Qt.lighter(panelSurface, 1.08)
     readonly property color cardSurface: CortetsuDesign.colorSurface
@@ -36,9 +37,6 @@ FocusScope {
 
     readonly property color accentSoft:
         Qt.alpha(accent, 0.14)
-
-    readonly property color accentOutline:
-        Qt.alpha(accent, 0.34)
 
     readonly property var filteredEntries: {
         const needle = query.trim().toLowerCase();
@@ -347,8 +345,7 @@ FocusScope {
     }
 
     /*
-     * One soft shadow + one accent halo. The actual panel surface below is
-     * fully opaque; only these decorative layers use alpha.
+     * One soft shadow under the ink panel.
      */
     Rectangle {
         x: panel.x + 2
@@ -359,18 +356,7 @@ FocusScope {
         color: Qt.alpha(CortetsuDesign.colorScrim, 0.44)
     }
 
-    Rectangle {
-        x: panel.x - 3
-        y: panel.y - 3
-        width: panel.width + 6
-        height: panel.height + 6
-        radius: panel.radius + 3
-        color: Qt.alpha(root.accent, 0.08)
-        border.width: 1
-        border.color: Qt.alpha(root.accent, 0.22)
-    }
-
-    Rectangle {
+    CortetsuInkPanel {
         id: panel
 
         width: Math.min(910, parent.width - 88)
@@ -386,10 +372,7 @@ FocusScope {
             Math.round((parent.height - height) / 2)
         )
 
-        radius: 30
-        color: root.panelSurface
-        border.width: 1
-        border.color: root.accentOutline
+        radius: CortetsuDesign.radiusSurface
         clip: true
 
         MouseArea {
@@ -642,7 +625,7 @@ FocusScope {
 
                 TextInput {
 
-                    font.family: CortetsuTypography.uiFamily
+                    font.family: CortetsuDesign.fontUi
                     id: searchInput
 
                     anchors.left: searchIcon.right

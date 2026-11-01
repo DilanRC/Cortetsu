@@ -46,7 +46,7 @@ CortetsuSurface {
             implicitHeight: CortetsuDesign.controlHeight
             placeholderText: qsTr("Contraseña")
             echoMode: TextInput.Password
-            font.family: CortetsuTypography.uiFamily
+            font.family: CortetsuDesign.fontUi
             font.pixelSize: CortetsuTypography.bodyPx
             enabled: !root.connecting
             color: CortetsuDesign.colorOnSurface

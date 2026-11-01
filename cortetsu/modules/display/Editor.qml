@@ -310,16 +310,13 @@ FocusScope {
         }
     }
 
-    Rectangle {
+    CortetsuInkPanel {
         id: panel
         width: Math.min(1260, parent.width - 96)
         height: Math.min(900, parent.height - 64)
         x: Math.round((parent.width - width) / 2)
         y: Math.round((parent.height - height) / 2)
         radius: CortetsuDesign.radiusSurface
-        color: CortetsuDesign.colorSurfaceHigh
-        border.width: 1
-        border.color: CortetsuDesign.colorOutlineVariant
         clip: true
 
         Column {

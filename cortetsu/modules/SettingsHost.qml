@@ -65,12 +65,10 @@ Scope {
             minimumSize.width: 880
             minimumSize.height: 620
 
-            CortetsuSurface {
+            CortetsuInkPanel {
                 anchors.fill: parent
                 anchors.margins: CortetsuDesign.spacingUnit
-                baseColor: Qt.alpha(CortetsuDesign.colorTetsu, 0.985)
-                radiusValue: CortetsuDesign.radiusSurface
-                outlined: true
+                radius: CortetsuDesign.radiusSurface
 
                 // The content exists only while the window is open: a closed
                 // Settings holds no pages, bindings or processes.

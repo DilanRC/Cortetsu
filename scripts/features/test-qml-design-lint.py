@@ -46,7 +46,7 @@ Item {
     }
     Behavior on opacity { NumberAnimation { duration: CortetsuDesign.motionFastMs; easing.type: Easing.BezierSpline } }
     Item { scale: pressed ? 0.97 : 1 }
-    TextField { font.family: CortetsuTypography.uiFamily }
+    TextField { font.family: CortetsuDesign.fontUi }
 }
 """
 

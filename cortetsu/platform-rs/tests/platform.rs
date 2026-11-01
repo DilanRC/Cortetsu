@@ -266,6 +266,25 @@ fn native_theme_matches_committed_outputs() {
     ok(s.run(&["theme", "check", "--repo", repo.to_str().unwrap()]));
 }
 #[test]
+fn theme_rejects_a_font_name_that_would_break_the_generated_string() {
+    let repo = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../..")
+        .canonicalize()
+        .unwrap();
+    let ui = fs::read_to_string(repo.join("dotfiles/home/.config/cortetsu/ui.toml")).unwrap();
+    // A quote, a backslash and a line terminator would each end the literal.
+    for bad in ["'Noto \" Serif'", "'Noto \\ Serif'", "\"Noto\\rSerif\""] {
+        let s = Sandbox::new();
+        s.put(
+            "repo/dotfiles/home/.config/cortetsu/ui.toml",
+            &ui.replace("ink_family = \"Noto Serif\"", &format!("ink_family = {bad}")),
+        );
+        let out = s.run(&["theme", "check", "--repo", &s.repo()]);
+        assert!(!out.status.success(), "{bad} was accepted");
+        assert!(String::from_utf8_lossy(&out.stderr).contains("invalid typography.ink_family"), "{bad}");
+    }
+}
+#[test]
 fn theme_adoption_preserves_kde_preferences_and_rejects_external_symlinks() {
     let s = Sandbox::new();
     s.put(

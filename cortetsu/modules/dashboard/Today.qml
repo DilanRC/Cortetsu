@@ -59,7 +59,7 @@ Item {
 
             Text {
                 text: "日"
-                font.family: CortetsuTypography.kanjiFamily
+                font.family: CortetsuDesign.fontKanji
                 font.pixelSize: CortetsuTypography.labelLargePx
                 color: CortetsuDesign.colorIndicator
                 opacity: 0.85
@@ -68,6 +68,15 @@ Item {
             DashLabel { text: qsTr("HOY") }
 
             Item { Layout.fillWidth: true }
+
+            // The overflow count rides in the header: the note has room for
+            // two events and no third line.
+            CortetsuText {
+                visible: root.todayEvents.length > 2
+                text: qsTr("+%1 más").arg(root.todayEvents.length - 2)
+                textSize: CortetsuTypography.labelSmallPx
+                color: CortetsuDesign.colorOnSurfaceVariant
+            }
 
             CortetsuButton {
                 compact: true
@@ -147,15 +156,6 @@ Item {
                     }
                 }
             }
-        }
-
-        CortetsuText {
-            Layout.fillWidth: true
-            visible: root.todayEvents.length > 2
-            text: qsTr("+%1 más en el calendario").arg(root.todayEvents.length - 2)
-            textSize: CortetsuTypography.labelSmallPx
-            color: CortetsuDesign.colorOnSurfaceVariant
-            horizontalAlignment: Text.AlignRight
         }
     }
 }
