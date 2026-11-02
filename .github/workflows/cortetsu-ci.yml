@@ -40,6 +40,7 @@ jobs:
           python3 scripts/features/test-cortetsu-settings.py
           python3 scripts/features/test-cortetsu-v2-bridge.py
           python3 cortetsu/tests/test-startup-inventory.py
+          python3 cortetsu/tests/test-runtime-contract.py
       - name: Validate policy and notification reconciliation models
         run: |
           node scripts/features/test-cortetsu-policy-model.mjs
