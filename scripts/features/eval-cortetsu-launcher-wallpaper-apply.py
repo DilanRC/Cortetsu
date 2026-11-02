@@ -23,7 +23,9 @@ checks = {
     "smart scheme waits for palette": 'paletteApply.command = ["cortetsu-apply-wallpaper-colors", next];' in service and "root.completeApply(next, generation)" in service,
     "palette failure is visible": 'root.failApply(detail || qsTr("No se pudo aplicar el esquema dinámico"))' in service and "property string applyError" in service,
     "stale palette result ignored": "paletteApply.requestGeneration !== root.applyGeneration" in service and "paletteApply.requestPath !== root.actualCurrent" in service,
-    "timeout is bounded": "motionDeliberateMs * 8" in service,
+    # A fixed deadline: motion tokens are 0 under reduced motion.
+    "timeout is bounded": "id: applyTimeout\n        // A deadline for the helper, not an animation" in service
+        and "        interval: 1920\n" in service and "motionDeliberateMs * 8" not in service,
     "manager uses shared apply": "CortetsuWallpapers.apply(currentPath)" in manager,
     "manager consumes shared status": "readonly property string applyStatus: CortetsuWallpapers.applyStatus" in manager and 'applyStatus === "failed"' in manager,
     "launcher uses shared apply": "CortetsuWallpapers.apply(target)" in launcher,

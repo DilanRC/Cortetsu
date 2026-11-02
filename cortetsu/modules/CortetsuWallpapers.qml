@@ -99,7 +99,7 @@ Singleton {
         applyError = "";
         lastApplyPath = target;
         applyTimeout.restart();
-        Quickshell.execDetached(["cortetsu-wallpaper-select", target]);
+        runSelect(["cortetsu-wallpaper-select", target]);
         return true;
     }
 
@@ -115,7 +115,7 @@ Singleton {
         applyError = "";
         lastApplyPath = "";
         applyTimeout.restart();
-        Quickshell.execDetached(["cortetsu-wallpaper-select", "--random", wallsdir]);
+        runSelect(["cortetsu-wallpaper-select", "--random", wallsdir]);
         return true;
     }
 
@@ -170,6 +170,18 @@ Singleton {
             return;
         }
         root.completeApply(next, generation);
+    }
+
+    function runSelect(command: var): void {
+        // A selection still running after its apply timed out cannot be
+        // restarted; the new one runs detached, as the state file exists by then.
+        if (selector.running) {
+            Quickshell.execDetached(command);
+            return;
+        }
+        selector.requestGeneration = applyGeneration;
+        selector.command = command;
+        selector.running = true;
     }
 
     function failApply(detail): void {
@@ -229,18 +241,37 @@ Singleton {
 
     Timer {
         id: applyTimeout
-        interval: CortetsuDesign.motionDeliberateMs * 8
+        // A deadline for the helper, not an animation: a motion token is 0
+        // under reduced motion and would fail every selection at once.
+        interval: 1920
         repeat: false
         onTriggered: root.failApply()
     }
 
     FileView {
+        id: currentFile
+        // False while path.txt did not exist: a missing file is not watched,
+        // so the first selection on a fresh HOME would never be seen.
+        property bool present: false
         path: root.currentNamePath
         watchChanges: true
         printErrors: false
         onFileChanged: { root.readActual(text()); reload(); }
-        onLoaded: root.readActual(text())
-        onLoadFailed: root.readActual(root.fallback)
+        onLoaded: { present = true; root.readActual(text()); }
+        onLoadFailed: { present = false; root.readActual(root.fallback); }
+    }
+
+    Process {
+        id: selector
+        // The apply this run belongs to: a late exit must not fail a newer one.
+        property int requestGeneration: -1
+        stderr: StdioCollector { id: selectorStderr }
+        onExited: code => { // qmllint disable signal-handler-parameters
+            if (code !== 0 && selector.requestGeneration === root.applyGeneration)
+                root.failApply(selectorStderr.text.trim() || qsTr("No se pudo seleccionar el fondo"));
+            else if (!currentFile.present)
+                currentFile.reload();
+        }
     }
 
     // startup inventory: cortetsu:wallpaper-scan
