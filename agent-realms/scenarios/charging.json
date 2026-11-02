@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "name": "charging",
+  "description": "Batería al 96 % cargando, perfil equilibrado, Wi-Fi conectado y audio disponible",
+  "state": {
+    "upower": {
+      "battery": {"percentage": 96.0, "state": "charging", "time_to_empty": 0, "time_to_full": 540},
+      "line_power": {"online": true}
+    },
+    "power_profiles": {"active": "balanced"},
+    "network": {"wifi": {"connected": "CortetsuLab"}},
+    "audio": {"default_sink": "sim_speakers"}
+  }
+}

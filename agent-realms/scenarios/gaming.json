@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "name": "gaming",
+  "description": "Cargador conectado, rendimiento disponible y activo, red conectada y un mando Bluetooth conectado",
+  "state": {
+    "upower": {
+      "battery": {"percentage": 74.0, "state": "charging", "time_to_empty": 0, "time_to_full": 2700},
+      "line_power": {"online": true}
+    },
+    "power_profiles": {"active": "performance"},
+    "network": {"wifi": {"connected": "CortetsuLab"}},
+    "bluetooth": {
+      "adapter": {"powered": true},
+      "devices": [
+        {"address": "AA:BB:CC:00:00:10", "name": "Mando simulado", "icon": "input-gaming",
+         "paired": true, "trusted": true, "connected": true, "battery": 64}
+      ]
+    }
+  }
+}

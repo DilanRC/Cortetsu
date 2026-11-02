@@ -1,0 +1,8 @@
+# Codex CLI: servidor MCP de Cortetsu Agent Realms con el perfil `codex`.
+# Codex carga este archivo solo si el repositorio es de confianza; ejecútalo desde la raíz del repo.
+# El perfil (realm y capacidades) vive en ~/.config/cortetsu-agent-realms/profiles.json.
+[mcp_servers.agent-realms]
+command = "./bin/agent-realm-mcp"
+args = ["--profile", "codex"]
+startup_timeout_sec = 20
+tool_timeout_sec = 120

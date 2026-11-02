@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Capturas y reportes de los scripts de aceptación: locales, no van a Git
+evidence/
+.claude/settings.local.json

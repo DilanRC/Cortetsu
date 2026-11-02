@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "agent-realms": {
+      "type": "stdio",
+      "command": "./bin/agent-realm-mcp",
+      "args": ["--profile", "claude"]
+    }
+  }
+}

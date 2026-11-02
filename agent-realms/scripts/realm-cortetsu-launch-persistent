@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+working_directory=""
+command=()
+
+while (($#)); do
+    case "$1" in
+        --label)
+            (($# >= 2)) || { printf 'realm Cortetsu launcher: --label requiere valor\n' >&2; exit 2; }
+            shift 2
+            ;;
+        --working-directory)
+            (($# >= 2)) || { printf 'realm Cortetsu launcher: --working-directory requiere valor\n' >&2; exit 2; }
+            working_directory="$2"
+            shift 2
+            ;;
+        --)
+            shift
+            command=("$@")
+            break
+            ;;
+        *)
+            printf 'realm Cortetsu launcher: argumento inesperado: %s\n' "$1" >&2
+            exit 2
+            ;;
+    esac
+done
+
+if ((${#command[@]} == 0)); then
+    printf 'realm Cortetsu launcher: falta el comando\n' >&2
+    exit 2
+fi
+
+if [[ -n "$working_directory" ]]; then
+    cd -- "$working_directory"
+fi
+
+exec "${command[@]}"

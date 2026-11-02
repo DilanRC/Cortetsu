@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "name": "battery-low",
+  "description": "Portátil al 12 % sin cargador, ahorro de energía, Wi-Fi conectado y Bluetooth apagado",
+  "state": {
+    "upower": {
+      "battery": {"percentage": 12.0, "state": "discharging", "time_to_empty": 2280},
+      "line_power": {"online": false}
+    },
+    "power_profiles": {"active": "power-saver"},
+    "network": {"wifi": {"connected": "CortetsuLab"}},
+    "bluetooth": {"adapter": {"powered": false}, "devices": []}
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "name": "desktop",
+  "description": "Sobremesa sin batería, Ethernet conectado, sin adaptador Bluetooth y audio disponible",
+  "state": {
+    "upower": {
+      "battery": {"present": false, "percentage": 0.0, "state": "unknown", "time_to_empty": 0},
+      "line_power": {"online": true}
+    },
+    "network": {
+      "wifi": {"present": false, "connected": null, "access_points": [], "nearby": []},
+      "ethernet": {"present": true, "connected": true}
+    },
+    "bluetooth": {"adapter": {"present": false}, "devices": [], "nearby": []}
+  }
+}

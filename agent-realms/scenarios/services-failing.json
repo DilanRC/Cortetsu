@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "name": "services-failing",
+  "description": "NetworkManager desconectado, UPower ausente, PipeWire reiniciándose y BlueZ devolviendo errores",
+  "state": {
+    "upower": {"available": false},
+    "network": {"available": false},
+    "bluetooth": {"fail_operations": true},
+    "audio": {"restarting": true}
+  }
+}

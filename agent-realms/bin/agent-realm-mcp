@@ -1,0 +1,6 @@
+#!/bin/sh
+# Runs the MCP server with the project's venv (scripts/setup-mcp-venv.sh), falling back to python3.
+root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+python="$root/.venv/bin/python"
+[ -x "$python" ] || python=python3
+PYTHONPATH="$root/src${PYTHONPATH:+:$PYTHONPATH}" exec "$python" -m cortetsu_agent_realms.mcp_server "$@"

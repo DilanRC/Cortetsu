@@ -1,0 +1,31 @@
+Cortetsu Agent Realms — third-party reference notice
+
+The following projects were inspected as architectural and behavioral references. Their source code, tests, and assets have not been copied into this repository.
+
+- hypr-computer — https://github.com/zinoos/hypr-computer/tree/cd00962d7faf3a5059827994fbe746783695787f — MIT
+- omabox — https://github.com/diogochaves/omabox/tree/5f529f018737cfdf1d74363bc5441632cd2220dd — MIT
+- AgentSeat — https://github.com/vimalinx/AgentSeat/tree/5c1f9a897beb67b09ae8c1c42004bda126273dad — MIT
+- hypr-realm — https://github.com/0xmiki/hypr-realm/tree/90628dd77067243928953beaac364a50905f0cca — BSD-3-Clause
+
+See docs/reference-review.md for the reviewed contracts, test locations, limitations, and implementation decisions. This notice does not replace the full license texts of those reference projects. Their source code, tests, and assets are not copied here.
+
+Protocol definitions distributed in `protocols/` (each XML file retains its complete MIT copyright and permission notice):
+
+- `wlr-virtual-pointer-unstable-v1.xml` — protocol by Josef Gajdusek, MIT; sourced from the Hyprland upstream checkout below.
+- `virtual-keyboard-unstable-v1.xml` — protocol by Kristian Høgsberg, Intel Corporation, Collabora, Ltd., and Purism SPC, MIT; sourced from the Hyprland upstream checkout below.
+
+Only the upstream protocol definitions are distributed. Generated client bindings and the realm input client are built from these definitions; no Hyprland implementation code is copied.
+
+Temporary isolated build inputs used to prepare a compatible Hyprland headless test compositor (the checkout/build are not included or shipped; the two protocol definitions above are retained):
+
+- Hyprland upstream — https://github.com/hyprwm/Hyprland/tree/c4e7596a3db89cb0d213eeb3e436599422995b43 — BSD-3-Clause
+- hyprutils v0.14.3 — https://github.com/hyprwm/hyprutils/tree/0d13d5a624eb093b600d1b2cbe448fb613c86424 — BSD-3-Clause
+- hyprland-protocols v0.8.0 — https://github.com/hyprwm/hyprland-protocols/tree/044a434ec371f985655389bcef09286b1af3d77c — BSD-3-Clause
+- udis86 submodule — https://github.com/canihavesomecoffee/udis86/tree/5336633af70f3917760a6d441ff02d93477b0c86 — BSD-2-Clause
+- glaze v7.2.0 — https://github.com/stephenberry/glaze/tree/b518eec7a22e56ffa238b072c07f47efa7cea97f — MIT
+
+External runtime dependency for the isolated parent Wayland server:
+
+- Weston 15.0.1 — https://gitlab.freedesktop.org/wayland/weston/-/tree/a4939fd123f509766e60b2d310d801b215c9822d — MIT (Expat); its binary is provided by the system package and no Weston source is copied here.
+
+The small `src/xdg-version-shim.c` interposer is original project code. It adapts only the private Weston process and does not copy Weston or Aquamarine implementation code.
