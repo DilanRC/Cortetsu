@@ -53,7 +53,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Install realm test dependencies
-        run: sudo apt-get update -qq && sudo apt-get install -y -qq python3-gi dbus jq lua5.4
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq python3-gi dbus jq lua5.4 gcc pkg-config libwayland-dev libwayland-bin
       - name: Agent Realms runtime, simulation and trust-boundary contracts
         run: PYTHONPATH=agent-realms/src python3 -m unittest discover -s agent-realms/tests
       - name: cortetsu realm CLI against a stub realm
