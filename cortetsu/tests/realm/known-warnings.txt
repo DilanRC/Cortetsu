@@ -1,0 +1,21 @@
+# Known limitations of a realm, one extended regex per line, matched against
+# the WARN/ERROR lines of each QA round. They describe the simulated
+# environment, not Cortetsu; anything else stays in <round>-unclassified.log.
+#
+# No system D-Bus services (UPower, power-profiles, NetworkManager, BlueZ) and
+# no PipeWire daemon in the realm.
+quickshell\.service\.upower.*Could not connect to DBus
+quickshell\.service\.powerprofiles.*Could not connect to DBus
+quickshell\.service\.pipewire.*Failed to connect pipewire context
+quickshell\.network\.networkmanager.*Could not connect to DBus
+quickshell\.network.*Could not find an available backend
+quickshell\.bluetooth.*Could not connect to DBus
+# The realm's HOME has no icon theme for desktop entries.
+Could not load icon ".*\?fallback=
+# No logind session: the real polkit agent cannot register. The dialog is
+# checked through tests/realm/polkit-preview.qml instead.
+quickshell\.service\.polkit\.listener.*No session for pid
+quickshell\.service\.polkit.*failed to register listener
+cortetsu-polkit: agent not registered; starting polkit-gnome
+# Qt text-input-v3 noise when keyboard focus leaves a layer for no surface.
+qt\.qpa\.wayland\.textinput.*disableSurface

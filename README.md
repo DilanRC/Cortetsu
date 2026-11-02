@@ -99,15 +99,18 @@ cortetsu test
 cortetsu audit
 cortetsu legacy-processes scan
 cortetsu legacy-processes migrate
+cortetsu realm qa .
 ```
 
 `cortetsu install` compila el bundle Rust/Go, construye shell y dotfiles y promueve una generación schema 2 bajo journal recuperable. Conserva un checkpoint de la instalación anterior, incluso si utilizaba schema 1. No reinicia ni recarga el shell ni reinicia `cortetsu-power-auto`: así las aplicaciones abiertas conservan sus superficies Wayland y su bandeja y la instalación no reaplica reglas energéticas a la sesión. Para adoptar la generación del shell sin cerrar Quickshell, usa `cortetsu shell reload`; para adoptar la de power-auto, reinícialo explícitamente con `systemctl --user restart cortetsu-power-auto.service`. En una migración con opt-in previo, la unidad nueva queda habilitada pero no se inicia y la unidad antigua se deshabilita sin detener un proceso activo. Para cambiar explícitamente al daemon nuevo: `systemctl --user stop caerice-power-auto.service && systemctl --user start cortetsu-power-auto.service`. Las operaciones que detienen, reinician o deshabilitan el shell requieren una orden explícita.
+
+`cortetsu realm` construye cualquier commit, o el checkout con cambios sin commitear (`.`), en un worktree aparte y lo ejecuta en un Hyprland headless privado; el runtime, Agent Realms, vive en [`agent-realms/`](agent-realms/README.md). `cortetsu realm qa` recorre fondo claro/oscuro, transparencia on/off y movimiento reducido con capturas, logs e informe PASS/FAIL de cada superficie. No toca generaciones, configuración ni la sesión: [`docs/AGENT_REALMS.md`](docs/AGENT_REALMS.md). Lo que solo se prueba en el portátil está en [`docs/PHYSICAL_QA.md`](docs/PHYSICAL_QA.md).
 
 `cortetsu legacy-processes scan` audita launchers y procesos visibles de los daemons legacy. `migrate` respalda y reemplaza referencias de Pomodoro y wallpaper-color cuando los helpers Cortetsu existen. La implementación usa el contrato `scheme.json` que consume el runtime actual; la frontera con el generador upstream queda documentada en el helper. Esta operación no envía señales, no usa `pkill` y no mata grupos de procesos.
 
 ## Calidad
 
-CI valida los ocho crates Rust con rustfmt/Clippy/tests, el coordinador Go con detector de carreras y vet, contratos y paridad, QML real y la instalación de dos generaciones con rollback completo. El instalador se ejecuta en un HOME temporal cuyo PATH no contiene Python. Python permanece en herramientas de desarrollo y referencias congeladas, nunca en los launchers instalados del runtime nuevo. Las pruebas físicas de AMD/NVIDIA, HDMI y suspensión se registran aparte.
+CI valida los ocho crates Rust con rustfmt/Clippy/tests, el coordinador Go con detector de carreras y vet, contratos y paridad, QML real y la instalación de dos generaciones con rollback completo. El instalador se ejecuta en un HOME temporal cuyo PATH no contiene Python. Python permanece en herramientas de desarrollo (entre ellas Agent Realms, también en CI) y referencias congeladas, nunca en los launchers instalados del runtime nuevo. Las pruebas físicas de AMD/NVIDIA, HDMI y suspensión se registran aparte, en [`docs/PHYSICAL_QA.md`](docs/PHYSICAL_QA.md).
 
 Los objetivos de rendimiento están en [`docs/PERFORMANCE.md`](docs/PERFORMANCE.md), el lenguaje visual en [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md) y la plataforma de configuración en [`docs/DOTFILES_PLATFORM.md`](docs/DOTFILES_PLATFORM.md).
 

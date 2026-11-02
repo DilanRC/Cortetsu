@@ -38,7 +38,7 @@ un tema, ni un fork renombrado de Caelestia, ni una distribución.
 
 - Uso con teclado primero: atajos SUPER+…, launcher y overview abiertos por tecla.
 - Varios monitores (eDP-1 y externos HDMI/DP) y escalas 1.0–2.0.
-- Pruebas en Agent Realms y Hyprland anidado; nunca contra la sesión real.
+- Pruebas en Agent Realms (`cortetsu realm`) y Hyprland anidado; nunca contra la sesión real.
 - Instalación con `cortetsu install`, que corre pruebas antes de promover.
 
 ## Capabilities and Constraints
@@ -67,7 +67,7 @@ un tema, ni un fork renombrado de Caelestia, ni una distribución.
 ## Evidence on Hand
 
 - `docs/IDENTITY.md`, `docs/CORTETSU_DESIGN_SYSTEM.md`, `docs/DESIGN_SYSTEM.md`.
-- Capturas de realm en `~/Documentos/Cortetsu-Agent-Realms/evidence/`.
+- Capturas e informes de `cortetsu realm qa` en `~/.local/state/cortetsu/realm/evidence/` (anteriores a la integración: `~/Documentos/Cortetsu-Agent-Realms/evidence/`).
 - No hay métricas de uso ni usuarios externos; no se inventan.
 
 ## Product Principles

@@ -21,7 +21,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          while IFS= read -r -d '' file; do bash -n "$file"; done < <(find scripts cortetsu/bin -type f -name '*.sh' -print0)
+          while IFS= read -r -d '' file; do bash -n "$file"; done < <(find scripts cortetsu/bin cortetsu/tests agent-realms/scripts -type f -name '*.sh' -print0)
           bash -n scripts/cortetsu
           for file in cortetsu/bin/cortetsu-*; do
             if head -n 1 "$file" | grep -q bash; then bash -n "$file"; fi
@@ -47,6 +47,17 @@ jobs:
           node scripts/features/test-notification-reconcile.mjs
       - name: Keep QML commands structured
         run: '! git grep -n -I "sh -c" -- "cortetsu/**/*.qml"'
+
+  agent-realms:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install realm test dependencies
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq python3-gi dbus jq lua5.4
+      - name: Agent Realms runtime, simulation and trust-boundary contracts
+        run: PYTHONPATH=agent-realms/src python3 -m unittest discover -s agent-realms/tests
+      - name: cortetsu realm CLI against a stub realm
+        run: bash cortetsu/tests/test-cortetsu-realm.sh
 
   wall-utility-contract:
     runs-on: ubuntu-latest

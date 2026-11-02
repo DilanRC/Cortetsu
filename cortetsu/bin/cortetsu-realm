@@ -1,0 +1,468 @@
+#!/usr/bin/env bash
+# cortetsu realm: build any commit of Cortetsu apart from the live desktop and
+# run it inside an Agent Realms realm (private headless Hyprland, D-Bus, HOME).
+# Agent Realms lives in this repository under agent-realms/. Nothing here
+# reads or writes the promoted generations, ~/.config/cortetsu, the session's
+# Hyprland or its Quickshell.
+set -euo pipefail
+
+CACHE="${CORTETSU_REALM_CACHE:-${XDG_CACHE_HOME:-$HOME/.cache}/cortetsu/realm}"
+STATE="${CORTETSU_REALM_STATE:-${XDG_STATE_HOME:-$HOME/.local/state}/cortetsu/realm}"
+# Seconds any single realm operation (an IPC call, a capture) may take.
+OP_TIMEOUT="${CORTETSU_REALM_TIMEOUT:-30}"
+SHELL_QML=/workspace/dist/runtime/shell.qml
+DEFAULT_REALM=cortetsu
+REALMS=""
+AR=""
+
+fail() { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
+say() { printf '==> %s\n' "$*" >&2; }
+
+usage() {
+    cat <<'EOF'
+Usage:
+  cortetsu realm doctor                  Check Agent Realms and its host requirements
+  cortetsu realm build [REV]             Build REV (default HEAD; "." = the checkout as it is now,
+                                         uncommitted files included) in its own worktree; prints it
+  cortetsu realm up [REV] [--name N] [--size WxH]
+                                         Build REV and run it in realm N (default "cortetsu")
+  cortetsu realm relaunch [--name N]     Restart the shell of realm N with its HOME as it is
+  cortetsu realm ipc [--name N] ARGS...  qs ipc call ARGS against the realm's shell
+  cortetsu realm exec [--name N] -- CMD  Run CMD inside the realm and print its stdout
+  cortetsu realm shot [--name N] FILE    Screenshot the realm
+  cortetsu realm observe [--name N]      Open the read-only observer in the browser
+  cortetsu realm qa [REV] [--out DIR] [--name N] [--keep-realm]
+                                         Visual and functional ink matrix: dark/light wallpaper,
+                                         transparency off/on, reduced motion, every ink surface;
+                                         screenshots, logs and report (default under
+                                         ~/.local/state/cortetsu/realm/evidence)
+  cortetsu realm down [--name N]         Stop realm N
+  cortetsu realm gc                      Remove the realm worktrees and their builds (never evidence)
+
+Environment: CORTETSU_REPO_ROOT, CORTETSU_AGENT_REALMS (default: agent-realms/ of the
+repository), CORTETSU_REALM_CACHE (worktrees and cargo target), CORTETSU_REALM_STATE
+(evidence), CORTETSU_REALM_TIMEOUT (seconds per operation, default 30).
+EOF
+}
+
+is_repo() { [[ -n "$1" && -f "$1/cortetsu.toml" && -f "$1/scripts/build-native.sh" ]]; }
+
+# CORTETSU_REPO_ROOT, then the clone this file lives in, then the repository
+# the installed generation points at; the current directory does not matter.
+repo_root() {
+    local root data
+    for root in "${CORTETSU_REPO_ROOT:-}" \
+            "$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/../.." 2>/dev/null && pwd)"; do
+        is_repo "$root" && { printf '%s\n' "$root"; return 0; }
+    done
+    data="${CORTETSU_DATA_ROOT:-${XDG_DATA_HOME:-$HOME/.local/share}/cortetsu}"
+    root="$(readlink -f "$data/repository" 2>/dev/null || true)"
+    is_repo "$root" && { printf '%s\n' "$root"; return 0; }
+    fail "no se encontró el repositorio Cortetsu; instala Cortetsu o define CORTETSU_REPO_ROOT"
+}
+
+require_realms() {
+    [[ -n "$AR" ]] && return 0
+    REALMS="${CORTETSU_AGENT_REALMS:-$(repo_root)/agent-realms}"
+    AR="$REALMS/bin/agent-realm"
+    [[ -x "$AR" && -x "$REALMS/scripts/realm-cortetsu.sh" ]] \
+        || fail "no se encontró Agent Realms en $REALMS (agent-realms/ del repositorio o CORTETSU_AGENT_REALMS)"
+}
+
+# agent-realm run prints the child's stdout followed by a metadata JSON object
+# that starts with a line "{" and then '  "command": ['. Drop only that object.
+strip_metadata() {
+    local lines=() i cut
+    mapfile -t lines
+    cut=${#lines[@]}
+    for ((i = ${#lines[@]} - 2; i >= 0; i--)); do
+        if [[ "${lines[i]}" == "{" && "${lines[i + 1]}" == '  "command": [' ]]; then cut=$i; break; fi
+    done
+    ((cut == 0)) || printf '%s\n' "${lines[@]:0:cut}"
+}
+
+in_realm() {  # in_realm NAME CMD... ; stdout of CMD only, its exit code preserved
+    local name="$1" out status
+    shift
+    out="$("$AR" run "$name" -- "$@" 2>/dev/null)" && status=0 || status=$?
+    strip_metadata <<<"$out"
+    return "$status"
+}
+
+# The timeout runs inside the realm, so a hung command dies in the realm's own
+# scope instead of leaving an orphan behind a killed client. Exit code 124.
+in_realm_bounded() { local name="$1"; shift; in_realm "$name" /usr/bin/timeout -k 2 "$OP_TIMEOUT" "$@"; }
+
+ipc() { local name="$1"; shift; in_realm_bounded "$name" /usr/bin/qs ipc --path "$SHELL_QML" call "$@"; }
+
+require_live() { [[ -n "$(realm_field "$1" workspace)" ]] || fail "el realm $1 no está activo; usa: cortetsu realm up --name $1"; }
+
+realm_field() {  # realm_field NAME FIELD ; prints the field of a live realm, empty otherwise
+    "$AR" status "$1" 2>/dev/null | jq -r --arg f "$2" 'if type == "array" then .[0] else . end | select(.alive == true) | .[$f] // empty' 2>/dev/null || true
+}
+
+# REV "." is the checkout as it is now, untracked files included (.gitignore
+# respected). A throwaway index makes the snapshot commit, so the user's index,
+# branch and files stay untouched; identical trees give the same commit.
+snapshot_commit() {
+    local repo="$1" index tree
+    index="$(mktemp)"
+    rm -f -- "$index"
+    tree="$(GIT_INDEX_FILE="$index" git -C "$repo" add -A . && GIT_INDEX_FILE="$index" git -C "$repo" write-tree)" \
+        || { rm -f -- "$index"; fail "no se pudo tomar la instantánea del checkout"; }
+    rm -f -- "$index"
+    GIT_AUTHOR_DATE="1000000000 +0000" GIT_COMMITTER_DATE="1000000000 +0000" GIT_AUTHOR_NAME=cortetsu-realm GIT_AUTHOR_EMAIL=realm@localhost \
+        GIT_COMMITTER_NAME=cortetsu-realm GIT_COMMITTER_EMAIL=realm@localhost \
+        git -C "$repo" commit-tree "$tree" -p HEAD -m "cortetsu realm snapshot"
+}
+
+worktree_for() { printf '%s/worktrees/%s\n' "$CACHE" "$1"; }
+
+build_cmd() {
+    local rev="${1:-HEAD}" repo sha worktree generation
+    repo="$(repo_root)"
+    if [[ "$rev" == . ]]; then
+        sha="$(snapshot_commit "$repo")"
+    else
+        sha="$(git -C "$repo" rev-parse --verify --quiet "$rev^{commit}")" || fail "revisión desconocida: $rev"
+    fi
+    worktree="$(worktree_for "$sha")"
+    mkdir -p "$CACHE/worktrees"
+    exec 7>"$CACHE/build.lock"
+    flock 7
+    if [[ -f "$worktree/dist/runtime/shell.qml" && -x "$worktree/dist/native/cortetsu-platform" ]]; then
+        say "reutilizo ${sha:0:7} en $worktree"
+        printf '%s\n' "$worktree"
+        return 0
+    fi
+    if [[ -e "$worktree" ]]; then
+        # An interrupted build may hold a sealed (read-only) generation.
+        chmod -R u+w "$worktree" 2>/dev/null || true
+        git -C "$repo" worktree remove --force "$worktree" 2>/dev/null || rm -rf -- "$worktree"
+        git -C "$repo" worktree prune
+    fi
+    say "worktree ${sha:0:7} (tu checkout no se toca)"
+    git -C "$repo" worktree add --quiet --detach "$worktree" "$sha" >&2
+    say "binarios nativos"
+    CARGO_TARGET_DIR="$CACHE/target" "$worktree/scripts/build-native.sh" >&2
+    say "generación del shell aislada en $worktree/.realm-data"
+    generation="$(CORTETSU_DATA_ROOT="$worktree/.realm-data" \
+        CORTETSU_RUNTIME_ROOT="$worktree/.realm-data/runtime" \
+        CORTETSU_PLATFORM="$worktree/dist/native/cortetsu-platform" \
+        "$worktree/cortetsu/bin/build-runtime.sh" --stage)"
+    [[ -f "$generation/shell.qml" ]] || fail "la construcción no produjo una generación"
+    # Relative, so it resolves both on the host and under /workspace in the realm.
+    ln -sfn "../${generation#"$worktree/"}" "$worktree/dist/runtime"
+    printf '%s\n' "$worktree"
+}
+
+relaunch() {  # relaunch NAME WORKTREE
+    "$REALMS/scripts/realm-cortetsu.sh" "$1" "$2" >&2
+}
+
+up_cmd() {
+    local rev=HEAD name="$DEFAULT_REALM" size=1920x1080 worktree current
+    while (($#)); do
+        case "$1" in
+            --name) name="${2:?}"; shift 2 ;;
+            --size) size="${2:?}"; shift 2 ;;
+            -*) fail "opción desconocida: $1" ;;
+            *) rev="$1"; shift ;;
+        esac
+    done
+    [[ "$size" =~ ^([0-9]+)x([0-9]+)$ ]] || fail "tamaño inválido: $size"
+    require_realms
+    worktree="$(build_cmd "$rev")"
+    current="$(realm_field "$name" workspace)"
+    if [[ -n "$current" && "$current" != "$worktree" ]]; then
+        fail "el realm $name ya ejecuta $current; detenlo con: cortetsu realm down --name $name"
+    fi
+    if [[ -z "$current" ]]; then
+        say "realm $name ${BASH_REMATCH[1]}x${BASH_REMATCH[2]}"
+        "$AR" start "$name" --width "${BASH_REMATCH[1]}" --height "${BASH_REMATCH[2]}" \
+            --ephemeral --lua --workspace "$worktree" --readonly-workspace >/dev/null
+    fi
+    relaunch "$name" "$worktree"
+    printf 'realm=%s worktree=%s\n' "$name" "$worktree"
+}
+
+name_arg() {  # sets NAME and REST from [--name N] ARGS...
+    NAME="$DEFAULT_REALM"
+    if [[ "${1:-}" == --name ]]; then NAME="${2:?}"; shift 2; fi
+    REST=("$@")
+}
+
+live_worktree() {
+    local worktree
+    worktree="$(realm_field "$1" workspace)"
+    [[ -n "$worktree" ]] || fail "el realm $1 no está activo; usa: cortetsu realm up"
+    printf '%s\n' "$worktree"
+}
+
+# ---- qa -------------------------------------------------------------------
+
+QA_REPORT=""
+QA_FAILS=0
+KNOWN_WARNINGS=""
+QA_TOOLS=""
+
+record() {  # record VERDICT LABEL EXPECTED ACTUAL
+    [[ "$1" == PASS ]] || QA_FAILS=$((QA_FAILS + 1))
+    printf '%s\t%s\texpected=%s\tgot=%s\n' "$1" "$2" "$3" "$4" >> "$QA_REPORT"
+}
+
+check() {  # check LABEL EXPECTED ACTUAL
+    if [[ "$3" == "$2" ]]; then record PASS "$@"; else record FAIL "$@"; fi
+}
+
+# A failed or empty capture is a FAIL in the report; the run goes on.
+shot() {  # shot NAME FILE
+    timeout -k 2 "$OP_TIMEOUT" "$AR" screenshot "$1" --output "$2" >/dev/null 2>&1 && [[ -s "$2" ]] \
+        || record FAIL "captura ${2##*/}" png missing
+}
+
+wait_for() {  # wait_for TRIES CMD... ; retries every 0.25 s until CMD succeeds
+    local tries="$1" i
+    shift
+    for ((i = 0; i < tries; i++)); do "$@" && return 0; sleep 0.25; done
+    return 1
+}
+
+drawer_is() { [[ "$(ipc "$1" drawers isOpen "$2")" == "$3" ]]; }
+polkit_visible() {
+    in_realm_bounded "$1" /usr/bin/hyprctl -j layers \
+        | jq -e 'any(.. | objects | select(has("namespace")); .namespace == "cortetsu-polkit-preview")' >/dev/null
+}
+wallpaper_is() { [[ "$(ipc "$1" cortetsu-wallpaper get)" == "$2" ]]; }
+
+qa_drawer() {  # qa_drawer NAME DIR TAG DRAWER
+    local name="$1" dir="$2" tag="$3" drawer="$4"
+    ipc "$name" drawers toggle "$drawer" >/dev/null || true
+    wait_for 20 drawer_is "$name" "$drawer" 1 || true
+    check "$tag $drawer abre" 1 "$(ipc "$name" drawers isOpen "$drawer")"
+    sleep 0.9  # let the open transition settle before the capture
+    shot "$name" "$dir/$tag-$drawer.png"
+    ipc "$name" drawers toggle "$drawer" >/dev/null || true
+    wait_for 20 drawer_is "$name" "$drawer" 0 || true
+    check "$tag $drawer cierra" 0 "$(ipc "$name" drawers isOpen "$drawer")"
+    sleep 0.5
+}
+
+hub() {  # hub NAME JQ ; one field of the BottomHub state of the first screen
+    ipc "$1" bottomHub inspect | jq -r ".[0].$2"
+}
+hub_is() { [[ "$(hub "$1" "$2")" == "$3" ]]; }
+
+qa_control() {  # qa_control NAME DIR TAG MODE ; a BottomHub popout
+    local name="$1" dir="$2" tag="$3" mode="$4"
+    ipc "$name" bottomHub control "$mode" >/dev/null || true
+    wait_for 20 hub_is "$name" popup "$mode" || true
+    check "$tag popout $mode abre" "$mode" "$(hub "$name" popup)"
+    sleep 0.9
+    shot "$name" "$dir/$tag-popout-$mode.png"
+    ipc "$name" bottomHub closeControl >/dev/null || true
+    wait_for 20 hub_is "$name" open false || true
+    check "$tag popout $mode cierra" false "$(hub "$name" open)"
+    sleep 0.5
+}
+
+qa_quick_settings() {  # qa_quick_settings NAME DIR TAG ; the shortcut path, a toggle of "osd"
+    local name="$1" dir="$2" tag="$3"
+    ipc "$name" bottomHub quickSettings >/dev/null || true
+    wait_for 20 drawer_is "$name" osd 1 || true
+    check "$tag ajustes rápidos abren" 1 "$(ipc "$name" drawers isOpen osd)"
+    sleep 0.9
+    shot "$name" "$dir/$tag-quick-settings.png"
+    ipc "$name" bottomHub quickSettings >/dev/null || true
+    wait_for 20 drawer_is "$name" osd 0 || true
+    check "$tag ajustes rápidos cierran" 0 "$(ipc "$name" drawers isOpen osd)"
+    sleep 0.5
+}
+
+# Sorts the round's WARN/ERROR lines into the realm's known limitations
+# (tests/realm/known-warnings.txt) and the rest; a QML/JS error of the build
+# itself among the rest is a FAIL, anything else is listed for review.
+qa_log() {  # qa_log NAME DIR TAG
+    local name="$1" dir="$2" tag="$3" own
+    in_realm_bounded "$name" /usr/bin/qs log --path "$SHELL_QML" 2>/dev/null \
+        | sed 's/\x1b\[[0-9;]*m//g' > "$dir/$tag-shell.log" || true
+    grep -E '(WARN|ERROR|CRIT|FATAL)' "$dir/$tag-shell.log" | grep -v qmlscanner > "$dir/$tag-warnings.log" || true
+    grep -Ev -f "$KNOWN_WARNINGS" "$dir/$tag-warnings.log" > "$dir/$tag-unclassified.log" || true
+    own="$(grep -cE '/workspace/[^ ]*\.(qml|js)|TypeError|ReferenceError|Binding loop|is not a type|Cannot assign' \
+        "$dir/$tag-unclassified.log" || true)"
+    check "$tag sin errores QML propios" 0 "${own:-0}"
+}
+
+qa_round() {  # qa_round NAME WORKTREE DIR BACKGROUND TRANSPARENCY REDUCED_MOTION
+    local name="$1" worktree="$2" dir="$3" bg="$4" transparent="$5" reduced="$6" tag wallpaper
+    tag="$bg-transparency-$([[ "$transparent" == true ]] && echo on || echo off)"
+    [[ "$reduced" == false ]] || tag="$tag-reduced-motion"
+    wallpaper="/workspace/$QA_TOOLS/walls/$bg.png"
+    say "ronda $tag"
+    # CortetsuConfig does not watch preferences.json, so each round writes it
+    # and restarts the shell; the wallpaper goes through the real select path.
+    # The first round has no wallpaper state at all, as on a fresh HOME.
+    in_realm "$name" /bin/sh -c "mkdir -p ~/.config/cortetsu &&
+        printf '{\"schema\":1,\"transparencyEnabled\":$transparent,\"reducedMotion\":$reduced}\n' > ~/.config/cortetsu/preferences.json &&
+        { ! test -f ~/.local/state/cortetsu/wallpaper/path.txt ||
+          printf '%s\n' /workspace/$QA_TOOLS/walls/neutral.png > ~/.local/state/cortetsu/wallpaper/path.txt; }" >/dev/null \
+        || fail "no se pudieron escribir las preferencias de la ronda $tag en el realm $name"
+    # A shell that does not come up is this round's failure, not the end of the run.
+    if ! relaunch "$name" "$worktree"; then
+        record FAIL "$tag el shell responde por IPC" true false
+        qa_log "$name" "$dir" "$tag"
+        return 0
+    fi
+    ipc "$name" cortetsu-wallpaper set "$wallpaper" >/dev/null || true
+    wait_for 40 wallpaper_is "$name" "$wallpaper" || true
+    check "$tag fondo aplicado por cortetsu-wallpaper-select" "$wallpaper" "$(ipc "$name" cortetsu-wallpaper get)"
+    sleep 2  # the dynamic scheme settles after the path changes
+    shot "$name" "$dir/$tag-desktop.png"
+    qa_drawer "$name" "$dir" "$tag" dashboard
+    qa_drawer "$name" "$dir" "$tag" calendar
+    qa_drawer "$name" "$dir" "$tag" session
+    qa_drawer "$name" "$dir" "$tag" launcher
+    qa_quick_settings "$name" "$dir" "$tag"
+    qa_control "$name" "$dir" "$tag" network
+    qa_control "$name" "$dir" "$tag" audio
+    qa_control "$name" "$dir" "$tag" battery
+    # Authentication dialog: the build's PolkitDialog on the Overlay layer.
+    "$AR" run --detach --compositor-child "$name" -- /usr/bin/qs --path "/workspace/$QA_TOOLS/polkit-preview/shell.qml" >/dev/null 2>&1 || true
+    wait_for 40 polkit_visible "$name" || true
+    check "$tag diálogo polkit visible" true "$(polkit_visible "$name" && echo true || echo false)"
+    sleep 0.9
+    shot "$name" "$dir/$tag-polkit.png"
+    in_realm_bounded "$name" /usr/bin/qs kill --path "/workspace/$QA_TOOLS/polkit-preview/shell.qml" >/dev/null || true
+    sleep 0.5
+    qa_log "$name" "$dir" "$tag"
+}
+
+qa_cmd() {
+    local rev=HEAD name="qa" out="" keep=0 worktree repo tools bg transparent
+    while (($#)); do
+        case "$1" in
+            --name) name="${2:?}"; shift 2 ;;
+            --out) out="${2:?}"; shift 2 ;;
+            --keep-realm) keep=1; shift ;;
+            -*) fail "opción desconocida: $1" ;;
+            *) rev="$1"; shift ;;
+        esac
+    done
+    [[ "$name" =~ ^[A-Za-z0-9_-]+$ ]] || fail "nombre de realm inválido: $name"
+    require_realms
+    command -v magick >/dev/null || fail "falta ImageMagick (magick) para los fondos de prueba"
+    if [[ -n "$(realm_field "$name" workspace)" ]]; then
+        fail "el realm $name ya existe; detenlo con: cortetsu realm down --name $name"
+    fi
+    repo="$(repo_root)"
+    worktree="$(build_cmd "$rev")"
+    out="${out:-$STATE/evidence/$(git -C "$worktree" rev-parse --short HEAD)-$(date +%Y%m%d-%H%M%S)}"
+    mkdir -p "$out"
+    QA_REPORT="$out/report.tsv"
+    : > "$QA_REPORT"
+    KNOWN_WARNINGS="$out/known-warnings.ere"
+    grep -Ev '^(#|$)' "$repo/cortetsu/tests/realm/known-warnings.txt" > "$KNOWN_WARNINGS"
+
+    # Fixtures live next to the build (the realm mounts it read-only), one
+    # directory per realm so two QA runs of the same commit do not share them.
+    QA_TOOLS=".realm-tools/qa-$name"
+    tools="$worktree/$QA_TOOLS"
+    chmod -R u+w "$tools" 2>/dev/null || true
+    rm -rf -- "$tools"
+    mkdir -p "$tools/walls"
+    # Quickshell resolves qs.* imports from the config root, so the preview
+    # runs from a writable copy of the runtime with its own shell.qml.
+    cp -a "$(readlink -f "$worktree/dist/runtime")/." "$tools/polkit-preview/"
+    chmod -R u+w "$tools/polkit-preview"
+    install -m 0644 "$repo/cortetsu/tests/realm/polkit-preview.qml" "$tools/polkit-preview/shell.qml"
+    magick -size 1920x1080 gradient:'#f6f1e7'-'#ddd2c0' -fill '#cbb994' -draw 'circle 1400,300 1400,520' "$tools/walls/light.png"
+    magick -size 1920x1080 gradient:'#0c0e13'-'#1b2130' -fill '#2d3a55' -draw 'circle 500,700 500,900' "$tools/walls/dark.png"
+    magick -size 1920x1080 xc:'#7f7f7f' "$tools/walls/neutral.png"
+
+    # The realm goes away on every exit, failed check, error or Ctrl+C
+    # included, unless --keep-realm asks to leave it up for debugging.
+    ((keep)) || trap "$(printf '%q stop %q >/dev/null 2>&1 || true' "$AR" "$name")" EXIT
+    trap 'exit 130' INT
+    trap 'exit 143' TERM
+    "$AR" start "$name" --width 1920 --height 1080 --ephemeral --lua \
+        --workspace "$worktree" --readonly-workspace >/dev/null
+    for bg in dark light; do
+        for transparent in false true; do
+            qa_round "$name" "$worktree" "$out" "$bg" "$transparent" false
+        done
+    done
+    qa_round "$name" "$worktree" "$out" dark true true
+    {
+        printf 'commit\t%s\n' "$(git -C "$worktree" rev-parse HEAD)"
+        printf 'checks\t%s\n' "$(wc -l < "$QA_REPORT")"
+        printf 'failed\t%s\n' "$QA_FAILS"
+        printf 'screenshots\t%s\n' "$(find "$out" -maxdepth 1 -name '*.png' | wc -l)"
+        printf 'warning_lines\t%s\n' "$(cat "$out"/*-warnings.log | wc -l)"
+        printf 'unclassified_warning_lines\t%s\n' "$(cat "$out"/*-unclassified.log | wc -l)"
+    } > "$out/summary.tsv"
+    cat "$out/summary.tsv"
+    grep -v '^PASS' "$QA_REPORT" >&2 || true
+    printf 'evidencia: %s\n' "$out"
+    ((keep == 0)) || printf 'el realm %s sigue activo: cortetsu realm observe --name %s; cortetsu realm down --name %s\n' \
+        "$name" "$name" "$name"
+    ((QA_FAILS == 0))
+}
+
+# Removes build worktrees only: evidence under $STATE is never touched, and a
+# worktree that a live realm has mounted is kept. Safe to run repeatedly.
+gc_cmd() {
+    local repo worktree live status=0
+    repo="$(repo_root)"
+    [[ -d "$CACHE/worktrees" ]] || { echo "nada que limpiar"; return 0; }
+    require_realms
+    live="$("$AR" status 2>/dev/null \
+        | jq -r '(if type == "array" then .[] else . end) | select(.alive == true) | .workspace // empty' 2>/dev/null || true)"
+    for worktree in "$CACHE"/worktrees/*; do
+        [[ -d "$worktree" ]] || continue
+        if grep -qxF -- "$worktree" <<<"$live"; then
+            printf 'conservo %s: lo usa un realm activo\n' "$worktree"
+            continue
+        fi
+        if [[ -n "$(git -C "$worktree" status --porcelain --untracked-files=no 2>/dev/null)" ]]; then
+            printf 'conservo %s: tiene cambios\n' "$worktree"
+            continue
+        fi
+        # Sealed generations are read-only; the cache is ours, unseal it all.
+        chmod -R u+w "$worktree" 2>/dev/null || true
+        if git -C "$repo" worktree remove --force "$worktree"; then
+            printf 'eliminado %s\n' "$worktree"
+        else
+            printf 'ERROR: no se pudo eliminar %s\n' "$worktree" >&2
+            status=1
+        fi
+    done
+    git -C "$repo" worktree prune
+    return "$status"
+}
+
+# Sourced by cortetsu/tests/test-cortetsu-realm.sh for its functions only.
+[[ "${BASH_SOURCE[0]}" == "$0" ]] || return 0
+
+command="${1:-help}"
+shift || true
+case "$command" in
+    doctor) require_realms; exec "$AR" doctor ;;
+    build) build_cmd "$@" ;;
+    up) up_cmd "$@" ;;
+    relaunch) require_realms; name_arg "$@"; require_live "$NAME"; relaunch "$NAME" "$(live_worktree "$NAME")" ;;
+    ipc) require_realms; name_arg "$@"; require_live "$NAME"; ipc "$NAME" "${REST[@]}" ;;
+    exec)
+        require_realms; name_arg "$@"; require_live "$NAME"
+        [[ "${REST[0]:-}" == -- ]] || fail "uso: cortetsu realm exec [--name N] -- CMD..."
+        in_realm "$NAME" "${REST[@]:1}" ;;
+    shot)
+        require_realms; name_arg "$@"; require_live "$NAME"
+        [[ ${#REST[@]} -eq 1 ]] || fail "uso: cortetsu realm shot [--name N] FILE"
+        "$AR" screenshot "$NAME" --output "${REST[0]}" >/dev/null && printf '%s\n' "${REST[0]}" ;;
+    observe) require_realms; name_arg "$@"; require_live "$NAME"; exec "$AR" observe "$NAME" --open ;;
+    qa) qa_cmd "$@" ;;
+    down) require_realms; name_arg "$@"; exec "$AR" stop "$NAME" ;;
+    gc) gc_cmd ;;
+    help|-h|--help) usage ;;
+    *) printf 'ERROR: acción realm desconocida: %s\n\n' "$command" >&2; usage >&2; exit 64 ;;
+esac

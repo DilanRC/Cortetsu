@@ -65,6 +65,7 @@ Usage:
   cortetsu config migrate         Import functional preferences to ~/.config/cortetsu
   cortetsu screenshot [-r] [-f]   Open the Cortetsu regional screenshot picker
   cortetsu record <action>        status|stop for GPU Screen Recorder
+  cortetsu realm <action>         doctor|build|up|relaunch|ipc|exec|shot|observe|qa|down|gc (cortetsu realm help)
   cortetsu emoji [-p] [-f]        Launcher emoji mode (-p) or data refresh (-f)
   cortetsu test                    Run native Rust/Go, Qt and JavaScript regressions
   cortetsu test --developer        Run historical source-contract oracles
@@ -364,6 +365,16 @@ screenshot_cmd() {
     exec qs -p "$CURRENT" ipc call picker open
 }
 
+# Agent Realms: builds and runs a commit away from the live desktop. The
+# repository's copy goes first so the helper always matches agent-realms/.
+realm_cmd() {
+    local helper="${ROOT:+$ROOT/cortetsu/bin/cortetsu-realm}"
+    [[ -n "$helper" && -x "$helper" ]] || helper="$SCRIPT_DIR/cortetsu-realm"
+    [[ -x "$helper" ]] || fail "falta cortetsu-realm; ejecuta desde el clon o reinstala"
+    [[ -z "$ROOT" ]] || export CORTETSU_REPO_ROOT="$ROOT"
+    exec "$helper" "$@"
+}
+
 record_cmd() {
     local action="${1:-status}"
     [[ "$action" == "status" || "$action" == "stop" ]] || fail "acción record inválida: $action"
@@ -413,6 +424,7 @@ test_cmd() {
     run_quickshell_fixture "cortetsu/SecretPromptFixture.qml" "SECRETPROMPT_PASS"
     bash "$ROOT/cortetsu/tests/test-wallpaper-first-select.sh"
     bash "$ROOT/cortetsu/tests/test-qml-compile-check.sh"
+    bash "$ROOT/cortetsu/tests/test-cortetsu-realm.sh"
     printf '\nCortetsu native regressions passed.\n'
 }
 
@@ -492,7 +504,7 @@ recover_cmd() {
 command="${1:-help}"
 shift || true
 case "$command" in
-    help|-h|--help|--version|-V|version|install|test) ;;
+    help|-h|--help|--version|-V|version|install|test|realm) ;;
     *) require_platform ;;
 esac
 case "$command" in
@@ -512,6 +524,7 @@ case "$command" in
     screenshot) screenshot_cmd "$@" ;;
     record) record_cmd "$@" ;;
     emoji) emoji_cmd "$@" ;;
+    realm) realm_cmd "$@" ;;
     test) test_cmd "$@" ;;
     verify) verify_cmd "$@" ;;
     recover) recover_cmd "$@" ;;
