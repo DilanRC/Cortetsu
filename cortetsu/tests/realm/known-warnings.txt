@@ -19,3 +19,9 @@ quickshell\.service\.polkit.*failed to register listener
 cortetsu-polkit: agent not registered; starting polkit-gnome
 # Qt text-input-v3 noise when keyboard focus leaves a layer for no surface.
 qt\.qpa\.wayland\.textinput.*disableSurface
+# Qt asks xdg-desktop-portal (1.22) to register the app ID while the portal is
+# still being activated by that same first client; the portal has already tied
+# the connection to the app's scope and refuses. Seen only when qs is the
+# portal's first client (the first round, or a fresh login on the laptop), never
+# on a relaunch; Cortetsu makes no portal call itself.
+qt\.qpa\.services.*Connection already associated with an application ID

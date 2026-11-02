@@ -9,25 +9,34 @@ Equipo de referencia: eDP-1 (BOE, 1920×1080 @ 144 Hz) en la Radeon integrada
 (`0000:06:00.0`, amdgpu) y HDMI-A-1 (1920×1080 @ 60 Hz) en la RTX 3050 Laptop
 (`0000:01:00.0`, nvidia, `card1`). Hyprland 0.56.2.
 
-## Estado (2026-11-01)
+## Estado (2026-11-02, generación 20261102-120925, commit 24b87d1)
+
+Ejecutado en la sesión real tras `cortetsu install`, `cortetsu shell reload`
+(mismo PID 3249) y `hyprctl reload`. Superficies abiertas y cerradas solo por
+IPC: inyectar Escape con `wtype` llega a la terminal enfocada.
 
 | # | Escenario | Estado | Evidencia |
 |---|---|---|---|
-| 1 | Polkit real: contraseña errónea, reintento, cancelación, foco | NOT_TESTED tras el material Ink | prueba real previa del agente: [POLKIT.md](POLKIT.md#verificación) (2026-10-27) |
-| 2 | Overlays y foco en los dos monitores | PARCIAL: presencia de capas observada; foco NOT_TESTED | ver abajo |
-| 3 | HDMI en la ruta NVIDIA | PARCIAL: salida detectada y activa; superficies NOT_TESTED | ver abajo |
-| 4 | GameMode y fullscreen (Warframe) | NOT_TESTED | procedimiento en [GAME_MODE.md](GAME_MODE.md#prueba-física-pendiente-pending_physical) |
-| 5 | Consumo y activación de la GPU | NOT_TESTED | — |
-| 6 | Suspensión y reanudación | NOT_TESTED: requiere autorización explícita | — |
+| 1 | Polkit: diálogo, monitor, foco, cancelación | PASS | `pkexec true` en HDMI-A-1 y en eDP-1: el diálogo aparece en el monitor del cursor, recibe Escape y `pkexec` sale con 126; no queda capa |
+| 1b | Polkit: contraseña errónea y reintento | NOT_TESTED | ver hallazgo abajo: no se arriesga un bloqueo |
+| 2 | Overlays en dos monitores | PASS | HDMI-A-1: Dashboard, Calendario, sesión, launcher, Ajustes rápidos y popouts de red, audio y batería abren en ese monitor y cierran. eDP-1 con un navegador en fullscreen 2: launcher, sesión y Dashboard no abren (`fullscreenGuard`, previsto); Calendario sí |
+| 2b | Teclado en el launcher | NOT_TESTED en vivo | probado en realm y arnés; en vivo no se inyectan teclas |
+| 3 | HDMI en la ruta NVIDIA | PASS | las superficies se dibujan en HDMI-A-1 (`card1`, nvidia) con transparencia |
+| 4 | GameMode | PASS | dos ciclos enable/disable: activo cambia animaciones, blur, sombras, huecos, rounding y tearing como la tabla de [GAME_MODE.md](GAME_MODE.md); al desactivar, `diff` vacío y estado `INACTIVE` |
+| 4b | Warframe en fullscreen | NOT_TESTED | requiere jugar; la guarda de fullscreen se observó con el navegador |
+| 5 | Consumo de GPU sin HDMI | NOT_TESTED | requiere desconectar el cable; con HDMI la NVIDIA está `active`, como se espera |
+| 6 | Suspensión y reanudación | PASS con reserva | s2idle 12:45:58 → 12:46:24; shell con el mismo PID; el inhibidor «Lock before sleep» se recreó tras despertar (el Lock quedó seguro y se desbloqueó). HDMI no respondió a `grim` los primeros ~30 s y se recuperó solo tras renegociar el enlace (`nvidia-modeset`), sin DPMS |
 
-Observado el 2026-11-01 sin interactuar con el shell (solo `hyprctl` de lectura
-y sysfs):
+### Hallazgo: cancelar polkit cuenta para faillock
 
-- Los dos conectores están `connected`; HDMI-A-1 cuelga de `card1` (nvidia).
-- `cortetsu-background` existe en ambos monitores. `cortetsu-drawers` existe en
-  HDMI-A-1 y no en eDP-1, donde había un navegador en fullscreen 2: es el
-  comportamiento previsto (`ContentWindow.visible` se apaga sobre fullscreen).
-- La NVIDIA estaba en `runtime_status=active`, esperable con HDMI conectado.
+Cada cancelación (Escape) quedó en `faillock --user $USER` como fallo
+`polkit-1`. Dos cancelaciones son dos de los tres fallos que bloquean la cuenta
+diez minutos. El diálogo cancela con `cancelAuthenticationRequest()` y no envía
+contraseña; el registro lo hace el helper de polkit al abortar la conversación
+PAM. No se comprobó si polkit-gnome hace lo mismo: un tercer intento habría
+bloqueado la cuenta. Las entradas caducan solas a los 15 min (`fail_interval`).
+Para comprobarlo sin riesgo, usa una cuenta de prueba o
+`faillock --user $USER --reset` (root) entre intentos.
 
 ## 1. Polkit real
 
