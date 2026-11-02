@@ -408,7 +408,10 @@ pub fn nvidia_query(query: &str, devices: &[Value]) -> Option<String> {
 }
 // A driver without gpu_busy_percent has no load reading: null, not 0 %.
 fn busy_percent(dev: &Path) -> Value {
-    rounded(number(&dev.join("gpu_busy_percent"), 1.).map(|x| x.clamp(0., 100.)), 1)
+    rounded(
+        number(&dev.join("gpu_busy_percent"), 1.).map(|x| x.clamp(0., 100.)),
+        1,
+    )
 }
 // DRM cards from vendors without a dedicated reader (Intel, unknown): listed
 // with whatever sysfs exposes, so the GPU is never silently missing.
@@ -424,12 +427,20 @@ fn other_gpus() -> Vec<Value> {
         {
             continue;
         }
-        let temp = children(&dev.join("hwmon")).iter().find_map(|h| temperatures(h));
+        let temp = children(&dev.join("hwmon"))
+            .iter()
+            .find_map(|h| temperatures(h));
         let name = pci_ids_name(
             vendor_id.trim_start_matches("0x"),
-            read(&dev.join("device")).to_lowercase().trim_start_matches("0x"),
+            read(&dev.join("device"))
+                .to_lowercase()
+                .trim_start_matches("0x"),
         );
-        let vendor = if vendor_id == "0x8086" { "Intel" } else { "Desconocida" };
+        let vendor = if vendor_id == "0x8086" {
+            "Intel"
+        } else {
+            "Desconocida"
+        };
         out.push(json!({"vendor":vendor,"vendor_id":vendor_id,"card":basename(&card),"name":if name.is_empty(){format!("GPU {vendor}")}else{name},"usage":busy_percent(&dev),"temp_c":rounded(temp,1),"vram_total_gb":null,"vram_used_gb":null,"power_w":null}));
     }
     out

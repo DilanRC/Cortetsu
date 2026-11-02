@@ -73,7 +73,11 @@ fn load(repo: &Path) -> Result<Value> {
             return fail(format!("invalid motion.{name}"));
         }
     }
-    for (exit, entry) in [("popover_exit_ms", "popover_ms"), ("panel_exit_ms", "panel_ms"), ("summon_exit_ms", "summon_ms")] {
+    for (exit, entry) in [
+        ("popover_exit_ms", "popover_ms"),
+        ("panel_exit_ms", "panel_ms"),
+        ("summon_exit_ms", "summon_ms"),
+    ] {
         if m[exit].as_i64() >= m[entry].as_i64() {
             return fail(format!("motion.{exit} must be shorter than motion.{entry}"));
         }
@@ -93,21 +97,24 @@ fn load(repo: &Path) -> Result<Value> {
             .as_array()
             .map(|a| a.iter().filter_map(Value::as_f64).collect())
             .unwrap_or_default();
-        if points.len() != 4 || ![points[0], points[2]].iter().all(|x| (0.0..=1.0).contains(x)) {
-            return fail(format!("invalid motion.{name}: expected [x1, y1, x2, y2] with x in 0..1"));
+        if points.len() != 4
+            || ![points[0], points[2]]
+                .iter()
+                .all(|x| (0.0..=1.0).contains(x))
+        {
+            return fail(format!(
+                "invalid motion.{name}: expected [x1, y1, x2, y2] with x in 0..1"
+            ));
         }
     }
     // Family names land inside a JS string literal in the generated theme.
     for name in ["ui_family", "ink_family", "kanji_family"] {
-        if !v["typography"][name]
-            .as_str()
-            .is_some_and(|s| {
-                !s.trim().is_empty()
-                    && !s.chars().any(|c| {
-                        c.is_control() || matches!(c, '"' | '\\' | '\u{2028}' | '\u{2029}')
-                    })
-            })
-        {
+        if !v["typography"][name].as_str().is_some_and(|s| {
+            !s.trim().is_empty()
+                && !s
+                    .chars()
+                    .any(|c| c.is_control() || matches!(c, '"' | '\\' | '\u{2028}' | '\u{2029}'))
+        }) {
             return fail(format!("invalid typography.{name}"));
         }
     }

@@ -148,14 +148,27 @@ fn awake_nvidia_that_nvidia_smi_cannot_read_stays_listed() {
     assert!(p["gpus"][0]["usage"].is_null());
     assert_eq!(p["simulated"], true);
     let power = output(run(&t, &["cortetsu-hardware-power"]));
-    let nvidia = power["gpus"].as_array().unwrap().iter().find(|g| g["vendor"] == "NVIDIA").unwrap().clone();
+    let nvidia = power["gpus"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|g| g["vendor"] == "NVIDIA")
+        .unwrap()
+        .clone();
     assert_eq!(nvidia["state"], "unavailable");
 }
 #[test]
 fn intel_unknown_and_unread_amd_gpus_never_report_invented_load() {
     let t = setup();
-    exe(&t.path().join("bin/nvidia-smi"), "#!/bin/sh\ntouch \"$HOME/smi-called\"\nexit 9\n");
-    for (card, vendor, busy) in [("card0", "0x1002", None), ("card1", "0x8086", None), ("card2", "0x1a03", Some("37"))] {
+    exe(
+        &t.path().join("bin/nvidia-smi"),
+        "#!/bin/sh\ntouch \"$HOME/smi-called\"\nexit 9\n",
+    );
+    for (card, vendor, busy) in [
+        ("card0", "0x1002", None),
+        ("card1", "0x8086", None),
+        ("card2", "0x1a03", Some("37")),
+    ] {
         let dev = t.path().join("sys/class/drm").join(card).join("device");
         fs::create_dir_all(&dev).unwrap();
         fs::write(dev.join("vendor"), format!("{vendor}\n")).unwrap();
@@ -173,12 +186,20 @@ fn intel_unknown_and_unread_amd_gpus_never_report_invented_load() {
     let p = output(run(&t, &["cortetsu-hardware-probe", "--gpus"]));
     let gpus = p["gpus"].as_array().unwrap();
     assert_eq!(gpus.len(), 3, "{p}");
-    let by = |v: &str| gpus.iter().find(|g| g["vendor"] == v).unwrap_or_else(|| panic!("{v} missing: {p}")).clone();
+    let by = |v: &str| {
+        gpus.iter()
+            .find(|g| g["vendor"] == v)
+            .unwrap_or_else(|| panic!("{v} missing: {p}"))
+            .clone()
+    };
     assert!(by("AMD")["usage"].is_null());
     assert!(by("Intel")["usage"].is_null());
     assert_eq!(by("Desconocida")["usage"], 37.0);
     assert_eq!(by("Desconocida")["vendor_id"], "0x1a03");
-    assert!(!t.path().join("smi-called").exists(), "no NVIDIA device: nvidia-smi must not run");
+    assert!(
+        !t.path().join("smi-called").exists(),
+        "no NVIDIA device: nvidia-smi must not run"
+    );
 }
 
 fn request(

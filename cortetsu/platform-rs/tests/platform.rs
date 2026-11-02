@@ -277,11 +277,17 @@ fn theme_rejects_a_font_name_that_would_break_the_generated_string() {
         let s = Sandbox::new();
         s.put(
             "repo/dotfiles/home/.config/cortetsu/ui.toml",
-            &ui.replace("ink_family = \"Noto Serif\"", &format!("ink_family = {bad}")),
+            &ui.replace(
+                "ink_family = \"Noto Serif\"",
+                &format!("ink_family = {bad}"),
+            ),
         );
         let out = s.run(&["theme", "check", "--repo", &s.repo()]);
         assert!(!out.status.success(), "{bad} was accepted");
-        assert!(String::from_utf8_lossy(&out.stderr).contains("invalid typography.ink_family"), "{bad}");
+        assert!(
+            String::from_utf8_lossy(&out.stderr).contains("invalid typography.ink_family"),
+            "{bad}"
+        );
     }
 }
 #[test]

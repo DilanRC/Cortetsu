@@ -97,7 +97,12 @@ fn read_request(stream: &TcpStream) -> Option<Request> {
     }
     let mut body = vec![0; length];
     reader.read_exact(&mut body).ok()?;
-    Some(Request { method, path, origin, body })
+    Some(Request {
+        method,
+        path,
+        origin,
+        body,
+    })
 }
 
 fn respond(mut stream: &TcpStream, status: &str) {
@@ -129,12 +134,22 @@ fn handle(stream: TcpStream) -> Option<String> {
     let line = serde_json::from_slice::<Value>(&req.body)
         .ok()
         .and_then(|v| normalise_spotify(&v));
-    respond(&stream, if line.is_some() { "204 No Content" } else { "422 Unprocessable Entity" });
+    respond(
+        &stream,
+        if line.is_some() {
+            "204 No Content"
+        } else {
+            "422 Unprocessable Entity"
+        },
+    );
     line.map(|v| v.to_string())
 }
 
 fn clean_text(s: &str) -> String {
-    s.chars().filter(|c| !c.is_control()).take(MAX_TEXT).collect()
+    s.chars()
+        .filter(|c| !c.is_control())
+        .take(MAX_TEXT)
+        .collect()
 }
 
 /// Accepts what the extension sends and keeps only well-formed fields, so
@@ -168,9 +183,15 @@ pub fn parse_lrc(lrc: &str) -> Vec<Value> {
         let mut rest = raw.trim();
         let mut stamps = Vec::new();
         while let Some(body) = rest.strip_prefix('[') {
-            let Some((stamp, after)) = body.split_once(']') else { break };
-            let Some((m, s)) = stamp.split_once(':') else { break };
-            let (Ok(m), Ok(s)) = (m.parse::<u64>(), s.parse::<f64>()) else { break };
+            let Some((stamp, after)) = body.split_once(']') else {
+                break;
+            };
+            let Some((m, s)) = stamp.split_once(':') else {
+                break;
+            };
+            let (Ok(m), Ok(s)) = (m.parse::<u64>(), s.parse::<f64>()) else {
+                break;
+            };
             stamps.push(m * 60_000 + (s * 1000.0).round() as u64);
             rest = after.trim_start();
         }
@@ -179,7 +200,9 @@ pub fn parse_lrc(lrc: &str) -> Vec<Value> {
         }
     }
     out.sort_by_key(|(t, _)| *t);
-    out.into_iter().map(|(t, text)| json!({"t": t, "text": text})).collect()
+    out.into_iter()
+        .map(|(t, text)| json!({"t": t, "text": text}))
+        .collect()
 }
 
 fn from_lrclib(v: &Value) -> Option<Value> {
@@ -234,7 +257,9 @@ fn lookup(args: &[&str]) -> Result<i32> {
         let lines = if synced {
             lines
         } else {
-            lrc.lines().map(|l| json!({"t": 0, "text": clean_text(l.trim())})).collect()
+            lrc.lines()
+                .map(|l| json!({"t": 0, "text": clean_text(l.trim())}))
+                .collect()
         };
         emit(&json!({"source": "local", "synced": synced, "lines": lines}))?;
         return Ok(0);
@@ -244,7 +269,9 @@ fn lookup(args: &[&str]) -> Result<i32> {
         return Ok(0);
     }
     let album = flag(args, "--album").unwrap_or("");
-    let duration = flag(args, "--duration").and_then(|d| d.parse::<f64>().ok()).unwrap_or(0.0);
+    let duration = flag(args, "--duration")
+        .and_then(|d| d.parse::<f64>().ok())
+        .unwrap_or(0.0);
     let agent = ureq::AgentBuilder::new()
         .timeout(Duration::from_secs(8))
         .user_agent("Cortetsu (https://github.com/dilan/cortetsu)")
@@ -273,7 +300,9 @@ fn lookup(args: &[&str]) -> Result<i32> {
             .call()?
             .into_json()?;
         let hits = hits.as_array().cloned().unwrap_or_default();
-        let near = |h: &&Value| duration <= 0.0 || (h["duration"].as_f64().unwrap_or(0.0) - duration).abs() < 4.0;
+        let near = |h: &&Value| {
+            duration <= 0.0 || (h["duration"].as_f64().unwrap_or(0.0) - duration).abs() < 4.0
+        };
         found = hits
             .iter()
             .filter(near)
@@ -292,7 +321,10 @@ mod tests {
     #[test]
     fn lrc_lines_are_sorted_and_multi_stamped() {
         let lines = parse_lrc("[00:12.50]b\n[00:01.00][00:20.00]a\n[ar:x]\nplain");
-        let got: Vec<(u64, &str)> = lines.iter().map(|l| (l["t"].as_u64().unwrap(), l["text"].as_str().unwrap())).collect();
+        let got: Vec<(u64, &str)> = lines
+            .iter()
+            .map(|l| (l["t"].as_u64().unwrap(), l["text"].as_str().unwrap()))
+            .collect();
         assert_eq!(got, vec![(1000, "a"), (12500, "b"), (20000, "a")]);
     }
 
@@ -317,8 +349,16 @@ mod tests {
     fn local_files_match_without_case() {
         let dir = tempfile::tempdir().unwrap();
         std::fs::create_dir(dir.path().join("sub")).unwrap();
-        std::fs::write(dir.path().join("sub/Enanitos Verdes - Lamento Boliviano.LRC"), "[00:01.00]x").unwrap();
-        assert_eq!(local_file(dir.path(), "enanitos verdes", "lamento boliviano").as_deref(), Some("[00:01.00]x"));
+        std::fs::write(
+            dir.path()
+                .join("sub/Enanitos Verdes - Lamento Boliviano.LRC"),
+            "[00:01.00]x",
+        )
+        .unwrap();
+        assert_eq!(
+            local_file(dir.path(), "enanitos verdes", "lamento boliviano").as_deref(),
+            Some("[00:01.00]x")
+        );
         assert!(local_file(dir.path(), "otro", "tema").is_none());
     }
 

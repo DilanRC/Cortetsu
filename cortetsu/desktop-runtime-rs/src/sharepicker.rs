@@ -21,10 +21,10 @@ use std::{
     env, fs,
     io::{BufRead, BufReader, ErrorKind, Read, Write},
     os::unix::{
+        fs::OpenOptionsExt,
         fs::{DirBuilderExt, PermissionsExt},
         net::{UnixListener, UnixStream},
         process::CommandExt,
-        fs::OpenOptionsExt,
     },
     path::{Path, PathBuf},
     process::{Command, Stdio},
@@ -72,7 +72,11 @@ pub fn selection(answer: &Value, token: &str, windows: &[Window]) -> Option<Stri
     if answer["token"].as_str() != Some(token) {
         return None;
     }
-    let flags = if answer["remember"].as_bool() == Some(true) { "r" } else { "" };
+    let flags = if answer["remember"].as_bool() == Some(true) {
+        "r"
+    } else {
+        ""
+    };
     let target = match answer["type"].as_str()? {
         "screen" => {
             let output = answer["output"].as_str()?;
@@ -122,7 +126,10 @@ fn socket_dir() -> Result<PathBuf> {
         .filter(|s| !s.is_empty())
         .ok_or("XDG_RUNTIME_DIR is not set")?;
     let dir = PathBuf::from(runtime).join("cortetsu");
-    fs::DirBuilder::new().recursive(true).mode(0o700).create(&dir)?;
+    fs::DirBuilder::new()
+        .recursive(true)
+        .mode(0o700)
+        .create(&dir)?;
     fs::set_permissions(&dir, fs::Permissions::from_mode(0o700))?;
     Ok(dir)
 }
@@ -221,7 +228,13 @@ fn last_path() -> Result<PathBuf> {
 
 /// The selection a recent choice gives for this request, if it is recent
 /// enough and still names something offered now.
-pub fn reuse(saved: &Value, now: u64, window_ms: u64, token: &str, windows: &[Window]) -> Option<String> {
+pub fn reuse(
+    saved: &Value,
+    now: u64,
+    window_ms: u64,
+    token: &str,
+    windows: &[Window],
+) -> Option<String> {
     let at = saved["at"].as_u64()?;
     if now < at || now - at > window_ms {
         return None;
@@ -271,7 +284,11 @@ pub fn main(_args: &[String]) -> Result<i32> {
         std::io::stdout().lock().write_all(sel.as_bytes())?;
         return Ok(0);
     }
-    let path = socket_dir()?.join(format!("share-picker-{}-{}.sock", std::process::id(), &token[..8]));
+    let path = socket_dir()?.join(format!(
+        "share-picker-{}-{}.sock",
+        std::process::id(),
+        &token[..8]
+    ));
     let _ = fs::remove_file(&path);
     let listener = UnixListener::bind(&path)?;
     let _guard = Socket(path.clone());
@@ -356,10 +373,21 @@ mod tests {
         let w = parse_list(LIST);
         let t = "tok";
         let s = |v: Value| selection(&v, t, &w);
-        assert_eq!(s(json!({"token": "other", "type": "screen", "output": "DP-1"})), None);
+        assert_eq!(
+            s(json!({"token": "other", "type": "screen", "output": "DP-1"})),
+            None
+        );
         assert_eq!(s(json!({"token": t, "type": "window", "handle": 99})), None);
-        assert_eq!(s(json!({"token": t, "type": "screen", "output": "DP-1\n[SELECTION]x"})), None);
-        assert_eq!(s(json!({"token": t, "type": "region", "output": "DP-1", "x": 0, "y": 0, "w": 0, "h": 5})), None);
+        assert_eq!(
+            s(json!({"token": t, "type": "screen", "output": "DP-1\n[SELECTION]x"})),
+            None
+        );
+        assert_eq!(
+            s(
+                json!({"token": t, "type": "region", "output": "DP-1", "x": 0, "y": 0, "w": 0, "h": 5})
+            ),
+            None
+        );
         assert_eq!(s(json!({"token": t, "type": "cancel"})), None);
         assert_eq!(s(Value::Null), None);
     }
@@ -367,13 +395,29 @@ mod tests {
     #[test]
     fn reuses_a_recent_choice_only_while_it_is_offered() {
         let windows = parse_list(LIST);
-        let saved = json!({"at": 1_000, "answer": {"type": "window", "handle": 12, "remember": false}});
-        assert_eq!(reuse(&saved, 5_000, 15_000, "t", &windows).as_deref(), Some("[SELECTION]/window:12\n"));
-        assert!(reuse(&saved, 20_000, 15_000, "t", &windows).is_none(), "too old");
-        assert!(reuse(&saved, 500, 15_000, "t", &windows).is_none(), "clock went back");
-        assert!(reuse(&saved, 5_000, 15_000, "t", &[]).is_none(), "window gone");
+        let saved =
+            json!({"at": 1_000, "answer": {"type": "window", "handle": 12, "remember": false}});
+        assert_eq!(
+            reuse(&saved, 5_000, 15_000, "t", &windows).as_deref(),
+            Some("[SELECTION]/window:12\n")
+        );
+        assert!(
+            reuse(&saved, 20_000, 15_000, "t", &windows).is_none(),
+            "too old"
+        );
+        assert!(
+            reuse(&saved, 500, 15_000, "t", &windows).is_none(),
+            "clock went back"
+        );
+        assert!(
+            reuse(&saved, 5_000, 15_000, "t", &[]).is_none(),
+            "window gone"
+        );
         let screen = json!({"at": 1_000, "answer": {"type": "screen", "output": "DP-1"}});
-        assert_eq!(reuse(&screen, 2_000, 15_000, "t", &[]).as_deref(), Some("[SELECTION]/screen:DP-1\n"));
+        assert_eq!(
+            reuse(&screen, 2_000, 15_000, "t", &[]).as_deref(),
+            Some("[SELECTION]/screen:DP-1\n")
+        );
     }
 
     #[test]
