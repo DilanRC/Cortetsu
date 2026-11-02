@@ -260,6 +260,9 @@ def make_http_handler(observer: Observer) -> type[BaseHTTPRequestHandler]:
         def send_error(self, code: int, message: str | None = None, explain: str | None = None) -> None:
             # The stock page echoes the request line; answer with a fixed body instead.
             self.close_connection = True
+            # Python < 3.13 takes a request without a version as HTTP/0.9 and
+            # would answer with a bare body; a refusal always has a status line.
+            self.request_version = "HTTP/1.0"
             self._error(code, "petición HTTP inválida")
 
         def _route(self) -> str | None:
