@@ -61,54 +61,6 @@ Scope {
             if (CortetsuConfig.idleLockBeforeSleep)
                 root.lock.requestLock();
         }
-        function onResumed(): void {
-            nvidiaWakeDelay.restart();
-        }
-    }
-
-    // After s2idle an output on the NVIDIA dGPU comes back without frames: its
-    // first page flip never completes until the monitor cycles hot-plug, about
-    // 30 s later. Turning those outputs off and on forces a modeset; on the
-    // reference laptop frames returned 3 s after it. See docs/PHYSICAL_QA.md.
-    property var nvidiaWake: []
-
-    // logind reports the wake before Hyprland has reopened its DRM devices;
-    // the cycle was measured with the output already stalled, 2 s in.
-    Timer {
-        id: nvidiaWakeDelay
-        interval: 2000
-        onTriggered: nvidiaOutputs.running = true
-    }
-
-    // startup inventory: cortetsu:resume-nvidia-outputs
-    Process {
-        id: nvidiaOutputs
-        command: ["cortetsu-nvibrant", "status"]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                let outputs = [];
-                try {
-                    outputs = JSON.parse(text).outputs ?? [];
-                } catch (error) {
-                    console.warn("cortetsu-idle: unreadable NVIDIA output list after resume");
-                }
-                root.nvidiaWake = outputs.filter(output => output.connected).map(output => output.connector);
-                for (const name of root.nvidiaWake)
-                    CortetsuHypr.setDpms(false, name);
-                if (root.nvidiaWake.length > 0)
-                    nvidiaDpmsOn.restart();
-            }
-        }
-    }
-
-    // A lost "on" cannot strand the output: any key turns it back on (misc.key_press_enables_dpms).
-    Timer {
-        id: nvidiaDpmsOn
-        interval: 1000
-        onTriggered: {
-            for (const name of root.nvidiaWake)
-                CortetsuHypr.setDpms(true, name);
-        }
     }
 
     // Delays sleep until the compositor confirms the lock, so resume never shows the desktop.

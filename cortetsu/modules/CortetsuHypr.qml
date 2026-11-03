@@ -317,8 +317,8 @@ Singleton {
         return dispatchAction(HyprActions.moveCursor(x, y));
     }
 
-    function setDpms(on: bool, monitor: var): bool {
-        return dispatchAction(monitor === undefined ? HyprActions.dpms(on) : HyprActions.dpms(on, monitor));
+    function setDpms(on: bool): bool {
+        return dispatchAction(HyprActions.dpms(on));
     }
 
     function exitHyprland(): bool {
