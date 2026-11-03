@@ -421,7 +421,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-startup-test-") as temp:
         "cortetsu:hardware-power-probe", "cortetsu:hardware-power-automation-status",
         "cortetsu:keyboards-watch", "cortetsu:settings-keybind-list", "cortetsu:hardware-energy-probe", "cortetsu:hardware-startup-scan",
         "cortetsu:display-calibration-control",
-        "cortetsu:session-sleep-monitor", "cortetsu:session-sleep-capability", "cortetsu:session-sleep-lock",
+        "cortetsu:session-sleep-monitor", "cortetsu:session-sleep-capability", "cortetsu:session-sleep-lock", "cortetsu:resume-nvidia-outputs",
         "cortetsu:keyboard-state", "cortetsu:window-list",
     }
     for entry in app.CORTETSU_STARTUP:

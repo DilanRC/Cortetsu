@@ -105,6 +105,12 @@ TestCase {
         compare(action.lua, 'hl.dsp.dpms({ action = "off" })');
         compare(action.legacy, "dpms off");
         verify(HyprActions.dpms("on") === null);
+        action = HyprActions.dpms(false, "HDMI-A-1");
+        compare(action.lua, 'hl.dsp.dpms({ action = "off", monitor = "HDMI-A-1" })');
+        compare(action.legacy, "dpms off HDMI-A-1");
+        verify(HyprActions.dpms(true, 'x" }) hl.dsp.exit() --') === null);
+        verify(HyprActions.dpms(true, "") === null);
+        verify(HyprActions.dpms(true, 1) === null);
 
         action = HyprActions.exit();
         compare(action.lua, "hl.dsp.exit()");
