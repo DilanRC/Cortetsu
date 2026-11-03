@@ -190,7 +190,16 @@ CortetsuPopupSurface {
                 focusEdge(1);
             }
 
-            Component.onCompleted: Qt.callLater(restoreFocus)
+            // A child Timer, not a queued call: a tray app that quits with its
+            // menu open destroys this Column, and a queued call would then
+            // run restoreFocus on the dead object.
+            Timer {
+                id: focusRestore
+                interval: 0
+                onTriggered: menu.restoreFocus()
+            }
+
+            Component.onCompleted: focusRestore.restart()
 
             QsMenuOpener {
                 id: opener
@@ -203,15 +212,15 @@ CortetsuPopupSurface {
                 // the Repeater model preserves asynchronous DBus menu updates.
                 model: opener.children
 
-                onItemAdded: Qt.callLater(menu.restoreFocus)
-                onItemRemoved: Qt.callLater(menu.restoreFocus)
+                onItemAdded: focusRestore.restart()
+                onItemRemoved: focusRestore.restart()
 
                 CortetsuSurface {
                     required property int index
                     required property QsMenuEntry modelData
                     readonly property bool separator: modelData?.isSeparator ?? false
-                    onEnabledChanged: Qt.callLater(menu.restoreFocus)
-                    onSeparatorChanged: Qt.callLater(menu.restoreFocus)
+                    onEnabledChanged: focusRestore.restart()
+                    onSeparatorChanged: focusRestore.restart()
                     readonly property real naturalWidth: (modelData?.isSeparator ?? false)
                         ? 0
                         : labelMetrics.width

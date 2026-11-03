@@ -25,6 +25,8 @@ assert "required property QsMenuEntry modelData" in source
 assert "CortetsuPopupSurface" in source
 assert "CortetsuStateLayer" in source
 assert "Keys.onPressed" in source
+assert "Qt.callLater" not in source, "a queued call outlives a menu destroyed when its tray app quits"
+assert "onTriggered: menu.restoreFocus()" in source
 assert "StackView.onRemoved: destroy()" not in source, "StackView owns pages created from Components"
 assert "initialItem: menuComponent" in source
 assert "childrenRect.height + padding * 2" in source, "menu height must track actual delegate insertion/removal"
