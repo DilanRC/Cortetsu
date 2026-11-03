@@ -30,7 +30,7 @@ contraseñas las escribió Dilan.
 | 3 | HDMI en la ruta NVIDIA | PASS | las superficies se dibujan en HDMI-A-1 (`card1`, nvidia) con transparencia |
 | 4 | GameMode | PASS | dos ciclos enable/disable: activo cambia animaciones, blur, sombras, huecos, rounding y tearing como la tabla de [GAME_MODE.md](GAME_MODE.md); al desactivar, `diff` vacío y estado `INACTIVE` |
 | 5 | NVIDIA en reposo sin HDMI | FAIL externo | HDMI desconectado de 21:29:45 a 21:32:05: `runtime_suspended_time` sigue en 0 ms desde el arranque. El driver declara `Runtime D3 status: Not supported`. Ver hallazgo 3 |
-| 6 | Suspensión y reanudación | PASS; HDMI corregido | ver hallazgo 2. Shell con el mismo PID tras dos s2idle; el inhibidor «Lock before sleep» se recrea |
+| 6 | Suspensión y reanudación | FAIL externo con HDMI | ver hallazgo 2. eDP-1, shell (mismo PID) e inhibidor se recuperan; HDMI tarda ~30 s, y en la tercera prueba (21:56) el driver NVIDIA bloqueó la sesión y hubo que reiniciar |
 
 ### Hallazgo 1: cancelar polkit contaba para faillock
 
@@ -92,24 +92,28 @@ imagen en 0,5 s y sin timeout: el enlace solo vuelve con un modeset nuevo.
 monitor. Ni Cortetsu ni `power-auto` intervienen: el shell renderiza en la
 Radeon (`renderD129`) y conserva su PID.
 
-**Corrección.** Al despertar, `IdleMonitors.qml` lista las salidas NVIDIA
-conectadas con `cortetsu-nvibrant status` (solo lee sysfs) y las apaga y
-enciende por DPMS, cada una por su nombre, 2 s después de despertar (antes,
-Hyprland aún no ha reabierto sus dispositivos DRM). eDP-1 y las salidas de otras GPU no
-se tocan. Si el «on» se perdiera, cualquier tecla enciende la salida
-(`misc.key_press_enables_dpms`).
+**Medida manual (21:14).** Sin intervenir, HDMI siguió sin fotogramas 11,6 s
+tras despertar; un ciclo DPMS solo en HDMI-A-1, lanzado a mano, los devolvió
+3,0 s después.
 
-**Medida (21:14, una suspensión autorizada).** Sin intervenir, HDMI siguió sin
-fotogramas 11,6 s tras despertar; el ciclo DPMS solo en HDMI-A-1 los devolvió
-3,0 s después (+14,6 s) y no apareció el `Flip event timeout`. Frente a ~30 s.
-Con la corrección automática el ciclo empieza 2 s después de despertar, así
-que se esperan unos 5 s; queda por medirlo en la próxima suspensión.
+**Corrección automática retirada.** Se instaló un ciclo DPMS automático de las
+salidas NVIDIA 2 s después de despertar (commit 386c969) y se midió en una
+suspensión real a las 21:56. Esa reanudación ya empezó mal:
+`nvidia-drm: Failed to register auto-value-update` al despertar y
+`nvidia-modeset: Lost display notification` a +4,4 s, cuando corrió el ciclo.
+HDMI no recuperó la imagen en 60 s (`grim` intermitente), Hyprland dejó de
+responder por IPC, desconectar el cable no lo recuperó y hubo que reiniciar.
+No está demostrado que el ciclo causara el cuelgue, pero forzar un modeset con
+el driver en ese estado no es seguro. Se revirtió (commit «Revert "fix(idle)…"»).
+
+**Estado.** Defecto externo del driver NVIDIA 615.78.08 en s2idle, sin
+corrección en Cortetsu. Con HDMI conectado, la recuperación es la de antes
+(~30 s, sola). No lances DPMS a mano sobre HDMI justo tras despertar.
 
 **Alternativas no aplicadas.** `NVreg_EnableS0ixPowerManagement=1` (el driver
 informa de soporte S0ix y estado desactivado) cambia la gestión de energía de
-la dGPU en s2idle; requiere medir consumo antes de proponerlo.
-
-Rollback: revertir el commit; el resto del ciclo de suspensión no cambia.
+la dGPU en s2idle; requiere medir consumo y estabilidad antes de proponerlo.
+Desconectar HDMI antes de suspender evita el problema.
 
 ### Hallazgo 3: la NVIDIA nunca entra en RTD3
 
@@ -224,8 +228,8 @@ hyprctl monitors -j | jq -c '.[] | {name, dpmsStatus}'
 ```
 
 PASS: el Lock aparece al despertar en ambos monitores, desbloquea, el shell
-sigue vivo (mismo PID) y HDMI-A-1 vuelve a mostrar imagen en unos 5 s (el
-ciclo DPMS automático del hallazgo 2 parpadea una vez). FAIL: shell
-reiniciado, Lock ausente o HDMI sin imagen pasados 10 s.
+sigue vivo (mismo PID) y HDMI-A-1 vuelve a mostrar imagen. FAIL: shell
+reiniciado, Lock ausente o HDMI congelado (defecto conocido del driver, ver
+hallazgo 2).
 Rollback: si HDMI queda congelado, desconecta y reconecta el cable; si el shell
 no responde, `cortetsu shell reload`.
