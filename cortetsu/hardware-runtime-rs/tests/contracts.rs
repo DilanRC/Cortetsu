@@ -397,15 +397,18 @@ fn cancellation_terminates_spawned_process_group() {
         .unwrap();
     let deadline = Instant::now() + Duration::from_secs(2);
     let path = t.path().join("child-pid");
-    while !path.exists() {
+    // The shell's `>` creates the file before `echo` writes to it, so wait
+    // for a whole pid, not just for the file.
+    let pid = loop {
+        if let Some(pid) = fs::read_to_string(&path)
+            .ok()
+            .and_then(|text| text.strip_suffix('\n').and_then(|n| n.parse::<i32>().ok()))
+        {
+            break pid;
+        }
         assert!(Instant::now() < deadline);
         thread::sleep(Duration::from_millis(5));
-    }
-    let pid = fs::read_to_string(path)
-        .unwrap()
-        .trim()
-        .parse::<i32>()
-        .unwrap();
+    };
     kill(Pid::from_raw(child.id() as i32), Signal::SIGTERM).unwrap();
     let _ = child.wait();
     let proc = fs::read_to_string(format!("/proc/{pid}/stat")).unwrap_or_default();
