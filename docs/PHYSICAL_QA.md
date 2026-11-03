@@ -7,7 +7,8 @@ fish. Ninguna se automatiza contra la sesión real.
 
 Equipo de referencia: eDP-1 (BOE, 1920×1080 @ 144 Hz) en la Radeon integrada
 (`0000:06:00.0`, amdgpu) y HDMI-A-1 (1920×1080 @ 60 Hz) en la RTX 3050 Laptop
-(`0000:01:00.0`, nvidia, `card1`). Hyprland 0.56.2.
+(`0000:01:00.0`, nvidia, `card1`). Hyprland 0.56.2 en las pasadas del
+2026-11-02; 0.57.0 desde la revisión 2.1. Driver NVIDIA open 615.78.08.
 
 ## Estado (2026-11-02)
 
@@ -29,8 +30,8 @@ contraseñas las escribió Dilan.
 | 2b | Teclado en el launcher | PASS (informe de Dilan) | SUPER en eDP-1 y en HDMI-A-1: búsqueda con foco al abrir (captura con el cursor en el campo), escritura, flechas, Enter abre la app, Escape cierra y el foco vuelve a la ventana anterior, siempre en el monitor enfocado. El registro por IPC muestra ráfagas de abrir y cerrar cada ~0,45 s, compatibles con toques repetidos de SUPER; no se observó parpadeo |
 | 3 | HDMI en la ruta NVIDIA | PASS | las superficies se dibujan en HDMI-A-1 (`card1`, nvidia) con transparencia |
 | 4 | GameMode | PASS | dos ciclos enable/disable: activo cambia animaciones, blur, sombras, huecos, rounding y tearing como la tabla de [GAME_MODE.md](GAME_MODE.md); al desactivar, `diff` vacío y estado `INACTIVE` |
-| 5 | NVIDIA en reposo sin HDMI | FAIL externo | HDMI desconectado de 21:29:45 a 21:32:05: `runtime_suspended_time` sigue en 0 ms desde el arranque. El driver declara `Runtime D3 status: Not supported`. Ver hallazgo 3 |
-| 6 | Suspensión y reanudación | PASS con reserva | ver hallazgo 2. Con la corrección, la suspensión de Dilan (21:55) recupera HDMI enseguida; una suspensión encadenada con capturas en bucle (21:56) bloqueó la sesión |
+| 5 | NVIDIA en reposo sin HDMI | PASS con 7.3.1-1-cachyos | con 7.3.0-5 fallaba (`Runtime D3 status: Not supported`, 0 ms suspendida). Con 7.3.1-1: `Enabled (fine-grained)`, `Video Memory: Off`, 12/12 muestras `suspended`, 192502 ms suspendida en la medición. Ver hallazgo 3 |
+| 6 | Suspensión y reanudación | PASS con reserva en 7.3.0-5; NOT_TESTED_ON_7.3.1 | ver hallazgo 2. Con la corrección, la suspensión de Dilan (21:55) recupera HDMI enseguida; una suspensión encadenada con capturas en bucle (21:56) bloqueó la sesión. Sin suspensión con el kernel nuevo todavía |
 
 ### Hallazgo 1: cancelar polkit contaba para faillock
 
@@ -124,17 +125,28 @@ informa de soporte S0ix y estado desactivado) cambia la gestión de energía de
 la dGPU en s2idle; requiere medir consumo y estabilidad antes de proponerlo.
 Desconectar HDMI antes de suspender evita el problema.
 
-### Hallazgo 3: la NVIDIA nunca entra en RTD3
+### Hallazgo 3: RTD3 volvió con el kernel 7.3.1-1-cachyos (cerrado)
 
-`/proc/driver/nvidia/gpus/0000:01:00.0/power` informa
+**Antes (kernel `7.3.0-5-cachyos`, 2026-11-02).**
+`/proc/driver/nvidia/gpus/0000:01:00.0/power` informaba
 `Runtime D3 status: Not supported`, con `DynamicPowerManagement=2`, el puerto
 PCIe `0000:00:01.1` con `power_resources_D3hot` y `d3cold_allowed=1`. Con el
-cable fuera durante 2 min 20 s, `runtime_suspended_time` siguió en 0. Hyprland
-cierra el renderer secundario al quedarse sin salidas en `card1`, pero
-`nvidia-powerd` y `lact` (root) mantienen la NVIDIA abierta, y el driver no
-permite RTD3 aunque se cerrara todo. Quickshell no usa la NVIDIA. Es un límite
-del driver y el firmware, fuera de Cortetsu; requiere investigar BIOS (modo
-MUX/híbrido) o el soporte del driver, no cambios en el escritorio.
+cable fuera durante 2 min 20 s, `runtime_suspended_time` siguió en 0.
+
+**Después (kernel `7.3.1-1-cachyos`, instalado el 2026-11-02 a las 22:43,
+mismo driver 615.78.08).** `Runtime D3 status: Enabled (fine-grained)` y
+`Video Memory: Off`. Con HDMI desconectado, 12 de 12 muestras de
+`power/runtime_status` dieron `suspended` y `runtime_suspended_time` acumuló
+192502 ms en esa medición. La revisión 2.1 lo volvió a leer el 2026-11-03 con
+el escritorio en reposo: `suspended`.
+
+**Causa.** Lo observado en este portátil es solo el antes y el después del
+cambio de kernel; Cortetsu, el driver y la configuración no cambiaron entre
+las dos medidas. La explicación viene de reportes externos, no de una prueba
+propia: atribuyen la pérdida de RTD3 a la regresión de `nullfs` de la serie
+7.3.0 y señalan que CachyOS incorporó el parche en 7.3.1-1. Aquí no se
+reprodujo esa regresión aislada ni se comprobó el parche. Si RTD3 vuelve a fallar tras otra
+actualización, empieza por `uname -r` y la línea `Runtime D3 status`.
 
 ## 1. Polkit real
 
@@ -218,9 +230,10 @@ for i in (seq 12); cat /sys/bus/pci/devices/0000:01:00.0/power/runtime_status; s
 2. Repite con HDMI conectado.
 
 PASS: (1) `suspended` en las 12 muestras; (2) `active`, esperable porque la
-NVIDIA alimenta la salida. En el portátil de referencia (1) no puede pasar
-mientras el driver declare `Runtime D3 status: Not supported`
-(`cat /proc/driver/nvidia/gpus/0000:01:00.0/power`); compruébalo primero. FAIL: `active` en (1); busca el proceso con
+NVIDIA alimenta la salida. Comprueba primero que el driver informa
+`Runtime D3 status: Enabled (fine-grained)`
+(`cat /proc/driver/nvidia/gpus/0000:01:00.0/power`); con `Not supported`
+(kernel 7.3.0-5) (1) no puede pasar. FAIL: `active` en (1); busca el proceso con
 `lsof /dev/nvidia*` y anótalo. Rollback: no cambia nada persistente.
 
 ## 6. Suspensión y reanudación
