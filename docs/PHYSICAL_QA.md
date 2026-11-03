@@ -30,7 +30,7 @@ contraseñas las escribió Dilan.
 | 3 | HDMI en la ruta NVIDIA | PASS | las superficies se dibujan en HDMI-A-1 (`card1`, nvidia) con transparencia |
 | 4 | GameMode | PASS | dos ciclos enable/disable: activo cambia animaciones, blur, sombras, huecos, rounding y tearing como la tabla de [GAME_MODE.md](GAME_MODE.md); al desactivar, `diff` vacío y estado `INACTIVE` |
 | 5 | NVIDIA en reposo sin HDMI | FAIL externo | HDMI desconectado de 21:29:45 a 21:32:05: `runtime_suspended_time` sigue en 0 ms desde el arranque. El driver declara `Runtime D3 status: Not supported`. Ver hallazgo 3 |
-| 6 | Suspensión y reanudación | FAIL externo con HDMI | ver hallazgo 2. eDP-1, shell (mismo PID) e inhibidor se recuperan; HDMI tarda ~30 s, y en la tercera prueba (21:56) el driver NVIDIA bloqueó la sesión y hubo que reiniciar |
+| 6 | Suspensión y reanudación | PASS con reserva | ver hallazgo 2. Con la corrección, la suspensión de Dilan (21:55) recupera HDMI enseguida; una suspensión encadenada con capturas en bucle (21:56) bloqueó la sesión |
 
 ### Hallazgo 1: cancelar polkit contaba para faillock
 
@@ -96,19 +96,28 @@ Radeon (`renderD129`) y conserva su PID.
 tras despertar; un ciclo DPMS solo en HDMI-A-1, lanzado a mano, los devolvió
 3,0 s después.
 
-**Corrección automática retirada.** Se instaló un ciclo DPMS automático de las
-salidas NVIDIA 2 s después de despertar (commit 386c969) y se midió en una
-suspensión real a las 21:56. Esa reanudación ya empezó mal:
-`nvidia-drm: Failed to register auto-value-update` al despertar y
-`nvidia-modeset: Lost display notification` a +4,4 s, cuando corrió el ciclo.
-HDMI no recuperó la imagen en 60 s (`grim` intermitente), Hyprland dejó de
-responder por IPC, desconectar el cable no lo recuperó y hubo que reiniciar.
-No está demostrado que el ciclo causara el cuelgue, pero forzar un modeset con
-el driver en ese estado no es seguro. Se revirtió (commit «Revert "fix(idle)…"»).
+**Corrección.** Al despertar, `IdleMonitors.qml` lista las salidas NVIDIA
+conectadas con `cortetsu-nvibrant status` (solo lee sysfs) y, 2 s después de
+despertar, las apaga y enciende por DPMS, cada una por su nombre. eDP-1 y las
+salidas de otras GPU no se tocan.
 
-**Estado.** Defecto externo del driver NVIDIA 615.78.08 en s2idle, sin
-corrección en Cortetsu. Con HDMI conectado, la recuperación es la de antes
-(~30 s, sola). No lances DPMS a mano sobre HDMI justo tras despertar.
+**Resultado con la corrección (21:55, suspensión de Dilan desde SUPER+X).**
+`PM: suspend exit` 21:55:25.30; el ciclo corre y no aparece
+`Flip event timeout` ni otro error del driver. Dilan confirma que HDMI volvió
+enseguida, frente a ~30 s sin la corrección.
+
+**Incidente (21:56, suspensión lanzada por el agente).** 54 s después de la
+anterior y con `grim -o HDMI-A-1` en bucle cada 0,3 s para medir. El driver ya
+despertó mal (`nvidia-drm: Failed to register auto-value-update`, antes del
+ciclo) y después registró `Lost display notification` (+4,4 s). HDMI no volvió,
+Hyprland dejó de responder y hubo que reiniciar. La corrección se revirtió y se
+restauró tras comprobar la suspensión de las 21:55. No está demostrado qué
+provocó el cuelgue; para medir, no captures en bucle una salida NVIDIA colgada
+ni encadenes suspensiones.
+
+**Estado.** Corregido en uso normal, con una reserva: la reanudación del
+driver NVIDIA 615.78.08 en s2idle sigue siendo frágil. Si HDMI se cuelga,
+reinicia; desconectar el cable no lo recuperó.
 
 **Alternativas no aplicadas.** `NVreg_EnableS0ixPowerManagement=1` (el driver
 informa de soporte S0ix y estado desactivado) cambia la gestión de energía de
