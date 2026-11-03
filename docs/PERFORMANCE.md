@@ -73,3 +73,25 @@ log. `scripts/integration/nested_gpu.py` fuerza Mesa y antepone un `lspci` vací
 sólo para el compositor. Muestreando `power/runtime_status` cada 250 ms, el test
 de inactividad pasó de ~52 % de muestras activas a 0, y los cinco tests anidados
 quedan en 0.
+
+## Revisión 2.1 (2026-11-02)
+
+Sesión real, eDP-1 1920×1080 a 144 Hz en la Radeon, HDMI desconectado,
+superficies cerradas. CPU: `usage_usec` del cgroup `cortetsu-shell.service`
+durante 60 s; procesos nuevos: muestreo de `cgroup.procs` cada 0,2 s; PSS de
+`/proc/<pid>/smaps_rollup`.
+
+| | 2.0 (b285b97) | 2.1 |
+|---|---|---|
+| PSS de `qs` | 270 MiB | 232 MiB, poco después de `shell reload` |
+| Hilos / procesos del servicio | 43 / 9 | 43 / 9 |
+| CPU en reposo | 281 ms/min (Bottom Hub oculto) | 381 ms/min (Bottom Hub visible) |
+| Procesos lanzados en 60 s | 0 | 0 |
+
+2.1 no añade temporizadores, procesos ni capas; las diferencias se deben al
+estado del Bottom Hub y a la recarga, no a los cambios. Los temporizadores
+siempre activos siguen siendo de baja frecuencia y sin evento nativo
+equivalente: LED de Bloq Mayús/Num (sysfs, 1 s, solo con avisos de teclado
+activados), uptime (15 s) y clima (1 h). La latencia hasta el primer
+fotograma no se midió: el IPC del realm añade ~100 ms por llamada y medirla
+exigiría instrumentar el shell.

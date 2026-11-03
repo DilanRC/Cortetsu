@@ -33,6 +33,26 @@ contraseñas las escribió Dilan.
 | 5 | NVIDIA en reposo sin HDMI | PASS con 7.3.1-1-cachyos | con 7.3.0-5 fallaba (`Runtime D3 status: Not supported`, 0 ms suspendida). Con 7.3.1-1: `Enabled (fine-grained)`, `Video Memory: Off`, 12/12 muestras `suspended`, 192502 ms suspendida en la medición. Ver hallazgo 3 |
 | 6 | Suspensión y reanudación | PASS con reserva en 7.3.0-5; NOT_TESTED_ON_7.3.1 | ver hallazgo 2. Con la corrección, la suspensión de Dilan (21:55) recupera HDMI enseguida; una suspensión encadenada con capturas en bucle (21:56) bloqueó la sesión. Sin suspensión con el kernel nuevo todavía |
 
+### Revisión 2.1 (2026-11-02, generación `20261102-235101`)
+
+`cortetsu install` (gate completo), `cortetsu shell reload` (mismo PID 3430)
+y `cortetsu verify` en verde, con `previous` = `20261102-222106`. Dashboard,
+Calendario y Ajustes rápidos abiertos y cerrados por IPC en eDP-1 con
+transparencia activa: abren, cierran y se dibujan como en el realm; el
+journal solo muestra los avisos de text-input-v3 de Qt.
+
+| Prueba | Estado |
+|---|---|
+| eDP-1: superficies modificadas | PASS |
+| HDMI-A-1: superficies modificadas | NOT_TESTED: HDMI desconectado durante la revisión |
+| Launcher y menú de sesión con teclado en la sesión real | NOT_TESTED: abrirlos toma el teclado; se probaron en el realm y en los arneses |
+| Suspensión | NOT_TESTED_ON_7.3.1 |
+
+Para cerrar HDMI-A-1: conecta el monitor y repite el punto 2 de abajo
+mirando el Dashboard (notas alineadas al borde derecho), el Calendario
+(«No hay eventos» centrado), el menú de sesión (mismo margen a ambos lados) y
+una notificación (`notify-send prueba`, 8 px del borde).
+
 ### Hallazgo 1: cancelar polkit contaba para faillock
 
 **Síntoma.** Cada Escape en el diálogo dejaba un fallo `polkit-1` en
