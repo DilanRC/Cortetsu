@@ -31,6 +31,7 @@ ejecuta y ningún servicio de la sesión se reinicia.
 - CachyOS/Arch con Hyprland (Aquamarine), Weston con backend headless y renderer
   GL, y un render node AMD. No hace falta un monitor.
 - `bubblewrap`, `dbus-daemon`, `systemd-run`, `grim`, `quickshell`, `jq`,
+  `notify-send` (libnotify, para la notificación de `qa`),
   Python ≥ 3.11 y namespaces de usuario sin privilegios.
 - Para `build` y `qa`: la cadena de `cortetsu install` (cargo, go, Qt Quick
   Test). `qa` usa además `magick` (ImageMagick) para los fondos de prueba.
@@ -122,6 +123,9 @@ IPC y captura:
 - escritorio; Dashboard, Calendario, menú de sesión y launcher (abre y cierra);
 - Ajustes rápidos por el mismo toggle que el atajo;
 - popouts de red, audio y batería del BottomHub (abre el pedido y cierra);
+- Overview, Hardware Center, Ajustes y Wallpaper Orbital (abre y cierra);
+- una notificación real por el bus de sesión del realm: la tarjeta, el cajón
+  de notificaciones y la limpieza (`cortetsu-notifications count` vuelve a 0);
 - diálogo de autenticación: el `PolkitDialog` del build en la capa Overlay con
   el velo de `PolkitHost` y un AuthFlow simulado
   (`cortetsu/tests/realm/polkit-preview.qml`); el realm no tiene polkitd;
@@ -138,7 +142,7 @@ de la ejecución.
 ~/.local/state/cortetsu/realm/evidence/<sha>-<fecha>/
   report.tsv                 una línea PASS/FAIL por comprobación, con esperado y obtenido
   summary.tsv                commit, comprobaciones, fallos, capturas, warnings
-  <ronda>-<superficie>.png   50 capturas
+  <ronda>-<superficie>.png   80 capturas (155 comprobaciones)
   <ronda>-shell.log          log completo del shell en esa ronda
   <ronda>-warnings.log       sus líneas WARN/ERROR
   <ronda>-unclassified.log   las que no son limitaciones conocidas del realm

@@ -279,6 +279,24 @@ qa_quick_settings() {  # qa_quick_settings NAME DIR TAG ; the shortcut path, a t
     sleep 0.5
 }
 
+notifications_are() { [[ "$(ipc "$1" cortetsu-notifications count)" == "$2" ]]; }
+
+# A real notification over the realm's session bus: the card appears, the
+# drawer lists it, and clearing leaves nothing behind for the next round.
+qa_notifications() {  # qa_notifications NAME DIR TAG
+    local name="$1" dir="$2" tag="$3"
+    in_realm_bounded "$name" /usr/bin/notify-send -a "Cortetsu QA" "Copia de seguridad terminada" \
+        "Se copiaron 1 284 archivos a /mnt/respaldo/2026-11-02 en 3 min 12 s; no hubo errores." >/dev/null || true
+    wait_for 20 notifications_are "$name" 1 || true
+    check "$tag notificación recibida" 1 "$(ipc "$name" cortetsu-notifications count)"
+    sleep 0.9
+    shot "$name" "$dir/$tag-notification.png"
+    qa_drawer "$name" "$dir" "$tag" sidebar
+    ipc "$name" cortetsu-notifications clear >/dev/null || true
+    wait_for 20 notifications_are "$name" 0 || true
+    check "$tag notificaciones limpias" 0 "$(ipc "$name" cortetsu-notifications count)"
+}
+
 # Sorts the round's WARN/ERROR lines into the realm's known limitations
 # (tests/realm/known-warnings.txt) and the rest; a QML/JS error of the build
 # itself among the rest is a FAIL, anything else is listed for review.
@@ -326,6 +344,11 @@ qa_round() {  # qa_round NAME WORKTREE DIR BACKGROUND TRANSPARENCY REDUCED_MOTIO
     qa_control "$name" "$dir" "$tag" network
     qa_control "$name" "$dir" "$tag" audio
     qa_control "$name" "$dir" "$tag" battery
+    qa_drawer "$name" "$dir" "$tag" overview
+    qa_drawer "$name" "$dir" "$tag" hardware
+    qa_drawer "$name" "$dir" "$tag" settings
+    qa_drawer "$name" "$dir" "$tag" wallpaperManager
+    qa_notifications "$name" "$dir" "$tag"
     # Authentication dialog: the build's PolkitDialog on the Overlay layer.
     "$AR" run --detach --compositor-child "$name" -- /usr/bin/qs --path "/workspace/$QA_TOOLS/polkit-preview/shell.qml" >/dev/null 2>&1 || true
     wait_for 40 polkit_visible "$name" || true
