@@ -53,10 +53,11 @@ var fontKanji = "Noto Sans CJK JP"
 
 var materialGroundAlpha = 0.95
 var materialWashAlpha = 0.34
-var materialPopupWashAlpha = 0.22
+var materialPopupWashAlpha = 0.18
 var materialGrain = 0.11
 var materialPopupGrain = 0.09
 var materialHairlineAlpha = 0.07
+var materialTransparencyFactor = 0.86
 
 var overlayOpacity = 0.94
 var scrimOpacity = 0.22

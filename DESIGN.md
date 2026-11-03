@@ -193,7 +193,7 @@ Tokens de `ui.toml [motion]`, leídos siempre desde `CortetsuDesign`:
 | Pulsación (escala `pressScale` 0.97) | `motionFastMs` | 120 ms |
 | Tooltip (entrada; retardo `tooltipDelayMs` 240 solo para el primero) | `motionTooltipMs` | 150 ms |
 | Popover y menú, entrada / salida | `motionPopoverMs` / `motionPopoverExitMs` | 200 / 150 ms |
-| Launcher y Overview (se abren con una tecla; solo opacidad) | `motionSummonMs` / `motionSummonExitMs` | 140 / 100 ms |
+| Launcher (opacidad y escala 0.95 → 1 desde el centro) y Overview (solo opacidad); se abren con una tecla | `motionSummonMs` / `motionSummonExitMs` | 140 / 100 ms |
 | Panel, entrada / salida | `motionPanelMs` / `motionPanelExitMs` | 320 / 240 ms |
 | Drawer y BottomHub | `motionDrawerMs` | 400 ms |
 | Cambios de contenido | `motionInstantMs` / `motionStandardMs` / `motionDeliberateMs` | 80 / 180 / 240 ms |
@@ -214,7 +214,7 @@ Reglas que verifica el linter:
 
 - sin rebote, elástico ni sobreimpulso;
 - ease-in solo en salidas;
-- la escala nunca parte de menos de 0.95;
+- la escala nunca parte de menos de 0.95 (también en un `NumberAnimation` sobre `scale` con `from:`);
 - nada pasa de 300 ms salvo drawers (500 ms);
 - se animan opacidad, escala y x/y; no `width`/`height`.
 

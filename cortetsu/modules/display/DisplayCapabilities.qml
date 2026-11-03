@@ -24,7 +24,7 @@ Rectangle {
         CortetsuText { text: qsTr("Capacidades de salida"); color: CortetsuDesign.colorOnSurface; textSize: CortetsuTypography.titleSmallPx }
         Row { width: parent.width
             CortetsuText { width: parent.width * 0.52; text: qsTr("Admite VRR"); color: CortetsuDesign.colorOutline; textSize: CortetsuTypography.labelSmallPx }
-            CortetsuText { width: parent.width * 0.48; text: root.tri(root.monitor?.vrr_capable); color: CortetsuDesign.colorPrimary; textSize: CortetsuTypography.labelSmallPx; horizontalAlignment: Text.AlignRight }
+            CortetsuText { width: parent.width * 0.48; text: root.tri(root.monitor?.vrr_capable); color: CortetsuDesign.colorOnSurfaceVariant; textSize: CortetsuTypography.labelSmallPx; horizontalAlignment: Text.AlignRight }
         }
         Row { width: parent.width
             CortetsuText { width: parent.width * 0.52; text: qsTr("HDR / gama amplia"); color: CortetsuDesign.colorOutline; textSize: CortetsuTypography.labelSmallPx }

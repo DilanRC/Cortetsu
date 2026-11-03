@@ -12,9 +12,12 @@ Item {
     id: root
     property real radius: CortetsuDesign.radiusSurface
     property color ground: CortetsuDesign.colorSumi
-    // "Superficies transparentes" thins the ground with the same factor as
-    // CortetsuSurface, so every ink surface lets the wallpaper through.
-    property real groundAlpha: CortetsuDesign.materialGroundAlpha * (CortetsuConfig.transparencyEnabled ? 0.78 : 1)
+    // "Superficies transparentes" thins the ground by the material's
+    // transparency factor, the same one CortetsuSurface uses. The wash
+    // thins with it: the wallpaper now tints the ink itself, and a full wash
+    // on top lifted a light wallpaper's ground past AA for secondary text.
+    readonly property real transparencyFactor: CortetsuConfig.transparencyEnabled ? CortetsuDesign.materialTransparencyFactor : 1
+    property real groundAlpha: CortetsuDesign.materialGroundAlpha * transparencyFactor
     property color wash: CortetsuDesign.colorPrimary
     property real washAlpha: CortetsuDesign.materialWashAlpha
     // Where the wash bleeds from, in fractions of the panel.
@@ -38,8 +41,8 @@ Item {
                 centerX: root.width * root.washX; centerY: root.height * root.washY
                 focalX: centerX; focalY: centerY
                 centerRadius: Math.max(root.width, root.height) * 0.75
-                GradientStop { position: 0; color: Qt.alpha(root.wash, root.washAlpha) }
-                GradientStop { position: 0.5; color: Qt.alpha(root.wash, root.washAlpha * 0.35) }
+                GradientStop { position: 0; color: Qt.alpha(root.wash, root.washAlpha * root.transparencyFactor) }
+                GradientStop { position: 0.5; color: Qt.alpha(root.wash, root.washAlpha * root.transparencyFactor * 0.35) }
                 GradientStop { position: 1; color: "transparent" }
             }
             PathRectangle { x: 0; y: 0; width: root.width; height: root.height; radius: root.radius }

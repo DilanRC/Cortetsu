@@ -65,20 +65,23 @@ Scope {
                 maxHeight: parent.height * 0.72
 
                 // The launcher belongs to no edge, so it pops in place: a fade
-                // with a quick scale from its centre (no bounce: design lint). The window
-                // unmaps on close, so there is no exit to animate.
+                // with a short scale from its centre, both on the summon token
+                // so they land together. The window unmaps on close, so there
+                // is no exit to animate.
                 transformOrigin: Item.Center
                 ParallelAnimation {
                     id: openFade
                     NumberAnimation {
                         target: launcher; property: "opacity"; from: 0; to: 1
                         duration: CortetsuDesign.motionSummonMs
-                        easing.type: Easing.OutCubic
+                        easing.type: Easing.BezierSpline
+                        easing.bezierCurve: CortetsuDesign.easeOut
                     }
                     NumberAnimation {
-                        target: launcher; property: "scale"; from: 0.92; to: 1
-                        duration: CortetsuDesign.motionSummonMs * 1.6
-                        easing.type: Easing.OutQuint
+                        target: launcher; property: "scale"; from: 0.95; to: 1
+                        duration: CortetsuDesign.motionSummonMs
+                        easing.type: Easing.BezierSpline
+                        easing.bezierCurve: CortetsuDesign.easeOut
                     }
                 }
             }

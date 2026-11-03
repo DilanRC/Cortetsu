@@ -46,6 +46,7 @@ RULES = {
     "motion-layout-property": "animates width/height instead of opacity/scale/x/y",
     "color-untinted-neutral": "pure black/grey/white without a washi/sumi tint",
     "color-contrast": "token pair below WCAG AA",
+    "color-fill-as-text": "text painted in a fill colour (colorPrimary/colorIndigo stays under 4.5:1 on the ink)",
     "layout-nested-surface": "CortetsuSurface nested inside another CortetsuSurface",
     "layout-small-target": f"click target smaller than {MIN_TARGET} px",
     "token-literal-color": "colour literal outside CortetsuDesign",
@@ -183,6 +184,23 @@ def lint_file(path: Path) -> list[Finding]:
             if float(num) < MIN_SCALE:
                 add("motion-scale-from-zero", m.start(), m.group(0).strip())
                 break
+    # Primary and indigo are fills; text takes a readable role.
+    for m in re.finditer(r"\b(CortetsuText|DashInk|DashLabel|Text)\s*\{", text):
+        depth, end = 1, m.end()
+        while depth and end < len(text):
+            depth += {"{": 1, "}": -1}.get(text[end], 0)
+            end += 1
+        block = text[m.end():end]
+        own = re.sub(r"\{[^{}]*\}", "", block)  # nested items are checked on their own
+        hit = re.search(r"(?:^|;)\s*color:\s*CortetsuDesign\.color(Primary|Indigo)\s*(?:;|\}|$)", own, re.M)
+        if hit:
+            add("color-fill-as-text", m.end() + block.find(hit.group(0).strip()), hit.group(0).strip(" ;\n"))
+
+    # An animation of "scale" states its start as `from:`, not `scale:`.
+    for m in re.finditer(r"\{[^{}]*property\s*:\s*\"scale\"[^{}]*\}", text):
+        start = re.search(r"\bfrom\s*:\s*(\d*\.?\d+)(?![\w.])", m.group(0))
+        if start and float(start.group(1)) < MIN_SCALE:
+            add("motion-scale-from-zero", m.start() + start.start(), start.group(0))
 
     drawer = bool(DRAWER_HINT.search(rel))
     for m in re.finditer(r"\bduration\s*:\s*(\d+)\b", text):

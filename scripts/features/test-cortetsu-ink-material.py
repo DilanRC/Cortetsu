@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parents[2]
 QML = ROOT / "cortetsu"
 read = lambda rel: (ROOT / rel).read_text(encoding="utf-8")
 
-keys = ("ground_alpha", "wash_alpha", "popup_wash_alpha", "grain", "popup_grain", "hairline_alpha")
+keys = ("ground_alpha", "wash_alpha", "popup_wash_alpha", "grain", "popup_grain", "hairline_alpha", "transparency_factor")
 ui = tomllib.loads(read("dotfiles/home/.config/cortetsu/ui.toml"))
 defaults = read("cortetsu/theme/CortetsuDesignDefaults.js")
 design = read("cortetsu/theme/CortetsuDesign.qml")
@@ -28,6 +28,11 @@ panel = read("cortetsu/components/CortetsuInkPanel.qml")
 for token in ("materialGroundAlpha", "materialWashAlpha", "materialGrain", "materialHairlineAlpha"):
     assert f"CortetsuDesign.{token}" in panel, token
 assert not re.search(r"property real (groundAlpha|washAlpha|grain):\s*[\d.]", panel), "a literal strength"
+# One transparency factor: the ink ground and every CortetsuSurface thin by the same token.
+surface = read("cortetsu/components/CortetsuSurface.qml")
+for text in (panel, surface):
+    assert "CortetsuDesign.materialTransparencyFactor" in text
+    assert not re.search(r"transparencyEnabled\s*\?\s*[\d.]", text), "a literal transparency factor"
 
 popup = read("cortetsu/components/CortetsuPopupSurface.qml")
 assert "CortetsuInkPanel {" in popup
@@ -78,6 +83,9 @@ assert "CortetsuInkWell {" in calendar and "colorSurfaceHigh" not in calendar
 assert pomodoro.count("CortetsuInkWell {") == 1 and "SecondaryContainer" not in pomodoro
 
 # The transparency setting reaches the ink through its one painter.
-assert "materialGroundAlpha * (CortetsuConfig.transparencyEnabled ? 0.78 : 1)" in panel
+assert "transparencyFactor: CortetsuConfig.transparencyEnabled ? CortetsuDesign.materialTransparencyFactor : 1" in panel
+assert "materialGroundAlpha * transparencyFactor" in panel
+# The wash thins with the ground, so a light wallpaper keeps secondary text at AA.
+assert panel.count("root.washAlpha * root.transparencyFactor") == 2
 
 print("PASS: the ink material has one source (ui.toml) and one painter (CortetsuInkPanel)")

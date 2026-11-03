@@ -57,6 +57,7 @@ var materialPopupWashAlpha = {{material.popup_wash_alpha}}
 var materialGrain = {{material.grain}}
 var materialPopupGrain = {{material.popup_grain}}
 var materialHairlineAlpha = {{material.hairline_alpha}}
+var materialTransparencyFactor = {{material.transparency_factor}}
 
 var overlayOpacity = {{density.overlay_opacity}}
 var scrimOpacity = {{density.scrim_opacity}}

@@ -506,7 +506,7 @@ FocusScope {
                             CortetsuText {
                                 width: parent.width * 0.30
                                 text: root.selectedLive?.gpu_vendor ?? "—"
-                                color: CortetsuDesign.colorPrimary
+                                color: CortetsuDesign.colorOnSurfaceVariant
                                 textSize: CortetsuTypography.labelMediumPx
                                 horizontalAlignment: Text.AlignRight
                             }
@@ -638,7 +638,7 @@ FocusScope {
                             CortetsuText { text: outputCard.modelData?.name ?? ""; color: root.selectedIndex === outputCard.index ? CortetsuDesign.colorOnSecondaryContainer : CortetsuDesign.colorOnSurface; textSize: CortetsuTypography.titleSmallPx }
                             CortetsuText { width: parent.width; text: String(outputCard.modelData?.mode ?? ""); color: CortetsuDesign.colorOnSurfaceVariant; textSize: CortetsuTypography.labelSmallPx; elide: Text.ElideRight }
                             CortetsuText { text: `${outputCard.modelData?.x ?? 0} × ${outputCard.modelData?.y ?? 0} · scale ${Number(outputCard.modelData?.scale ?? 1).toFixed(2)} · transform ${outputCard.modelData?.transform ?? 0}`; color: CortetsuDesign.colorOutline; textSize: CortetsuTypography.labelSmallPx }
-                            CortetsuText { text: `${root.liveByName(outputCard.modelData?.name)?.gpu_vendor ?? "—"} · ${root.liveByName(outputCard.modelData?.name)?.drm_card ?? "—"}`; color: CortetsuDesign.colorPrimary; textSize: CortetsuTypography.labelSmallPx }
+                            CortetsuText { text: `${root.liveByName(outputCard.modelData?.name)?.gpu_vendor ?? "—"} · ${root.liveByName(outputCard.modelData?.name)?.drm_card ?? "—"}`; color: CortetsuDesign.colorOnSurfaceVariant; textSize: CortetsuTypography.labelSmallPx }
                         CortetsuText { text: `${root.liveByName(outputCard.modelData?.name)?.workspace?.name ?? qsTr("sin espacio de trabajo")} · ${(outputCard.modelData?.enabled ?? true) ? qsTr("activa") : qsTr("desactivada")}`; color: CortetsuDesign.colorOnSurfaceVariant; textSize: CortetsuTypography.labelSmallPx }
                         }
                     }

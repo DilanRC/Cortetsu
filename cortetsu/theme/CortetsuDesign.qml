@@ -108,6 +108,7 @@ QtObject {
     readonly property real materialGrain: Defaults.materialGrain
     readonly property real materialPopupGrain: Defaults.materialPopupGrain
     readonly property real materialHairlineAlpha: Defaults.materialHairlineAlpha
+    readonly property real materialTransparencyFactor: Defaults.materialTransparencyFactor
     readonly property real overlayOpacity: Defaults.overlayOpacity
     readonly property real scrimOpacity: Defaults.scrimOpacity
     readonly property real outlineWidth: Defaults.outlineWidth

@@ -44,7 +44,11 @@ Item {
         anchors.verticalCenter: parent.verticalCenter
         height: mouse.containsMouse || root.activeFocus ? 5 : 4
         radius: height / 2
-        color: Qt.alpha(CortetsuDesign.colorSurfaceGlassStrong, 0.92)
+        // Sliders sit on the ink, so the empty track is a washi veil like the
+        // material's hairlines, three times stronger. The scheme's container
+        // colour used before nearly matched the ink of a light scheme (1.05:1)
+        // and the track vanished.
+        color: Qt.alpha(CortetsuDesign.colorWashi, CortetsuDesign.materialHairlineAlpha * 3)
 
         Behavior on height {
             NumberAnimation {

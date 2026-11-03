@@ -23,7 +23,7 @@ Rectangle {
         : active ? CortetsuDesign.colorIndicator
         : Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.56)
 
-    readonly property real transparencyFactor: CortetsuConfig.transparencyEnabled ? 0.78 : 1
+    readonly property real transparencyFactor: CortetsuConfig.transparencyEnabled ? CortetsuDesign.materialTransparencyFactor : 1
 
     function paintColor(value): color {
         const colour = Qt.color(value);

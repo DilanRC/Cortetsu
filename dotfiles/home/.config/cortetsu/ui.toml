@@ -57,10 +57,13 @@ scrim_opacity = 0.22
 ground_alpha = 0.95
 wash_alpha = 0.34
 # Popouts are small and dense; a lighter wash keeps their rows legible.
-popup_wash_alpha = 0.22
+popup_wash_alpha = 0.18
 grain = 0.11
 popup_grain = 0.09
 hairline_alpha = 0.07
+# Settings > Appearance > Transparent surfaces multiplies every ground and
+# surface alpha by this factor, so the wallpaper shows through all of them alike.
+transparency_factor = 0.86
 
 # Type families. The UI family carries data and controls; the ink family is
 # the serif of the big moments (hour, titles, the line being sung); the

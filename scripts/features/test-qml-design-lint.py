@@ -30,6 +30,7 @@ Item {
     NumberAnimation { property: "width"; easing.type: Easing.InCubic }
     Item { scale: shown ? 1 : 0 }
     TextField { placeholderText: "Buscar" }
+    CortetsuText { text: "Día libre"; color: CortetsuDesign.colorPrimary }
 }
 """
 
@@ -65,6 +66,23 @@ assert not missing, f"rules did not fire: {sorted(missing)}"
 good = rules(GOOD)
 assert not good, f"false positives on the good snippet: {sorted(good)}"
 assert all(f.rule == "color-contrast" for f in lint.contrast_findings())
+
+# A NumberAnimation on "scale" that starts below the minimum is caught by its
+# `from:`; one that starts at the minimum, or a large seal settling down, is not.
+SCALE_FROM = """
+import QtQuick
+Item {
+    NumberAnimation { target: a; property: "scale"; from: 0.92; to: 1 }
+    NumberAnimation { target: b; property: "scale"; from: 0.95; to: 1 }
+    NumberAnimation { target: c; property: "scale"; from: 1.35; to: 1 }
+    NumberAnimation { target: d; property: "opacity"; from: 0.2; to: 1 }
+}
+"""
+with tempfile.TemporaryDirectory(dir=ROOT / "cortetsu") as tmp:
+    path = Path(tmp) / "Sample.qml"
+    path.write_text(SCALE_FROM, encoding="utf-8")
+    lines = [f.line for f in lint.lint_file(path) if f.rule == "motion-scale-from-zero"]
+    assert lines == [4], lines
 
 # The comment's 900 ms must not count; only the Behavior's does.
 with tempfile.TemporaryDirectory(dir=ROOT / "cortetsu") as tmp:

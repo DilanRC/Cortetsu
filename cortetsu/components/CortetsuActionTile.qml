@@ -111,7 +111,10 @@ Item {
                 Layout.fillWidth: true
                 text: root.detail
                 textSize: CortetsuTypography.labelSmallPx
-                color: CortetsuDesign.colorOnSurfaceVariant
+                // No grey text on a coloured veil (DESIGN.md): an on or warning
+                // tile keeps its detail in washi. Grey measured 3.5:1 there
+                // over a light wallpaper with transparent surfaces.
+                color: root.highlighted || root.warning ? CortetsuDesign.colorOnSurface : CortetsuDesign.colorOnSurfaceVariant
                 elide: Text.ElideRight
             }
         }
