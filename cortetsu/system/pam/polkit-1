@@ -1,0 +1,21 @@
+#%PAM-1.0
+# Optional override for /etc/pam.d/polkit-1. Not installed by Cortetsu.
+#
+# The stock stack includes system-auth, where pam_unix sits under
+# [success=1 default=bad]. Cancelling a polkit dialog closes the helper's
+# conversation, pam_unix returns PAM_AUTHTOK_ERR without reading a password,
+# and `default=bad` then runs `pam_faillock authfail`: every cancel counts as
+# a failed password. This copy of the system-auth auth section ends the
+# transaction on authtok_err/conv_err instead. A typed wrong password still
+# returns PAM_AUTH_ERR and still counts. See docs/PHYSICAL_QA.md.
+auth       required                    pam_faillock.so      preauth
+-auth      [success=2 default=ignore]  pam_systemd_home.so
+auth       [success=1 authtok_err=die conv_err=die default=bad]  pam_unix.so  try_first_pass nullok
+auth       [default=die]               pam_faillock.so      authfail
+auth       optional                    pam_permit.so
+auth       required                    pam_env.so
+auth       required                    pam_faillock.so      authsucc
+
+account    include      system-auth
+password   include      system-auth
+session    include      system-auth

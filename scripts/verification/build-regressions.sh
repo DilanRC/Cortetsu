@@ -27,6 +27,7 @@ python3 "$REPO/scripts/verification/qml-design-lint.py" --summary
 python3 "$REPO/scripts/features/test-cortetsu-quality.py"
 python3 "$REPO/scripts/features/test-cortetsu-settings.py"
 python3 "$REPO/scripts/features/test-cortetsu-v2-bridge.py"
+python3 "$REPO/scripts/features/test-polkit-cancel-faillock.py"
 node "$REPO/scripts/features/test-cortetsu-policy-model.mjs"
 node "$REPO/scripts/features/test-notification-reconcile.mjs"
 python3 "$REPO/scripts/features/test-cortetsu-v2-bridge-runtime.py"

@@ -85,6 +85,49 @@ TestCase {
         compare(t.flow.cancels, 1);
     }
 
+    // A cancel must only cancel: an empty or partial answer sent to PAM would
+    // be a real failed attempt for pam_faillock.
+    function test_cancel_never_sends_an_answer() {
+        const t = make();
+        tryVerify(() => t.field.activeFocus);
+        keyClick("x");
+        mouseClick(findChild(t.dialog, "cancel"));
+        compare(t.flow.cancels, 1);
+        compare(t.flow.submitted.length, 0);
+    }
+
+    function test_escape_cancels_while_pam_checks_the_answer() {
+        const t = make();
+        tryVerify(() => t.field.activeFocus);
+        keyClick("x");
+        keyClick(Qt.Key_Return);
+        keyClick(Qt.Key_Return);
+        keyClick(Qt.Key_Escape);
+        compare(t.flow.submitted, ["x"]);
+        compare(t.flow.cancels, 1);
+    }
+
+    function test_retry_after_a_wrong_password_sends_the_new_one() {
+        const t = make();
+        tryVerify(() => t.field.activeFocus);
+        keyClick("a");
+        keyClick(Qt.Key_Return);
+        t.flow.failed = true;
+        t.flow.isResponseRequired = true;
+        tryVerify(() => t.field.enabled && t.field.activeFocus);
+        compare(t.field.text, "");
+        keyClick("b");
+        keyClick(Qt.Key_Return);
+        compare(t.flow.submitted, ["a", "b"]);
+        compare(t.flow.cancels, 0);
+    }
+
+    function test_finished_request_ignores_escape() {
+        const t = make({ isResponseRequired: false, isCompleted: true });
+        keyClick(Qt.Key_Escape);
+        compare(t.flow.cancels, 0);
+    }
+
     function test_wrong_password_shows_an_error_and_refocuses() {
         const t = make();
         tryVerify(() => t.field.activeFocus);
