@@ -173,11 +173,17 @@ function moveCursor(x, y) {
     return makeAction(`hl.dsp.cursor.move({ x = ${luaX}, y = ${luaY} })`, legacy);
 }
 
-function dpms(on) {
+// monitor is optional: a connector name such as "HDMI-A-1"; without it the
+// action applies to every output.
+function dpms(on, monitor) {
     if (typeof on !== "boolean")
         return null;
     const action = on ? "on" : "off";
-    return makeAction(`hl.dsp.dpms({ action = "${action}" })`, `dpms ${action}`);
+    if (monitor === undefined)
+        return makeAction(`hl.dsp.dpms({ action = "${action}" })`, `dpms ${action}`);
+    if (typeof monitor !== "string" || !/^[A-Za-z0-9_.-]+$/.test(monitor))
+        return null;
+    return makeAction(`hl.dsp.dpms({ action = "${action}", monitor = "${monitor}" })`, `dpms ${action} ${monitor}`);
 }
 
 function exit() {

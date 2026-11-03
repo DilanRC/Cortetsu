@@ -549,6 +549,19 @@
     "manageable": false
   },
   {
+    "id": "cortetsu:resume-nvidia-outputs",
+    "name": "NVIDIA output wake after resume",
+    "source": "modules/IdleMonitors.qml",
+    "qmlId": "nvidiaOutputs",
+    "startupPhase": "on-demand",
+    "condition": "Al despertar de la suspensión; lista las salidas NVIDIA conectadas para apagarlas y encenderlas",
+    "command": [
+      "cortetsu-nvibrant",
+      "status"
+    ],
+    "manageable": false
+  },
+  {
     "id": "cortetsu:coordinator",
     "name": "Cortetsu policy coordinator",
     "source": "modules/CortetsuPolicyBridge.qml",
