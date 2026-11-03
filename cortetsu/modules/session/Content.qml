@@ -213,7 +213,8 @@ Column {
             id: actionRow
             required property var modelData
 
-            width: root.width
+            // The column's padding sits on both sides of every row.
+            width: root.width - root.leftPadding - root.rightPadding
             icon: actionRow.modelData.icon
             seal: actionRow.modelData.seal
             title: root.pendingAction === actionRow.modelData.id

@@ -178,10 +178,10 @@ Item {
                         ColumnLayout {
                             anchors.fill: parent; anchors.margins: CortetsuDesign.spacingStandard; spacing: CortetsuDesign.spacingCompact
                             CortetsuText { Layout.fillWidth: true; objectName: "agendaTitle"; text: CortetsuRegional.formatDate(root.selectedDate, "longDay", true); textSize: CortetsuTypography.titleMediumPx; color: CortetsuDesign.colorOnSurface }
-                            CortetsuText { text: root.selectedEvents.length ? root.eventCount(root.selectedEvents.length) : qsTr("Día libre"); color: CortetsuDesign.colorPrimary; textSize: CortetsuTypography.labelMediumPx }
+                            CortetsuText { text: root.selectedEvents.length ? root.eventCount(root.selectedEvents.length) : qsTr("Día libre"); color: CortetsuDesign.colorOnSurfaceVariant; textSize: CortetsuTypography.labelMediumPx }
                             ColumnLayout {
                                 visible: !root.selectedEvents.length; Layout.fillWidth: true; Layout.fillHeight: true; spacing: CortetsuDesign.spacingCompact
-                                Item { Layout.fillHeight: true }
+                                Item { Layout.fillHeight: true; Layout.fillWidth: true }  // stretches the column so the empty state centres in the well
                                 CortetsuIcon { Layout.alignment: Qt.AlignHCenter; text: "event_available"; color: CortetsuDesign.colorOnSurfaceVariant; iconSize: CortetsuTypography.iconLargePx }
                                 CortetsuText { Layout.alignment: Qt.AlignHCenter; text: qsTr("No hay eventos"); color: CortetsuDesign.colorOnSurface; textSize: CortetsuTypography.titleSmallPx }
                                 Item { Layout.fillHeight: true }

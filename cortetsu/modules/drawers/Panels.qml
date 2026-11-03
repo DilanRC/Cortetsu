@@ -68,6 +68,10 @@ Item {
         utilitiesPanel: utilities
         anchors.top: parent.top
         anchors.right: parent.right
+        // The same inset as the notification drawer on this edge
+        // (sidebar/Wrapper.qml), so a card never touches the screen corner.
+        anchors.topMargin: CortetsuDesign.spacingCompact
+        anchors.rightMargin: CortetsuDesign.spacingCompact
     }
 
     Item {

@@ -73,6 +73,15 @@ ShellRoot {
         () => { verify(state.dashboardTab === 3, `4 jumps to the fourth zone: ${state.dashboardTab}`); events.keyClick(Qt.Key_Right, Qt.NoModifier, -1); return true; },
         () => { verify(state.dashboardTab === 0, `Right wraps to the first zone: ${state.dashboardTab}`);
                 verify(layer.panel.x === root.frame.x && layer.panel.width === root.frame.width && layer.panel.height === root.frame.height, "every zone fills the same frame");
+                // The margin notes reach the zone's right edge. Before 2.1 the
+                // hour's column stopped at the hour's width and left ~100 px
+                // empty on the right of the notes.
+                let note = null;
+                (function walk(item) { if (!note && item.visible && item.text === "0 sesiones") note = item; for (const kid of item.children ?? []) walk(kid); })(layer.panel);
+                let zone = note;
+                while (zone && !(zone.parent && zone.parent.sourceComponent !== undefined)) zone = zone.parent;
+                const right = note && zone ? note.mapToItem(zone, note.width, 0).x : -1;
+                verify(zone && Math.abs(right - zone.width) <= 1, `the notes end at the zone edge: ${right} of ${zone?.width}`);
                 state.dashboard = false; return true; },
         // Shortcut open.
         () => { state.dashboardOpenedBy = ""; state.dashboard = true; const p = onPanel(); move(p.x, p.y); return true; },
@@ -158,7 +167,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-dashboard-") as temporary:
     result = subprocess.run(["quickshell", "-p", str(folder / "shell.qml")], env=env,
                             capture_output=True, text=True, timeout=90)
     output = result.stdout + result.stderr
-    assert "DASH_RUNTIME_PASS 12" in output, output
+    assert "DASH_RUNTIME_PASS 13" in output, output
     for marker in ("DASH_FAIL", "TypeError", "ReferenceError", "Binding loop", "is not a type"):
         assert marker not in output, output
 

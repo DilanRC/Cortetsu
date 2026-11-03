@@ -209,7 +209,11 @@ FocusScope {
                 Layout.fillHeight: true
                 spacing: CortetsuDesign.spacingStandard
 
-                Item { Layout.fillHeight: true }
+                // fillWidth here lets the column take the whole free side: a
+                // column whose visible children all keep their implicit width
+                // is capped at the widest of them, which left the margin
+                // notes short of the panel's right edge.
+                Item { Layout.fillHeight: true; Layout.fillWidth: true }
                 DashInk {
                     Layout.alignment: Qt.AlignHCenter
                     text: CortetsuRegional.formatDate(Time.date, "longDay", true)

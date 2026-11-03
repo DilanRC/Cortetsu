@@ -107,9 +107,13 @@ Item {
             }
         }
 
+        // The progress brush. At rest it has nothing to show and its empty
+        // track would read as a second rule above the DashRule below, so it
+        // fades out but keeps its place: starting a session moves nothing.
         Item {
             Layout.fillWidth: true
             Layout.preferredHeight: 6
+            opacity: root.pomodoro.phase === "IDLE" || root.pomodoro.phase === undefined ? 0 : 1
             CortetsuBrushStroke { anchors.fill: parent; ink: CortetsuDesign.colorWashi; inkAlpha: 0.08 }
             CortetsuBrushStroke {
                 height: parent.height

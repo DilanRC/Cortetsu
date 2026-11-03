@@ -112,6 +112,17 @@ ShellRoot {
             const selected = find(content, item => item.objectName === "day-11");
             verify(selected.border.width === 0 && today.border.width > 0, "today is a ring, the selected day a fill");
             return true;
+        },
+        () => {
+            // A day without events centres its empty state in the agenda well.
+            // Before 2.1 the column kept the width of its text and sat at the left.
+            const empty = find(content, item => item.text === "No hay eventos" && item.visible);
+            const title = find(content, item => item.objectName === "agendaTitle");
+            if (!empty || !title || empty.width <= 0) return false;
+            const centre = empty.mapToItem(title.parent, empty.width / 2, 0).x;
+            const wellCentre = title.x + title.width / 2;
+            verify(Math.abs(centre - wellCentre) <= 2, `the empty agenda is centred (${centre.toFixed(1)} vs ${wellCentre.toFixed(1)})`);
+            return true;
         }
     ]
 
@@ -172,7 +183,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-calendar-keys-") as temporary:
     result = subprocess.run(["quickshell", "-p", str(folder / "shell.qml")], env=env,
                             capture_output=True, text=True, timeout=90)
     output = result.stdout + result.stderr
-    assert "CALENDAR_RUNTIME_PASS 12" in output, output
+    assert "CALENDAR_RUNTIME_PASS 13" in output, output
     for marker in ("CALENDAR_FAIL", "TypeError", "ReferenceError", "Binding loop", "Unable to assign", "is not a type"):
         assert marker not in output, output
 

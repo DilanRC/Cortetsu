@@ -106,6 +106,13 @@ ShellRoot {
         locked.dispatchDeferred();
         verify(CortetsuSession.requested.join() === "suspend", "the lock releases exactly the suspend request");
 
+        // Every row keeps the column's padding on both sides; before 2.1 the
+        // rows were as wide as the column and overflowed its right padding.
+        const rows = locked.children.filter(child => child.title !== undefined);
+        verify(rows.length > 0 && rows.every(row => row.x === locked.leftPadding
+            && Math.abs(locked.width - (row.x + row.width) - locked.rightPadding) < 0.5),
+            `rows keep the padding on both sides: ${rows.map(row => `${row.x}+${row.width}`).join(" ")}`);
+
         console.log("SESSION_RUNTIME_PASS", checks);
         Qt.quit();
     }
@@ -132,7 +139,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-session-test-") as temporary:
     output = result.stdout + result.stderr
     assert result.returncode == 0, output
     assert "SESSION_FAIL" not in output, output
-    assert "SESSION_RUNTIME_PASS 15" in output, output
+    assert "SESSION_RUNTIME_PASS 16" in output, output
     for marker in ("TypeError", "ReferenceError", " ERROR"):
         assert marker not in output, output
 
