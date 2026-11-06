@@ -19,7 +19,12 @@ jobs:
       - name: Install stable Rust, rustfmt and Clippy
         run: rustup toolchain install stable --profile minimal --component rustfmt,clippy && rustup default stable
       - name: Install native test dependencies
-        run: sudo apt-get update -qq && sudo apt-get install -y -qq dbus libxkbcommon-tools gnome-keyring libsecret-tools gnupg pinentry-gnome3
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq dbus libxkbcommon-tools gnome-keyring libsecret-tools gnupg pinentry-gnome3 build-essential patch pkg-config libassuan-dev libgpg-error-dev libglib2.0-dev libgcr-3-dev libsecret-1-dev libncurses-dev
+      - name: Build isolated patched pinentry 1.3.3
+        if: matrix.crate == 'desktop-runtime-rs'
+        run: |
+          curl -fL https://gnupg.org/ftp/gcrypt/pinentry/pinentry-1.3.3.tar.bz2 -o "$RUNNER_TEMP/pinentry-1.3.3.tar.bz2"
+          python3 scripts/dependencies/build-pinentry.py --archive "$RUNNER_TEMP/pinentry-1.3.3.tar.bz2" --out "$RUNNER_TEMP/cortetsu-pinentry-gnome3"
       - uses: actions/cache@v5
         with:
           path: |
@@ -32,6 +37,8 @@ jobs:
       - name: Lint all targets
         run: cargo clippy --locked --all-targets --manifest-path cortetsu/${{ matrix.crate }}/Cargo.toml -- -D warnings
       - name: Native unit, crash recovery and contract tests
+        env:
+          CORTETSU_TEST_PINENTRY: ${{ runner.temp }}/cortetsu-pinentry-gnome3
         run: cargo test --locked --all-targets --manifest-path cortetsu/${{ matrix.crate }}/Cargo.toml
       - name: Build the production binary under the lockfile
         run: cargo build --locked --release --manifest-path cortetsu/${{ matrix.crate }}/Cargo.toml
