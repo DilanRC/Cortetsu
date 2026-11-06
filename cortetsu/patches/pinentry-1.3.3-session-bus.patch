@@ -1,0 +1,21 @@
+--- a/gnome3/pinentry-gnome3.c
++++ b/gnome3/pinentry-gnome3.c
+@@ -518,0 +519,3 @@
++  GDBusConnection *session_bus = NULL;
++  int result;
++
+@@ -520,0 +524,6 @@
++  /* Keep the shared connection alive across the Gcr availability probe and
++   * the screensaver lookup. Otherwise its last unref can race with the next
++   * g_bus_get_sync() while the GDBus worker is still disposing it. */
++  if (getenv ("DBUS_SESSION_BUS_ADDRESS"))
++    session_bus = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, NULL);
++
+@@ -547,4 +556,3 @@
+-  if (pinentry_loop ())
+-    return 1;
+-
+-  return 0;
++  result = pinentry_loop () ? 1 : 0;
++  g_clear_object (&session_bus);
++  return result;

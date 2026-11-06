@@ -280,6 +280,30 @@ fn creates_and_unlocks_a_real_keyring() {
     }
 }
 
+fn pinentry_binary() -> PathBuf {
+    std::env::var_os("CORTETSU_TEST_PINENTRY")
+        .map(PathBuf::from)
+        .unwrap_or_else(|| PathBuf::from("/usr/bin/pinentry-gnome3"))
+}
+
+#[test]
+fn pinentry_keeps_its_bus_alive_across_startup_probes() {
+    let mut s = Session::new();
+    s.prompter();
+    for attempt in 0..200 {
+        let out = s
+            .command(pinentry_binary())
+            .env("WAYLAND_DISPLAY", "wayland-test")
+            .stdin(Stdio::null())
+            .output()
+            .unwrap();
+        assert!(
+            out.status.success() && out.stdout.starts_with(b"OK"),
+            "pinentry startup {attempt}: {out:?}"
+        );
+    }
+}
+
 #[test]
 fn gpg_asks_through_pinentry_gnome3() {
     let mut s = Session::new();
@@ -289,7 +313,11 @@ fn gpg_asks_through_pinentry_gnome3() {
     fs::set_permissions(&gnupg, fs::Permissions::from_mode(0o700)).unwrap();
     fs::write(
         gnupg.join("gpg-agent.conf"),
-        "pinentry-program /usr/bin/pinentry-gnome3\n",
+        format!(
+            "pinentry-program {}\nlog-file {}\n",
+            pinentry_binary().display(),
+            s.path("agent.log").display()
+        ),
     )
     .unwrap();
     let gpg = |args: &[&str]| {
@@ -325,8 +353,9 @@ fn gpg_asks_through_pinentry_gnome3() {
         .status();
     assert!(
         signed.status.success(),
-        "{}",
-        String::from_utf8_lossy(&signed.stderr)
+        "{}\nagent: {}",
+        String::from_utf8_lossy(&signed.stderr),
+        fs::read_to_string(s.path("agent.log")).unwrap_or_default()
     );
     assert!(String::from_utf8_lossy(&signed.stdout).contains("BEGIN PGP SIGNATURE"));
     let seen = shell.recv_timeout(Duration::from_secs(20)).unwrap();
