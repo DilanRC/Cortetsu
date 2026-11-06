@@ -4,7 +4,7 @@ use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use std::{
     env, fs,
-    io::Write,
+    io::{Read, Write},
     os::unix::{fs::MetadataExt, process::CommandExt},
     path::{Path, PathBuf},
     process::{Command, Stdio},
@@ -93,6 +93,13 @@ fn hypr_scheme(colours: &Value) -> Result<()> {
     }
     Ok(())
 }
+fn hypr_scheme_current(path: &Path) -> Result<()> {
+    let _guard = lock(&path.with_file_name("hypr-scheme.lock"), false)?;
+    let current = optional_json_object(path)
+        .map_err(|_| "scheme.json is not a readable JSON object")?
+        .unwrap_or_else(|| json!({}));
+    hypr_scheme(&current["colours"])
+}
 const KITTY_ROLES: [(&str, &str); 9] = [
     ("foreground", "onSurface"),
     ("background", "surface"),
@@ -139,6 +146,13 @@ fn sync_kitty(colours: &Value) -> Result<()> {
     }
     Ok(())
 }
+fn sync_kitty_current(path: &Path) -> Result<()> {
+    let _guard = lock(&path.with_file_name("scheme.lock"), false)?;
+    let current = optional_json_object(path)
+        .map_err(|_| "scheme.json is not a readable JSON object")?
+        .unwrap_or_else(|| json!({}));
+    sync_kitty(&current["colours"])
+}
 pub fn scheme(args: &[String]) -> Result<i32> {
     let path = state().join("scheme.json");
     let mut s = json_load(&path, json!({}));
@@ -177,23 +191,73 @@ pub fn scheme(args: &[String]) -> Result<i32> {
                 eprintln!("esquema no encontrado: {name} {flavour}");
                 return Ok(1);
             }
+            let _guard = lock(&path.with_file_name("scheme.lock"), false)?;
+            s = optional_json_object(&path)
+                .ok()
+                .flatten()
+                .unwrap_or_else(|| json!({}));
             s["name"] = json!(name);
             s["flavour"] = json!(flavour);
             s["colours"] = colours.clone();
+            s["schema"] = json!(2);
+            s["origin"] = json!("manual");
+            s["lastSelection"] = json!({"name": name, "flavour": flavour});
             json_save(&path, &s)?;
-            hypr_scheme(colours)?;
-            if let Err(e) = sync_kitty(colours) {
+            drop(_guard);
+            hypr_scheme_current(&path)?;
+            if let Err(e) = sync_kitty_current(&path) {
                 eprintln!("cortetsu-scheme: Kitty colours kept unchanged: {e}");
             }
         }
-        ["sync-kitty"] => sync_kitty(&s["colours"])?,
+        ["sync-kitty"] => sync_kitty_current(&path)?,
         ["set", "-v", variant] if !variant.is_empty() => {
+            let _guard = lock(&path.with_file_name("scheme.lock"), false)?;
+            s = optional_json_object(&path)
+                .ok()
+                .flatten()
+                .unwrap_or_else(|| json!({}));
+            let name = s
+                .get("name")
+                .and_then(Value::as_str)
+                .unwrap_or("dynamic")
+                .to_owned();
+            let flavour = s
+                .get("flavour")
+                .and_then(Value::as_str)
+                .unwrap_or("default")
+                .to_owned();
             s["variant"] = json!(variant);
+            s["schema"] = json!(2);
+            s["origin"] = json!("manual");
+            s["lastSelection"] = json!({
+                "name": name,
+                "flavour": flavour,
+                "variant": variant
+            });
             json_save(&path, &s)?;
+        }
+        ["apply-wallpaper-colors"] => {
+            let mut bytes = Vec::new();
+            std::io::stdin().read_to_end(&mut bytes)?;
+            let mut incoming: Value = serde_json::from_slice(&bytes)?;
+            if incoming["name"] != "dynamic"
+                || !incoming["colours"].is_object()
+                || !incoming["colours"]["primary"].is_string()
+            {
+                eprintln!("invalid wallpaper colour payload");
+                return Ok(2);
+            }
+            let _guard = lock(&path.with_file_name("scheme.lock"), false)?;
+            if !wallpaper_scheme_sync_allowed() {
+                return Ok(3);
+            }
+            incoming["schema"] = json!(2);
+            incoming["origin"] = json!("wallpaper");
+            json_save(&path, &incoming)?;
         }
         _ => {
             eprintln!(
-                "usage: cortetsu-scheme {{list|get -nfv|set -n NAME FLAVOUR|set -v VARIANT|sync-kitty}}"
+                "usage: cortetsu-scheme {{list|get -nfv|set -n NAME FLAVOUR|set -v VARIANT|apply-wallpaper-colors|sync-kitty}}"
             );
             return Ok(2);
         }
@@ -382,8 +446,9 @@ fn stat_line(p: &Path) -> String {
 }
 fn sources(running: bool) -> String {
     let mut text = format!(
-        "wallpaper-engine={}\n",
-        if running { "active" } else { "inactive" }
+        "wallpaper-engine={}\nwallpaper-scheme-eligible={}\n",
+        if running { "active" } else { "inactive" },
+        wallpaper_scheme_sync_allowed(),
     );
     let active = home().join(".config/Linux Wallpaper Engine/active-wallpapers.json");
     text.push_str(&stat_line(&active));
@@ -409,6 +474,68 @@ fn sources(running: bool) -> String {
     }
     format!("{:x}", Sha256::digest(text.as_bytes()))
 }
+fn optional_json_object(path: &Path) -> std::result::Result<Option<Value>, ()> {
+    match fs::read(path) {
+        Ok(bytes) => {
+            let value: Value = serde_json::from_slice(&bytes).map_err(|_| ())?;
+            value.is_object().then_some(value).ok_or(()).map(Some)
+        }
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(None),
+        Err(_) => Err(()),
+    }
+}
+fn wallpaper_scheme_sync_allowed() -> bool {
+    let preferences = match optional_json_object(&config().join("cortetsu/preferences.json")) {
+        Ok(Some(value)) => value,
+        Ok(None) => json!({}),
+        Err(()) => return false,
+    };
+    if preferences
+        .get("smartScheme")
+        .is_some_and(|value| value.as_bool() != Some(true))
+    {
+        return false;
+    }
+
+    let scheme = match optional_json_object(&state().join("scheme.json")) {
+        Ok(Some(value)) => value,
+        Ok(None) => return true,
+        Err(()) => return false,
+    };
+    match scheme["origin"].as_str() {
+        Some("wallpaper") => true,
+        Some("manual") => false,
+        Some(_) => false,
+        None => {
+            // Existing scheme files predate the origin field. A named palette
+            // is a manual choice; the generated "dynamic" palette remains
+            // eligible for wallpaper synchronization.
+            match scheme.get("name") {
+                None => true,
+                Some(Value::String(name)) => name == "dynamic",
+                Some(_) => false,
+            }
+        }
+    }
+}
+
+fn record_wallpaper_sync(status: &str, source: &str) {
+    let path = state().join("scheme.json");
+    let Ok(_guard) = lock(&path.with_file_name("scheme.lock"), false) else {
+        return;
+    };
+    let Ok(Some(mut scheme)) = optional_json_object(&path) else {
+        return;
+    };
+    if scheme["wallpaperSync"]["status"] == status && scheme["wallpaperSync"]["source"] == source {
+        return;
+    }
+    scheme["wallpaperSync"] = json!({"status": status, "source": source});
+    if let Err(error) = json_save(&path, &scheme) {
+        eprintln!("cortetsu-wallpaper-color-daemon: could not save sync status: {error}");
+    }
+}
+
 pub fn wallpaper_daemon(args: &[String]) -> Result<i32> {
     let dir = env::var_os("XDG_RUNTIME_DIR")
         .filter(|s| !s.is_empty())
@@ -436,12 +563,45 @@ pub fn wallpaper_daemon(args: &[String]) -> Result<i32> {
         let current = sources(running);
         if current != previous {
             let p = static_path();
-            if !running && !p.is_empty() && Path::new(&p).is_file() {
-                let _ = run(
+            let mut retry = false;
+            if !running
+                && wallpaper_scheme_sync_allowed()
+                && !p.is_empty()
+                && Path::new(&p).is_file()
+            {
+                match run(
                     Command::new(home().join(".local/bin/cortetsu-apply-wallpaper-colors")).arg(&p),
                     None,
                     Duration::from_secs(60),
-                );
+                ) {
+                    Ok(output) if output.status.success() => {
+                        record_wallpaper_sync("applied", &current);
+                    }
+                    Ok(output) if output.status.code() == Some(3) => {
+                        // A manual choice acquired the shared lock first.
+                    }
+                    Ok(_) => {
+                        eprintln!(
+                            "cortetsu-wallpaper-color-daemon: wallpaper palette application failed"
+                        );
+                        record_wallpaper_sync("error", &current);
+                        retry = true;
+                    }
+                    Err(error) => {
+                        eprintln!(
+                            "cortetsu-wallpaper-color-daemon: wallpaper palette application failed: {error}"
+                        );
+                        record_wallpaper_sync("error", &current);
+                        retry = true;
+                    }
+                }
+            }
+            if retry {
+                if args.iter().any(|a| a == "--once") {
+                    return Ok(1);
+                }
+                thread::sleep(Duration::from_secs_f64(interval));
+                continue;
             }
             let _ = atomic(&hash, format!("{current}\n").as_bytes(), 0o600);
             previous = current;

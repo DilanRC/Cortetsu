@@ -23,6 +23,11 @@ with tempfile.TemporaryDirectory() as directory:
     shipped = {path.name: path.read_bytes() for path in runtime.iterdir()}
     env["CORTETSU_RUNTIME_ROOT"] = str(Path(directory) / "runtime")
     subprocess.run([str(script), "set", "-v", "expressive"], env=env, check=True)
+    selected_variant = json.loads((Path(directory) / "cortetsu/scheme.json").read_text(encoding="utf-8"))
+    assert selected_variant["schema"] == 2 and selected_variant["origin"] == "manual"
+    assert selected_variant["lastSelection"] == {
+        "name": "dynamic", "flavour": "default", "variant": "expressive"
+    }
     result = subprocess.run([str(script), "get", "-nfv"], env=env, check=True, text=True, capture_output=True)
     assert result.stdout.splitlines() == ["dynamic", "default", "expressive"]
     listed = subprocess.run([str(script), "list"], env=env, check=True, text=True, capture_output=True)
@@ -33,6 +38,9 @@ with tempfile.TemporaryDirectory() as directory:
     selected = json.loads((Path(directory) / "cortetsu/scheme.json").read_text(encoding="utf-8"))
     assert selected["name"] == "aura"
     assert selected["colours"]["primary"] == catalog["aura"]["default"]["primary"]
+    assert selected["schema"] == 2
+    assert selected["origin"] == "manual"
+    assert selected["lastSelection"] == {"name": "aura", "flavour": "default"}
     live = live_scheme.read_text(encoding="utf-8")
     assert f'primary = "{catalog["aura"]["default"]["primary"].lstrip("#")}"' in live
     assert 'surfaceContainer =' in live and 'onSurfaceVariant =' in live
@@ -60,12 +68,45 @@ with tempfile.TemporaryDirectory() as directory:
     installed = Path(directory) / "bin/cortetsu-scheme"
     installed.parent.mkdir()
     shutil.copy2(script, installed)
+    shutil.copy2(REPO / "dist/native/cortetsu-desktop-runtime", installed.parent)
     installed_catalog = subprocess.run(
         [str(installed), "list"],
-        env={**env, "CORTETSU_REPOSITORY": str(REPO)},
+        env={**env, "CORTETSU_RESOURCE_ROOT": str(REPO / "cortetsu")},
         check=True,
         text=True,
         capture_output=True,
     )
     assert sum(len(flavours) for flavours in json.loads(installed_catalog.stdout).values()) >= 24
+
+    # The wallpaper application path records its authority in the same state
+    # file read by Quickshell and the startup watcher.
+    home = Path(directory) / "home"
+    bin_dir = home / ".local/bin"
+    bin_dir.mkdir(parents=True)
+    colours = bin_dir / "cortetsu-wallpaper-colours"
+    colours.write_text(
+        '#!/bin/sh\nprintf \'{"name":"dynamic","flavour":"default","mode":"dark","variant":"tonal-spot","colours":{"primary":"#123456"}}\\n\'\n',
+        encoding="utf-8",
+    )
+    colours.chmod(0o755)
+    shutil.copy2(REPO / "cortetsu/bin/cortetsu-scheme", bin_dir / "cortetsu-scheme")
+    shutil.copy2(REPO / "dist/native/cortetsu-desktop-runtime", bin_dir / "cortetsu-desktop-runtime")
+    wallpaper = Path(directory) / "wallpaper.png"
+    wallpaper.write_bytes(b"fake image input")
+    state_dir = Path(directory) / "cortetsu"
+    state_dir.mkdir(exist_ok=True)
+    (state_dir / "scheme.json").write_text(
+        json.dumps({"schema": 2, "name": "dynamic", "origin": "wallpaper", "colours": {"primary": "#654321"}}),
+        encoding="utf-8",
+    )
+    apply_env = {**env, "HOME": str(home), "CORTETSU_RESOURCE_ROOT": str(REPO / "cortetsu")}
+    subprocess.run(
+        [str(REPO / "cortetsu/bin/cortetsu-apply-wallpaper-colors"), str(wallpaper)],
+        env=apply_env,
+        check=True,
+    )
+    dynamic = json.loads((Path(directory) / "cortetsu/scheme.json").read_text(encoding="utf-8"))
+    assert dynamic["schema"] == 2
+    assert dynamic["origin"] == "wallpaper"
+    assert dynamic["colours"]["primary"] == "#123456"
 print("PASS: Cortetsu scheme state is first-party and XDG-scoped")

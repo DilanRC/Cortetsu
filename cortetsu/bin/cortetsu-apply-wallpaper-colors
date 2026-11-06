@@ -4,13 +4,14 @@ set -euo pipefail
 image="${1:-}"
 [[ -n "$image" && -f "$image" ]] || { echo "usage: cortetsu-apply-wallpaper-colors /path/to/image" >&2; exit 2; }
 
-state="${XDG_STATE_HOME:-$HOME/.local/state}/cortetsu/scheme.json"
-tmp="$(mktemp "${state}.tmp.XXXXXX")"
-trap 'rm -f "$tmp"' EXIT
-mkdir -p "$(dirname "$state")"
-
-# Cortetsu owns generation; the output deliberately preserves the M3 contract
-# consumed by the dynamic palette reader.
-"$HOME/.local/bin/cortetsu-wallpaper-colours" "$image" | jq -e 'if .name == "dynamic" and (.colours.primary | type == "string") then . else error("invalid dynamic scheme") end' > "$tmp"
-install -m 0644 "$tmp" "$state"
+payload="$("$HOME/.local/bin/cortetsu-wallpaper-colours" "$image")"
+# The native scheme writer validates the palette, serializes against manual
+# selections and rechecks wallpaper ownership while holding the shared lock.
+if printf '%s\n' "$payload" | "$HOME/.local/bin/cortetsu-scheme" apply-wallpaper-colors; then
+    :
+else
+    status=$?
+    [[ "$status" -eq 3 ]] && exit 3
+    exit "$status"
+fi
 "$HOME/.local/bin/cortetsu-scheme" sync-kitty || echo "cortetsu-apply-wallpaper-colors: Kitty colours kept unchanged" >&2

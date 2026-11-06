@@ -406,6 +406,7 @@ test_cmd() {
         cargo test --locked --manifest-path "$ROOT/cortetsu/$crate/Cargo.toml"
     done
     (cd "$ROOT/cortetsu/protocol" && go test ./...)
+    bash "$ROOT/scripts/features/test-hyprland-group-lock.sh"
     run_node_test "cortetsu/tests/test-wallpaper-search.node.js"
     run_node_test "scripts/features/test-ascension-motion.js"
     run_node_test "scripts/features/test-connectivity-wifi-policy.cjs"

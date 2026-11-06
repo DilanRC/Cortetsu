@@ -35,8 +35,9 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-wallcolor-") as tmp:
     env = {**os.environ, "HOME": str(home), "XDG_RUNTIME_DIR": str(home), "CORTETSU_PROC_ROOT": str(proc)}
     env.pop("XDG_STATE_HOME", None)
 
-    def once() -> list[str]:
-        subprocess.run(["python3", str(DAEMON), "--once"], env=env, check=True, timeout=20)
+    def once(*, expect_success=True) -> list[str]:
+        result = subprocess.run([str(DAEMON), "--once"], env=env, timeout=20)
+        assert result.returncode == (0 if expect_success else 1), result.returncode
         applied = home / "applied"
         return applied.read_text().splitlines() if applied.exists() else []
 
@@ -61,11 +62,10 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-wallcolor-") as tmp:
 
     (bindir / "cortetsu-apply-wallpaper-colors").unlink()
     state.write_text(f"{wall_a}\n")
-    assert len(once()) == 4, "a missing colour helper is skipped, not a crash loop"
+    assert len(once(expect_success=False)) == 4, "a missing colour helper is reported and not marked applied"
     (bindir / "cortetsu-apply-wallpaper-colors").write_text(f'#!/bin/sh\necho "$1" >> {home}/applied\n')
     (bindir / "cortetsu-apply-wallpaper-colors").chmod(0o755)
-    state.write_text(f"{wall_b}\n")
-    assert len(once()) == 5
+    assert len(once()) == 5, "the same wallpaper is retried after the helper returns"
 
     lock = (home / "cortetsu-wallpaper-color-daemon/lock").open("a")
     import fcntl

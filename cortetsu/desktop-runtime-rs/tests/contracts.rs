@@ -1,5 +1,13 @@
 use serde_json::{Value, json};
-use std::{fs, os::unix::fs::PermissionsExt, path::PathBuf, process::Command};
+use std::{
+    fs,
+    io::Write,
+    os::unix::fs::PermissionsExt,
+    path::PathBuf,
+    process::{Command, Stdio},
+    thread,
+    time::{Duration, Instant},
+};
 use tempfile::TempDir;
 
 fn command(home: &TempDir, helper: &str, args: &[&str]) -> Command {
@@ -108,6 +116,104 @@ fn scheme_catalog_contains_shipped_colours() {
         serde_json::from_slice(&fs::read(home.path().join("state/cortetsu/scheme.json")).unwrap())
             .unwrap();
     assert_eq!(state["colours"], flavours[flavour]);
+    assert_eq!(state["schema"], 2);
+    assert_eq!(state["origin"], "manual");
+    assert_eq!(state["lastSelection"]["name"], name.as_str());
+    assert_eq!(state["lastSelection"]["flavour"], flavour.as_str());
+}
+
+#[test]
+fn explicit_scheme_choice_recovers_corrupt_state() {
+    let home = TempDir::new().unwrap();
+    let state = home.path().join("state/cortetsu");
+    fs::create_dir_all(&state).unwrap();
+    let scheme = state.join("scheme.json");
+    fs::write(&scheme, b"{broken").unwrap();
+    let result = command(&home, "cortetsu-scheme", &["set", "-n", "aura", "default"])
+        .output()
+        .unwrap();
+    assert!(
+        result.status.success(),
+        "{}",
+        String::from_utf8_lossy(&result.stderr)
+    );
+    let recovered: Value = serde_json::from_slice(&fs::read(scheme).unwrap()).unwrap();
+    assert_eq!(recovered["schema"], 2);
+    assert_eq!(recovered["origin"], "manual");
+    assert_eq!(recovered["name"], "aura");
+}
+
+#[test]
+fn concurrent_manual_scheme_changes_leave_hypr_projection_at_latest_choice() {
+    let home = TempDir::new().unwrap();
+    let config = home.path().join("config/hypr/scheme");
+    fs::create_dir_all(&config).unwrap();
+    fs::write(config.join("current.lua"), "return {}\n").unwrap();
+    let state = home.path().join("state/cortetsu/scheme.json");
+    let catalog = payload(command(&home, "cortetsu-scheme", &["list"]));
+    let latest_primary = catalog["nebula"]["default"]["primary"]
+        .as_str()
+        .unwrap()
+        .trim_start_matches('#')
+        .to_owned();
+    let fake_bin = home.path().join("fake-bin");
+    fs::create_dir_all(&fake_bin).unwrap();
+    let started = home.path().join("reload-started");
+    let release = home.path().join("release-reload");
+    let hyprctl = fake_bin.join("hyprctl");
+    fs::write(
+        &hyprctl,
+        format!(
+            "#!/bin/sh\nprintf started > '{}'\nwhile [ ! -e '{}' ]; do sleep 0.01; done\n",
+            started.display(),
+            release.display()
+        ),
+    )
+    .unwrap();
+    fs::set_permissions(&hyprctl, fs::Permissions::from_mode(0o755)).unwrap();
+    let path = std::env::var_os("PATH").unwrap_or_default();
+    let path = std::iter::once(fake_bin.clone())
+        .chain(std::env::split_paths(&path))
+        .collect::<Vec<_>>();
+    let path = std::env::join_paths(path).unwrap();
+
+    let mut first = command(&home, "cortetsu-scheme", &["set", "-n", "aura", "default"]);
+    first.env("PATH", &path);
+    let mut first = first.spawn().unwrap();
+    let deadline = Instant::now() + Duration::from_secs(5);
+    while !started.exists() && Instant::now() < deadline {
+        thread::sleep(Duration::from_millis(10));
+    }
+    assert!(started.exists(), "first Hyprland projection did not start");
+
+    let mut second = command(
+        &home,
+        "cortetsu-scheme",
+        &["set", "-n", "nebula", "default"],
+    );
+    second.env("PATH", &path);
+    let mut second = second.spawn().unwrap();
+    let deadline = Instant::now() + Duration::from_secs(5);
+    while Instant::now() < deadline {
+        if fs::read(&state)
+            .ok()
+            .and_then(|bytes| serde_json::from_slice::<Value>(&bytes).ok())
+            .is_some_and(|value| value["name"] == "nebula")
+        {
+            break;
+        }
+        thread::sleep(Duration::from_millis(10));
+    }
+    let current: Value = serde_json::from_slice(&fs::read(&state).unwrap()).unwrap();
+    assert_eq!(current["name"], "nebula");
+    fs::write(&release, b"go").unwrap();
+    assert!(first.wait().unwrap().success());
+    assert!(second.wait().unwrap().success());
+    assert!(
+        fs::read_to_string(config.join("current.lua"))
+            .unwrap()
+            .contains(&format!("primary = \"{latest_primary}\""))
+    );
 }
 
 #[test]
@@ -541,6 +647,368 @@ fn wallpaper_watcher_only_applies_on_change_and_skips_running_engine() {
     assert_eq!(
         fs::read_to_string(home.path().join("applied")).unwrap(),
         "apply\n"
+    );
+}
+
+#[test]
+fn wallpaper_watcher_preserves_a_manual_scheme() {
+    let home = TempDir::new().unwrap();
+    let state = home.path().join("state/cortetsu");
+    let wallpaper = state.join("wallpaper");
+    fs::create_dir_all(&wallpaper).unwrap();
+    let image = home.path().join("wall.png");
+    fs::write(&image, "pixels").unwrap();
+    fs::write(wallpaper.join("path.txt"), format!("{}\n", image.display())).unwrap();
+    fs::write(
+        state.join("scheme.json"),
+        json!({
+            "schema": 2,
+            "name": "aura",
+            "flavour": "default",
+            "origin": "manual",
+            "colours": {"primary": "#123456"}
+        })
+        .to_string(),
+    )
+    .unwrap();
+    let config = home.path().join("config/cortetsu");
+    fs::create_dir_all(&config).unwrap();
+    fs::write(
+        config.join("preferences.json"),
+        r#"{"schema":1,"smartScheme":true}"#,
+    )
+    .unwrap();
+    let bin = home.path().join(".local/bin");
+    fs::create_dir_all(&bin).unwrap();
+    let apply = bin.join("cortetsu-apply-wallpaper-colors");
+    fs::write(
+        &apply,
+        "#!/bin/sh\nprintf '%s\\n' \"$1\" >> \"$HOME/applied\"\n",
+    )
+    .unwrap();
+    fs::set_permissions(&apply, fs::Permissions::from_mode(0o755)).unwrap();
+    let proc = home.path().join("proc");
+    fs::create_dir_all(&proc).unwrap();
+
+    assert!(
+        command(&home, "cortetsu-wallpaper-color-daemon", &["--once"])
+            .env("XDG_RUNTIME_DIR", home.path().join("runtime"))
+            .env("CORTETSU_PROC_ROOT", &proc)
+            .status()
+            .unwrap()
+            .success()
+    );
+
+    assert!(
+        !home.path().join("applied").exists(),
+        "a new session must not replace an explicitly selected manual scheme"
+    );
+    let scheme: Value =
+        serde_json::from_slice(&fs::read(state.join("scheme.json")).unwrap()).unwrap();
+    assert_eq!(scheme["name"], "aura");
+    assert_eq!(scheme["colours"]["primary"], "#123456");
+
+    // Upgrade-era files have no schema/origin. A named palette still means
+    // that the user picked it manually and must survive the next source change.
+    fs::write(
+        state.join("scheme.json"),
+        r##"{"name":"aura","flavour":"default","colours":{"primary":"#654321"}}"##,
+    )
+    .unwrap();
+    fs::write(&image, "changed wallpaper pixels").unwrap();
+    assert!(
+        command(&home, "cortetsu-wallpaper-color-daemon", &["--once"])
+            .env("XDG_RUNTIME_DIR", home.path().join("runtime"))
+            .env("CORTETSU_PROC_ROOT", &proc)
+            .status()
+            .unwrap()
+            .success()
+    );
+    assert!(!home.path().join("applied").exists());
+    let legacy: Value =
+        serde_json::from_slice(&fs::read(state.join("scheme.json")).unwrap()).unwrap();
+    assert_eq!(legacy["name"], "aura");
+    assert_eq!(legacy["colours"]["primary"], "#654321");
+}
+
+#[test]
+fn wallpaper_palette_writer_rechecks_manual_ownership_at_commit_time() {
+    let home = TempDir::new().unwrap();
+    let state = home.path().join("state/cortetsu");
+    fs::create_dir_all(&state).unwrap();
+    let scheme_path = state.join("scheme.json");
+    let manual = json!({
+        "schema": 2,
+        "name": "aura",
+        "flavour": "default",
+        "origin": "manual",
+        "colours": {"primary": "#123456"}
+    });
+    fs::write(&scheme_path, serde_json::to_vec(&manual).unwrap()).unwrap();
+    fs::create_dir_all(home.path().join("config/cortetsu")).unwrap();
+    fs::write(
+        home.path().join("config/cortetsu/preferences.json"),
+        r#"{"smartScheme":true}"#,
+    )
+    .unwrap();
+    let original = fs::read(&scheme_path).unwrap();
+    let payload = json!({
+        "name": "dynamic",
+        "flavour": "default",
+        "mode": "dark",
+        "variant": "tonal-spot",
+        "colours": {"primary": "#abcdef"}
+    });
+    let mut child = command(&home, "cortetsu-scheme", &["apply-wallpaper-colors"])
+        .stdin(Stdio::piped())
+        .spawn()
+        .unwrap();
+    child
+        .stdin
+        .take()
+        .unwrap()
+        .write_all(serde_json::to_string(&payload).unwrap().as_bytes())
+        .unwrap();
+    assert_eq!(child.wait().unwrap().code(), Some(3));
+    assert_eq!(fs::read(scheme_path).unwrap(), original);
+}
+
+#[test]
+fn wallpaper_watcher_respects_disabled_wallpaper_sync() {
+    let home = TempDir::new().unwrap();
+    let state = home.path().join("state/cortetsu");
+    let wallpaper = state.join("wallpaper");
+    fs::create_dir_all(&wallpaper).unwrap();
+    let image = home.path().join("wall.png");
+    fs::write(&image, "pixels").unwrap();
+    fs::write(wallpaper.join("path.txt"), format!("{}\n", image.display())).unwrap();
+    fs::write(
+        state.join("scheme.json"),
+        json!({
+            "schema": 2,
+            "name": "dynamic",
+            "flavour": "default",
+            "origin": "wallpaper",
+            "colours": {"primary": "#123456"}
+        })
+        .to_string(),
+    )
+    .unwrap();
+    let config = home.path().join("config/cortetsu");
+    fs::create_dir_all(&config).unwrap();
+    fs::write(
+        config.join("preferences.json"),
+        r#"{"schema":1,"smartScheme":false}"#,
+    )
+    .unwrap();
+    let bin = home.path().join(".local/bin");
+    fs::create_dir_all(&bin).unwrap();
+    let apply = bin.join("cortetsu-apply-wallpaper-colors");
+    fs::write(
+        &apply,
+        "#!/bin/sh\nprintf 'applied\\n' >> \"$HOME/applied\"\n",
+    )
+    .unwrap();
+    fs::set_permissions(&apply, fs::Permissions::from_mode(0o755)).unwrap();
+    let proc = home.path().join("proc");
+    fs::create_dir_all(&proc).unwrap();
+
+    let runtime = home.path().join("runtime");
+    assert!(
+        command(&home, "cortetsu-wallpaper-color-daemon", &["--once"])
+            .env("XDG_RUNTIME_DIR", &runtime)
+            .env("CORTETSU_PROC_ROOT", &proc)
+            .status()
+            .unwrap()
+            .success()
+    );
+    assert!(!home.path().join("applied").exists());
+
+    fs::write(
+        config.join("preferences.json"),
+        r#"{"schema":1,"smartScheme":true}"#,
+    )
+    .unwrap();
+    assert!(
+        command(&home, "cortetsu-wallpaper-color-daemon", &["--once"])
+            .env("XDG_RUNTIME_DIR", runtime)
+            .env("CORTETSU_PROC_ROOT", proc)
+            .status()
+            .unwrap()
+            .success()
+    );
+    assert!(home.path().join("applied").exists());
+}
+
+#[test]
+fn wallpaper_watcher_fails_closed_on_corrupt_persistent_state() {
+    for corrupt_file in ["scheme.json", "preferences.json"] {
+        let home = TempDir::new().unwrap();
+        let state = home.path().join("state/cortetsu");
+        let wallpaper = state.join("wallpaper");
+        fs::create_dir_all(&wallpaper).unwrap();
+        let image = home.path().join("wall.png");
+        fs::write(&image, "pixels").unwrap();
+        fs::write(wallpaper.join("path.txt"), format!("{}\n", image.display())).unwrap();
+        let scheme = state.join("scheme.json");
+        let config = home.path().join("config/cortetsu");
+        fs::create_dir_all(&config).unwrap();
+        if corrupt_file == "scheme.json" {
+            fs::write(&scheme, "{broken").unwrap();
+            fs::write(
+                config.join("preferences.json"),
+                r#"{"schema":1,"smartScheme":true}"#,
+            )
+            .unwrap();
+        } else {
+            fs::write(
+                &scheme,
+                json!({
+                    "schema": 2,
+                    "name": "dynamic",
+                    "origin": "wallpaper",
+                    "colours": {"primary": "#123456"}
+                })
+                .to_string(),
+            )
+            .unwrap();
+            fs::write(config.join("preferences.json"), "{broken").unwrap();
+        }
+        let original_scheme = fs::read(&scheme).unwrap();
+        let original_preferences = fs::read(config.join("preferences.json")).unwrap();
+        let bin = home.path().join(".local/bin");
+        fs::create_dir_all(&bin).unwrap();
+        let apply = bin.join("cortetsu-apply-wallpaper-colors");
+        fs::write(
+            &apply,
+            "#!/bin/sh\nprintf 'applied\\n' >> \"$HOME/applied\"\n",
+        )
+        .unwrap();
+        fs::set_permissions(&apply, fs::Permissions::from_mode(0o755)).unwrap();
+        let proc = home.path().join("proc");
+        fs::create_dir_all(&proc).unwrap();
+
+        assert!(
+            command(&home, "cortetsu-wallpaper-color-daemon", &["--once"])
+                .env("XDG_RUNTIME_DIR", home.path().join("runtime"))
+                .env("CORTETSU_PROC_ROOT", &proc)
+                .status()
+                .unwrap()
+                .success()
+        );
+        assert!(!home.path().join("applied").exists(), "{corrupt_file}");
+        assert_eq!(fs::read(scheme).unwrap(), original_scheme, "{corrupt_file}");
+        assert_eq!(
+            fs::read(config.join("preferences.json")).unwrap(),
+            original_preferences,
+            "{corrupt_file}"
+        );
+    }
+}
+
+#[test]
+fn wallpaper_watcher_retries_a_failed_palette_application() {
+    let home = TempDir::new().unwrap();
+    let state = home.path().join("state/cortetsu");
+    let wallpaper = state.join("wallpaper");
+    fs::create_dir_all(&wallpaper).unwrap();
+    let image = home.path().join("wall.png");
+    fs::write(&image, "pixels").unwrap();
+    fs::write(wallpaper.join("path.txt"), format!("{}\n", image.display())).unwrap();
+    fs::write(
+        state.join("scheme.json"),
+        json!({
+            "schema": 2,
+            "name": "dynamic",
+            "origin": "wallpaper",
+            "colours": {"primary": "#123456"}
+        })
+        .to_string(),
+    )
+    .unwrap();
+    let config = home.path().join("config/cortetsu");
+    fs::create_dir_all(&config).unwrap();
+    fs::write(config.join("preferences.json"), r#"{"smartScheme":true}"#).unwrap();
+    let bin = home.path().join(".local/bin");
+    fs::create_dir_all(&bin).unwrap();
+    let apply = bin.join("cortetsu-apply-wallpaper-colors");
+    fs::write(
+        &apply,
+        "#!/bin/sh\ncount=0\n[ ! -f \"$HOME/attempt-count\" ] || count=$(cat \"$HOME/attempt-count\")\ncount=$((count + 1))\nprintf '%s\\n' \"$count\" > \"$HOME/attempt-count\"\n[ \"$count\" -ne 1 ] || exit 1\nprintf 'applied\\n' > \"$HOME/applied\"\n",
+    )
+    .unwrap();
+    fs::set_permissions(&apply, fs::Permissions::from_mode(0o755)).unwrap();
+    let proc = home.path().join("proc");
+    fs::create_dir_all(&proc).unwrap();
+    let runtime = home.path().join("runtime");
+
+    let mut daemon = command(&home, "cortetsu-wallpaper-color-daemon", &["--once"]);
+    daemon
+        .env("XDG_RUNTIME_DIR", &runtime)
+        .env("CORTETSU_PROC_ROOT", &proc);
+    assert!(!daemon.status().unwrap().success());
+    let failed_state: Value =
+        serde_json::from_slice(&fs::read(state.join("scheme.json")).unwrap()).unwrap();
+    assert_eq!(failed_state["wallpaperSync"]["status"], "error");
+
+    let mut daemon = command(&home, "cortetsu-wallpaper-color-daemon", &["--once"]);
+    daemon
+        .env("XDG_RUNTIME_DIR", &runtime)
+        .env("CORTETSU_PROC_ROOT", &proc);
+    assert!(daemon.status().unwrap().success());
+
+    assert_eq!(
+        fs::read_to_string(home.path().join("attempt-count")).unwrap(),
+        "2\n"
+    );
+    assert_eq!(
+        fs::read_to_string(home.path().join("applied")).unwrap(),
+        "applied\n"
+    );
+    let applied_state: Value =
+        serde_json::from_slice(&fs::read(state.join("scheme.json")).unwrap()).unwrap();
+    assert_eq!(applied_state["wallpaperSync"]["status"], "applied");
+}
+
+#[test]
+fn wallpaper_watcher_does_not_repeat_after_palette_origin_is_written() {
+    let home = TempDir::new().unwrap();
+    let state = home.path().join("state/cortetsu");
+    let wallpaper = state.join("wallpaper");
+    fs::create_dir_all(&wallpaper).unwrap();
+    let image = home.path().join("wall.png");
+    fs::write(&image, "pixels").unwrap();
+    fs::write(wallpaper.join("path.txt"), format!("{}\n", image.display())).unwrap();
+    let config = home.path().join("config/cortetsu");
+    fs::create_dir_all(&config).unwrap();
+    fs::write(config.join("preferences.json"), r#"{"smartScheme":true}"#).unwrap();
+    let bin = home.path().join(".local/bin");
+    fs::create_dir_all(&bin).unwrap();
+    let apply = bin.join("cortetsu-apply-wallpaper-colors");
+    fs::write(
+        &apply,
+        "#!/bin/sh\nprintf 'applied\\n' >> \"$HOME/applied\"\nmkdir -p \"$XDG_STATE_HOME/cortetsu\"\nprintf '{\\\"schema\\\":2,\\\"name\\\":\\\"dynamic\\\",\\\"origin\\\":\\\"wallpaper\\\",\\\"colours\\\":{\\\"primary\\\":\\\"#123456\\\"}}\\n' > \"$XDG_STATE_HOME/cortetsu/scheme.json\"\n",
+    )
+    .unwrap();
+    fs::set_permissions(&apply, fs::Permissions::from_mode(0o755)).unwrap();
+    let proc = home.path().join("proc");
+    fs::create_dir_all(&proc).unwrap();
+    let runtime = home.path().join("runtime");
+
+    for _ in 0..2 {
+        assert!(
+            command(&home, "cortetsu-wallpaper-color-daemon", &["--once"])
+                .env("XDG_RUNTIME_DIR", &runtime)
+                .env("CORTETSU_PROC_ROOT", &proc)
+                .status()
+                .unwrap()
+                .success()
+        );
+    }
+
+    assert_eq!(
+        fs::read_to_string(home.path().join("applied")).unwrap(),
+        "applied\n"
     );
 }
 
