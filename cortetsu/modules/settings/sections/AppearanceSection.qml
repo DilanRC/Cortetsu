@@ -41,6 +41,22 @@ ColumnLayout {
     spacing: CortetsuDesign.spacingSection
 
     SettingsGroup {
+        title: qsTr("Tema de Cortetsu")
+        detail: qsTr("Materiales, tipografía, densidad y movimiento")
+        Repeater {
+            model: [{ id: "ink", name: "Ink" }, { id: "washi", name: "Washi" }, { id: "kurogane", name: "Kurogane" }]
+            SettingActionRow {
+                required property var modelData
+                objectName: "theme-" + modelData.id
+                title: modelData.name
+                actionLabel: CortetsuConfig.themeId === modelData.id ? qsTr("Activo") : qsTr("Aplicar")
+                actionDisabled: CortetsuConfig.themeId === modelData.id
+                onActivated: CortetsuConfig.selectTheme(modelData.id)
+            }
+        }
+    }
+
+    SettingsGroup {
         title: qsTr("Esquema de color")
         detail: Schemes.loading
             ? qsTr("Leyendo el catálogo…")

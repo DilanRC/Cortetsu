@@ -448,9 +448,12 @@ def run(folder: Path, shell: str, scenario: str, *, preferences: dict | None = N
         json.dumps(scheme or {"name": "dynamic", "flavour": "default", "colours": {}}), encoding="utf-8")
     if preferences is not None:
         (home / ".config/cortetsu/preferences.json").write_text(json.dumps(preferences), encoding="utf-8")
+    runtime = home / "runtime"
+    runtime.mkdir(mode=0o700)
     result = subprocess.run(
         ["quickshell", "-p", str(folder / shell)],
         env={**os.environ, "QT_QPA_PLATFORM": os.environ.get("CORTETSU_TEST_QPA", "offscreen"), "HOME": str(home),
+             "XDG_RUNTIME_DIR": str(runtime),
              "XDG_STATE_HOME": str(home / "state"), "XDG_CONFIG_HOME": str(home / ".config"),
              "XDG_CACHE_HOME": str(home / "cache"), "PATH": f'{binaries}:{os.environ["PATH"]}',
              "CORTETSU_SKIP_RELOAD": "1", "SETTINGS_FIXTURES": str(fixtures), "SETTINGS_SCENARIO": scenario,

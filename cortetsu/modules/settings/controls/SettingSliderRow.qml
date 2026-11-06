@@ -23,7 +23,7 @@ Item {
     signal moved(real value)
 
     Layout.fillWidth: true
-    implicitHeight: 76
+    implicitHeight: CortetsuDesign.rowHeight + CortetsuDesign.spacingSpacious
 
     Rectangle {
         anchors.left: parent.left

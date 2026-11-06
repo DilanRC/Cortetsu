@@ -4,7 +4,7 @@ Cortetsu owns its desktop identity from one declarative source:
 
 `~/.config/cortetsu/ui.toml`
 
-The repository copy under `dotfiles/home/.config/cortetsu/ui.toml` is compiled by `core/theme.py`. Generated outputs are committed and verified so an installation never rewrites the Git worktree implicitly.
+The repository copy under `dotfiles/home/.config/cortetsu/ui.toml` is compiled by `cortetsu/platform-rs/src/theme.rs`. Generated outputs are committed and verified so an installation never rewrites the Git worktree implicitly.
 
 ## 1. One source, multiple surfaces
 
@@ -105,3 +105,33 @@ cortetsu theme check
 ```
 
 Commit `ui.toml` and generated outputs together. `cortetsu install` checks the generated contract before building/promoting a system generation, so rollback continues to cover the shell and all managed desktop theme files atomically.
+
+## Product themes in the live shell
+
+`cortetsu/platform-rs/templates/theme-profiles.json` defines Ink, Washi and
+Kurogane. The Rust compiler validates token names and emits
+`cortetsu/theme/ThemeProfiles.js` together with the design singleton.
+`theme check` includes that generated file. Edit the JSON source and compile;
+do not edit the generated JavaScript or QML.
+
+Ink supplies no overrides, preserving the compiled design and active scheme.
+Washi supplies warm light surfaces, Noto Sans/Noto Serif typography, softer
+materials and more space. Kurogane uses steel surfaces, compact density,
+smaller radii and shorter motion. Product overrides take precedence over scheme
+roles; reduced motion takes precedence over product motion durations.
+
+Quick Settings changes `CortetsuConfig.themeId` through `selectTheme()`.
+`CortetsuColours` binds its compiled token profile to `CortetsuDesign.themeTokens`;
+existing objects update in place. Theme ID and per-theme transparency/reduced
+motion preferences are saved in `preferences.json`. Invalid IDs loaded from disk
+retain Ink. Scheme, variant and manual/automatic ownership remain in the native
+scheme state; per-theme scheme restoration is not implemented yet.
+
+This live selection currently affects Cortetsu's design tokens. Generated
+Kitty/GTK/KDE defaults continue to use ui.toml. It does not rewrite promoted
+runtime generations or reload the running session.
+
+Verification: `qmltestrunner -input cortetsu/tests/qml/themes` checks live token
+changes, contrast and reduced motion; `test-cortetsu-settings-runtime.py` drives
+the real controls, checks the saved preferences and restores them in a fresh
+HOME/XDG environment. Full cross-surface visual certification remains pending.

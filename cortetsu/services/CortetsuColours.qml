@@ -6,6 +6,7 @@ import Quickshell.Io
 import "../modules"
 import "../theme"
 import "../theme/CortetsuDesignDefaults.js" as Defaults
+import "../theme/ThemeProfiles.js" as ThemeProfiles
 
 Singleton {
     id: root
@@ -50,6 +51,12 @@ Singleton {
         target: CortetsuDesign
         property: "scheme"
         value: root.activeColours
+    }
+
+    Binding {
+        target: CortetsuDesign
+        property: "themeTokens"
+        value: ThemeProfiles.tokens(CortetsuConfig.themeId)
     }
 
     Binding {

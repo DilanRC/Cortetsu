@@ -377,6 +377,10 @@ ShellRoot {
             SettingsController.select("stale-domain");
             verify(SettingsController.selectedId === "quick" && SettingsController.pageForSection("stale-domain") === "",
                 "an unknown deep link leaves the current page selected");
+            key(Qt.Key_PageDown, Qt.ControlModifier);
+            verify(SettingsController.selectedId === "general" && focusName() === "nexus-general", "Ctrl+PageDown opens and focuses the next page");
+            key(Qt.Key_PageUp, Qt.ControlModifier);
+            verify(SettingsController.selectedId === "quick" && focusName() === "nexus-quick", "Ctrl+PageUp restores the previous page");
             key(Qt.Key_Down);
             verify(SettingsController.selectedId === "general" && focusName() === "nexus-general", "Down opens the next end-4 page and moves focus with it");
             key(Qt.Key_Up);
@@ -443,8 +447,8 @@ ShellRoot {
             verify(focusName() === "nexusSearch", `Ctrl+F reaches the search (${focusName()})`);
             get("nexusSearch").text = "reloj";
         }],
-        [() => SettingsController.matchingIds.length === 2, () => {
-            verify(get("nexus-quick").visible && get("nexus-interface").visible && !get("nexus-general").visible, "the search keeps the pages that hold a matching setting");
+        [() => SettingsController.matchingIds.join(",") === "quick,background,interface", () => {
+            verify(get("nexus-quick").visible && get("nexus-background").visible && get("nexus-interface").visible && !get("nexus-general").visible, "the search keeps the pages that hold a matching setting");
             verify(get("nexus-quick").value === "Reloj de 12 horas", "and names the setting that matched");
             verify(get("nexus-general") !== null, "hidden rows still exist: the list is filtered, not rebuilt");
             key(Qt.Key_Return);
@@ -505,6 +509,12 @@ ShellRoot {
         }],
         [null, () => {
             get("nexusCollapse").clicked();
+            window.width = 880;
+        }],
+        [() => waitedMs >= 300, () => {
+            verify(!content.collapsed && get("nexusSearch").visible,
+                "an explicit expanded rail stays usable at narrow window widths");
+            window.width = 1368;
         }]
     ]
 
@@ -709,6 +719,82 @@ ShellRoot {
         }]
     ]
 
+    readonly property var clockPreferences: [
+        [() => CortetsuConfig.loaded, () => {
+            verify(CortetsuConfig.desktopClockPosition === "top-left", "the old camel-case clock position migrates to an actual runtime state");
+            select("wallpaper"); screenDouble.settings = true;
+        }],
+        [() => !!content && !!page("clock-middle-center"), () => {
+            page("clock-middle-center").request();
+            verify(CortetsuConfig.desktopClockPosition === "middle-center", "the position control updates the background owner");
+            verify(page("clock-middle-center").actionDisabled, "the selected position is confirmed");
+        }],
+        [() => CortetsuConfig.saveState === "saved", () => {}]
+    ]
+    readonly property var clockRestore: [
+        [() => CortetsuConfig.loaded, () => {
+            verify(CortetsuConfig.desktopClockPosition === "middle-center", "a new process restores the selected clock position");
+        }]
+    ]
+
+    readonly property var audioPreferences: [
+        [() => CortetsuConfig.loaded, () => { select("audio"); screenDouble.settings = true; }],
+        [() => !!content && !!page("audioLimit"), () => { window.requestActivate(); }],
+        [() => window.active, () => {
+            find(page("audioLimit"), "slider").forceActiveFocus(); key(Qt.Key_Right);
+            verify(Math.abs(CortetsuConfig.maxVolume - 1.05) < 0.001, "keyboard changes the actual shell volume limit");
+            verify(page("outputVolume").to === CortetsuConfig.maxVolume, "output control confirms the new limit");
+            find(page("audioStep"), "slider").forceActiveFocus(); key(Qt.Key_Right);
+            verify(Math.abs(CortetsuConfig.audioIncrement - 0.11) < 0.001, "keyboard changes the backend increment");
+            const current = CortetsuAudio.volume;
+            page("audioLimit").moved(50);
+            verify(CortetsuAudio.volume === current, "lowering the request limit preserves current playback volume");
+            verify(page("outputVolume").to >= current, "the output slider still represents the actual volume above a new limit");
+            page("audioLimit").moved(105);
+        }],
+        [() => CortetsuConfig.saveState === "saved", () => {}]
+    ]
+
+    readonly property var themeSelect: [
+        [() => CortetsuConfig.loaded && Schemes.catalogCount > 0, () => {
+            select("appearance"); screenDouble.settings = true;
+        }],
+        [() => !!content && !!page("theme-" + Quickshell.env("THEME_ID")), () => {
+            const id = Quickshell.env("THEME_ID");
+            page("theme-" + id).request();
+            verify(CortetsuConfig.themeId === id, "the theme control changes the persistent owner");
+        }],
+        [() => CortetsuConfig.saveState === "saved", () => {
+            const id = Quickshell.env("THEME_ID");
+            verify(page("theme-" + id).actionDisabled, "the active theme is confirmed in Settings");
+            verify(CortetsuDesign.radiusSurface === (id === "washi" ? 18 : 14), "the selected material updates live");
+            render("theme-" + id);
+            CortetsuConfig.transparencyEnabled = true;
+            CortetsuConfig.reducedMotion = true;
+            CortetsuConfig.selectTheme("ink");
+            CortetsuConfig.transparencyEnabled = false;
+            CortetsuConfig.reducedMotion = false;
+            CortetsuConfig.selectTheme(id);
+            verify(CortetsuConfig.transparencyEnabled && CortetsuConfig.reducedMotion,
+                "returning to a theme restores its material and motion preferences");
+            CortetsuConfig.selectTheme("ink");
+            verify(!CortetsuConfig.transparencyEnabled && !CortetsuConfig.reducedMotion,
+                "Ink retains independent material and motion preferences");
+            CortetsuConfig.selectTheme(id);
+        }],
+        [() => CortetsuConfig.saveState === "saved", () => {}]
+    ]
+    readonly property var themeRestore: [
+        [() => CortetsuConfig.loaded, () => {
+            verify(CortetsuConfig.themeId === Quickshell.env("THEME_ID"), "a new process restores the selected theme");
+            verify(CortetsuConfig.transparencyEnabled && CortetsuConfig.reducedMotion, "the active theme restores its material and motion preferences");
+            CortetsuConfig.selectTheme("ink");
+            verify(!CortetsuConfig.transparencyEnabled && !CortetsuConfig.reducedMotion, "the inactive theme also survives process restart");
+            CortetsuConfig.selectTheme(Quickshell.env("THEME_ID"));
+            verify(CortetsuDesign.radiusSurface === (CortetsuConfig.themeId === "washi" ? 18 : 14), "restored preferences reach the design tokens");
+        }]
+    ]
+
     readonly property var policies: [
         [() => CortetsuConfig.loaded, () => { select("automation"); screenDouble.settings = true; }],
         [() => !!content && content.pageId === "services" && !!page("policy-gamemode"), () => {
@@ -882,6 +968,30 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     assert json.loads((blocked / "original.json").read_text()) == {"schema": 1}
     policies = passed(run(folder, "shell.qml", "policies")[0])
 
+    output, clock_home = run(folder, "shell.qml", "clockPreferences",
+                             preferences={"schema": 1, "desktopClockPosition": "topLeft"})
+    assert passed(output) == 3, output
+    clock_saved = json.loads((clock_home / ".config/cortetsu/preferences.json").read_text())
+    assert clock_saved["desktopClockPosition"] == "middle-center", clock_saved
+    restored, _ = run(folder, "shell.qml", "clockRestore", preferences=clock_saved)
+    assert passed(restored) == 1, restored
+
+    output, audio_home = run(folder, "shell.qml", "audioPreferences", preferences={"schema": 1})
+    assert passed(output) == 5, output
+    audio_saved = json.loads((audio_home / ".config/cortetsu/preferences.json").read_text())
+    assert abs(audio_saved["maxVolume"] - 1.05) < 0.001, audio_saved
+    assert abs(audio_saved["audioIncrement"] - 0.11) < 0.001, audio_saved
+
+    for theme in ("washi", "kurogane"):
+        output, theme_home = run(folder, "shell.qml", "themeSelect", label=f"select-{theme}",
+                                 preferences={"schema": 1}, env={"THEME_ID": theme})
+        assert passed(output) == 5, output
+        theme_saved = json.loads((theme_home / ".config/cortetsu/preferences.json").read_text())
+        assert theme_saved["themeId"] == theme, theme_saved
+        restored, _ = run(folder, "shell.qml", "themeRestore", label=f"restore-{theme}",
+                          preferences=theme_saved, env={"THEME_ID": theme})
+        assert passed(restored) == 4, restored
+
     # Every page at the default size, at the narrowest one, and on a scheme
     # other than the ui.toml default.
     aura = {"name": "aura", "flavour": "default",
@@ -896,7 +1006,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     host = run_host(folder)
     assert not host or "SETTINGS_HOST_PASS 1" in host, host
 
-assert (reactivity, navigation, states, unwritable, pages) == (47, 67, 41, 3, 8), (reactivity, navigation, states, unwritable, pages)
+assert (reactivity, navigation, states, unwritable, pages) == (47, 70, 41, 3, 8), (reactivity, navigation, states, unwritable, pages)
 assert policies == 16, policies
 print(f"Settings builds in {opened.split()[0]} ms ({opened.split()[1]} items); "
       f"20 cycles of open, eight pages and close take {cycles} ms")

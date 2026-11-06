@@ -46,6 +46,32 @@ ColumnLayout {
     }
 
     SettingsGroup {
+        title: qsTr("Posición del reloj")
+        detail: qsTr("El reloj se activa desde Interface")
+        Repeater {
+            model: [
+                {id: "top-left", name: qsTr("Arriba izquierda")},
+                {id: "top-center", name: qsTr("Arriba centro")},
+                {id: "top-right", name: qsTr("Arriba derecha")},
+                {id: "middle-left", name: qsTr("Centro izquierda")},
+                {id: "middle-center", name: qsTr("Centro")},
+                {id: "middle-right", name: qsTr("Centro derecha")},
+                {id: "bottom-left", name: qsTr("Abajo izquierda")},
+                {id: "bottom-center", name: qsTr("Abajo centro")},
+                {id: "bottom-right", name: qsTr("Abajo derecha")}
+            ]
+            SettingActionRow {
+                required property var modelData
+                objectName: "clock-" + modelData.id
+                title: modelData.name
+                actionLabel: CortetsuConfig.desktopClockPosition === modelData.id ? qsTr("Activa") : qsTr("Elegir")
+                actionDisabled: CortetsuConfig.desktopClockPosition === modelData.id
+                onActivated: { CortetsuConfig.desktopClockPosition = modelData.id; CortetsuConfig.save(); }
+            }
+        }
+    }
+
+    SettingsGroup {
         title: qsTr("Integración")
 
         SettingToggleRow {

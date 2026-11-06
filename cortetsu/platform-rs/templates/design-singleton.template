@@ -12,6 +12,14 @@ QtObject {
     // empty map leaves every token at its ui.toml default.
     property var scheme: ({})
 
+    // The selected product theme supplies tokens; Ink uses the compiled defaults.
+    property var themeTokens: ({})
+
+    function token(name, fallback) {
+        const value = themeTokens[name];
+        return value === undefined ? fallback : value;
+    }
+
     // Settings > Appearance > Reduced motion. Every motion*Ms token reads 0
     // while it is on; opacity and position still change, only instantly.
     property bool reducedMotion: false

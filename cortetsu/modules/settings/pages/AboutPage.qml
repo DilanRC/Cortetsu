@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick.Layouts
+import "../../../theme"
 import "../sections"
 
 ColumnLayout {

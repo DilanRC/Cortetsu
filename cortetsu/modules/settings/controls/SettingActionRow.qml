@@ -11,6 +11,7 @@ SettingRow {
     property string actionLabel: ""
     property string accessibleName: actionLabel
     property string actionIcon: ""
+    property bool actionDisabled: false
     property bool danger: false
     property bool confirm: false
     property bool armed: false
@@ -22,6 +23,7 @@ SettingRow {
         root.armed = false;
     }
 
+    onActionDisabledChanged: if (root.actionDisabled && root.armed) root.cancelConfirmation()
     onDisabledChanged: if (root.disabled && root.armed) root.cancelConfirmation()
     onStatusChanged: if (root.armed) root.cancelConfirmation()
     onVisibleChanged: if (!root.visible && root.armed) root.cancelConfirmation()
@@ -30,7 +32,7 @@ SettingRow {
     onTitleChanged: if (root.armed) root.cancelConfirmation()
 
     function request(): void {
-        if (!root.visible || root.disabled || root.status === "busy")
+        if (!root.visible || root.disabled || root.actionDisabled || root.status === "busy")
             return;
         if (root.confirm && !root.armed) {
             root.armed = true;
@@ -53,7 +55,7 @@ SettingRow {
         icon: root.armed ? "warning" : root.actionIcon
         label: root.armed ? qsTr("Confirmar") : root.actionLabel
         danger: root.danger || root.armed
-        disabled: root.disabled || root.status === "busy"
+        disabled: root.disabled || root.actionDisabled || root.status === "busy"
         Accessible.name: root.armed ? qsTr("Confirmar: %1").arg(root.title) : root.accessibleName
         onClicked: root.request()
     }

@@ -22,9 +22,9 @@ FocusScope {
     required property var screen
     required property var controller
 
-    property bool userCollapsed: false
-    // Below this width the names give way to icons so the page keeps room.
-    readonly property bool collapsed: userCollapsed || width < 940
+    // Automatic density follows the window until the user chooses a rail mode.
+    property int railMode: 0 // 0 automatic, 1 expanded, -1 compact
+    readonly property bool collapsed: railMode === 0 ? width < 940 : railMode < 0
     readonly property var category: controller.selectedCategory
     readonly property string alert: category ? settingsContext.pageAlert(category.id) : ""
     readonly property string summary: category ? settingsContext.pageSummary(category.id) : ""
@@ -86,6 +86,22 @@ FocusScope {
         onActivated: nexus.focusSearch()
     }
 
+    Shortcut {
+        sequences: ["Ctrl+PgDown", "Ctrl+Tab"]
+        onActivated: {
+            root.controller.selectNeighbour(1);
+            nexus.focusSelected();
+        }
+    }
+
+    Shortcut {
+        sequences: ["Ctrl+PgUp", "Ctrl+Shift+Tab"]
+        onActivated: {
+            root.controller.selectNeighbour(-1);
+            nexus.focusSelected();
+        }
+    }
+
     SettingsContext {
         id: settingsContext
         screen: root.screen
@@ -140,7 +156,7 @@ FocusScope {
                 controller: root.controller
                 context: settingsContext
                 collapsed: root.collapsed
-                onCollapseRequested: root.userCollapsed = !root.userCollapsed
+                onCollapseRequested: root.railMode = root.collapsed ? 1 : -1
                 onContentRequested: root.focusPage()
             }
         }
@@ -237,15 +253,26 @@ FocusScope {
                     onPageIdChanged: scroller.contentY = 0
                     onLoaded: arrive.restart()
 
-                    NumberAnimation {
+                    ParallelAnimation {
                         id: arrive
-                        target: pageLoader
-                        property: "opacity"
-                        from: 0
-                        to: 1
-                        duration: CortetsuDesign.motionFastMs
-                        easing.type: Easing.BezierSpline
-                        easing.bezierCurve: CortetsuDesign.easeOut
+                        NumberAnimation {
+                            target: pageLoader
+                            property: "opacity"
+                            from: 0
+                            to: 1
+                            duration: CortetsuDesign.motionStandardMs
+                            easing.type: Easing.BezierSpline
+                            easing.bezierCurve: CortetsuDesign.easeOut
+                        }
+                        NumberAnimation {
+                            target: pageLoader
+                            property: "y"
+                            from: 20
+                            to: 0
+                            duration: CortetsuDesign.motionStandardMs
+                            easing.type: Easing.BezierSpline
+                            easing.bezierCurve: CortetsuDesign.easeOut
+                        }
                     }
                 }
             }

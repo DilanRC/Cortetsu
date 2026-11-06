@@ -12,6 +12,14 @@ QtObject {
     // empty map leaves every token at its ui.toml default.
     property var scheme: ({})
 
+    // The selected product theme supplies tokens; Ink uses the compiled defaults.
+    property var themeTokens: ({})
+
+    function token(name, fallback) {
+        const value = themeTokens[name];
+        return value === undefined ? fallback : value;
+    }
+
     // Settings > Appearance > Reduced motion. Every motion*Ms token reads 0
     // while it is on; opacity and position still change, only instantly.
     property bool reducedMotion: false
@@ -60,93 +68,93 @@ QtObject {
         return to;
     }
 
-    readonly property color colorSumi: role("background", Defaults.colorSumi)
-    readonly property color colorTetsu: role("surface", Defaults.colorTetsu)
-    readonly property color colorWashi: readable(role("onSurface", Defaults.colorWashi), [colorTetsu, colorSurfaceHigh])
-    readonly property color colorIndigo: role("primary", Defaults.colorIndigo)
-    readonly property color colorVermillion: Defaults.colorVermillion
-    readonly property color colorMuted: Defaults.colorMuted
-    readonly property color colorSurface: colorTetsu
-    readonly property color colorSurfaceHigh: role("surfaceContainerHigh", Defaults.colorSurfaceHigh)
-    readonly property color colorOnSurface: colorWashi
-    readonly property color colorOnSurfaceVariant: readable(role("onSurfaceVariant", Defaults.colorOnSurfaceVariant), [colorTetsu, colorSurfaceHigh])
-    readonly property color colorPrimary: role("primary", Defaults.colorPrimary)
-    readonly property color colorOnPrimary: role("onPrimary", Defaults.colorOnPrimary)
-    readonly property color colorPrimaryContainer: role("primaryContainer", Defaults.colorPrimaryContainer)
-    readonly property color colorOnPrimaryContainer: role("onPrimaryContainer", Defaults.colorOnPrimaryContainer)
-    readonly property color colorSecondary: role("secondary", Defaults.colorSecondary)
-    readonly property color colorSecondaryContainer: role("secondaryContainer", Defaults.colorSecondaryContainer)
-    readonly property color colorOnSecondaryContainer: role("onSecondaryContainer", Defaults.colorOnSecondaryContainer)
-    readonly property color colorTertiary: role("tertiary", Defaults.colorTertiary)
-    readonly property color colorOutline: role("outline", Defaults.colorOutline)
-    readonly property color colorOutlineVariant: role("outlineVariant", Defaults.colorOutlineVariant)
-    readonly property color colorScrim: Defaults.colorScrim
-    readonly property color colorSurfaceGlass: role("surfaceContainer", Defaults.colorSurfaceGlass)
-    readonly property color colorSurfaceGlassStrong: role("surfaceContainerHigh", Defaults.colorSurfaceGlassStrong)
-    readonly property color colorOnSurfaceMuted: Defaults.colorOnSurfaceMuted
-    readonly property color colorSuccess: role("success", Defaults.colorSuccess)
-    readonly property color colorWarning: Defaults.colorWarning
-    readonly property color colorIndicator: readable(role("primary", Defaults.colorIndicator), [colorTetsu, colorSurfaceHigh], 3)
-    readonly property real radiusSmall: Defaults.radiusSmall
-    readonly property real radiusMedium: Defaults.radiusMedium
-    readonly property real radiusLarge: Defaults.radiusLarge
-    readonly property real radiusSurface: Defaults.radiusSurface
-    readonly property real radiusPill: Defaults.radiusPill
-    readonly property real spacingUnit: Defaults.spacingUnit
-    readonly property real spacingCompact: Defaults.spacingCompact
-    readonly property real spacingStandard: Defaults.spacingStandard
-    readonly property real spacingComfortable: Defaults.spacingComfortable
-    readonly property real spacingSpacious: Defaults.spacingSpacious
-    readonly property real spacingSection: Defaults.spacingSection
-    readonly property real bottomHubHeight: Defaults.bottomHubHeight
-    readonly property string fontUi: Defaults.fontUi
-    readonly property string fontInk: Defaults.fontInk
-    readonly property string fontKanji: Defaults.fontKanji
-    readonly property real materialGroundAlpha: Defaults.materialGroundAlpha
-    readonly property real materialWashAlpha: Defaults.materialWashAlpha
-    readonly property real materialPopupWashAlpha: Defaults.materialPopupWashAlpha
-    readonly property real materialGrain: Defaults.materialGrain
-    readonly property real materialPopupGrain: Defaults.materialPopupGrain
-    readonly property real materialHairlineAlpha: Defaults.materialHairlineAlpha
-    readonly property real materialTransparencyFactor: Defaults.materialTransparencyFactor
-    readonly property real overlayOpacity: Defaults.overlayOpacity
-    readonly property real scrimOpacity: Defaults.scrimOpacity
-    readonly property real outlineWidth: Defaults.outlineWidth
-    readonly property real controlHeight: Defaults.controlHeight
-    readonly property real rowHeight: Defaults.rowHeight
-    readonly property real controlHeightPrimary: Defaults.controlHeightPrimary
-    readonly property real labelSmallPx: Defaults.labelSmallPx
-    readonly property real labelMediumPx: Defaults.labelMediumPx
-    readonly property real labelLargePx: Defaults.labelLargePx
-    readonly property real bodySmallPx: Defaults.bodySmallPx
-    readonly property real bodyPx: Defaults.bodyPx
-    readonly property real bodyLargePx: Defaults.bodyLargePx
-    readonly property real iconSmallPx: Defaults.iconSmallPx
-    readonly property real iconMediumPx: Defaults.iconMediumPx
-    readonly property real hoverScale: Defaults.hoverScale
-    readonly property real motionInstantMs: reducedMotion ? 0 : Defaults.motionInstantMs
-    readonly property real motionFastMs: reducedMotion ? 0 : Defaults.motionFastMs
-    readonly property real motionStandardMs: reducedMotion ? 0 : Defaults.motionStandardMs
-    readonly property real motionDeliberateMs: reducedMotion ? 0 : Defaults.motionDeliberateMs
-    readonly property real motionPanelMs: reducedMotion ? 0 : Defaults.motionPanelMs
-    readonly property real motionDrawerMs: reducedMotion ? 0 : Defaults.motionDrawerMs
-    readonly property real motionTooltipMs: reducedMotion ? 0 : Defaults.motionTooltipMs
-    readonly property real motionPopoverMs: reducedMotion ? 0 : Defaults.motionPopoverMs
-    readonly property real motionPopoverExitMs: reducedMotion ? 0 : Defaults.motionPopoverExitMs
-    readonly property real motionPanelExitMs: reducedMotion ? 0 : Defaults.motionPanelExitMs
-    readonly property real motionSummonMs: reducedMotion ? 0 : Defaults.motionSummonMs
-    readonly property real motionSummonExitMs: reducedMotion ? 0 : Defaults.motionSummonExitMs
-    readonly property real pressScale: Defaults.pressScale
-    readonly property real tooltipDelayMs: Defaults.tooltipDelayMs
-    readonly property var easeOut: Defaults.easeOut
-    readonly property var easeInOut: Defaults.easeInOut
-    readonly property var easeDrawer: Defaults.easeDrawer
-    readonly property real wallUtilitySurfaceRadius: Defaults.wallUtilitySurfaceRadius
-    readonly property real wallUtilityPanelMotionMs: reducedMotion ? 0 : Defaults.wallUtilityPanelMotionMs
-    readonly property real wallUtilityOrbitMotionMs: reducedMotion ? 0 : Defaults.wallUtilityOrbitMotionMs
-    readonly property real wallUtilityCrossfadeMotionMs: reducedMotion ? 0 : Defaults.wallUtilityCrossfadeMotionMs
-    readonly property real wallUtilityOrbitTopGap: Defaults.wallUtilityOrbitTopGap
-    readonly property real wallUtilityOrbitBottomGap: Defaults.wallUtilityOrbitBottomGap
-    readonly property real wallUtilityFooterGap: Defaults.wallUtilityFooterGap
-    readonly property real wallUtilityCategoryGap: Defaults.wallUtilityCategoryGap
+    readonly property color colorSumi: token("colorSumi", role("background", Defaults.colorSumi))
+    readonly property color colorTetsu: token("colorTetsu", role("surface", Defaults.colorTetsu))
+    readonly property color colorWashi: token("colorWashi", readable(role("onSurface", Defaults.colorWashi), [colorTetsu, colorSurfaceHigh]))
+    readonly property color colorIndigo: token("colorIndigo", role("primary", Defaults.colorIndigo))
+    readonly property color colorVermillion: token("colorVermillion", Defaults.colorVermillion)
+    readonly property color colorMuted: token("colorMuted", Defaults.colorMuted)
+    readonly property color colorSurface: token("colorSurface", colorTetsu)
+    readonly property color colorSurfaceHigh: token("colorSurfaceHigh", role("surfaceContainerHigh", Defaults.colorSurfaceHigh))
+    readonly property color colorOnSurface: token("colorOnSurface", colorWashi)
+    readonly property color colorOnSurfaceVariant: token("colorOnSurfaceVariant", readable(role("onSurfaceVariant", Defaults.colorOnSurfaceVariant), [colorTetsu, colorSurfaceHigh]))
+    readonly property color colorPrimary: token("colorPrimary", role("primary", Defaults.colorPrimary))
+    readonly property color colorOnPrimary: token("colorOnPrimary", role("onPrimary", Defaults.colorOnPrimary))
+    readonly property color colorPrimaryContainer: token("colorPrimaryContainer", role("primaryContainer", Defaults.colorPrimaryContainer))
+    readonly property color colorOnPrimaryContainer: token("colorOnPrimaryContainer", role("onPrimaryContainer", Defaults.colorOnPrimaryContainer))
+    readonly property color colorSecondary: token("colorSecondary", role("secondary", Defaults.colorSecondary))
+    readonly property color colorSecondaryContainer: token("colorSecondaryContainer", role("secondaryContainer", Defaults.colorSecondaryContainer))
+    readonly property color colorOnSecondaryContainer: token("colorOnSecondaryContainer", role("onSecondaryContainer", Defaults.colorOnSecondaryContainer))
+    readonly property color colorTertiary: token("colorTertiary", role("tertiary", Defaults.colorTertiary))
+    readonly property color colorOutline: token("colorOutline", role("outline", Defaults.colorOutline))
+    readonly property color colorOutlineVariant: token("colorOutlineVariant", role("outlineVariant", Defaults.colorOutlineVariant))
+    readonly property color colorScrim: token("colorScrim", Defaults.colorScrim)
+    readonly property color colorSurfaceGlass: token("colorSurfaceGlass", role("surfaceContainer", Defaults.colorSurfaceGlass))
+    readonly property color colorSurfaceGlassStrong: token("colorSurfaceGlassStrong", role("surfaceContainerHigh", Defaults.colorSurfaceGlassStrong))
+    readonly property color colorOnSurfaceMuted: token("colorOnSurfaceMuted", Defaults.colorOnSurfaceMuted)
+    readonly property color colorSuccess: token("colorSuccess", role("success", Defaults.colorSuccess))
+    readonly property color colorWarning: token("colorWarning", Defaults.colorWarning)
+    readonly property color colorIndicator: token("colorIndicator", readable(role("primary", Defaults.colorIndicator), [colorTetsu, colorSurfaceHigh], 3))
+    readonly property real radiusSmall: token("radiusSmall", Defaults.radiusSmall)
+    readonly property real radiusMedium: token("radiusMedium", Defaults.radiusMedium)
+    readonly property real radiusLarge: token("radiusLarge", Defaults.radiusLarge)
+    readonly property real radiusSurface: token("radiusSurface", Defaults.radiusSurface)
+    readonly property real radiusPill: token("radiusPill", Defaults.radiusPill)
+    readonly property real spacingUnit: token("spacingUnit", Defaults.spacingUnit)
+    readonly property real spacingCompact: token("spacingCompact", Defaults.spacingCompact)
+    readonly property real spacingStandard: token("spacingStandard", Defaults.spacingStandard)
+    readonly property real spacingComfortable: token("spacingComfortable", Defaults.spacingComfortable)
+    readonly property real spacingSpacious: token("spacingSpacious", Defaults.spacingSpacious)
+    readonly property real spacingSection: token("spacingSection", Defaults.spacingSection)
+    readonly property real bottomHubHeight: token("bottomHubHeight", Defaults.bottomHubHeight)
+    readonly property string fontUi: token("fontUi", Defaults.fontUi)
+    readonly property string fontInk: token("fontInk", Defaults.fontInk)
+    readonly property string fontKanji: token("fontKanji", Defaults.fontKanji)
+    readonly property real materialGroundAlpha: token("materialGroundAlpha", Defaults.materialGroundAlpha)
+    readonly property real materialWashAlpha: token("materialWashAlpha", Defaults.materialWashAlpha)
+    readonly property real materialPopupWashAlpha: token("materialPopupWashAlpha", Defaults.materialPopupWashAlpha)
+    readonly property real materialGrain: token("materialGrain", Defaults.materialGrain)
+    readonly property real materialPopupGrain: token("materialPopupGrain", Defaults.materialPopupGrain)
+    readonly property real materialHairlineAlpha: token("materialHairlineAlpha", Defaults.materialHairlineAlpha)
+    readonly property real materialTransparencyFactor: token("materialTransparencyFactor", Defaults.materialTransparencyFactor)
+    readonly property real overlayOpacity: token("overlayOpacity", Defaults.overlayOpacity)
+    readonly property real scrimOpacity: token("scrimOpacity", Defaults.scrimOpacity)
+    readonly property real outlineWidth: token("outlineWidth", Defaults.outlineWidth)
+    readonly property real controlHeight: token("controlHeight", Defaults.controlHeight)
+    readonly property real rowHeight: token("rowHeight", Defaults.rowHeight)
+    readonly property real controlHeightPrimary: token("controlHeightPrimary", Defaults.controlHeightPrimary)
+    readonly property real labelSmallPx: token("labelSmallPx", Defaults.labelSmallPx)
+    readonly property real labelMediumPx: token("labelMediumPx", Defaults.labelMediumPx)
+    readonly property real labelLargePx: token("labelLargePx", Defaults.labelLargePx)
+    readonly property real bodySmallPx: token("bodySmallPx", Defaults.bodySmallPx)
+    readonly property real bodyPx: token("bodyPx", Defaults.bodyPx)
+    readonly property real bodyLargePx: token("bodyLargePx", Defaults.bodyLargePx)
+    readonly property real iconSmallPx: token("iconSmallPx", Defaults.iconSmallPx)
+    readonly property real iconMediumPx: token("iconMediumPx", Defaults.iconMediumPx)
+    readonly property real hoverScale: token("hoverScale", Defaults.hoverScale)
+    readonly property real motionInstantMs: reducedMotion ? 0 : token("motionInstantMs", Defaults.motionInstantMs)
+    readonly property real motionFastMs: reducedMotion ? 0 : token("motionFastMs", Defaults.motionFastMs)
+    readonly property real motionStandardMs: reducedMotion ? 0 : token("motionStandardMs", Defaults.motionStandardMs)
+    readonly property real motionDeliberateMs: reducedMotion ? 0 : token("motionDeliberateMs", Defaults.motionDeliberateMs)
+    readonly property real motionPanelMs: reducedMotion ? 0 : token("motionPanelMs", Defaults.motionPanelMs)
+    readonly property real motionDrawerMs: reducedMotion ? 0 : token("motionDrawerMs", Defaults.motionDrawerMs)
+    readonly property real motionTooltipMs: reducedMotion ? 0 : token("motionTooltipMs", Defaults.motionTooltipMs)
+    readonly property real motionPopoverMs: reducedMotion ? 0 : token("motionPopoverMs", Defaults.motionPopoverMs)
+    readonly property real motionPopoverExitMs: reducedMotion ? 0 : token("motionPopoverExitMs", Defaults.motionPopoverExitMs)
+    readonly property real motionPanelExitMs: reducedMotion ? 0 : token("motionPanelExitMs", Defaults.motionPanelExitMs)
+    readonly property real motionSummonMs: reducedMotion ? 0 : token("motionSummonMs", Defaults.motionSummonMs)
+    readonly property real motionSummonExitMs: reducedMotion ? 0 : token("motionSummonExitMs", Defaults.motionSummonExitMs)
+    readonly property real pressScale: token("pressScale", Defaults.pressScale)
+    readonly property real tooltipDelayMs: token("tooltipDelayMs", Defaults.tooltipDelayMs)
+    readonly property var easeOut: token("easeOut", Defaults.easeOut)
+    readonly property var easeInOut: token("easeInOut", Defaults.easeInOut)
+    readonly property var easeDrawer: token("easeDrawer", Defaults.easeDrawer)
+    readonly property real wallUtilitySurfaceRadius: token("wallUtilitySurfaceRadius", Defaults.wallUtilitySurfaceRadius)
+    readonly property real wallUtilityPanelMotionMs: reducedMotion ? 0 : token("wallUtilityPanelMotionMs", Defaults.wallUtilityPanelMotionMs)
+    readonly property real wallUtilityOrbitMotionMs: reducedMotion ? 0 : token("wallUtilityOrbitMotionMs", Defaults.wallUtilityOrbitMotionMs)
+    readonly property real wallUtilityCrossfadeMotionMs: reducedMotion ? 0 : token("wallUtilityCrossfadeMotionMs", Defaults.wallUtilityCrossfadeMotionMs)
+    readonly property real wallUtilityOrbitTopGap: token("wallUtilityOrbitTopGap", Defaults.wallUtilityOrbitTopGap)
+    readonly property real wallUtilityOrbitBottomGap: token("wallUtilityOrbitBottomGap", Defaults.wallUtilityOrbitBottomGap)
+    readonly property real wallUtilityFooterGap: token("wallUtilityFooterGap", Defaults.wallUtilityFooterGap)
+    readonly property real wallUtilityCategoryGap: token("wallUtilityCategoryGap", Defaults.wallUtilityCategoryGap)
 }
