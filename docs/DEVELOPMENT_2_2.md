@@ -5,6 +5,14 @@
 > para versiones instaladas, hallazgos, correcciones y gates posteriores.
 > La evidencia de abajo conserva su fecha y checkout originales.
 
+El despliegue del commit certificado `a46dd497665b7709bd25e1b402cebcc969afa50c`
+en la sesión reiniciada se registró el 2026-11-06. La generación schema 2,
+recarga suave, validación de superficies y muestreo de rendimiento están en
+[`CORTETSU_2_2_LIVE_VALIDATION_2026-11-06.md`](CORTETSU_2_2_LIVE_VALIDATION_2026-11-06.md).
+Las pruebas sin HDMI, suspensión/reanudación y una comparación pareada de PSS
+siguen pendientes; el despliegue no se presenta como certificación física
+completa.
+
 2026-11-05. Base: `main` y `origin/main` en `5a679b6`, comprobado con
 `git fetch origin`. Se conservaron las modificaciones locales de
 `.codebase-memory/artifact.json` y `graph.db.zst`. No hay tag ni release.

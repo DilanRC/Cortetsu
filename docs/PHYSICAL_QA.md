@@ -10,6 +10,21 @@ Equipo de referencia: eDP-1 (BOE, 1920×1080 @ 144 Hz) en la Radeon integrada
 (`0000:01:00.0`, nvidia, `card1`). Hyprland 0.56.2 en las pasadas del
 2026-11-02; 0.57.0 desde la revisión 2.1. Driver NVIDIA open 615.78.08.
 
+## Revisión de despliegue 2.2 (2026-11-06)
+
+La generación activa se construyó desde el commit certificado
+`a46dd497665b7709bd25e1b402cebcc969afa50c`, con Hyprland 0.57.1,
+Quickshell 0.3.2 y kernel 7.3.1-1-cachyos. La recarga suave conservó el PID
+3363; la verificación de generación pasó. Se validaron las superficies reales
+en eDP-1 y el bind físico Copilot abrió el OSD. Escape no lo cerró en la
+observación controlada y no hubo traspaso de foco al OSD; una consulta posterior
+lo encontró cerrado, pero no se midió una latencia de cierre reproducible.
+Detalles, muestras y límites: [informe de despliegue y rendimiento 2.2](CORTETSU_2_2_LIVE_VALIDATION_2026-11-06.md).
+
+HDMI-A-1 estaba desconectado: ruta NVIDIA con monitor y hotplug NOT_TESTED.
+Suspensión/reanudación NOT_TESTED. F23 en teclado externo NOT_TESTED. No se
+reinició Hyprland ni se hicieron pruebas de energía.
+
 ## Estado (2026-11-02)
 
 Dos pasadas en la sesión real. La de tarde, con la generación
