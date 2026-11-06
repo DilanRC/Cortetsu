@@ -407,6 +407,7 @@ test_cmd() {
     done
     (cd "$ROOT/cortetsu/protocol" && go test ./...)
     bash "$ROOT/scripts/features/test-hyprland-group-lock.sh"
+    bash "$ROOT/scripts/features/test-cortetsu-settings-fuzzy.sh"
     run_node_test "cortetsu/tests/test-wallpaper-search.node.js"
     run_node_test "scripts/features/test-ascension-motion.js"
     run_node_test "scripts/features/test-connectivity-wifi-policy.cjs"

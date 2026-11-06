@@ -49,12 +49,35 @@ ColumnLayout {
         detail: qsTr("Aceptar nombres parecidos a lo escrito")
 
         SettingToggleRow {
-            title: qsTr("Aplicaciones, acciones y esquemas")
+            objectName: "fuzzyApplications"
+            title: qsTr("Aplicaciones")
             checked: CortetsuConfig.useFuzzyApps
             onToggled: value => { CortetsuConfig.useFuzzyApps = value; CortetsuConfig.save(); }
         }
 
         SettingToggleRow {
+            objectName: "fuzzyActions"
+            title: qsTr("Acciones")
+            checked: CortetsuConfig.useFuzzyActions
+            onToggled: value => { CortetsuConfig.useFuzzyActions = value; CortetsuConfig.save(); }
+        }
+
+        SettingToggleRow {
+            objectName: "fuzzySchemes"
+            title: qsTr("Esquemas de color")
+            checked: CortetsuConfig.useFuzzySchemes
+            onToggled: value => { CortetsuConfig.useFuzzySchemes = value; CortetsuConfig.save(); }
+        }
+
+        SettingToggleRow {
+            objectName: "fuzzyVariants"
+            title: qsTr("Variantes de color")
+            checked: CortetsuConfig.useFuzzyVariants
+            onToggled: value => { CortetsuConfig.useFuzzyVariants = value; CortetsuConfig.save(); }
+        }
+
+        SettingToggleRow {
+            objectName: "fuzzyWallpapers"
             title: qsTr("Fondos")
             checked: CortetsuConfig.useFuzzyWallpapers
             onToggled: value => { CortetsuConfig.useFuzzyWallpapers = value; CortetsuConfig.save(); }
