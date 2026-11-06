@@ -41,14 +41,19 @@ echo '{"status":"ok"}'
 
 def daemons(home: Path) -> list[int]:
     found = []
+    isolated_home = f"HOME={home}".encode()
     for proc in Path("/proc").iterdir():
         if not proc.name.isdigit():
             continue
         try:
+            environment = (proc / "environ").read_bytes().split(b"\0")
             cmdline = (proc / "cmdline").read_bytes().split(b"\0")
         except OSError:
             continue
-        if any(str(home).encode() in part for part in cmdline) and b"daemon" in cmdline:
+        # The helper wrapper execs the bundled multicall binary, so argv[0]
+        # no longer contains the temporary HOME. Its environment remains
+        # isolated and identifies the daemon this test owns.
+        if isolated_home in environment and b"cortetsu-pomodoro" in cmdline and b"daemon" in cmdline:
             found.append(int(proc.name))
     return found
 
@@ -82,21 +87,23 @@ def main() -> int:
         shutil.copyfile(FIXTURE, runtime / "shell.qml")
         shell = subprocess.Popen(["qs", "-p", str(runtime), "--no-color"], env=env, stdout=subprocess.PIPE,
                                  stderr=subprocess.STDOUT, text=True)
-        seen = []
+        seen: list[list[int]] = []
         deadline = time.monotonic() + 10
         while time.monotonic() < deadline and shell.poll() is None:
-            seen.append(len(daemons(home)))
-            if seen[-1]:
-                break
+            seen.append(daemons(home))
             time.sleep(0.05)
+        timed_out = False
         try:
             output, _ = shell.communicate(timeout=60)
         except subprocess.TimeoutExpired:
+            timed_out = True
             shell.kill()
             output, _ = shell.communicate()
         print(output)
+        assert not timed_out, "fixture did not exit within 60 seconds"
         assert "SERVICES_PASS" in output, "fixture failed"
-        assert max(seen, default=0) == 1, f"expected exactly one Pomodoro daemon, saw {max(seen, default=0)}"
+        max_daemons = max((len(pids) for pids in seen), default=0)
+        assert max_daemons == 1, f"expected exactly one Pomodoro daemon while shell ran, saw {max_daemons}"
         end = time.monotonic() + 5
         while daemons(home) and time.monotonic() < end:
             time.sleep(0.05)
