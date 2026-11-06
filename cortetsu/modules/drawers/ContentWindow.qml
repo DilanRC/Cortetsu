@@ -27,7 +27,11 @@ StyledWindow {
 
     readonly property HyprlandMonitor monitor: Hypr.monitorFor(screen)
     readonly property int keyboardFocusMode: {
-        if (panels.popouts.isDetached || panels.popouts.currentName === "wirelesspassword")
+        // The explicit OSD is already mapped with the drawer window, so
+        // OnDemand does not reliably take the keyboard when only its state
+        // changes. Claim it while the short-lived full OSD is open so Escape
+        // reaches this window; the passive mini slider never sets screenState.osd.
+        if (screenState?.osd || panels.popouts.isDetached || panels.popouts.currentName === "wirelesspassword")
             return WlrKeyboardFocus.Exclusive;
         if (panels.popouts.hasCurrent || wantsFocusGrab
                 || (screenState?.cortetsuState?.requiresWindowKeyboardFocus
@@ -117,8 +121,13 @@ StyledWindow {
     anchors.right: true
     Shortcut {
         sequence: "Escape"
-        enabled: focusGrab.active || panels.popouts.hasCurrent
+        enabled: focusGrab.active || panels.popouts.hasCurrent || root.screenState?.osd
         onActivated: {
+            if (root.screenState?.osd) {
+                root.screenState.osd = false;
+                if (!focusGrab.active && !panels.popouts.hasCurrent)
+                    return;
+            }
             SurfacePolicy.closeOn(root.screenState, "launcher");
             SurfacePolicy.closeOn(root.screenState, "session");
             root.screenState.sidebar = false;

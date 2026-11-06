@@ -38,8 +38,9 @@ const surfaces = Object.freeze([
     { name: "hardware", kind: "retained", exclusive: true, ownsKeyboard: true, fullscreenGuard: false },
     { name: "displayManager", kind: "retained", exclusive: true, ownsKeyboard: true, fullscreenGuard: false },
     { name: "keyboards", kind: "retained", exclusive: true, ownsKeyboard: true, fullscreenGuard: false },
-    // OSD is a quick-actions drawer that coexists with every other surface.
-    { name: "osd", kind: "transient", exclusive: false, ownsKeyboard: false, fullscreenGuard: true },
+    // The explicit OSD is interactive and handles Escape. Compact volume and
+    // brightness feedback is hosted separately and never requests keyboard.
+    { name: "osd", kind: "transient", exclusive: false, ownsKeyboard: true, fullscreenGuard: true },
     { name: "bar", kind: "chrome", exclusive: false, ownsKeyboard: false, fullscreenGuard: false }
 ].map(entry => Object.freeze(entry)));
 

@@ -82,6 +82,19 @@ change only calls the backend; the switch moves when the backend does.
 Destructive actions (clear the notification history, forget a network) need a
 second press within four seconds.
 
+## Volume and brightness feedback
+
+Volume and brightness changes show the compact `MiniSlider` for 1.3 seconds.
+It reads the confirmed PipeWire or monitor value, so repeated key presses update
+the same item. Volume feedback appears only on the active screen; brightness
+feedback appears on the screen whose monitor changed. The indicator has no
+keyboard or pointer handlers, and its region is removed from the drawer input
+mask so clicks pass through. Fullscreen suppresses the compact overlay.
+
+Opening the full Quick Settings OSD remains an explicit action. It requests
+OnDemand keyboard focus while open, and Escape closes it without giving focus
+to transient volume or brightness feedback.
+
 ## Keyboard
 
 | Key | Effect |

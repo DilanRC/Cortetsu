@@ -62,7 +62,7 @@ TestCase {
         compare(Surfaces.retained.slice().sort(), retainedSurfaces.slice().sort());
         compare(Surfaces.transient.slice().sort(), transientPanels.concat(["osd"]).sort());
         compare(Surfaces.exclusive.slice().sort(), transientPanels.concat(retainedSurfaces).sort());
-        compare(Surfaces.keyboardOwners.slice().sort(), ["launcher", "session"].concat(retainedSurfaces).sort());
+        compare(Surfaces.keyboardOwners.slice().sort(), ["launcher", "session", "osd"].concat(retainedSurfaces).sort());
         compare(Surfaces.fullscreenGuarded.slice().sort(), ["dashboard", "launcher", "osd", "session", "settings", "sidebar", "utilities"]);
         verify(Surfaces.competingWithWallpaper.indexOf("wallpaperManager") < 0);
         compare(Surfaces.competingWithWallpaper.length, Surfaces.exclusive.length - 1);
@@ -104,6 +104,16 @@ TestCase {
         compare(openFlags(screenB), []);
     }
 
+    function test_explicit_osd_requests_keyboard_focus() {
+        const typed = screenA.cortetsuState;
+        verify(!typed.requiresWindowKeyboardFocus);
+        verify(typed.setFlag("osd", true));
+        verify(typed.requiresWindowKeyboardFocus);
+        verify(!typed.requiresFullInputMask);
+        verify(typed.setFlag("osd", false));
+        verify(!typed.requiresWindowKeyboardFocus);
+    }
+
     function test_derived_flags_follow_the_registry() {
         const typed = screenA.cortetsuState;
         for (const flag of retainedSurfaces) {
@@ -120,8 +130,8 @@ TestCase {
             verify(!typed.requiresFullInputMask && !typed.retainedOverlayOpen, flag);
             screenA[flag] = false;
         }
-        // Parity with F0: these never claimed the drawer window's keyboard.
-        for (const flag of ["dashboard", "utilities", "settings", "sidebar", "osd", "bar"]) {
+        // These panels never claim the drawer window's keyboard.
+        for (const flag of ["dashboard", "utilities", "settings", "sidebar", "bar"]) {
             screenA[flag] = true;
             verify(!typed.requiresWindowKeyboardFocus && !typed.requiresFullInputMask, flag);
             screenA[flag] = false;
