@@ -133,13 +133,15 @@ reales o reinicio; permanece pendiente.
 
 ## Publicación y workflows
 
-`main` se publicó por push normal desde `fe158a7` en tres commits acotados:
+`main` se publicó por push normal desde `fe158a7` en tres commits de implementación y dos de evidencia:
 
 | Commit | Cambio |
 |---|---|
 | `5e40885` | Booleano seguro en el ciclo de vida de Connectivity y prueba QML de regresión. |
 | `6618883` | Bind Copilot por keycode XKB y comprobación con compositor anidado. |
 | `d6238c9` | Oráculos congelados, runner limitado a cada test y documentación de deuda/modernización. |
+| `bca0542` | Evidencia de la primera repetición completa de CI y aclaraciones de auditoría. |
+| `8c36e7a` | Inventario de versiones anterior/posterior y repetición de CI en el HEAD de evidencia. |
 
 En la verificación de publicación, `main` y `origin/main` coincidieron en
 `d6238c9459579e58a54caf31e264f9a10f87b02d`; `git diff --check` pasó. Los cinco
@@ -169,3 +171,21 @@ volvió a ejecutar y aprobó los cinco workflows:
 | Cortetsu native end-to-end | [success](https://github.com/DilanRC/Cortetsu/actions/runs/42192680152) |
 | Cortetsu QML and native installation | [success](https://github.com/DilanRC/Cortetsu/actions/runs/42192680199) |
 | Cortetsu coordinator and IPC | [success](https://github.com/DilanRC/Cortetsu/actions/runs/42192680278) |
+
+El HEAD final de este reporte, `8c36e7aa1b209d83a8497d5f51a20661b67dd5d7`,
+también quedó publicado y sus cinco workflows terminaron en `success`:
+
+| Workflow | Resultado en `8c36e7a` |
+|---|---|
+| Cortetsu native owners | [success tras repetir solo el job de teclados que quedó bloqueado en apt](https://github.com/DilanRC/Cortetsu/actions/runs/42196029755) |
+| Cortetsu static validation | [success](https://github.com/DilanRC/Cortetsu/actions/runs/42196029715) |
+| Cortetsu native end-to-end | [success](https://github.com/DilanRC/Cortetsu/actions/runs/42196029794) |
+| Cortetsu QML and native installation | [success](https://github.com/DilanRC/Cortetsu/actions/runs/42196029708) |
+| Cortetsu coordinator and IPC | [success](https://github.com/DilanRC/Cortetsu/actions/runs/42196029725) |
+
+En ese workflow, el runner de teclados permaneció más de diez minutos en
+`Install native test dependencies`; se canceló solamente ese intento y se
+repitieron los jobs fallidos. El job completó fmt, Clippy, pruebas nativas,
+build y diferenciales; los demás siete jobs ya habían pasado. El reintento
+terminó correctamente. Tras este ajuste documental se volverá a verificar el
+HEAD que lo contiene antes de cerrar la entrega.
