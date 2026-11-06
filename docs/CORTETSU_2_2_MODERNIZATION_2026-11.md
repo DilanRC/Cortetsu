@@ -11,16 +11,16 @@ el watcher global puede regenerarlos.
 transacción parcial. Pacman actualizó 46 paquetes. Yay actualizó VS Code
 1.144.0→1.145.1, PhpStorm/JRE 2026.2.4→2026.3 y Spotifast 0.16.0→0.17.1.
 
-| Componente | Versión instalada al cierre | Resultado de comprobación |
+| Componente | Antes → después | Resultado de comprobación |
 |---|---|---|
-| CachyOS kernel | 7.3.1-1 | El kernel activo coincide; no requiere reinicio para las pruebas de build. |
-| CachyOS LTS | 6.18.55-2 | Módulo NVIDIA disponible para ambos kernels. |
-| NVIDIA | 615.78.08-2 (userspace y módulo) | `modinfo` coincide con el kernel activo; `dkms status` no muestra NVIDIA pendiente. |
-| Mesa | 26.2.6-1 | `pacman -Qkk` sin archivos alterados. |
-| Hyprland | 0.57.1-1.1 | El proceso de la sesión sigue en 0.57.0; no se reinició. |
-| Quickshell | 0.3.2, rev. `4f508be` | `qs --version` y compilación QML verificadas. |
-| Qt | 6.12.0 | Base y declarative 6.12.0; suites QML pasan. |
-| Rust / Go | 1.99.1 / 1.27.3 | fmt, Clippy, tests Go con race detector y vet pasan. |
+| CachyOS kernel | 7.3.1-1 → 7.3.1-1 | Ya estaba actualizado antes de esta fase; no se reinstaló ni requiere reinicio para los builds. |
+| CachyOS LTS | 6.18.55-2 → 6.18.55-2 | Sin actualización; módulo NVIDIA disponible para ambos kernels. |
+| NVIDIA | 615.78.08-2 → 615.78.08-2 | Sin actualización; `modinfo` coincide con el kernel activo y `dkms status` no muestra trabajo pendiente. |
+| Mesa | 26.2.5-1 → 26.2.6-1 | Actualización de pacman; `pacman -Qkk` sin archivos alterados. |
+| Hyprland | 0.57.0-3.1 → 0.57.1-1.1 | El proceso de la sesión sigue en 0.57.0; no se reinició. |
+| Quickshell | 0.3.2, rev. `4f508be` → misma versión | Sin actualización; `qs --version` y compilación QML verificadas. |
+| Qt | 6.12.0 → 6.12.0 | `qt6-base` y `qt6-declarative` sin cambio; suites QML pasan. |
+| Rust / Go | 1.99.1 / 1.27.3 → mismas versiones | Sin cambio; fmt, Clippy, tests Go con race detector y vet pasan. |
 
 El hook de recompilación detectó `linux-wallpaperengine-git`; se revisó su
 PKGBUILD, se confirmó el upstream oficial `a0ddce5` (`r643`) frente a `r627`
@@ -158,3 +158,14 @@ de dependencias del runner. Se canceló esa ejecución atascada y se repitió el
 workflow completo; el reintento terminó correctamente. Las pruebas locales
 incluyen la instalación aislada, esquema 2 y rollback; no se instaló Cortetsu
 en la sesión activa.
+
+Tras añadir este reporte, el HEAD de evidencia `bca054240f2f724b6d86cb51478e1eea475bdc78`
+volvió a ejecutar y aprobó los cinco workflows:
+
+| Workflow | Resultado en `bca0542` |
+|---|---|
+| Cortetsu native owners | [success; se reintentaron solo los jobs que se quedaron en apt](https://github.com/DilanRC/Cortetsu/actions/runs/42192680155) |
+| Cortetsu static validation | [success](https://github.com/DilanRC/Cortetsu/actions/runs/42192680160) |
+| Cortetsu native end-to-end | [success](https://github.com/DilanRC/Cortetsu/actions/runs/42192680152) |
+| Cortetsu QML and native installation | [success](https://github.com/DilanRC/Cortetsu/actions/runs/42192680199) |
+| Cortetsu coordinator and IPC | [success](https://github.com/DilanRC/Cortetsu/actions/runs/42192680278) |
