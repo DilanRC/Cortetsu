@@ -81,6 +81,7 @@ jobs:
             echo "::endgroup::"
           done
           QT_QPA_PLATFORM=offscreen /usr/lib/qt6/bin/qmltestrunner -input cortetsu/modules/wallpaper/tests
+          python3 cortetsu/tests/test-weather-refresh.py
       - name: Native installation with no Python on child PATH
         if: ${{ !cancelled() && steps.native-build.outcome == 'success' }}
         run: python3 scripts/features/test-cortetsu-build.py --native-bundle dist/native

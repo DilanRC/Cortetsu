@@ -44,18 +44,24 @@ Singleton {
             Requests.get(CortetsuRegional.buildIpLookupUrl(), text => {
                 if (generation !== requestGeneration || CortetsuRegional.weatherLocation) return;
                 const located = CortetsuRegional.parseIpLookupResponse(JSON.parse(text));
-                if (located) { city = located.city; loc = `${located.lat},${located.lon}`; }
+                if (located) { city = located.city; updateLocation(`${located.lat},${located.lon}`, generation); }
             }, () => {});
         } else if (parsed.type === "coords") {
-            loc = parsed.value;
+            updateLocation(parsed.value, generation);
             fetchCity(parsed.value, generation);
         } else {
             Requests.get(CortetsuRegional.buildGeocodeUrl(parsed.value, "en"), text => {
                 if (generation !== requestGeneration) return;
                 const result = CortetsuRegional.parseGeocodeResponse(JSON.parse(text));
-                if (result) { city = result.name; loc = `${result.lat},${result.lon}`; }
+                if (result) { city = result.name; updateLocation(`${result.lat},${result.lon}`, generation); }
             }, () => {});
         }
+    }
+
+    function updateLocation(coords, generation): void {
+        if (generation !== requestGeneration) return;
+        if (loc === coords) fetchForecast();
+        else loc = coords;
     }
 
     function fetchCity(coords, generation): void {
