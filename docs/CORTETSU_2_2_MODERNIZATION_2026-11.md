@@ -131,6 +131,30 @@ se recargó. La certificación física del botón Copilot, HDMI, suspensión,
 multimonitor con hardware y adopción de Hyprland 0.57.1 requiere dispositivos
 reales o reinicio; permanece pendiente.
 
-Los commits publicados en `main`, la igualdad de `main`/`origin/main` y los
-cinco workflows del HEAD final se anotan tras completar el push y esperar sus
-resultados.
+## Publicación y workflows
+
+`main` se publicó por push normal desde `fe158a7` en tres commits acotados:
+
+| Commit | Cambio |
+|---|---|
+| `5e40885` | Booleano seguro en el ciclo de vida de Connectivity y prueba QML de regresión. |
+| `6618883` | Bind Copilot por keycode XKB y comprobación con compositor anidado. |
+| `d6238c9` | Oráculos congelados, runner limitado a cada test y documentación de deuda/modernización. |
+
+En la verificación de publicación, `main` y `origin/main` coincidieron en
+`d6238c9459579e58a54caf31e264f9a10f87b02d`; `git diff --check` pasó. Los cinco
+workflows de ese HEAD terminaron con `success`:
+
+| Workflow | Resultado |
+|---|---|
+| Cortetsu native owners | [success](https://github.com/DilanRC/Cortetsu/actions/runs/42190834235) |
+| Cortetsu static validation | [success](https://github.com/DilanRC/Cortetsu/actions/runs/42190834439) |
+| Cortetsu native end-to-end | [success](https://github.com/DilanRC/Cortetsu/actions/runs/42190834272) |
+| Cortetsu QML and native installation | [success](https://github.com/DilanRC/Cortetsu/actions/runs/42190834359) |
+| Cortetsu coordinator and IPC | [success](https://github.com/DilanRC/Cortetsu/actions/runs/42190834325) |
+
+El primer intento de native owners quedó más de diez minutos en la instalación
+de dependencias del runner. Se canceló esa ejecución atascada y se repitió el
+workflow completo; el reintento terminó correctamente. Las pruebas locales
+incluyen la instalación aislada, esquema 2 y rollback; no se instaló Cortetsu
+en la sesión activa.
