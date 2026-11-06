@@ -572,12 +572,12 @@ mod tests {
     fn copilot_and_f13_under_latam() {
         let (_sys, keyboards) = victus();
         let keymap = parse(LATAM_EXCERPT);
-        let binds = [bind(65, "F23", "")];
+        let binds = [hypr::Bind { modmask: 65, keycode: 201, ..Default::default() }];
         let keys = classify(&keyboards[0], Some(&keymap), Some(&binds), &BTreeSet::new());
         let copilot = key(&keys, 193);
         assert_eq!(copilot.label, "Copilot");
         assert!(copilot.has(State::Assigned) && copilot.has(State::Reserved) && !copilot.has(State::Candidate));
-        assert_eq!(copilot.assignments[0].chord, "SUPER + SHIFT + F23");
+        assert_eq!(copilot.assignments[0].chord, "SUPER + SHIFT + code:201");
     }
 
     #[test]

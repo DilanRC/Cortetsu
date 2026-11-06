@@ -32,7 +32,7 @@ KEY_LEFTMETA, KEY_LEFTSHIFT, KEY_PROG2, KEY_F23, KEY_FN_ESC, KEY_ESC = 125, 42, 
 # chord as shipped -> (global it must dispatch, marker the nested bind writes)
 HP_BINDS = {"XF86Launch2": ("cortetsu:hardwareKey", "omen"),
             "XF86Fn_Esc": ("cortetsu:hardwareSystem", "fnesc"),
-            "SUPER + SHIFT + F23": ("cortetsu:osd", "copilot")}
+            "SUPER + SHIFT + code:201": ("cortetsu:osd", "copilot")}
 
 
 def _rows(node) -> list[dict]:
@@ -118,8 +118,9 @@ def main() -> int:
             # anything is asserted about the HP keys.
             wait_for(lambda: chord(KEY_LEFTMETA) == ["launcher"], "bind de Super del lanzador")
             assert chord(KEY_PROG2) == ["omen"], "OMEN (KEY_PROG2 → XF86Launch2) must open the Hardware Center"
-            assert chord(KEY_LEFTMETA, KEY_LEFTSHIFT, KEY_F23) == ["copilot"], \
-                "Copilot must fire its own bind and not the launcher's Super release"
+            copilot = chord(KEY_LEFTMETA, KEY_LEFTSHIFT, KEY_F23)
+            assert copilot == ["copilot"], \
+                f"Copilot must fire its own bind and not the launcher's Super release: {copilot}"
             assert chord(KEY_FN_ESC) == ["fnesc"], "Fn+Esc (KEY_FN_ESC → XF86Fn_Esc) must open the Sistema page"
             assert chord(KEY_ESC) == [], "plain Esc belongs to applications"
             # Held for a second: a bind without the repeat flag fires once.
