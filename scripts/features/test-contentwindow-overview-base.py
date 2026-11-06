@@ -7,9 +7,10 @@ from pathlib import Path
 import sys
 
 REPO = Path(__file__).resolve().parents[2]
-NORMALIZER = REPO / "cortetsu/bin/normalize-contentwindow-overview-24.py"
-CHECKER = REPO / "cortetsu/bin/check-bottom-hub-target.py"
-sys.path.insert(0, str(REPO / "scripts/features"))
+REFERENCE = REPO / "tests/reference/python-runtime"
+NORMALIZER = REFERENCE / "cortetsu/bin/normalize-contentwindow-overview-24.py"
+CHECKER = REFERENCE / "cortetsu/bin/check-bottom-hub-target.py"
+sys.path.insert(0, str(REFERENCE / "scripts/features"))
 
 from wire_sad_shell import ensure_or_member, ensure_statement
 

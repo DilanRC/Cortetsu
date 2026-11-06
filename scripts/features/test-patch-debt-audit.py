@@ -6,15 +6,15 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
 MANIFEST = REPO / "cortetsu/contracts/patch-debt.tsv"
-CHECKER = REPO / "cortetsu/bin/check-bottom-hub-target.py"
+CHECKER = REPO / "tests/reference/python-runtime/cortetsu/bin/check-bottom-hub-target.py"
 V4_TEST = REPO / "scripts/features/test-bottom-hub-v4.py"
 
 # patch file -> (manifest target path, at least one real consumer to grep for)
 AUDITED_ACTIVE_PATCHES = {
 }
 
-# check-bottom-hub-target.py CHECKS keys that must exist for the Bottom-Hub
-# patches (proof these are the validated migration target, not legacy cruft).
+# The semantic checker is frozen with the Python baseline; Cortetsu's active
+# implementation is native, while this test preserves the historical oracle.
 REQUIRED_CHECKER_TARGETS = (
     "modules/Shortcuts.qml",
     "modules/sidebar/Wrapper.qml",

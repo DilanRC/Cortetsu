@@ -1,3 +1,26 @@
+# Estado vigente (2026-11-06)
+
+La auditoría Task 22 que sigue es una instantánea histórica del 2026-09-05,
+no un inventario del código activo. Desde entonces el runtime Python de
+migración se retiró y sus oráculos quedaron bajo
+`tests/reference/python-runtime/`. El staging de Cortetsu copia `base/`,
+`modules/`, `components/`, `utils/` y servicios propios; no instala ni ejecuta
+los migradores archivados.
+
+El contrato actual `cortetsu/contracts/patch-debt.tsv` solo conserva su
+encabezado: no hay parches upstream activos que registrar. Las referencias del
+texto histórico a `cortetsu/bin/check-bottom-hub-target.py` y a que
+`test-patch-debt-audit.py` forma parte de `scripts/cortetsu test` ya no son
+ciertas. Las pruebas que necesitan aquel checker lo cargan desde el archivo de
+referencia. `scripts/features/test-patch-debt-audit.py` se ejecuta de forma
+independiente; no forma parte del comando normal de tests.
+
+No se eliminó nada por esta actualización: se corrigieron las referencias de
+las pruebas para que siguieran apuntando a los oráculos congelados y se
+verificó que el runtime generado no depende de ellos.
+
+---
+
 # Patch debt status (Task 22 audit)
 
 Audited 2026-09-05. Scope: the 10 patches originally owned by this session. Every other

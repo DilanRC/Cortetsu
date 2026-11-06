@@ -2,15 +2,18 @@
 from __future__ import annotations
 
 import importlib.util
+import sys
 import tempfile
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
 MODULES = REPO / "cortetsu/modules"
+REFERENCE = REPO / "tests/reference/python-runtime"
+sys.path.insert(0, str(REFERENCE / "scripts/features"))
 
 spec = importlib.util.spec_from_file_location(
     "bottom_hub_target",
-    REPO / "cortetsu/bin/check-bottom-hub-target.py",
+    REFERENCE / "cortetsu/bin/check-bottom-hub-target.py",
 )
 assert spec and spec.loader
 bottom_hub_target = importlib.util.module_from_spec(spec)
@@ -158,7 +161,7 @@ def main() -> None:
     transitions = (MODULES / "CortetsuOverlayPolicy.js").read_text(encoding="utf-8")
     assert "RetainedSurfaceController {" in controller and 'shortcutName: "wallpapermanager"' in controller
     assert "CortetsuShortcut" in shared and "OverlayPolicy.open(CortetsuShellState.allStates()" in shared
-    assert "closeExclusiveEverywhere(states);" in transitions
+    assert "closeExclusiveEverywhere(states, target, flag);" in transitions
     print("PASS direct-shortcut-and-two-monitor-exclusivity")
 
     for relative, flag in (
@@ -172,7 +175,7 @@ def main() -> None:
         wrapper_text = (MODULES / relative).read_text(encoding="utf-8")
         assert f"screenState?.cortetsuState?.{flag}" in wrapper_text, relative
     launcher_list = (MODULES / "launcher/ContentList.qml").read_text(encoding="utf-8")
-    assert launcher_list.count("root.screenState?.launcher ?? false") == 2
+    assert launcher_list.count("screenState: root.screenState") == 2
     null_safe = {
         "launcher/Wrapper.qml": ("screenState?.launcher ?? false", "screenState?.dashboard"),
         "osd/Wrapper.qml": ("screenState?.osd", "root.screenState && !content.hovered"),

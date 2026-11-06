@@ -6,7 +6,7 @@ import tempfile
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
-NORMALIZER = REPO / "cortetsu/bin/normalize-shell-24.py"
+NORMALIZER = REPO / "tests/reference/python-runtime/cortetsu/bin/normalize-shell-24.py"
 
 spec = importlib.util.spec_from_file_location("shell_normalizer", NORMALIZER)
 if spec is None or spec.loader is None:

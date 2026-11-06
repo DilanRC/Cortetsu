@@ -1,5 +1,10 @@
 # Cortetsu 2.2: primera pasada de estabilidad
 
+> Actualización de modernización del 2026-11-06: ver
+> [`CORTETSU_2_2_MODERNIZATION_2026-11.md`](CORTETSU_2_2_MODERNIZATION_2026-11.md)
+> para versiones instaladas, hallazgos, correcciones y gates posteriores.
+> La evidencia de abajo conserva su fecha y checkout originales.
+
 2026-11-05. Base: `main` y `origin/main` en `5a679b6`, comprobado con
 `git fetch origin`. Se conservaron las modificaciones locales de
 `.codebase-memory/artifact.json` y `graph.db.zst`. No hay tag ni release.

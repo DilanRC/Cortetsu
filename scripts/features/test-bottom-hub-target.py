@@ -6,8 +6,9 @@ import tempfile
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
-CHECKER_PATH = REPO / "cortetsu/bin/check-bottom-hub-target.py"
-MIGRATOR_PATH = REPO / "cortetsu/bin/migrate-bottom-hub-from-main.py"
+REFERENCE = REPO / "tests/reference/python-runtime"
+CHECKER_PATH = REFERENCE / "cortetsu/bin/check-bottom-hub-target.py"
+MIGRATOR_PATH = REFERENCE / "cortetsu/bin/migrate-bottom-hub-from-main.py"
 REL = "modules/drawers/ContentWindow.qml"
 
 spec = importlib.util.spec_from_file_location("bottom_hub_target_checker", CHECKER_PATH)
