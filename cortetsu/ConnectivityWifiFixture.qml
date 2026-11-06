@@ -31,10 +31,12 @@ ShellRoot {
             wifi.operation = Policy.operation(1, "connect", {}, "connecting", Date.now());
             wifi.operationNetwork = after;
             Qt.callLater(() => {
-                if (wifi.operation.state === "failed" && wifi.operation.lastErrorCode === "ap-unavailable")
-                    console.log("WIFI_OBSERVED_PASS");
-                else
-                    console.error("WIFI_OBSERVED_FAIL " + JSON.stringify(wifi.operation));
+                const passed = wifi.operation.state === "failed" && wifi.operation.lastErrorCode === "ap-unavailable";
+                const failure = JSON.stringify(wifi.operation);
+                wifi.operationNetwork = null;
+                wifi.operation = Policy.operation(0, "", {}, "idle", 0);
+                if (passed) console.log("WIFI_OBSERVED_PASS");
+                else console.error("WIFI_OBSERVED_FAIL " + failure);
                 Qt.quit();
             });
         }

@@ -23,7 +23,7 @@ QtObject {
     property bool profileEventPending: false
     property int profileGeneration: 0
     property bool commandTimedOut: false
-    readonly property bool busy: worker.running
+    readonly property bool busy: worker ? worker.running : false
     readonly property bool profileReadsPending: ["profiles", "profile"].includes(job?.kind)
         || queue.some(item => ["profiles", "profile"].includes(item.kind))
     signal backendEvent()
