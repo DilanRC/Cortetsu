@@ -62,6 +62,12 @@ def main() -> int:
             session.start(outputs=3)
             session.start_client()
             first, second = session.headless()[:2]
+            layers = session.hjson("layers") or {}
+            for output in (first, second):
+                namespaces = [layer.get("namespace")
+                              for level in layers[output].get("levels", {}).values()
+                              for layer in level]
+                assert namespaces.count("cortetsu-bottom-hub") == 1, (output, namespaces)
             monitor = first
             session.focus_monitor(monitor)
             find_network_trigger(session, monitor)

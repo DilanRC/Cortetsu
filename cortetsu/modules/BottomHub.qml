@@ -794,6 +794,7 @@ Scope {
             margins.bottom: 2
 
             WlrLayershell.layer: WlrLayer.Top
+            WlrLayershell.namespace: "cortetsu-bottom-hub"
             // Windows stop above the islands. The window also grows for
             // toasts, so the zone is the hub row only, not the window height.
             // The old opaque bar hid windows running under it; floating
