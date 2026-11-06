@@ -9,6 +9,7 @@ import "../../theme"
 import ".."
 import "../CortetsuTypography.js" as CortetsuTypography
 import "controls"
+import "pages"
 import "sections"
 
 // Settings: the Nexus on the left says where you are and how each domain
@@ -25,8 +26,8 @@ FocusScope {
     // Below this width the names give way to icons so the page keeps room.
     readonly property bool collapsed: userCollapsed || width < 940
     readonly property var category: controller.selectedCategory
-    readonly property string alert: category ? settingsContext.alert[category.id] : ""
-    readonly property string summary: category ? settingsContext.summary[category.id] : ""
+    readonly property string alert: category ? settingsContext.pageAlert(category.id) : ""
+    readonly property string summary: category ? settingsContext.pageSummary(category.id) : ""
     readonly property Item focusItem: Window.activeFocusItem
     readonly property alias page: pageLoader.item
     readonly property alias pageId: pageLoader.pageId
@@ -97,7 +98,7 @@ FocusScope {
 
         ColumnLayout {
             Layout.fillHeight: true
-            Layout.preferredWidth: root.collapsed ? 64 : 264
+            Layout.preferredWidth: root.collapsed ? 64 : 216
             Layout.maximumWidth: Layout.preferredWidth
             spacing: CortetsuDesign.spacingStandard
 
@@ -220,11 +221,10 @@ FocusScope {
                     id: pageLoader
 
                     readonly property string pageId: root.controller.selectedId
+                    readonly property string shellPageId: root.controller.pageForSection(pageId)
                     readonly property var pages: ({
-                        network: networkPage, bluetooth: bluetoothPage, audio: audioPage, display: displayPage,
-                        power: powerPage, notifications: notificationsPage, input: inputPage,
-                        appearance: appearancePage, wallpaper: wallpaperPage, desktop: desktopPage,
-                        bottomhub: bottomHubPage, launcher: launcherPage, shortcuts: shortcutsPage, automation: automationPage, about: aboutPage
+                        quick: quickPage, general: generalPage, bar: barPage, background: backgroundPage,
+                        interface: interfacePage, services: servicesPage, advanced: advancedPage, about: aboutPage
                     })
 
                     // Leaves room for the scroll bar so it never covers a
@@ -232,7 +232,7 @@ FocusScope {
                     // the two drift apart; a page that is a grid asks for all.
                     width: Math.min(scroller.width - CortetsuDesign.spacingStandard,
                         item?.wide === true ? Infinity : 820)
-                    sourceComponent: pages[pageId] ?? null
+                    sourceComponent: pages[shellPageId] ?? null
 
                     onPageIdChanged: scroller.contentY = 0
                     onLoaded: arrive.restart()
@@ -252,19 +252,12 @@ FocusScope {
         }
     }
 
-    Component { id: networkPage; NetworkPage { context: settingsContext } }
-    Component { id: bluetoothPage; BluetoothSection { context: settingsContext } }
-    Component { id: audioPage; AudioSection { context: settingsContext } }
-    Component { id: displayPage; DisplaySection { context: settingsContext } }
-    Component { id: powerPage; PowerSection { context: settingsContext } }
-    Component { id: notificationsPage; NotificationsSection { context: settingsContext } }
-    Component { id: inputPage; InputSection { context: settingsContext } }
-    Component { id: appearancePage; AppearanceSection { context: settingsContext } }
-    Component { id: wallpaperPage; WallpaperSection { context: settingsContext } }
-    Component { id: desktopPage; DesktopSection { context: settingsContext } }
-    Component { id: bottomHubPage; BottomHubSection { context: settingsContext } }
-    Component { id: launcherPage; LauncherSection { context: settingsContext } }
-    Component { id: shortcutsPage; ShortcutsSection { context: settingsContext } }
-    Component { id: automationPage; AutomationSection { context: settingsContext } }
-    Component { id: aboutPage; AboutSection { context: settingsContext } }
+    Component { id: quickPage; QuickPage { context: settingsContext } }
+    Component { id: generalPage; GeneralPage { context: settingsContext } }
+    Component { id: barPage; BarPage { context: settingsContext } }
+    Component { id: backgroundPage; BackgroundPage { context: settingsContext } }
+    Component { id: interfacePage; InterfacePage { context: settingsContext } }
+    Component { id: servicesPage; ServicesPage { context: settingsContext } }
+    Component { id: advancedPage; AdvancedPage { context: settingsContext } }
+    Component { id: aboutPage; AboutPage { context: settingsContext } }
 }

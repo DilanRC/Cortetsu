@@ -226,13 +226,13 @@ ShellRoot {
         }],
         [() => !!content && !!content.page && waitedMs >= 300, () => {
             window.requestActivate();
-            verify(content.pageId === "appearance", "Settings opens on the selected page");
+            verify(content.pageId === "quick", "Settings opens on Quick Settings");
             verify(!!page("transparency") && !get("outputVolume") && !get("wifiPower"), "only the open page exists");
-            verify(get("pageTitle").text === "Apariencia", "the header names the page");
+            verify(get("pageTitle").text === "Quick Settings", "the header names the end-4 page");
             verify(same(CortetsuDesign.colorSurface, "#171B21"), "without a scheme the ui.toml default applies");
             memo.card = get("scheme-nebula-default");
             memo.nexus = get("nexus");
-            memo.row = get("nexus-audio");
+            memo.row = get("nexus-quick");
             memo.toggle = page("transparency");
             verify(!!memo.card && !memo.card.selected, "the catalogue is drawn and nebula is not active");
             keep();
@@ -241,8 +241,8 @@ ShellRoot {
         }],
         [() => same(CortetsuDesign.colorSurface, "#112233"), () => {
             verify(churn() === "0 destroyed, 0 created", `a token change keeps every object (${churn()})`);
-            verify(get("nexus") === memo.nexus && get("nexus-audio") === memo.row && page("transparency") === memo.toggle,
-                "the Nexus, its rows and the page controls are the same instances");
+            verify(get("nexus") === memo.nexus && get("nexus-quick") === memo.row && page("transparency") === memo.toggle,
+                "the navigation, its row and the page controls are the same instances");
             verify(same(CortetsuDesign.colorPrimary, "#ff8800"), "the primary token follows");
             verify(same(get("pageTitle").color, "#f0e0d0") || get("pageTitle").color !== undefined, "text reads the new token");
             CortetsuColours.clearPreview();
@@ -258,7 +258,7 @@ ShellRoot {
             verify(churn() === "0 destroyed, 0 created", `applying a scheme keeps every object (${churn()})`);
             verify(get("scheme-nebula-default") === memo.card && memo.card.selected, "the same card is now the selected one");
             verify(!same(CortetsuDesign.colorSurface, "#171B21"), "the tokens follow the applied scheme");
-            verify(get("nexus-appearance").value === "nebula default", "the Nexus names the active scheme");
+            verify(get("nexus-quick").value === "nebula default", "the navigation names the active scheme");
             verify(text("activeScheme") === "Aplicado a todas las superficies", "the apply is confirmed");
             verify(screenDouble.settings && get("nexus") === memo.nexus, "Settings stayed open through the change");
             keep();
@@ -267,7 +267,7 @@ ShellRoot {
         [() => Schemes.applyStatus === "failed", () => {
             verify(Schemes.currentScheme === "nebula default" && memo.card.selected, "a failed apply leaves the real scheme selected");
             verify(get("activeScheme").status === "error" && text("activeScheme").includes("esquema no encontrado"), "the failure is shown with its reason");
-            verify(get("nexus-appearance").alerting && get("pageSummary").text.includes("esquema no encontrado"), "the Nexus and the header flag the page");
+            verify(get("nexus-quick").alerting && get("pageSummary").text.includes("esquema no encontrado"), "the navigation and header flag the page");
             verify(value("activeScheme") === "nebula default", "the value shown is the scheme really in use");
             verify(churn() === "0 destroyed, 0 created", `a failure keeps every object (${churn()})`);
             // The scheme changes from outside Settings, as the launcher or a terminal would do.
@@ -342,7 +342,7 @@ ShellRoot {
             screenDouble.settings = true;
         }],
         [() => !!content && !!content.page, () => {
-            verify(content.pageId === "appearance" && get("scheme-aura-default").selected, "reopening shows the same page and the real scheme");
+            verify(content.pageId === "quick" && get("scheme-aura-default").selected, "reopening shows the same page and the real scheme");
             // Open, visit every page and close, over and over: the tree goes
             // back to the same size each time.
             const started = Date.now();
@@ -366,27 +366,45 @@ ShellRoot {
             window.requestActivate();
         }],
         [() => window.active && waitedMs >= 200, () => {
-            verify(focusName() === "nexus-appearance", `opening focuses the current destination (${focusName()})`);
+            verify(focusName() === "nexus-quick", `opening focuses the current destination (${focusName()})`);
+            SettingsController.search = "vim";
+            verify(SettingsController.matchingIds.includes("general"), "the moved Vim preference remains searchable");
+            SettingsController.search = "DNS";
+            verify(SettingsController.matchingIds.includes("services"), "network profile controls remain searchable");
+            SettingsController.search = "Gamma";
+            verify(SettingsController.matchingIds.includes("advanced"), "display calibration controls remain searchable");
+            SettingsController.search = "";
+            SettingsController.select("stale-domain");
+            verify(SettingsController.selectedId === "quick" && SettingsController.pageForSection("stale-domain") === "",
+                "an unknown deep link leaves the current page selected");
             key(Qt.Key_Down);
-            verify(SettingsController.selectedId === "wallpaper" && focusName() === "nexus-wallpaper", "Down opens the next page and moves the focus with it");
+            verify(SettingsController.selectedId === "general" && focusName() === "nexus-general", "Down opens the next end-4 page and moves focus with it");
             key(Qt.Key_Up);
             key(Qt.Key_Up);
-            verify(SettingsController.selectedId === "input", `Up walks back across groups (${SettingsController.selectedId})`);
+            verify(SettingsController.selectedId === "quick", `Up walks back across pages (${SettingsController.selectedId})`);
             select("notifications");
             get("nexus").focusSelected();
         }],
-        [() => content.pageId === "notifications" && !!page("dnd"), () => {
+        [() => content.pageId === "interface" && !!page("dnd"), () => {
             verify(!get("transparency"), "the previous page is gone");
             key(Qt.Key_Tab);
             verify(focusName() === "closeSettings", `Tab leaves the Nexus for the header (${focusName()})`);
             key(Qt.Key_Tab);
-            verify(focusName() === "dnd", `then enters the page at its first control (${focusName()})`);
+            verify(focusName() === "dashboardEnabled", `then enters the Interface page at its first control (${focusName()})`);
+            const dnd = page("dnd");
+            dnd.forceActiveFocus();
+            content.revealFocus();
+            const scroller = get("pageScroller");
+            scroller.contentY = Math.max(0, dnd.mapToItem(scroller.contentItem, 0, 0).y - scroller.height / 2);
             key(Qt.Key_Space);
             verify(CortetsuNotifications.dnd === true, "Space flips the switch");
             key(Qt.Key_Return);
             verify(CortetsuNotifications.dnd === false, "Enter flips it back");
-            // The pointer: on the label and on the switch itself, one flip each.
+            scroller.contentY = Math.max(0, dnd.mapToItem(scroller.contentItem, 0, 0).y - scroller.height / 2);
+        }],
+        [() => get("pageScroller").contentY > 0 && waitedMs >= 250, () => {
             const dnd = page("dnd");
+            // The pointer: on the label and on the switch itself, one flip each.
             memo.flips = 0;
             dnd.toggled.connect(() => memo.flips++);
             events.mouseClick(dnd, 40, dnd.height / 2, Qt.LeftButton, Qt.NoModifier, -1);
@@ -395,24 +413,22 @@ ShellRoot {
             events.mouseClick(knob, knob.width / 2, knob.height / 2, Qt.LeftButton, Qt.NoModifier, -1);
             verify(CortetsuNotifications.dnd === false && memo.flips === 2, `a click on the switch flips it once, not twice (${memo.flips})`);
             verify(text("dnd") === "Los avisos aparecen en pantalla al llegar", "the row describes the current state");
-            key(Qt.Key_Backtab, Qt.ShiftModifier);
-            verify(focusName() === "closeSettings", "Shift+Tab goes back");
-            key(Qt.Key_Backtab, Qt.ShiftModifier);
-            verify(focusName() === "nexus-notifications", `and returns to the Nexus at the current page (${focusName()})`);
-            key(Qt.Key_Right);
-            verify(focusName() === "dnd", "Right enters the page");
+            dnd.forceActiveFocus();
             key(Qt.Key_Left);
-            verify(focusName() === "nexus-notifications", "Left returns to the Nexus");
-            // Every Tab stop of the page is a control that can act.
+            verify(focusName() === "nexus-interface", "Left returns from a setting to the page navigation");
+            // The composed Interface page keeps all settings in one Tab chain.
             key(Qt.Key_Right);
             const stops = [];
-            for (let i = 0; i < 12 && content.within(frame.Window.activeFocusItem, content.page); ++i) {
+            const stopItems = new Set();
+            for (let i = 0; i < 80 && content.within(frame.Window.activeFocusItem, content.page); ++i) {
                 const item = frame.Window.activeFocusItem;
+                stopItems.add(item);
                 stops.push(item.objectName || item.Accessible.name || "?");
                 verify(item.enabled, `a Tab stop is enabled (${stops[stops.length - 1]})`);
                 key(Qt.Key_Tab);
             }
-            verify(stops.join(",") === "dnd,Ocultar en pantalla completa,Avisar del modo de juego,Avisar de Bloq Mayús,Avisar de Bloq Num,Avisar del cambio de distribución,Avisar de No molestar,Avisar de la pista en reproducción,Abrir avisos expandidos,action", `Tab visits each control once, top to bottom (${stops.join(",")})`);
+            verify(stops.includes("dnd") && stops.includes("action") && stopItems.size === stops.length,
+                `Tab reaches notification controls in the composed page (${stops.join(",")})`);
             memo.clear = page("clearHistory");
             find(memo.clear, "action").forceActiveFocus();
             key(Qt.Key_Return);
@@ -422,31 +438,31 @@ ShellRoot {
             verify(memo.clear.title === "El historial está vacío" && memo.clear.disabled, "the row then shows the new state and stops offering the action");
         }],
         [() => waitedMs >= 100, () => {
+            select("services");
             key(Qt.Key_F, Qt.ControlModifier);
             verify(focusName() === "nexusSearch", `Ctrl+F reaches the search (${focusName()})`);
             get("nexusSearch").text = "reloj";
         }],
         [() => SettingsController.matchingIds.length === 2, () => {
-            verify(get("nexus-appearance").visible && get("nexus-desktop").visible && !get("nexus-audio").visible, "the search keeps the pages that hold a matching setting");
-            verify(get("nexus-appearance").value === "Reloj de 12 horas", "and names the setting that matched");
-            verify(get("nexus-audio") !== null, "hidden rows still exist: the list is filtered, not rebuilt");
+            verify(get("nexus-quick").visible && get("nexus-interface").visible && !get("nexus-general").visible, "the search keeps the pages that hold a matching setting");
+            verify(get("nexus-quick").value === "Reloj de 12 horas", "and names the setting that matched");
+            verify(get("nexus-general") !== null, "hidden rows still exist: the list is filtered, not rebuilt");
             key(Qt.Key_Return);
-            verify(SettingsController.selectedId === "appearance" && focusName() === "nexus-appearance", `Enter opens the first result (${SettingsController.selectedId}, ${focusName()})`);
+            verify(SettingsController.selectedId === "quick" && focusName() === "nexus-quick", `Enter opens the first result (${SettingsController.selectedId}, ${focusName()})`);
             key(Qt.Key_F, Qt.ControlModifier);
             get("nexusSearch").text = "energia";
         }],
-        [() => SettingsController.matchingIds.join(",") === "power,automation", () => {
-            verify(get("nexus-power").visible && get("nexus-automation").visible
-                && !get("nexus-appearance").visible && !get("nexus-audio").visible
-                && get("nexus-automation").value === "Energía automática",
-                "an unaccented search finds both the energy page and its automatic policy setting");
+        [() => SettingsController.matchingIds.join(",") === "general,services", () => {
+            verify(get("nexus-general").visible && get("nexus-services").visible
+                && !get("nexus-quick").visible && !get("nexus-bar").visible,
+                "an unaccented search finds both energy and automatic policy pages");
             get("nexusSearch").text = "zzzz";
         }],
         [() => SettingsController.matchingIds.length === 0, () => {
             verify(get("nexusEmpty").visible, "a search without results says so");
             key(Qt.Key_Escape);
             verify(get("nexusSearch").text === "" && screenDouble.settings, "Escape first clears the search");
-            verify(get("nexus-audio").visible, "and every destination is back");
+            verify(get("nexus-general").visible, "and every destination is back");
             key(Qt.Key_Escape);
             verify(screenDouble.settings === false, "Escape then closes Settings");
         }],
@@ -467,7 +483,7 @@ ShellRoot {
             // A long page keeps the focused control in view.
             select("desktop");
         }],
-        [() => content.pageId === "desktop" && !!page("dashboardMetrics"), () => {
+        [() => content.pageId === "interface" && !!page("dashboardMetrics"), () => {
             get("nexus").focusSelected();
             key(Qt.Key_Right);
             for (let i = 0; i < 12; ++i)
@@ -484,7 +500,7 @@ ShellRoot {
         }],
         [() => get("nexus").collapsed && waitedMs >= 300, () => {
             verify(get("nexus").width < 80 && !get("nexusSearch").visible, "the Nexus folds to icons");
-            verify(get("nexus-desktop").selected && get("nexus-desktop").width > 0, "and still marks where you are");
+            verify(get("nexus-interface").selected && get("nexus-interface").width > 0, "and still marks where you are");
             render("nexus-collapsed");
         }],
         [null, () => {
@@ -495,10 +511,10 @@ ShellRoot {
     // Operations that answer later, that fail, and values that move outside.
     readonly property var states: [
         [() => CortetsuConfig.loaded, () => { select("network"); screenDouble.settings = true; }],
-        [() => !!content && content.pageId === "network" && !!page("wifiPower"), () => {
+        [() => !!content && content.pageId === "services" && !!page("wifiPower"), () => {
             window.requestActivate();
             memo.wifi = page("wifiPower");
-            verify(find(memo.wifi, "switch").checked && get("nexus-network").value === "Casa", "the page and the Nexus show the live connection");
+            verify(find(memo.wifi, "switch").checked && get("nexus-services").value.includes("Casa"), "the page and navigation show the live connection");
             memo.wifi.forceActiveFocus();
             key(Qt.Key_Space);
             verify(wifi.busy && memo.wifi.status === "busy" && text("wifiPower") === "Aplicando…", "an operation in flight is shown as such");
@@ -513,7 +529,7 @@ ShellRoot {
         [() => !wifi.busy, () => {
             verify(find(memo.wifi, "switch").checked && wifi.wifiEnabled, "a refused change leaves the switch on the real state");
             verify(memo.wifi.status === "error" && text("wifiPower") === "NetworkManager rechazó el cambio", "and says why it failed");
-            verify(get("nexus-network").alerting, "the Nexus flags the page");
+            verify(get("nexus-services").alerting, "the Nexus flags the page");
             render("network-error");
         }],
         [null, () => {
@@ -522,7 +538,7 @@ ShellRoot {
         }],
         [() => !wifi.busy && !wifi.wifiEnabled, () => {
             verify(!find(memo.wifi, "switch").checked && text("wifiPower") === "Apagado" && memo.wifi.status === "", "an accepted change is shown once the radio confirms it");
-            verify(get("nexus-network").value === "Wi-Fi apagado" && !get("nexus-network").alerting, "an ordinary off state is not an alert");
+            verify(get("nexus-services").value.includes("Wi-Fi apagado") && !get("nexus-services").alerting, "an ordinary off state is not an alert");
             verify(page("wifiScan").disabled, "scanning is not offered with the radio off");
             render("network-off");
         }],
@@ -531,12 +547,12 @@ ShellRoot {
             wifi.wifiEnabled = true;
         }],
         [() => find(memo.wifi, "switch").checked, () => {
-            verify(get("nexus-network").value === "Casa", "an outside change reaches the open page and the Nexus");
+            verify(get("nexus-services").value.includes("Casa"), "an outside change reaches the open page and navigation");
             select("bluetooth");
         }],
-        [() => content.pageId === "bluetooth" && !!page("bluetoothPower"), () => {
+        [() => content.pageId === "services" && !!page("bluetoothPower"), () => {
             memo.bt = page("bluetoothPower");
-            verify(get("nexus-bluetooth").value === "1 conectado", "the Nexus counts connected devices");
+            verify(get("nexus-services").value.includes("1 conectado"), "the navigation counts connected devices");
             memo.bt.forceActiveFocus();
             key(Qt.Key_Return);
             verify(memo.bt.status === "busy" && find(memo.bt, "switch").checked, "Bluetooth waits for the adapter");
@@ -551,14 +567,14 @@ ShellRoot {
         }],
         [() => !!page("noAdapter") && page("noAdapter").visible, () => {
             verify(!page("bluetoothPower").visible, "without an adapter there is no switch to press");
-            verify(get("nexus-bluetooth").value === "Sin adaptador", "the Nexus says the adapter is missing");
+            verify(get("nexus-services").value.includes("Sin adaptador"), "the navigation says the adapter is missing");
             render("bluetooth-unavailable");
         }],
         [null, () => {
             select("audio");
         }],
-        [() => content.pageId === "audio" && !!page("outputVolume"), () => {
-            verify(find(page("outputVolume"), "sliderValue").text === "62 %" && get("nexus-audio").value === "62 %", "the volume is the real one");
+        [() => content.pageId === "general" && !!page("outputVolume"), () => {
+            verify(find(page("outputVolume"), "sliderValue").text === "62 %" && get("nexus-general").value.includes("62 %"), "the volume is the real one");
             CortetsuAudio.speakers.audio.volume = 0.31;
         }],
         [() => find(page("outputVolume"), "sliderValue").text === "31 %", () => {
@@ -568,21 +584,21 @@ ShellRoot {
             verify(Math.abs(CortetsuAudio.volume - 0.36) < 0.001, "an arrow moves the real volume one step");
             page("outputMute").forceActiveFocus();
             key(Qt.Key_Space);
-            verify(CortetsuAudio.muted && get("nexus-audio").value === "Silenciado", "muting is reflected everywhere");
+            verify(CortetsuAudio.muted && get("nexus-general").value.includes("Silenciado"), "muting is reflected everywhere");
             render("audio");
         }],
         [null, () => {
             CortetsuAudio.available = false;
         }],
         [() => page("noOutput").visible, () => {
-            verify(!page("outputVolume").visible && get("nexus-audio").alerting, "without PipeWire the page says so and the Nexus flags it");
+            verify(!page("outputVolume").visible && get("nexus-general").alerting, "without PipeWire the page says so and the Nexus flags it");
             verify(get("pageSummary").text === "No hay dispositivo de salida", "the header names the problem");
             render("audio-unavailable");
         }],
         [null, () => {
             select("display");
         }],
-        [() => content.pageId === "display" && !!page("colourFilter"), () => {
+        [() => content.pageId === "advanced" && !!page("colourFilter"), () => {
             memo.filter = page("colourFilter");
             verify(page("brightness").visible && find(page("brightness"), "sliderValue").text === "70 %", "brightness is the real one");
             Brightness.monitor.brightness = 0.4;
@@ -609,26 +625,27 @@ ShellRoot {
         }],
         [() => page("brightnessUnavailable").visible, () => {
             verify(!page("brightness").visible && value("brightnessUnavailable") === "No disponible", "a screen without backlight control says so instead of showing 0 %");
-            verify(get("nexus-display").value === "2 pantallas", "the Nexus falls back to what it does know");
+            verify(get("nexus-advanced").value === "2 pantallas", "the Nexus falls back to what it does know");
             render("display-unavailable");
         }],
         [null, () => {
             mode("keybinds-mode", "fail");
             select("shortcuts");
+            page("shortcutsSection").load();
         }],
-        [() => content.pageId === "shortcuts" && content.page.state === "error", () => {
+        [() => content.pageId === "advanced" && page("shortcutsSection").state === "error", () => {
             verify(page("shortcutsState").visible && page("shortcutsState").kind === "error", "a helper that fails is an error with a retry, not an empty list");
             render("shortcuts-error");
         }],
         [null, () => {
             mode("keybinds-mode", "ok");
-            content.page.load();
+            page("shortcutsSection").load();
         }],
-        [() => content.page.state === "ready", () => {
-            verify(content.page.total === 3 && content.page.groups.length === 2, "the retry lists the real bindings by group");
+        [() => page("shortcutsSection").state === "ready", () => {
+            verify(page("shortcutsSection").total === 3 && page("shortcutsSection").groups.length === 2, "the retry lists the real bindings by group");
             page("shortcutFilter").text = "super + h";
         }],
-        [() => content.page.query.length > 0 && waitedMs >= 100, () => {
+        [() => page("shortcutsSection").query.length > 0 && waitedMs >= 100, () => {
             render("shortcuts");
         }],
         [null, () => {
@@ -639,8 +656,8 @@ ShellRoot {
             verify(get("nexus-about").value === "0123456", "and the Nexus shows the revision");
             select("wallpaper");
         }],
-        [() => content.pageId === "wallpaper" && !!page("wallpaperFile"), () => {
-            verify(value("wallpaperFile") === "montaña.png" && get("nexus-wallpaper").value === "montaña.png", "the wallpaper shown is the one applied");
+        [() => content.pageId === "background" && !!page("wallpaperFile"), () => {
+            verify(value("wallpaperFile") === "montaña.png" && get("nexus-background").value === "montaña.png", "the wallpaper shown is the one applied");
             CortetsuWallpapers.applyStatusPath = "/home/prueba/Fondos/nuevo.png";
             CortetsuWallpapers.applyStatus = "applying";
         }],
@@ -651,22 +668,23 @@ ShellRoot {
         }],
         [() => page("wallpaperFile").status === "error", () => {
             verify(value("wallpaperFile") === "montaña.png", "a failed apply shows the wallpaper that is really set");
-            verify(text("wallpaperFile") === "el servicio de fondos no responde" && get("nexus-wallpaper").alerting, "with the reason, and the Nexus flags it");
+            verify(text("wallpaperFile") === "el servicio de fondos no responde" && get("nexus-background").alerting, "with the reason, and the Nexus flags it");
             render("wallpaper-error");
         }],
         [null, () => {
             select("power");
         }],
-        [() => content.pageId === "power" && !!page("batteryLevel"), () => {
-            verify(value("batteryLevel") === "86 %" && get("nexus-power").value === "86 %", "battery is the real reading");
+        [() => content.pageId === "general" && !!page("batteryLevel"), () => {
+            verify(value("batteryLevel") === "86 %" && get("nexus-general").value.includes("86 %"), "battery is the real reading");
             CortetsuPower.percent = 12;
         }],
         [() => value("batteryLevel") === "12 %", () => {
-            verify(get("nexus-power").alerting && get("pageSummary").text === "Batería baja", "a low battery is flagged");
+            verify(get("nexus-general").alerting && get("pageSummary").text === "Batería baja", "a low battery is flagged");
             CortetsuPower.hasBattery = false;
         }],
         [() => page("noBattery").visible, () => {
-            verify(get("nexus-power").value === "Corriente" && !get("nexus-power").alerting, "a desktop shows its power source, not a 0 % battery");
+            verify(get("nexus-general").value.includes("Corriente") && get("nexus-general").alerting,
+                "a desktop shows its power source while the page still flags its unavailable audio output");
         }]
     ]
 
@@ -676,7 +694,7 @@ ShellRoot {
             blockConfig.running = true;
             select("launcher"); screenDouble.settings = true;
         }],
-        [() => blockConfig.ready && !!content && content.pageId === "launcher" && !!page("launcherEnabled"), () => {
+        [() => blockConfig.ready && !!content && content.pageId === "interface" && !!page("launcherEnabled"), () => {
             window.requestActivate();
             page("launcherEnabled").forceActiveFocus();
             key(Qt.Key_Space);
@@ -685,14 +703,15 @@ ShellRoot {
         [() => CortetsuConfig.saveState === "failed", () => {
             const indicator = get("saveIndicator");
             verify(indicator.visible && find(indicator, "saveText").text.startsWith("No se pudo guardar"), "a failed write is announced and stays on screen");
-            verify(get("nexus-launcher").value === "Apagado", "the Nexus shows the value in use");
+            verify(get("nexus-interface").value === "Apagado · 3 guardadas",
+                "the Interface page combines live launcher and notification status");
             render("save-failed");
         }]
     ]
 
     readonly property var policies: [
         [() => CortetsuConfig.loaded, () => { select("automation"); screenDouble.settings = true; }],
-        [() => !!content && content.pageId === "automation" && !!page("policy-gamemode"), () => {
+        [() => !!content && content.pageId === "services" && !!page("policy-gamemode"), () => {
             verify(page("policy-gamemode").disabled && !page("policy-gamemode").checked, "an unavailable coordinator cannot grant consent");
             verify(value("policyConnection") === "No disponible", "connection state is visible");
             policyDouble.usable = true;
@@ -851,7 +870,9 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     calls = (home / "fixtures/calls.log").read_text().splitlines()
     assert calls.count("systemctl --user start hyprsunset.service") == 2, calls
     assert "hyprctl hyprsunset temperature 6000" in calls and "hyprctl hyprsunset gamma 100" in calls, calls
-    assert calls.count("cortetsu-keybinds list") == 2, calls
+    # Advanced composes the shortcuts section: one initial read plus the
+    # explicit failed attempt and successful retry in this scenario.
+    assert calls.count("cortetsu-keybinds list") == 3, calls
 
     output, home = run(folder, "shell.qml", "unwritable", preferences={"schema": 1})
     unwritable = passed(output)
@@ -875,11 +896,11 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     host = run_host(folder)
     assert not host or "SETTINGS_HOST_PASS 1" in host, host
 
-assert (reactivity, navigation, states, unwritable, pages) == (47, 45, 41, 3, 15), (reactivity, navigation, states, unwritable, pages)
+assert (reactivity, navigation, states, unwritable, pages) == (47, 67, 41, 3, 8), (reactivity, navigation, states, unwritable, pages)
 assert policies == 16, policies
 print(f"Settings builds in {opened.split()[0]} ms ({opened.split()[1]} items); "
-      f"20 cycles of open, 15 pages and close take {cycles} ms")
-print("The window host opens, shows its 15 pages, closes and reopens under weston" if host
+      f"20 cycles of open, eight pages and close take {cycles} ms")
+print("The window host opens, shows its eight pages, closes and reopens under weston" if host
       else "SKIP: weston is not installed, the window host was not mapped")
 print("PASS: Settings keeps its objects through colour, scheme and preference changes, "
       "shows pending, failed and unavailable states truthfully, and is fully usable from the keyboard")

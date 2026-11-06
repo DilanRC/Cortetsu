@@ -180,8 +180,8 @@ CortetsuSurface {
                             // While searching, the row names the setting that matched.
                             value: root.searching && entry.found.setting.length > 0
                                 ? entry.found.setting
-                                : root.context.summary[entry.category.id]
-                            alertText: root.context.alert[entry.category.id]
+                                : root.context.pageSummary(entry.category.id)
+                            alertText: root.context.pageAlert(entry.category.id)
                             selected: root.controller.selectedId === entry.category.id
                             collapsed: root.collapsed
                             onActivated: root.controller.select(entry.category.id)

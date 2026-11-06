@@ -1,5 +1,10 @@
 # Cortetsu Settings
 
+The eight-page shell follows the organization of end-4 Settings at
+`end-4/dots-hyprland` commit `2f2a376fdb2ad738bf55f693dd0b474b64bb0ab8`.
+That repository is GPL-3.0; this adaptation uses Cortetsu's existing QML
+primitives and service sections and does not copy its QML implementation.
+
 Opened with `Super+I`. A normal desktop window (`FloatingWindow`), one per
 screen, so it can be moved, tiled and resized like any other.
 
@@ -22,9 +27,10 @@ SUPER+I
   SettingsHost.qml: FloatingWindow.visible; Loader builds Content
   settings/Content.qml
     SettingsContext    live state of every domain, summary and alert per page
-    Nexus              14 destinations, search, collapse
+    Nexus              end-4 navigation with eight destinations, search, collapse
     Loader             the one page that is selected
-      sections/*.qml, NetworkPage.qml
+      pages/*.qml
+        sections/*.qml, NetworkPage.qml (composed by product area)
         controls/*     SettingsGroup, SettingToggleRow, SettingSliderRow,
                        SettingActionRow, SettingValueRow
   services             CortetsuConfig, Schemes, CortetsuColours, Connectivity,
@@ -34,13 +40,33 @@ SUPER+I
                        ~/.local/state/cortetsu/scheme.json
 ```
 
+## Pages and retained Cortetsu settings
+
+| Reference page | Composed Cortetsu sections | Backend and saved state |
+| --- | --- | --- |
+| Quick Settings | Appearance | `Schemes`, `CortetsuColours`, `CortetsuConfig` |
+| General | Audio, power, input | PipeWire/audio services, power service, Hyprland keyboard state and `preferences.json` |
+| Bar | Bottom Hub | `CortetsuConfig.bottomHub` and bar preferences |
+| Background | Wallpaper | Wallpaper service, scheme ownership, `preferences.json` and `scheme.json` |
+| Interface | Dashboard, launcher, notifications | Dashboard/launcher services, notification service and `preferences.json` |
+| Services | Network, Bluetooth, automation | Connectivity and policy bridge; service state remains owned outside Settings |
+| Advanced | Display, shortcuts | Brightness/display calibration and `cortetsu-keybinds`; persisted through the existing owners |
+| About | About | Read-only build metadata from the active generation |
+
+The rail and filter route to the eight pages. Existing domain IDs remain valid
+as deep links through `SettingsController.pageForSection()`, so older internal
+callers still open the correct composed page.
+
 ## Resource model
 
 - A closed Settings holds nothing: `SettingsHost` builds `Content` only while
   the window is visible.
 - Only the selected page exists. Selecting another destroys it and builds the
-  next one. The page that is open is kept in `SettingsController`, so reopening
-  returns to it.
+  next one. Each of the eight pages composes Cortetsu's existing feature
+  sections; the sections keep their original service and persistence owners.
+  Domain deep links such as `network` select their containing page (`services`).
+  The page that is open is kept in `SettingsController`, so reopening returns
+  to it.
 - Nothing in Settings polls. The single process a page starts is the read-only
   `cortetsu-keybinds list` of the Shortcuts page, when that page is opened.
 - The display colour filter is applied by `services/DisplayCalibration.qml`,

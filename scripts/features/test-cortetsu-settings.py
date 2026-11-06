@@ -26,15 +26,20 @@ retired_bar_preferences = (
 assert not [key for key in retired_bar_preferences if f"CortetsuConfig.{key}" in legacy_panel_sources], \
     "Retired top-bar preferences must not have Settings controls"
 
-# Every destination of the Nexus opens a page, and no page is unreachable.
-categories = re.findall(r'\{ id: "([a-z]+)", group:', controller)
-assert len(categories) == 15 and len(set(categories)) == 15, categories
-assert "automation" in categories
+page_ids = re.findall(r'\{ id: "([a-z]+)", group: qsTr\("Ajustes"\), title: qsTr\("(?:Quick Settings|General|Bar|Background|Interface|Services|Advanced|About)"\)', controller)
+assert page_ids == ["quick", "general", "bar", "background", "interface", "services", "advanced", "about"], page_ids
+section_map = re.search(r"readonly property var pageSections: \(\{(.*?)\}\)", controller, re.S).group(1)
+section_groups = dict(re.findall(r'([a-z]+): \[([^\]]+)\]', section_map))
+section_ids = {page: [item.strip().strip('"') for item in values.split(",")] for page, values in section_groups.items()}
+assert sorted(section_ids) == sorted(page_ids), section_ids
+assert sorted(sum(section_ids.values(), [])) == sorted(["network", "bluetooth", "audio", "display", "power", "notifications", "input", "appearance", "wallpaper", "desktop", "bottomhub", "launcher", "shortcuts", "automation", "about"])
 table = re.search(r"readonly property var pages: \(\{(.*?)\}\)", content, re.S).group(1)
 pages = dict(re.findall(r"([a-z]+): ([A-Za-z]+Page)", table))
-assert sorted(pages) == sorted(categories), (sorted(pages), sorted(categories))
+assert sorted(pages) == sorted(page_ids), (sorted(pages), sorted(page_ids))
 for component in pages.values():
     assert re.search(rf"Component \{{ id: {component}; \w+ \{{ context: settingsContext \}} \}}", content), component
+    page_file = SETTINGS / "pages" / f"{component[0].upper()}{component[1:]}.qml"
+    assert page_file.is_file(), component
 
 # A control must change something. A preference written from Settings needs a
 # reader in the running shell: not Settings itself, not the retired settings
@@ -57,7 +62,7 @@ assert not unread, f"Settings writes preferences nothing reads: {unread}"
 
 # The content is built only while the window is open; a page only while selected.
 assert "active: false" in host and "sourceComponent: Content {" in host
-assert "sourceComponent: pages[pageId] ?? null" in content
+assert "sourceComponent: pages[shellPageId] ?? null" in content
 assert not re.search(r"visible: root\.(section|controller\.selectedId) ===", "\n".join(sources.values()))
 
 # Views bind and draw. Processes belong to services, except the one read-only
@@ -79,5 +84,5 @@ assert '"SUPER + I",\n    hl.dsp.global("cortetsu:settings")' not in user_hypr
 assert '"SUPER + I",\n    hl.dsp.global("cortetsu:utilities")' not in user_hypr
 assert 'name: "settings"' in shortcuts
 
-print(f"PASS: {len(categories)} destinations each open a page, {len(written)} preferences written by Settings "
+print(f"PASS: {len(page_ids)} end-4 pages compose {sum(map(len, section_ids.values()))} Cortetsu sections, {len(written)} preferences written by Settings "
       "all have a reader, and SUPER+I has one owner")

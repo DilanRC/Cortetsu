@@ -48,7 +48,34 @@ QtObject {
         }
     }
 
-    // One line per page for the Nexus, keyed by category id.
+    function pageSummary(pageId: string): string {
+        switch (pageId) {
+        case "quick": return root.summary.appearance;
+        case "general": return [root.summary.audio, root.summary.power, root.summary.input].filter(Boolean).join(" · ");
+        case "bar": return "";
+        case "background": return root.summary.wallpaper;
+        case "interface": return [root.summary.desktop, root.summary.launcher, root.summary.notifications].filter(Boolean).join(" · ");
+        case "services": return [root.summary.network, root.summary.bluetooth].filter(Boolean).join(" · ");
+        case "advanced": return root.summary.display;
+        case "about": return root.summary.about;
+        default: return "";
+        }
+    }
+
+    function pageAlert(pageId: string): string {
+        switch (pageId) {
+        case "quick": return root.alert.appearance;
+        case "general": return root.alert.power || root.alert.input || root.alert.audio;
+        case "bar": return "";
+        case "background": return root.alert.wallpaper;
+        case "interface": return root.alert.notifications;
+        case "services": return root.alert.network || root.alert.bluetooth || root.alert.automation;
+        case "advanced": return root.alert.display;
+        default: return "";
+        }
+    }
+
+    // Live status lines for Cortetsu's original settings sections.
     readonly property QtObject summary: QtObject {
         readonly property string network: !root.wifi.wifiEnabled && !root.wifi.activeEthernet
             ? qsTr("Wi-Fi apagado")
