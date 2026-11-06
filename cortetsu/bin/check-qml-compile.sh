@@ -8,6 +8,10 @@ set -euo pipefail
 
 usage() { printf 'usage: check-qml-compile.sh <runtime-root>\n' >&2; exit 2; }
 [[ $# -eq 1 && -f "$1/shell.qml" ]] || usage
+if [[ -f "$1/base/utils/Searcher.qml" && ! -f "$1/utils/Searcher.qml" ]]; then
+    printf 'ERROR: se recibió el árbol de fuentes Cortetsu; primero genera el runtime con build-runtime.sh --stage\n' >&2
+    exit 2
+fi
 SOURCE="$(cd "$1" && pwd)"
 QS="${CORTETSU_QS:-qs}"
 TIMEOUT="${CORTETSU_QML_COMPILE_TIMEOUT:-60}"
