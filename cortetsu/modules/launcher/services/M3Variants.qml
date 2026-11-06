@@ -69,7 +69,7 @@ Searcher {
             description: qsTr("Todos los colores están en escala de grises, sin croma.")
         }
     ]
-    useFuzzy: CortetsuConfig.useFuzzyApps
+    useFuzzy: CortetsuConfig.useFuzzyVariants
 
     component Variant: QtObject {
         required property string variant

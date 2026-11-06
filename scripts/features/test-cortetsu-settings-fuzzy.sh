@@ -29,3 +29,6 @@ for object_name, setting in controls.items():
     ), f"{object_name} is not persisted independently"
 print("PASS: launcher fuzzy-search settings have independent persisted owners")
 PY
+grep -Fq 'useFuzzy: CortetsuConfig.useFuzzyVariants' "$root/cortetsu/modules/launcher/services/M3Variants.qml"
+! grep -Fq 'useFuzzy: CortetsuConfig.useFuzzyApps' "$root/cortetsu/modules/launcher/services/M3Variants.qml"
+printf '%s\n' 'PASS: color variants read their dedicated fuzzy-search preference'
