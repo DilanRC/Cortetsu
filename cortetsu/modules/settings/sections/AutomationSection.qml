@@ -4,6 +4,7 @@ import QtQuick
 import QtQuick.Layouts
 import "../../../theme"
 import "../controls"
+import "../.."
 
 ColumnLayout {
     id: root
@@ -16,6 +17,23 @@ ColumnLayout {
         {id: "display", title: qsTr("Reglas de pantalla"), detail: qsTr("Permite las reglas de pantalla que hayas configurado; no incluye reglas predeterminadas")}
     ]
     spacing: CortetsuDesign.spacingSection
+
+    SettingsGroup {
+        title: qsTr("Muestreo de hardware")
+        detail: qsTr("Actualiza los datos de Hardware Center solo mientras está abierto")
+        SettingSliderRow {
+            objectName: "hardwareSampleInterval"
+            title: qsTr("Intervalo de actualización")
+            valueText: qsTr("%1 s").arg((CortetsuConfig.dashboardResourceUpdateInterval / 1000).toFixed(2))
+            from: 1000
+            to: 5000
+            step: 250
+            value: CortetsuConfig.dashboardResourceUpdateInterval
+            onMoved: value => {
+                CortetsuConfig.dashboardResourceUpdateInterval = Math.round(value / 250) * 250;
+            }
+        }
+    }
 
     function domainTitle(domain: string): string {
         return domains.find(item => item.id === domain)?.title || domain;

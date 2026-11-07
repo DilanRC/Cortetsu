@@ -36,6 +36,7 @@ import Quickshell
 import Quickshell.Io
 import "modules"
 import "modules/background"
+import "modules/hardware"
 import "modules/settings"
 import "modules/CortetsuNotificationModel.js" as NotificationModel
 import "modules/launcher/services"
@@ -50,16 +51,30 @@ ShellRoot {
     property var kept: []
     property var memo: ({})
     property int writes: 0
+    property int hardwareSampleWritesBefore: 0
     readonly property string scenario: Quickshell.env("SETTINGS_SCENARIO")
     readonly property string fixtures: Quickshell.env("SETTINGS_FIXTURES")
     readonly property string renderDir: Quickshell.env("CORTETSU_RENDER_DIR")
     readonly property string schemeTool: Quickshell.env("HOME") + "/bin/cortetsu-scheme"
     readonly property var content: host.item
     readonly property var notificationBadgeProbe: notificationBadgeLoader.item
+    readonly property var hardwareTelemetryProbe: hardwareTelemetryLoader.item
     Loader {
         id: notificationBadgeLoader
         active: root.scenario === "notificationCountPreferences" || root.scenario === "notificationCountRestore"
         sourceComponent: notificationBadgeComponent
+    }
+    Loader {
+        id: hardwareTelemetryLoader
+        active: root.scenario === "hardwareSamplePreferences" || root.scenario === "hardwareSampleRestore"
+        sourceComponent: hardwareTelemetryComponent
+    }
+    Component {
+        id: hardwareTelemetryComponent
+        HardwareTelemetry {
+            objectName: "hardwareTelemetryProbe"
+            active: false
+        }
     }
     Component {
         id: notificationBadgeComponent
@@ -963,6 +978,52 @@ ShellRoot {
                 "the workspace number choice restores on launch");
         }]
     ]
+    readonly property var hardwareSamplePreferences: [
+        [() => CortetsuConfig.loaded, () => { select("automation"); screenDouble.settings = true; }],
+        [() => !!content && content.pageId === "services" && !!page("hardwareSampleInterval") && !!hardwareTelemetryProbe, () => {
+            window.requestActivate();
+        }],
+        [() => window.active, () => {
+            const slider = page("hardwareSampleInterval");
+            root.hardwareSampleWritesBefore = root.writes;
+            verify(CortetsuConfig.dashboardResourceUpdateInterval === 1500
+                && slider.value === 1500 && hardwareTelemetryProbe.intervalMs === 1500,
+                "hardware sampling preserves its existing 1.5-second rate by default");
+            slider.moved(2750);
+            verify(CortetsuConfig.dashboardResourceUpdateInterval === 2750
+                && hardwareTelemetryProbe.intervalMs === 2750,
+                "the Services slider changes the active Hardware Center sampling interval");
+        }],
+        [() => CortetsuConfig.saveState === "saved", () => {
+            verify(root.writes === root.hardwareSampleWritesBefore + 1,
+                "changing the interval is persisted with one debounced write");
+        }]
+    ]
+    readonly property var hardwareSampleRestore: [
+        [() => CortetsuConfig.loaded, () => { select("automation"); screenDouble.settings = true; }],
+        [() => !!content && content.pageId === "services" && !!page("hardwareSampleInterval") && !!hardwareTelemetryProbe, () => {
+            verify(CortetsuConfig.dashboardResourceUpdateInterval === 2750
+                && page("hardwareSampleInterval").value === 2750
+                && hardwareTelemetryProbe.intervalMs === 2750,
+                "the chosen hardware sampling interval persists and restores to the consumer");
+        }]
+    ]
+    readonly property var hardwareSampleNormalize: [
+        [() => CortetsuConfig.loaded, () => { select("automation"); screenDouble.settings = true; }],
+        [() => !!content && content.pageId === "services" && !!page("hardwareSampleInterval"), () => {
+            verify(CortetsuConfig.dashboardResourceUpdateInterval === 5000
+                && page("hardwareSampleInterval").value === 5000,
+                "stored sampling values are bounded and rounded to a supported 250-millisecond step");
+        }]
+    ]
+    readonly property var hardwareSampleNormalizeLow: [
+        [() => CortetsuConfig.loaded, () => { select("automation"); screenDouble.settings = true; }],
+        [() => !!content && content.pageId === "services" && !!page("hardwareSampleInterval"), () => {
+            verify(CortetsuConfig.dashboardResourceUpdateInterval === 1000
+                && page("hardwareSampleInterval").value === 1000,
+                "stored sampling values cannot exceed the lower safe query-rate bound");
+        }]
+    ]
     readonly property var actionPrefixPreferences: [
         [() => CortetsuConfig.loaded, () => { select("interface"); screenDouble.settings = true; }],
         [() => !!content && !!page("actionPrefix"), () => { window.requestActivate(); }],
@@ -1436,6 +1497,20 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     assert workspace_numbers_saved["bar"]["workspaces"]["displayType"] == 1, workspace_numbers_saved
     restored, _ = run(folder, "shell.qml", "workspaceNumbersRestore", preferences=workspace_numbers_saved)
     assert passed(restored) == 1, restored
+
+    output, hardware_sample_home = run(folder, "shell.qml", "hardwareSamplePreferences",
+                                       preferences={"schema": 1})
+    assert passed(output) == 3, output
+    hardware_sample_saved = json.loads((hardware_sample_home / ".config/cortetsu/preferences.json").read_text())
+    assert hardware_sample_saved["dashboardResourceUpdateInterval"] == 2750, hardware_sample_saved
+    restored, _ = run(folder, "shell.qml", "hardwareSampleRestore", preferences=hardware_sample_saved)
+    assert passed(restored) == 1, restored
+    normalized, _ = run(folder, "shell.qml", "hardwareSampleNormalize",
+                        preferences={"schema": 1, "dashboardResourceUpdateInterval": 5123})
+    assert passed(normalized) == 1, normalized
+    normalized, _ = run(folder, "shell.qml", "hardwareSampleNormalizeLow",
+                        preferences={"schema": 1, "dashboardResourceUpdateInterval": 500})
+    assert passed(normalized) == 1, normalized
 
     output, prefix_home = run(folder, "shell.qml", "actionPrefixPreferences", preferences={"schema": 1})
     assert passed(output) == 3, output

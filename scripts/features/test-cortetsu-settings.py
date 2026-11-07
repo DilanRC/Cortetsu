@@ -87,6 +87,9 @@ assert 'name: "settings"' in shortcuts
 bottom_hub = (SHELL / "modules/BottomHub.qml").read_text(encoding="utf-8")
 assert "readonly property int workspaceCount: CortetsuConfig.workspacesShown" in bottom_hub
 assert "workspaceDisplayType: CortetsuConfig.bar.workspaces.displayType" in bottom_hub
+hardware_telemetry = (SHELL / "modules/hardware/HardwareTelemetry.qml").read_text(encoding="utf-8")
+assert "intervalMs: CortetsuConfig.dashboardResourceUpdateInterval" in hardware_telemetry
+assert 'objectName: "hardwareSampleInterval"' in sources[SETTINGS / "sections/AutomationSection.qml"]
 bottom_hub_view = (SHELL / "modules/CortetsuBottomHubView.qml").read_text(encoding="utf-8")
 workspace_mode = (SHELL / "modules/CortetsuModeSegment.qml").read_text(encoding="utf-8")
 workspace_dots = (SHELL / "modules/CortetsuWorkspaceDots.qml").read_text(encoding="utf-8")

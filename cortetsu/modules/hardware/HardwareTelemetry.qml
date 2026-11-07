@@ -4,6 +4,7 @@ import QtQuick
 import QtCore
 import Quickshell
 import Quickshell.Io
+import ".."
 
 // The one source of main telemetry for Hardware Center. Pages bind to the
 // reading and to `status`; none of them starts a process for this data.
@@ -31,7 +32,7 @@ Item {
         ? new Date(Number(root.snapshot.timestamp) * 1000)
         : null
 
-    readonly property int intervalMs: 1500
+    readonly property int intervalMs: CortetsuConfig.dashboardResourceUpdateInterval
     readonly property int historyLength: 80
     readonly property int historySeconds: Math.round(root.historyLength * root.intervalMs / 1000)
     property var cpuHistory: []

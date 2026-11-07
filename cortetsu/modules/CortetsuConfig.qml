@@ -198,7 +198,7 @@ QtObject {
     property int workspacesShown: 5
     property int dashboardMediaUpdateInterval: 500
     onDashboardMediaUpdateIntervalChanged: if (loaded) save()
-    property int dashboardResourceUpdateInterval: 1000
+    property int dashboardResourceUpdateInterval: 1500
     onDashboardResourceUpdateIntervalChanged: if (loaded) save()
     property int nexusWallpapersPerRow: 4
     onNexusWallpapersPerRowChanged: if (loaded) save()
@@ -449,7 +449,8 @@ QtObject {
             if (Number.isInteger(data.dashboardMediaUpdateInterval))
                 dashboardMediaUpdateInterval = Math.max(50, data.dashboardMediaUpdateInterval);
             if (Number.isInteger(data.dashboardResourceUpdateInterval))
-                dashboardResourceUpdateInterval = Math.max(50, data.dashboardResourceUpdateInterval);
+                dashboardResourceUpdateInterval = Math.max(1000, Math.min(5000,
+                    Math.round(data.dashboardResourceUpdateInterval / 250) * 250));
             if (Number.isInteger(data.nexusWallpapersPerRow))
                 nexusWallpapersPerRow = Math.max(1, Math.min(12, data.nexusWallpapersPerRow));
             if (Number.isInteger(data.nexusMaxNetworksShown))

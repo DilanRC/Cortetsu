@@ -1374,8 +1374,13 @@
       "option": "resources.updateInterval",
       "source": "dots/.config/quickshell/ii/modules/settings/ServicesConfig.qml",
       "line": 77,
-      "status": "pending",
-      "cortetsu": null
+      "status": "adapted",
+      "cortetsu": {
+        "source": "cortetsu/modules/settings/sections/AutomationSection.qml",
+        "owner": "CortetsuConfig.dashboardResourceUpdateInterval → HardwareTelemetry.intervalMs",
+        "test": "scripts/features/test-cortetsu-settings-runtime.py"
+      },
+      "notes": "Configura el muestreo de Hardware Center, activo solo mientras se muestra; no introduce un servicio genérico de recursos."
     },
     {
       "page": "ServicesConfig",

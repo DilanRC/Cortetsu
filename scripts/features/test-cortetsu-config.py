@@ -125,7 +125,7 @@ assert "VisualiserBars" not in visualiser
 assert "Audio.cava" not in visualiser
 for legacy in ("Caelestia.Config", "qs.services", "qs.components", "Colours.", "Tokens.", "StyledRect", "StyledText", "MaterialIcon", "GlobalConfig"):
     assert legacy not in bar_clock, legacy
-assert "Time.hourStr" in bar_clock and "CortetsuDesign.colorTertiary" in bar_clock
+assert "Time.timeStr" in bar_clock and "CortetsuDesign.colorTertiary" in bar_clock
 for legacy in ("Caelestia.Config", "qs.services", "qs.components", "Colours.", "Tokens.", "StyledRect", "StyledText", "MaterialIcon", "GlobalConfig"):
     assert legacy not in status_icons, legacy
 assert "CortetsuAudio" in status_icons and "CortetsuNetwork" in status_icons and "CortetsuPower" in status_icons
@@ -213,7 +213,7 @@ assert schemes_service.count("CortetsuConfig.actionPrefix") == 1
 assert variants_service.count("CortetsuConfig.actionPrefix") == 1
 assert "CortetsuConfig.useFuzzyActions" in actions_service
 assert "CortetsuConfig.useFuzzySchemes" in schemes_service
-assert "CortetsuConfig.useFuzzyApps" in variants_service
+assert "CortetsuConfig.useFuzzyVariants" in variants_service
 
 gone_patches = (
     "modules__launcher__AppList.qml.patch",
