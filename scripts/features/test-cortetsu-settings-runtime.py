@@ -53,6 +53,35 @@ ShellRoot {
     readonly property string renderDir: Quickshell.env("CORTETSU_RENDER_DIR")
     readonly property string schemeTool: Quickshell.env("HOME") + "/bin/cortetsu-scheme"
     readonly property var content: host.item
+    readonly property Item notificationBadgeProbe: CortetsuStatusSegment {
+        objectName: "notificationBadgeProbe"
+        x: -1000
+        width: 500
+        notificationCount: 3
+        volumeIcon: "volume_up"
+        volumeMuted: false
+        networkIcon: "wifi"
+        networkTooltip: "Wi-Fi"
+        networkActive: false
+        bluetoothIcon: "bluetooth"
+        bluetoothActive: false
+        batteryIcon: "battery_full"
+        batteryCritical: false
+        batteryTooltip: "Battery"
+        audioVisible: true
+        networkVisible: true
+        bluetoothVisible: true
+        batteryVisible: true
+        statusPopoutsEnabled: false
+        sidebarActive: false
+        recordingActive: false
+        dndActive: false
+        idleInhibited: false
+        now: new Date(2026, 0, 1, 13, 5)
+        sessionActive: false
+        opacity: 0
+        enabled: false
+    }
     readonly property var wifi: ConnectivityWifi
     readonly property var bluetooth: ConnectivityBluetooth
     readonly property var policyBridge: policyDouble
@@ -118,6 +147,9 @@ ShellRoot {
     }
     function get(name) { return find(content, name); }
     function page(name) { return find(content.page, name); }
+    function notificationBadgeVisible(): bool {
+        return notificationBadgeProbe.notificationCountBadge.visible;
+    }
     function text(name) { return find(get(name), "rowDetail")?.text ?? ""; }
     function clockDateExists(): bool { return find(clockArea, "desktopClockDate") !== null; }
     function clockDateVisible(): bool { return find(clockArea, "desktopClockDate")?.visible ?? false; }
@@ -827,6 +859,30 @@ ShellRoot {
                 "the selected regional clock format and second precision restore in a new process");
         }]
     ]
+    readonly property var notificationCountPreferences: [
+        [() => CortetsuConfig.loaded, () => { select("bar"); screenDouble.settings = true; }],
+        [() => !!content && !!page("notificationCount"), () => { window.requestActivate(); }],
+        [() => window.active, () => {
+            const toggle = page("notificationCount");
+            verify(toggle.checked && notificationBadgeVisible(),
+                `notification history badge should be visible (control ${toggle.checked}, `
+                + `policy ${CortetsuConfig.bottomHub.statusCluster.showNotificationCount}, `
+                + `count ${notificationBadgeProbe.notificationCount}, `
+                + `visible ${notificationBadgeVisible()})`);
+            toggle.forceActiveFocus(); key(Qt.Key_Space);
+            verify(!CortetsuConfig.bottomHub.statusCluster.showNotificationCount && !notificationBadgeVisible(),
+                "the preference changes the Bottom Hub badge visibility policy");
+        }],
+        [() => CortetsuConfig.saveState === "saved", () => {}]
+    ]
+    readonly property var notificationCountRestore: [
+        [() => CortetsuConfig.loaded, () => { select("bar"); screenDouble.settings = true; }],
+        [() => !!content && !!page("notificationCount"), () => {
+            verify(!CortetsuConfig.bottomHub.statusCluster.showNotificationCount
+                && !page("notificationCount").checked && !notificationBadgeVisible(),
+                "the notification count preference restores on launch");
+        }]
+    ]
     readonly property var actionPrefixPreferences: [
         [() => CortetsuConfig.loaded, () => { select("interface"); screenDouble.settings = true; }],
         [() => !!content && !!page("actionPrefix"), () => { window.requestActivate(); }],
@@ -1268,6 +1324,14 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     assert regional_saved["useTwelveHourClock"] is True, regional_saved
     assert regional_saved["useSecondPrecision"] is True, regional_saved
     restored, _ = run(folder, "shell.qml", "regionalRestore", preferences=regional_saved)
+    assert passed(restored) == 1, restored
+
+    output, notification_count_home = run(folder, "shell.qml", "notificationCountPreferences",
+                                          preferences={"schema": 1})
+    assert passed(output) == 2, output
+    notification_count_saved = json.loads((notification_count_home / ".config/cortetsu/preferences.json").read_text())
+    assert notification_count_saved["bottomHub"]["statusCluster"]["showNotificationCount"] is False, notification_count_saved
+    restored, _ = run(folder, "shell.qml", "notificationCountRestore", preferences=notification_count_saved)
     assert passed(restored) == 1, restored
 
     output, prefix_home = run(folder, "shell.qml", "actionPrefixPreferences", preferences={"schema": 1})

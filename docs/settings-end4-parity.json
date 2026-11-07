@@ -342,8 +342,14 @@
       "option": "bar.indicators.notifications.showUnreadCount",
       "source": "dots/.config/quickshell/ii/modules/settings/BarConfig.qml",
       "line": 16,
-      "status": "pending",
-      "cortetsu": null
+      "status": "adapted",
+      "cortetsu": {
+        "control": "cortetsu/modules/settings/sections/BottomHubSection.qml#notificationCount",
+        "owner": "CortetsuConfig.bottomHub.statusCluster.showNotificationCount",
+        "result": "Shows or hides the Bottom Hub badge for the retained notification-history count",
+        "test": "scripts/features/test-cortetsu-settings-runtime.py#notificationCountPreferences,notificationCountRestore"
+      },
+      "notes": "Cortetsu does not track read/unread state; this maps visibility of its retained-history count instead."
     },
     {
       "page": "BarConfig",

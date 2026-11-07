@@ -47,6 +47,14 @@ ColumnLayout {
         detail: qsTr("Qué muestra el grupo de la derecha")
 
         SettingToggleRow {
+            objectName: "notificationCount"
+            title: qsTr("Mostrar cantidad de notificaciones")
+            detail: qsTr("Mostrar el total conservado en el historial junto al botón")
+            checked: CortetsuConfig.bottomHub.statusCluster.showNotificationCount
+            onToggled: value => { CortetsuConfig.bottomHub.statusCluster.showNotificationCount = value; CortetsuConfig.save(); }
+        }
+
+        SettingToggleRow {
             title: qsTr("Audio")
             checked: CortetsuConfig.bottomHub.statusCluster.audio
             onToggled: value => { CortetsuConfig.bottomHub.statusCluster.audio = value; CortetsuConfig.save(); }

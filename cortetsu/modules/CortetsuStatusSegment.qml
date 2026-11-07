@@ -1,5 +1,6 @@
 import QtQuick
 import "../components"
+import "../services"
 import "../theme"
 import "CortetsuTypography.js" as CortetsuTypography
 
@@ -45,6 +46,7 @@ Item {
 
     // Read by Bottom Hub to locate the bell for the retained-surfaces scrim.
     readonly property Item notificationsButton: bellButton
+    property alias notificationCountBadge: countBadge
 
     function centerFor(item): real {
         return statusRow.x + systemControls.x + item.x + item.width / 2;
@@ -189,7 +191,9 @@ Item {
             }
 
             Rectangle {
-                visible: root.notificationCount > 0
+                id: countBadge
+                objectName: "notificationCountBadge"
+                visible: CortetsuConfig.bottomHub.statusCluster.showNotificationCount && root.notificationCount > 0
                 anchors.top: parent.top
                 anchors.right: parent.right
                 anchors.topMargin: 1

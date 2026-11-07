@@ -78,4 +78,10 @@ for legacy in ("Caelestia", "GlobalConfig", "qs.components", "qs.services"):
     assert legacy not in forecast, legacy
 assert "CortetsuSurface" in forecast and "CortetsuIcon" in forecast
 
-print("test-regional: OK (mocked-HTTP JS logic + patch/singleton static contract)")
+# Bottom Hub notification badge consumes a persisted setting and a real count.
+config_qml = (MODULES / "CortetsuConfig.qml").read_text(encoding="utf-8")
+status_segment = (MODULES / "CortetsuStatusSegment.qml").read_text(encoding="utf-8")
+assert "showNotificationCount" in config_qml
+assert "CortetsuConfig.bottomHub.statusCluster.showNotificationCount && root.notificationCount > 0" in status_segment
+
+print("test-regional: OK (mocked-HTTP JS logic + regional and notification-count contracts)")
