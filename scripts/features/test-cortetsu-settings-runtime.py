@@ -159,6 +159,29 @@ ShellRoot {
         });
     }
     readonly property string renderSuffix: Quickshell.env("SETTINGS_RENDER_SUFFIX")
+    readonly property string slowNoticePath: `${fixtures}/slow-notice-ready`
+
+    FileView {
+        id: slowNoticeSignal
+        path: root.slowNoticePath
+        printErrors: false
+    }
+    Timer {
+        id: slowNoticeWaiter
+        interval: 10
+        repeat: true
+        running: root.scenario === "themeSlowCommit"
+        onTriggered: {
+            if (!root.content || root.content.pageId !== "quick")
+                return;
+            const themeRow = root.page("theme-washi");
+            if (!CortetsuThemes.slowNoticeShown || !themeRow || themeRow.statusText !== CortetsuThemes.error)
+                return;
+            slowNoticeSignal.setText("ready");
+            stop();
+        }
+    }
+
     function find(item, name) {
         if (!item)
             return null;

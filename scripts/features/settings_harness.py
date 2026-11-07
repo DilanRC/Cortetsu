@@ -296,7 +296,8 @@ BINDINGS = {"ok": True, "bindings": [
 # next call fail without restarting the shell.
 COMMANDS = {
     "systemctl": '#!/bin/sh\nprintf "systemctl %s\\n" "$*" >> "$SETTINGS_FIXTURES/calls.log"\n'
-                 '[ "$(cat "$SETTINGS_FIXTURES/systemctl-mode")" = ok ] || { echo "hyprsunset.service no existe" >&2; exit 5; }\n',
+                 'mode="$(cat "$SETTINGS_FIXTURES/systemctl-mode")"\n'
+                 '[ "$mode" = ok ] || { sleep 0.25; echo "hyprsunset.service no existe" >&2; exit 5; }\n',
     "hyprctl": '#!/bin/sh\nprintf "hyprctl %s\\n" "$*" >> "$SETTINGS_FIXTURES/calls.log"\n',
     "cortetsu-keybinds": '#!/bin/sh\nprintf "cortetsu-keybinds %s\\n" "$*" >> "$SETTINGS_FIXTURES/calls.log"\n'
                          '[ "$(cat "$SETTINGS_FIXTURES/keybinds-mode")" = ok ] || exit 3\n'
@@ -312,6 +313,22 @@ COMMANDS = {
 FAILURE_MARKERS = ("SETTINGS_FAIL", "TypeError", "ReferenceError", "is not a type", "Unable to assign",
                    "Binding loop", "Cannot anchor", "is not defined", "Cannot read property", "Failed to load",
                    "Cannot set activeFocusOnTab", "Cannot call method", "is not a function")
+
+
+def terminate_and_collect(process: subprocess.Popen) -> tuple[str, str]:
+    if process.poll() is None:
+        try:
+            process.terminate()
+        except ProcessLookupError:
+            pass
+    try:
+        return process.communicate(timeout=5)
+    except subprocess.TimeoutExpired:
+        try:
+            process.kill()
+        except ProcessLookupError:
+            pass
+        return process.communicate()
 
 
 def build_tree(folder: Path) -> None:
@@ -499,11 +516,28 @@ def run(folder: Path, shell: str, scenario: str, *, preferences: dict | None = N
     if scenario == "themeSlowCommit":
         lock = (home / "state/cortetsu/scheme.lock").open("w")
         fcntl.flock(lock, fcntl.LOCK_EX)
-        process = subprocess.Popen(args, env=run_env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        time.sleep(1)
-        fcntl.flock(lock, fcntl.LOCK_UN)
-        lock.close()
-        stdout, stderr = process.communicate(timeout=timeout)
+        try:
+            process = subprocess.Popen(args, env=run_env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            ready = fixtures / "slow-notice-ready"
+            deadline = time.monotonic() + timeout
+            while not ready.exists() and process.poll() is None and time.monotonic() < deadline:
+                time.sleep(0.01)
+            if not ready.exists():
+                stdout, stderr = terminate_and_collect(process)
+                raise AssertionError(
+                    "the Settings runtime did not reach the slow-commit notice while the native lock was held\n"
+                    + stdout + stderr
+                )
+            fcntl.flock(lock, fcntl.LOCK_UN)
+            try:
+                stdout, stderr = process.communicate(timeout=timeout)
+            except subprocess.TimeoutExpired as error:
+                stdout, stderr = terminate_and_collect(process)
+                raise AssertionError("the slow-commit Settings runtime exceeded its timeout\n" + stdout + stderr) from error
+        finally:
+            if not lock.closed:
+                fcntl.flock(lock, fcntl.LOCK_UN)
+                lock.close()
         result = subprocess.CompletedProcess(args, process.returncode, stdout, stderr)
     else:
         result = subprocess.run(args, env=run_env, capture_output=True, text=True, timeout=timeout)
