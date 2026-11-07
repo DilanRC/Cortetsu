@@ -83,6 +83,14 @@ ColumnLayout {
         title: qsTr("Interacción")
 
         SettingToggleRow {
+            objectName: "barAutoHide"
+            title: qsTr("Ocultar automáticamente")
+            detail: qsTr("Ocultar Bottom Hub al alejar el puntero; se revela desde el borde inferior y también se abre con el atajo")
+            checked: CortetsuConfig.bar.showOnHover
+            onToggled: value => { CortetsuConfig.bar.showOnHover = value; }
+        }
+
+        SettingToggleRow {
             title: qsTr("Detalle al pulsar un estado")
             detail: qsTr("Audio, red, Bluetooth y batería abren su panel desde la barra")
             checked: CortetsuConfig.bar.popouts.statusIcons

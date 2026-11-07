@@ -372,8 +372,14 @@
       "option": "bar.autoHide.enable",
       "source": "dots/.config/quickshell/ii/modules/settings/BarConfig.qml",
       "line": 67,
-      "status": "pending",
-      "cortetsu": null
+      "status": "adapted",
+      "cortetsu": {
+        "control": "cortetsu/modules/settings/sections/BottomHubSection.qml#barAutoHide",
+        "owner": "CortetsuConfig.bar.showOnHover → CortetsuBottomHubVisibility → modules/BottomHub.qml",
+        "result": "When enabled, Bottom Hub hides after the pointer leaves and reveals from the bottom edge; shortcuts still open it",
+        "test": "tests/qml/surfaces/tst_BottomHubAutoHide.qml; scripts/features/test-cortetsu-settings-runtime.py#barAutoHidePreferences,barAutoHideRestore"
+      },
+      "notes": "Adaptado al Bottom Hub de Cortetsu; mantiene la preferencia compartida entre monitores y la apertura por atajo."
     },
     {
       "page": "BarConfig",

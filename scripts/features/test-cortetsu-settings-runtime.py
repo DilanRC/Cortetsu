@@ -881,6 +881,26 @@ ShellRoot {
                 "the screenshot destination restores after restart");
         }]
     ]
+    readonly property var barAutoHidePreferences: [
+        [() => CortetsuConfig.loaded, () => { select("bar"); screenDouble.settings = true; }],
+        [() => !!content && !!page("barAutoHide"), () => { window.requestActivate(); }],
+        [() => window.active, () => {
+            const toggle = page("barAutoHide");
+            verify(!CortetsuConfig.bar.showOnHover,
+                "the always-visible setting starts from the persisted bar behavior");
+            toggle.forceActiveFocus(); key(Qt.Key_Space);
+            verify(CortetsuConfig.bar.showOnHover,
+                "auto-hide updates the preference consumed by the Bottom Hub visibility controller");
+        }],
+        [() => CortetsuConfig.saveState === "saved", () => {}]
+    ]
+    readonly property var barAutoHideRestore: [
+        [() => CortetsuConfig.loaded, () => { select("bar"); screenDouble.settings = true; }],
+        [() => !!content && !!page("barAutoHide"), () => {
+            verify(CortetsuConfig.bar.showOnHover && page("barAutoHide").checked,
+                "the auto-hide preference restores through the Bottom Hub visibility controller");
+        }]
+    ]
     readonly property var weatherVisibilityPreferences: [
         [() => CortetsuConfig.loaded, () => { select("interface"); screenDouble.settings = true; }],
         [() => !!content && !!page("dashboardWeather"), () => { window.requestActivate(); }],
@@ -1554,6 +1574,14 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     screenshot_path_saved = json.loads((screenshot_path_home / ".config/cortetsu/preferences.json").read_text())
     assert screenshot_path_saved["screenSnipSavePath"] == "~/Imágenes/Recortes", screenshot_path_saved
     restored, _ = run(folder, "shell.qml", "screenshotPathRestore", preferences=screenshot_path_saved)
+    assert passed(restored) == 1, restored
+
+    output, bar_auto_hide_home = run(folder, "shell.qml", "barAutoHidePreferences",
+                                     preferences={"schema": 1})
+    assert passed(output) == 2, output
+    bar_auto_hide_saved = json.loads((bar_auto_hide_home / ".config/cortetsu/preferences.json").read_text())
+    assert bar_auto_hide_saved["bar"]["showOnHover"] is True, bar_auto_hide_saved
+    restored, _ = run(folder, "shell.qml", "barAutoHideRestore", preferences=bar_auto_hide_saved)
     assert passed(restored) == 1, restored
 
     output, weather_visibility_home = run(folder, "shell.qml", "weatherVisibilityPreferences",

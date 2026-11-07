@@ -18,7 +18,12 @@ import "utilities/toasts" as Toasts
 Scope {
     id: hubRoot
 
-    property bool shown: true
+    CortetsuBottomHubVisibility {
+        id: visibility
+        autoHideEnabled: CortetsuConfig.bar.showOnHover
+    }
+
+    readonly property bool shown: visibility.shown
 
     CortetsuHoverSurfaceController {
         id: hoverSurfaceController
@@ -43,7 +48,7 @@ Scope {
         id: hideTimer
         interval: 500
         repeat: false
-        onTriggered: hubRoot.shown = false
+        onTriggered: visibility.setShown(false)
     }
 
     function closeAllLaunchers(): void {
@@ -73,19 +78,20 @@ Scope {
     function toggleClipboardFor(screen): void {
         closeAllPopouts();
         toggleSurfaceOn(screen, "clipboard");
-        shown = true;
+        setShown(true);
     }
 
     function setShown(value): void {
         if (value) {
             hideTimer.stop();
-            shown = true;
+            visibility.setShown(true);
             return;
         }
 
         // Let attached popouts finish their return-to-icon animation while
         // the parent panel still owns the full screen geometry.
         hideTimer.restart();
+        visibility.cancelAutoHide();
         closeAllLaunchers();
         closeAllPanels();
         closeAllPopouts();
@@ -99,7 +105,7 @@ Scope {
     function openCalendarFor(screen): void {
         closeAllPopouts();
         toggleSurfaceOn(screen, "calendar");
-        shown = true;
+        setShown(true);
     }
 
     // The launcher is one effective state across screens: a toggle closes it
@@ -133,7 +139,7 @@ Scope {
         if (!state.sidebar)
             closeAllPopouts();
         toggleSurfaceOn(screen, "sidebar");
-        shown = true;
+        setShown(true);
     }
 
     function toggleUtilitiesFor(screen): void {
@@ -144,13 +150,13 @@ Scope {
         closeAllPanels();
         closeAllPopouts();
         toggleSurfaceOn(screen, "osd");
-        shown = true;
+        setShown(true);
     }
 
     function openWallpaperFor(screen): void {
         closeAllPopouts();
         WallpaperController.open(screen);
-        shown = true;
+        setShown(true);
     }
 
     function toggleDetachedControlFor(screen, mode): void {
@@ -167,7 +173,7 @@ Scope {
         }
 
         popouts.detach(mode);
-        shown = true;
+        setShown(true);
     }
 
     function openAttachedControlNow(screen, mode, anchorCenter = -1): void {
@@ -196,7 +202,7 @@ Scope {
         popouts.bottomAttached = true;
         popouts.currentName = mode;
         popouts.hasCurrent = true;
-        shown = true;
+        setShown(true);
     }
 
     function showAttachedControlFor(screen, mode, anchorCenter = -1): void {
@@ -349,6 +355,7 @@ Scope {
             readonly property var screenState: CortetsuShellState.forScreen(modelData)
             readonly property var cortetsuState: screenState?.cortetsuState
             readonly property bool hubShown: hubRoot.shown
+            readonly property bool revealStripVisible: visibility.autoHideEnabled && !hubRoot.shown
             readonly property string keyboardFocusPolicyName: hubRoot.shown ? "on_demand" : "none"
             readonly property string activeAddress:
                 CortetsuHypr.activeToplevel?.lastIpcObject?.address ?? ""
@@ -775,7 +782,7 @@ Scope {
             }
 
             screen: modelData
-            visible: hubRoot.shown || toasts.visibleToasts.length > 0
+            visible: hubRoot.shown || toasts.visibleToasts.length > 0 || visibility.autoHideEnabled
             color: "transparent"
 
             mask: Region {
@@ -784,6 +791,12 @@ Scope {
                     y: win.height - bottomHubView.height
                     width: hubRoot.shown ? win.width : 0
                     height: bottomHubView.height
+                }
+                Region {
+                    x: 0
+                    y: win.height - 3
+                    width: win.revealStripVisible ? win.width : 0
+                    height: win.revealStripVisible ? 3 : 0
                 }
                 Region {
                     x: toasts.x
@@ -906,6 +919,16 @@ Scope {
                 onToggleIdleInhibitorRequested: CortetsuIdleInhibitor.enabled = !CortetsuIdleInhibitor.enabled
                 onCalendarRequested: hubRoot.openCalendarFor(win.modelData)
                 onSessionRequested: win.toggleSession()
+            }
+
+            CortetsuBottomHubHoverTarget {
+                anchors.fill: parent
+                enabled: visibility.autoHideEnabled
+                onPointerEntered: {
+                    hideTimer.stop();
+                    visibility.pointerEntered();
+                }
+                onPointerExited: visibility.pointerExited()
             }
 
             Toasts.Toasts {
