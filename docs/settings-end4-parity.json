@@ -747,8 +747,14 @@
       "option": "dock.hoverToReveal",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 120,
-      "status": "pending",
-      "cortetsu": null
+      "status": "adapted",
+      "cortetsu": {
+        "control": "cortetsu/modules/settings/sections/LauncherSection.qml#launcherShowOnHover",
+        "owner": "CortetsuConfig.launcher.showOnHover",
+        "result": "The Bottom Hub hover interaction opens the launcher according to the setting",
+        "test": "scripts/features/test-cortetsu-settings-runtime.py#launcherHoverPreferences,launcherHoverRestore"
+      },
+      "notes": "Adapted to Cortetsu Bottom Hub and its pointer interaction policy."
     },
     {
       "page": "InterfaceConfig",

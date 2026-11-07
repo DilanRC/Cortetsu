@@ -833,6 +833,25 @@ ShellRoot {
                 "the action search prefix restores in a new process");
         }]
     ]
+    readonly property var launcherHoverPreferences: [
+        [() => CortetsuConfig.loaded, () => { select("interface"); screenDouble.settings = true; }],
+        [() => !!content && !!page("launcherShowOnHover"), () => { window.requestActivate(); }],
+        [() => window.active, () => {
+            const toggle = page("launcherShowOnHover");
+            verify(!CortetsuConfig.launcher.showOnHover && !CortetsuOverlayConfig.launcher.showOnHover,
+                "the launcher hover setting starts from the active overlay policy");
+            toggle.forceActiveFocus(); key(Qt.Key_Space);
+            verify(CortetsuConfig.launcher.showOnHover && CortetsuOverlayConfig.launcher.showOnHover,
+                "the hover control updates the policy consumed by pointer interactions");
+        }],
+        [() => CortetsuConfig.saveState === "saved", () => {}]
+    ]
+    readonly property var launcherHoverRestore: [
+        [() => CortetsuConfig.loaded, () => {
+            verify(CortetsuConfig.launcher.showOnHover && CortetsuOverlayConfig.launcher.showOnHover,
+                "the launcher hover policy restores in a new process");
+        }]
+    ]
 
     readonly property var notificationPreferences: [
         [() => CortetsuConfig.loaded, () => { select("notifications"); screenDouble.settings = true; }],
@@ -1234,6 +1253,13 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     prefix_saved = json.loads((prefix_home / ".config/cortetsu/preferences.json").read_text())
     assert prefix_saved["actionPrefix"] == "!", prefix_saved
     restored, _ = run(folder, "shell.qml", "actionPrefixRestore", preferences=prefix_saved)
+    assert passed(restored) == 1, restored
+
+    output, launcher_hover_home = run(folder, "shell.qml", "launcherHoverPreferences", preferences={"schema": 1})
+    assert passed(output) == 2, output
+    launcher_hover_saved = json.loads((launcher_hover_home / ".config/cortetsu/preferences.json").read_text())
+    assert launcher_hover_saved["launcher"]["showOnHover"] is True, launcher_hover_saved
+    restored, _ = run(folder, "shell.qml", "launcherHoverRestore", preferences=launcher_hover_saved)
     assert passed(restored) == 1, restored
 
     output, notif_home = run(folder, "shell.qml", "notificationPreferences", preferences={"schema": 1})

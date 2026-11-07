@@ -28,6 +28,7 @@ ColumnLayout {
         }
 
         SettingToggleRow {
+            objectName: "launcherShowOnHover"
             title: qsTr("Abrir al acercar el puntero")
             detail: qsTr("Llevar el puntero al borde inferior muestra el lanzador")
             checked: CortetsuConfig.launcher.showOnHover
