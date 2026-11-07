@@ -551,6 +551,14 @@ fn area_capture_keeps_the_preview_image_and_runs_its_actions() {
         "xdg-user-dir",
         &format!("printf '%s\\n' '{}'", pictures.display()),
     );
+    let custom_captures = home.path().join("Mis capturas");
+    let config = home.path().join("config/cortetsu");
+    fs::create_dir_all(&config).unwrap();
+    fs::write(
+        config.join("preferences.json"),
+        json!({"screenSnipSavePath": custom_captures}).to_string(),
+    )
+    .unwrap();
     let run = |args: &[&str]| {
         isolated(&home, "cortetsu-area-capture", args)
             .output()
@@ -575,7 +583,7 @@ fn area_capture_keeps_the_preview_image_and_runs_its_actions() {
     let out = run(&["--save", s]);
     assert!(out.status.success());
     let dest = PathBuf::from(String::from_utf8(out.stdout).unwrap().trim());
-    assert_eq!(dest.parent().unwrap(), pictures.join("Capturas"));
+    assert_eq!(dest.parent().unwrap(), home.path().join("Mis capturas"));
     assert_eq!(fs::read(&dest).unwrap(), b"EDITED");
     assert!(!shot.exists());
 
@@ -588,6 +596,22 @@ fn area_capture_keeps_the_preview_image_and_runs_its_actions() {
     );
     assert_ne!(again, dest);
     assert!(again.is_file() && dest.is_file());
+
+    // A hand-edited relative preference cannot redirect writes into an
+    // unintended working directory; it falls back to the XDG Pictures path.
+    fs::write(
+        config.join("preferences.json"),
+        json!({"screenSnipSavePath": "relative/captures"}).to_string(),
+    )
+    .unwrap();
+    assert!(run(&["0,0 10x10", s]).status.success());
+    let fallback = PathBuf::from(
+        String::from_utf8(run(&["--save", s]).stdout)
+            .unwrap()
+            .trim(),
+    );
+    assert_eq!(fallback.parent().unwrap(), pictures.join("Capturas"));
+    assert!(fallback.is_file());
 
     assert!(run(&["0,0 10x10", s]).status.success());
     assert!(run(&["--discard", s]).status.success());

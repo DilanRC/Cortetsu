@@ -32,7 +32,7 @@ section_map = re.search(r"readonly property var pageSections: \(\{(.*?)\}\)", co
 section_groups = dict(re.findall(r'([a-z]+): \[([^\]]+)\]', section_map))
 section_ids = {page: [item.strip().strip('"') for item in values.split(",")] for page, values in section_groups.items()}
 assert sorted(section_ids) == sorted(page_ids), section_ids
-assert sorted(sum(section_ids.values(), [])) == sorted(["network", "bluetooth", "audio", "display", "power", "notifications", "input", "appearance", "wallpaper", "desktop", "bottomhub", "launcher", "shortcuts", "automation", "recorder", "about"])
+assert sorted(sum(section_ids.values(), [])) == sorted(["network", "bluetooth", "audio", "display", "power", "notifications", "input", "appearance", "wallpaper", "desktop", "bottomhub", "launcher", "shortcuts", "automation", "recorder", "screenshot", "about"])
 table = re.search(r"readonly property var pages: \(\{(.*?)\}\)", content, re.S).group(1)
 pages = dict(re.findall(r"([a-z]+): ([A-Za-z]+Page)", table))
 assert sorted(pages) == sorted(page_ids), (sorted(pages), sorted(page_ids))
@@ -58,6 +58,11 @@ for text in sources.values():
 # The display filter is applied by its own service, which the search above reads.
 assert len(written) >= 30, sorted(written)
 unread = sorted(key for key in written if not any(f"CortetsuConfig.{key}" in text for text in readers.values()))
+native_preferences = {"screenSnipSavePath": (ROOT / "cortetsu/desktop-runtime-rs/src/utilities.rs").read_text(encoding="utf-8")}
+for key, text in native_preferences.items():
+    assert f'"{key}"' in text, f"Native preference {key} has no runtime reader"
+    if key in unread:
+        unread.remove(key)
 assert not unread, f"Settings writes preferences nothing reads: {unread}"
 
 # The content is built only while the window is open; a page only while selected.

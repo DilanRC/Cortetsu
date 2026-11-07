@@ -14,4 +14,5 @@ ColumnLayout {
     AutomationSection { context: root.context }
     WeatherSection {}
     RecorderSection {}
+    ScreenshotSection {}
 }

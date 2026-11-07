@@ -1410,8 +1410,13 @@
       "option": "screenSnip.savePath",
       "source": "dots/.config/quickshell/ii/modules/settings/ServicesConfig.qml",
       "line": 105,
-      "status": "pending",
-      "cortetsu": null
+      "status": "adapted",
+      "cortetsu": {
+        "source": "cortetsu/modules/settings/sections/ScreenshotSection.qml",
+        "owner": "CortetsuConfig.screenSnipSavePath → desktop-runtime-rs utilities::save_shot",
+        "test": "scripts/features/test-cortetsu-settings-runtime.py#screenshotPathPreferences,screenshotPathRestore and cortetsu/desktop-runtime-rs/tests/contracts.rs#area_capture_keeps_the_preview_image_and_runs_its_actions"
+      },
+      "notes": "Acepta rutas absolutas o ~/; rutas relativas almacenadas manualmente vuelven a Imágenes/Capturas."
     },
     {
       "page": "ServicesConfig",

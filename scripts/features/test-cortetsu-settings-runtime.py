@@ -859,6 +859,28 @@ ShellRoot {
                 "the restored destination feeds the path owner");
         }]
     ]
+    readonly property var screenshotPathPreferences: [
+        [() => CortetsuConfig.loaded, () => { select("services"); screenDouble.settings = true; }],
+        [() => !!content && !!page("screenSnipSavePath"), () => { window.requestActivate(); }],
+        [() => window.active, () => {
+            const entry = page("screenSnipSavePath");
+            entry.committed("~/Imágenes/Recortes");
+            verify(CortetsuConfig.screenSnipSavePath === "~/Imágenes/Recortes",
+                "the Settings field commits the area capture destination");
+            entry.committed("relative/invalid");
+            verify(entry.status === "error" && CortetsuConfig.screenSnipSavePath === "~/Imágenes/Recortes",
+                "relative paths are rejected without replacing the confirmed destination");
+        }],
+        [() => CortetsuConfig.saveState === "saved", () => {}]
+    ]
+    readonly property var screenshotPathRestore: [
+        [() => CortetsuConfig.loaded, () => { select("services"); screenDouble.settings = true; }],
+        [() => !!content && !!page("screenSnipSavePath"), () => {
+            verify(CortetsuConfig.screenSnipSavePath === "~/Imágenes/Recortes"
+                && page("screenSnipSavePath").value === "~/Imágenes/Recortes",
+                "the screenshot destination restores after restart");
+        }]
+    ]
     readonly property var weatherVisibilityPreferences: [
         [() => CortetsuConfig.loaded, () => { select("interface"); screenDouble.settings = true; }],
         [() => !!content && !!page("dashboardWeather"), () => { window.requestActivate(); }],
@@ -1525,6 +1547,14 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     assert recording_path_saved["screenRecordSavePath"] == "~/Vídeos/Grabaciones", recording_path_saved
     restored, _ = run(folder, "shell.qml", "recordingPathRestore", preferences=recording_path_saved)
     assert passed(restored) == 2, restored
+
+    output, screenshot_path_home = run(folder, "shell.qml", "screenshotPathPreferences",
+                                       preferences={"schema": 1})
+    assert passed(output) == 2, output
+    screenshot_path_saved = json.loads((screenshot_path_home / ".config/cortetsu/preferences.json").read_text())
+    assert screenshot_path_saved["screenSnipSavePath"] == "~/Imágenes/Recortes", screenshot_path_saved
+    restored, _ = run(folder, "shell.qml", "screenshotPathRestore", preferences=screenshot_path_saved)
+    assert passed(restored) == 1, restored
 
     output, weather_visibility_home = run(folder, "shell.qml", "weatherVisibilityPreferences",
                                           preferences={"schema": 1})

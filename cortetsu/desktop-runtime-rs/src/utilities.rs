@@ -107,7 +107,7 @@ fn shot_action(action: &str, path: &Path) -> Result<Option<i32>> {
     Ok(Some(status.code().unwrap_or(1)))
 }
 
-/// Moves a capture to <Pictures>/Capturas under a dated, unused name.
+/// Moves a capture to the configured screenshot directory or <Pictures>/Capturas.
 fn save_shot(path: &Path) -> Result<PathBuf> {
     let pictures = run(
         Command::new("xdg-user-dir").arg("PICTURES"),
@@ -120,7 +120,15 @@ fn save_shot(path: &Path) -> Result<PathBuf> {
     .filter(|p| !p.is_empty())
     .map(PathBuf::from)
     .unwrap_or_else(|| home().join("Pictures"));
-    let dir = pictures.join("Capturas");
+    let preferences = json_load(&config().join("cortetsu/preferences.json"), Value::Null);
+    let configured = preferences
+        .get("screenSnipSavePath")
+        .and_then(Value::as_str)
+        .map(str::trim)
+        .filter(|path| !path.is_empty())
+        .map(expand)
+        .filter(|path| path.is_absolute());
+    let dir = configured.unwrap_or_else(|| pictures.join("Capturas"));
     fs::create_dir_all(&dir)?;
     let stamp = chrono::Local::now().format("Captura_%Y-%m-%d_%H-%M-%S");
     let mut dest = dir.join(format!("{stamp}.png"));
