@@ -4,6 +4,12 @@ The eight-page shell follows the organization of end-4 Settings at
 `end-4/dots-hyprland` commit `2f2a376fdb2ad738bf55f693dd0b474b64bb0ab8`.
 That repository is GPL-3.0; this adaptation uses Cortetsu's existing QML
 primitives and service sections and does not copy its QML implementation.
+The pinned reference, license identifier, and per-control mapping are recorded
+in [settings-end4-parity.json](settings-end4-parity.json). It covers all 177
+controls found in the eight end-4 pages: 28 are adapted to tested Cortetsu
+owners and 149 are explicitly discarded because Cortetsu has no equivalent
+service or product control. Each discarded entry explains why an end-4-only
+option would have no real consumer.
 
 Opened with `Super+I`. A normal desktop window (`FloatingWindow`), one per
 screen, so it can be moved, tiled and resized like any other.
@@ -44,7 +50,7 @@ SUPER+I
 
 | Reference page | Composed Cortetsu sections | Backend and saved state |
 | --- | --- | --- |
-| Quick Settings | Appearance | `Schemes`, `CortetsuColours`, `CortetsuConfig` |
+| Quick Settings | Appearance | `Schemes`, `CortetsuColours`, `CortetsuThemes`, `CortetsuConfig`; palette variants regenerate Material roles from the saved seed and mode |
 | General | Audio, power, input | PipeWire/audio services, power service, Hyprland keyboard state and `preferences.json` |
 | Bar | Bottom Hub | `CortetsuConfig.bottomHub` and bar preferences |
 | Background | Wallpaper | Wallpaper service, scheme ownership, `preferences.json` and `scheme.json` |
@@ -150,8 +156,10 @@ fails if a control is wired to a preference with no reader.
 
 | Check | What it proves |
 | --- | --- |
-| `scripts/features/test-cortetsu-settings-runtime.py` | The real surface in Quickshell with service doubles and real key events: object identity through token, scheme, catalogue and preference changes; one page at a time; pending, failed and unavailable states; outside changes; keyboard; no leftover objects after 20 open and browse cycles |
+| `scripts/features/test-cortetsu-settings-runtime.py` | The real surface in Quickshell with service doubles and real key events: object identity through token, scheme, catalogue and preference changes; one page at a time; pending, failed and unavailable states; outside changes; keyboard; no leftover objects after 20 open and browse cycles; UI → owner → persistence → fresh-process restoration for migrated desktop-clock, Bottom Hub app-segment, Fahrenheit and fuzzy-search settings |
 | `scripts/features/test-cortetsu-settings.py` | Every destination has a page; every preference written has a reader; one owner for `SUPER+I` |
+| `paletteVariant`, `paletteVariantRestore`, `paletteVariantUnavailable` in `scripts/features/test-cortetsu-settings-runtime.py` | The variant control rejects unknown values, regenerates live Material colours from the saved seed, writes manual origin, restores after restart, explains the no-palette state and guards a direct launcher action |
+| `migratedControls`, `migratedControlsRestore` in `scripts/features/test-cortetsu-settings-runtime.py` | Four migrated controls update their actual consumers, persist, and restore in a fresh HOME/XDG process |
 | `cortetsu/tests/qml/settings/tst_SettingsNavigation.qml` | Search and movement as pure functions |
 | `cortetsu/tests/qml/components/tst_StateMessage.qml`, `tst_Slider.qml` | The layout loop and the lost slider binding do not come back |
 | `scripts/features/test-cortetsu-scheme.py` | `set` writes the state file and asks for a config-only reload; a failed `set` reloads nothing |

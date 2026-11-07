@@ -4,119 +4,175 @@
     "commit": "2f2a376fdb2ad738bf55f693dd0b474b64bb0ab8",
     "license": "GPL-3.0"
   },
-  "note": "Inventory of referenced options, including parent objects. Pending rows are not claims of parity; dynamic controls require additional review.",
+  "note": "Pinned inventory of end-4 Settings controls. Every discovered control is classified as adapted or discarded; adapted entries name Cortetsu owners and scenario-level tests, while discarded entries explain the missing service or product-level reason.",
   "controls": [
     {
       "page": "AdvancedConfig",
       "option": "appearance.wallpaperTheming.enableAppsAndShell",
       "source": "dots/.config/quickshell/ii/modules/settings/AdvancedConfig.qml",
       "line": 16,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu derives its shell and Kitty palette through one wallpaper-scheme pipeline and does not expose separate app, Qt-app, terminal or color-generation tuning switches.",
+        "evidence": "cortetsu/modules/CortetsuWallpapers.qml; cortetsu/modules/launcher/services/Schemes.qml; cortetsu/desktop-runtime-rs/src/palette.rs"
+      },
+      "notes": "The related Cortetsu surface remains available through its dedicated owner; no nonfunctional compatibility control is added."
     },
     {
       "page": "AdvancedConfig",
       "option": "appearance.wallpaperTheming.enableQtApps",
       "source": "dots/.config/quickshell/ii/modules/settings/AdvancedConfig.qml",
       "line": 24,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu derives its shell and Kitty palette through one wallpaper-scheme pipeline and does not expose separate app, Qt-app, terminal or color-generation tuning switches.",
+        "evidence": "cortetsu/modules/CortetsuWallpapers.qml; cortetsu/modules/launcher/services/Schemes.qml; cortetsu/desktop-runtime-rs/src/palette.rs"
+      },
+      "notes": "The related Cortetsu surface remains available through its dedicated owner; no nonfunctional compatibility control is added."
     },
     {
       "page": "AdvancedConfig",
       "option": "appearance.wallpaperTheming.enableTerminal",
       "source": "dots/.config/quickshell/ii/modules/settings/AdvancedConfig.qml",
       "line": 35,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu derives its shell and Kitty palette through one wallpaper-scheme pipeline and does not expose separate app, Qt-app, terminal or color-generation tuning switches.",
+        "evidence": "cortetsu/modules/CortetsuWallpapers.qml; cortetsu/modules/launcher/services/Schemes.qml; cortetsu/desktop-runtime-rs/src/palette.rs"
+      },
+      "notes": "The related Cortetsu surface remains available through its dedicated owner; no nonfunctional compatibility control is added."
     },
     {
       "page": "AdvancedConfig",
       "option": "appearance.wallpaperTheming.terminalGenerationProps.forceDarkMode",
       "source": "dots/.config/quickshell/ii/modules/settings/AdvancedConfig.qml",
       "line": 48,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu derives its shell and Kitty palette through one wallpaper-scheme pipeline and does not expose separate app, Qt-app, terminal or color-generation tuning switches.",
+        "evidence": "cortetsu/modules/CortetsuWallpapers.qml; cortetsu/modules/launcher/services/Schemes.qml; cortetsu/desktop-runtime-rs/src/palette.rs"
+      },
+      "notes": "The related Cortetsu surface remains available through its dedicated owner; no nonfunctional compatibility control is added."
     },
     {
       "page": "AdvancedConfig",
       "option": "appearance.wallpaperTheming.terminalGenerationProps.harmony",
       "source": "dots/.config/quickshell/ii/modules/settings/AdvancedConfig.qml",
       "line": 61,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu derives its shell and Kitty palette through one wallpaper-scheme pipeline and does not expose separate app, Qt-app, terminal or color-generation tuning switches.",
+        "evidence": "cortetsu/modules/CortetsuWallpapers.qml; cortetsu/modules/launcher/services/Schemes.qml; cortetsu/desktop-runtime-rs/src/palette.rs"
+      },
+      "notes": "The related Cortetsu surface remains available through its dedicated owner; no nonfunctional compatibility control is added."
     },
     {
       "page": "AdvancedConfig",
       "option": "appearance.wallpaperTheming.terminalGenerationProps.harmonizeThreshold",
       "source": "dots/.config/quickshell/ii/modules/settings/AdvancedConfig.qml",
       "line": 72,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu derives its shell and Kitty palette through one wallpaper-scheme pipeline and does not expose separate app, Qt-app, terminal or color-generation tuning switches.",
+        "evidence": "cortetsu/modules/CortetsuWallpapers.qml; cortetsu/modules/launcher/services/Schemes.qml; cortetsu/desktop-runtime-rs/src/palette.rs"
+      },
+      "notes": "The related Cortetsu surface remains available through its dedicated owner; no nonfunctional compatibility control is added."
     },
     {
       "page": "AdvancedConfig",
       "option": "appearance.wallpaperTheming.terminalGenerationProps.termFgBoost",
       "source": "dots/.config/quickshell/ii/modules/settings/AdvancedConfig.qml",
       "line": 83,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu derives its shell and Kitty palette through one wallpaper-scheme pipeline and does not expose separate app, Qt-app, terminal or color-generation tuning switches.",
+        "evidence": "cortetsu/modules/CortetsuWallpapers.qml; cortetsu/modules/launcher/services/Schemes.qml; cortetsu/desktop-runtime-rs/src/palette.rs"
+      },
+      "notes": "The related Cortetsu surface remains available through its dedicated owner; no nonfunctional compatibility control is added."
     },
     {
       "page": "BackgroundConfig",
       "option": "background.parallax.vertical",
       "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
       "line": 17,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu does not render wallpaper parallax or workspace/sidebar parallax transforms; its background remains a static, independently managed wallpaper.",
+        "evidence": "cortetsu/modules/background/Wallpaper.qml; cortetsu/modules/background/Background.qml"
+      },
+      "notes": "The related Cortetsu surface remains available through its dedicated owner; no nonfunctional compatibility control is added."
     },
     {
       "page": "BackgroundConfig",
       "option": "background.parallax.enableWorkspace",
       "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
       "line": 28,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu does not render wallpaper parallax or workspace/sidebar parallax transforms; its background remains a static, independently managed wallpaper.",
+        "evidence": "cortetsu/modules/background/Wallpaper.qml; cortetsu/modules/background/Background.qml"
+      },
+      "notes": "The related Cortetsu surface remains available through its dedicated owner; no nonfunctional compatibility control is added."
     },
     {
       "page": "BackgroundConfig",
       "option": "background.parallax.enableSidebar",
       "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
       "line": 36,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu does not render wallpaper parallax or workspace/sidebar parallax transforms; its background remains a static, independently managed wallpaper.",
+        "evidence": "cortetsu/modules/background/Wallpaper.qml; cortetsu/modules/background/Background.qml"
+      },
+      "notes": "The related Cortetsu surface remains available through its dedicated owner; no nonfunctional compatibility control is added."
     },
     {
       "page": "BackgroundConfig",
       "option": "background.parallax.workspaceZoom",
       "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
       "line": 45,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu does not render wallpaper parallax or workspace/sidebar parallax transforms; its background remains a static, independently managed wallpaper.",
+        "evidence": "cortetsu/modules/background/Wallpaper.qml; cortetsu/modules/background/Background.qml"
+      },
+      "notes": "The related Cortetsu surface remains available through its dedicated owner; no nonfunctional compatibility control is added."
     },
     {
       "page": "BackgroundConfig",
       "option": "background.widgets.clock.showOnlyWhenLocked",
       "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
       "line": 61,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has a separate optional desktop clock with fixed Cortetsu typography; it does not embed the end-4 cookie/digital clock widget or its per-part style controls.",
+        "evidence": "cortetsu/modules/background/DesktopClock.qml; cortetsu/modules/settings/sections/WallpaperSection.qml"
+      },
+      "notes": "The related Cortetsu surface remains available through its dedicated owner; no nonfunctional compatibility control is added."
     },
     {
       "page": "BackgroundConfig",
       "option": "background.widgets.clock.style",
       "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
       "line": 61,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has a separate optional desktop clock with fixed Cortetsu typography; it does not embed the end-4 cookie/digital clock widget or its per-part style controls.",
+        "evidence": "cortetsu/modules/background/DesktopClock.qml; cortetsu/modules/settings/sections/WallpaperSection.qml"
+      },
+      "notes": "The related Cortetsu surface remains available through its dedicated owner; no nonfunctional compatibility control is added."
     },
     {
       "page": "BackgroundConfig",
       "option": "background.widgets.clock.styleLocked",
       "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
       "line": 64,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has a separate optional desktop clock with fixed Cortetsu typography; it does not embed the end-4 cookie/digital clock widget or its per-part style controls.",
+        "evidence": "cortetsu/modules/background/DesktopClock.qml; cortetsu/modules/settings/sections/WallpaperSection.qml"
+      },
+      "notes": "The related Cortetsu surface remains available through its dedicated owner; no nonfunctional compatibility control is added."
     },
     {
       "page": "BackgroundConfig",
@@ -127,7 +183,7 @@
       "cortetsu": {
         "source": "cortetsu/modules/settings/sections/DesktopSection.qml",
         "owner": "CortetsuConfig.desktopClockEnabled",
-        "test": "scripts/features/test-cortetsu-settings-runtime.py"
+        "test": "scripts/features/test-cortetsu-settings-runtime.py#migratedControls,migratedControlsRestore"
       },
       "notes": "Retains the Cortetsu desktop clock, configured in Interface."
     },
@@ -136,24 +192,36 @@
       "option": "background.widgets.clock.placementStrategy",
       "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
       "line": 90,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has a separate optional desktop clock with fixed Cortetsu typography; it does not embed the end-4 cookie/digital clock widget or its per-part style controls.",
+        "evidence": "cortetsu/modules/background/DesktopClock.qml; cortetsu/modules/settings/sections/WallpaperSection.qml"
+      },
+      "notes": "The related Cortetsu surface remains available through its dedicated owner; no nonfunctional compatibility control is added."
     },
     {
       "page": "BackgroundConfig",
       "option": "background.widgets.clock.digital.vertical",
       "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
       "line": 182,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has a separate optional desktop clock with fixed Cortetsu typography; it does not embed the end-4 cookie/digital clock widget or its per-part style controls.",
+        "evidence": "cortetsu/modules/background/DesktopClock.qml; cortetsu/modules/settings/sections/WallpaperSection.qml"
+      },
+      "notes": "The related Cortetsu surface remains available through its dedicated owner; no nonfunctional compatibility control is added."
     },
     {
       "page": "BackgroundConfig",
       "option": "background.widgets.clock.digital.animateChange",
       "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
       "line": 190,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has a separate optional desktop clock with fixed Cortetsu typography; it does not embed the end-4 cookie/digital clock widget or its per-part style controls.",
+        "evidence": "cortetsu/modules/background/DesktopClock.qml; cortetsu/modules/settings/sections/WallpaperSection.qml"
+      },
+      "notes": "The related Cortetsu surface remains available through its dedicated owner; no nonfunctional compatibility control is added."
     },
     {
       "page": "BackgroundConfig",
@@ -174,168 +242,252 @@
       "option": "background.widgets.clock.digital.adaptiveAlignment",
       "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
       "line": 211,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has a separate optional desktop clock with fixed Cortetsu typography; it does not embed the end-4 cookie/digital clock widget or its per-part style controls.",
+        "evidence": "cortetsu/modules/background/DesktopClock.qml; cortetsu/modules/settings/sections/WallpaperSection.qml"
+      },
+      "notes": "The related Cortetsu surface remains available through its dedicated owner; no nonfunctional compatibility control is added."
     },
     {
       "page": "BackgroundConfig",
       "option": "background.widgets.clock.digital.font.family",
       "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
       "line": 224,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has a separate optional desktop clock with fixed Cortetsu typography; it does not embed the end-4 cookie/digital clock widget or its per-part style controls.",
+        "evidence": "cortetsu/modules/background/DesktopClock.qml; cortetsu/modules/settings/sections/WallpaperSection.qml"
+      },
+      "notes": "The related Cortetsu surface remains available through its dedicated owner; no nonfunctional compatibility control is added."
     },
     {
       "page": "BackgroundConfig",
       "option": "background.widgets.clock.digital.font.weight",
       "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
       "line": 233,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has a separate optional desktop clock with fixed Cortetsu typography; it does not embed the end-4 cookie/digital clock widget or its per-part style controls.",
+        "evidence": "cortetsu/modules/background/DesktopClock.qml; cortetsu/modules/settings/sections/WallpaperSection.qml"
+      },
+      "notes": "The related Cortetsu surface remains available through its dedicated owner; no nonfunctional compatibility control is added."
     },
     {
       "page": "BackgroundConfig",
       "option": "background.widgets.clock.digital.font.size",
       "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
       "line": 246,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has a separate optional desktop clock with fixed Cortetsu typography; it does not embed the end-4 cookie/digital clock widget or its per-part style controls.",
+        "evidence": "cortetsu/modules/background/DesktopClock.qml; cortetsu/modules/settings/sections/WallpaperSection.qml"
+      },
+      "notes": "The related Cortetsu surface remains available through its dedicated owner; no nonfunctional compatibility control is added."
     },
     {
       "page": "BackgroundConfig",
       "option": "background.widgets.clock.digital.font.width",
       "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
       "line": 259,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has a separate optional desktop clock with fixed Cortetsu typography; it does not embed the end-4 cookie/digital clock widget or its per-part style controls.",
+        "evidence": "cortetsu/modules/background/DesktopClock.qml; cortetsu/modules/settings/sections/WallpaperSection.qml"
+      },
+      "notes": "The related Cortetsu surface remains available through its dedicated owner; no nonfunctional compatibility control is added."
     },
     {
       "page": "BackgroundConfig",
       "option": "background.widgets.clock.digital.font.roundness",
       "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
       "line": 271,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has a separate optional desktop clock with fixed Cortetsu typography; it does not embed the end-4 cookie/digital clock widget or its per-part style controls.",
+        "evidence": "cortetsu/modules/background/DesktopClock.qml; cortetsu/modules/settings/sections/WallpaperSection.qml"
+      },
+      "notes": "The related Cortetsu surface remains available through its dedicated owner; no nonfunctional compatibility control is added."
     },
     {
       "page": "BackgroundConfig",
       "option": "background.widgets.clock.cookie.aiStyling",
       "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
       "line": 289,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has a separate optional desktop clock with fixed Cortetsu typography; it does not embed the end-4 cookie/digital clock widget or its per-part style controls.",
+        "evidence": "cortetsu/modules/background/DesktopClock.qml; cortetsu/modules/settings/sections/WallpaperSection.qml"
+      },
+      "notes": "The related Cortetsu surface remains available through its dedicated owner; no nonfunctional compatibility control is added."
     },
     {
       "page": "BackgroundConfig",
       "option": "background.widgets.clock.cookie.useSineCookie",
       "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
       "line": 301,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has a separate optional desktop clock with fixed Cortetsu typography; it does not embed the end-4 cookie/digital clock widget or its per-part style controls.",
+        "evidence": "cortetsu/modules/background/DesktopClock.qml; cortetsu/modules/settings/sections/WallpaperSection.qml"
+      },
+      "notes": "The related Cortetsu surface remains available through its dedicated owner; no nonfunctional compatibility control is added."
     },
     {
       "page": "BackgroundConfig",
       "option": "background.widgets.clock.cookie.sides",
       "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
       "line": 313,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has a separate optional desktop clock with fixed Cortetsu typography; it does not embed the end-4 cookie/digital clock widget or its per-part style controls.",
+        "evidence": "cortetsu/modules/background/DesktopClock.qml; cortetsu/modules/settings/sections/WallpaperSection.qml"
+      },
+      "notes": "The related Cortetsu surface remains available through its dedicated owner; no nonfunctional compatibility control is added."
     },
     {
       "page": "BackgroundConfig",
       "option": "background.widgets.clock.cookie.constantlyRotate",
       "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
       "line": 325,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has a separate optional desktop clock with fixed Cortetsu typography; it does not embed the end-4 cookie/digital clock widget or its per-part style controls.",
+        "evidence": "cortetsu/modules/background/DesktopClock.qml; cortetsu/modules/settings/sections/WallpaperSection.qml"
+      },
+      "notes": "The related Cortetsu surface remains available through its dedicated owner; no nonfunctional compatibility control is added."
     },
     {
       "page": "BackgroundConfig",
       "option": "background.widgets.clock.cookie.dialNumberStyle",
       "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
       "line": 337,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has a separate optional desktop clock with fixed Cortetsu typography; it does not embed the end-4 cookie/digital clock widget or its per-part style controls.",
+        "evidence": "cortetsu/modules/background/DesktopClock.qml; cortetsu/modules/settings/sections/WallpaperSection.qml"
+      },
+      "notes": "The related Cortetsu surface remains available through its dedicated owner; no nonfunctional compatibility control is added."
     },
     {
       "page": "BackgroundConfig",
       "option": "background.widgets.clock.cookie.hourMarks",
       "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
       "line": 340,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has a separate optional desktop clock with fixed Cortetsu typography; it does not embed the end-4 cookie/digital clock widget or its per-part style controls.",
+        "evidence": "cortetsu/modules/background/DesktopClock.qml; cortetsu/modules/settings/sections/WallpaperSection.qml"
+      },
+      "notes": "The related Cortetsu surface remains available through its dedicated owner; no nonfunctional compatibility control is added."
     },
     {
       "page": "BackgroundConfig",
       "option": "background.widgets.clock.cookie.timeIndicators",
       "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
       "line": 356,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has a separate optional desktop clock with fixed Cortetsu typography; it does not embed the end-4 cookie/digital clock widget or its per-part style controls.",
+        "evidence": "cortetsu/modules/background/DesktopClock.qml; cortetsu/modules/settings/sections/WallpaperSection.qml"
+      },
+      "notes": "The related Cortetsu surface remains available through its dedicated owner; no nonfunctional compatibility control is added."
     },
     {
       "page": "BackgroundConfig",
       "option": "background.widgets.clock.cookie.hourHandStyle",
       "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
       "line": 413,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has a separate optional desktop clock with fixed Cortetsu typography; it does not embed the end-4 cookie/digital clock widget or its per-part style controls.",
+        "evidence": "cortetsu/modules/background/DesktopClock.qml; cortetsu/modules/settings/sections/WallpaperSection.qml"
+      },
+      "notes": "The related Cortetsu surface remains available through its dedicated owner; no nonfunctional compatibility control is added."
     },
     {
       "page": "BackgroundConfig",
       "option": "background.widgets.clock.cookie.minuteHandStyle",
       "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
       "line": 447,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has a separate optional desktop clock with fixed Cortetsu typography; it does not embed the end-4 cookie/digital clock widget or its per-part style controls.",
+        "evidence": "cortetsu/modules/background/DesktopClock.qml; cortetsu/modules/settings/sections/WallpaperSection.qml"
+      },
+      "notes": "The related Cortetsu surface remains available through its dedicated owner; no nonfunctional compatibility control is added."
     },
     {
       "page": "BackgroundConfig",
       "option": "background.widgets.clock.cookie.secondHandStyle",
       "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
       "line": 486,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has a separate optional desktop clock with fixed Cortetsu typography; it does not embed the end-4 cookie/digital clock widget or its per-part style controls.",
+        "evidence": "cortetsu/modules/background/DesktopClock.qml; cortetsu/modules/settings/sections/WallpaperSection.qml"
+      },
+      "notes": "The related Cortetsu surface remains available through its dedicated owner; no nonfunctional compatibility control is added."
     },
     {
       "page": "BackgroundConfig",
       "option": "background.widgets.clock.cookie.dateStyle",
       "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
       "line": 520,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has a separate optional desktop clock with fixed Cortetsu typography; it does not embed the end-4 cookie/digital clock widget or its per-part style controls.",
+        "evidence": "cortetsu/modules/background/DesktopClock.qml; cortetsu/modules/settings/sections/WallpaperSection.qml"
+      },
+      "notes": "The related Cortetsu surface remains available through its dedicated owner; no nonfunctional compatibility control is added."
     },
     {
       "page": "BackgroundConfig",
       "option": "background.widgets.clock.quote.enable",
       "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
       "line": 555,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has a separate optional desktop clock with fixed Cortetsu typography; it does not embed the end-4 cookie/digital clock widget or its per-part style controls.",
+        "evidence": "cortetsu/modules/background/DesktopClock.qml; cortetsu/modules/settings/sections/WallpaperSection.qml"
+      },
+      "notes": "The related Cortetsu surface remains available through its dedicated owner; no nonfunctional compatibility control is added."
     },
     {
       "page": "BackgroundConfig",
       "option": "background.widgets.clock.quote.text",
       "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
       "line": 563,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has a separate optional desktop clock with fixed Cortetsu typography; it does not embed the end-4 cookie/digital clock widget or its per-part style controls.",
+        "evidence": "cortetsu/modules/background/DesktopClock.qml; cortetsu/modules/settings/sections/WallpaperSection.qml"
+      },
+      "notes": "The related Cortetsu surface remains available through its dedicated owner; no nonfunctional compatibility control is added."
     },
     {
       "page": "BackgroundConfig",
       "option": "background.widgets.weather.enable",
       "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
       "line": 583,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu weather is a service consumed by Dashboard and Bottom Hub, not a wallpaper widget; GPS permission and background placement controls have no matching surface.",
+        "evidence": "cortetsu/services/Weather.qml; cortetsu/modules/dashboard/DashWeatherSummary.qml; cortetsu/modules/settings/sections/WeatherSection.qml"
+      },
+      "notes": "The related Cortetsu surface remains available through its dedicated owner; no nonfunctional compatibility control is added."
     },
     {
       "page": "BackgroundConfig",
       "option": "background.widgets.weather.placementStrategy",
       "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
       "line": 593,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu weather is a service consumed by Dashboard and Bottom Hub, not a wallpaper widget; GPS permission and background placement controls have no matching surface.",
+        "evidence": "cortetsu/services/Weather.qml; cortetsu/modules/dashboard/DashWeatherSummary.qml; cortetsu/modules/settings/sections/WeatherSection.qml"
+      },
+      "notes": "The related Cortetsu surface remains available through its dedicated owner; no nonfunctional compatibility control is added."
     },
     {
       "page": "BarConfig",
@@ -356,16 +508,24 @@
       "option": "bar.bottom",
       "source": "dots/.config/quickshell/ii/modules/settings/BarConfig.qml",
       "line": 33,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu deliberately fixes the Bottom Hub to the bottom edge; there is no placement preference to port.",
+        "evidence": "cortetsu/modules/BottomHub.qml"
+      },
+      "notes": "The runtime placement is product-defined and is not a configurable Settings control."
     },
     {
       "page": "BarConfig",
       "option": "bar.vertical",
       "source": "dots/.config/quickshell/ii/modules/settings/BarConfig.qml",
       "line": 33,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu Bottom Hub is composed as a horizontal row of mode, app, tray and status islands; there is no vertical renderer or service contract.",
+        "evidence": "cortetsu/modules/CortetsuBottomHubView.qml"
+      },
+      "notes": "No vertical layout is part of the Cortetsu Bottom Hub design."
     },
     {
       "page": "BarConfig",
@@ -386,24 +546,37 @@
       "option": "bar.cornerStyle",
       "source": "dots/.config/quickshell/ii/modules/settings/BarConfig.qml",
       "line": 94,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has no setting for choosing hug, float or rect corners; the active theme supplies a fixed surface radius.",
+        "evidence": "cortetsu/theme/CortetsuDesign.qml; cortetsu/modules/CortetsuIsland.qml",
+        "test": "cortetsu/tests/qml/themes/tst_ThemeProfiles.qml"
+      },
+      "notes": "Theme radius behavior is documented as architecture, not a ported end-4 selector."
     },
     {
       "page": "BarConfig",
       "option": "bar.borderless",
       "source": "dots/.config/quickshell/ii/modules/settings/BarConfig.qml",
       "line": 123,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has independent floating islands rather than a line-separated bar group; border thickness is a global overlay control and does not provide this per-group style.",
+        "evidence": "cortetsu/modules/CortetsuBottomHubView.qml; cortetsu/modules/CortetsuIsland.qml"
+      },
+      "notes": "Retaining a separate end-4 group-style switch would expose a visual mode Cortetsu does not render."
     },
     {
       "page": "BarConfig",
       "option": "tray.invertPinnedItems",
       "source": "dots/.config/quickshell/ii/modules/settings/BarConfig.qml",
       "line": 151,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "System tray entries are identified and filtered by application identity; tray entries do not have a pinned/unpinned state. Pinned applications belong to the separate app rail.",
+        "evidence": "cortetsu/modules/BottomHubTray.js; cortetsu/modules/BottomHub.qml"
+      },
+      "notes": "Tray pin semantics do not map to Cortetsu favourite apps."
     },
     {
       "page": "BarConfig",
@@ -424,56 +597,84 @@
       "option": "bar.utilButtons.showScreenSnip",
       "source": "dots/.config/quickshell/ii/modules/settings/BarConfig.qml",
       "line": 176,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has no end-4 utility-button visibility group. Capture remains available through its dedicated shortcut/area-picker flow.",
+        "evidence": "cortetsu/modules/Shortcuts.qml; cortetsu/modules/areapicker/AreaPicker.qml"
+      },
+      "notes": "The action remains available; a duplicate bar-button visibility preference is not exposed."
     },
     {
       "page": "BarConfig",
       "option": "bar.utilButtons.showColorPicker",
       "source": "dots/.config/quickshell/ii/modules/settings/BarConfig.qml",
       "line": 184,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has no equivalent colour-picker utility service or bar-button model.",
+        "evidence": "No colour-picker owner in active Cortetsu modules or services."
+      },
+      "notes": "No matching runtime control exists to wire."
     },
     {
       "page": "BarConfig",
       "option": "bar.utilButtons.showKeyboardToggle",
       "source": "dots/.config/quickshell/ii/modules/settings/BarConfig.qml",
       "line": 195,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu observes and displays the current keyboard layout but does not provide a keyboard-layout change utility button.",
+        "evidence": "cortetsu/modules/CortetsuConfig.qml; cortetsu/modules/CortetsuHypr.qml; cortetsu/services/Hypr.qml"
+      },
+      "notes": "A layout status indicator is not equivalent to an end-4 keyboard-toggle button."
     },
     {
       "page": "BarConfig",
       "option": "bar.utilButtons.showMicToggle",
       "source": "dots/.config/quickshell/ii/modules/settings/BarConfig.qml",
       "line": 203,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Microphone state is exposed through the audio service and audio controls; Cortetsu has no separate bar utility-button collection.",
+        "evidence": "cortetsu/services/Audio.qml; cortetsu/modules/settings/sections/AudioSection.qml"
+      },
+      "notes": "Audio functionality remains in the Cortetsu audio surface."
     },
     {
       "page": "BarConfig",
       "option": "bar.utilButtons.showDarkModeToggle",
       "source": "dots/.config/quickshell/ii/modules/settings/BarConfig.qml",
       "line": 214,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu theme and scheme selection are owned by Appearance; there is no independent dark/light toggle button.",
+        "evidence": "cortetsu/modules/settings/sections/AppearanceSection.qml; cortetsu/services/CortetsuThemes.qml"
+      },
+      "notes": "Appearance remains controlled by its theme and scheme owners."
     },
     {
       "page": "BarConfig",
       "option": "bar.utilButtons.showPerformanceProfileToggle",
       "source": "dots/.config/quickshell/ii/modules/settings/BarConfig.qml",
       "line": 222,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Performance profiles are managed in Hardware and power automation; Cortetsu has no utility-button visibility model for that action.",
+        "evidence": "cortetsu/modules/hardware/PowerAutomationPage.qml; cortetsu/modules/settings/sections/PowerSection.qml"
+      },
+      "notes": "No duplicate button preference is added."
     },
     {
       "page": "BarConfig",
       "option": "bar.utilButtons.showScreenRecord",
       "source": "dots/.config/quickshell/ii/modules/settings/BarConfig.qml",
       "line": 233,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has no end-4 utility-button visibility group. Recording remains available from Utilities and its shortcut.",
+        "evidence": "cortetsu/modules/settings/sections/RecorderSection.qml; cortetsu/modules/Shortcuts.qml; cortetsu/modules/utilities/Content.qml"
+      },
+      "notes": "The recorder service and destination preference remain available; a duplicate bar-button visibility preference is not exposed."
     },
     {
       "page": "BarConfig",
@@ -547,40 +748,60 @@
       "option": "bar.workspaces.showNumberDelay",
       "source": "dots/.config/quickshell/ii/modules/settings/BarConfig.qml",
       "line": 300,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu selects a persistent numeric or graphic workspace presentation; it has no transient Super-key number overlay or delay service.",
+        "evidence": "cortetsu/modules/CortetsuWorkspaceDots.qml"
+      },
+      "notes": "No transient workspace-number behavior is introduced."
     },
     {
       "page": "BarConfig",
       "option": "bar.workspaces.numberMap",
       "source": "dots/.config/quickshell/ii/modules/settings/BarConfig.qml",
       "line": 313,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu workspace labels are compositor workspace IDs; there is no alternate numeral mapping or workspace-label service.",
+        "evidence": "cortetsu/modules/CortetsuWorkspaceDots.qml"
+      },
+      "notes": "The existing numeric and graphic display modes are preserved."
     },
     {
       "page": "BarConfig",
       "option": "bar.tooltips.clickToShow",
       "source": "dots/.config/quickshell/ii/modules/settings/BarConfig.qml",
       "line": 344,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu tooltips follow hover and keyboard-focus lifecycle, with a shared theme delay; no click-to-show tooltip state exists.",
+        "evidence": "cortetsu/components/CortetsuTooltip.qml; cortetsu/theme/CortetsuDesign.qml"
+      },
+      "notes": "Tooltips remain available on hover and focus."
     },
     {
       "page": "GeneralConfig",
       "option": "audio.protection.enable",
       "source": "dots/.config/quickshell/ii/modules/settings/GeneralConfig.qml",
       "line": 26,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has no incremental-volume protection service. Its maximum volume limit and volume step are separate controls and do not implement the end-4 protection contract.",
+        "evidence": "cortetsu/services/Audio.qml; cortetsu/modules/settings/sections/AudioSection.qml"
+      },
+      "notes": "No control is shown until a real protection owner exists."
     },
     {
       "page": "GeneralConfig",
       "option": "audio.protection.maxAllowedIncrease",
       "source": "dots/.config/quickshell/ii/modules/settings/GeneralConfig.qml",
       "line": 39,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "There is no volume-ramp protection owner that can consume this value.",
+        "evidence": "cortetsu/services/Audio.qml"
+      },
+      "notes": "Distinct from Cortetsu’s existing maximum-volume limit."
     },
     {
       "page": "GeneralConfig",
@@ -614,72 +835,108 @@
       "option": "battery.critical",
       "source": "dots/.config/quickshell/ii/modules/settings/GeneralConfig.qml",
       "line": 81,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "The end-4 configurable warning threshold has no Settings control in Cortetsu. Cortetsu uses a fixed 20% threshold for critical visual state.",
+        "evidence": "cortetsu/services/CortetsuPower.qml; scripts/features/test-cortetsu-settings.py (static contract assertion)"
+      },
+      "notes": "The 20% threshold is a fixed state policy, not a ported setting; runtime behavior is not claimed as functionally tested here."
     },
     {
       "page": "GeneralConfig",
       "option": "battery.automaticSuspend",
       "source": "dots/.config/quickshell/ii/modules/settings/GeneralConfig.qml",
       "line": 96,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu does not expose an automatic-suspend toggle. Its fixed safety policy at 3% remains a separate behavior.",
+        "evidence": "cortetsu/modules/BatteryMonitor.qml; cortetsu/tests/test-battery-policy.node.js (policy cases plus source contract assertions)"
+      },
+      "notes": "Documented as an existing fixed safety behavior, not a Settings control equivalent."
     },
     {
       "page": "GeneralConfig",
       "option": "battery.suspend",
       "source": "dots/.config/quickshell/ii/modules/settings/GeneralConfig.qml",
       "line": 107,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has no configurable suspend-percentage control; the existing 3% policy is fixed.",
+        "evidence": "cortetsu/modules/BatteryMonitor.qml; cortetsu/tests/test-battery-policy.node.js (policy cases plus source contract assertions)"
+      },
+      "notes": "Documented as an existing fixed safety behavior, not a Settings control equivalent."
     },
     {
       "page": "GeneralConfig",
       "option": "battery.full",
       "source": "dots/.config/quickshell/ii/modules/settings/GeneralConfig.qml",
       "line": 121,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has no charge-complete warning service or preference.",
+        "evidence": "cortetsu/services/CortetsuPower.qml; cortetsu/modules/BatteryMonitor.qml"
+      },
+      "notes": "Battery state and time-to-full are shown, but no full-charge sound or alert is owned."
     },
     {
       "page": "GeneralConfig",
       "option": "language.ui",
       "source": "dots/.config/quickshell/ii/modules/settings/GeneralConfig.qml",
       "line": 158,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu relies on Qt/system locale and has no language-selection or translation-catalog service.",
+        "evidence": "Active runtime uses qsTr; no language owner exists in Cortetsu services."
+      },
+      "notes": "A selector without translation catalogs would not change the interface."
     },
     {
       "page": "GeneralConfig",
       "option": "policies.ai",
       "source": "dots/.config/quickshell/ii/modules/settings/GeneralConfig.qml",
       "line": 207,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has no AI policy or AI service.",
+        "evidence": "No AI service or policy owner in active Cortetsu modules/services."
+      },
+      "notes": "The end-4 policy is outside Cortetsu’s product scope."
     },
     {
       "page": "GeneralConfig",
       "option": "policies.weeb",
       "source": "dots/.config/quickshell/ii/modules/settings/GeneralConfig.qml",
       "line": 239,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has no content filtering policy or corresponding wallpaper/clipboard classification service.",
+        "evidence": "No policy owner in active Cortetsu modules/services."
+      },
+      "notes": "No decorative policy control is added."
     },
     {
       "page": "GeneralConfig",
       "option": "sounds.battery",
       "source": "dots/.config/quickshell/ii/modules/settings/GeneralConfig.qml",
       "line": 273,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has no per-event sound-effect playback service; battery changes use notifications.",
+        "evidence": "cortetsu/modules/BatteryMonitor.qml"
+      },
+      "notes": "No sound toggle is exposed without a sound-event owner."
     },
     {
       "page": "GeneralConfig",
       "option": "sounds.pomodoro",
       "source": "dots/.config/quickshell/ii/modules/settings/GeneralConfig.qml",
       "line": 281,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu Pomodoro exposes timer state and notifications but no per-event sound playback preference.",
+        "evidence": "cortetsu/modules/pomodoro/Pomodoro.qml"
+      },
+      "notes": "No sound toggle is exposed without a sound-event owner."
     },
     {
       "page": "GeneralConfig",
@@ -688,12 +945,12 @@
       "line": 296,
       "status": "adapted",
       "cortetsu": {
-        "control": "cortetsu/modules/settings/sections/AppearanceSection.qml#clockSeconds",
-        "owner": "CortetsuConfig.useSecondPrecision",
-        "result": "SystemClock switches to second precision and updates the desktop, Bottom Hub, Dashboard and lock clocks",
-        "test": "scripts/features/test-cortetsu-settings-runtime.py#regionalPreferences,regionalRestore and cortetsu/tests/test-regional.node.js"
+        "control": "Mostrar segundos",
+        "owner": "CortetsuConfig.useSecondPrecision → services/Time.qml",
+        "result": "Cortetsu clocks update and display second precision",
+        "test": "scripts/features/test-cortetsu-settings-runtime.py"
       },
-      "notes": "The default remains minute precision; seconds activate one-second updates only when selected."
+      "notes": "Direct preference equivalent."
     },
     {
       "page": "GeneralConfig",
@@ -702,84 +959,120 @@
       "line": 310,
       "status": "adapted",
       "cortetsu": {
-        "control": "cortetsu/modules/settings/sections/AppearanceSection.qml#clockFormat",
-        "owner": "CortetsuConfig.useTwelveHourClock",
-        "result": "CortetsuRegional.clockPattern changes the live clock format",
-        "test": "scripts/features/test-cortetsu-settings-runtime.py#regionalPreferences,regionalRestore"
+        "control": "Reloj de 12 horas",
+        "owner": "CortetsuConfig.useTwelveHourClock → services/Time.qml",
+        "result": "Clock format switches between 12-hour and 24-hour display",
+        "test": "scripts/features/test-cortetsu-settings-runtime.py"
       },
-      "notes": "Uses Cortetsu regional formatting and its existing persistent preference."
+      "notes": "Cortetsu exposes the common 12/24-hour choice and uses system locale for meridiem labels."
     },
     {
       "page": "GeneralConfig",
       "option": "workSafety.enable.clipboard",
       "source": "dots/.config/quickshell/ii/modules/settings/GeneralConfig.qml",
       "line": 345,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has no clipboard image provenance or safety-classification service.",
+        "evidence": "No clipboard safety owner in active Cortetsu modules/services."
+      },
+      "notes": "The clipboard surface remains available without pretending to classify copied images."
     },
     {
       "page": "GeneralConfig",
       "option": "workSafety.enable.wallpaper",
       "source": "dots/.config/quickshell/ii/modules/settings/GeneralConfig.qml",
       "line": 353,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has no content classification service for wallpaper safety.",
+        "evidence": "Wallpaper management owns selection and theme extraction, not content classification."
+      },
+      "notes": "No safety policy is exposed without a classifier."
     },
     {
       "page": "InterfaceConfig",
       "option": "cheatsheet.superKey",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 18,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has no cheatsheet overlay or configurable Super-key help policy. Its actions are registered through the canonical shortcut owner.",
+        "evidence": "cortetsu/modules/Shortcuts.qml; cortetsu/modules/settings/SettingsController.qml"
+      },
+      "notes": "The canonical shortcut behavior remains fixed."
     },
     {
       "page": "InterfaceConfig",
       "option": "cheatsheet.useMacSymbol",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 37,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has no cheatsheet overlay or cheatsheet-specific glyph, layout or font controls.",
+        "evidence": "cortetsu/modules/Shortcuts.qml; cortetsu/modules/settings/SettingsController.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "cheatsheet.useFnSymbol",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 49,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has no cheatsheet overlay or cheatsheet-specific glyph, layout or font controls.",
+        "evidence": "cortetsu/modules/Shortcuts.qml; cortetsu/modules/settings/SettingsController.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "cheatsheet.useMouseSymbol",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 60,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has no cheatsheet overlay or cheatsheet-specific glyph, layout or font controls.",
+        "evidence": "cortetsu/modules/Shortcuts.qml; cortetsu/modules/settings/SettingsController.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "cheatsheet.splitButtons",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 71,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has no cheatsheet overlay or cheatsheet-specific glyph, layout or font controls.",
+        "evidence": "cortetsu/modules/Shortcuts.qml; cortetsu/modules/settings/SettingsController.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "cheatsheet.fontSize.key",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 83,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has no cheatsheet overlay or cheatsheet-specific glyph, layout or font controls.",
+        "evidence": "cortetsu/modules/Shortcuts.qml; cortetsu/modules/settings/SettingsController.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "cheatsheet.fontSize.comment",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 93,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has no cheatsheet overlay or cheatsheet-specific glyph, layout or font controls.",
+        "evidence": "cortetsu/modules/Shortcuts.qml; cortetsu/modules/settings/SettingsController.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
@@ -790,7 +1083,7 @@
       "cortetsu": {
         "source": "cortetsu/modules/settings/sections/BottomHubSection.qml",
         "owner": "CortetsuConfig.bottomHub.segments.apps",
-        "test": "scripts/features/test-cortetsu-settings-runtime.py"
+        "test": "scripts/features/test-cortetsu-settings-runtime.py#migratedControls,migratedControlsRestore"
       },
       "notes": "Adapted to the applications segment of Bottom Hub."
     },
@@ -813,88 +1106,132 @@
       "option": "dock.pinnedOnStartup",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 128,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu Bottom Hub uses a fixed floating island design; it has no startup-pinning collection or whole-dock icon tint preference matching this control.",
+        "evidence": "cortetsu/modules/BottomHub.qml; cortetsu/modules/CortetsuAppRail.qml; cortetsu/modules/CortetsuIsland.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "dock.monochromeIcons",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 137,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu Bottom Hub uses a fixed floating island design; it has no startup-pinning collection or whole-dock icon tint preference matching this control.",
+        "evidence": "cortetsu/modules/BottomHub.qml; cortetsu/modules/CortetsuAppRail.qml; cortetsu/modules/CortetsuIsland.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "lock.useHyprlock",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 151,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu preserves its own lock surface and security contract; this end-4 lock implementation/style option has no corresponding Cortetsu setting.",
+        "evidence": "cortetsu/modules/lock/LockSurface.qml; cortetsu/modules/session/Content.qml; CortetsuConfig lock preferences"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "lock.launchOnStartup",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 163,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu preserves its own lock surface and security contract; this end-4 lock implementation/style option has no corresponding Cortetsu setting.",
+        "evidence": "cortetsu/modules/lock/LockSurface.qml; cortetsu/modules/session/Content.qml; CortetsuConfig lock preferences"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "lock.security.requirePasswordToPower",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 175,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu preserves its own lock surface and security contract; this end-4 lock implementation/style option has no corresponding Cortetsu setting.",
+        "evidence": "cortetsu/modules/lock/LockSurface.qml; cortetsu/modules/session/Content.qml; CortetsuConfig lock preferences"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "lock.security.unlockKeyring",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 187,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu preserves its own lock surface and security contract; this end-4 lock implementation/style option has no corresponding Cortetsu setting.",
+        "evidence": "cortetsu/modules/lock/LockSurface.qml; cortetsu/modules/session/Content.qml; CortetsuConfig lock preferences"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "lock.centerClock",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 203,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu preserves its own lock surface and security contract; this end-4 lock implementation/style option has no corresponding Cortetsu setting.",
+        "evidence": "cortetsu/modules/lock/LockSurface.qml; cortetsu/modules/session/Content.qml; CortetsuConfig lock preferences"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "lock.showLockedText",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 212,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu preserves its own lock surface and security contract; this end-4 lock implementation/style option has no corresponding Cortetsu setting.",
+        "evidence": "cortetsu/modules/lock/LockSurface.qml; cortetsu/modules/session/Content.qml; CortetsuConfig lock preferences"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "lock.materialShapeChars",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 221,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu preserves its own lock surface and security contract; this end-4 lock implementation/style option has no corresponding Cortetsu setting.",
+        "evidence": "cortetsu/modules/lock/LockSurface.qml; cortetsu/modules/session/Content.qml; CortetsuConfig lock preferences"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "lock.blur.enable",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 233,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu preserves its own lock surface and security contract; this end-4 lock implementation/style option has no corresponding Cortetsu setting.",
+        "evidence": "cortetsu/modules/lock/LockSurface.qml; cortetsu/modules/session/Content.qml; CortetsuConfig lock preferences"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "lock.blur.extraZoom",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 242,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu preserves its own lock surface and security contract; this end-4 lock implementation/style option has no corresponding Cortetsu setting.",
+        "evidence": "cortetsu/modules/lock/LockSurface.qml; cortetsu/modules/session/Content.qml; CortetsuConfig lock preferences"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
@@ -914,368 +1251,552 @@
       "option": "notifications.forceMonitor.enable",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 272,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has no forced-monitor override; notifications follow the originating monitor and use the existing expiry policy.",
+        "evidence": "cortetsu/services/Notifs.qml; cortetsu/modules/settings/sections/NotificationsSection.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "notifications.forceMonitor.name",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 286,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has no forced-monitor override; notifications follow the originating monitor and use the existing expiry policy.",
+        "evidence": "cortetsu/services/Notifs.qml; cortetsu/modules/settings/sections/NotificationsSection.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "overlay.openingZoomAnimation",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 302,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu overlay transitions and dimming are owned by its shared surface policy and theme; it does not expose these independent end-4 toggles.",
+        "evidence": "cortetsu/modules/CortetsuOverlayPolicy.js; cortetsu/theme/CortetsuDesign.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "overlay.darkenScreen",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 310,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu overlay transitions and dimming are owned by its shared surface policy and theme; it does not expose these independent end-4 toggles.",
+        "evidence": "cortetsu/modules/CortetsuOverlayPolicy.js; cortetsu/theme/CortetsuDesign.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "crosshair.code",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 324,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has no crosshair overlay or code-injection control.",
+        "evidence": "No crosshair component in cortetsu/modules or cortetsu/services."
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "overlay.floatingImage.imageSource",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 363,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has no floating-image overlay.",
+        "evidence": "cortetsu/modules/CortetsuOverlayPolicy.js; cortetsu/modules/CortetsuShellState.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "regionSelector.targetRegions.windows",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 381,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu area selection serves screenshot capture and has no end-4 region-filtering or circle-image-search mode.",
+        "evidence": "cortetsu/modules/areapicker/AreaPicker.qml; cortetsu/modules/drawers/Regions.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "regionSelector.targetRegions.layers",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 389,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu area selection serves screenshot capture and has no end-4 region-filtering or circle-image-search mode.",
+        "evidence": "cortetsu/modules/areapicker/AreaPicker.qml; cortetsu/modules/drawers/Regions.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "regionSelector.targetRegions.content",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 397,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu area selection serves screenshot capture and has no end-4 region-filtering or circle-image-search mode.",
+        "evidence": "cortetsu/modules/areapicker/AreaPicker.qml; cortetsu/modules/drawers/Regions.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "search.imageSearch.useCircleSelection",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 412,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu area selection serves screenshot capture and has no end-4 region-filtering or circle-image-search mode.",
+        "evidence": "cortetsu/modules/areapicker/AreaPicker.qml; cortetsu/modules/drawers/Regions.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "regionSelector.rect.showAimLines",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 429,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu area selection serves screenshot capture and has no end-4 region-filtering or circle-image-search mode.",
+        "evidence": "cortetsu/modules/areapicker/AreaPicker.qml; cortetsu/modules/drawers/Regions.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "regionSelector.circle.strokeWidth",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 442,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu area selection serves screenshot capture and has no end-4 region-filtering or circle-image-search mode.",
+        "evidence": "cortetsu/modules/areapicker/AreaPicker.qml; cortetsu/modules/drawers/Regions.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "regionSelector.circle.padding",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 454,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu area selection serves screenshot capture and has no end-4 region-filtering or circle-image-search mode.",
+        "evidence": "cortetsu/modules/areapicker/AreaPicker.qml; cortetsu/modules/drawers/Regions.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "sidebar.keepRightSidebarLoaded",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 472,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu separates Dashboard, Hardware and Bottom Hub surfaces; it has no persistent end-4 sidebar, translator or corner-open trigger controls.",
+        "evidence": "cortetsu/modules/dashboard/Dash.qml; cortetsu/modules/hardware/Content.qml; cortetsu/modules/BottomHub.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "sidebar.translator.enable",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 484,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu separates Dashboard, Hardware and Bottom Hub surfaces; it has no persistent end-4 sidebar, translator or corner-open trigger controls.",
+        "evidence": "cortetsu/modules/dashboard/Dash.qml; cortetsu/modules/hardware/Content.qml; cortetsu/modules/BottomHub.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "sidebar.quickToggles.style",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 495,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu separates Dashboard, Hardware and Bottom Hub surfaces; it has no persistent end-4 sidebar, translator or corner-open trigger controls.",
+        "evidence": "cortetsu/modules/dashboard/Dash.qml; cortetsu/modules/hardware/Content.qml; cortetsu/modules/BottomHub.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "sidebar.quickToggles.android.columns",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 517,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu separates Dashboard, Hardware and Bottom Hub surfaces; it has no persistent end-4 sidebar, translator or corner-open trigger controls.",
+        "evidence": "cortetsu/modules/dashboard/Dash.qml; cortetsu/modules/hardware/Content.qml; cortetsu/modules/BottomHub.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "sidebar.quickSliders.enable",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 533,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu separates Dashboard, Hardware and Bottom Hub surfaces; it has no persistent end-4 sidebar, translator or corner-open trigger controls.",
+        "evidence": "cortetsu/modules/dashboard/Dash.qml; cortetsu/modules/hardware/Content.qml; cortetsu/modules/BottomHub.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "sidebar.quickSliders.showBrightness",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 543,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu separates Dashboard, Hardware and Bottom Hub surfaces; it has no persistent end-4 sidebar, translator or corner-open trigger controls.",
+        "evidence": "cortetsu/modules/dashboard/Dash.qml; cortetsu/modules/hardware/Content.qml; cortetsu/modules/BottomHub.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "sidebar.quickSliders.showVolume",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 553,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu separates Dashboard, Hardware and Bottom Hub surfaces; it has no persistent end-4 sidebar, translator or corner-open trigger controls.",
+        "evidence": "cortetsu/modules/dashboard/Dash.qml; cortetsu/modules/hardware/Content.qml; cortetsu/modules/BottomHub.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "sidebar.quickSliders.showMic",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 563,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu separates Dashboard, Hardware and Bottom Hub surfaces; it has no persistent end-4 sidebar, translator or corner-open trigger controls.",
+        "evidence": "cortetsu/modules/dashboard/Dash.qml; cortetsu/modules/hardware/Content.qml; cortetsu/modules/BottomHub.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "sidebar.cornerOpen.enable",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 578,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu separates Dashboard, Hardware and Bottom Hub surfaces; it has no persistent end-4 sidebar, translator or corner-open trigger controls.",
+        "evidence": "cortetsu/modules/dashboard/Dash.qml; cortetsu/modules/hardware/Content.qml; cortetsu/modules/BottomHub.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "sidebar.cornerOpen.clickless",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 587,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu separates Dashboard, Hardware and Bottom Hub surfaces; it has no persistent end-4 sidebar, translator or corner-open trigger controls.",
+        "evidence": "cortetsu/modules/dashboard/Dash.qml; cortetsu/modules/hardware/Content.qml; cortetsu/modules/BottomHub.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "sidebar.cornerOpen.clicklessCornerEnd",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 600,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu separates Dashboard, Hardware and Bottom Hub surfaces; it has no persistent end-4 sidebar, translator or corner-open trigger controls.",
+        "evidence": "cortetsu/modules/dashboard/Dash.qml; cortetsu/modules/hardware/Content.qml; cortetsu/modules/BottomHub.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "sidebar.cornerOpen.clicklessCornerVerticalOffset",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 612,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu separates Dashboard, Hardware and Bottom Hub surfaces; it has no persistent end-4 sidebar, translator or corner-open trigger controls.",
+        "evidence": "cortetsu/modules/dashboard/Dash.qml; cortetsu/modules/hardware/Content.qml; cortetsu/modules/BottomHub.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "sidebar.cornerOpen.bottom",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 637,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu separates Dashboard, Hardware and Bottom Hub surfaces; it has no persistent end-4 sidebar, translator or corner-open trigger controls.",
+        "evidence": "cortetsu/modules/dashboard/Dash.qml; cortetsu/modules/hardware/Content.qml; cortetsu/modules/BottomHub.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "sidebar.cornerOpen.valueScroll",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 649,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu separates Dashboard, Hardware and Bottom Hub surfaces; it has no persistent end-4 sidebar, translator or corner-open trigger controls.",
+        "evidence": "cortetsu/modules/dashboard/Dash.qml; cortetsu/modules/hardware/Content.qml; cortetsu/modules/BottomHub.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "sidebar.cornerOpen.visualize",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 662,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu separates Dashboard, Hardware and Bottom Hub surfaces; it has no persistent end-4 sidebar, translator or corner-open trigger controls.",
+        "evidence": "cortetsu/modules/dashboard/Dash.qml; cortetsu/modules/hardware/Content.qml; cortetsu/modules/BottomHub.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "sidebar.cornerOpen.cornerRegionWidth",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 671,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu separates Dashboard, Hardware and Bottom Hub surfaces; it has no persistent end-4 sidebar, translator or corner-open trigger controls.",
+        "evidence": "cortetsu/modules/dashboard/Dash.qml; cortetsu/modules/hardware/Content.qml; cortetsu/modules/BottomHub.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "sidebar.cornerOpen.cornerRegionHeight",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 682,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu separates Dashboard, Hardware and Bottom Hub surfaces; it has no persistent end-4 sidebar, translator or corner-open trigger controls.",
+        "evidence": "cortetsu/modules/dashboard/Dash.qml; cortetsu/modules/hardware/Content.qml; cortetsu/modules/BottomHub.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "osd.timeout",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 701,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu OSD lifetime is a fixed interaction policy; no Settings value is read by its lifecycle.",
+        "evidence": "cortetsu/modules/osd/Wrapper.qml; cortetsu/modules/osd/FullContent.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "overview.enable",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 718,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu overview uses an adaptive workspace/window layout rather than a configurable fixed grid or separate enable switch.",
+        "evidence": "cortetsu/modules/overview/Content.qml; cortetsu/modules/OverviewController.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "overview.centerIcons",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 726,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu overview uses an adaptive workspace/window layout rather than a configurable fixed grid or separate enable switch.",
+        "evidence": "cortetsu/modules/overview/Content.qml; cortetsu/modules/OverviewController.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "overview.scale",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 734,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu overview uses an adaptive workspace/window layout rather than a configurable fixed grid or separate enable switch.",
+        "evidence": "cortetsu/modules/overview/Content.qml; cortetsu/modules/OverviewController.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "overview.rows",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 747,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu overview uses an adaptive workspace/window layout rather than a configurable fixed grid or separate enable switch.",
+        "evidence": "cortetsu/modules/overview/Content.qml; cortetsu/modules/OverviewController.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "overview.columns",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 758,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu overview uses an adaptive workspace/window layout rather than a configurable fixed grid or separate enable switch.",
+        "evidence": "cortetsu/modules/overview/Content.qml; cortetsu/modules/OverviewController.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "overview.orderRightLeft",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 770,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu overview uses an adaptive workspace/window layout rather than a configurable fixed grid or separate enable switch.",
+        "evidence": "cortetsu/modules/overview/Content.qml; cortetsu/modules/OverviewController.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "overview.orderBottomUp",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 788,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu overview uses an adaptive workspace/window layout rather than a configurable fixed grid or separate enable switch.",
+        "evidence": "cortetsu/modules/overview/Content.qml; cortetsu/modules/OverviewController.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "wallpaperSelector.useSystemFileDialog",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 815,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu wallpaper selection uses its own preview and apply flow rather than the end-4 system file-dialog selector.",
+        "evidence": "cortetsu/modules/wallpaper/Content.qml; cortetsu/modules/CortetsuWallpapers.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "appearance.fonts.main",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 833,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu typography is part of its product design tokens and does not expose independent per-role font-family selectors.",
+        "evidence": "cortetsu/modules/CortetsuTypography.js; cortetsu/theme/CortetsuDesign.qml; docs/CORTETSU_DESIGN_SYSTEM.md"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "appearance.fonts.numbers",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 848,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu typography is part of its product design tokens and does not expose independent per-role font-family selectors.",
+        "evidence": "cortetsu/modules/CortetsuTypography.js; cortetsu/theme/CortetsuDesign.qml; docs/CORTETSU_DESIGN_SYSTEM.md"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "appearance.fonts.title",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 863,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu typography is part of its product design tokens and does not expose independent per-role font-family selectors.",
+        "evidence": "cortetsu/modules/CortetsuTypography.js; cortetsu/theme/CortetsuDesign.qml; docs/CORTETSU_DESIGN_SYSTEM.md"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "appearance.fonts.monospace",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 878,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu typography is part of its product design tokens and does not expose independent per-role font-family selectors.",
+        "evidence": "cortetsu/modules/CortetsuTypography.js; cortetsu/theme/CortetsuDesign.qml; docs/CORTETSU_DESIGN_SYSTEM.md"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "appearance.fonts.iconNerd",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 893,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu typography is part of its product design tokens and does not expose independent per-role font-family selectors.",
+        "evidence": "cortetsu/modules/CortetsuTypography.js; cortetsu/theme/CortetsuDesign.qml; docs/CORTETSU_DESIGN_SYSTEM.md"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "appearance.fonts.reading",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 908,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu typography is part of its product design tokens and does not expose independent per-role font-family selectors.",
+        "evidence": "cortetsu/modules/CortetsuTypography.js; cortetsu/theme/CortetsuDesign.qml; docs/CORTETSU_DESIGN_SYSTEM.md"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "InterfaceConfig",
       "option": "appearance.fonts.expressive",
       "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
       "line": 923,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu typography is part of its product design tokens and does not expose independent per-role font-family selectors.",
+        "evidence": "cortetsu/modules/CortetsuTypography.js; cortetsu/theme/CortetsuDesign.qml; docs/CORTETSU_DESIGN_SYSTEM.md"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "QuickConfig",
@@ -1295,24 +1816,38 @@
       "option": "policies.weeb",
       "source": "dots/.config/quickshell/ii/modules/settings/QuickConfig.qml",
       "line": 91,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has no content filtering policy or corresponding wallpaper/clipboard classification service.",
+        "evidence": "No policy owner in active Cortetsu modules/services."
+      },
+      "notes": "No decorative policy control is added."
     },
     {
       "page": "QuickConfig",
       "option": "cheatsheet.superKey",
       "source": "dots/.config/quickshell/ii/modules/settings/QuickConfig.qml",
       "line": 142,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has no cheatsheet overlay or configurable Super-key help policy. Its actions are registered through the canonical shortcut owner.",
+        "evidence": "cortetsu/modules/Shortcuts.qml; dotfiles/home/.config/hypr/hyprland/keybinds.lua"
+      },
+      "notes": "The canonical shortcut behavior remains fixed."
     },
     {
       "page": "QuickConfig",
       "option": "appearance.palette.type",
       "source": "dots/.config/quickshell/ii/modules/settings/QuickConfig.qml",
       "line": 174,
-      "status": "pending",
-      "cortetsu": null
+      "status": "adapted",
+      "cortetsu": {
+        "control": "Variant selection in Quick Settings → Appearance",
+        "owner": "cortetsu/modules/settings/sections/AppearanceSection.qml → Schemes.applyVariant → cortetsu-scheme set -v",
+        "result": "The selected Material variant regenerates roles from the persisted seed and mode, writes scheme.json with origin=manual, reapplies Hyprland and Kitty projections, and updates CortetsuDesign tokens live; a fresh process restores the selection.",
+        "test": "scripts/features/test-cortetsu-settings-runtime.py#paletteVariant,paletteVariantRestore; cortetsu/desktop-runtime-rs/src/palette.rs#material_variants_change_the_generated_roles_and_keep_required_tokens"
+      },
+      "notes": "Uses the existing palette variant catalog and Rust scheme owner; no second variant implementation is introduced. End-4's Auto value is not exposed: its pinned implementation classifies wallpaper pixels through OpenCV/NumPy, and Cortetsu has no equivalent image-analysis owner."
     },
     {
       "page": "QuickConfig",
@@ -1332,64 +1867,97 @@
       "option": "bar.bottom",
       "source": "dots/.config/quickshell/ii/modules/settings/QuickConfig.qml",
       "line": 237,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu deliberately fixes the Bottom Hub to the bottom edge; there is no placement preference to port.",
+        "evidence": "cortetsu/modules/BottomHub.qml"
+      },
+      "notes": "The runtime placement is product-defined and is not a configurable Settings control."
     },
     {
       "page": "QuickConfig",
       "option": "bar.vertical",
       "source": "dots/.config/quickshell/ii/modules/settings/QuickConfig.qml",
       "line": 237,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu Bottom Hub is composed as a horizontal row of mode, app, tray and status islands; there is no vertical renderer or service contract.",
+        "evidence": "cortetsu/modules/CortetsuBottomHubView.qml"
+      },
+      "notes": "No vertical layout is part of the Cortetsu Bottom Hub design."
     },
     {
       "page": "QuickConfig",
       "option": "bar.cornerStyle",
       "source": "dots/.config/quickshell/ii/modules/settings/QuickConfig.qml",
       "line": 270,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has no setting for choosing hug, float or rect corners; the active theme supplies a fixed surface radius.",
+        "evidence": "cortetsu/theme/CortetsuDesign.qml; cortetsu/modules/CortetsuIsland.qml",
+        "test": "cortetsu/tests/qml/themes/tst_ThemeProfiles.qml"
+      },
+      "notes": "Theme radius behavior is documented as architecture, not a ported end-4 selector."
     },
     {
       "page": "QuickConfig",
       "option": "appearance.fakeScreenRounding",
       "source": "dots/.config/quickshell/ii/modules/settings/QuickConfig.qml",
       "line": 300,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has no fake-screen surface or compositor rounding projection.",
+        "evidence": "No fake-screen owner in active Cortetsu modules/services."
+      },
+      "notes": "Physical display and layer-shell geometry are not altered by a visual-only setting."
     },
     {
       "page": "ServicesConfig",
       "option": "ai.systemPrompt",
       "source": "dots/.config/quickshell/ii/modules/settings/ServicesConfig.qml",
       "line": 17,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has no AI service or prompt consumer.",
+        "evidence": "No AI service in cortetsu/modules or cortetsu/services."
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "ServicesConfig",
       "option": "musicRecognition.timeout",
       "source": "dots/.config/quickshell/ii/modules/settings/ServicesConfig.qml",
       "line": 34,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu does not implement a music-recognition service whose timeout or polling interval could consume these values.",
+        "evidence": "cortetsu/services/Players.qml; cortetsu/services/Lyrics.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "ServicesConfig",
       "option": "musicRecognition.interval",
       "source": "dots/.config/quickshell/ii/modules/settings/ServicesConfig.qml",
       "line": 45,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu does not implement a music-recognition service whose timeout or polling interval could consume these values.",
+        "evidence": "cortetsu/services/Players.qml; cortetsu/services/Lyrics.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "ServicesConfig",
       "option": "networking.userAgent",
       "source": "dots/.config/quickshell/ii/modules/settings/ServicesConfig.qml",
       "line": 62,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu does not expose a browser/networking user-agent setting; its network clients use service-specific protocols.",
+        "evidence": "cortetsu/services/Requests.qml; cortetsu/services/Weather.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "ServicesConfig",
@@ -1439,7 +2007,7 @@
       "cortetsu": {
         "source": "cortetsu/modules/settings/sections/LauncherSection.qml",
         "owner": "CortetsuConfig.useFuzzyApps/useFuzzyActions/useFuzzySchemes/useFuzzyVariants/useFuzzyWallpapers",
-        "test": "scripts/features/test-cortetsu-settings-runtime.py"
+        "test": "scripts/features/test-cortetsu-settings-runtime.py#migratedControls,migratedControlsRestore"
       },
       "notes": "Separate fuzzy-search preferences by result type."
     },
@@ -1462,72 +2030,108 @@
       "option": "search.prefix.clipboard",
       "source": "dots/.config/quickshell/ii/modules/settings/ServicesConfig.qml",
       "line": 144,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has its own launcher action prefix and fixed service commands; it does not implement the end-4 per-service search-prefix dispatcher.",
+        "evidence": "cortetsu/modules/launcher/Content.qml; cortetsu/modules/launcher/services/Actions.qml; cortetsu/modules/launcher/services/Emojis.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "ServicesConfig",
       "option": "search.prefix.emojis",
       "source": "dots/.config/quickshell/ii/modules/settings/ServicesConfig.qml",
       "line": 153,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has its own launcher action prefix and fixed service commands; it does not implement the end-4 per-service search-prefix dispatcher.",
+        "evidence": "cortetsu/modules/launcher/Content.qml; cortetsu/modules/launcher/services/Actions.qml; cortetsu/modules/launcher/services/Emojis.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "ServicesConfig",
       "option": "search.prefix.math",
       "source": "dots/.config/quickshell/ii/modules/settings/ServicesConfig.qml",
       "line": 166,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has its own launcher action prefix and fixed service commands; it does not implement the end-4 per-service search-prefix dispatcher.",
+        "evidence": "cortetsu/modules/launcher/Content.qml; cortetsu/modules/launcher/services/Actions.qml; cortetsu/modules/launcher/services/Emojis.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "ServicesConfig",
       "option": "search.prefix.shellCommand",
       "source": "dots/.config/quickshell/ii/modules/settings/ServicesConfig.qml",
       "line": 175,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has its own launcher action prefix and fixed service commands; it does not implement the end-4 per-service search-prefix dispatcher.",
+        "evidence": "cortetsu/modules/launcher/Content.qml; cortetsu/modules/launcher/services/Actions.qml; cortetsu/modules/launcher/services/Emojis.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "ServicesConfig",
       "option": "search.prefix.webSearch",
       "source": "dots/.config/quickshell/ii/modules/settings/ServicesConfig.qml",
       "line": 184,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has its own launcher action prefix and fixed service commands; it does not implement the end-4 per-service search-prefix dispatcher.",
+        "evidence": "cortetsu/modules/launcher/Content.qml; cortetsu/modules/launcher/services/Actions.qml; cortetsu/modules/launcher/services/Emojis.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "ServicesConfig",
       "option": "search.engineBaseUrl",
       "source": "dots/.config/quickshell/ii/modules/settings/ServicesConfig.qml",
       "line": 197,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has no integrated web-search provider or configurable search-engine URL.",
+        "evidence": "cortetsu/modules/launcher/Content.qml; cortetsu/modules/launcher/services/Actions.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "ServicesConfig",
       "option": "updates.enableCheck",
       "source": "dots/.config/quickshell/ii/modules/settings/ServicesConfig.qml",
       "line": 213,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has no built-in update checker or scheduled update service.",
+        "evidence": "No update service in cortetsu/modules or cortetsu/services."
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "ServicesConfig",
       "option": "updates.checkInterval",
       "source": "dots/.config/quickshell/ii/modules/settings/ServicesConfig.qml",
       "line": 222,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu has no built-in update checker or scheduled update service.",
+        "evidence": "No update service in cortetsu/modules or cortetsu/services."
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "ServicesConfig",
       "option": "bar.weather.enableGPS",
       "source": "dots/.config/quickshell/ii/modules/settings/ServicesConfig.qml",
       "line": 239,
-      "status": "pending",
-      "cortetsu": null
+      "status": "discarded",
+      "cortetsu": {
+        "reason": "Cortetsu weather uses an explicit city/coordinates or IP-derived location and does not request GPS location.",
+        "evidence": "cortetsu/services/Weather.qml; cortetsu/modules/settings/sections/WeatherSection.qml"
+      },
+      "notes": "Cortetsu keeps its equivalent product capability in its existing owner; this end-4-specific control has no matching consumer."
     },
     {
       "page": "ServicesConfig",
@@ -1538,7 +2142,7 @@
       "cortetsu": {
         "source": "cortetsu/modules/settings/sections/AppearanceSection.qml",
         "owner": "CortetsuConfig.useFahrenheit",
-        "test": "scripts/features/test-cortetsu-settings-runtime.py"
+        "test": "scripts/features/test-cortetsu-settings-runtime.py#migratedControls,migratedControlsRestore"
       },
       "notes": "Cortetsu temperature-unit preference, shared with regional formatting."
     },

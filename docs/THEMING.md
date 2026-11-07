@@ -137,6 +137,24 @@ scheme state and restored when that theme is selected again. Wallpaper updates
 preserve these snapshots under the same scheme lock. A malformed snapshot is
 rejected before the active state is changed.
 
+The Settings palette-variant selector uses the existing launcher variant
+catalog and `cortetsu-scheme set -v`. The native owner regenerates Material
+roles from the saved colour seed and light/dark mode, records the selected
+variant as a manual choice, then updates the Hyprland and Kitty projections.
+`scheme.json` keeps the seed so changing variants does not derive a new seed
+from an already-toned role. Legacy files without a seed use their saved
+`primary_paletteKeyColor`, then `primary`, as compatibility fallbacks. Settings
+disables this selector until a palette exists and confirms the native commit
+and projection result. Its scheme-file watcher updates `CortetsuColours` and
+the design tokens in place; no shell reload is required.
+
+The launcher uses the same seed-availability rule: it hides variant results
+when no usable palette exists and rejects a stale direct activation. The pinned
+end-4 `Auto` value is intentionally not represented. Its implementation runs a
+separate OpenCV/NumPy classifier over wallpaper pixels before generating a
+scheme; Cortetsu currently has no matching image-analysis owner, so exposing
+that value would imply behavior Cortetsu cannot provide.
+
 On a fresh install with no colour scheme selected, `scheme.json` can have no
 colour roles yet. Switching product themes still applies Cortetsu's compiled
 tokens; `sync-projections` leaves Kitty's overlay untouched until a scheme is
@@ -148,11 +166,18 @@ This live selection currently affects Cortetsu's design tokens. Generated
 Kitty/GTK/KDE defaults continue to use ui.toml. It does not rewrite promoted
 runtime generations or reload the running session.
 
+Palette variants update the live Cortetsu palette and the Hyprland/Kitty
+projections. GTK and KDE files remain the generated ui.toml defaults; selecting
+a variant does not mutate those immutable toolkit files.
+
 Verification: `qmltestrunner -input cortetsu/tests/qml/themes` checks live token
 changes, contrast and reduced motion; `test-cortetsu-settings-runtime.py` drives
 the controls, exercises a simulated native commit failure and startup recovery,
-then checks saved preferences in a fresh HOME/XDG environment. Rust contract
-tests cover scheme restoration, wallpaper snapshot preservation, corrupt
-snapshot rejection, stale requests and acknowledgement while a Hyprland
-projection lock is held. Full end-4 visual parity and cross-surface visual
-certification remain pending.
+then checks saved preferences in a fresh HOME/XDG environment. Its
+`paletteVariant` scenarios verify seed-based role changes, manual ownership,
+live token updates and restoration in a fresh process. Rust palette tests cover
+variant role generation and keep the legacy Tonal Spot fixtures unchanged; Rust
+contract tests cover scheme restoration, wallpaper snapshot preservation,
+corrupt snapshot rejection, stale requests and acknowledgement while a
+Hyprland projection lock is held. Visual certification against end-4 remains a
+separate check from the runtime and persistence tests.
