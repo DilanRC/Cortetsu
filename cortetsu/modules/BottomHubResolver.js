@@ -133,3 +133,30 @@ function groupWindows(clients, resolveEntry) {
 
     return groups;
 }
+
+function workspaceAppIcons(clients, activeAddress, isTaskbarToplevel, iconForClient) {
+    const icons = {};
+    const activeWorkspaceIds = new Set();
+
+    for (const client of clients) {
+        if (!isTaskbarToplevel(client))
+            continue;
+        const window = client.lastIpcObject ?? {};
+        const workspaceId = Number(window.workspace?.id);
+        if (!Number.isInteger(workspaceId) || workspaceId <= 0)
+            continue;
+        const source = iconForClient(client);
+        if (!source)
+            continue;
+        const id = String(workspaceId);
+        const isActive = Boolean(activeAddress)
+            && String(window.address ?? "") === String(activeAddress);
+        if (icons[id] && (!isActive || activeWorkspaceIds.has(id)))
+            continue;
+        icons[id] = source;
+        if (isActive)
+            activeWorkspaceIds.add(id);
+    }
+
+    return icons;
+}

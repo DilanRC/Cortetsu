@@ -381,6 +381,17 @@ Scope {
             readonly property var occupiedWorkspaceIds: CortetsuHypr.workspaces.values
                 .filter(ws => ws.lastIpcObject?.windows > 0)
                 .map(ws => ws.id)
+            readonly property var workspaceAppIconSources: CortetsuConfig.bar.workspaces.showAppIcons
+                ? BottomHubResolver.workspaceAppIcons(
+                CortetsuHypr.toplevels.values,
+                activeAddress,
+                client => CortetsuHypr.isTaskbarToplevel(client),
+                client => {
+                    const window = client.lastIpcObject ?? {};
+                    const entry = desktopEntryForClient(client);
+                    return Icons.getAppIcon(entry?.icon || window.class || window.initialClass, "image-missing");
+                }
+            ) : ({})
 
             readonly property string volumeIcon: Icons.getVolumeIcon(CortetsuAudio.volume, CortetsuAudio.muted)
             readonly property string networkIcon: CortetsuNetwork.activeEthernet
@@ -816,6 +827,8 @@ Scope {
                 launcherActive: win.screenState?.launcher ?? false
                 workspaceCount: win.workspaceCount
                 workspaceDisplayType: CortetsuConfig.bar.workspaces.displayType
+                workspaceShowAppIcons: CortetsuConfig.bar.workspaces.showAppIcons
+                workspaceAppIconSources: win.workspaceAppIconSources
                 workspaceOffset: win.workspaceOffset
                 activeWsId: win.activeWsId
                 occupiedWorkspaceIds: win.occupiedWorkspaceIds

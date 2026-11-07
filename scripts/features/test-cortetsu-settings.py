@@ -96,6 +96,10 @@ workspace_dots = (SHELL / "modules/CortetsuWorkspaceDots.qml").read_text(encodin
 assert "workspaceDisplayType: root.workspaceDisplayType" in bottom_hub_view
 assert "displayType: root.workspaceDisplayType" in workspace_mode
 assert "visible: root.displayType === 1" in workspace_dots and "workspaceDot.wsId" in workspace_dots
+assert "workspaceShowAppIcons: CortetsuConfig.bar.workspaces.showAppIcons" in bottom_hub
+assert "workspaceAppIconSources: win.workspaceAppIconSources" in bottom_hub
+assert "BottomHubResolver.workspaceAppIcons(" in bottom_hub
+assert "visible: workspaceDot.showAppIcon" in workspace_dots
 
 print(f"PASS: {len(page_ids)} end-4 pages compose {sum(map(len, section_ids.values()))} Cortetsu sections, {len(written)} preferences written by Settings "
       "all have a reader, and SUPER+I has one owner")

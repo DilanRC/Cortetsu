@@ -8,6 +8,8 @@ Item {
     required property bool launcherActive
     required property int workspaceCount
     required property int workspaceDisplayType
+    required property bool workspaceShowAppIcons
+    required property var workspaceAppIconSources
     required property int workspaceOffset
     required property int activeWsId
     required property var occupiedWorkspaceIds
@@ -53,6 +55,8 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             workspaceCount: root.workspaceCount
             displayType: root.workspaceDisplayType
+            showAppIcons: root.workspaceShowAppIcons
+            appIconSources: root.workspaceAppIconSources
             workspaceOffset: root.workspaceOffset
             activeWsId: root.activeWsId
             occupiedWorkspaceIds: root.occupiedWorkspaceIds

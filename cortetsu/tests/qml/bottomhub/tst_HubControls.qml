@@ -18,6 +18,7 @@ TestCase {
             activeWsId: 1
             displayType: 0
             occupiedWorkspaceIds: []
+            appIconSources: ({})
         }
     }
 
@@ -65,6 +66,33 @@ TestCase {
         verify(shape !== null);
         verify(number.visible);
         verify(!shape.visible);
+    }
+
+    function test_app_icons_only_replace_markers_for_occupied_workspaces() {
+        const dots = createTemporaryObject(dotsComponent, testCase, {
+            showAppIcons: true,
+            occupiedWorkspaceIds: [2],
+            appIconSources: ({"2": Qt.resolvedUrl("../../../../cortetsu/assets/branding/cortetsu-mark.svg")})
+        });
+        const emptyIcon = find(dots, c => c.objectName === "workspace-app-icon-1");
+        const occupiedIcon = find(dots, c => c.objectName === "workspace-app-icon-2");
+        const occupiedShape = find(dots, c => c.objectName === "workspace-shape-2");
+        verify(emptyIcon !== null && !emptyIcon.visible);
+        verify(occupiedIcon !== null && occupiedIcon.visible);
+        verify(occupiedShape.visible);
+    }
+
+    function test_workspace_numbers_take_priority_over_app_icons() {
+        const dots = createTemporaryObject(dotsComponent, testCase, {
+            displayType: 1,
+            showAppIcons: true,
+            occupiedWorkspaceIds: [1],
+            appIconSources: ({"1": Qt.resolvedUrl("../../../../cortetsu/assets/branding/cortetsu-mark.svg")})
+        });
+        const number = find(dots, c => c.objectName === "workspace-number-1");
+        const icon = find(dots, c => c.objectName === "workspace-app-icon-1");
+        verify(number.visible);
+        verify(!icon.visible);
     }
 
     function test_status_items_are_full_height_targets() {

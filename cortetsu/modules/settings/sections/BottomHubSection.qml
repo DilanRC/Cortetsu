@@ -122,5 +122,13 @@ ColumnLayout {
                 CortetsuConfig.save();
             }
         }
+
+        SettingToggleRow {
+            objectName: "workspaceAppIcons"
+            title: qsTr("Icono de la aplicación")
+            detail: qsTr("Mostrar el icono de una ventana en los espacios ocupados")
+            checked: CortetsuConfig.bar.workspaces.showAppIcons
+            onToggled: value => { CortetsuConfig.bar.workspaces.showAppIcons = value; }
+        }
     }
 }

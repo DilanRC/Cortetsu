@@ -157,6 +157,38 @@ TestCase {
         compare(groups.get(entry.id).windows[0], first);
     }
 
+    function test_workspace_icon_prefers_the_active_taskbar_window() {
+        const background = client("0x1", { workspace: { id: 2 }, class: "browser" });
+        const active = client("0x2", { workspace: { id: 2 }, class: "editor" });
+        const otherWorkspace = client("0x3", { workspace: { id: 4 }, class: "chat" });
+        const ignored = client("0x4", { workspace: { id: 2 }, class: "launcher" });
+        const icons = Resolver.workspaceAppIcons(
+            [background, active, otherWorkspace, ignored],
+            "0x2",
+            candidate => candidate !== ignored,
+            candidate => candidate.lastIpcObject.class
+        );
+
+        compare(icons["2"], "editor");
+        compare(icons["4"], "chat");
+        verify(!icons["3"]);
+    }
+
+    function test_workspace_icon_skips_missing_and_invalid_data() {
+        const noWorkspace = client("0x1", { class: "browser" });
+        const noIcon = client("", { workspace: { id: 3 }, class: "" });
+        const unidentified = client("", { workspace: { id: 3 }, class: "first" });
+        const unidentifiedNext = client("", { workspace: { id: 3 }, class: "second" });
+        const icons = Resolver.workspaceAppIcons(
+            [noWorkspace, noIcon, unidentified, unidentifiedNext],
+            "",
+            () => true,
+            candidate => candidate.lastIpcObject.class
+        );
+        compare(Object.keys(icons).length, 1);
+        compare(icons["3"], "first");
+    }
+
     function test_distinct_windows_do_not_group_by_title_or_ambiguous_executable() {
         const first = client("0x1", {
             initialClass: "editor-one",

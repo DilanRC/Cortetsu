@@ -978,6 +978,26 @@ ShellRoot {
                 "the workspace number choice restores on launch");
         }]
     ]
+    readonly property var workspaceAppIconsPreferences: [
+        [() => CortetsuConfig.loaded, () => { select("bar"); screenDouble.settings = true; }],
+        [() => !!content && !!page("workspaceAppIcons"), () => { window.requestActivate(); }],
+        [() => window.active, () => {
+            const toggle = page("workspaceAppIcons");
+            verify(!CortetsuConfig.bar.workspaces.showAppIcons && !toggle.checked,
+                "workspace app icons stay off by default");
+            toggle.forceActiveFocus(); key(Qt.Key_Space);
+            verify(CortetsuConfig.bar.workspaces.showAppIcons && toggle.checked,
+                "the Bar control enables the app-icon workspace renderer");
+        }],
+        [() => CortetsuConfig.saveState === "saved", () => {}]
+    ]
+    readonly property var workspaceAppIconsRestore: [
+        [() => CortetsuConfig.loaded, () => { select("bar"); screenDouble.settings = true; }],
+        [() => !!content && !!page("workspaceAppIcons"), () => {
+            verify(CortetsuConfig.bar.workspaces.showAppIcons && page("workspaceAppIcons").checked,
+                "the workspace app-icon choice restores on launch");
+        }]
+    ]
     readonly property var hardwareSamplePreferences: [
         [() => CortetsuConfig.loaded, () => { select("automation"); screenDouble.settings = true; }],
         [() => !!content && content.pageId === "services" && !!page("hardwareSampleInterval") && !!hardwareTelemetryProbe, () => {
@@ -1496,6 +1516,12 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     workspace_numbers_saved = json.loads((workspace_numbers_home / ".config/cortetsu/preferences.json").read_text())
     assert workspace_numbers_saved["bar"]["workspaces"]["displayType"] == 1, workspace_numbers_saved
     restored, _ = run(folder, "shell.qml", "workspaceNumbersRestore", preferences=workspace_numbers_saved)
+    assert passed(restored) == 1, restored
+    output, workspace_icons_home = run(folder, "shell.qml", "workspaceAppIconsPreferences", preferences={"schema": 1})
+    assert passed(output) == 2, output
+    workspace_icons_saved = json.loads((workspace_icons_home / ".config/cortetsu/preferences.json").read_text())
+    assert workspace_icons_saved["bar"]["workspaces"]["showAppIcons"] is True, workspace_icons_saved
+    restored, _ = run(folder, "shell.qml", "workspaceAppIconsRestore", preferences=workspace_icons_saved)
     assert passed(restored) == 1, restored
 
     output, hardware_sample_home = run(folder, "shell.qml", "hardwareSamplePreferences",

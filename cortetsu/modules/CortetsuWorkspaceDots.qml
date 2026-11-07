@@ -10,6 +10,8 @@ Row {
     required property int activeWsId
     required property int displayType
     required property var occupiedWorkspaceIds
+    property bool showAppIcons: false
+    property var appIconSources: ({})
 
     signal workspaceRequested(int workspaceId)
 
@@ -38,6 +40,9 @@ Row {
             readonly property int wsId: root.workspaceOffset + index + 1
             readonly property bool active: wsId === root.activeWsId
             readonly property bool occupied: root.occupiedWorkspaceIds.includes(wsId)
+            readonly property string appIconSource: root.appIconSources[String(wsId)] ?? ""
+            readonly property bool showAppIcon: root.showAppIcons
+                && root.displayType === 0 && occupied && appIconSource.length > 0
 
             function activateWorkspace(workspaceId): void {
                 root.workspaceRequested(workspaceId);
@@ -45,11 +50,11 @@ Row {
                 restoreFocus.restart();
             }
 
-            width: root.displayType === 1 ? 24 : active ? 20 : 6
+            width: root.displayType === 1 ? 24 : showAppIcon ? 20 : active ? 20 : 6
             height: 36
             activeFocusOnTab: true
 
-            // design-lint: allow motion-layout-property: the active dot widens and the row of ten follows it
+            // design-lint: allow motion-layout-property: active and icon-bearing workspaces widen
             Behavior on width {
                 NumberAnimation {
                     duration: CortetsuDesign.motionStandardMs
@@ -81,6 +86,18 @@ Row {
                 Behavior on color { ColorAnimation { duration: CortetsuDesign.motionStandardMs } }
                 border.width: workspaceDot.activeFocus ? 1 : 0
                 border.color: CortetsuDesign.colorWashi
+            }
+
+            Image {
+                objectName: `workspace-app-icon-${workspaceDot.wsId}`
+                anchors.centerIn: parent
+                width: 14
+                height: 14
+                source: workspaceDot.appIconSource
+                visible: workspaceDot.showAppIcon
+                asynchronous: true
+                cache: true
+                fillMode: Image.PreserveAspectFit
             }
 
             Text {
