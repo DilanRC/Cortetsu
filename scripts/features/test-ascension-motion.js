@@ -27,7 +27,7 @@ for (const mode of ['network', 'audio', 'traymenu0']) {
         CortetsuScreens: { screens: [screen] },
         CortetsuShellState: { componentsFor: () => ({ popouts: popup }), forScreen: s => s === screen ? ownState : null },
         OverlayPolicy: { closeExclusiveEverywhere(states) { cleared = states; } },
-        closeAllLaunchers() {}, closeAllPanels() {} });
+        closeAllLaunchers() {}, closeAllPanels() {}, setShown(value) { popup.shown = value; } });
     vm.runInContext('(function() {' + body(read('BottomHub.qml'), 'openAttachedControlNow') + '})()', open);
     assert.equal(pending, false, 'old close must be cancelled even when hasCurrent was already true');
     assert.equal(popup.closing, false);
@@ -35,6 +35,7 @@ for (const mode of ['network', 'audio', 'traymenu0']) {
     assert.equal(popup.detachedMode, '');
     assert.equal(popup.bottomAnchorCenter, 720);
     assert.equal(popup.hasCurrent, true);
+    assert.equal(popup.shown, true, 'opening the attached control keeps the Bottom Hub shown');
     assert(cleared.length === 1 && cleared[0] === ownState, 'an attached popout only clears its own screen');
 }
 assert(body(wrapper, 'detach').includes('cancelClose();'), 'detached opening must cancel pending close');
