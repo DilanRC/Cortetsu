@@ -1375,8 +1375,14 @@
       "option": "search.prefix.action",
       "source": "dots/.config/quickshell/ii/modules/settings/ServicesConfig.qml",
       "line": 135,
-      "status": "pending",
-      "cortetsu": null
+      "status": "adapted",
+      "cortetsu": {
+        "control": "cortetsu/modules/settings/sections/LauncherSection.qml#actionPrefix",
+        "owner": "CortetsuConfig.actionPrefix",
+        "result": "Launcher action search services transform queries using the saved prefix",
+        "test": "scripts/features/test-cortetsu-settings-runtime.py#actionPrefixPreferences,actionPrefixRestore"
+      },
+      "notes": "Restricts the prefix to one non-space character distinct from the app-selection prefix; the rest of end-4 service prefixes are Cortetsu-specific or unsupported."
     },
     {
       "page": "ServicesConfig",

@@ -13,6 +13,7 @@ ColumnLayout {
 
     required property var context
 
+    property string actionPrefixError: ""
     spacing: CortetsuDesign.spacingSection
 
     SettingsGroup {
@@ -41,6 +42,26 @@ ColumnLayout {
             actionIcon: "search"
             disabled: !CortetsuConfig.launcher.enabled
             onActivated: root.context.openSurface("launcher")
+        }
+
+        SettingTextRow {
+            objectName: "actionPrefix"
+            title: qsTr("Prefijo de acciones")
+            detail: qsTr("Escribe este carácter antes de un comando, por ejemplo > calendario")
+            value: CortetsuConfig.actionPrefix
+            placeholderText: ">"
+            status: root.actionPrefixError ? "error" : ""
+            statusText: root.actionPrefixError
+            onCommitted: value => {
+                const prefix = value.trim();
+                if (prefix.length !== 1 || prefix === CortetsuConfig.specialPrefix[0]) {
+                    root.actionPrefixError = qsTr("Usa un carácter y evita el prefijo de selección %1").arg(CortetsuConfig.specialPrefix[0]);
+                    return;
+                }
+                root.actionPrefixError = "";
+                CortetsuConfig.actionPrefix = prefix;
+                CortetsuConfig.save();
+            }
         }
     }
 

@@ -809,6 +809,30 @@ ShellRoot {
                 "the selected regional clock format restores in a new process");
         }]
     ]
+    readonly property var actionPrefixPreferences: [
+        [() => CortetsuConfig.loaded, () => { select("interface"); screenDouble.settings = true; }],
+        [() => !!content && !!page("actionPrefix"), () => { window.requestActivate(); }],
+        [() => window.active, () => {
+            const entry = find(page("actionPrefix"), "entry");
+            entry.forceActiveFocus(); key(Qt.Key_A, Qt.ControlModifier); key(Qt.Key_Exclam);
+            key(Qt.Key_Return);
+            verify(CortetsuConfig.actionPrefix === "!" && Actions.transformSearch("!limpiar") === "limpiar",
+                "the saved action prefix changes the launcher's action search backend");
+            page("actionPrefix").committed("two");
+            verify(page("actionPrefix").status === "error" && CortetsuConfig.actionPrefix === "!",
+                "an invalid prefix is rejected without replacing the confirmed value");
+            page("actionPrefix").committed("@");
+            verify(page("actionPrefix").statusText.includes("@") && CortetsuConfig.actionPrefix === "!",
+                "the app-selection prefix cannot collide with the action prefix");
+        }],
+        [() => CortetsuConfig.saveState === "saved", () => {}]
+    ]
+    readonly property var actionPrefixRestore: [
+        [() => CortetsuConfig.loaded, () => {
+            verify(CortetsuConfig.actionPrefix === "!" && Actions.transformSearch("!limpiar") === "limpiar",
+                "the action search prefix restores in a new process");
+        }]
+    ]
 
     readonly property var notificationPreferences: [
         [() => CortetsuConfig.loaded, () => { select("notifications"); screenDouble.settings = true; }],
@@ -1205,6 +1229,13 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     restored, _ = run(folder, "shell.qml", "regionalRestore", preferences=regional_saved)
     assert passed(restored) == 1, restored
 
+    output, prefix_home = run(folder, "shell.qml", "actionPrefixPreferences", preferences={"schema": 1})
+    assert passed(output) == 3, output
+    prefix_saved = json.loads((prefix_home / ".config/cortetsu/preferences.json").read_text())
+    assert prefix_saved["actionPrefix"] == "!", prefix_saved
+    restored, _ = run(folder, "shell.qml", "actionPrefixRestore", preferences=prefix_saved)
+    assert passed(restored) == 1, restored
+
     output, notif_home = run(folder, "shell.qml", "notificationPreferences", preferences={"schema": 1})
     assert passed(output) == 3, output
     notif_saved = json.loads((notif_home / ".config/cortetsu/preferences.json").read_text())
@@ -1295,7 +1326,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     host = run_host(folder)
     assert not host or "SETTINGS_HOST_PASS 1" in host, host
 
-assert (reactivity, navigation, states, unwritable, pages) == (47, 71, 41, 3, 8), (reactivity, navigation, states, unwritable, pages)
+    assert (reactivity, navigation, states, unwritable, pages) == (47, 72, 41, 3, 8), (reactivity, navigation, states, unwritable, pages)
 assert policies == 16, policies
 print(f"Settings builds in {opened.split()[0]} ms ({opened.split()[1]} items); "
       f"20 cycles of open, eight pages and close take {cycles} ms")
