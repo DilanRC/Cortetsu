@@ -17,9 +17,7 @@ Searcher {
     // by the wallpaper shows up without asking the helper again.
     readonly property string currentScheme: `${CortetsuColours.scheme} ${CortetsuColours.flavour}`
     readonly property string currentVariant: CortetsuColours.variant
-    readonly property bool variantAvailable: /^#?[0-9a-fA-F]{6}$/.test(
-        String(CortetsuColours.currentColours?.seed ?? CortetsuColours.currentColours?.primary_paletteKeyColor
-            ?? CortetsuColours.currentColours?.primary ?? "").trim())
+    readonly property bool variantAvailable: M3Variants.variantAvailable
     property string error: ""
     property string pendingScheme: ""
     // idle | applying | applied | failed

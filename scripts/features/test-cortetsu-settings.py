@@ -129,6 +129,7 @@ assert '"cortetsu-scheme", "set", "-v", value' in schemes
 assert "CortetsuColours.variant" in schemes
 assert 'if (!M3Variants.variantAvailable)' in app_list
 assert "if (!root.variantAvailable)" in variants
+assert "readonly property bool variantAvailable: M3Variants.variantAvailable" in schemes
 assert "anchors.bottom: true" in bottom_hub
 assert all("CortetsuIsland {}" in (SHELL / "modules" / filename).read_text(encoding="utf-8")
            for filename in ("CortetsuModeSegment.qml", "CortetsuAppRail.qml",
