@@ -29,6 +29,7 @@ def main():
     bottom=load('migrate_bottom',REPO/'cortetsu/bin/migrate-bottom-hub-from-main.py')
     check=load('check_bottom',REPO/'cortetsu/bin/check-bottom-hub-target.py')
     prefs=load('migrate_prefs',REPO/'core/migrate_config.py')
+    defaults=json.loads((REPO/'cortetsu/platform-rs/templates/preferences-defaults.json').read_text())
     wire=load('wire_sad',REPO/'scripts/features/wire_sad_shell.py')
     cases=0
     with tempfile.TemporaryDirectory(prefix='cortetsu-platform-parity-') as tmp:
@@ -69,6 +70,9 @@ def main():
         for i,cfg in enumerate(configs):
             h=root/f'prefs-{i}';legacy=h/'.config/caelestia/shell.json';legacy.parent.mkdir(parents=True);legacy.write_text(json.dumps(cfg))
             expected=prefs.payload_from_legacy(legacy)
+            # The frozen Python migrator predates this Cortetsu preference. The
+            # Rust migration emits its current default for new installs too.
+            expected['weatherRefreshInterval']=defaults['weatherRefreshInterval']
             env={**os.environ,'HOME':str(h),'XDG_CONFIG_HOME':str(h/'.config'),'XDG_DATA_HOME':str(h/'.local/share'),'XDG_STATE_HOME':str(h/'.local/state')}
             native(binary,'migrate_config',env=env)
             actual=json.loads((h/'.config/cortetsu/preferences.json').read_text())
