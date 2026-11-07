@@ -566,8 +566,14 @@
       "option": "battery.low",
       "source": "dots/.config/quickshell/ii/modules/settings/GeneralConfig.qml",
       "line": 70,
-      "status": "pending",
-      "cortetsu": null
+      "status": "adapted",
+      "cortetsu": {
+        "control": "cortetsu/modules/settings/sections/PowerSection.qml#batteryLowWarning",
+        "owner": "CortetsuConfig.batteryLowWarningPercent → BatteryMonitor",
+        "result": "Changes the crossing percentage that triggers the low battery warning",
+        "test": "test-battery-policy.node.js and scripts/features/test-cortetsu-settings-runtime.py#batteryLowPreferences,batteryLowRestore"
+      },
+      "notes": "This threshold controls the warning only; the independent 3% emergency sleep behavior is unchanged."
     },
     {
       "page": "GeneralConfig",

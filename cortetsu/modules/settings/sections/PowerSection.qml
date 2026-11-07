@@ -16,6 +16,25 @@ ColumnLayout {
     spacing: CortetsuDesign.spacingSection
 
     SettingsGroup {
+        title: qsTr("Aviso de batería baja")
+        detail: qsTr("En equipos con batería, notifica al cruzar este nivel")
+
+        SettingSliderRow {
+            objectName: "batteryLowWarning"
+            title: qsTr("Nivel de aviso")
+            valueText: qsTr("%1 %").arg(CortetsuConfig.batteryLowWarningPercent)
+            from: 0
+            to: 100
+            step: 5
+            value: CortetsuConfig.batteryLowWarningPercent
+            onMoved: value => {
+                CortetsuConfig.batteryLowWarningPercent = Math.round(value / 5) * 5;
+                CortetsuConfig.save();
+            }
+        }
+    }
+
+    SettingsGroup {
         title: qsTr("Batería")
         visible: CortetsuPower.hasBattery
 

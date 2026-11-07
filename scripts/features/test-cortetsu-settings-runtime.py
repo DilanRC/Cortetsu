@@ -27,6 +27,8 @@ from pathlib import Path
 
 from settings_harness import ROOT, build_tree, run, run_host
 
+subprocess.run(["node", str(ROOT / "tests/test-battery-policy.node.js")], check=True)
+
 SHELL = r"""import QtQuick
 import QtQuick.Window
 import QtTest
@@ -53,34 +55,43 @@ ShellRoot {
     readonly property string renderDir: Quickshell.env("CORTETSU_RENDER_DIR")
     readonly property string schemeTool: Quickshell.env("HOME") + "/bin/cortetsu-scheme"
     readonly property var content: host.item
-    readonly property Item notificationBadgeProbe: CortetsuStatusSegment {
-        objectName: "notificationBadgeProbe"
-        x: -1000
-        width: 500
-        notificationCount: 3
-        volumeIcon: "volume_up"
-        volumeMuted: false
-        networkIcon: "wifi"
-        networkTooltip: "Wi-Fi"
-        networkActive: false
-        bluetoothIcon: "bluetooth"
-        bluetoothActive: false
-        batteryIcon: "battery_full"
-        batteryCritical: false
-        batteryTooltip: "Battery"
-        audioVisible: true
-        networkVisible: true
-        bluetoothVisible: true
-        batteryVisible: true
-        statusPopoutsEnabled: false
-        sidebarActive: false
-        recordingActive: false
-        dndActive: false
-        idleInhibited: false
-        now: new Date(2026, 0, 1, 13, 5)
-        sessionActive: false
-        opacity: 0
-        enabled: false
+    readonly property var notificationBadgeProbe: notificationBadgeLoader.item
+    Loader {
+        id: notificationBadgeLoader
+        active: root.scenario === "notificationCountPreferences" || root.scenario === "notificationCountRestore"
+        sourceComponent: notificationBadgeComponent
+    }
+    Component {
+        id: notificationBadgeComponent
+        CortetsuStatusSegment {
+            objectName: "notificationBadgeProbe"
+            x: -1000
+            width: 500
+            notificationCount: 3
+            volumeIcon: "volume_up"
+            volumeMuted: false
+            networkIcon: "wifi"
+            networkTooltip: "Wi-Fi"
+            networkActive: false
+            bluetoothIcon: "bluetooth"
+            bluetoothActive: false
+            batteryIcon: "battery_full"
+            batteryCritical: false
+            batteryTooltip: "Battery"
+            audioVisible: true
+            networkVisible: true
+            bluetoothVisible: true
+            batteryVisible: true
+            statusPopoutsEnabled: false
+            sidebarActive: false
+            recordingActive: false
+            dndActive: false
+            idleInhibited: false
+            now: new Date(2026, 0, 1, 13, 5)
+            sessionActive: false
+            opacity: 0
+            enabled: false
+        }
     }
     readonly property var wifi: ConnectivityWifi
     readonly property var bluetooth: ConnectivityBluetooth
@@ -148,7 +159,7 @@ ShellRoot {
     function get(name) { return find(content, name); }
     function page(name) { return find(content.page, name); }
     function notificationBadgeVisible(): bool {
-        return notificationBadgeProbe.notificationCountBadge.visible;
+        return !!notificationBadgeProbe && notificationBadgeProbe.notificationCountBadge.visible;
     }
     function text(name) { return find(get(name), "rowDetail")?.text ?? ""; }
     function clockDateExists(): bool { return find(clockArea, "desktopClockDate") !== null; }
@@ -883,6 +894,35 @@ ShellRoot {
                 "the notification count preference restores on launch");
         }]
     ]
+    readonly property var batteryLowPreferences: [
+        [() => CortetsuConfig.loaded, () => { select("power"); screenDouble.settings = true; }],
+        [() => !!content && !!page("batteryLowWarning"), () => { window.requestActivate(); }],
+        [() => window.active, () => {
+            const slider = page("batteryLowWarning");
+            verify(CortetsuConfig.batteryLowWarningPercent === 10 && slider.value === 10,
+                "the existing low warning threshold stays at ten percent by default");
+            slider.moved(25);
+            verify(CortetsuConfig.batteryLowWarningPercent === 25,
+                "the power section updates the battery notification threshold");
+        }],
+        [() => CortetsuConfig.saveState === "saved", () => {}]
+    ]
+    readonly property var batteryLowRestore: [
+        [() => CortetsuConfig.loaded, () => { select("power"); screenDouble.settings = true; }],
+        [() => !!content && !!page("batteryLowWarning"), () => {
+            verify(CortetsuConfig.batteryLowWarningPercent === 25
+                && page("batteryLowWarning").value === 25,
+                "the selected battery warning threshold restores on launch");
+        }]
+    ]
+    readonly property var batteryLowNormalize: [
+        [() => CortetsuConfig.loaded, () => { select("power"); screenDouble.settings = true; }],
+        [() => !!content && !!page("batteryLowWarning"), () => {
+            verify(CortetsuConfig.batteryLowWarningPercent === 25
+                && page("batteryLowWarning").value === 25,
+                "a stored warning level is normalized to a supported five-percent step");
+        }]
+    ]
     readonly property var actionPrefixPreferences: [
         [() => CortetsuConfig.loaded, () => { select("interface"); screenDouble.settings = true; }],
         [() => !!content && !!page("actionPrefix"), () => { window.requestActivate(); }],
@@ -1333,6 +1373,16 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     assert notification_count_saved["bottomHub"]["statusCluster"]["showNotificationCount"] is False, notification_count_saved
     restored, _ = run(folder, "shell.qml", "notificationCountRestore", preferences=notification_count_saved)
     assert passed(restored) == 1, restored
+
+    output, battery_low_home = run(folder, "shell.qml", "batteryLowPreferences", preferences={"schema": 1})
+    assert passed(output) == 2, output
+    battery_low_saved = json.loads((battery_low_home / ".config/cortetsu/preferences.json").read_text())
+    assert battery_low_saved["batteryLowWarningPercent"] == 25, battery_low_saved
+    restored, _ = run(folder, "shell.qml", "batteryLowRestore", preferences=battery_low_saved)
+    assert passed(restored) == 1, restored
+    normalized, _ = run(folder, "shell.qml", "batteryLowNormalize",
+                        preferences={"schema": 1, "batteryLowWarningPercent": 23})
+    assert passed(normalized) == 1, normalized
 
     output, prefix_home = run(folder, "shell.qml", "actionPrefixPreferences", preferences={"schema": 1})
     assert passed(output) == 3, output

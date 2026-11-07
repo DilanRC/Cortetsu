@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import "../services"
+import "BatteryPolicy.js" as BatteryPolicy
 
 Scope {
     id: root
@@ -21,7 +22,7 @@ Scope {
             criticalNoticeSent = false;
             return;
         }
-        if (percentage <= 10 && lastPercentage > 10)
+        if (BatteryPolicy.crossedLowWarning(lastPercentage, percentage, CortetsuConfig.batteryLowWarningPercent))
             notify(qsTr("Batería baja"), qsTr("El nivel de batería es %1%").arg(Math.round(percentage)));
         if (percentage <= 3 && !criticalNoticeSent) {
             criticalNoticeSent = true;
@@ -39,6 +40,10 @@ Scope {
         function onOnBatteryChanged(): void { root.inspect(); }
         function onReadyChanged(): void { root.inspect(); }
         function onPercentChanged(): void { root.inspect(); }
+    }
+    Connections {
+        target: CortetsuConfig
+        function onBatteryLowWarningPercentChanged(): void { root.inspect(); }
     }
     // startup inventory: cortetsu:battery-notification
     Component.onCompleted: root.inspect()
