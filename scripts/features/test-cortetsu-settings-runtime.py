@@ -42,6 +42,7 @@ import "modules/CortetsuNotificationModel.js" as NotificationModel
 import "modules/launcher/services"
 import "components"
 import "services"
+import "utils"
 import "theme"
 
 ShellRoot {
@@ -832,6 +833,32 @@ ShellRoot {
                 "the selected forecast interval survives a new process and restores its timer");
         }]
     ]
+    readonly property var recordingPathPreferences: [
+        [() => CortetsuConfig.loaded, () => { select("services"); screenDouble.settings = true; }],
+        [() => !!content && !!page("screenRecordSavePath"), () => { window.requestActivate(); }],
+        [() => window.active, () => {
+            const entry = page("screenRecordSavePath");
+            entry.committed("~/Vídeos/Grabaciones");
+            verify(CortetsuConfig.screenRecordSavePath === "~/Vídeos/Grabaciones",
+                "the Settings field updates the saved recording destination");
+            verify(Paths.recsdir.endsWith("/Vídeos/Grabaciones"),
+                "the shared path owner expands the configured home-relative directory");
+            entry.committed("relative/invalid");
+            verify(entry.status === "error" && CortetsuConfig.screenRecordSavePath === "~/Vídeos/Grabaciones",
+                "relative paths are rejected without replacing the confirmed destination");
+        }],
+        [() => CortetsuConfig.saveState === "saved", () => {}]
+    ]
+    readonly property var recordingPathRestore: [
+        [() => CortetsuConfig.loaded, () => { select("services"); screenDouble.settings = true; }],
+        [() => !!content && !!page("screenRecordSavePath"), () => {
+            verify(CortetsuConfig.screenRecordSavePath === "~/Vídeos/Grabaciones"
+                && page("screenRecordSavePath").value === "~/Vídeos/Grabaciones",
+                "the configured recording destination restores after restart");
+            verify(Paths.recsdir.endsWith("/Vídeos/Grabaciones"),
+                "the restored destination feeds the path owner");
+        }]
+    ]
     readonly property var weatherVisibilityPreferences: [
         [() => CortetsuConfig.loaded, () => { select("interface"); screenDouble.settings = true; }],
         [() => !!content && !!page("dashboardWeather"), () => { window.requestActivate(); }],
@@ -1489,6 +1516,14 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     assert weather_saved["weatherLocation"] == "lima", weather_saved
     assert weather_saved["weatherRefreshInterval"] == 3900000, weather_saved
     restored, _ = run(folder, "shell.qml", "weatherRestore", preferences=weather_saved)
+    assert passed(restored) == 2, restored
+
+    output, recording_path_home = run(folder, "shell.qml", "recordingPathPreferences",
+                                     preferences={"schema": 1})
+    assert passed(output) == 3, output
+    recording_path_saved = json.loads((recording_path_home / ".config/cortetsu/preferences.json").read_text())
+    assert recording_path_saved["screenRecordSavePath"] == "~/Vídeos/Grabaciones", recording_path_saved
+    restored, _ = run(folder, "shell.qml", "recordingPathRestore", preferences=recording_path_saved)
     assert passed(restored) == 2, restored
 
     output, weather_visibility_home = run(folder, "shell.qml", "weatherVisibilityPreferences",

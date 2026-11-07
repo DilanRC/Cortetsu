@@ -57,6 +57,26 @@ fn options(args: &[String]) -> Option<Options> {
 fn directory() -> PathBuf {
     state().join("record")
 }
+fn recordings_directory() -> PathBuf {
+    if let Some(path) =
+        std::env::var_os("CORTETSU_RECORDINGS_DIR").filter(|value| !value.is_empty())
+    {
+        return PathBuf::from(path);
+    }
+    let preferences = json_load(&config().join("cortetsu/preferences.json"), json!({}));
+    if let Some(path) = preferences
+        .get("screenRecordSavePath")
+        .and_then(Value::as_str)
+        .map(str::trim)
+        .filter(|path| !path.is_empty())
+    {
+        let path = expand(path);
+        if path.is_absolute() {
+            return path;
+        }
+    }
+    xdg("XDG_VIDEOS_DIR", "Vídeos").join("Recordings")
+}
 fn state_path() -> PathBuf {
     directory().join("state.json")
 }
@@ -322,9 +342,7 @@ fn stop(o: &Options) -> Result<i32> {
         );
         return Ok(1);
     }
-    let recordings = std::env::var_os("CORTETSU_RECORDINGS_DIR")
-        .map(PathBuf::from)
-        .unwrap_or_else(|| xdg("XDG_VIDEOS_DIR", "Vídeos").join("Recordings"));
+    let recordings = recordings_directory();
     fs::create_dir_all(&recordings)?;
     let target = recordings.join(format!(
         "recording_{}.mp4",

@@ -13,4 +13,5 @@ ColumnLayout {
     BluetoothSection { context: root.context }
     AutomationSection { context: root.context }
     WeatherSection {}
+    RecorderSection {}
 }

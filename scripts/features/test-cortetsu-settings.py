@@ -32,7 +32,7 @@ section_map = re.search(r"readonly property var pageSections: \(\{(.*?)\}\)", co
 section_groups = dict(re.findall(r'([a-z]+): \[([^\]]+)\]', section_map))
 section_ids = {page: [item.strip().strip('"') for item in values.split(",")] for page, values in section_groups.items()}
 assert sorted(section_ids) == sorted(page_ids), section_ids
-assert sorted(sum(section_ids.values(), [])) == sorted(["network", "bluetooth", "audio", "display", "power", "notifications", "input", "appearance", "wallpaper", "desktop", "bottomhub", "launcher", "shortcuts", "automation", "about"])
+assert sorted(sum(section_ids.values(), [])) == sorted(["network", "bluetooth", "audio", "display", "power", "notifications", "input", "appearance", "wallpaper", "desktop", "bottomhub", "launcher", "shortcuts", "automation", "recorder", "about"])
 table = re.search(r"readonly property var pages: \(\{(.*?)\}\)", content, re.S).group(1)
 pages = dict(re.findall(r"([a-z]+): ([A-Za-z]+Page)", table))
 assert sorted(pages) == sorted(page_ids), (sorted(pages), sorted(page_ids))

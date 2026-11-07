@@ -1397,8 +1397,13 @@
       "option": "screenRecord.savePath",
       "source": "dots/.config/quickshell/ii/modules/settings/ServicesConfig.qml",
       "line": 95,
-      "status": "pending",
-      "cortetsu": null
+      "status": "adapted",
+      "cortetsu": {
+        "source": "cortetsu/modules/settings/sections/RecorderSection.qml",
+        "owner": "CortetsuConfig.screenRecordSavePath → Paths.recsdir → desktop-runtime-rs recorder finalization",
+        "test": "scripts/features/test-cortetsu-settings-runtime.py#recordingPathPreferences,recordingPathRestore and cortetsu/desktop-runtime-rs/tests/contracts.rs#recorder_owns_process_and_preserves_output"
+      },
+      "notes": "Acepta rutas absolutas o ~/; las rutas relativas se rechazan. CORTETSU_RECORDINGS_DIR conserva prioridad como override de despliegue."
     },
     {
       "page": "ServicesConfig",

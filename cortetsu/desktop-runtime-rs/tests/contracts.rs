@@ -1016,6 +1016,13 @@ fn wallpaper_watcher_does_not_repeat_after_palette_origin_is_written() {
 #[test]
 fn recorder_owns_process_and_preserves_output() {
     let home = TempDir::new().unwrap();
+    let recordings = home.path().join("custom recordings");
+    fs::create_dir_all(home.path().join("config/cortetsu")).unwrap();
+    fs::write(
+        home.path().join("config/cortetsu/preferences.json"),
+        json!({"screenRecordSavePath": recordings}).to_string(),
+    )
+    .unwrap();
     script(
         &home,
         "hyprctl",
@@ -1078,6 +1085,7 @@ while :; do sleep 0.05; done
     );
     let p = String::from_utf8(out.stdout).unwrap();
     assert_eq!(fs::read(p.trim()).unwrap(), b"recorded-video");
+    assert_eq!(PathBuf::from(p.trim()).parent(), Some(recordings.as_path()));
     assert!(
         !home
             .path()

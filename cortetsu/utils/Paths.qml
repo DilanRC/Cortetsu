@@ -23,7 +23,10 @@ Singleton {
     readonly property string imagecache: `${cache}/imagecache`
     readonly property string notifimagecache: `${imagecache}/notifs`
     readonly property string wallsdir: Quickshell.env("CORTETSU_WALLPAPERS_DIR") || absolutePath(CortetsuConfig.wallpaperDirectory)
-    readonly property string recsdir: Quickshell.env("CORTETSU_RECORDINGS_DIR") || `${videos}/Recordings`
+    readonly property string recsdir: Quickshell.env("CORTETSU_RECORDINGS_DIR")
+        || (CortetsuConfig.screenRecordSavePath.trim()
+            ? absolutePath(CortetsuConfig.screenRecordSavePath)
+            : `${videos}/Recordings`)
     readonly property string libdir: `${data}/lib`
     readonly property string noNotifsPic: Quickshell.shellPath("assets/dino.png")
     readonly property string lockNoNotifsPic: noNotifsPic
