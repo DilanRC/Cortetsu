@@ -1,0 +1,1471 @@
+{
+  "reference": {
+    "repository": "https://github.com/end-4/dots-hyprland",
+    "commit": "2f2a376fdb2ad738bf55f693dd0b474b64bb0ab8",
+    "license": "GPL-3.0"
+  },
+  "note": "Inventory of referenced options, including parent objects. Pending rows are not claims of parity; dynamic controls require additional review.",
+  "controls": [
+    {
+      "page": "AdvancedConfig",
+      "option": "appearance.wallpaperTheming.enableAppsAndShell",
+      "source": "dots/.config/quickshell/ii/modules/settings/AdvancedConfig.qml",
+      "line": 16,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "AdvancedConfig",
+      "option": "appearance.wallpaperTheming.enableQtApps",
+      "source": "dots/.config/quickshell/ii/modules/settings/AdvancedConfig.qml",
+      "line": 24,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "AdvancedConfig",
+      "option": "appearance.wallpaperTheming.enableTerminal",
+      "source": "dots/.config/quickshell/ii/modules/settings/AdvancedConfig.qml",
+      "line": 35,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "AdvancedConfig",
+      "option": "appearance.wallpaperTheming.terminalGenerationProps.forceDarkMode",
+      "source": "dots/.config/quickshell/ii/modules/settings/AdvancedConfig.qml",
+      "line": 48,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "AdvancedConfig",
+      "option": "appearance.wallpaperTheming.terminalGenerationProps.harmony",
+      "source": "dots/.config/quickshell/ii/modules/settings/AdvancedConfig.qml",
+      "line": 61,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "AdvancedConfig",
+      "option": "appearance.wallpaperTheming.terminalGenerationProps.harmonizeThreshold",
+      "source": "dots/.config/quickshell/ii/modules/settings/AdvancedConfig.qml",
+      "line": 72,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "AdvancedConfig",
+      "option": "appearance.wallpaperTheming.terminalGenerationProps.termFgBoost",
+      "source": "dots/.config/quickshell/ii/modules/settings/AdvancedConfig.qml",
+      "line": 83,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BackgroundConfig",
+      "option": "background.parallax.vertical",
+      "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
+      "line": 17,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BackgroundConfig",
+      "option": "background.parallax.enableWorkspace",
+      "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
+      "line": 28,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BackgroundConfig",
+      "option": "background.parallax.enableSidebar",
+      "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
+      "line": 36,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BackgroundConfig",
+      "option": "background.parallax.workspaceZoom",
+      "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
+      "line": 45,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BackgroundConfig",
+      "option": "background.widgets.clock.showOnlyWhenLocked",
+      "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
+      "line": 61,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BackgroundConfig",
+      "option": "background.widgets.clock.style",
+      "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
+      "line": 61,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BackgroundConfig",
+      "option": "background.widgets.clock.styleLocked",
+      "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
+      "line": 64,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BackgroundConfig",
+      "option": "background.widgets.clock.enable",
+      "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
+      "line": 80,
+      "status": "adapted",
+      "cortetsu": {
+        "source": "cortetsu/modules/settings/sections/DesktopSection.qml",
+        "owner": "CortetsuConfig.desktopClockEnabled",
+        "test": "scripts/features/test-cortetsu-settings-runtime.py"
+      },
+      "notes": "Retains the Cortetsu desktop clock, configured in Interface."
+    },
+    {
+      "page": "BackgroundConfig",
+      "option": "background.widgets.clock.placementStrategy",
+      "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
+      "line": 90,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BackgroundConfig",
+      "option": "background.widgets.clock.digital.vertical",
+      "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
+      "line": 182,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BackgroundConfig",
+      "option": "background.widgets.clock.digital.animateChange",
+      "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
+      "line": 190,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BackgroundConfig",
+      "option": "background.widgets.clock.digital.showDate",
+      "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
+      "line": 203,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BackgroundConfig",
+      "option": "background.widgets.clock.digital.adaptiveAlignment",
+      "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
+      "line": 211,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BackgroundConfig",
+      "option": "background.widgets.clock.digital.font.family",
+      "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
+      "line": 224,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BackgroundConfig",
+      "option": "background.widgets.clock.digital.font.weight",
+      "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
+      "line": 233,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BackgroundConfig",
+      "option": "background.widgets.clock.digital.font.size",
+      "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
+      "line": 246,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BackgroundConfig",
+      "option": "background.widgets.clock.digital.font.width",
+      "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
+      "line": 259,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BackgroundConfig",
+      "option": "background.widgets.clock.digital.font.roundness",
+      "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
+      "line": 271,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BackgroundConfig",
+      "option": "background.widgets.clock.cookie.aiStyling",
+      "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
+      "line": 289,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BackgroundConfig",
+      "option": "background.widgets.clock.cookie.useSineCookie",
+      "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
+      "line": 301,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BackgroundConfig",
+      "option": "background.widgets.clock.cookie.sides",
+      "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
+      "line": 313,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BackgroundConfig",
+      "option": "background.widgets.clock.cookie.constantlyRotate",
+      "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
+      "line": 325,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BackgroundConfig",
+      "option": "background.widgets.clock.cookie.dialNumberStyle",
+      "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
+      "line": 337,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BackgroundConfig",
+      "option": "background.widgets.clock.cookie.hourMarks",
+      "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
+      "line": 340,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BackgroundConfig",
+      "option": "background.widgets.clock.cookie.timeIndicators",
+      "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
+      "line": 356,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BackgroundConfig",
+      "option": "background.widgets.clock.cookie.hourHandStyle",
+      "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
+      "line": 413,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BackgroundConfig",
+      "option": "background.widgets.clock.cookie.minuteHandStyle",
+      "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
+      "line": 447,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BackgroundConfig",
+      "option": "background.widgets.clock.cookie.secondHandStyle",
+      "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
+      "line": 486,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BackgroundConfig",
+      "option": "background.widgets.clock.cookie.dateStyle",
+      "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
+      "line": 520,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BackgroundConfig",
+      "option": "background.widgets.clock.quote.enable",
+      "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
+      "line": 555,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BackgroundConfig",
+      "option": "background.widgets.clock.quote.text",
+      "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
+      "line": 563,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BackgroundConfig",
+      "option": "background.widgets.weather.enable",
+      "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
+      "line": 583,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BackgroundConfig",
+      "option": "background.widgets.weather.placementStrategy",
+      "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
+      "line": 593,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BarConfig",
+      "option": "bar.indicators.notifications.showUnreadCount",
+      "source": "dots/.config/quickshell/ii/modules/settings/BarConfig.qml",
+      "line": 16,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BarConfig",
+      "option": "bar.bottom",
+      "source": "dots/.config/quickshell/ii/modules/settings/BarConfig.qml",
+      "line": 33,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BarConfig",
+      "option": "bar.vertical",
+      "source": "dots/.config/quickshell/ii/modules/settings/BarConfig.qml",
+      "line": 33,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BarConfig",
+      "option": "bar.autoHide.enable",
+      "source": "dots/.config/quickshell/ii/modules/settings/BarConfig.qml",
+      "line": 67,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BarConfig",
+      "option": "bar.cornerStyle",
+      "source": "dots/.config/quickshell/ii/modules/settings/BarConfig.qml",
+      "line": 94,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BarConfig",
+      "option": "bar.borderless",
+      "source": "dots/.config/quickshell/ii/modules/settings/BarConfig.qml",
+      "line": 123,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BarConfig",
+      "option": "tray.invertPinnedItems",
+      "source": "dots/.config/quickshell/ii/modules/settings/BarConfig.qml",
+      "line": 151,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BarConfig",
+      "option": "tray.monochromeIcons",
+      "source": "dots/.config/quickshell/ii/modules/settings/BarConfig.qml",
+      "line": 160,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BarConfig",
+      "option": "bar.utilButtons.showScreenSnip",
+      "source": "dots/.config/quickshell/ii/modules/settings/BarConfig.qml",
+      "line": 176,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BarConfig",
+      "option": "bar.utilButtons.showColorPicker",
+      "source": "dots/.config/quickshell/ii/modules/settings/BarConfig.qml",
+      "line": 184,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BarConfig",
+      "option": "bar.utilButtons.showKeyboardToggle",
+      "source": "dots/.config/quickshell/ii/modules/settings/BarConfig.qml",
+      "line": 195,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BarConfig",
+      "option": "bar.utilButtons.showMicToggle",
+      "source": "dots/.config/quickshell/ii/modules/settings/BarConfig.qml",
+      "line": 203,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BarConfig",
+      "option": "bar.utilButtons.showDarkModeToggle",
+      "source": "dots/.config/quickshell/ii/modules/settings/BarConfig.qml",
+      "line": 214,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BarConfig",
+      "option": "bar.utilButtons.showPerformanceProfileToggle",
+      "source": "dots/.config/quickshell/ii/modules/settings/BarConfig.qml",
+      "line": 222,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BarConfig",
+      "option": "bar.utilButtons.showScreenRecord",
+      "source": "dots/.config/quickshell/ii/modules/settings/BarConfig.qml",
+      "line": 233,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BarConfig",
+      "option": "bar.weather.enable",
+      "source": "dots/.config/quickshell/ii/modules/settings/BarConfig.qml",
+      "line": 247,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BarConfig",
+      "option": "bar.workspaces.alwaysShowNumbers",
+      "source": "dots/.config/quickshell/ii/modules/settings/BarConfig.qml",
+      "line": 261,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BarConfig",
+      "option": "bar.workspaces.showAppIcons",
+      "source": "dots/.config/quickshell/ii/modules/settings/BarConfig.qml",
+      "line": 270,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BarConfig",
+      "option": "bar.workspaces.monochromeIcons",
+      "source": "dots/.config/quickshell/ii/modules/settings/BarConfig.qml",
+      "line": 279,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BarConfig",
+      "option": "bar.workspaces.shown",
+      "source": "dots/.config/quickshell/ii/modules/settings/BarConfig.qml",
+      "line": 288,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BarConfig",
+      "option": "bar.workspaces.showNumberDelay",
+      "source": "dots/.config/quickshell/ii/modules/settings/BarConfig.qml",
+      "line": 300,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BarConfig",
+      "option": "bar.workspaces.numberMap",
+      "source": "dots/.config/quickshell/ii/modules/settings/BarConfig.qml",
+      "line": 313,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "BarConfig",
+      "option": "bar.tooltips.clickToShow",
+      "source": "dots/.config/quickshell/ii/modules/settings/BarConfig.qml",
+      "line": 344,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "GeneralConfig",
+      "option": "audio.protection.enable",
+      "source": "dots/.config/quickshell/ii/modules/settings/GeneralConfig.qml",
+      "line": 26,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "GeneralConfig",
+      "option": "audio.protection.maxAllowedIncrease",
+      "source": "dots/.config/quickshell/ii/modules/settings/GeneralConfig.qml",
+      "line": 39,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "GeneralConfig",
+      "option": "audio.protection.maxAllowed",
+      "source": "dots/.config/quickshell/ii/modules/settings/GeneralConfig.qml",
+      "line": 50,
+      "status": "adapted",
+      "cortetsu": {
+        "source": "cortetsu/modules/settings/sections/AudioSection.qml",
+        "owner": "CortetsuConfig.maxVolume",
+        "test": "scripts/features/test-cortetsu-settings-runtime.py"
+      },
+      "notes": "Limits future shell volume requests; preserves current playback levels."
+    },
+    {
+      "page": "GeneralConfig",
+      "option": "battery.low",
+      "source": "dots/.config/quickshell/ii/modules/settings/GeneralConfig.qml",
+      "line": 70,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "GeneralConfig",
+      "option": "battery.critical",
+      "source": "dots/.config/quickshell/ii/modules/settings/GeneralConfig.qml",
+      "line": 81,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "GeneralConfig",
+      "option": "battery.automaticSuspend",
+      "source": "dots/.config/quickshell/ii/modules/settings/GeneralConfig.qml",
+      "line": 96,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "GeneralConfig",
+      "option": "battery.suspend",
+      "source": "dots/.config/quickshell/ii/modules/settings/GeneralConfig.qml",
+      "line": 107,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "GeneralConfig",
+      "option": "battery.full",
+      "source": "dots/.config/quickshell/ii/modules/settings/GeneralConfig.qml",
+      "line": 121,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "GeneralConfig",
+      "option": "language.ui",
+      "source": "dots/.config/quickshell/ii/modules/settings/GeneralConfig.qml",
+      "line": 158,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "GeneralConfig",
+      "option": "policies.ai",
+      "source": "dots/.config/quickshell/ii/modules/settings/GeneralConfig.qml",
+      "line": 207,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "GeneralConfig",
+      "option": "policies.weeb",
+      "source": "dots/.config/quickshell/ii/modules/settings/GeneralConfig.qml",
+      "line": 239,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "GeneralConfig",
+      "option": "sounds.battery",
+      "source": "dots/.config/quickshell/ii/modules/settings/GeneralConfig.qml",
+      "line": 273,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "GeneralConfig",
+      "option": "sounds.pomodoro",
+      "source": "dots/.config/quickshell/ii/modules/settings/GeneralConfig.qml",
+      "line": 281,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "GeneralConfig",
+      "option": "time.secondPrecision",
+      "source": "dots/.config/quickshell/ii/modules/settings/GeneralConfig.qml",
+      "line": 296,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "GeneralConfig",
+      "option": "time.format",
+      "source": "dots/.config/quickshell/ii/modules/settings/GeneralConfig.qml",
+      "line": 310,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "GeneralConfig",
+      "option": "workSafety.enable.clipboard",
+      "source": "dots/.config/quickshell/ii/modules/settings/GeneralConfig.qml",
+      "line": 345,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "GeneralConfig",
+      "option": "workSafety.enable.wallpaper",
+      "source": "dots/.config/quickshell/ii/modules/settings/GeneralConfig.qml",
+      "line": 353,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "cheatsheet.superKey",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 18,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "cheatsheet.useMacSymbol",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 37,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "cheatsheet.useFnSymbol",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 49,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "cheatsheet.useMouseSymbol",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 60,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "cheatsheet.splitButtons",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 71,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "cheatsheet.fontSize.key",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 83,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "cheatsheet.fontSize.comment",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 93,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "dock.enable",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 109,
+      "status": "adapted",
+      "cortetsu": {
+        "source": "cortetsu/modules/settings/sections/BottomHubSection.qml",
+        "owner": "CortetsuConfig.bottomHub.segments.apps",
+        "test": "scripts/features/test-cortetsu-settings-runtime.py"
+      },
+      "notes": "Adapted to the applications segment of Bottom Hub."
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "dock.hoverToReveal",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 120,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "dock.pinnedOnStartup",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 128,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "dock.monochromeIcons",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 137,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "lock.useHyprlock",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 151,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "lock.launchOnStartup",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 163,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "lock.security.requirePasswordToPower",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 175,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "lock.security.unlockKeyring",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 187,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "lock.centerClock",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 203,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "lock.showLockedText",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 212,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "lock.materialShapeChars",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 221,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "lock.blur.enable",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 233,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "lock.blur.extraZoom",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 242,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "notifications.timeout",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 260,
+      "status": "adapted",
+      "cortetsu": {
+        "control": "modules/settings/sections/NotificationsSection.qml#notificationTimeout",
+        "result": "notifications use the configured default when the application does not provide an expiry; persisted by CortetsuConfig",
+        "test": "scripts/features/test-cortetsu-settings-runtime.py#notificationPreferences,notificationRestore,notificationLongPreferences,notificationLongRestore"
+      },
+      "notes": "Seconds UI, millisecond backend; application durations take precedence."
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "notifications.forceMonitor.enable",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 272,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "notifications.forceMonitor.name",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 286,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "overlay.openingZoomAnimation",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 302,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "overlay.darkenScreen",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 310,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "crosshair.code",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 324,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "overlay.floatingImage.imageSource",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 363,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "regionSelector.targetRegions.windows",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 381,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "regionSelector.targetRegions.layers",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 389,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "regionSelector.targetRegions.content",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 397,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "search.imageSearch.useCircleSelection",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 412,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "regionSelector.rect.showAimLines",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 429,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "regionSelector.circle.strokeWidth",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 442,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "regionSelector.circle.padding",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 454,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "sidebar.keepRightSidebarLoaded",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 472,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "sidebar.translator.enable",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 484,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "sidebar.quickToggles.style",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 495,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "sidebar.quickToggles.android.columns",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 517,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "sidebar.quickSliders.enable",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 533,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "sidebar.quickSliders.showBrightness",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 543,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "sidebar.quickSliders.showVolume",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 553,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "sidebar.quickSliders.showMic",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 563,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "sidebar.cornerOpen.enable",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 578,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "sidebar.cornerOpen.clickless",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 587,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "sidebar.cornerOpen.clicklessCornerEnd",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 600,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "sidebar.cornerOpen.clicklessCornerVerticalOffset",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 612,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "sidebar.cornerOpen.bottom",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 637,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "sidebar.cornerOpen.valueScroll",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 649,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "sidebar.cornerOpen.visualize",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 662,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "sidebar.cornerOpen.cornerRegionWidth",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 671,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "sidebar.cornerOpen.cornerRegionHeight",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 682,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "osd.timeout",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 701,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "overview.enable",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 718,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "overview.centerIcons",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 726,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "overview.scale",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 734,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "overview.rows",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 747,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "overview.columns",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 758,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "overview.orderRightLeft",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 770,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "overview.orderBottomUp",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 788,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "wallpaperSelector.useSystemFileDialog",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 815,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "appearance.fonts.main",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 833,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "appearance.fonts.numbers",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 848,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "appearance.fonts.title",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 863,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "appearance.fonts.monospace",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 878,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "appearance.fonts.iconNerd",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 893,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "appearance.fonts.reading",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 908,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "InterfaceConfig",
+      "option": "appearance.fonts.expressive",
+      "source": "dots/.config/quickshell/ii/modules/settings/InterfaceConfig.qml",
+      "line": 923,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "QuickConfig",
+      "option": "background.wallpaperPath",
+      "source": "dots/.config/quickshell/ii/modules/settings/QuickConfig.qml",
+      "line": 75,
+      "status": "adapted",
+      "cortetsu": {
+        "source": "cortetsu/modules/settings/sections/WallpaperSection.qml",
+        "owner": "CortetsuWallpapers.actualCurrent",
+        "test": "scripts/features/test-cortetsu-settings-runtime.py"
+      },
+      "notes": "Uses the existing transactional wallpaper manager and confirmed wallpaper readback."
+    },
+    {
+      "page": "QuickConfig",
+      "option": "policies.weeb",
+      "source": "dots/.config/quickshell/ii/modules/settings/QuickConfig.qml",
+      "line": 91,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "QuickConfig",
+      "option": "cheatsheet.superKey",
+      "source": "dots/.config/quickshell/ii/modules/settings/QuickConfig.qml",
+      "line": 142,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "QuickConfig",
+      "option": "appearance.palette.type",
+      "source": "dots/.config/quickshell/ii/modules/settings/QuickConfig.qml",
+      "line": 174,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "QuickConfig",
+      "option": "appearance.transparency.enable",
+      "source": "dots/.config/quickshell/ii/modules/settings/QuickConfig.qml",
+      "line": 222,
+      "status": "adapted",
+      "cortetsu": {
+        "source": "cortetsu/modules/settings/sections/AppearanceSection.qml",
+        "owner": "CortetsuConfig.transparencyEnabled",
+        "test": "scripts/features/test-cortetsu-settings-runtime.py"
+      },
+      "notes": "Adapted to Cortetsu material transparency."
+    },
+    {
+      "page": "QuickConfig",
+      "option": "bar.bottom",
+      "source": "dots/.config/quickshell/ii/modules/settings/QuickConfig.qml",
+      "line": 237,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "QuickConfig",
+      "option": "bar.vertical",
+      "source": "dots/.config/quickshell/ii/modules/settings/QuickConfig.qml",
+      "line": 237,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "QuickConfig",
+      "option": "bar.cornerStyle",
+      "source": "dots/.config/quickshell/ii/modules/settings/QuickConfig.qml",
+      "line": 270,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "QuickConfig",
+      "option": "appearance.fakeScreenRounding",
+      "source": "dots/.config/quickshell/ii/modules/settings/QuickConfig.qml",
+      "line": 300,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "ServicesConfig",
+      "option": "ai.systemPrompt",
+      "source": "dots/.config/quickshell/ii/modules/settings/ServicesConfig.qml",
+      "line": 17,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "ServicesConfig",
+      "option": "musicRecognition.timeout",
+      "source": "dots/.config/quickshell/ii/modules/settings/ServicesConfig.qml",
+      "line": 34,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "ServicesConfig",
+      "option": "musicRecognition.interval",
+      "source": "dots/.config/quickshell/ii/modules/settings/ServicesConfig.qml",
+      "line": 45,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "ServicesConfig",
+      "option": "networking.userAgent",
+      "source": "dots/.config/quickshell/ii/modules/settings/ServicesConfig.qml",
+      "line": 62,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "ServicesConfig",
+      "option": "resources.updateInterval",
+      "source": "dots/.config/quickshell/ii/modules/settings/ServicesConfig.qml",
+      "line": 77,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "ServicesConfig",
+      "option": "screenRecord.savePath",
+      "source": "dots/.config/quickshell/ii/modules/settings/ServicesConfig.qml",
+      "line": 95,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "ServicesConfig",
+      "option": "screenSnip.savePath",
+      "source": "dots/.config/quickshell/ii/modules/settings/ServicesConfig.qml",
+      "line": 105,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "ServicesConfig",
+      "option": "search.sloppy",
+      "source": "dots/.config/quickshell/ii/modules/settings/ServicesConfig.qml",
+      "line": 119,
+      "status": "adapted",
+      "cortetsu": {
+        "source": "cortetsu/modules/settings/sections/LauncherSection.qml",
+        "owner": "CortetsuConfig.useFuzzyApps/useFuzzyActions/useFuzzySchemes/useFuzzyVariants/useFuzzyWallpapers",
+        "test": "scripts/features/test-cortetsu-settings-runtime.py"
+      },
+      "notes": "Separate fuzzy-search preferences by result type."
+    },
+    {
+      "page": "ServicesConfig",
+      "option": "search.prefix.action",
+      "source": "dots/.config/quickshell/ii/modules/settings/ServicesConfig.qml",
+      "line": 135,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "ServicesConfig",
+      "option": "search.prefix.clipboard",
+      "source": "dots/.config/quickshell/ii/modules/settings/ServicesConfig.qml",
+      "line": 144,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "ServicesConfig",
+      "option": "search.prefix.emojis",
+      "source": "dots/.config/quickshell/ii/modules/settings/ServicesConfig.qml",
+      "line": 153,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "ServicesConfig",
+      "option": "search.prefix.math",
+      "source": "dots/.config/quickshell/ii/modules/settings/ServicesConfig.qml",
+      "line": 166,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "ServicesConfig",
+      "option": "search.prefix.shellCommand",
+      "source": "dots/.config/quickshell/ii/modules/settings/ServicesConfig.qml",
+      "line": 175,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "ServicesConfig",
+      "option": "search.prefix.webSearch",
+      "source": "dots/.config/quickshell/ii/modules/settings/ServicesConfig.qml",
+      "line": 184,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "ServicesConfig",
+      "option": "search.engineBaseUrl",
+      "source": "dots/.config/quickshell/ii/modules/settings/ServicesConfig.qml",
+      "line": 197,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "ServicesConfig",
+      "option": "updates.enableCheck",
+      "source": "dots/.config/quickshell/ii/modules/settings/ServicesConfig.qml",
+      "line": 213,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "ServicesConfig",
+      "option": "updates.checkInterval",
+      "source": "dots/.config/quickshell/ii/modules/settings/ServicesConfig.qml",
+      "line": 222,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "ServicesConfig",
+      "option": "bar.weather.enableGPS",
+      "source": "dots/.config/quickshell/ii/modules/settings/ServicesConfig.qml",
+      "line": 239,
+      "status": "pending",
+      "cortetsu": null
+    },
+    {
+      "page": "ServicesConfig",
+      "option": "bar.weather.useUSCS",
+      "source": "dots/.config/quickshell/ii/modules/settings/ServicesConfig.qml",
+      "line": 247,
+      "status": "adapted",
+      "cortetsu": {
+        "source": "cortetsu/modules/settings/sections/AppearanceSection.qml",
+        "owner": "CortetsuConfig.useFahrenheit",
+        "test": "scripts/features/test-cortetsu-settings-runtime.py"
+      },
+      "notes": "Cortetsu temperature-unit preference, shared with regional formatting."
+    },
+    {
+      "page": "ServicesConfig",
+      "option": "bar.weather.city",
+      "source": "dots/.config/quickshell/ii/modules/settings/ServicesConfig.qml",
+      "line": 260,
+      "status": "adapted",
+      "cortetsu": {
+        "control": "modules/settings/sections/WeatherSection.qml#weatherLocation",
+        "result": "committed city flows through CortetsuRegional into Weather geocoding and forecast state",
+        "test": "scripts/features/test-cortetsu-settings-runtime.py#weatherPreferences,weatherRestore (Requests simulated)"
+      },
+      "notes": "City or coordinates; empty selects the existing IP-location flow."
+    },
+    {
+      "page": "ServicesConfig",
+      "option": "bar.weather.fetchInterval",
+      "source": "dots/.config/quickshell/ii/modules/settings/ServicesConfig.qml",
+      "line": 269,
+      "status": "pending",
+      "cortetsu": null
+    }
+  ]
+}

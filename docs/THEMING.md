@@ -120,12 +120,22 @@ materials and more space. Kurogane uses steel surfaces, compact density,
 smaller radii and shorter motion. Product overrides take precedence over scheme
 roles; reduced motion takes precedence over product motion durations.
 
-Quick Settings changes `CortetsuConfig.themeId` through `selectTheme()`.
+Settings changes `CortetsuConfig.themeId` through `CortetsuThemes` and the
+native `cortetsu-scheme theme` command. The native command saves the selected
+theme and its scheme snapshot atomically in `scheme.json`, then acknowledges
+the durable state. Hyprland and Kitty projections run as a separate process so
+a slow compositor cannot leave the Settings process with an old theme ID.
+At startup, Settings reconciles a committed native theme with
+`preferences.json`, covering interruption between the native and preference
+writes.
 `CortetsuColours` binds its compiled token profile to `CortetsuDesign.themeTokens`;
 existing objects update in place. Theme ID and per-theme transparency/reduced
-motion preferences are saved in `preferences.json`. Invalid IDs loaded from disk
-retain Ink. Scheme, variant and manual/automatic ownership remain in the native
-scheme state; per-theme scheme restoration is not implemented yet.
+motion and wallpaper-sync preferences are saved in `preferences.json`. Invalid
+IDs loaded from disk retain Ink. Each theme's scheme, variant and
+manual/wallpaper ownership are snapshotted under `themeProfiles` in the native
+scheme state and restored when that theme is selected again. Wallpaper updates
+preserve these snapshots under the same scheme lock. A malformed snapshot is
+rejected before the active state is changed.
 
 This live selection currently affects Cortetsu's design tokens. Generated
 Kitty/GTK/KDE defaults continue to use ui.toml. It does not rewrite promoted
@@ -133,5 +143,9 @@ runtime generations or reload the running session.
 
 Verification: `qmltestrunner -input cortetsu/tests/qml/themes` checks live token
 changes, contrast and reduced motion; `test-cortetsu-settings-runtime.py` drives
-the real controls, checks the saved preferences and restores them in a fresh
-HOME/XDG environment. Full cross-surface visual certification remains pending.
+the controls, exercises a simulated native commit failure and startup recovery,
+then checks saved preferences in a fresh HOME/XDG environment. Rust contract
+tests cover scheme restoration, wallpaper snapshot preservation, corrupt
+snapshot rejection, stale requests and acknowledgement while a Hyprland
+projection lock is held. Full end-4 visual parity and cross-surface visual
+certification remain pending.
