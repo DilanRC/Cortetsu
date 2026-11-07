@@ -137,6 +137,13 @@ scheme state and restored when that theme is selected again. Wallpaper updates
 preserve these snapshots under the same scheme lock. A malformed snapshot is
 rejected before the active state is changed.
 
+On a fresh install with no colour scheme selected, `scheme.json` can have no
+colour roles yet. Switching product themes still applies Cortetsu's compiled
+tokens; `sync-projections` leaves Kitty's overlay untouched until a scheme is
+selected. On a fresh install no overlay exists, so Kitty uses its static
+`ui.toml` palette. A non-empty but incomplete palette remains an error, so
+malformed projections are reported rather than silently accepted.
+
 This live selection currently affects Cortetsu's design tokens. Generated
 Kitty/GTK/KDE defaults continue to use ui.toml. It does not rewrite promoted
 runtime generations or reload the running session.

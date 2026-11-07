@@ -151,6 +151,15 @@ fn sync_kitty_current(path: &Path) -> Result<()> {
     let current = optional_json_object(path)
         .map_err(|_| "scheme.json is not a readable JSON object")?
         .unwrap_or_else(|| json!({}));
+    // A fresh install has no selected colour scheme yet; keep the existing
+    // Kitty overlay untouched (if any) until one is chosen.
+    if current.get("colours").is_none()
+        || current["colours"]
+            .as_object()
+            .is_some_and(|colours| colours.is_empty())
+    {
+        return Ok(());
+    }
     sync_kitty(&current["colours"])
 }
 fn validate_saved_theme_scheme(value: &Value) -> Result<()> {

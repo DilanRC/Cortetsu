@@ -897,6 +897,17 @@ ShellRoot {
         }]
     ]
 
+    readonly property var themeWithoutScheme: [
+        [() => CortetsuConfig.loaded && CortetsuThemes.reconciled && Schemes.catalogCount > 0, () => {
+            select("appearance"); screenDouble.settings = true;
+        }],
+        [() => !!content && !!page("theme-washi"), () => { page("theme-washi").request(); }],
+        [() => CortetsuConfig.themeId === "washi" && CortetsuConfig.saveState === "saved" && !CortetsuThemes.busy, () => {
+            verify(CortetsuThemes.error === "", "a fresh install without a selected scheme applies its product theme without a false Kitty projection error");
+            verify(CortetsuDesign.radiusSurface === 18, "the fresh-install theme updates Cortetsu's active design tokens");
+        }]
+    ]
+
     readonly property var themeSelect: [
         [() => CortetsuConfig.loaded && Schemes.catalogCount > 0, () => {
             select("appearance"); screenDouble.settings = true;
@@ -1194,8 +1205,18 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     slow_saved = json.loads((slow_home / "state/cortetsu/scheme.json").read_text())
     assert slow_saved["themeId"] == "washi", slow_saved
 
-    projection_failure, _ = run(folder, "shell.qml", "themeProjectionFailure", preferences={"schema": 1})
+    incomplete_scheme = {"schema": 2, "themeId": "ink", "name": "dynamic", "flavour": "default",
+                         "variant": "tonal-spot", "mode": "dark", "origin": "manual",
+                         "colours": {"primary": "123456"}}
+    projection_failure, _ = run(folder, "shell.qml", "themeProjectionFailure", preferences={"schema": 1},
+                                scheme=incomplete_scheme)
     assert passed(projection_failure) == 2, projection_failure
+
+    no_scheme, no_scheme_home = run(folder, "shell.qml", "themeWithoutScheme", preferences={"schema": 1})
+    assert passed(no_scheme) == 2, no_scheme
+    no_scheme_state = json.loads((no_scheme_home / "state/cortetsu/scheme.json").read_text())
+    assert no_scheme_state["themeId"] == "washi" and no_scheme_state["colours"] == {}, no_scheme_state
+    assert not (no_scheme_home / "state/cortetsu/kitty-colors.conf").exists()
 
     theme_colours = fixture_colours["cases"][0]["colours"]
     theme_scheme = {"schema": 2, "name": "dynamic", "flavour": "default", "variant": "tonal-spot",

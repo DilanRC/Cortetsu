@@ -1248,6 +1248,38 @@ fn theme_commit_ack_does_not_wait_for_hyprland_projection() {
 }
 
 #[test]
+fn theme_projection_without_a_palette_keeps_base_terminal_colours() {
+    let home = TempDir::new().unwrap();
+    let state = home.path().join("state/cortetsu");
+    fs::create_dir_all(&state).unwrap();
+
+    let committed = command(
+        &home,
+        "cortetsu-scheme",
+        &["theme", "washi", "--from", "ink", "--defer-projections"],
+    )
+    .env("CORTETSU_SKIP_RELOAD", "1")
+    .output()
+    .unwrap();
+    assert!(
+        committed.status.success(),
+        "{}",
+        String::from_utf8_lossy(&committed.stderr)
+    );
+
+    let projected = command(&home, "cortetsu-scheme", &["sync-projections"])
+        .env("CORTETSU_SKIP_RELOAD", "1")
+        .output()
+        .unwrap();
+    assert!(
+        projected.status.success(),
+        "{}",
+        String::from_utf8_lossy(&projected.stderr)
+    );
+    assert!(!state.join("kitty-colors.conf").exists());
+}
+
+#[test]
 fn corrupt_saved_theme_snapshot_is_rejected_without_mutation() {
     let home = TempDir::new().unwrap();
     let path = home.path().join("state/cortetsu/scheme.json");
