@@ -33,6 +33,7 @@ import QtTest
 import Quickshell
 import Quickshell.Io
 import "modules"
+import "modules/background"
 import "modules/settings"
 import "modules/CortetsuNotificationModel.js" as NotificationModel
 import "modules/launcher/services"
@@ -118,6 +119,8 @@ ShellRoot {
     function get(name) { return find(content, name); }
     function page(name) { return find(content.page, name); }
     function text(name) { return find(get(name), "rowDetail")?.text ?? ""; }
+    function clockDateExists(): bool { return find(clockArea, "desktopClockDate") !== null; }
+    function clockDateVisible(): bool { return find(clockArea, "desktopClockDate")?.visible ?? false; }
     function value(name) { return find(get(name), "value")?.text ?? ""; }
     // Every item under the surface. Comparing two of these by identity tells
     // whether anything was destroyed or created in between.
@@ -191,6 +194,19 @@ ShellRoot {
         height: Number(Quickshell.env("SETTINGS_HEIGHT") || 900)
         visible: true
         color: "#0B0D10"
+
+        Item {
+            id: clockArea
+            anchors.fill: parent
+            // Keep the subtree active so the test can observe the date's own visibility.
+            opacity: 0
+            DesktopClock {
+                wallpaper: clockArea
+                absX: 0
+                absY: 0
+                anchors.centerIn: parent
+            }
+        }
 
         // The same frame SettingsHost draws, so a render shows the real surface.
         CortetsuSurface {
@@ -776,6 +792,24 @@ ShellRoot {
         }]
     ]
 
+    readonly property var regionalPreferences: [
+        [() => CortetsuConfig.loaded, () => { select("quick"); screenDouble.settings = true; }],
+        [() => !!content && !!page("clockFormat"), () => { window.requestActivate(); }],
+        [() => window.active, () => {
+            const toggle = page("clockFormat");
+            toggle.forceActiveFocus(); key(Qt.Key_Space);
+            verify(CortetsuConfig.useTwelveHourClock && CortetsuRegional.clockPattern === "h:mm A",
+                "the 12-hour control updates the active regional formatter");
+        }],
+        [() => CortetsuConfig.saveState === "saved", () => {}]
+    ]
+    readonly property var regionalRestore: [
+        [() => CortetsuConfig.loaded, () => {
+            verify(CortetsuRegional.useTwelveHourClock && CortetsuRegional.clockPattern === "h:mm A",
+                "the selected regional clock format restores in a new process");
+        }]
+    ]
+
     readonly property var notificationPreferences: [
         [() => CortetsuConfig.loaded, () => { select("notifications"); screenDouble.settings = true; }],
         [() => !!content && !!page("notificationTimeout"), () => { window.requestActivate(); }],
@@ -820,16 +854,24 @@ ShellRoot {
             verify(CortetsuConfig.desktopClockPosition === "top-left", "the old camel-case clock position migrates to an actual runtime state");
             select("wallpaper"); screenDouble.settings = true;
         }],
-        [() => !!content && !!page("clock-middle-center"), () => {
+        [() => !!content && !!page("clock-middle-center") && !!page("clockShowDate"), () => {
+            verify(CortetsuConfig.desktopClockShowDate && root.clockDateExists() && root.clockDateVisible(),
+                "the existing clock shows its date by default");
             page("clock-middle-center").request();
             verify(CortetsuConfig.desktopClockPosition === "middle-center", "the position control updates the background owner");
             verify(page("clock-middle-center").actionDisabled, "the selected position is confirmed");
+            const toggle = page("clockShowDate");
+            toggle.forceActiveFocus(); key(Qt.Key_Space);
+            verify(!CortetsuConfig.desktopClockShowDate && root.clockDateExists() && !root.clockDateVisible(),
+                "the desktop clock date control changes the rendered background clock");
         }],
         [() => CortetsuConfig.saveState === "saved", () => {}]
     ]
     readonly property var clockRestore: [
         [() => CortetsuConfig.loaded, () => {
             verify(CortetsuConfig.desktopClockPosition === "middle-center", "a new process restores the selected clock position");
+            verify(!CortetsuConfig.desktopClockShowDate && root.clockDateExists() && !root.clockDateVisible(),
+                "the hidden desktop clock date survives process restart");
         }]
     ]
 
@@ -1156,6 +1198,13 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     restored, _ = run(folder, "shell.qml", "weatherVisibilityRestore", preferences=weather_visibility_saved)
     assert passed(restored) == 1, restored
 
+    output, regional_home = run(folder, "shell.qml", "regionalPreferences", preferences={"schema": 1})
+    assert passed(output) == 1, output
+    regional_saved = json.loads((regional_home / ".config/cortetsu/preferences.json").read_text())
+    assert regional_saved["useTwelveHourClock"] is True, regional_saved
+    restored, _ = run(folder, "shell.qml", "regionalRestore", preferences=regional_saved)
+    assert passed(restored) == 1, restored
+
     output, notif_home = run(folder, "shell.qml", "notificationPreferences", preferences={"schema": 1})
     assert passed(output) == 3, output
     notif_saved = json.loads((notif_home / ".config/cortetsu/preferences.json").read_text())
@@ -1173,11 +1222,12 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
 
     output, clock_home = run(folder, "shell.qml", "clockPreferences",
                              preferences={"schema": 1, "desktopClockPosition": "topLeft"})
-    assert passed(output) == 3, output
+    assert passed(output) == 5, output
     clock_saved = json.loads((clock_home / ".config/cortetsu/preferences.json").read_text())
     assert clock_saved["desktopClockPosition"] == "middle-center", clock_saved
+    assert clock_saved["desktopClockShowDate"] is False, clock_saved
     restored, _ = run(folder, "shell.qml", "clockRestore", preferences=clock_saved)
-    assert passed(restored) == 1, restored
+    assert passed(restored) == 2, restored
 
     output, audio_home = run(folder, "shell.qml", "audioPreferences", preferences={"schema": 1})
     assert passed(output) == 5, output

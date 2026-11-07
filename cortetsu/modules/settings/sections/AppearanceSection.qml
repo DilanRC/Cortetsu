@@ -203,6 +203,7 @@ ColumnLayout {
         title: qsTr("Reloj y unidades")
 
         SettingToggleRow {
+            objectName: "clockFormat"
             title: qsTr("Reloj de 12 horas")
             detail: CortetsuConfig.useTwelveHourClock ? qsTr("Se muestra como 3:45 p. m.") : qsTr("Se muestra como 15:45")
             checked: CortetsuConfig.useTwelveHourClock

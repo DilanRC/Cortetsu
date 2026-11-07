@@ -48,6 +48,13 @@ ColumnLayout {
     SettingsGroup {
         title: qsTr("Posición del reloj")
         detail: qsTr("El reloj se activa desde Interface")
+        SettingToggleRow {
+            objectName: "clockShowDate"
+            title: qsTr("Mostrar fecha")
+            detail: qsTr("Muestra el mes, día y nombre del día junto a la hora")
+            checked: CortetsuConfig.desktopClockShowDate
+            onToggled: value => { CortetsuConfig.desktopClockShowDate = value; CortetsuConfig.save(); }
+        }
         Repeater {
             model: [
                 {id: "top-left", name: qsTr("Arriba izquierda")},

@@ -160,8 +160,14 @@
       "option": "background.widgets.clock.digital.showDate",
       "source": "dots/.config/quickshell/ii/modules/settings/BackgroundConfig.qml",
       "line": 203,
-      "status": "pending",
-      "cortetsu": null
+      "status": "adapted",
+      "cortetsu": {
+        "control": "cortetsu/modules/settings/sections/WallpaperSection.qml#clockShowDate",
+        "owner": "CortetsuConfig.desktopClockShowDate",
+        "result": "The rendered desktop clock hides or shows its date column and separator",
+        "test": "scripts/features/test-cortetsu-settings-runtime.py#clockPreferences,clockRestore"
+      },
+      "notes": "The Cortetsu digital clock exposes the equivalent preference; analog clock styling options have no corresponding service."
     },
     {
       "page": "BackgroundConfig",
@@ -642,8 +648,14 @@
       "option": "time.format",
       "source": "dots/.config/quickshell/ii/modules/settings/GeneralConfig.qml",
       "line": 310,
-      "status": "pending",
-      "cortetsu": null
+      "status": "adapted",
+      "cortetsu": {
+        "control": "cortetsu/modules/settings/sections/AppearanceSection.qml#clockFormat",
+        "owner": "CortetsuConfig.useTwelveHourClock",
+        "result": "CortetsuRegional.clockPattern changes the live clock format",
+        "test": "scripts/features/test-cortetsu-settings-runtime.py#regionalPreferences,regionalRestore"
+      },
+      "notes": "Uses Cortetsu regional formatting and its existing persistent preference."
     },
     {
       "page": "GeneralConfig",

@@ -1,5 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
+import ".."
+import "../../services"
 import "../../theme"
 import "../CortetsuTypography.js" as CortetsuTypography
 
@@ -34,7 +36,7 @@ Item {
     RowLayout {
         id: clockLayout
         anchors.centerIn: parent
-        spacing: 18 * root.clockScale
+        spacing: CortetsuConfig.desktopClockShowDate ? 18 * root.clockScale : 0
 
         RowLayout {
             spacing: 2
@@ -71,6 +73,7 @@ Item {
         }
 
         Rectangle {
+            visible: CortetsuConfig.desktopClockShowDate
             Layout.fillHeight: true
             Layout.preferredWidth: Math.max(2, 4 * root.clockScale)
             color: root.primary
@@ -78,6 +81,8 @@ Item {
         }
 
         ColumnLayout {
+            objectName: "desktopClockDate"
+            visible: CortetsuConfig.desktopClockShowDate
             spacing: 0
             Text {
                 text: Time.format("MMMM").toUpperCase()
