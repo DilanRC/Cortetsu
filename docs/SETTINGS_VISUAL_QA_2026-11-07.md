@@ -36,14 +36,18 @@ captured both non-default themes after selecting each one:
 ![Kurogane theme in Settings](evidence/settings-end4-20261107/cortetsu-kurogane.png)
 
 These pairs show the navigation rail, page headings and the first visible
-controls in each destination. The Services pair is only its first scroll
-viewport: its fixture has no live hardware, and the later Bluetooth,
-automation, weather, recorder and screenshot groups are below that viewport.
-The runtime test exercises those existing service sections separately. Cortetsu
-uses its ink-blue materials, grouped service rows and text hierarchy instead of
-copying end-4's monochrome treatment. Theme captures show Washi's warm paper
-surfaces and Kurogane's compact steel surfaces; theme selection and restoration
-are covered separately by the native runtime tests in [`SETTINGS.md`](SETTINGS.md).
+controls in each destination. The Services pair is its first scroll viewport;
+the fixture has no physical hardware, and Bluetooth, automation, weather,
+recorder and screenshot groups are below that viewport. The runtime test
+exercises those existing service sections separately. Its current Services
+capture was refreshed after a regression check found that the Wi-Fi `Item` did
+not request the available layout width. The new runtime assertion verifies the
+workbench fits the Settings viewport before capturing the corrected layout.
+Cortetsu uses its ink-blue materials, grouped service rows and text hierarchy
+instead of copying end-4's monochrome treatment. Theme captures show Washi's
+warm paper surfaces and Kurogane's compact steel surfaces; theme selection and
+restoration are covered separately by the native runtime tests in
+[`SETTINGS.md`](SETTINGS.md).
 
 ## Verification
 

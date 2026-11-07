@@ -625,6 +625,8 @@ ShellRoot {
         [() => !!content && content.pageId === "services" && !!page("wifiPower"), () => {
             window.requestActivate();
             memo.wifi = page("wifiPower");
+            verify(memo.wifi.width >= 500 && Math.abs(memo.wifi.width - content.page.width) <= 1,
+                "the Wi-Fi workbench fills the Settings viewport before its first group is drawn");
             verify(find(memo.wifi, "switch").checked && get("nexus-services").value.includes("Casa"), "the page and navigation show the live connection");
             memo.wifi.forceActiveFocus();
             key(Qt.Key_Space);
@@ -1454,7 +1456,10 @@ ShellRoot {
     ]
 
     readonly property var migratedControls: [
-        [() => CortetsuConfig.loaded, () => { select("interface"); screenDouble.settings = true; window.requestActivate(); }],
+        [() => CortetsuConfig.loaded, () => {
+            root.writes = 0;
+            select("interface"); screenDouble.settings = true; window.requestActivate();
+        }],
         [() => window.active && !!page("desktopClockEnabled"), () => {
             const toggle = page("desktopClockEnabled");
             verify(CortetsuConfig.desktopClockEnabled && toggle.checked, "the desktop clock control starts from the active owner state");
@@ -1493,6 +1498,61 @@ ShellRoot {
             verify(CortetsuConfig.desktopClockEnabled === false && CortetsuConfig.bottomHub.segments.apps === false
                 && CortetsuConfig.useFahrenheit === true && CortetsuConfig.useFuzzyApps === true,
                 "a fresh process restores the clock, Bottom Hub, temperature and fuzzy-search preferences");
+        }]
+    ]
+
+    readonly property var existingPreferenceControls: [
+        [() => CortetsuConfig.loaded, () => { select("interface"); screenDouble.settings = true; window.requestActivate(); }],
+        [() => window.active && !!page("fuzzyActions") && !!page("fuzzySchemes"), () => {
+            verify(Actions.useFuzzy && Schemes.useFuzzy, "launcher search services start from their saved fuzzy preferences");
+            const actions = page("fuzzyActions");
+            actions.forceActiveFocus(); key(Qt.Key_Space);
+            verify(!CortetsuConfig.useFuzzyActions && !Actions.useFuzzy,
+                "the Settings control changes the live launcher action search policy");
+            const schemes = page("fuzzySchemes");
+            schemes.forceActiveFocus(); key(Qt.Key_Space);
+            verify(!CortetsuConfig.useFuzzySchemes && !Schemes.useFuzzy,
+                "the Settings control changes the live scheme search policy");
+        }],
+        [() => CortetsuConfig.saveState === "saved", () => {
+            verify(root.writes === 1, `both search preferences settle into one debounced write (${root.writes})`);
+            root.writes = 0;
+            select("notifications");
+        }],
+        [() => !!page("toastCapsLockChanged") && !!page("toastNumLockChanged")
+            && !!page("toastKbLayoutChanged") && !!page("toastDndChanged")
+            && !!page("toastNowPlaying") && !!page("notificationOpenExpanded"), () => {
+            window.requestActivate();
+        }],
+        [() => window.active, () => {
+            const names = ["toastCapsLockChanged", "toastNumLockChanged", "toastKbLayoutChanged",
+                "toastDndChanged", "toastNowPlaying", "notificationOpenExpanded"];
+            for (const name of names) {
+                const toggle = page(name);
+                verify(toggle.checked, `${name} restores enabled in the test fixture`);
+                toggle.forceActiveFocus(); key(Qt.Key_Space);
+                verify(CortetsuConfig[name] === false && !toggle.checked,
+                    `${name} updates its live preference owner through the Settings control`);
+            }
+        }],
+        [() => CortetsuConfig.saveState === "saved", () => {
+            verify(!CortetsuConfig.useFuzzyActions && !CortetsuConfig.useFuzzySchemes
+                && !CortetsuConfig.toastCapsLockChanged && !CortetsuConfig.toastNumLockChanged
+                && !CortetsuConfig.toastKbLayoutChanged && !CortetsuConfig.toastDndChanged
+                && !CortetsuConfig.toastNowPlaying && !CortetsuConfig.notificationOpenExpanded,
+                "all existing Settings preferences reach their confirmed backend values before persistence");
+            verify(root.writes === 1, `the six notification controls settle into one debounced write (${root.writes})`);
+        }]
+    ]
+
+    readonly property var existingPreferenceControlsRestore: [
+        [() => CortetsuConfig.loaded, () => {
+            verify(!CortetsuConfig.useFuzzyActions && !CortetsuConfig.useFuzzySchemes
+                && !CortetsuConfig.toastCapsLockChanged && !CortetsuConfig.toastNumLockChanged
+                && !CortetsuConfig.toastKbLayoutChanged && !CortetsuConfig.toastDndChanged
+                && !CortetsuConfig.toastNowPlaying && !CortetsuConfig.notificationOpenExpanded
+                && !Actions.useFuzzy && !Schemes.useFuzzy,
+                "a fresh process restores all eight existing preference controls and their search consumers");
         }]
     ]
 
@@ -1851,6 +1911,20 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     restored, _ = run(folder, "shell.qml", "migratedControlsRestore", preferences=migrated_saved)
     assert passed(restored) == 1, restored
 
+    existing_saved = {
+        "schema": 1, "useFuzzyActions": True, "useFuzzySchemes": True,
+        "toastCapsLockChanged": True, "toastNumLockChanged": True,
+        "toastKbLayoutChanged": True, "toastDndChanged": True,
+        "toastNowPlaying": True, "notificationOpenExpanded": True,
+    }
+    output, existing_home = run(folder, "shell.qml", "existingPreferenceControls", preferences=existing_saved)
+    assert passed(output) == 18, output
+    existing_persisted = json.loads((existing_home / ".config/cortetsu/preferences.json").read_text())
+    for key in existing_saved.keys() - {"schema"}:
+        assert existing_persisted[key] is False, (key, existing_persisted)
+    restored, _ = run(folder, "shell.qml", "existingPreferenceControlsRestore", preferences=existing_persisted)
+    assert passed(restored) == 1, restored
+
     output, audio_home = run(folder, "shell.qml", "audioPreferences", preferences={"schema": 1})
     assert passed(output) == 5, output
     audio_saved = json.loads((audio_home / ".config/cortetsu/preferences.json").read_text())
@@ -1931,7 +2005,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     host = run_host(folder)
     assert not host or "SETTINGS_HOST_PASS 1" in host, host
 
-    assert (reactivity, navigation, states, unwritable, pages) == (47, 72, 41, 3, 8), (reactivity, navigation, states, unwritable, pages)
+    assert (reactivity, navigation, states, unwritable, pages) == (47, 72, 42, 3, 8), (reactivity, navigation, states, unwritable, pages)
 assert policies == 16, policies
 print(f"Settings builds in {opened.split()[0]} ms ({opened.split()[1]} items); "
       f"20 cycles of open, eight pages and close take {cycles} ms")

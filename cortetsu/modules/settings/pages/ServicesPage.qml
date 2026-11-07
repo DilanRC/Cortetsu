@@ -9,7 +9,10 @@ ColumnLayout {
     id: root
     required property var context
     spacing: CortetsuDesign.spacingSection
-    NetworkPage { context: root.context }
+    NetworkPage {
+        context: root.context
+        Layout.fillWidth: true
+    }
     BluetoothSection { context: root.context }
     AutomationSection { context: root.context }
     WeatherSection {}

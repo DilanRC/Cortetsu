@@ -143,14 +143,22 @@ to transient volume or brightness feedback.
 The focused control is scrolled into view. Below 940 px of content width the
 Nexus shows icons only, with the destination and its state in a tooltip.
 
-## What is not shown
+## Existing preferences and control coverage
 
-A preference appears in Settings only if something in the running shell reads
-it. H-45's ten live preferences now affect the launcher, notifications or
-toasts, but Settings still does not draw controls for them. Six preferences
-that belonged only to the retired top bar were removed from `CortetsuConfig`;
-old files load safely and those keys are ignored. `test-cortetsu-settings.py`
-fails if a control is wired to a preference with no reader.
+The Interface page exposes independent controls for fuzzy matching of actions
+and schemes. The Notifications page exposes expanded popup bodies and the
+Caps Lock, Num Lock, keyboard-layout, Do Not Disturb and now-playing toasts.
+These eight settings already had shell consumers; the Settings controls now
+have an isolated runtime scenario that toggles each value, checks the live
+search policy for actions and schemes, confirms one debounced write for each
+page's changes, and starts a fresh process to check restoration.
+`test-cortetsu-toasts.py` and the keyboard-state runtime test cover the toast
+owners separately.
+
+Six old preferences belonged only to the retired top bar and were removed from
+`CortetsuConfig`; old files load safely and those keys are ignored.
+`test-cortetsu-settings.py` also fails if a control writes a preference with no
+reader in the running shell.
 
 ## Checks
 
@@ -160,6 +168,7 @@ fails if a control is wired to a preference with no reader.
 | `scripts/features/test-cortetsu-settings.py` | Every destination has a page; every preference written has a reader; one owner for `SUPER+I` |
 | `paletteVariant`, `paletteVariantRestore`, `paletteVariantUnavailable` in `scripts/features/test-cortetsu-settings-runtime.py` | The variant control rejects unknown values, regenerates live Material colours from the saved seed, writes manual origin, restores after restart, explains the no-palette state and guards a direct launcher action |
 | `migratedControls`, `migratedControlsRestore` in `scripts/features/test-cortetsu-settings-runtime.py` | Four migrated controls update their actual consumers, persist, and restore in a fresh HOME/XDG process |
+| `existingPreferenceControls`, `existingPreferenceControlsRestore` in `scripts/features/test-cortetsu-settings-runtime.py` | Eight existing search, notification-expansion and toast settings update their owners, each page batches its changes into one write, and a fresh HOME/XDG process restores them |
 | `cortetsu/tests/qml/settings/tst_SettingsNavigation.qml` | Search and movement as pure functions |
 | `cortetsu/tests/qml/components/tst_StateMessage.qml`, `tst_Slider.qml` | The layout loop and the lost slider binding do not come back |
 | `scripts/features/test-cortetsu-scheme.py` | `set` writes the state file and asks for a config-only reload; a failed `set` reloads nothing |

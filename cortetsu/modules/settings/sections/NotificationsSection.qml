@@ -64,6 +64,7 @@ ColumnLayout {
         }
 
         SettingToggleRow {
+            objectName: "toastCapsLockChanged"
             title: qsTr("Avisar de Bloq Mayús")
             detail: qsTr("Un aviso breve al activar o desactivar Bloq Mayús")
             checked: CortetsuConfig.toastCapsLockChanged
@@ -71,6 +72,7 @@ ColumnLayout {
         }
 
         SettingToggleRow {
+            objectName: "toastNumLockChanged"
             title: qsTr("Avisar de Bloq Num")
             detail: qsTr("Un aviso breve al activar o desactivar Bloq Num")
             checked: CortetsuConfig.toastNumLockChanged
@@ -78,6 +80,7 @@ ColumnLayout {
         }
 
         SettingToggleRow {
+            objectName: "toastKbLayoutChanged"
             title: qsTr("Avisar del cambio de distribución")
             detail: qsTr("Un aviso breve al cambiar la distribución del teclado")
             checked: CortetsuConfig.toastKbLayoutChanged
@@ -85,6 +88,7 @@ ColumnLayout {
         }
 
         SettingToggleRow {
+            objectName: "toastDndChanged"
             title: qsTr("Avisar de No molestar")
             detail: qsTr("Un aviso breve al activar o desactivar No molestar")
             checked: CortetsuConfig.toastDndChanged
@@ -92,6 +96,7 @@ ColumnLayout {
         }
 
         SettingToggleRow {
+            objectName: "toastNowPlaying"
             title: qsTr("Avisar de la pista en reproducción")
             detail: qsTr("Un aviso al cambiar de pista o de reproductor")
             checked: CortetsuConfig.toastNowPlaying
@@ -99,6 +104,7 @@ ColumnLayout {
         }
 
         SettingToggleRow {
+            objectName: "notificationOpenExpanded"
             title: qsTr("Abrir avisos expandidos")
             detail: qsTr("Mostrar el cuerpo completo de cada aviso al llegar")
             checked: CortetsuConfig.notificationOpenExpanded
