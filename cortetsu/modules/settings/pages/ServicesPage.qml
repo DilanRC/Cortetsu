@@ -12,4 +12,5 @@ ColumnLayout {
     NetworkPage { context: root.context }
     BluetoothSection { context: root.context }
     AutomationSection { context: root.context }
+    WeatherSection {}
 }

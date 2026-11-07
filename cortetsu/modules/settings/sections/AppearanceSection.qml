@@ -5,6 +5,7 @@ import QtQuick.Layouts
 import Quickshell
 import "../../../components"
 import "../../../theme"
+import "../../../services"
 import "../.."
 import "../../launcher/services"
 import "../../CortetsuSearchBar.qml"
@@ -50,8 +51,10 @@ ColumnLayout {
                 objectName: "theme-" + modelData.id
                 title: modelData.name
                 actionLabel: CortetsuConfig.themeId === modelData.id ? qsTr("Activo") : qsTr("Aplicar")
-                actionDisabled: CortetsuConfig.themeId === modelData.id
-                onActivated: CortetsuConfig.selectTheme(modelData.id)
+                actionDisabled: CortetsuConfig.themeId === modelData.id || CortetsuThemes.busy
+                status: CortetsuThemes.busy ? "busy" : CortetsuThemes.error ? "error" : ""
+                statusText: CortetsuThemes.error || (CortetsuThemes.busy ? qsTr("Guardando el tema y actualizando Hyprland y Kitty") : "")
+                onActivated: CortetsuThemes.select(modelData.id)
             }
         }
     }

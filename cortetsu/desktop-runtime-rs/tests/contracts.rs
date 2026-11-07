@@ -1,3 +1,4 @@
+use fs2::FileExt;
 use serde_json::{Value, json};
 use std::{
     fs,
@@ -1140,4 +1141,226 @@ fn pomodoro_daemon_adopts_a_promoted_helper_on_wake() {
     );
     let _ = daemon.kill();
     let _ = daemon.wait();
+}
+
+#[test]
+fn product_themes_restore_scheme_variant_and_origin() {
+    let home = TempDir::new().unwrap();
+    let path = home.path().join("state/cortetsu/scheme.json");
+    let run = |args: &[&str]| {
+        let output = command(&home, "cortetsu-scheme", args)
+            .env("CORTETSU_SKIP_RELOAD", "1")
+            .output()
+            .unwrap();
+        assert!(
+            output.status.success(),
+            "{}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+    };
+    run(&["set", "-n", "aura", "default"]);
+    run(&["set", "-v", "expressive"]);
+    run(&["theme", "washi"]);
+    run(&["set", "-n", "nebula", "default"]);
+    run(&["set", "-v", "vibrant"]);
+    run(&["theme", "ink"]);
+    let ink: Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+    assert_eq!(ink["name"], "aura");
+    assert_eq!(ink["variant"], "expressive");
+    assert_eq!(ink["origin"], "manual");
+    run(&["theme", "washi"]);
+    let washi: Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+    assert_eq!(washi["name"], "nebula");
+    assert_eq!(washi["variant"], "vibrant");
+    assert_eq!(washi["themeProfiles"]["ink"]["name"], "aura");
+    fs::write(&path, b"{broken").unwrap();
+    let output = command(&home, "cortetsu-scheme", &["theme", "ink"])
+        .output()
+        .unwrap();
+    assert!(!output.status.success());
+    assert_eq!(fs::read(&path).unwrap(), b"{broken");
+}
+
+#[test]
+fn theme_migrates_legacy_owner_and_rejects_stale_switches() {
+    let home = TempDir::new().unwrap();
+    let path = home.path().join("state/cortetsu/scheme.json");
+    let run = |args: &[&str]| {
+        command(&home, "cortetsu-scheme", args)
+            .env("CORTETSU_SKIP_RELOAD", "1")
+            .output()
+            .unwrap()
+    };
+    assert!(run(&["set", "-n", "aura", "default"]).status.success());
+    assert!(run(&["theme", "ink", "--from", "washi"]).status.success());
+    let migrated: Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+    assert_eq!(migrated["themeId"], "ink");
+    assert_eq!(migrated["themeProfiles"]["washi"]["name"], "aura");
+    let before = fs::read(&path).unwrap();
+    assert!(
+        !run(&["theme", "kurogane", "--from", "washi"])
+            .status
+            .success()
+    );
+    assert_eq!(before, fs::read(&path).unwrap());
+}
+
+#[test]
+fn theme_commit_ack_does_not_wait_for_hyprland_projection() {
+    let home = TempDir::new().unwrap();
+    let state = home.path().join("state/cortetsu");
+    fs::create_dir_all(&state).unwrap();
+    fs::write(
+        state.join("scheme.json"),
+        json!({"themeId": "ink", "schema": 1, "name": "aura", "flavour": "default", "colours": {}})
+            .to_string(),
+    )
+    .unwrap();
+    let lock = fs::OpenOptions::new()
+        .create(true)
+        .truncate(false)
+        .read(true)
+        .write(true)
+        .open(state.join("hypr-scheme.lock"))
+        .unwrap();
+    lock.lock_exclusive().unwrap();
+
+    let output = command(
+        &home,
+        "cortetsu-scheme",
+        &["theme", "washi", "--from", "ink", "--defer-projections"],
+    )
+    .env("CORTETSU_SKIP_RELOAD", "1")
+    .output()
+    .unwrap();
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let acknowledged: Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(acknowledged["themeId"], "washi");
+    assert_eq!(acknowledged["committed"], true);
+    let committed: Value =
+        serde_json::from_slice(&fs::read(state.join("scheme.json")).unwrap()).unwrap();
+    assert_eq!(committed["themeId"], "washi");
+    FileExt::unlock(&lock).unwrap();
+}
+
+#[test]
+fn corrupt_saved_theme_snapshot_is_rejected_without_mutation() {
+    let home = TempDir::new().unwrap();
+    let path = home.path().join("state/cortetsu/scheme.json");
+    fs::create_dir_all(path.parent().unwrap()).unwrap();
+    let corrupt = json!({
+        "themeId": "ink",
+        "schema": 2,
+        "origin": "manual",
+        "name": "aura",
+        "flavour": "default",
+        "colours": {},
+        "themeProfiles": {"washi": {"foo": "bar"}}
+    });
+    fs::write(&path, serde_json::to_vec(&corrupt).unwrap()).unwrap();
+    let before = fs::read(&path).unwrap();
+    let output = command(
+        &home,
+        "cortetsu-scheme",
+        &["theme", "washi", "--from", "ink"],
+    )
+    .output()
+    .unwrap();
+    assert!(!output.status.success());
+    assert_eq!(fs::read(path).unwrap(), before);
+}
+
+#[test]
+fn wallpaper_updates_keep_theme_archive_and_restore_wallpaper_origin() {
+    let home = TempDir::new().unwrap();
+    let state = home.path().join("state/cortetsu");
+    fs::create_dir_all(&state).unwrap();
+    let path = state.join("scheme.json");
+    let fixture: Value =
+        serde_json::from_str(include_str!("fixtures/legacy-palettes.json")).unwrap();
+    let mut colours = fixture["cases"][0]["colours"].clone();
+    colours["primary"] = json!("123456");
+    fs::write(
+        &path,
+        serde_json::to_vec(&json!({
+            "schema": 2,
+            "name": "dynamic",
+            "flavour": "default",
+            "variant": "tonal-spot",
+            "mode": "dark",
+            "origin": "wallpaper",
+            "colours": colours,
+            "themeId": "ink"
+        }))
+        .unwrap(),
+    )
+    .unwrap();
+    fs::create_dir_all(home.path().join("config/cortetsu")).unwrap();
+    fs::write(
+        home.path().join("config/cortetsu/preferences.json"),
+        r#"{"smartScheme":true}"#,
+    )
+    .unwrap();
+
+    let output = command(
+        &home,
+        "cortetsu-scheme",
+        &["theme", "washi", "--from", "ink"],
+    )
+    .env("CORTETSU_SKIP_RELOAD", "1")
+    .output()
+    .unwrap();
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let mut updated_colours = fixture["cases"][0]["colours"].clone();
+    updated_colours["primary"] = json!("abcdef");
+    let update = json!({
+        "name": "dynamic",
+        "flavour": "default",
+        "mode": "dark",
+        "variant": "tonal-spot",
+        "colours": updated_colours
+    });
+    let mut child = command(&home, "cortetsu-scheme", &["apply-wallpaper-colors"])
+        .stdin(Stdio::piped())
+        .spawn()
+        .unwrap();
+    child
+        .stdin
+        .take()
+        .unwrap()
+        .write_all(serde_json::to_string(&update).unwrap().as_bytes())
+        .unwrap();
+    assert_eq!(child.wait().unwrap().code(), Some(0));
+    let updated: Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+    assert_eq!(updated["themeId"], "washi");
+    assert!(updated["themeProfiles"]["ink"].is_object());
+    assert_eq!(updated["origin"], "wallpaper");
+    assert_eq!(updated["colours"]["primary"], "abcdef");
+
+    let output = command(
+        &home,
+        "cortetsu-scheme",
+        &["theme", "ink", "--from", "washi"],
+    )
+    .env("CORTETSU_SKIP_RELOAD", "1")
+    .output()
+    .unwrap();
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let restored: Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+    assert_eq!(restored["origin"], "wallpaper");
+    assert_eq!(restored["colours"]["primary"], "123456");
+    assert_eq!(restored["themeId"], "ink");
 }

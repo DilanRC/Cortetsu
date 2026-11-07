@@ -96,12 +96,13 @@ QtObject {
         if (!["ink", "washi", "kurogane"].includes(id) || id === themeId)
             return;
         const saved = Object.assign({}, themePreferences);
-        saved[themeId] = { transparencyEnabled, reducedMotion };
+        saved[themeId] = { transparencyEnabled, reducedMotion, smartScheme };
         themePreferences = saved;
         const next = saved[id];
         if (next) {
             if (typeof next.transparencyEnabled === "boolean") transparencyEnabled = next.transparencyEnabled;
             if (typeof next.reducedMotion === "boolean") reducedMotion = next.reducedMotion;
+            if (typeof next.smartScheme === "boolean") smartScheme = next.smartScheme;
         }
         themeId = id;
     }

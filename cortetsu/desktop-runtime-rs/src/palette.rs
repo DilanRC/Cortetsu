@@ -153,13 +153,59 @@ fn sync_kitty_current(path: &Path) -> Result<()> {
         .unwrap_or_else(|| json!({}));
     sync_kitty(&current["colours"])
 }
+fn validate_saved_theme_scheme(value: &Value) -> Result<()> {
+    let object = value.as_object().ok_or("invalid saved theme scheme")?;
+    if !["schema", "origin", "name", "flavour", "variant", "colours"]
+        .iter()
+        .any(|key| object.contains_key(*key))
+    {
+        return Err("saved theme scheme has no recognised fields".into());
+    }
+    for key in ["origin", "name", "flavour", "variant"] {
+        if value.get(key).is_some_and(|field| !field.is_string()) {
+            return Err(format!("invalid saved theme scheme {key}").into());
+        }
+    }
+    if value.get("colours").is_some_and(|field| !field.is_object()) {
+        return Err("invalid saved theme scheme colours".into());
+    }
+    if value["schema"] == 2
+        && (!matches!(value["origin"].as_str(), Some("manual" | "wallpaper"))
+            || !value["name"].is_string()
+            || !value["flavour"].is_string()
+            || !value["colours"].is_object())
+    {
+        return Err("invalid saved theme scheme metadata".into());
+    }
+    if value["colours"]
+        .as_object()
+        .is_some_and(|colours| !colours.is_empty())
+    {
+        kitty_colours(&value["colours"])?;
+    }
+    Ok(())
+}
 pub fn scheme(args: &[String]) -> Result<i32> {
     let path = state().join("scheme.json");
     let mut s = json_load(&path, json!({}));
     if !s.is_object() {
         s = json!({});
     }
-    let a: Vec<_> = args.iter().map(String::as_str).collect();
+    let mut a: Vec<_> = args.iter().map(String::as_str).collect();
+    let defer_projections = a.last() == Some(&"--defer-projections");
+    if defer_projections {
+        a.pop();
+    }
+    let expected_theme = if let ["theme", _, "--from", previous] = a.as_slice() {
+        if !["ink", "washi", "kurogane"].contains(previous) {
+            return Err("invalid previous theme".into());
+        }
+        let expected = (*previous).to_owned();
+        a.truncate(2);
+        Some(expected)
+    } else {
+        None
+    };
     match a.as_slice() {
         ["list"] => {
             let mut schemes = catalog()?;
@@ -209,6 +255,78 @@ pub fn scheme(args: &[String]) -> Result<i32> {
                 eprintln!("cortetsu-scheme: Kitty colours kept unchanged: {e}");
             }
         }
+        ["theme", id] if ["ink", "washi", "kurogane"].contains(id) => {
+            let guard = lock(&path.with_file_name("scheme.lock"), false)?;
+            let mut current = optional_json_object(&path)
+                .map_err(|_| "scheme.json is not a readable JSON object")?
+                .unwrap_or_else(|| json!({}));
+            let previous = current["themeId"]
+                .as_str()
+                .unwrap_or(expected_theme.as_deref().unwrap_or("ink"))
+                .to_owned();
+            if expected_theme
+                .as_ref()
+                .is_some_and(|expected| expected != &previous)
+            {
+                return Err("theme changed concurrently; refresh before selecting again".into());
+            }
+            if previous == *id {
+                emit(&json!({"themeId": id}))?;
+                return Ok(0);
+            }
+            if current.get("themeProfiles").is_some_and(|v| !v.is_object()) {
+                return Err("invalid saved theme profiles".into());
+            }
+            let mut profiles = current["themeProfiles"]
+                .as_object()
+                .cloned()
+                .unwrap_or_default();
+            current
+                .as_object_mut()
+                .ok_or("scheme object")?
+                .remove("themeProfiles");
+            current
+                .as_object_mut()
+                .ok_or("scheme object")?
+                .remove("themeId");
+            profiles.insert(previous, current.clone());
+            let mut next = if let Some(saved) = profiles.get(*id) {
+                validate_saved_theme_scheme(saved)?;
+                saved.clone()
+            } else {
+                current
+            };
+            if !next.is_object() {
+                return Err("invalid saved theme scheme".into());
+            }
+            next["themeId"] = json!(id);
+            next["themeProfiles"] = Value::Object(profiles);
+            json_save(&path, &next)?;
+            drop(guard);
+            if defer_projections {
+                // Settings consumes this durable acknowledgement before it
+                // starts the separately observable Hyprland/Kitty projection.
+                emit(&json!({"themeId": next["themeId"], "committed": true}))?;
+            } else {
+                let hyprland = hypr_scheme_current(&path);
+                let kitty = sync_kitty_current(&path);
+                let applied = hyprland.is_ok() && kitty.is_ok();
+                let error = hyprland
+                    .err()
+                    .or_else(|| kitty.err())
+                    .map(|failure| failure.to_string());
+                emit(&json!({
+                    "themeId": next["themeId"],
+                    "committed": true,
+                    "projectionApplied": applied,
+                    "projectionError": error
+                }))?;
+            }
+        }
+        ["sync-projections"] => {
+            hypr_scheme_current(&path)?;
+            sync_kitty_current(&path)?;
+        }
         ["sync-kitty"] => sync_kitty_current(&path)?,
         ["set", "-v", variant] if !variant.is_empty() => {
             let _guard = lock(&path.with_file_name("scheme.lock"), false)?;
@@ -251,13 +369,21 @@ pub fn scheme(args: &[String]) -> Result<i32> {
             if !wallpaper_scheme_sync_allowed() {
                 return Ok(3);
             }
+            let previous = optional_json_object(&path)
+                .map_err(|_| "scheme.json is not a readable JSON object")?
+                .unwrap_or_else(|| json!({}));
+            for key in ["themeId", "themeProfiles"] {
+                if let Some(value) = previous.get(key) {
+                    incoming[key] = value.clone();
+                }
+            }
             incoming["schema"] = json!(2);
             incoming["origin"] = json!("wallpaper");
             json_save(&path, &incoming)?;
         }
         _ => {
             eprintln!(
-                "usage: cortetsu-scheme {{list|get -nfv|set -n NAME FLAVOUR|set -v VARIANT|apply-wallpaper-colors|sync-kitty}}"
+                "usage: cortetsu-scheme {{list|get -nfv|set -n NAME FLAVOUR|set -v VARIANT|theme ink|washi|kurogane|apply-wallpaper-colors|sync-kitty}}"
             );
             return Ok(2);
         }

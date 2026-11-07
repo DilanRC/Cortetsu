@@ -7,7 +7,9 @@ are replaced, so a test can put each one in any state and never touches the
 host.
 """
 import json
+import fcntl
 import os
+import shlex
 import shutil
 import subprocess
 import time
@@ -215,6 +217,33 @@ QtObject {
 }
 """
 
+REQUESTS = """pragma Singleton
+import QtQml
+import Quickshell
+Singleton {
+    id: root
+    property var requested: []
+    function get(url, onSuccess, onError, headers = {}) {
+        requested = [...requested, url];
+        let payload = {};
+        if (url.includes("geocoding-api.open-meteo.com"))
+            payload = { results: [{ name: "Lima", latitude: -12.0464, longitude: -77.0428 }] };
+        else if (url.includes("api.open-meteo.com/v1/forecast"))
+            payload = { current: { temperature_2m: 21, apparent_temperature: 22, relative_humidity_2m: 60,
+                    wind_speed_10m: 5, is_day: 1, weather_code: 1 },
+                daily: { time: ["2026-11-06"], temperature_2m_max: [24], temperature_2m_min: [18],
+                    weather_code: [1], sunrise: ["2026-11-06T05:30"], sunset: ["2026-11-06T17:30"] },
+                hourly: { time: [new Date().toISOString().slice(0, 16)], temperature_2m: [21],
+                    precipitation_probability: [0], weather_code: [1] } };
+        else if (url.includes("ip-api.com"))
+            payload = { status: "fail" };
+        else if (url.includes("nominatim.openstreetmap.org"))
+            payload = { features: [] };
+        Qt.callLater(() => onSuccess?.(JSON.stringify(payload), { statusCode: 200, headers: {} }));
+    }
+}
+"""
+
 WALLPAPERS = """pragma Singleton
 import QtQuick
 QtObject {
@@ -254,6 +283,7 @@ STUBS = {
     "modules/CortetsuNotifications.qml": NOTIFICATIONS,
     "modules/CortetsuWallpapers.qml": WALLPAPERS,
     "services/Nvibrant.qml": NVIBRANT,
+    "services/Requests.qml": REQUESTS,
 }
 
 BINDINGS = {"ok": True, "bindings": [
@@ -440,7 +470,16 @@ def run(folder: Path, shell: str, scenario: str, *, preferences: dict | None = N
     for name, text in COMMANDS.items():
         (binaries / name).write_text(text, encoding="utf-8")
         (binaries / name).chmod(0o755)
-    (binaries / "cortetsu-scheme").symlink_to(ROOT / "bin/cortetsu-scheme")
+    native_root = os.environ.get("CORTETSU_SETTINGS_NATIVE_ROOT")
+    if native_root:
+        (binaries / "cortetsu-scheme").write_text(
+            "#!/usr/bin/env bash\nexec env CORTETSU_REPO_ROOT=" + shlex.quote(str(REPO))
+            + " CORTETSU_RESOURCE_ROOT=" + shlex.quote(str(ROOT)) + " "
+            + shlex.quote(str(Path(native_root) / "cortetsu-desktop-runtime"))
+            + " cortetsu-scheme \"$@\"\n", encoding="utf-8")
+        (binaries / "cortetsu-scheme").chmod(0o755)
+    else:
+        (binaries / "cortetsu-scheme").symlink_to(ROOT / "bin/cortetsu-scheme")
     (fixtures / "systemctl-mode").write_text("ok")
     (fixtures / "keybinds-mode").write_text("ok")
     (fixtures / "bindings.json").write_text(json.dumps(BINDINGS), encoding="utf-8")
@@ -450,16 +489,24 @@ def run(folder: Path, shell: str, scenario: str, *, preferences: dict | None = N
         (home / ".config/cortetsu/preferences.json").write_text(json.dumps(preferences), encoding="utf-8")
     runtime = home / "runtime"
     runtime.mkdir(mode=0o700)
-    result = subprocess.run(
-        ["quickshell", "-p", str(folder / shell)],
-        env={**os.environ, "QT_QPA_PLATFORM": os.environ.get("CORTETSU_TEST_QPA", "offscreen"), "HOME": str(home),
-             "XDG_RUNTIME_DIR": str(runtime),
-             "XDG_STATE_HOME": str(home / "state"), "XDG_CONFIG_HOME": str(home / ".config"),
-             "XDG_CACHE_HOME": str(home / "cache"), "PATH": f'{binaries}:{os.environ["PATH"]}',
-             "CORTETSU_SKIP_RELOAD": "1", "SETTINGS_FIXTURES": str(fixtures), "SETTINGS_SCENARIO": scenario,
-             "CORTETSU_RENDER_DIR": os.environ.get("CORTETSU_RENDER_DIR", ""), **(env or {})},
-        capture_output=True, text=True, timeout=timeout,
-    )
+    run_env = {**os.environ, "QT_QPA_PLATFORM": os.environ.get("CORTETSU_TEST_QPA", "offscreen"), "HOME": str(home),
+               "XDG_RUNTIME_DIR": str(runtime),
+               "XDG_STATE_HOME": str(home / "state"), "XDG_CONFIG_HOME": str(home / ".config"),
+               "XDG_CACHE_HOME": str(home / ".cache"), "PATH": f'{binaries}:{os.environ["PATH"]}',
+               "CORTETSU_SKIP_RELOAD": "1", "SETTINGS_FIXTURES": str(fixtures), "SETTINGS_SCENARIO": scenario,
+               "CORTETSU_RENDER_DIR": os.environ.get("CORTETSU_RENDER_DIR", ""), **(env or {})}
+    args = ["quickshell", "-p", str(folder / shell)]
+    if scenario == "themeSlowCommit":
+        lock = (home / "state/cortetsu/scheme.lock").open("w")
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        process = subprocess.Popen(args, env=run_env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        time.sleep(1)
+        fcntl.flock(lock, fcntl.LOCK_UN)
+        lock.close()
+        stdout, stderr = process.communicate(timeout=timeout)
+        result = subprocess.CompletedProcess(args, process.returncode, stdout, stderr)
+    else:
+        result = subprocess.run(args, env=run_env, capture_output=True, text=True, timeout=timeout)
     output = result.stdout + result.stderr
     assert result.returncode == 0, output
     for marker in FAILURE_MARKERS:

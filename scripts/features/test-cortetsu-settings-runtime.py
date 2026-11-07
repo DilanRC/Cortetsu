@@ -19,6 +19,8 @@ What it proves:
 Set CORTETSU_RENDER_DIR to keep a PNG of every page and state.
 """
 import json
+import os
+import sys
 import subprocess
 import tempfile
 from pathlib import Path
@@ -32,6 +34,7 @@ import Quickshell
 import Quickshell.Io
 import "modules"
 import "modules/settings"
+import "modules/CortetsuNotificationModel.js" as NotificationModel
 import "modules/launcher/services"
 import "components"
 import "services"
@@ -719,6 +722,76 @@ ShellRoot {
         }]
     ]
 
+    readonly property var weatherPreferences: [
+        [() => CortetsuConfig.loaded, () => { select("services"); screenDouble.settings = true; }],
+        [() => !!content && !!page("weatherLocation"), () => { window.requestActivate(); }],
+        [() => window.active, () => {
+            const entry = find(page("weatherLocation"), "entry");
+            entry.forceActiveFocus(); key(Qt.Key_A, Qt.ControlModifier);
+            key(Qt.Key_L, Qt.ShiftModifier); key(Qt.Key_I); key(Qt.Key_M); key(Qt.Key_A);
+            key(Qt.Key_Return);
+            verify(CortetsuConfig.weatherLocation === "lima", "text entry commits the weather service preference");
+            verify(CortetsuRegional.parseLocationQuery(CortetsuRegional.weatherLocation).value === "lima", "the regional weather contract receives the committed city");
+            key(Qt.Key_A, Qt.ControlModifier); key(Qt.Key_X); key(Qt.Key_Escape);
+            verify(CortetsuConfig.weatherLocation === "lima" && screenDouble.settings, "Escape cancels a draft before closing Settings");
+            page("weatherLocation").committed("999,12");
+            verify(page("weatherLocation").status === "error", "out-of-range coordinates show an actionable error");
+            verify(CortetsuConfig.weatherLocation === "lima", "invalid coordinates retain the confirmed location");
+            page("weatherLocation").committed("lima");
+        }],
+        [() => Weather.city === "Lima" && Weather.cc?.tempC === 21, () => {
+            verify(Requests.requested.some(url => url.includes("geocoding-api.open-meteo.com") && url.includes("name=lima")),
+                "the committed city reaches the real weather geocoder through the request double");
+            verify(Requests.requested.some(url => url.includes("api.open-meteo.com/v1/forecast") && url.includes("latitude=-12.0464")),
+                "the resolved location requests a forecast and updates service state");
+        }],
+        [() => CortetsuConfig.saveState === "saved", () => {}]
+    ]
+    readonly property var weatherRestore: [
+        [() => CortetsuConfig.loaded, () => {
+            verify(CortetsuRegional.weatherLocation === "lima", "the location survives a new process");
+        }]
+    ]
+
+    readonly property var notificationPreferences: [
+        [() => CortetsuConfig.loaded, () => { select("notifications"); screenDouble.settings = true; }],
+        [() => !!content && !!page("notificationTimeout"), () => { window.requestActivate(); }],
+        [() => window.active, () => {
+            find(page("notificationTimeout"), "slider").forceActiveFocus(); key(Qt.Key_Right);
+            verify(CortetsuConfig.notificationDefaultExpireTimeout === 6000, "the duration control writes milliseconds to the backend contract");
+            verify(NotificationModel.popupTimeout(-1, CortetsuConfig.notificationDefaultExpireTimeout, true) === 6000,
+                "the notification expiry calculation uses the chosen duration");
+            verify(NotificationModel.popupTimeout(2000, CortetsuConfig.notificationDefaultExpireTimeout, true) === 2000,
+                "an application-specific duration remains authoritative");
+        }],
+        [() => CortetsuConfig.saveState === "saved", () => {}]
+    ]
+    readonly property var notificationRestore: [
+        [() => CortetsuConfig.loaded, () => {
+            verify(NotificationModel.popupTimeout(-1, CortetsuConfig.notificationDefaultExpireTimeout, true) === 6000,
+                "a new process restores the chosen notification duration");
+        }]
+    ]
+    readonly property var notificationLongPreferences: [
+        [() => CortetsuConfig.loaded, () => { select("notifications"); screenDouble.settings = true; }],
+        [() => !!content && !!page("notificationTimeout"), () => { window.requestActivate(); }],
+        [() => window.active, () => {
+            const slider = find(page("notificationTimeout"), "slider");
+            verify(slider.to > CortetsuConfig.notificationDefaultExpireTimeout / 1000,
+                "a saved duration above the usual range can still be increased");
+            slider.forceActiveFocus(); key(Qt.Key_Right);
+            verify(CortetsuConfig.notificationDefaultExpireTimeout === 91000,
+                "the long duration control continues to write an increased value");
+        }],
+        [() => CortetsuConfig.saveState === "saved", () => {}]
+    ]
+    readonly property var notificationLongRestore: [
+        [() => CortetsuConfig.loaded, () => {
+            verify(CortetsuConfig.notificationDefaultExpireTimeout === 91000,
+                "an increased long duration survives process restart");
+        }]
+    ]
+
     readonly property var clockPreferences: [
         [() => CortetsuConfig.loaded, () => {
             verify(CortetsuConfig.desktopClockPosition === "top-left", "the old camel-case clock position migrates to an actual runtime state");
@@ -755,6 +828,52 @@ ShellRoot {
         [() => CortetsuConfig.saveState === "saved", () => {}]
     ]
 
+    readonly property var themeRecovery: [
+        [() => CortetsuConfig.loaded && CortetsuThemes.reconciled, () => {
+            verify(CortetsuConfig.themeId === "washi", "startup recovers a native commit made before the preferences write");
+            verify(CortetsuDesign.radiusSurface === 18, "recovered native ownership reaches the design tokens");
+        }],
+        [() => CortetsuConfig.saveState === "saved", () => {}]
+    ]
+
+    readonly property var themeFailure: [
+        [() => CortetsuConfig.loaded && Schemes.catalogCount > 0, () => {
+            select("appearance"); screenDouble.settings = true;
+        }],
+        [() => !!content && !!page("theme-washi"), () => { stateFile.setText("{broken"); }],
+        [() => waitedMs >= 200, () => { page("theme-washi").request(); }],
+        [() => !CortetsuThemes.busy && CortetsuThemes.error.length > 0, () => {
+            verify(CortetsuConfig.themeId === "ink", "a failed native restore cannot change the confirmed theme");
+            verify(page("theme-washi").status === "error", "the theme control exposes the native failure");
+            verify(CortetsuDesign.radiusSurface === 28, "a failure retains the confirmed design tokens");
+        }]
+    ]
+
+    readonly property var themeSlowCommit: [
+        [() => CortetsuConfig.loaded && CortetsuThemes.reconciled, () => {
+            select("appearance"); screenDouble.settings = true;
+        }],
+        [() => !!content && !!page("theme-washi"), () => { page("theme-washi").request(); }],
+        [() => CortetsuConfig.themeId === "washi" && !CortetsuThemes.busy, () => {
+            verify(CortetsuThemes.slowNoticeShown, "the progress notice does not kill a helper waiting on the state lock");
+            verify(!CortetsuThemes.error.includes("esperando"),
+                "a slow durable commit continues after the progress timer and clears its transient notice");
+            verify(CortetsuConfig.themeId === "washi", "the late native acknowledgement updates the active theme");
+        }]
+    ]
+
+    readonly property var themeProjectionFailure: [
+        [() => CortetsuConfig.loaded && CortetsuThemes.reconciled, () => {
+            select("appearance"); screenDouble.settings = true;
+        }],
+        [() => !!content && !!page("theme-washi"), () => { page("theme-washi").request(); }],
+        [() => CortetsuConfig.themeId === "washi" && !CortetsuThemes.busy, () => {
+            verify(CortetsuThemes.error.length > 0,
+                "Settings reports a projection that starts but fails instead of claiming complete application");
+            verify(CortetsuConfig.themeId === "washi", "a projection error does not undo the durable product theme");
+        }]
+    ]
+
     readonly property var themeSelect: [
         [() => CortetsuConfig.loaded && Schemes.catalogCount > 0, () => {
             select("appearance"); screenDouble.settings = true;
@@ -762,23 +881,26 @@ ShellRoot {
         [() => !!content && !!page("theme-" + Quickshell.env("THEME_ID")), () => {
             const id = Quickshell.env("THEME_ID");
             page("theme-" + id).request();
-            verify(CortetsuConfig.themeId === id, "the theme control changes the persistent owner");
         }],
-        [() => CortetsuConfig.saveState === "saved", () => {
+        [() => CortetsuConfig.themeId === Quickshell.env("THEME_ID") && CortetsuConfig.saveState === "saved" && !CortetsuThemes.busy, () => {
             const id = Quickshell.env("THEME_ID");
+            verify(CortetsuConfig.themeId === id, "the theme control changes the persistent owner after native confirmation");
+            verify(CortetsuThemes.error === "", "successful external projections clear the pending and failure status");
             verify(page("theme-" + id).actionDisabled, "the active theme is confirmed in Settings");
             verify(CortetsuDesign.radiusSurface === (id === "washi" ? 18 : 14), "the selected material updates live");
             render("theme-" + id);
             CortetsuConfig.transparencyEnabled = true;
             CortetsuConfig.reducedMotion = true;
+            CortetsuConfig.smartScheme = false;
             CortetsuConfig.selectTheme("ink");
             CortetsuConfig.transparencyEnabled = false;
             CortetsuConfig.reducedMotion = false;
+            CortetsuConfig.smartScheme = true;
             CortetsuConfig.selectTheme(id);
-            verify(CortetsuConfig.transparencyEnabled && CortetsuConfig.reducedMotion,
+            verify(CortetsuConfig.transparencyEnabled && CortetsuConfig.reducedMotion && !CortetsuConfig.smartScheme,
                 "returning to a theme restores its material and motion preferences");
             CortetsuConfig.selectTheme("ink");
-            verify(!CortetsuConfig.transparencyEnabled && !CortetsuConfig.reducedMotion,
+            verify(!CortetsuConfig.transparencyEnabled && !CortetsuConfig.reducedMotion && CortetsuConfig.smartScheme,
                 "Ink retains independent material and motion preferences");
             CortetsuConfig.selectTheme(id);
         }],
@@ -787,9 +909,9 @@ ShellRoot {
     readonly property var themeRestore: [
         [() => CortetsuConfig.loaded, () => {
             verify(CortetsuConfig.themeId === Quickshell.env("THEME_ID"), "a new process restores the selected theme");
-            verify(CortetsuConfig.transparencyEnabled && CortetsuConfig.reducedMotion, "the active theme restores its material and motion preferences");
+            verify(CortetsuConfig.transparencyEnabled && CortetsuConfig.reducedMotion && !CortetsuConfig.smartScheme, "the active theme restores its material and motion preferences");
             CortetsuConfig.selectTheme("ink");
-            verify(!CortetsuConfig.transparencyEnabled && !CortetsuConfig.reducedMotion, "the inactive theme also survives process restart");
+            verify(!CortetsuConfig.transparencyEnabled && !CortetsuConfig.reducedMotion && CortetsuConfig.smartScheme, "the inactive theme also survives process restart");
             CortetsuConfig.selectTheme(Quickshell.env("THEME_ID"));
             verify(CortetsuDesign.radiusSurface === (CortetsuConfig.themeId === "washi" ? 18 : 14), "restored preferences reach the design tokens");
         }]
@@ -931,6 +1053,22 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     folder = Path(temporary)
     build_tree(folder)
     (folder / "shell.qml").write_text(SHELL, encoding="utf-8")
+    if os.environ.get("CORTETSU_SETTINGS_SCENARIO"):
+        scenario = os.environ["CORTETSU_SETTINGS_SCENARIO"]
+        isolated_scheme = json.loads(os.environ["CORTETSU_SETTINGS_SCHEME"]) if "CORTETSU_SETTINGS_SCHEME" in os.environ else None
+        scenario_env = {}
+        if scenario == "themeSlowCommit":
+            fixture = json.loads((ROOT / "desktop-runtime-rs/tests/fixtures/legacy-palettes.json").read_text())
+            isolated_scheme = {"schema": 2, "themeId": "ink", "name": "dynamic", "flavour": "default",
+                               "variant": "tonal-spot", "mode": "dark", "origin": "manual",
+                               "colours": fixture["cases"][0]["colours"]}
+            scenario_env["CORTETSU_THEME_ACK_TIMEOUT_MS"] = "50"
+        output, _ = run(folder, "shell.qml", scenario,
+                        preferences=json.loads(os.environ.get("CORTETSU_SETTINGS_PREFERENCES", '{"schema": 1}')),
+                        scheme=isolated_scheme, env=scenario_env)
+        print(output)
+        sys.exit(0)
+
 
     output, home = run(folder, "shell.qml", "reactivity",
                        scheme={"name": "oceanicnext", "flavour": "default", "colours": {}},
@@ -968,6 +1106,28 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     assert json.loads((blocked / "original.json").read_text()) == {"schema": 1}
     policies = passed(run(folder, "shell.qml", "policies")[0])
 
+    output, weather_home = run(folder, "shell.qml", "weatherPreferences", preferences={"schema": 1})
+    assert passed(output) == 7, output
+    weather_saved = json.loads((weather_home / ".config/cortetsu/preferences.json").read_text())
+    assert weather_saved["weatherLocation"] == "lima", weather_saved
+    restored, _ = run(folder, "shell.qml", "weatherRestore", preferences=weather_saved)
+    assert passed(restored) == 1, restored
+
+    output, notif_home = run(folder, "shell.qml", "notificationPreferences", preferences={"schema": 1})
+    assert passed(output) == 3, output
+    notif_saved = json.loads((notif_home / ".config/cortetsu/preferences.json").read_text())
+    assert notif_saved["notificationDefaultExpireTimeout"] == 6000, notif_saved
+    restored, _ = run(folder, "shell.qml", "notificationRestore", preferences=notif_saved)
+    assert passed(restored) == 1, restored
+
+    output, notif_long_home = run(folder, "shell.qml", "notificationLongPreferences",
+                                  preferences={"schema": 1, "notificationDefaultExpireTimeout": 90000})
+    assert passed(output) == 2, output
+    notif_long = json.loads((notif_long_home / ".config/cortetsu/preferences.json").read_text())
+    assert notif_long["notificationDefaultExpireTimeout"] == 91000, notif_long
+    restored, _ = run(folder, "shell.qml", "notificationLongRestore", preferences=notif_long)
+    assert passed(restored) == 1, restored
+
     output, clock_home = run(folder, "shell.qml", "clockPreferences",
                              preferences={"schema": 1, "desktopClockPosition": "topLeft"})
     assert passed(output) == 3, output
@@ -982,10 +1142,36 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     assert abs(audio_saved["maxVolume"] - 1.05) < 0.001, audio_saved
     assert abs(audio_saved["audioIncrement"] - 0.11) < 0.001, audio_saved
 
+    recovered, recovered_home = run(folder, "shell.qml", "themeRecovery",
+        preferences={"schema": 1, "themeId": "ink"},
+        scheme={"name": "dynamic", "flavour": "default", "colours": {}, "themeId": "washi"})
+    assert passed(recovered) == 2, recovered
+    assert json.loads((recovered_home / ".config/cortetsu/preferences.json").read_text())["themeId"] == "washi"
+
+    failed, failed_home = run(folder, "shell.qml", "themeFailure")
+    assert passed(failed) == 3, failed
+    assert (failed_home / "state/cortetsu/scheme.json").read_text() == "{broken"
+
+    fixture_colours = json.loads((ROOT / "desktop-runtime-rs/tests/fixtures/legacy-palettes.json").read_text())
+    slow_scheme = {"schema": 2, "themeId": "ink", "name": "dynamic", "flavour": "default",
+                   "variant": "tonal-spot", "mode": "dark", "origin": "manual",
+                   "colours": fixture_colours["cases"][0]["colours"]}
+    slow, slow_home = run(folder, "shell.qml", "themeSlowCommit", preferences={"schema": 1},
+                          scheme=slow_scheme, env={"CORTETSU_THEME_ACK_TIMEOUT_MS": "50"})
+    assert passed(slow) == 3, slow
+    slow_saved = json.loads((slow_home / "state/cortetsu/scheme.json").read_text())
+    assert slow_saved["themeId"] == "washi", slow_saved
+
+    projection_failure, _ = run(folder, "shell.qml", "themeProjectionFailure", preferences={"schema": 1})
+    assert passed(projection_failure) == 2, projection_failure
+
+    theme_colours = fixture_colours["cases"][0]["colours"]
+    theme_scheme = {"schema": 2, "name": "dynamic", "flavour": "default", "variant": "tonal-spot",
+                    "mode": "dark", "origin": "manual", "colours": theme_colours}
     for theme in ("washi", "kurogane"):
         output, theme_home = run(folder, "shell.qml", "themeSelect", label=f"select-{theme}",
-                                 preferences={"schema": 1}, env={"THEME_ID": theme})
-        assert passed(output) == 5, output
+                                 preferences={"schema": 1}, scheme=theme_scheme, env={"THEME_ID": theme})
+        assert passed(output) == 6, output
         theme_saved = json.loads((theme_home / ".config/cortetsu/preferences.json").read_text())
         assert theme_saved["themeId"] == theme, theme_saved
         restored, _ = run(folder, "shell.qml", "themeRestore", label=f"restore-{theme}",
@@ -1006,7 +1192,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     host = run_host(folder)
     assert not host or "SETTINGS_HOST_PASS 1" in host, host
 
-assert (reactivity, navigation, states, unwritable, pages) == (47, 70, 41, 3, 8), (reactivity, navigation, states, unwritable, pages)
+assert (reactivity, navigation, states, unwritable, pages) == (47, 71, 41, 3, 8), (reactivity, navigation, states, unwritable, pages)
 assert policies == 16, policies
 print(f"Settings builds in {opened.split()[0]} ms ({opened.split()[1]} items); "
       f"20 cycles of open, eight pages and close take {cycles} ms")

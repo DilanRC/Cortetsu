@@ -37,6 +37,23 @@ ColumnLayout {
     }
 
     SettingsGroup {
+        title: qsTr("Duración de los avisos")
+        detail: qsTr("Para avisos nuevos cuando la aplicación no indica una duración")
+        SettingSliderRow {
+            objectName: "notificationTimeout"
+            title: qsTr("Cerrar después de")
+            from: 0
+            // Preserve and extend long values instead of trapping a saved
+            // timeout at its current value when it exceeds the base range.
+            to: Math.max(60, Math.ceil(CortetsuConfig.notificationDefaultExpireTimeout / 1000) + 300)
+            step: 1
+            value: CortetsuConfig.notificationDefaultExpireTimeout / 1000
+            valueText: value === 0 ? qsTr("Hasta cerrar manualmente") : qsTr("%1 s").arg(value)
+            onMoved: next => { CortetsuConfig.notificationDefaultExpireTimeout = Math.round(next * 1000); CortetsuConfig.save(); }
+        }
+    }
+
+    SettingsGroup {
         title: qsTr("Avisos")
 
         SettingToggleRow {

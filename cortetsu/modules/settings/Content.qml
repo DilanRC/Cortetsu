@@ -24,7 +24,7 @@ FocusScope {
 
     // Automatic density follows the window until the user chooses a rail mode.
     property int railMode: 0 // 0 automatic, 1 expanded, -1 compact
-    readonly property bool collapsed: railMode === 0 ? width < 940 : railMode < 0
+    readonly property bool collapsed: railMode === 0 ? width <= 900 : railMode < 0
     readonly property var category: controller.selectedCategory
     readonly property string alert: category ? settingsContext.pageAlert(category.id) : ""
     readonly property string summary: category ? settingsContext.pageSummary(category.id) : ""
@@ -77,7 +77,7 @@ FocusScope {
     // only while the search has text, which Escape clears first.
     Shortcut {
         sequence: "Escape"
-        enabled: !nexus.searchHoldsEscape
+        enabled: !nexus.searchHoldsEscape && root.focusItem?.objectName !== "entry"
         onActivated: root.close()
     }
 
@@ -114,7 +114,7 @@ FocusScope {
 
         ColumnLayout {
             Layout.fillHeight: true
-            Layout.preferredWidth: root.collapsed ? 64 : 216
+            Layout.preferredWidth: root.collapsed ? 52 : 150
             Layout.maximumWidth: Layout.preferredWidth
             spacing: CortetsuDesign.spacingStandard
 
