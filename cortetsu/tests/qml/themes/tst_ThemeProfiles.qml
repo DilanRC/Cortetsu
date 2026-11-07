@@ -20,6 +20,7 @@ TestCase {
         CortetsuDesign.themeTokens = ({});
         CortetsuDesign.scheme = ({});
         CortetsuDesign.reducedMotion = false;
+        bottomHubIsland.transparencyFactor = 1;
     }
     function test_ink_keeps_compiled_defaults() {
         CortetsuDesign.themeTokens = Profiles.tokens("ink");
@@ -56,6 +57,24 @@ TestCase {
 
         CortetsuDesign.themeTokens = Profiles.tokens("kurogane");
         compare(bottomHubIsland.radius, 14, "Kurogane applies its technical surface radius to Bottom Hub");
+    }
+    function test_bottom_hub_island_material_follows_theme_and_transparency() {
+        bottomHubIsland.transparencyFactor = 1;
+        CortetsuDesign.themeTokens = Profiles.tokens("ink");
+        compare(bottomHubIsland.color.a, 0.82, "Ink keeps the existing island opacity");
+
+        CortetsuDesign.themeTokens = Profiles.tokens("washi");
+        verify(Math.abs(bottomHubIsland.color.a - 0.82 * 0.97 / Defaults.materialGroundAlpha) < 0.001,
+            "Washi applies its compiled ground material opacity");
+
+        CortetsuDesign.themeTokens = Profiles.tokens("kurogane");
+        verify(Math.abs(bottomHubIsland.color.a - 0.82 * 0.98 / Defaults.materialGroundAlpha) < 0.001,
+            "Kurogane applies its compiled ground material opacity");
+
+        bottomHubIsland.transparencyFactor = CortetsuDesign.materialTransparencyFactor;
+        verify(Math.abs(bottomHubIsland.color.a - 0.82 * 0.98 / Defaults.materialGroundAlpha
+            * CortetsuDesign.materialTransparencyFactor) < 0.001,
+            "the transparency factor thins the island material");
     }
     function test_unknown_theme_falls_back_to_ink() {
         compare(Object.keys(Profiles.tokens("unknown")).length, 0);

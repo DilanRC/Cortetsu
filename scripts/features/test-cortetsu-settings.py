@@ -115,6 +115,10 @@ assert "property bool trayMonochromeIcons: false" in bottom_hub_view
 assert "monochromeIcons: root.trayMonochromeIcons" in bottom_hub_view
 assert "layer.enabled: root.monochromeIcons" in tray_segment
 assert "colorizationColor: CortetsuDesign.colorOnSurface" in tray_segment
+island = (SHELL / "modules/CortetsuIsland.qml").read_text(encoding="utf-8")
+assert "CortetsuConfig.transparencyEnabled" in island
+assert "CortetsuDesign.materialTransparencyFactor" in island
+assert "CortetsuDesign.materialGroundAlpha / CortetsuDefaults.materialGroundAlpha" in island
 
 print(f"PASS: {len(page_ids)} end-4 pages compose {sum(map(len, section_ids.values()))} Cortetsu sections, {len(written)} preferences written by Settings "
       "all have a reader, and SUPER+I has one owner")
