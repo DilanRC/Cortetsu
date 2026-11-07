@@ -54,6 +54,7 @@ ColumnLayout {
         }
 
         SettingToggleRow {
+            objectName: "dashboardWeather"
             title: qsTr("Clima")
             checked: CortetsuConfig.dashboard.showWeather
             onToggled: value => { CortetsuConfig.dashboard.showWeather = value; CortetsuConfig.save(); }

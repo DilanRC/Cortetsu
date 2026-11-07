@@ -726,6 +726,10 @@ ShellRoot {
         [() => CortetsuConfig.loaded, () => { select("services"); screenDouble.settings = true; }],
         [() => !!content && !!page("weatherLocation"), () => { window.requestActivate(); }],
         [() => window.active, () => {
+            const interval = find(page("weatherRefreshInterval"), "slider");
+            interval.forceActiveFocus(); key(Qt.Key_Right);
+            verify(CortetsuConfig.weatherRefreshInterval === 3900000 && Weather.refreshInterval === 3900000,
+                "the weather interval control updates the real hourly refresh timer");
             const entry = find(page("weatherLocation"), "entry");
             entry.forceActiveFocus(); key(Qt.Key_A, Qt.ControlModifier);
             key(Qt.Key_L, Qt.ShiftModifier); key(Qt.Key_I); key(Qt.Key_M); key(Qt.Key_A);
@@ -750,6 +754,25 @@ ShellRoot {
     readonly property var weatherRestore: [
         [() => CortetsuConfig.loaded, () => {
             verify(CortetsuRegional.weatherLocation === "lima", "the location survives a new process");
+            verify(CortetsuConfig.weatherRefreshInterval === 3900000 && Weather.refreshInterval === 3900000,
+                "the selected forecast interval survives a new process and restores its timer");
+        }]
+    ]
+    readonly property var weatherVisibilityPreferences: [
+        [() => CortetsuConfig.loaded, () => { select("interface"); screenDouble.settings = true; }],
+        [() => !!content && !!page("dashboardWeather"), () => { window.requestActivate(); }],
+        [() => window.active, () => {
+            const toggle = page("dashboardWeather");
+            toggle.forceActiveFocus(); key(Qt.Key_Space);
+            verify(!CortetsuConfig.dashboard.showWeather,
+                "the weather visibility option updates the Dashboard's actual weather slot");
+        }],
+        [() => CortetsuConfig.saveState === "saved", () => {}]
+    ]
+    readonly property var weatherVisibilityRestore: [
+        [() => CortetsuConfig.loaded, () => {
+            verify(!CortetsuConfig.dashboard.showWeather,
+                "the Dashboard weather visibility choice survives process restart");
         }]
     ]
 
@@ -1107,10 +1130,19 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     policies = passed(run(folder, "shell.qml", "policies")[0])
 
     output, weather_home = run(folder, "shell.qml", "weatherPreferences", preferences={"schema": 1})
-    assert passed(output) == 7, output
+    assert passed(output) == 8, output
     weather_saved = json.loads((weather_home / ".config/cortetsu/preferences.json").read_text())
     assert weather_saved["weatherLocation"] == "lima", weather_saved
+    assert weather_saved["weatherRefreshInterval"] == 3900000, weather_saved
     restored, _ = run(folder, "shell.qml", "weatherRestore", preferences=weather_saved)
+    assert passed(restored) == 2, restored
+
+    output, weather_visibility_home = run(folder, "shell.qml", "weatherVisibilityPreferences",
+                                          preferences={"schema": 1})
+    assert passed(output) == 1, output
+    weather_visibility_saved = json.loads((weather_visibility_home / ".config/cortetsu/preferences.json").read_text())
+    assert weather_visibility_saved["dashboard"]["showWeather"] is False, weather_visibility_saved
+    restored, _ = run(folder, "shell.qml", "weatherVisibilityRestore", preferences=weather_visibility_saved)
     assert passed(restored) == 1, restored
 
     output, notif_home = run(folder, "shell.qml", "notificationPreferences", preferences={"schema": 1})

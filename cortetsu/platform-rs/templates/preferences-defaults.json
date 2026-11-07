@@ -23,6 +23,7 @@
   "useFahrenheit": false,
   "useFahrenheitPerformance": false,
   "weatherLocation": "",
+  "weatherRefreshInterval": 3600000,
   "audioIncrement": 0.1,
   "brightnessIncrement": 0.1,
   "maxVolume": 1.0,

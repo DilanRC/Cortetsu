@@ -33,4 +33,24 @@ SettingsGroup {
             CortetsuConfig.save();
         }
     }
+
+    SettingsGroup {
+        title: qsTr("Actualización del pronóstico")
+        detail: qsTr("Frecuencia de consulta del servicio meteorológico")
+        SettingSliderRow {
+            objectName: "weatherRefreshInterval"
+            title: qsTr("Actualizar cada")
+            from: 5
+            to: 240
+            step: 5
+            value: CortetsuConfig.weatherRefreshInterval / 60000
+            valueText: value >= 60
+                ? qsTr("%1 h %2 min").arg(Math.floor(value / 60)).arg(value % 60)
+                : qsTr("%1 min").arg(value)
+            onMoved: next => {
+                CortetsuConfig.weatherRefreshInterval = Math.round(next * 60000);
+                CortetsuConfig.save();
+            }
+        }
+    }
 }

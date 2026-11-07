@@ -456,8 +456,13 @@
       "option": "bar.weather.enable",
       "source": "dots/.config/quickshell/ii/modules/settings/BarConfig.qml",
       "line": 247,
-      "status": "pending",
-      "cortetsu": null
+      "status": "adapted",
+      "cortetsu": {
+        "control": "modules/settings/sections/DesktopSection.qml#dashboardWeather",
+        "result": "controls whether the Cortetsu Dashboard includes its weather slot",
+        "test": "scripts/features/test-cortetsu-settings-runtime.py#weatherVisibilityPreferences,weatherVisibilityRestore"
+      },
+      "notes": "Cortetsu presents weather inside Dashboard rather than as a Bottom Hub segment."
     },
     {
       "page": "BarConfig",
@@ -1464,8 +1469,13 @@
       "option": "bar.weather.fetchInterval",
       "source": "dots/.config/quickshell/ii/modules/settings/ServicesConfig.qml",
       "line": 269,
-      "status": "pending",
-      "cortetsu": null
+      "status": "adapted",
+      "cortetsu": {
+        "control": "modules/settings/sections/WeatherSection.qml#weatherRefreshInterval",
+        "result": "Cortetsu Weather Timer runs at the saved interval (5–240 minutes; default 60 minutes)",
+        "test": "scripts/features/test-cortetsu-settings-runtime.py#weatherPreferences,weatherRestore"
+      },
+      "notes": "Interval applies to Weather.reload() through its live Timer binding; tests use deterministic Requests."
     }
   ]
 }

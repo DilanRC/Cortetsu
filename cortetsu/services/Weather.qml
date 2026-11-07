@@ -15,6 +15,7 @@ Singleton {
     property list<var> hourlyForecast: []
     property int requestGeneration: 0
     property var cachedCities: ({})
+    readonly property int refreshInterval: refreshTimer.interval
 
     readonly property string icon: cc ? weatherIcon(cc.weatherCode) : "󰖐"
     readonly property string description: cc?.weatherDesc ?? qsTr("No weather")
@@ -90,7 +91,13 @@ Singleton {
 
     onLocChanged: fetchForecast()
     Connections { target: CortetsuRegional; function onWeatherLocationChanged(): void { root.reload(); } }
-    Timer { interval: 3600000; running: true; repeat: true; onTriggered: root.reload() }
+    Timer {
+        id: refreshTimer
+        interval: CortetsuConfig.weatherRefreshInterval
+        running: true
+        repeat: true
+        onTriggered: root.reload()
+    }
     FileView {
         id: cache
         path: `${Quickshell.env("XDG_CACHE_HOME") || `${Quickshell.env("HOME")}/.cache`}/cortetsu/cities.json`
