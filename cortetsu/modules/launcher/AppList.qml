@@ -76,6 +76,8 @@ GridView {
         case "scheme":
             return Schemes.query(text);
         case "variant":
+            if (!M3Variants.variantAvailable)
+                return [];
             return M3Variants.query(text);
         default:
             return Apps.search(text);

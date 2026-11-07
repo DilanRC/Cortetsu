@@ -115,6 +115,7 @@ ColumnLayout {
         title: qsTr("Fondo del escritorio")
 
         SettingToggleRow {
+            objectName: "desktopClockEnabled"
             title: qsTr("Reloj del escritorio")
             detail: qsTr("Un reloj sobre el fondo, detrás de las ventanas")
             checked: CortetsuConfig.desktopClockEnabled

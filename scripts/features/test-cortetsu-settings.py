@@ -119,6 +119,25 @@ island = (SHELL / "modules/CortetsuIsland.qml").read_text(encoding="utf-8")
 assert "CortetsuConfig.transparencyEnabled" in island
 assert "CortetsuDesign.materialTransparencyFactor" in island
 assert "CortetsuDesign.materialGroundAlpha / CortetsuDefaults.materialGroundAlpha" in island
+schemes = (SHELL / "modules/launcher/services/Schemes.qml").read_text(encoding="utf-8")
+app_list = (SHELL / "modules/launcher/AppList.qml").read_text(encoding="utf-8")
+variants = (SHELL / "modules/launcher/services/M3Variants.qml").read_text(encoding="utf-8")
+appearance = sources[SETTINGS / "sections/AppearanceSection.qml"]
+assert "Schemes.applyVariant(modelData.variant)" in appearance
+assert "const valid = M3Variants.list.some(item => item.variant === value)" in schemes
+assert '"cortetsu-scheme", "set", "-v", value' in schemes
+assert "CortetsuColours.variant" in schemes
+assert 'if (!M3Variants.variantAvailable)' in app_list
+assert "if (!root.variantAvailable)" in variants
+assert "anchors.bottom: true" in bottom_hub
+assert all("CortetsuIsland {}" in (SHELL / "modules" / filename).read_text(encoding="utf-8")
+           for filename in ("CortetsuModeSegment.qml", "CortetsuAppRail.qml",
+                            "CortetsuTraySegment.qml", "CortetsuStatusSegment.qml"))
+power = (SHELL / "services/CortetsuPower.qml").read_text(encoding="utf-8")
+assert "root.value <= 0.2" in power
+battery_monitor = (SHELL / "modules/BatteryMonitor.qml").read_text(encoding="utf-8")
+assert "percentage <= 3 && !criticalNoticeSent" in battery_monitor
+assert "CortetsuSession.hibernate()" in battery_monitor and "CortetsuSession.suspend()" in battery_monitor
 
 print(f"PASS: {len(page_ids)} end-4 pages compose {sum(map(len, section_ids.values()))} Cortetsu sections, {len(written)} preferences written by Settings "
       "all have a reader, and SUPER+I has one owner")

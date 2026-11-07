@@ -82,6 +82,41 @@ ColumnLayout {
         }
     }
 
+    SettingsGroup {
+        objectName: "paletteVariants"
+        title: qsTr("Variante de paleta")
+        detail: Schemes.variantStatus === "applying"
+            ? qsTr("Guardando en el sistema…")
+            : Schemes.variantError
+                ? Schemes.variantError
+                : !Schemes.variantAvailable
+                    ? qsTr("Aplica primero un esquema de color para generar una paleta")
+                    : qsTr("Define cómo el color del fondo genera los tonos Material")
+
+        Repeater {
+            model: M3Variants.list
+
+            SettingActionRow {
+                required property var modelData
+                objectName: `variant-${modelData.variant}`
+                title: modelData.name
+                detail: modelData.description
+                actionLabel: Schemes.variantIsCurrent(modelData.variant)
+                    ? Schemes.variantError ? qsTr("Reintentar") : qsTr("Activa")
+                    : qsTr("Aplicar")
+                actionDisabled: !Schemes.variantAvailable
+                    || (Schemes.variantIsCurrent(modelData.variant) && Schemes.variantError.length === 0)
+                    || Schemes.variantStatus === "applying"
+                status: Schemes.variantError.length > 0 && Schemes.pendingVariant === modelData.variant
+                    ? "error"
+                    : Schemes.variantStatus === "applying" && Schemes.pendingVariant === modelData.variant
+                        ? "busy" : ""
+                statusText: status === "error" ? Schemes.variantError : ""
+                onActivated: Schemes.applyVariant(modelData.variant)
+            }
+        }
+    }
+
     RowLayout {
         Layout.fillWidth: true
         spacing: CortetsuDesign.spacingCompact
@@ -219,6 +254,7 @@ ColumnLayout {
         }
 
         SettingToggleRow {
+            objectName: "useFahrenheit"
             title: qsTr("Temperatura en Fahrenheit")
             detail: qsTr("En el clima y en las lecturas del equipo")
             checked: CortetsuConfig.useFahrenheit

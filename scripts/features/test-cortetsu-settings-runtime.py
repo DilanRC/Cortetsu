@@ -1380,6 +1380,99 @@ ShellRoot {
         }]
     ]
 
+    readonly property var paletteVariant: [
+        [() => CortetsuConfig.loaded && Schemes.catalogCount > 0, () => {
+            select("quick"); screenDouble.settings = true;
+        }],
+        [() => !!content && !!page("variant-expressive"), () => {
+            const row = page("variant-expressive");
+            memo.palettePrimary = CortetsuColours.currentColours.primary;
+            verify(row.actionLabel === "Aplicar", "the current variant is not marked active");
+            Schemes.applyVariant("not-a-material-variant");
+            verify(Schemes.variantStatus === "idle" && Schemes.pendingVariant === "",
+                "an unknown variant is rejected before launching the native owner");
+            find(row, "action").forceActiveFocus(); key(Qt.Key_Return);
+            verify(Schemes.variantStatus === "applying" && Schemes.pendingVariant === "expressive",
+                "the Settings action starts a native variant change");
+        }],
+        [() => Schemes.variantStatus === "applied" && CortetsuColours.variant === "expressive", () => {
+            verify(Schemes.variantIsCurrent("expressive"), "the live palette state confirms the selected variant");
+            verify(page("variant-expressive").actionLabel === "Activa", "the selected variant is reflected by Settings");
+            verify(Schemes.variantError === "", "a successful native update clears prior errors");
+            verify(CortetsuColours.currentColours.primary !== memo.palettePrimary,
+                "the selected variant regenerates palette tokens instead of changing metadata only");
+        }]
+    ]
+
+    readonly property var paletteVariantRestore: [
+        [() => CortetsuConfig.loaded && CortetsuColours.variant === "expressive", () => {
+            select("quick"); screenDouble.settings = true;
+        }],
+        [() => !!content && !!page("variant-expressive"), () => {
+            verify(page("variant-expressive").actionLabel === "Activa",
+                "a fresh Settings process restores the persisted variant selection");
+        }]
+    ]
+
+    readonly property var paletteVariantUnavailable: [
+        [() => CortetsuConfig.loaded && Schemes.catalogCount > 0, () => {
+            select("quick"); screenDouble.settings = true;
+        }],
+        [() => !!content && !!page("variant-expressive"), () => {
+            verify(!Schemes.variantAvailable && find(page("variant-expressive"), "action").disabled,
+                "variant actions stay disabled until a colour palette exists");
+            const variantStatus = Schemes.variantStatus;
+            M3Variants.list[0].onClicked(null);
+            verify(Schemes.variantStatus === variantStatus && !Schemes.variantAvailable,
+                "a stale or direct launcher variant action is a no-op until a seed exists");
+            verify(page("paletteVariants").detail.includes("Aplica primero"),
+                "the unavailable state explains how to enable palette variants");
+        }]
+    ]
+
+    readonly property var migratedControls: [
+        [() => CortetsuConfig.loaded, () => { select("interface"); screenDouble.settings = true; window.requestActivate(); }],
+        [() => window.active && !!page("desktopClockEnabled"), () => {
+            const toggle = page("desktopClockEnabled");
+            verify(CortetsuConfig.desktopClockEnabled && toggle.checked, "the desktop clock control starts from the active owner state");
+            toggle.forceActiveFocus(); key(Qt.Key_Space);
+            verify(!CortetsuConfig.desktopClockEnabled && !toggle.checked, "the desktop clock control updates the rendered clock owner");
+            select("bar");
+        }],
+        [() => !!page("appsSegment"), () => {
+            const toggle = page("appsSegment");
+            verify(CortetsuConfig.bottomHub.segments.apps && toggle.checked, "the applications segment starts enabled");
+            toggle.forceActiveFocus(); key(Qt.Key_Space);
+            verify(!CortetsuConfig.bottomHub.segments.apps && !toggle.checked, "the segment control updates Bottom Hub state");
+            select("quick");
+        }],
+        [() => !!page("useFahrenheit"), () => {
+            const toggle = page("useFahrenheit");
+            verify(!CortetsuConfig.useFahrenheit && !toggle.checked, "the temperature control starts in Celsius");
+            toggle.forceActiveFocus(); key(Qt.Key_Space);
+            verify(CortetsuConfig.useFahrenheit && toggle.checked, "the temperature control updates the shared unit preference");
+            select("interface");
+        }],
+        [() => !!page("fuzzyApplications"), () => {
+            const toggle = page("fuzzyApplications");
+            verify(!CortetsuConfig.useFuzzyApps && !toggle.checked, "fuzzy application matching starts disabled in this fixture");
+            toggle.forceActiveFocus(); key(Qt.Key_Space);
+            verify(CortetsuConfig.useFuzzyApps && toggle.checked, "the fuzzy-search control updates the application search service");
+        }],
+        [() => CortetsuConfig.saveState === "saved", () => {
+            verify(CortetsuConfig.desktopClockEnabled === false && CortetsuConfig.bottomHub.segments.apps === false
+                && CortetsuConfig.useFahrenheit === true && CortetsuConfig.useFuzzyApps === true,
+                "all migrated controls reach their real preference owners before persistence");
+        }]
+    ]
+    readonly property var migratedControlsRestore: [
+        [() => CortetsuConfig.loaded, () => {
+            verify(CortetsuConfig.desktopClockEnabled === false && CortetsuConfig.bottomHub.segments.apps === false
+                && CortetsuConfig.useFahrenheit === true && CortetsuConfig.useFuzzyApps === true,
+                "a fresh process restores the clock, Bottom Hub, temperature and fuzzy-search preferences");
+        }]
+    ]
+
     readonly property var policies: [
         [() => CortetsuConfig.loaded, () => { select("automation"); screenDouble.settings = true; }],
         [() => !!content && content.pageId === "services" && !!page("policy-gamemode"), () => {
@@ -1724,6 +1817,17 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     restored, _ = run(folder, "shell.qml", "clockRestore", preferences=clock_saved)
     assert passed(restored) == 2, restored
 
+    output, migrated_home = run(folder, "shell.qml", "migratedControls",
+        preferences={"schema": 1, "desktopClockEnabled": True, "bottomHub": {"segments": {"apps": True}},
+                     "useFahrenheit": False, "useFuzzyApps": False})
+    assert passed(output) == 9, output
+    migrated_saved = json.loads((migrated_home / ".config/cortetsu/preferences.json").read_text())
+    assert migrated_saved["desktopClockEnabled"] is False, migrated_saved
+    assert migrated_saved["bottomHub"]["segments"]["apps"] is False, migrated_saved
+    assert migrated_saved["useFahrenheit"] is True and migrated_saved["useFuzzyApps"] is True, migrated_saved
+    restored, _ = run(folder, "shell.qml", "migratedControlsRestore", preferences=migrated_saved)
+    assert passed(restored) == 1, restored
+
     output, audio_home = run(folder, "shell.qml", "audioPreferences", preferences={"schema": 1})
     assert passed(output) == 5, output
     audio_saved = json.loads((audio_home / ".config/cortetsu/preferences.json").read_text())
@@ -1775,6 +1879,20 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
         restored, _ = run(folder, "shell.qml", "themeRestore", label=f"restore-{theme}",
                           preferences=theme_saved, env={"THEME_ID": theme})
         assert passed(restored) == 4, restored
+
+    variant_seed = {"schema": 2, "name": "dynamic", "flavour": "default",
+                    "variant": "tonalspot", "mode": "dark", "origin": "wallpaper",
+                    "colours": fixture_colours["cases"][0]["colours"]}
+    variant_output, variant_home = run(folder, "shell.qml", "paletteVariant",
+                                       scheme=variant_seed)
+    assert passed(variant_output) == 7, variant_output
+    variant_saved = json.loads((variant_home / "state/cortetsu/scheme.json").read_text())
+    assert variant_saved["variant"] == "expressive" and variant_saved["origin"] == "manual", variant_saved
+    variant_restored, _ = run(folder, "shell.qml", "paletteVariantRestore",
+                              scheme=variant_saved, label="palette-variant-restore")
+    assert passed(variant_restored) == 1, variant_restored
+    variant_unavailable, _ = run(folder, "shell.qml", "paletteVariantUnavailable")
+    assert passed(variant_unavailable) == 3, variant_unavailable
 
     # Every page at the default size, at the narrowest one, and on a scheme
     # other than the ui.toml default.

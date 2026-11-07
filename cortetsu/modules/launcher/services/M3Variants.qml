@@ -4,10 +4,15 @@ import ".."
 import "../.."
 import QtQuick
 import Quickshell
+import "../../../services"
 import "../../../utils"
 
 Searcher {
     id: root
+
+    readonly property bool variantAvailable: /^#?[0-9a-fA-F]{6}$/.test(
+        String(CortetsuColours.currentColours?.seed ?? CortetsuColours.currentColours?.primary_paletteKeyColor
+            ?? CortetsuColours.currentColours?.primary ?? "").trim())
 
     function transformSearch(search: string): string {
         return search.slice(`${CortetsuConfig.actionPrefix}variant `.length);
@@ -78,6 +83,8 @@ Searcher {
         required property string description
 
         function onClicked(list: AppList): void {
+            if (!root.variantAvailable)
+                return;
             list.screenState.launcher = false;
             Quickshell.execDetached(["cortetsu-scheme", "set", "-v", variant]);
         }

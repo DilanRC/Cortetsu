@@ -5,6 +5,7 @@ import "../.."
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import "."
 import "../../../services"
 import "../../../utils"
 
@@ -16,11 +17,18 @@ Searcher {
     // by the wallpaper shows up without asking the helper again.
     readonly property string currentScheme: `${CortetsuColours.scheme} ${CortetsuColours.flavour}`
     readonly property string currentVariant: CortetsuColours.variant
+    readonly property bool variantAvailable: /^#?[0-9a-fA-F]{6}$/.test(
+        String(CortetsuColours.currentColours?.seed ?? CortetsuColours.currentColours?.primary_paletteKeyColor
+            ?? CortetsuColours.currentColours?.primary ?? "").trim())
     property string error: ""
     property string pendingScheme: ""
     // idle | applying | applied | failed
     property string applyStatus: "idle"
     property string applyError: ""
+    property string pendingVariant: ""
+    // idle | applying | applied | failed
+    property string variantStatus: "idle"
+    property string variantError: ""
     property string catalogText: ""
     // "name flavour" → { name, flavour, colours }. The list is built from the
     // keys, so a catalogue that gains or loses one scheme adds or removes one
@@ -45,6 +53,11 @@ Searcher {
         return `${item.name} ${item.flavour}`;
     }
 
+    function variantIsCurrent(value: string): bool {
+        const normalise = text => String(text).toLowerCase().replace(/[\s_-]/g, "");
+        return normalise(currentVariant) === normalise(value);
+    }
+
     function reload(): void {
         root.error = "";
         if (!getSchemes.running)
@@ -62,6 +75,22 @@ Searcher {
         root.applyStatus = "applying";
         applyScheme.command = ["cortetsu-scheme", "set", "-n", name, flavour];
         applyScheme.running = true;
+    }
+
+    function applyVariant(value: string): void {
+        const valid = M3Variants.list.some(item => item.variant === value);
+        if (!valid || applyVariantProcess.running)
+            return;
+        if (!variantAvailable) {
+            root.variantError = qsTr("Aplica primero un esquema de color para generar una paleta");
+            return;
+        }
+
+        root.variantError = "";
+        root.pendingVariant = value;
+        root.variantStatus = "applying";
+        applyVariantProcess.command = ["cortetsu-scheme", "set", "-v", value];
+        applyVariantProcess.running = true;
     }
 
     list: schemes.instances
@@ -138,12 +167,51 @@ Searcher {
         }
     }
 
+    Process {
+        id: applyVariantProcess
+        command: []
+
+        stderr: StdioCollector { id: variantStderr }
+        stdout: StdioCollector { id: variantStdout }
+
+        onExited: code => { // qmllint disable signal-handler-parameters
+            const detail = variantStderr.text.trim();
+            if (code === 0) {
+                try {
+                    const result = JSON.parse(variantStdout.text);
+                    if (result.committed !== true || result.variant !== root.pendingVariant)
+                        throw new Error("invalid palette confirmation");
+                    root.variantStatus = "applied";
+                    root.variantError = result.projectionApplied === false
+                        ? qsTr("La paleta se guardó, pero falló una proyección: %1").arg(result.projectionError || qsTr("error desconocido"))
+                        : "";
+                    appliedVariantNotice.restart();
+                } catch (error) {
+                    root.variantStatus = "failed";
+                    root.variantError = qsTr("No se pudo confirmar la actualización de la paleta");
+                    console.warn("Cortetsu Schemes: invalid variant confirmation:", error);
+                }
+            } else {
+                root.variantStatus = "failed";
+                root.variantError = detail || qsTr("No se pudo aplicar la variante");
+            }
+            if (!detail && code !== 0)
+                console.warn(`Cortetsu Schemes: variant apply exited with code ${code}`);
+        }
+    }
+
     // "Applied" is a confirmation, not a state to keep on screen. A failure
     // stays until the next attempt.
     Timer {
         id: appliedNotice
         interval: 4000
         onTriggered: if (root.applyStatus === "applied") root.applyStatus = "idle"
+    }
+
+    Timer {
+        id: appliedVariantNotice
+        interval: 4000
+        onTriggered: if (root.variantStatus === "applied") root.variantStatus = "idle"
     }
 
     component Scheme: QtObject {

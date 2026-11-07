@@ -28,6 +28,7 @@ ColumnLayout {
         }
 
         SettingToggleRow {
+            objectName: "appsSegment"
             title: qsTr("Aplicaciones")
             detail: qsTr("Abiertas y fijadas")
             checked: CortetsuConfig.bottomHub.segments.apps

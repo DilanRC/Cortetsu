@@ -1,5 +1,11 @@
 use crate::common::*;
-use material_colors::{color::Argb, palette::CorePalette, scheme::SchemeFromPalette, score::Score};
+use material_colors::{
+    color::Argb,
+    dynamic_color::{DynamicScheme, Variant},
+    palette::CorePalette,
+    scheme::{Scheme, SchemeFromPalette},
+    score::Score,
+};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use std::{
@@ -338,11 +344,30 @@ pub fn scheme(args: &[String]) -> Result<i32> {
         }
         ["sync-kitty"] => sync_kitty_current(&path)?,
         ["set", "-v", variant] if !variant.is_empty() => {
+            let Some(selected_variant) = self::variant(variant) else {
+                eprintln!("unsupported Material palette variant");
+                return Ok(2);
+            };
             let _guard = lock(&path.with_file_name("scheme.lock"), false)?;
             s = optional_json_object(&path)
                 .ok()
                 .flatten()
                 .unwrap_or_else(|| json!({}));
+            let seed = s
+                .get("seed")
+                .and_then(Value::as_str)
+                .or_else(|| s["colours"]["primary_paletteKeyColor"].as_str())
+                .or_else(|| s["colours"]["primary"].as_str())
+                .ok_or("scheme has no colour seed")?
+                .trim()
+                .trim_start_matches('#');
+            if seed.len() != 6 || !seed.bytes().all(|byte| byte.is_ascii_hexdigit()) {
+                return Err("scheme has an invalid colour seed".into());
+            }
+            let source = Argb::from_u32(
+                0xff00_0000 | u32::from_str_radix(seed, 16).map_err(|_| "invalid colour seed")?,
+            );
+            let dark = s.get("mode").and_then(Value::as_str) != Some("light");
             let name = s
                 .get("name")
                 .and_then(Value::as_str)
@@ -356,12 +381,28 @@ pub fn scheme(args: &[String]) -> Result<i32> {
             s["variant"] = json!(variant);
             s["schema"] = json!(2);
             s["origin"] = json!("manual");
+            s["seed"] = json!(source.to_hex());
+            s["mode"] = json!(if dark { "dark" } else { "light" });
+            s["colours"] = variant_colours(source, dark, &selected_variant);
             s["lastSelection"] = json!({
                 "name": name,
                 "flavour": flavour,
                 "variant": variant
             });
             json_save(&path, &s)?;
+            drop(_guard);
+            let hyprland = hypr_scheme_current(&path);
+            let kitty = sync_kitty_current(&path);
+            let error = hyprland
+                .err()
+                .or_else(|| kitty.err())
+                .map(|failure| failure.to_string());
+            emit(&json!({
+                "variant": variant,
+                "committed": true,
+                "projectionApplied": error.is_none(),
+                "projectionError": error
+            }))?;
         }
         ["apply-wallpaper-colors"] => {
             let mut bytes = Vec::new();
@@ -496,6 +537,104 @@ pub fn colours(source: Argb, dark: bool) -> Value {
     }
     v
 }
+
+fn variant(value: &str) -> Option<Variant> {
+    Some(
+        match value
+            .to_ascii_lowercase()
+            .replace(['-', '_', ' '], "")
+            .as_str()
+        {
+            "monochrome" => Variant::Monochrome,
+            "neutral" => Variant::Neutral,
+            "tonalspot" => Variant::TonalSpot,
+            "vibrant" => Variant::Vibrant,
+            "expressive" => Variant::Expressive,
+            "fidelity" => Variant::Fidelity,
+            "content" => Variant::Content,
+            "rainbow" => Variant::Rainbow,
+            "fruitsalad" => Variant::FruitSalad,
+            _ => return None,
+        },
+    )
+}
+
+fn camel_case(value: &str) -> String {
+    let mut out = String::with_capacity(value.len());
+    let mut upper = false;
+    for ch in value.chars() {
+        if ch == '_' {
+            upper = true;
+        } else if upper {
+            out.extend(ch.to_uppercase());
+            upper = false;
+        } else {
+            out.push(ch);
+        }
+    }
+    out
+}
+
+fn variant_colours(source: Argb, dark: bool, variant: &Variant) -> Value {
+    let dynamic = DynamicScheme::by_variant(source, variant, dark, None);
+    let scheme = Scheme::from(dynamic.clone());
+    let mut out = json!({});
+    for (key, colour) in scheme {
+        out[camel_case(&key)] = json!(colour.to_hex());
+    }
+    for (name, colour) in [
+        (
+            "primary_paletteKeyColor",
+            dynamic.primary_palette_key_color(),
+        ),
+        (
+            "secondary_paletteKeyColor",
+            dynamic.secondary_palette_key_color(),
+        ),
+        (
+            "tertiary_paletteKeyColor",
+            dynamic.tertiary_palette_key_color(),
+        ),
+        (
+            "neutral_paletteKeyColor",
+            dynamic.neutral_palette_key_color(),
+        ),
+        (
+            "neutral_variant_paletteKeyColor",
+            dynamic.neutral_variant_palette_key_color(),
+        ),
+    ] {
+        out[name] = json!(colour.to_hex());
+    }
+    out["surfaceTint"] = out["primary"].clone();
+    for (name, palette) in [
+        ("primary", &dynamic.primary_palette),
+        ("secondary", &dynamic.secondary_palette),
+        ("tertiary", &dynamic.tertiary_palette),
+    ] {
+        out[format!("{name}Dim")] = json!(palette.tone(if dark { 70 } else { 30 }).to_hex());
+        out[format!("{name}Fixed")] = json!(palette.tone(90).to_hex());
+        out[format!("{name}FixedDim")] = json!(palette.tone(80).to_hex());
+        let title = format!("{}{}", name[..1].to_uppercase(), &name[1..]);
+        out[format!("on{title}Fixed")] = json!(palette.tone(10).to_hex());
+        out[format!("on{title}FixedVariant")] = json!(palette.tone(30).to_hex());
+    }
+    let palettes = [
+        &dynamic.neutral_palette,
+        &dynamic.primary_palette,
+        &dynamic.secondary_palette,
+        &dynamic.tertiary_palette,
+        &dynamic.error_palette,
+    ];
+    for index in 0..16 {
+        out[format!("term{index}")] = json!(
+            palettes[index % palettes.len()]
+                .tone(if index % 2 == 0 { 60 } else { 80 })
+                .to_hex()
+        );
+    }
+    out
+}
 pub fn wallpaper_colours(args: &[String]) -> Result<i32> {
     let mut mode = "dark";
     let mut image = None;
@@ -545,7 +684,7 @@ pub fn wallpaper_colours(args: &[String]) -> Result<i32> {
     let score = Score::score(&quant.color_to_count, None, None, None);
     let source = score.first().copied().unwrap_or(Argb::from_u32(0xff4285f4));
     emit(
-        &json!({"name":"dynamic","flavour":"default","mode":mode,"variant":"tonal-spot","colours":colours(source,mode=="dark")}),
+        &json!({"name":"dynamic","flavour":"default","mode":mode,"variant":"tonalspot","seed":source.to_hex(),"colours":colours(source,mode=="dark")}),
     )?;
     Ok(0)
 }
@@ -829,5 +968,26 @@ mod tests {
                 case["seed"], case["mode"]
             );
         }
+    }
+
+    #[test]
+    fn material_variants_change_the_generated_roles_and_keep_required_tokens() {
+        let source = Argb::from_u32(0xff6750a4);
+        let tonal = variant_colours(source, true, &variant("tonalspot").unwrap());
+        let expressive = variant_colours(source, true, &variant("expressive").unwrap());
+        let monochrome = variant_colours(source, true, &variant("monochrome").unwrap());
+        assert_ne!(tonal["primary"], expressive["primary"]);
+        assert_ne!(tonal["secondary"], expressive["secondary"]);
+        assert_ne!(expressive["primary"], monochrome["primary"]);
+        for key in [
+            "primary",
+            "surface",
+            "onSurface",
+            "surfaceContainer",
+            "term15",
+        ] {
+            assert!(expressive[key].is_string(), "missing generated token {key}");
+        }
+        assert!(variant("not-a-variant").is_none());
     }
 }
