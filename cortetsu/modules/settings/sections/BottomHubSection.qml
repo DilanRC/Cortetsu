@@ -130,5 +130,13 @@ ColumnLayout {
             checked: CortetsuConfig.bar.workspaces.showAppIcons
             onToggled: value => { CortetsuConfig.bar.workspaces.showAppIcons = value; }
         }
+
+        SettingToggleRow {
+            objectName: "workspaceMonochromeIcons"
+            title: qsTr("Iconos monocromos")
+            detail: qsTr("Aplicar el color de texto del tema a los iconos de aplicación")
+            checked: CortetsuConfig.bar.workspaces.monochromeIcons
+            onToggled: value => { CortetsuConfig.bar.workspaces.monochromeIcons = value; }
+        }
     }
 }

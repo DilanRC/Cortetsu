@@ -828,6 +828,7 @@ Scope {
                 workspaceCount: win.workspaceCount
                 workspaceDisplayType: CortetsuConfig.bar.workspaces.displayType
                 workspaceShowAppIcons: CortetsuConfig.bar.workspaces.showAppIcons
+                workspaceMonochromeIcons: CortetsuConfig.bar.workspaces.monochromeIcons
                 workspaceAppIconSources: win.workspaceAppIconSources
                 workspaceOffset: win.workspaceOffset
                 activeWsId: win.activeWsId

@@ -998,6 +998,26 @@ ShellRoot {
                 "the workspace app-icon choice restores on launch");
         }]
     ]
+    readonly property var workspaceMonochromePreferences: [
+        [() => CortetsuConfig.loaded, () => { select("bar"); screenDouble.settings = true; }],
+        [() => !!content && !!page("workspaceMonochromeIcons"), () => { window.requestActivate(); }],
+        [() => window.active, () => {
+            const toggle = page("workspaceMonochromeIcons");
+            verify(!CortetsuConfig.bar.workspaces.monochromeIcons && !toggle.checked,
+                "workspace app icons keep their original colors by default");
+            toggle.forceActiveFocus(); key(Qt.Key_Space);
+            verify(CortetsuConfig.bar.workspaces.monochromeIcons && toggle.checked,
+                "the Bar control enables theme-colored app icons");
+        }],
+        [() => CortetsuConfig.saveState === "saved", () => {}]
+    ]
+    readonly property var workspaceMonochromeRestore: [
+        [() => CortetsuConfig.loaded, () => { select("bar"); screenDouble.settings = true; }],
+        [() => !!content && !!page("workspaceMonochromeIcons"), () => {
+            verify(CortetsuConfig.bar.workspaces.monochromeIcons && page("workspaceMonochromeIcons").checked,
+                "the workspace icon color choice restores on launch");
+        }]
+    ]
     readonly property var hardwareSamplePreferences: [
         [() => CortetsuConfig.loaded, () => { select("automation"); screenDouble.settings = true; }],
         [() => !!content && content.pageId === "services" && !!page("hardwareSampleInterval") && !!hardwareTelemetryProbe, () => {
@@ -1522,6 +1542,13 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     workspace_icons_saved = json.loads((workspace_icons_home / ".config/cortetsu/preferences.json").read_text())
     assert workspace_icons_saved["bar"]["workspaces"]["showAppIcons"] is True, workspace_icons_saved
     restored, _ = run(folder, "shell.qml", "workspaceAppIconsRestore", preferences=workspace_icons_saved)
+    assert passed(restored) == 1, restored
+    output, workspace_monochrome_home = run(folder, "shell.qml", "workspaceMonochromePreferences",
+                                            preferences={"schema": 1})
+    assert passed(output) == 2, output
+    workspace_monochrome_saved = json.loads((workspace_monochrome_home / ".config/cortetsu/preferences.json").read_text())
+    assert workspace_monochrome_saved["bar"]["workspaces"]["monochromeIcons"] is True, workspace_monochrome_saved
+    restored, _ = run(folder, "shell.qml", "workspaceMonochromeRestore", preferences=workspace_monochrome_saved)
     assert passed(restored) == 1, restored
 
     output, hardware_sample_home = run(folder, "shell.qml", "hardwareSamplePreferences",

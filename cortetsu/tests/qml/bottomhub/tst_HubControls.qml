@@ -1,6 +1,7 @@
 import QtQuick
 import QtTest
 import "../../../modules"
+import "../../../theme"
 
 TestCase {
     id: testCase
@@ -93,6 +94,19 @@ TestCase {
         const icon = find(dots, c => c.objectName === "workspace-app-icon-1");
         verify(number.visible);
         verify(!icon.visible);
+    }
+
+    function test_workspace_app_icons_can_be_colored_with_the_active_theme() {
+        const dots = createTemporaryObject(dotsComponent, testCase, {
+            showAppIcons: true,
+            monochromeAppIcons: true,
+            occupiedWorkspaceIds: [1],
+            appIconSources: ({"1": Qt.resolvedUrl("../../../../cortetsu/assets/branding/cortetsu-mark.svg")})
+        });
+        const icon = find(dots, c => c.objectName === "workspace-app-icon-1");
+        verify(icon !== null && icon.visible);
+        verify(icon.layer.enabled, "the workspace icon layer should apply monochrome styling");
+        compare(dots.appIconTint, CortetsuDesign.colorWashi);
     }
 
     function test_status_items_are_full_height_targets() {

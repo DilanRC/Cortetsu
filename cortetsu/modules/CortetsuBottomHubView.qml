@@ -9,6 +9,7 @@ Item {
     required property int workspaceCount
     required property int workspaceDisplayType
     required property bool workspaceShowAppIcons
+    required property bool workspaceMonochromeIcons
     required property var workspaceAppIconSources
     required property int workspaceOffset
     required property int activeWsId
@@ -104,6 +105,7 @@ Item {
         workspaceCount: root.workspaceCount
         workspaceDisplayType: root.workspaceDisplayType
         workspaceShowAppIcons: root.workspaceShowAppIcons
+        workspaceMonochromeIcons: root.workspaceMonochromeIcons
         workspaceAppIconSources: root.workspaceAppIconSources
         workspaceOffset: root.workspaceOffset
         activeWsId: root.activeWsId

@@ -508,8 +508,13 @@
       "option": "bar.workspaces.monochromeIcons",
       "source": "dots/.config/quickshell/ii/modules/settings/BarConfig.qml",
       "line": 279,
-      "status": "pending",
-      "cortetsu": null
+      "status": "adapted",
+      "cortetsu": {
+        "source": "cortetsu/modules/settings/sections/BottomHubSection.qml",
+        "owner": "CortetsuConfig.bar.workspaces.monochromeIcons → CortetsuWorkspaceDots.MultiEffect",
+        "test": "cortetsu/tests/qml/bottomhub/tst_HubControls.qml#test_workspace_app_icons_can_be_colored_with_the_active_theme and scripts/features/test-cortetsu-settings-runtime.py#workspaceMonochromePreferences,workspaceMonochromeRestore"
+      },
+      "notes": "Aplica el color de texto del tema activo a los iconos de aplicación de los espacios ocupados; requiere showAppIcons para verse."
     },
     {
       "page": "BarConfig",

@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Effects
 import "../theme"
 import "CortetsuTypography.js" as CortetsuTypography
 
@@ -11,7 +12,9 @@ Row {
     required property int displayType
     required property var occupiedWorkspaceIds
     property bool showAppIcons: false
+    property bool monochromeAppIcons: false
     property var appIconSources: ({})
+    readonly property color appIconTint: CortetsuDesign.colorWashi
 
     signal workspaceRequested(int workspaceId)
 
@@ -98,6 +101,11 @@ Row {
                 asynchronous: true
                 cache: true
                 fillMode: Image.PreserveAspectFit
+                layer.enabled: workspaceDot.showAppIcon && root.monochromeAppIcons
+                layer.effect: MultiEffect {
+                    colorization: 1
+                    colorizationColor: root.appIconTint
+                }
             }
 
             Text {
