@@ -57,7 +57,7 @@ Item {
         // The clock is the focal point; the date and the user follow it.
         CortetsuText {
             Layout.alignment: Qt.AlignHCenter
-            text: `${Time.hourStr}:${Time.minuteStr}`
+            text: Time.timeStr
             textSize: CortetsuTypography.displayHeroPx * 1.5
             font.weight: Font.DemiBold
         }

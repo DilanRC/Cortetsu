@@ -640,8 +640,14 @@
       "option": "time.secondPrecision",
       "source": "dots/.config/quickshell/ii/modules/settings/GeneralConfig.qml",
       "line": 296,
-      "status": "pending",
-      "cortetsu": null
+      "status": "adapted",
+      "cortetsu": {
+        "control": "cortetsu/modules/settings/sections/AppearanceSection.qml#clockSeconds",
+        "owner": "CortetsuConfig.useSecondPrecision",
+        "result": "SystemClock switches to second precision and updates the desktop, Bottom Hub, Dashboard and lock clocks",
+        "test": "scripts/features/test-cortetsu-settings-runtime.py#regionalPreferences,regionalRestore and cortetsu/tests/test-regional.node.js"
+      },
+      "notes": "The default remains minute precision; seconds activate one-second updates only when selected."
     },
     {
       "page": "GeneralConfig",

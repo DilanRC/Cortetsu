@@ -17,10 +17,13 @@ QtObject {
     id: root
 
     readonly property bool useTwelveHourClock: CortetsuConfig.useTwelveHourClock
+    readonly property bool useSecondPrecision: CortetsuConfig.useSecondPrecision
     readonly property bool useFahrenheit: CortetsuConfig.useFahrenheit
     readonly property string weatherLocation: CortetsuConfig.weatherLocation
 
+    // Weather events are fixed instants: seconds precision applies only to live clocks.
     readonly property string clockPattern: RegionalLogic.clockPattern(useTwelveHourClock)
+    readonly property string liveClockPattern: RegionalLogic.liveClockPattern(useTwelveHourClock, useSecondPrecision)
     readonly property string hourPattern: RegionalLogic.hourPattern(useTwelveHourClock)
 
     // `pattern` is a key of RegionalLogic.datePatterns. Uses the session

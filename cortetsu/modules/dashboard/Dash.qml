@@ -223,7 +223,7 @@ FocusScope {
                 }
                 DashInk {
                     Layout.alignment: Qt.AlignHCenter
-                    text: `${Time.hourStr}:${Time.minuteStr}`
+                    text: Time.timeStr
                     textSize: CortetsuTypography.inkHeroPx
                     font.weight: Font.Thin
                     color: CortetsuDesign.colorWashi

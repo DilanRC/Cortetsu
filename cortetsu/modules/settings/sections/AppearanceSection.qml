@@ -211,6 +211,14 @@ ColumnLayout {
         }
 
         SettingToggleRow {
+            objectName: "clockSeconds"
+            title: qsTr("Mostrar segundos")
+            detail: qsTr("Actualizar el reloj una vez por segundo")
+            checked: CortetsuConfig.useSecondPrecision
+            onToggled: value => { CortetsuConfig.useSecondPrecision = value; CortetsuConfig.save(); }
+        }
+
+        SettingToggleRow {
             title: qsTr("Temperatura en Fahrenheit")
             detail: qsTr("En el clima y en las lecturas del equipo")
             checked: CortetsuConfig.useFahrenheit

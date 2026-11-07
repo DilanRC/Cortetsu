@@ -248,7 +248,7 @@ Item {
 
                 CortetsuText {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    text: Qt.formatDateTime(root.now, "HH:mm")
+                    text: Time.timeStr
                     color: CortetsuDesign.colorWashi
                     textSize: CortetsuTypography.labelLargePx
                 }

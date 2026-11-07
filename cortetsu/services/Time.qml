@@ -9,12 +9,18 @@ Singleton {
     readonly property date date: clock.date
     readonly property int hours: clock.hours
     readonly property int minutes: clock.minutes
-    readonly property string timeStr: format(CortetsuConfig.useTwelveHourClock ? "hh:mm:A" : "hh:mm")
-    readonly property list<string> timeComponents: timeStr.split(":")
-    readonly property string hourStr: timeComponents[0] ?? ""
-    readonly property string minuteStr: timeComponents[1] ?? ""
-    readonly property string amPmStr: timeComponents[2] ?? ""
+    readonly property string hourStr: hourFor(clock.date, CortetsuConfig.useTwelveHourClock)
+    readonly property string minuteStr: format("mm")
+    readonly property string secondStr: format("ss")
+    readonly property string amPmStr: CortetsuConfig.useTwelveHourClock ? format("AP") : ""
+    readonly property string timeStr: format(CortetsuRegional.liveClockPattern)
     function format(fmt: string): string { return Qt.formatDateTime(clock.date, fmt); }
-    // Every consumer shows hh:mm or a date; ticking per second only re-ran their bindings.
-    SystemClock { id: clock; precision: SystemClock.Minutes }
+    function hourFor(value: date, twelveHour: bool): string {
+        const formatted = Qt.formatDateTime(value, twelveHour ? "h AP" : "HH");
+        return twelveHour ? formatted.split(" ")[0] : formatted;
+    }
+    SystemClock {
+        id: clock
+        precision: CortetsuConfig.useSecondPrecision ? SystemClock.Seconds : SystemClock.Minutes
+    }
 }

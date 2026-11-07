@@ -63,6 +63,22 @@ Item {
                 font.weight: Font.Bold
             }
             Text {
+                visible: CortetsuConfig.useSecondPrecision
+                text: ":"
+                color: root.tertiary
+                opacity: 0.8
+                font.family: CortetsuDesign.fontUi
+                font.pixelSize: CortetsuTypography.titleLargePx * 3 * root.clockScale
+            }
+            Text {
+                visible: CortetsuConfig.useSecondPrecision
+                text: Time.secondStr
+                color: root.secondary
+                font.family: CortetsuDesign.fontUi
+                font.pixelSize: CortetsuTypography.titleLargePx * 3 * root.clockScale
+                font.weight: Font.Bold
+            }
+            Text {
                 visible: CortetsuRegional.useTwelveHourClock
                 text: Time.amPmStr
                 color: root.secondary

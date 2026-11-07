@@ -10,8 +10,14 @@
 // this module only decides *which pattern* to use and does the network-free
 // heavy lifting: URL construction and JSON response parsing.
 
-function clockPattern(useTwelveHour) {
-    return useTwelveHour ? "h:mm A" : "h:mm";
+function clockPattern(useTwelveHour, useSecondPrecision) {
+    const clock = `h:mm${useSecondPrecision ? ":ss" : ""}`;
+    return useTwelveHour ? `${clock} AP` : clock;
+}
+
+function liveClockPattern(useTwelveHour, useSecondPrecision) {
+    const clock = `${useTwelveHour ? "h" : "HH"}:mm${useSecondPrecision ? ":ss" : ""}`;
+    return useTwelveHour ? `${clock} AP` : clock;
 }
 
 function hourPattern(useTwelveHour) {

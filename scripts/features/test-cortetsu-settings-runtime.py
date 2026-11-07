@@ -794,19 +794,37 @@ ShellRoot {
 
     readonly property var regionalPreferences: [
         [() => CortetsuConfig.loaded, () => { select("quick"); screenDouble.settings = true; }],
-        [() => !!content && !!page("clockFormat"), () => { window.requestActivate(); }],
+        [() => !!content && !!page("clockFormat") && !!page("clockSeconds"), () => { window.requestActivate(); }],
         [() => window.active, () => {
+            verify(!CortetsuConfig.useSecondPrecision && CortetsuRegional.clockPattern === "h:mm"
+                && Time.timeStr.split(":").length === 2,
+                "minute precision stays the default and avoids second-by-second clock output");
             const toggle = page("clockFormat");
             toggle.forceActiveFocus(); key(Qt.Key_Space);
-            verify(CortetsuConfig.useTwelveHourClock && CortetsuRegional.clockPattern === "h:mm A",
+            verify(CortetsuConfig.useTwelveHourClock && CortetsuRegional.clockPattern === "h:mm AP"
+                && CortetsuRegional.liveClockPattern === "h:mm AP",
                 "the 12-hour control updates the active regional formatter");
+            const seconds = page("clockSeconds");
+            seconds.forceActiveFocus(); key(Qt.Key_Space);
+            verify(CortetsuConfig.useSecondPrecision && CortetsuRegional.clockPattern === "h:mm AP"
+                && CortetsuRegional.liveClockPattern === "h:mm:ss AP"
+                && /^\d{2}$/.test(Time.secondStr) && /^(AM|PM)$/.test(Time.amPmStr)
+                && Time.timeStr.endsWith(Time.amPmStr)
+                && Time.hourFor(new Date(2026, 0, 1, 13, 5), true) === "1"
+                && Time.hourFor(new Date(2026, 0, 1, 13, 5), false) === "13"
+                && Time.hourFor(new Date(2026, 0, 1, 0, 5), true) === "12"
+                && Time.hourFor(new Date(2026, 0, 1, 12, 5), true) === "12",
+                "second precision updates the clock formatter and live clock values");
         }],
         [() => CortetsuConfig.saveState === "saved", () => {}]
     ]
     readonly property var regionalRestore: [
         [() => CortetsuConfig.loaded, () => {
-            verify(CortetsuRegional.useTwelveHourClock && CortetsuRegional.clockPattern === "h:mm A",
-                "the selected regional clock format restores in a new process");
+            verify(CortetsuRegional.useTwelveHourClock && CortetsuConfig.useSecondPrecision
+                && CortetsuRegional.clockPattern === "h:mm AP" && CortetsuRegional.liveClockPattern === "h:mm:ss AP"
+                && /^\d{2}$/.test(Time.secondStr)
+                && /^(AM|PM)$/.test(Time.amPmStr),
+                "the selected regional clock format and second precision restore in a new process");
         }]
     ]
     readonly property var actionPrefixPreferences: [
@@ -958,7 +976,7 @@ ShellRoot {
     ]
 
     readonly property var themeSlowCommit: [
-        [() => CortetsuConfig.loaded && CortetsuThemes.reconciled, () => {
+        [() => CortetsuConfig.loaded && CortetsuThemes.reconciled && Schemes.catalogCount > 0, () => {
             select("appearance"); screenDouble.settings = true;
         }],
         [() => !!content && !!page("theme-washi"), () => { page("theme-washi").request(); }],
@@ -1135,7 +1153,10 @@ ShellRoot {
             if (condition && !condition()) {
                 if (root.waitedMs > 15000) {
                     console.log("SETTINGS_FAIL", `step ${root.step} of ${root.scenario} never became ready `
-                        + `(page ${SettingsController.selectedId}, search "${SettingsController.search}", focus ${focusName()})`);
+                        + `(page ${SettingsController.selectedId}, search "${SettingsController.search}", focus ${focusName()}, `
+                        + `catalog ${Schemes.catalogCount}, theme tiles ${!!page("theme-washi")}, `
+                        + `theme ${CortetsuConfig.themeId}, busy ${CortetsuThemes.busy}, pending ${CortetsuThemes.pending}, `
+                        + `theme error "${CortetsuThemes.error}")`);
                     Qt.quit();
                 }
                 return;
@@ -1242,9 +1263,10 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     assert passed(restored) == 1, restored
 
     output, regional_home = run(folder, "shell.qml", "regionalPreferences", preferences={"schema": 1})
-    assert passed(output) == 1, output
+    assert passed(output) == 3, output
     regional_saved = json.loads((regional_home / ".config/cortetsu/preferences.json").read_text())
     assert regional_saved["useTwelveHourClock"] is True, regional_saved
+    assert regional_saved["useSecondPrecision"] is True, regional_saved
     restored, _ = run(folder, "shell.qml", "regionalRestore", preferences=regional_saved)
     assert passed(restored) == 1, restored
 

@@ -23,7 +23,7 @@ Rectangle {
 
         Text {
             Layout.alignment: Qt.AlignHCenter
-            text: Time.hourStr + ":" + Time.minuteStr
+            text: Time.timeStr
             color: root.colour
             font.family: CortetsuDesign.fontUi
             font.pixelSize: CortetsuTypography.labelLargePx

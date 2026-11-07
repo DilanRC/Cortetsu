@@ -36,9 +36,20 @@ regional_js = (MODULES / "CortetsuRegional.js").read_text(encoding="utf-8")
 forecast = (MODULES / "lock/weather/Forecast.qml").read_text(encoding="utf-8")
 weather = (ROOT / "cortetsu/services/Weather.qml").read_text(encoding="utf-8")
 desktop_clock = (MODULES / "background/DesktopClock.qml").read_text(encoding="utf-8")
+time_service = (ROOT / "cortetsu/services/Time.qml").read_text(encoding="utf-8")
+bar_clock = (MODULES / "bar/components/Clock.qml").read_text(encoding="utf-8")
+status_segment = (MODULES / "CortetsuStatusSegment.qml").read_text(encoding="utf-8")
+dashboard = (MODULES / "dashboard/Dash.qml").read_text(encoding="utf-8")
+lock_card = (MODULES / "lock/LockCard.qml").read_text(encoding="utf-8")
 assert "pragma Singleton" in regional_qml
 assert regional_js.startswith(".pragma library")
 assert "readonly property bool useTwelveHourClock: CortetsuConfig.useTwelveHourClock" in regional_qml
+assert "readonly property bool useSecondPrecision: CortetsuConfig.useSecondPrecision" in regional_qml
+assert "SystemClock.Seconds : SystemClock.Minutes" in time_service
+for consumer in (bar_clock, dashboard, lock_card):
+    assert "Time.timeStr" in consumer, "all clock surfaces must share the selected time precision"
+assert "text: Time.timeStr" in status_segment
+assert 'Qt.formatDateTime(root.now, "HH:mm")' not in status_segment
 assert "readonly property bool useFahrenheit: CortetsuConfig.useFahrenheit" in regional_qml
 assert "readonly property string weatherLocation: CortetsuConfig.weatherLocation" in regional_qml
 assert "property bool useTwelveHourClock:" not in regional_qml.split("readonly property bool useTwelveHourClock")[0], \

@@ -23,7 +23,7 @@ const context = {};
 vm.createContext(context);
 vm.runInContext(
     body +
-        "\nglobalThis.__EXPORTS__ = { clockPattern, hourPattern, toFahrenheit, formatTemperature, " +
+        "\nglobalThis.__EXPORTS__ = { clockPattern, liveClockPattern, hourPattern, toFahrenheit, formatTemperature, " +
         "parseLocationQuery, buildForecastUrl, buildGeocodeUrl, buildReverseGeocodeUrl, buildIpLookupUrl, " +
         "fixCityName, weatherCondition, parseForecastResponse, parseGeocodeResponse, " +
         "parseReverseGeocodeResponse, parseIpLookupResponse, ipApiRateLimit, capitalize, datePatterns };",
@@ -42,8 +42,13 @@ function check(label, actual, expected) {
 }
 
 // -- clock / temperature formatting -----------------------------------
-check("clockPattern(12h)", regional.clockPattern(true), "h:mm A");
+check("clockPattern(12h)", regional.clockPattern(true), "h:mm AP");
 check("clockPattern(24h)", regional.clockPattern(false), "h:mm");
+check("clockPattern(12h seconds)", regional.clockPattern(true, true), "h:mm:ss AP");
+check("clockPattern(24h seconds)", regional.clockPattern(false, true), "h:mm:ss");
+check("liveClockPattern(24h)", regional.liveClockPattern(false), "HH:mm");
+check("liveClockPattern(24h seconds)", regional.liveClockPattern(false, true), "HH:mm:ss");
+check("liveClockPattern(12h seconds)", regional.liveClockPattern(true, true), "h:mm:ss AP");
 check("hourPattern(12h)", regional.hourPattern(true), "ha");
 check("hourPattern(24h)", regional.hourPattern(false), "hh:00");
 check("toFahrenheit(0)", regional.toFahrenheit(0), 32);
