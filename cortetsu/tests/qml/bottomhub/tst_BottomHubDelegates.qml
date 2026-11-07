@@ -35,6 +35,7 @@ TestCase {
             workspaceCount: testCase.workspaceCount
             workspaceOffset: 0
             activeWsId: 1
+            displayType: 0
             occupiedWorkspaceIds: [1]
         }
     }

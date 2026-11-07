@@ -7,6 +7,7 @@ Item {
 
     required property bool launcherActive
     required property int workspaceCount
+    required property int workspaceDisplayType
     required property int workspaceOffset
     required property int activeWsId
     required property var occupiedWorkspaceIds
@@ -51,6 +52,7 @@ Item {
         CortetsuWorkspaceDots {
             anchors.verticalCenter: parent.verticalCenter
             workspaceCount: root.workspaceCount
+            displayType: root.workspaceDisplayType
             workspaceOffset: root.workspaceOffset
             activeWsId: root.activeWsId
             occupiedWorkspaceIds: root.occupiedWorkspaceIds

@@ -815,6 +815,7 @@ Scope {
 
                 launcherActive: win.screenState?.launcher ?? false
                 workspaceCount: win.workspaceCount
+                workspaceDisplayType: CortetsuConfig.bar.workspaces.displayType
                 workspaceOffset: win.workspaceOffset
                 activeWsId: win.activeWsId
                 occupiedWorkspaceIds: win.occupiedWorkspaceIds

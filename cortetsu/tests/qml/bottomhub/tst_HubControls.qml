@@ -16,6 +16,7 @@ TestCase {
             workspaceCount: 3
             workspaceOffset: 0
             activeWsId: 1
+            displayType: 0
             occupiedWorkspaceIds: []
         }
     }
@@ -54,6 +55,16 @@ TestCase {
         mouseClick(dots, gap.x, gap.y);
         compare(requested.count, 1);
         compare(requested.signalArguments[0][0], 2);
+    }
+
+    function test_number_mode_replaces_graphic_workspace_markers() {
+        const dots = createTemporaryObject(dotsComponent, testCase, { displayType: 1 });
+        const number = find(dots, c => c.objectName === "workspace-number-1");
+        const shape = find(dots, c => c.objectName === "workspace-shape-1");
+        verify(number !== null);
+        verify(shape !== null);
+        verify(number.visible);
+        verify(!shape.visible);
     }
 
     function test_status_items_are_full_height_targets() {

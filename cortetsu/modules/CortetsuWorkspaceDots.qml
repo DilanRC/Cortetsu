@@ -1,5 +1,6 @@
 import QtQuick
 import "../theme"
+import "CortetsuTypography.js" as CortetsuTypography
 
 Row {
     id: root
@@ -7,6 +8,7 @@ Row {
     required property int workspaceCount
     required property int workspaceOffset
     required property int activeWsId
+    required property int displayType
     required property var occupiedWorkspaceIds
 
     signal workspaceRequested(int workspaceId)
@@ -43,7 +45,7 @@ Row {
                 restoreFocus.restart();
             }
 
-            width: active ? 20 : 6
+            width: root.displayType === 1 ? 24 : active ? 20 : 6
             height: 36
             activeFocusOnTab: true
 
@@ -65,7 +67,9 @@ Row {
             }
 
             Rectangle {
+                objectName: `workspace-shape-${workspaceDot.wsId}`
                 anchors.centerIn: parent
+                visible: root.displayType === 0
                 width: parent.width
                 height: 6
                 radius: height / 2
@@ -79,8 +83,21 @@ Row {
                 border.color: CortetsuDesign.colorWashi
             }
 
-            // The dot is 6 px wide; the hit area covers half the gap on each
-            // side, so the row has no dead pixels between workspaces.
+            Text {
+                objectName: `workspace-number-${workspaceDot.wsId}`
+                anchors.centerIn: parent
+                visible: root.displayType === 1
+                text: workspaceDot.wsId
+                color: workspaceDot.active
+                    ? CortetsuDesign.colorPrimary
+                    : Qt.alpha(CortetsuDesign.colorOnSurface, workspaceDot.occupied ? 0.72 : 0.38)
+                font.family: CortetsuDesign.fontUi
+                font.pixelSize: CortetsuTypography.labelMediumPx
+                font.weight: workspaceDot.active ? Font.Bold : Font.Medium
+            }
+
+            // The hit area covers half the gap on each side, so the row has
+            // no dead pixels between workspaces in either display mode.
             MouseArea {
                 anchors.fill: parent
                 anchors.leftMargin: -root.spacing / 2

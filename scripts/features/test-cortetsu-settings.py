@@ -86,6 +86,13 @@ assert 'name: "settings"' in shortcuts
 
 bottom_hub = (SHELL / "modules/BottomHub.qml").read_text(encoding="utf-8")
 assert "readonly property int workspaceCount: CortetsuConfig.workspacesShown" in bottom_hub
+assert "workspaceDisplayType: CortetsuConfig.bar.workspaces.displayType" in bottom_hub
+bottom_hub_view = (SHELL / "modules/CortetsuBottomHubView.qml").read_text(encoding="utf-8")
+workspace_mode = (SHELL / "modules/CortetsuModeSegment.qml").read_text(encoding="utf-8")
+workspace_dots = (SHELL / "modules/CortetsuWorkspaceDots.qml").read_text(encoding="utf-8")
+assert "workspaceDisplayType: root.workspaceDisplayType" in bottom_hub_view
+assert "displayType: root.workspaceDisplayType" in workspace_mode
+assert "visible: root.displayType === 1" in workspace_dots and "workspaceDot.wsId" in workspace_dots
 
 print(f"PASS: {len(page_ids)} end-4 pages compose {sum(map(len, section_ids.values()))} Cortetsu sections, {len(written)} preferences written by Settings "
       "all have a reader, and SUPER+I has one owner")

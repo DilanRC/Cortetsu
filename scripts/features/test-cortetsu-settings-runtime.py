@@ -943,6 +943,26 @@ ShellRoot {
                 "the Bottom Hub workspace count restores on launch");
         }]
     ]
+    readonly property var workspaceNumbersPreferences: [
+        [() => CortetsuConfig.loaded, () => { select("bar"); screenDouble.settings = true; }],
+        [() => !!content && !!page("workspaceNumbers"), () => { window.requestActivate(); }],
+        [() => window.active, () => {
+            const toggle = page("workspaceNumbers");
+            verify(CortetsuConfig.bar.workspaces.displayType === 0 && !toggle.checked,
+                "workspace glyphs stay the default");
+            toggle.forceActiveFocus(); key(Qt.Key_Space);
+            verify(CortetsuConfig.bar.workspaces.displayType === 1 && toggle.checked,
+                "the toggle switches the workspace renderer from dots to numbers");
+        }],
+        [() => CortetsuConfig.saveState === "saved", () => {}]
+    ]
+    readonly property var workspaceNumbersRestore: [
+        [() => CortetsuConfig.loaded, () => { select("bar"); screenDouble.settings = true; }],
+        [() => !!content && !!page("workspaceNumbers"), () => {
+            verify(CortetsuConfig.bar.workspaces.displayType === 1 && page("workspaceNumbers").checked,
+                "the workspace number choice restores on launch");
+        }]
+    ]
     readonly property var actionPrefixPreferences: [
         [() => CortetsuConfig.loaded, () => { select("interface"); screenDouble.settings = true; }],
         [() => !!content && !!page("actionPrefix"), () => { window.requestActivate(); }],
@@ -1409,6 +1429,12 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     workspace_count_saved = json.loads((workspace_count_home / ".config/cortetsu/preferences.json").read_text())
     assert workspace_count_saved["workspacesShown"] == 8, workspace_count_saved
     restored, _ = run(folder, "shell.qml", "workspacesShownRestore", preferences=workspace_count_saved)
+    assert passed(restored) == 1, restored
+    output, workspace_numbers_home = run(folder, "shell.qml", "workspaceNumbersPreferences", preferences={"schema": 1})
+    assert passed(output) == 2, output
+    workspace_numbers_saved = json.loads((workspace_numbers_home / ".config/cortetsu/preferences.json").read_text())
+    assert workspace_numbers_saved["bar"]["workspaces"]["displayType"] == 1, workspace_numbers_saved
+    restored, _ = run(folder, "shell.qml", "workspaceNumbersRestore", preferences=workspace_numbers_saved)
     assert passed(restored) == 1, restored
 
     output, prefix_home = run(folder, "shell.qml", "actionPrefixPreferences", preferences={"schema": 1})

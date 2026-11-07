@@ -111,5 +111,16 @@ ColumnLayout {
             value: CortetsuConfig.workspacesShown
             onMoved: value => CortetsuConfig.setWorkspacesShown(Math.round(value))
         }
+
+        SettingToggleRow {
+            objectName: "workspaceNumbers"
+            title: qsTr("Mostrar números")
+            detail: qsTr("Usar cifras en lugar de indicadores gráficos")
+            checked: CortetsuConfig.bar.workspaces.displayType === 1
+            onToggled: value => {
+                CortetsuConfig.bar.workspaces.displayType = value ? 1 : 0;
+                CortetsuConfig.save();
+            }
+        }
     }
 }
