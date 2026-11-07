@@ -8,7 +8,7 @@ Rectangle {
     anchors.fill: parent
     anchors.margins: 3
     z: -1
-    radius: height / 2
+    radius: Math.min(height / 2, CortetsuDesign.radiusSurface)
     color: Qt.alpha(CortetsuDesign.colorSumi, 0.82)
     border.width: 1
     border.color: Qt.alpha(CortetsuDesign.colorWashi, 0.08)

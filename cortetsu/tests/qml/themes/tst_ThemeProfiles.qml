@@ -1,11 +1,21 @@
 import QtQuick
 import QtTest
+import "../../../modules"
 import "../../../theme"
 import "../../../theme/ThemeProfiles.js" as Profiles
 import "../../../theme/CortetsuDesignDefaults.js" as Defaults
 
 TestCase {
     name: "ThemeProfiles"
+    width: 120
+    height: 60
+
+    CortetsuIsland {
+        id: bottomHubIsland
+        objectName: "bottomHubThemeIsland"
+        anchors.fill: parent
+    }
+
     function cleanup() {
         CortetsuDesign.themeTokens = ({});
         CortetsuDesign.scheme = ({});
@@ -36,6 +46,16 @@ TestCase {
         CortetsuDesign.reducedMotion = true;
         compare(CortetsuDesign.motionStandardMs, 0);
         compare(CortetsuDesign.motionPanelMs, 0);
+    }
+    function test_bottom_hub_island_radius_follows_theme_and_preserves_ink() {
+        CortetsuDesign.themeTokens = Profiles.tokens("ink");
+        compare(bottomHubIsland.radius, bottomHubIsland.height / 2, "Ink keeps the existing capsule shape");
+
+        CortetsuDesign.themeTokens = Profiles.tokens("washi");
+        compare(bottomHubIsland.radius, 18, "Washi applies its compiled surface radius to Bottom Hub");
+
+        CortetsuDesign.themeTokens = Profiles.tokens("kurogane");
+        compare(bottomHubIsland.radius, 14, "Kurogane applies its technical surface radius to Bottom Hub");
     }
     function test_unknown_theme_falls_back_to_ink() {
         compare(Object.keys(Profiles.tokens("unknown")).length, 0);
