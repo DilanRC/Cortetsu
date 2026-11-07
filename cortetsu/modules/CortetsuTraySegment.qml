@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Effects
 import "../components"
 import "../theme"
 import "CortetsuTypography.js" as CortetsuTypography
@@ -11,6 +12,7 @@ Item {
 
     required property var items
     property var delegateModel: items
+    property bool monochromeIcons: false
 
     signal hoverRequested(string itemKey, real centerX)
     signal activateRequested(string itemKey)
@@ -72,6 +74,7 @@ Item {
                 }
 
                 Image {
+                    objectName: `tray-${trayItem.modelData.key}-icon`
                     anchors.centerIn: parent
                     width: 22
                     height: 22
@@ -83,6 +86,11 @@ Item {
                     fillMode: Image.PreserveAspectFit
                     smooth: true
                     mipmap: true
+                    layer.enabled: root.monochromeIcons
+                    layer.effect: MultiEffect {
+                        colorization: 1
+                        colorizationColor: CortetsuDesign.colorOnSurface
+                    }
                 }
 
                 Rectangle {

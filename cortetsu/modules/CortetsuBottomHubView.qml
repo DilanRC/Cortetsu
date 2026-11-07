@@ -10,6 +10,7 @@ Item {
     required property int workspaceDisplayType
     required property bool workspaceShowAppIcons
     required property bool workspaceMonochromeIcons
+    property bool trayMonochromeIcons: false
     required property var workspaceAppIconSources
     required property int workspaceOffset
     required property int activeWsId
@@ -138,6 +139,7 @@ Item {
         anchors.verticalCenter: parent.verticalCenter
         items: root.trayItems
         delegateModel: root.trayDelegateModel
+        monochromeIcons: root.trayMonochromeIcons
         onHoverRequested: (itemKey, centerX) => root.trayHoverRequested(
             itemKey,
             traySegment.x + centerX

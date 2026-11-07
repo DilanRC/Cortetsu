@@ -410,8 +410,14 @@
       "option": "tray.monochromeIcons",
       "source": "dots/.config/quickshell/ii/modules/settings/BarConfig.qml",
       "line": 160,
-      "status": "pending",
-      "cortetsu": null
+      "status": "adapted",
+      "cortetsu": {
+        "control": "cortetsu/modules/settings/sections/BottomHubSection.qml#trayMonochromeIcons",
+        "owner": "CortetsuConfig.bar.tray.recolour → BottomHub.qml → CortetsuBottomHubView.qml → CortetsuTraySegment.qml",
+        "result": "System tray icons receive the active theme foreground tint; notification attention remains vermillion",
+        "test": "tests/qml/bottomhub/tst_TraySegment.qml#test_monochrome_setting_tints_icons_and_updates_live; scripts/features/test-cortetsu-settings-runtime.py#trayMonochromePreferences,trayMonochromeRestore"
+      },
+      "notes": "Usa la preferencia existente de recoloración de bandeja y la aplica al renderer real."
     },
     {
       "page": "BarConfig",

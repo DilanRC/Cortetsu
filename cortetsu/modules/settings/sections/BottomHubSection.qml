@@ -40,6 +40,14 @@ ColumnLayout {
             checked: CortetsuConfig.bottomHub.segments.tray
             onToggled: value => { CortetsuConfig.bottomHub.segments.tray = value; CortetsuConfig.save(); }
         }
+
+        SettingToggleRow {
+            objectName: "trayMonochromeIcons"
+            title: qsTr("Iconos monocromos de la bandeja")
+            detail: qsTr("Adaptar el color de los iconos al tema activo")
+            checked: CortetsuConfig.bar.tray.recolour
+            onToggled: value => { CortetsuConfig.bar.tray.recolour = value; }
+        }
     }
 
     SettingsGroup {

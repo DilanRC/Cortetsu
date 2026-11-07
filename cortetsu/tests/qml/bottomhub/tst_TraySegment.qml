@@ -11,11 +11,13 @@ TestCase {
     height: 480
 
     property var trayItems: []
+    property bool monochromeIcons: false
 
     Component {
         id: trayComponent
         CortetsuTraySegment {
             items: testCase.trayItems
+            monochromeIcons: testCase.monochromeIcons
         }
     }
 
@@ -52,6 +54,25 @@ TestCase {
         tryVerify(() => findChild(segment, "tray-attention-attention-indicator") !== null);
         tryVerify(() => findChild(segment, "tray-attention-attention-indicator")?.visible ?? false);
         verify(!(findChild(segment, "tray-active-attention-indicator")?.visible ?? false));
+        segment.destroy();
+    }
+
+    function test_monochrome_setting_tints_icons_and_updates_live() {
+        trayItems = [{
+            key: "test",
+            id: "test-tray",
+            title: "Test",
+            iconSource: Qt.resolvedUrl("../../../assets/branding/cortetsu-mark.svg")
+        }];
+        monochromeIcons = true;
+        const segment = trayComponent.createObject(testCase);
+        verify(segment !== null);
+        const icon = findChild(segment, "tray-test-icon");
+        verify(icon !== null);
+        verify(icon.layer.enabled, "the setting applies a monochrome tint to system-tray icons");
+
+        segment.monochromeIcons = false;
+        verify(!icon.layer.enabled, "turning the setting off restores native icon colours");
         segment.destroy();
     }
 }

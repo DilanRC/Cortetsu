@@ -901,6 +901,26 @@ ShellRoot {
                 "the auto-hide preference restores through the Bottom Hub visibility controller");
         }]
     ]
+    readonly property var trayMonochromePreferences: [
+        [() => CortetsuConfig.loaded, () => { select("bar"); screenDouble.settings = true; }],
+        [() => !!content && !!page("trayMonochromeIcons"), () => { window.requestActivate(); }],
+        [() => window.active, () => {
+            const toggle = page("trayMonochromeIcons");
+            verify(!CortetsuConfig.bar.tray.recolour,
+                "native tray icon colours are the default");
+            toggle.forceActiveFocus(); key(Qt.Key_Space);
+            verify(CortetsuConfig.bar.tray.recolour,
+                "the tray setting enables live monochrome tinting in CortetsuTraySegment");
+        }],
+        [() => CortetsuConfig.saveState === "saved", () => {}]
+    ]
+    readonly property var trayMonochromeRestore: [
+        [() => CortetsuConfig.loaded, () => { select("bar"); screenDouble.settings = true; }],
+        [() => !!content && !!page("trayMonochromeIcons"), () => {
+            verify(CortetsuConfig.bar.tray.recolour && page("trayMonochromeIcons").checked,
+                "the tray tint preference restores after restart");
+        }]
+    ]
     readonly property var weatherVisibilityPreferences: [
         [() => CortetsuConfig.loaded, () => { select("interface"); screenDouble.settings = true; }],
         [() => !!content && !!page("dashboardWeather"), () => { window.requestActivate(); }],
@@ -1582,6 +1602,14 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     bar_auto_hide_saved = json.loads((bar_auto_hide_home / ".config/cortetsu/preferences.json").read_text())
     assert bar_auto_hide_saved["bar"]["showOnHover"] is True, bar_auto_hide_saved
     restored, _ = run(folder, "shell.qml", "barAutoHideRestore", preferences=bar_auto_hide_saved)
+    assert passed(restored) == 1, restored
+
+    output, tray_monochrome_home = run(folder, "shell.qml", "trayMonochromePreferences",
+                                       preferences={"schema": 1})
+    assert passed(output) == 2, output
+    tray_monochrome_saved = json.loads((tray_monochrome_home / ".config/cortetsu/preferences.json").read_text())
+    assert tray_monochrome_saved["bar"]["tray"]["recolour"] is True, tray_monochrome_saved
+    restored, _ = run(folder, "shell.qml", "trayMonochromeRestore", preferences=tray_monochrome_saved)
     assert passed(restored) == 1, restored
 
     output, weather_visibility_home = run(folder, "shell.qml", "weatherVisibilityPreferences",
