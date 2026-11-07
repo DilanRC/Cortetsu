@@ -179,5 +179,5 @@ live token updates and restoration in a fresh process. Rust palette tests cover
 variant role generation and keep the legacy Tonal Spot fixtures unchanged; Rust
 contract tests cover scheme restoration, wallpaper snapshot preservation,
 corrupt snapshot rejection, stale requests and acknowledgement while a
-Hyprland projection lock is held. Visual certification against end-4 remains a
-separate check from the runtime and persistence tests.
+Hyprland projection lock is held. The isolated visual comparison with end-4 is
+recorded in [Settings visual QA](SETTINGS_VISUAL_QA_2026-11-07.md).

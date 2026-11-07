@@ -167,3 +167,9 @@ fails if a control is wired to a preference with no reader.
 `CORTETSU_RENDER_DIR=<dir>` makes the runtime test save a PNG of every page at
 1368 x 900, at 880 x 620 and on the `aura` scheme at 1280 x 800, plus each
 failure and unavailable state.
+
+The isolated visual comparison with end-4's pinned `settings.qml` was captured
+on 2026-11-07. [The evidence page](SETTINGS_VISUAL_QA_2026-11-07.md) links each
+of the eight page pairs and Washi/Kurogane captures. It records the isolated
+compositors and viewport sizes; Cortetsu keeps its own theme and groups controls
+by its existing service owners.
