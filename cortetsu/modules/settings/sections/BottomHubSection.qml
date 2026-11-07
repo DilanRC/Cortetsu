@@ -96,4 +96,20 @@ ColumnLayout {
             onToggled: value => { CortetsuConfig.bar.scrollActions.volume = value; CortetsuConfig.save(); }
         }
     }
+
+    SettingsGroup {
+        title: qsTr("Espacios de trabajo")
+        detail: qsTr("Cuántos espacios muestra Bottom Hub alrededor del activo")
+
+        SettingSliderRow {
+            objectName: "workspacesShown"
+            title: qsTr("Espacios visibles")
+            valueText: qsTr("%1").arg(CortetsuConfig.workspacesShown)
+            from: 1
+            to: 20
+            step: 1
+            value: CortetsuConfig.workspacesShown
+            onMoved: value => CortetsuConfig.setWorkspacesShown(Math.round(value))
+        }
+    }
 }

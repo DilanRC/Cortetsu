@@ -505,8 +505,14 @@
       "option": "bar.workspaces.shown",
       "source": "dots/.config/quickshell/ii/modules/settings/BarConfig.qml",
       "line": 288,
-      "status": "pending",
-      "cortetsu": null
+      "status": "adapted",
+      "cortetsu": {
+        "control": "cortetsu/modules/settings/sections/BottomHubSection.qml#workspacesShown",
+        "owner": "CortetsuConfig.setWorkspacesShown → BottomHub workspaceCount",
+        "result": "Changes the number of workspace slots shown in Bottom Hub and its active workspace page",
+        "test": "scripts/features/test-cortetsu-settings-runtime.py#workspacesShownPreferences,workspacesShownRestore and scripts/features/test-cortetsu-settings.py"
+      },
+      "notes": "Cortetsu uses a horizontal Bottom Hub, so this controls visible workspace slots rather than a side-bar layout."
     },
     {
       "page": "BarConfig",

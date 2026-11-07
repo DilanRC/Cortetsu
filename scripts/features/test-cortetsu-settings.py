@@ -84,5 +84,8 @@ assert '"SUPER + I",\n    hl.dsp.global("cortetsu:settings")' not in user_hypr
 assert '"SUPER + I",\n    hl.dsp.global("cortetsu:utilities")' not in user_hypr
 assert 'name: "settings"' in shortcuts
 
+bottom_hub = (SHELL / "modules/BottomHub.qml").read_text(encoding="utf-8")
+assert "readonly property int workspaceCount: CortetsuConfig.workspacesShown" in bottom_hub
+
 print(f"PASS: {len(page_ids)} end-4 pages compose {sum(map(len, section_ids.values()))} Cortetsu sections, {len(written)} preferences written by Settings "
       "all have a reader, and SUPER+I has one owner")
