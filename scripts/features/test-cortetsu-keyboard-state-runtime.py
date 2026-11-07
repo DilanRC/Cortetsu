@@ -105,7 +105,9 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-keyboard-state-") as temporary
         "toastKbLayoutChanged": False,
     }))
     shutil.copy(ROOT / "modules/CortetsuHypr.qml", folder / "modules/CortetsuHypr.qml")
-    shutil.copy(ROOT / "modules/CortetsuToplevels.js", folder / "modules/CortetsuToplevels.js")
+    for helper in ("CortetsuToplevels.js", "CortetsuFullscreen.js", "CortetsuHyprActions.js",
+                   "CortetsuHyprEventPolicy.js"):
+        shutil.copy(ROOT / "modules" / helper, folder / "modules" / helper)
     shutil.copy(ROOT / "modules/CortetsuConfig.qml", folder / "modules/CortetsuConfig.qml")
     (folder / "services").mkdir()
     shutil.copy(ROOT / "services/CortetsuToaster.qml", folder / "services/CortetsuToaster.qml")

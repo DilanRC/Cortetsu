@@ -22,7 +22,7 @@ for key in keys:
     token = "material" + "".join(part.title() for part in key.split("_"))
     assert key in ui["material"], key
     assert f"var {token} = {ui['material'][key]}" in defaults, token
-    assert f"readonly property real {token}: Defaults.{token}" in design, token
+    assert f'readonly property real {token}: token("{token}", Defaults.{token})' in design, token
 
 panel = read("cortetsu/components/CortetsuInkPanel.qml")
 for token in ("materialGroundAlpha", "materialWashAlpha", "materialGrain", "materialHairlineAlpha"):
@@ -65,7 +65,7 @@ for rel in ("modules/osd/Content.qml", "modules/launcher/Content.qml", "modules/
 # Type families are theme tokens too: ui.toml [typography] -> CortetsuDesign.font*.
 for key, token in (("ui_family", "fontUi"), ("ink_family", "fontInk"), ("kanji_family", "fontKanji")):
     assert f'var {token} = "{ui["typography"][key]}"' in defaults, token
-    assert f"readonly property string {token}: Defaults.{token}" in design, token
+    assert f'readonly property string {token}: token("{token}", Defaults.{token})' in design, token
 typography = read("cortetsu/modules/CortetsuTypography.js")
 assert not re.search(r"var (uiFamily|inkFamily|kanjiFamily)\b", typography), "a text family outside the theme"
 for path in QML.rglob("*.qml"):
