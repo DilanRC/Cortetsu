@@ -85,4 +85,6 @@ var profiles = {
     "spacingSection": 36
   }
 };
+var limits = {"materialGrain":[0,0.3],"materialGroundAlpha":[0.5,1],"materialHairlineAlpha":[0,0.3],"radiusMedium":[0,32],"radiusSmall":[0,24],"radiusSurface":[0,40],"rowHeight":[36,72],"spacingSection":[16,48]};
+var fonts = ["fontUi","fontInk","fontKanji"];
 function tokens(id) { return profiles[id] || {}; }

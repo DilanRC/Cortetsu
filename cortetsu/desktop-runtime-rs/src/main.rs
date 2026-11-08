@@ -12,6 +12,9 @@ mod sharepicker;
 mod shellprompt;
 mod startup;
 mod sxaes;
+mod theme_profile;
+mod theme_sync;
+mod toolkit_settings;
 mod utilities;
 
 fn main() {

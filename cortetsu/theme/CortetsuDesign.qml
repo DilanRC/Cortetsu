@@ -14,8 +14,13 @@ QtObject {
 
     // The selected product theme supplies tokens; Ink uses the compiled defaults.
     property var themeTokens: ({})
+    property var userTokens: ({})
 
     function token(name, fallback) {
+        if (userTokens[name] !== undefined)
+            return userTokens[name];
+        if (name.startsWith("color") && Object.keys(scheme).length > 0)
+            return fallback;
         const value = themeTokens[name];
         return value === undefined ? fallback : value;
     }
@@ -73,10 +78,10 @@ QtObject {
     readonly property color colorWashi: token("colorWashi", readable(role("onSurface", Defaults.colorWashi), [colorTetsu, colorSurfaceHigh]))
     readonly property color colorIndigo: token("colorIndigo", role("primary", Defaults.colorIndigo))
     readonly property color colorVermillion: token("colorVermillion", Defaults.colorVermillion)
-    readonly property color colorMuted: token("colorMuted", Defaults.colorMuted)
-    readonly property color colorSurface: token("colorSurface", colorTetsu)
+    readonly property color colorMuted: token("colorMuted", readable(role("onSurfaceVariant", Defaults.colorMuted), [colorTetsu, colorSurfaceHigh]))
+    readonly property color colorSurface: token("colorSurface", role("surface", Defaults.colorSurface))
     readonly property color colorSurfaceHigh: token("colorSurfaceHigh", role("surfaceContainerHigh", Defaults.colorSurfaceHigh))
-    readonly property color colorOnSurface: token("colorOnSurface", colorWashi)
+    readonly property color colorOnSurface: token("colorOnSurface", readable(role("onSurface", Defaults.colorOnSurface), [colorTetsu, colorSurfaceHigh]))
     readonly property color colorOnSurfaceVariant: token("colorOnSurfaceVariant", readable(role("onSurfaceVariant", Defaults.colorOnSurfaceVariant), [colorTetsu, colorSurfaceHigh]))
     readonly property color colorPrimary: token("colorPrimary", role("primary", Defaults.colorPrimary))
     readonly property color colorOnPrimary: token("colorOnPrimary", role("onPrimary", Defaults.colorOnPrimary))
@@ -91,7 +96,7 @@ QtObject {
     readonly property color colorScrim: token("colorScrim", Defaults.colorScrim)
     readonly property color colorSurfaceGlass: token("colorSurfaceGlass", role("surfaceContainer", Defaults.colorSurfaceGlass))
     readonly property color colorSurfaceGlassStrong: token("colorSurfaceGlassStrong", role("surfaceContainerHigh", Defaults.colorSurfaceGlassStrong))
-    readonly property color colorOnSurfaceMuted: token("colorOnSurfaceMuted", Defaults.colorOnSurfaceMuted)
+    readonly property color colorOnSurfaceMuted: token("colorOnSurfaceMuted", readable(role("onSurfaceVariant", Defaults.colorOnSurfaceMuted), [colorTetsu, colorSurfaceHigh]))
     readonly property color colorSuccess: token("colorSuccess", role("success", Defaults.colorSuccess))
     readonly property color colorWarning: token("colorWarning", Defaults.colorWarning)
     readonly property color colorIndicator: token("colorIndicator", readable(role("primary", Defaults.colorIndicator), [colorTetsu, colorSurfaceHigh], 3))

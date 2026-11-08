@@ -7,6 +7,7 @@ import "../modules"
 import "../theme"
 import "../theme/CortetsuDesignDefaults.js" as Defaults
 import "../theme/ThemeProfiles.js" as ThemeProfiles
+import "../modules/ThemePreferences.js" as ThemePreferences
 
 Singleton {
     id: root
@@ -14,6 +15,7 @@ Singleton {
     property string scheme: "cortetsu"
     property string flavour: "dark"
     property string variant: "tonal-spot"
+    property string origin: "theme"
     property bool currentLight: false
     property bool previewLight: false
     readonly property bool light: showPreview ? previewLight : currentLight
@@ -56,7 +58,15 @@ Singleton {
     Binding {
         target: CortetsuDesign
         property: "themeTokens"
-        value: ThemeProfiles.tokens(CortetsuConfig.themeId)
+        value: ThemeProfiles.tokens(CortetsuThemes.previewId || CortetsuConfig.themeId)
+    }
+
+    Binding {
+        target: CortetsuDesign
+        property: "userTokens"
+        value: CortetsuThemes.previewId && CortetsuThemes.previewId !== CortetsuConfig.themeId
+            ? ThemePreferences.sanitise(CortetsuConfig.themePreferences[CortetsuThemes.previewId]?.tokens)
+            : CortetsuConfig.activeThemeOverrides
     }
 
     Binding {
@@ -93,11 +103,12 @@ Singleton {
                 previewLight = value.mode === "light";
                 showPreview = true;
             } else {
-                currentColours = value.colours;
+                currentColours = value.effectiveColours || value.colours;
                 // Same fallbacks as `cortetsu-scheme get`, so both name the scheme alike.
                 scheme = value.name ?? "dynamic";
                 flavour = value.flavour ?? "default";
                 variant = value.variant ?? "tonal-spot";
+                origin = value.origin ?? "theme";
                 currentLight = value.mode === "light";
             }
         } catch (_) {

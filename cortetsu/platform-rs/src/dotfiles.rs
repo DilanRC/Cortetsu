@@ -121,6 +121,41 @@ pub fn build(repo: &Path, profile: Option<&str>) -> Result<PathBuf> {
         for e in entries {
             let dest = stage.join("home").join(safe_relative(&e.target)?);
             copy_path(&repo.join(&e.source), &dest)?;
+            if e.target == ".config/kitty/kitty.conf" {
+                let overlay = env_path("XDG_STATE_HOME", home()?.join(".local/state"))?
+                    .join("cortetsu/kitty-colors.conf");
+                let overlay = overlay.to_string_lossy();
+                if overlay.chars().any(char::is_control) {
+                    return fail("invalid Kitty overlay path");
+                }
+                let config = fs::read_to_string(&dest)?.replace(
+                    "include ~/.local/state/cortetsu/kitty-colors.conf",
+                    &format!("include {overlay}"),
+                );
+                fs::write(&dest, config)?;
+            }
+            if matches!(
+                e.target.as_str(),
+                ".config/gtk-3.0/cortetsu-colors.css" | ".config/gtk-4.0/cortetsu-colors.css"
+            ) {
+                let overlay = env_path("XDG_STATE_HOME", home()?.join(".local/state"))?
+                    .join("cortetsu/gtk-colors.css");
+                // Resolve the mutable import before sealing the generation and hashing it.
+                let uri = "file://".to_owned()
+                    + &overlay
+                        .to_string_lossy()
+                        .bytes()
+                        .map(|b| {
+                            if b.is_ascii_alphanumeric() || b"/-._~".contains(&b) {
+                                (b as char).to_string()
+                            } else {
+                                format!("%{b:02X}")
+                            }
+                        })
+                        .collect::<String>();
+                let css = fs::read_to_string(&dest)? + &format!("\n@import url(\"{uri}\");\n");
+                fs::write(&dest, css)?;
+            }
             records.push(json!({"source":e.source,"target":e.target,"tags":e.tags,"sha256":cortetsu_rescue::hash_path(&dest)?}));
         }
         write_json(

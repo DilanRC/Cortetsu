@@ -97,6 +97,11 @@ printf '==> Verificación de la generación completa\n'
 transaction_active=0
 unset CORTETSU_INSTALL_TRANSACTION
 
+# Mutable projections are deliberately outside the sealed generation transaction.
+# The helper records failures per destination; a toolkit failure keeps the shell.
+printf '==> Sincronización de la paleta activa (destinos independientes)\n'
+"$helpers_generation/cortetsu-scheme" sync-projections || printf 'WARN: no se pudo confirmar la sincronización; consulta Cortetsu Settings\n' >&2
+
 # Services and additive legacy state migration run only after the filesystem
 # transaction is durable. They never restart the desktop shell implicitly.
 legacy_state_present=0

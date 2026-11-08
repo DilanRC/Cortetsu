@@ -53,6 +53,17 @@ pub fn json_load(path: &Path, default: Value) -> Value {
         .and_then(|b| serde_json::from_slice(&b).ok())
         .unwrap_or(default)
 }
+pub fn json_object(path: &Path) -> Result<Value> {
+    let value = match fs::read(path) {
+        Ok(bytes) => serde_json::from_slice(&bytes)?,
+        Err(e) if e.kind() == io::ErrorKind::NotFound => serde_json::json!({}),
+        Err(e) => return Err(e.into()),
+    };
+    if !value.is_object() {
+        return Err(format!("{} must be a JSON object", path.display()).into());
+    }
+    Ok(value)
+}
 pub fn atomic(path: &Path, data: &[u8], mode: u32) -> io::Result<()> {
     let parent = path
         .parent()

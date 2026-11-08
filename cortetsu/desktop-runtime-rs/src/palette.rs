@@ -1,4 +1,6 @@
 use crate::common::*;
+use crate::theme_profile::validate_saved_theme_scheme;
+use crate::theme_sync::{projection_error, save_scheme, sync_projections};
 use material_colors::{
     color::Argb,
     dynamic_color::{DynamicScheme, Variant},
@@ -67,7 +69,7 @@ pub fn catalog() -> Result<Value> {
     }
     Ok(result)
 }
-fn hypr_scheme(colours: &Value) -> Result<()> {
+pub(crate) fn hypr_scheme(colours: &Value) -> Result<()> {
     let path = config().join("hypr/scheme/current.lua");
     if !path.is_file() {
         return Ok(());
@@ -93,18 +95,17 @@ fn hypr_scheme(colours: &Value) -> Result<()> {
         lines.push_str(&format!("    {k} = \"{colour}\",\n"));
     }
     lines.push_str("}\n\n");
-    atomic(&path, lines.as_bytes(), 0o600)?;
+    let unchanged = fs::read_to_string(&path).ok().as_deref() == Some(lines.as_str());
+    let confirmed = json_load(&state().join("theme-sync.json"), json!({}))["targets"]["hyprland"]["status"]
+        == "applied";
+    if unchanged && confirmed {
+        return Ok(());
+    }
+    crate::theme_sync::project_file("hyprland", &path, &lines)?;
     if env::var_os("CORTETSU_SKIP_RELOAD").is_none() && which("hyprctl").is_some() {
-        let _ = call("hyprctl", &["reload", "config-only"], 15);
+        crate::theme_sync::reload_hyprland()?;
     }
     Ok(())
-}
-fn hypr_scheme_current(path: &Path) -> Result<()> {
-    let _guard = lock(&path.with_file_name("hypr-scheme.lock"), false)?;
-    let current = optional_json_object(path)
-        .map_err(|_| "scheme.json is not a readable JSON object")?
-        .unwrap_or_else(|| json!({}));
-    hypr_scheme(&current["colours"])
 }
 const KITTY_ROLES: [(&str, &str); 9] = [
     ("foreground", "onSurface"),
@@ -117,7 +118,7 @@ const KITTY_ROLES: [(&str, &str); 9] = [
     ("inactive_tab_foreground", "onSurface"),
     ("inactive_tab_background", "surfaceContainer"),
 ];
-fn kitty_colours(colours: &Value) -> Result<String> {
+pub(crate) fn kitty_colours(colours: &Value) -> Result<String> {
     let hex = |key: &str| -> Result<String> {
         let c = colours[key]
             .as_str()
@@ -144,11 +145,11 @@ fn kitty_colours(colours: &Value) -> Result<String> {
 // ponytail: kitty.conf names ~/.local/state literally because Kitty leaves an
 // unset ${XDG_STATE_HOME} unexpanded; a custom XDG_STATE_HOME falls back to the
 // ui.toml palette. Upgrade path: template the include at dotfiles build time.
-fn sync_kitty(colours: &Value) -> Result<()> {
+pub(crate) fn sync_kitty(colours: &Value) -> Result<()> {
     let text = kitty_colours(colours)?;
     let path = state().join("kitty-colors.conf");
     if fs::read_to_string(&path).ok().as_deref() != Some(text.as_str()) {
-        atomic(&path, text.as_bytes(), 0o644)?;
+        crate::theme_sync::project_file("kitty", &path, &text)?;
     }
     Ok(())
 }
@@ -166,41 +167,15 @@ fn sync_kitty_current(path: &Path) -> Result<()> {
     {
         return Ok(());
     }
-    sync_kitty(&current["colours"])
-}
-fn validate_saved_theme_scheme(value: &Value) -> Result<()> {
-    let object = value.as_object().ok_or("invalid saved theme scheme")?;
-    if !["schema", "origin", "name", "flavour", "variant", "colours"]
-        .iter()
-        .any(|key| object.contains_key(*key))
-    {
-        return Err("saved theme scheme has no recognised fields".into());
-    }
-    for key in ["origin", "name", "flavour", "variant"] {
-        if value.get(key).is_some_and(|field| !field.is_string()) {
-            return Err(format!("invalid saved theme scheme {key}").into());
-        }
-    }
-    if value.get("colours").is_some_and(|field| !field.is_object()) {
-        return Err("invalid saved theme scheme colours".into());
-    }
-    if value["schema"] == 2
-        && (!matches!(value["origin"].as_str(), Some("manual" | "wallpaper"))
-            || !value["name"].is_string()
-            || !value["flavour"].is_string()
-            || !value["colours"].is_object())
-    {
-        return Err("invalid saved theme scheme metadata".into());
-    }
-    if value["colours"]
-        .as_object()
-        .is_some_and(|colours| !colours.is_empty())
-    {
-        kitty_colours(&value["colours"])?;
-    }
-    Ok(())
+    sync_kitty(&crate::theme_sync::effective(&current)?["colours"])
 }
 pub fn scheme(args: &[String]) -> Result<i32> {
+    if args.first().is_some_and(|s| s == "profile") {
+        return crate::theme_profile::run(&args[1..]);
+    }
+    if let Some(result) = crate::theme_sync::command(args) {
+        return result;
+    }
     let path = state().join("scheme.json");
     let mut s = json_load(&path, json!({}));
     if !s.is_object() {
@@ -260,15 +235,25 @@ pub fn scheme(args: &[String]) -> Result<i32> {
             s["name"] = json!(name);
             s["flavour"] = json!(flavour);
             s["colours"] = colours.clone();
+            s["seed"] = colours
+                .get("primary_paletteKeyColor")
+                .unwrap_or(&colours["primary"])
+                .clone();
+            s["mode"] = json!(if crate::theme_sync::light_palette(colours)? {
+                "light"
+            } else {
+                "dark"
+            });
             s["schema"] = json!(2);
             s["origin"] = json!("manual");
             s["lastSelection"] = json!({"name": name, "flavour": flavour});
-            json_save(&path, &s)?;
+            save_scheme(&path, &mut s)?;
             drop(_guard);
-            hypr_scheme_current(&path)?;
-            if let Err(e) = sync_kitty_current(&path) {
-                eprintln!("cortetsu-scheme: Kitty colours kept unchanged: {e}");
-            }
+            let projections = sync_projections(&path)?;
+            let error = projection_error(&projections);
+            emit(
+                &json!({"committed":true,"name":name,"flavour":flavour,"projectionApplied":error.is_none(),"projectionError":error,"projections":projections}),
+            )?;
         }
         ["theme", id] if ["ink", "washi", "kurogane"].contains(id) => {
             let guard = lock(&path.with_file_name("scheme.lock"), false)?;
@@ -304,60 +289,70 @@ pub fn scheme(args: &[String]) -> Result<i32> {
                 .as_object_mut()
                 .ok_or("scheme object")?
                 .remove("themeId");
+            if !["name", "flavour", "colours", "origin"]
+                .iter()
+                .any(|key| current.get(*key).is_some())
+            {
+                current = json!({"schema":2,"origin":"theme","name":previous,"flavour":"default","colours":{}});
+            }
+            validate_saved_theme_scheme(&current)?;
             profiles.insert(previous, current.clone());
             let mut next = if let Some(saved) = profiles.get(*id) {
                 validate_saved_theme_scheme(saved)?;
                 saved.clone()
             } else {
-                current
+                json!({"schema":2,"origin":"theme","name":id,"flavour":"default","colours":{}})
             };
             if !next.is_object() {
                 return Err("invalid saved theme scheme".into());
             }
             next["themeId"] = json!(id);
             next["themeProfiles"] = Value::Object(profiles);
-            json_save(&path, &next)?;
+            save_scheme(&path, &mut next)?;
             drop(guard);
             if defer_projections {
                 // Settings consumes this durable acknowledgement before it
                 // starts the separately observable Hyprland/Kitty projection.
                 emit(&json!({"themeId": next["themeId"], "committed": true}))?;
             } else {
-                let hyprland = hypr_scheme_current(&path);
-                let kitty = sync_kitty_current(&path);
-                let applied = hyprland.is_ok() && kitty.is_ok();
-                let error = hyprland
-                    .err()
-                    .or_else(|| kitty.err())
-                    .map(|failure| failure.to_string());
+                let projections = sync_projections(&path)?;
+                let error = projection_error(&projections);
                 emit(&json!({
                     "themeId": next["themeId"],
                     "committed": true,
-                    "projectionApplied": applied,
+                    "projectionApplied": error.is_none(),
                     "projectionError": error
                 }))?;
             }
         }
         ["sync-projections"] => {
-            hypr_scheme_current(&path)?;
-            sync_kitty_current(&path)?;
+            emit(&sync_projections(&path)?)?;
         }
         ["sync-kitty"] => sync_kitty_current(&path)?,
-        ["set", "-v", variant] if !variant.is_empty() => {
-            let Some(selected_variant) = self::variant(variant) else {
-                eprintln!("unsupported Material palette variant");
+        ["set", flag, selection] if ["-v", "--mode"].contains(flag) && !selection.is_empty() => {
+            if *flag == "--mode" && !["light", "dark"].contains(selection) {
                 return Ok(2);
-            };
+            }
             let _guard = lock(&path.with_file_name("scheme.lock"), false)?;
             s = optional_json_object(&path)
                 .ok()
                 .flatten()
                 .unwrap_or_else(|| json!({}));
+            let variant = if *flag == "-v" {
+                (*selection).to_owned()
+            } else {
+                s["variant"].as_str().unwrap_or("tonal-spot").to_owned()
+            };
+            let Some(selected_variant) = self::variant(&variant) else {
+                return Ok(2);
+            };
+            let effective = crate::theme_sync::effective(&s)?;
             let seed = s
                 .get("seed")
                 .and_then(Value::as_str)
                 .or_else(|| s["colours"]["primary_paletteKeyColor"].as_str())
                 .or_else(|| s["colours"]["primary"].as_str())
+                .or_else(|| effective["colours"]["primary"].as_str())
                 .ok_or("scheme has no colour seed")?
                 .trim()
                 .trim_start_matches('#');
@@ -367,7 +362,11 @@ pub fn scheme(args: &[String]) -> Result<i32> {
             let source = Argb::from_u32(
                 0xff00_0000 | u32::from_str_radix(seed, 16).map_err(|_| "invalid colour seed")?,
             );
-            let dark = s.get("mode").and_then(Value::as_str) != Some("light");
+            let dark = if *flag == "--mode" {
+                *selection == "dark"
+            } else {
+                effective["mode"] != "light"
+            };
             let name = s
                 .get("name")
                 .and_then(Value::as_str)
@@ -389,14 +388,10 @@ pub fn scheme(args: &[String]) -> Result<i32> {
                 "flavour": flavour,
                 "variant": variant
             });
-            json_save(&path, &s)?;
+            save_scheme(&path, &mut s)?;
             drop(_guard);
-            let hyprland = hypr_scheme_current(&path);
-            let kitty = sync_kitty_current(&path);
-            let error = hyprland
-                .err()
-                .or_else(|| kitty.err())
-                .map(|failure| failure.to_string());
+            let projections = sync_projections(&path)?;
+            let error = projection_error(&projections);
             emit(&json!({
                 "variant": variant,
                 "committed": true,
@@ -429,7 +424,7 @@ pub fn scheme(args: &[String]) -> Result<i32> {
             }
             incoming["schema"] = json!(2);
             incoming["origin"] = json!("wallpaper");
-            json_save(&path, &incoming)?;
+            save_scheme(&path, &mut incoming)?;
         }
         _ => {
             eprintln!(
@@ -777,7 +772,7 @@ fn wallpaper_scheme_sync_allowed() -> bool {
         Err(()) => return false,
     };
     match scheme["origin"].as_str() {
-        Some("wallpaper") => true,
+        Some("wallpaper" | "theme") => true,
         Some("manual") => false,
         Some(_) => false,
         None => {

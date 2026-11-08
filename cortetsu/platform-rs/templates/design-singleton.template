@@ -14,8 +14,13 @@ QtObject {
 
     // The selected product theme supplies tokens; Ink uses the compiled defaults.
     property var themeTokens: ({})
+    property var userTokens: ({})
 
     function token(name, fallback) {
+        if (userTokens[name] !== undefined)
+            return userTokens[name];
+        if (name.startsWith("color") && Object.keys(scheme).length > 0)
+            return fallback;
         const value = themeTokens[name];
         return value === undefined ? fallback : value;
     }

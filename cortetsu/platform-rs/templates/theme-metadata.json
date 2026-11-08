@@ -33,7 +33,37 @@
       "compact"
     ]
   },
+  "FONT_TOKENS": ["fontUi", "fontInk", "fontKanji"],
+  "TOKEN_LIMITS": {
+    "radiusSmall": [0, 24], "radiusMedium": [0, 32], "radiusSurface": [0, 40],
+    "spacingSection": [16, 48], "rowHeight": [36, 72],
+    "materialGroundAlpha": [0.5, 1], "materialGrain": [0, 0.3], "materialHairlineAlpha": [0, 0.3]
+  },
+  "EFFECTIVE_ROLES": {
+    "background": ["colorSumi", "palette.sumi"],
+    "surface": ["colorSurface", "palette.tetsu"],
+    "onSurface": ["colorOnSurface", "palette.washi"],
+    "onSurfaceVariant": ["colorOnSurfaceVariant", "palette.muted"],
+    "primary": ["colorPrimary", "palette.indigo"],
+    "onPrimary": ["colorOnPrimary", "palette.washi"],
+    "primaryContainer": ["colorPrimaryContainer", "palette.semantic.primary_container"],
+    "onPrimaryContainer": ["colorOnPrimaryContainer", "palette.washi"],
+    "secondary": ["colorSecondary", "palette.semantic.secondary"],
+    "secondaryContainer": ["colorSecondaryContainer", "palette.semantic.secondary_container"],
+    "onSecondaryContainer": ["colorOnSecondaryContainer", "palette.washi"],
+    "tertiary": ["colorTertiary", "palette.vermillion"],
+    "surfaceContainer": ["colorSurfaceGlass", "palette.semantic.surface_glass"],
+    "surfaceContainerHigh": ["colorSurfaceHigh", "palette.semantic.surface_high"],
+    "outline": ["colorOutline", "palette.muted"],
+    "outlineVariant": ["colorOutlineVariant", "palette.semantic.outline_variant"],
+    "inversePrimary": ["colorIndigo", "palette.indigo"],
+    "success": ["colorSuccess", "palette.semantic.success"]
+  },
   "SCHEME_ROLES": {
+    "colorSurface": "surface",
+    "colorOnSurface": "onSurface",
+    "colorMuted": "onSurfaceVariant",
+    "colorOnSurfaceMuted": "onSurfaceVariant",
     "colorSumi": "background",
     "colorTetsu": "surface",
     "colorWashi": "onSurface",
@@ -162,6 +192,9 @@
   ],
   "READABLE_TEXT_ROLES": [
     "colorWashi",
+    "colorOnSurface",
+    "colorMuted",
+    "colorOnSurfaceMuted",
     "colorOnSurfaceVariant"
   ],
   "INDICATOR_ROLES": [

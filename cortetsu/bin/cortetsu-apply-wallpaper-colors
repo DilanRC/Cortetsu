@@ -14,4 +14,4 @@ else
     [[ "$status" -eq 3 ]] && exit 3
     exit "$status"
 fi
-"$HOME/.local/bin/cortetsu-scheme" sync-kitty || echo "cortetsu-apply-wallpaper-colors: Kitty colours kept unchanged" >&2
+"$HOME/.local/bin/cortetsu-scheme" sync-projections
