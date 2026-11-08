@@ -17,6 +17,13 @@ Item {
 
     readonly property real progress: available && maximum > 0
         ? Math.max(0, Math.min(1, value / maximum)) : 0
+    property real presentedProgress: progress
+    Behavior on presentedProgress {
+        NumberAnimation {
+            duration: CortetsuDesign.motionFastMs
+            easing.type: Easing.OutCubic
+        }
+    }
     readonly property string icon: kind === "volume"
         ? muted || value <= 0 ? "volume_off" : "volume_up"
         : "light_mode"
@@ -72,16 +79,10 @@ Item {
                     color: CortetsuDesign.colorSurfaceHigh
 
                     Rectangle {
-                        width: track.width * root.progress
+                        width: track.width * root.presentedProgress
                         height: parent.height
                         radius: height / 2
                         color: CortetsuDesign.colorPrimary
-                        Behavior on width {
-                            NumberAnimation {
-                                duration: CortetsuDesign.motionFastMs
-                                easing.type: Easing.OutCubic
-                            }
-                        }
                     }
                 }
             }
