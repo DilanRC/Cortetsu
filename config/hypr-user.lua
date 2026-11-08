@@ -12,7 +12,7 @@ local fn = require("utils.functions")
 -- soportar en su EDID; si no, queda en sRGB sin romper nada.
 hl.monitor({
     output = "HDMI-A-1",
-    mode = "1920x1080@60",
+    mode = "preferred",
     position = "0x0",
     scale = 1,
     bitdepth = 8,
