@@ -109,6 +109,9 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-keyboard-state-") as temporary
                    "CortetsuHyprEventPolicy.js"):
         shutil.copy(ROOT / "modules" / helper, folder / "modules" / helper)
     shutil.copy(ROOT / "modules/CortetsuConfig.qml", folder / "modules/CortetsuConfig.qml")
+    shutil.copy(ROOT / "modules/ThemePreferences.js", folder / "modules/ThemePreferences.js")
+    (folder / "theme").mkdir()
+    shutil.copy(ROOT / "theme/ThemeProfiles.js", folder / "theme/ThemeProfiles.js")
     (folder / "services").mkdir()
     shutil.copy(ROOT / "services/CortetsuToaster.qml", folder / "services/CortetsuToaster.qml")
     fake = folder / "bin/hyprctl"
@@ -127,9 +130,10 @@ fi
     fake.chmod(0o700)
     shell = SHELL.replace("@DEVICES@", json.dumps(DEVICES)).replace("@CHANGED_DEVICES@", json.dumps(CHANGED_DEVICES))
     (folder / "shell.qml").write_text(shell)
+    isolated = {k: v for k, v in os.environ.items() if k not in ("WAYLAND_DISPLAY", "HYPRLAND_INSTANCE_SIGNATURE")}
     result = subprocess.run(
         ["quickshell", "-p", str(folder / "shell.qml")],
-        env={**os.environ, "QT_QPA_PLATFORM": "offscreen", "PATH": f"{folder / 'bin'}:{os.environ['PATH']}",
+        env={**isolated, "QT_QPA_PLATFORM": "offscreen", "PATH": f"{folder / 'bin'}:{os.environ['PATH']}",
              "XDG_CONFIG_HOME": str(folder / "config"), "CORTETSU_TEST_TRIGGER_FILE": str(folder / "changed-device"),
              "CORTETSU_SYSFS_ROOT": str(folder / "no-sysfs")},
         capture_output=True, text=True, timeout=20,
@@ -159,7 +163,6 @@ fi
     # Caps Lock LED turns off halfway: exactly one extra hyprctl, not one per second.
     flip = subprocess.Popen(["sh", "-c", f"sleep 2; echo 0 > '{leds}/input9::capslock/brightness'"])
     # Detached from any running compositor, so no live Hyprland event refreshes it.
-    isolated = {k: v for k, v in os.environ.items() if k not in ("WAYLAND_DISPLAY", "HYPRLAND_INSTANCE_SIGNATURE")}
     idle = subprocess.run(["quickshell", "-p", str(folder / "idle.qml")],
         env={**isolated, "QT_QPA_PLATFORM": "offscreen", "PATH": f"{folder / 'bin'}:{os.environ['PATH']}",
              "XDG_CONFIG_HOME": str(outside / "config"), "CORTETSU_TEST_TRIGGER_FILE": str(outside / "idle"),

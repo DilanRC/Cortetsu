@@ -16,6 +16,8 @@ MOCK_REQUESTS = REPO / "cortetsu/tests/qml/services/mock_Requests.qml"
 RUNTIME_FILES = (
     "services/Weather.qml",
     "modules/CortetsuConfig.qml",
+    "modules/ThemePreferences.js",
+    "theme/ThemeProfiles.js",
     "modules/CortetsuRegional.qml",
     "modules/CortetsuRegional.js",
 )

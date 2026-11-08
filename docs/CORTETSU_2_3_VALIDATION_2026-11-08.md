@@ -154,3 +154,14 @@ revisaron capturas de Hub/popouts, avisos, Dashboard, lock, Hardware, calendario
 Wallpaper Orbital y selector de compartir pantalla:
 [hoja visual](evidence/cortetsu-23-20261108/surfaces.jpg),
 [pruebas adicionales](evidence/cortetsu-23-20261108/surface-tests.log).
+
+## Corrección de fixtures detectada por CI
+
+El workflow QML detectó que la prueba aislada del clima copiaba Config sin sus
+nuevas dependencias ThemePreferences.js y ThemeProfiles.js. Se corrigieron esa
+fixture y la equivalente de estado de teclado. Ambas pruebas pasan. La primera
+fase de teclado también utiliza ahora el entorno desconectado del compositor
+real que ya empleaba su segunda fase; los eventos de la sesión no contaminan
+los avisos esperados. Estos checks se incorporaron a build-regressions.sh,
+conservando la frontera nativa sin Python del entrypoint instalado.
+Son cambios de verificación, sin modificación adicional del shell desplegado.
