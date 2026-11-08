@@ -1,0 +1,9 @@
+PASS: runtime integrity /home/dilan/.local/share/cortetsu/builds/20261108-084646-47432
+PASS: current generation /home/dilan/.local/share/cortetsu/builds/20261108-084646-47432
+PASS: runtime integrity /home/dilan/.local/share/cortetsu/builds/20261106-143032-83730
+PASS: previous generation /home/dilan/.local/share/cortetsu/builds/20261106-143032-83730
+PASS: Cortetsu native theme outputs match ui.toml
+PASS: dotfiles generation /home/dilan/.local/share/cortetsu/dotfiles/builds/20261108-144654-47894-865774968-e3847552
+PASS: system generation /home/dilan/.local/share/cortetsu/system/builds/20261108-144654-47910-914828456
+
+Cortetsu promoted system verified.

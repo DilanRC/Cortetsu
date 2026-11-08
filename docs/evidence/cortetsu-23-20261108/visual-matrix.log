@@ -1,0 +1,19 @@
+PASS ink-default
+PASS ink-narrow
+PASS ink-fractional
+PASS ink-transparent
+PASS ink-aura-dark
+PASS ink-aura-light
+PASS washi-default
+PASS washi-narrow
+PASS washi-fractional
+PASS washi-transparent
+PASS washi-aura-dark
+PASS washi-aura-light
+PASS kurogane-default
+PASS kurogane-narrow
+PASS kurogane-fractional
+PASS kurogane-transparent
+PASS kurogane-aura-dark
+PASS kurogane-aura-light
+PASS: 144 Settings screenshots; visual inspection remains required

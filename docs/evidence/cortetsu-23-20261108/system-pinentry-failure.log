@@ -1,0 +1,466 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s
+     Running unittests src/lib.rs (cortetsu/keyboards/target/debug/deps/cortetsu_keyboards-020ea504a2468675)
+
+running 64 tests
+test bitmap::tests::empty_and_zero_bitmaps_declare_nothing ... ok
+test bitmap::tests::garbage_is_an_error_not_an_empty_device ... ok
+test bitmap::tests::the_rightmost_word_is_word_zero ... ok
+test bitmap::tests::high_codes_such_as_key_fn_esc ... ok
+test bitmap::tests::width_is_detected_from_long_words ... ok
+test bitmap::tests::word_boundaries_at_32_bits ... ok
+test bitmap::tests::word_boundaries_at_64_bits ... ok
+test hypr::tests::duplicate_names_get_a_numeric_suffix ... ok
+test hypr::tests::internal_names_match_hyprctl_devices ... ok
+test hypr::tests::parses_the_fields_it_uses_from_real_output ... ok
+test keymap::tests::hardware_keys_map_to_their_keysyms ... ok
+test keymap::tests::latam_levels_and_altgr ... ok
+test inventory::tests::no_hyprland_still_lists_keyboards ... ok
+test inventory::tests::a_trailing_space_in_the_kernel_name_is_a_trailing_dash_in_hyprland ... ok
+test inventory::tests::virtual_and_bluetooth_keyboards ... ok
+test inventory::tests::hp_victus_internal_keyboard_and_wmi_hotkeys ... ok
+test inventory::tests::two_bluetooth_keyboards_of_one_model_are_ambiguous ... ok
+test inventory::tests::two_identical_keyboards_are_told_apart_by_port_but_not_by_hyprland_name ... ok
+test inventory::tests::usb_interfaces_are_one_physical_keyboard ... ok
+test keys::tests::a_bound_media_key_is_assigned_not_free ... ok
+test keys::tests::altgr_is_reserved_under_latam ... ok
+test keys::tests::copilot_and_f13_under_latam ... ok
+test keys::tests::declared_keys_without_a_bind_are_candidates_with_their_evidence ... ok
+test legacy::tests::normalise_sorts_and_aliases_modifiers ... ok
+test legacy::tests::titles_like_python_str_title ... ok
+test legacy::tests::validation_matches_the_python_rules ... ok
+test lua::tests::a_double_dash_inside_a_string_is_not_a_comment ... ok
+test lua::tests::app_comment_takes_the_first_parenthesis_like_the_python_regex ... ok
+test lua::tests::bind_blocks_span_lines_and_ignore_parentheses_in_strings_and_comments ... ok
+test keys::tests::fn_esc_is_never_offered ... ok
+test legacy::tests::desktop_field_codes_are_dropped ... ok
+test lua::tests::entries_read_strings_and_lists_and_skip_comments ... ok
+test lua::tests::literal_create_binds ... ok
+test lua::tests::quote_and_unescape_round_trip ... ok
+test lua::tests::repeated_names_keep_the_first_position_and_the_last_value ... ok
+test keys::tests::unbound_copilot_f23_is_still_not_offered ... ok
+test keys::tests::f20_producing_the_mic_mute_keysym_is_reserved ... ok
+test lua::tests::simple_actions ... ok
+test lua::tests::used_variables_need_a_word_boundary ... ok
+test prefs::tests::an_unreadable_file_is_not_replaced ... ok
+test prefs::tests::remembers_by_model_and_keeps_other_fields ... ok
+test probe::tests::reads_the_lua_report ... ok
+test keys::tests::spare_keys_suggest_by_keysym_and_others_do_not ... ok
+test protocol::tests::errors_have_a_stable_code_and_a_message ... ok
+test scope::tests::overlap_follows_the_keyboards_both_binds_fire_on ... ok
+test protocol::tests::envelope_carries_version_kind_and_payload ... ok
+test scope::tests::twin_keyboards_are_not_targets ... ok
+test scope::tests::compiles_to_the_hyprland_device_flag ... ok
+test keys::tests::keycode_binds_count_as_assignments ... ok
+test scope::tests::the_store_field_round_trips_and_empty_lists_mean_everywhere ... ok
+test sha256::tests::matches_the_python_helper_ids ... ok
+test scope::tests::reads_the_live_report ... ok
+test sha256::tests::nist_vectors ... ok
+test store::tests::snapshot_names_sort_by_time ... ok
+test keys::tests::typing_keys_are_reserved_never_candidates ... ok
+test store::tests::atomic_write_refuses_symlinks_and_leaves_no_temp_files ... ok
+test store::tests::store_coerces_like_python_and_keeps_unknown_fields ... ok
+test keys::tests::without_a_keymap_nothing_is_a_candidate ... ok
+test keys::tests::verification_is_recorded_alongside_other_states ... ok
+test store::tests::retention_keeps_twenty_snapshot_directories_and_ignores_other_entries ... ok
+test inventory::tests::hotplug_changes_the_fingerprint_and_keeps_the_identity ... ok
+test tests::run_returns_large_output_without_blocking ... ok
+test keymap::tests::real_xkbcli_agrees ... ok
+test tests::run_gives_up_at_the_timeout_and_on_failure ... ok
+
+test result: ok. 64 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+
+     Running unittests src/main.rs (cortetsu/keyboards/target/debug/deps/cortetsu_keybinds-c1abe6cbabb40d77)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/watch.rs (cortetsu/keyboards/target/debug/deps/watch-3d9c4e76914ecdb3)
+
+running 2 tests
+test hotplug_is_reported_and_udevadm_dies_with_the_watcher ... ok
+test a_closed_stdout_ends_the_watcher_and_its_udevadm ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.01s
+
+   Doc-tests cortetsu_keyboards
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s
+     Running unittests src/lib.rs (cortetsu/notification-helper/target/debug/deps/cortetsu_notifications_rs-cb654cac89db0616)
+
+running 11 tests
+test pilot::tests::refuses_unreadable_state_without_writing ... ok
+test pilot::tests::pilot_readback_preserves_unknown_fields ... ok
+test tests::invalid_usage_returns_64 ... ok
+test tests::missing_history_and_status_are_read_only ... ok
+test pilot::tests::refuses_recovery_that_would_erase_external_writer ... ok
+test tests::corrupt_history_remains_untouched ... ok
+test tests::dismiss_uses_notification_id_then_id_without_erasing_unknown_fields ... ok
+test pilot::tests::recovers_interrupted_write_without_erasing_previous_bytes ... ok
+test owner::tests::interrupted_apply_restores_bytes_and_does_not_reexecute_key ... ok
+test tests::dnd_preserves_unknown_status_keys ... ok
+test owner::tests::contended_owner_respects_request_deadline ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running unittests src/main.rs (cortetsu/notification-helper/target/debug/deps/cortetsu_notifications_rs-1f6f11c5841b30e5)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/owner.rs (cortetsu/notification-helper/target/debug/deps/owner-b1d37e89469f7ec8)
+
+running 10 tests
+test corrupt_and_symlink_status_are_never_replaced ... ok
+test ensure_initializes_clear_watcher_without_overwriting_invalid_token ... ok
+test merge_never_resurrects_a_concurrent_cli_dismissal ... ok
+test history_symlink_is_not_read_replaced_or_marked_cleared ... ok
+test clear_token_rejects_unsaved_batches_and_recovers_interrupted_clear ... ok
+test ensure_recovers_pending_intent_before_observing_it ... ok
+test committed_recovery_repairs_observation_before_replay ... ok
+test manual_and_external_changes_block_automation ... ok
+test owner_uses_cas_and_idempotent_live_readback ... ok
+test full_automation_ledger_cannot_block_manual_choice ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+   Doc-tests cortetsu_notifications_rs
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.02s
+     Running unittests src/lib.rs (cortetsu/display-presets-rs/target/debug/deps/cortetsu_display_presets_rs-96ce8e0263b2f283)
+
+running 3 tests
+test tests::illegal_names_and_non_objects_are_rejected ... ok
+test tests::does_not_follow_config_symlink ... ok
+test tests::missing_config_is_read_only_until_explicit_delete ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/main.rs (cortetsu/display-presets-rs/target/debug/deps/cortetsu_display_presets_rs-781c82e680c6f652)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests cortetsu_display_presets_rs
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running unittests src/main.rs (cortetsu/prune-applications-rs/target/debug/deps/cortetsu_prune_applications_rs-371e5cb7090f2170)
+
+running 1 test
+test tests::shlex_handles_quotes_escaped_spaces_and_invalid_tokens ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s
+     Running unittests src/lib.rs (cortetsu/rescue/target/debug/deps/cortetsu_rescue-a38fdd86ce3036cf)
+
+running 23 tests
+test exec_read::forward_tests::signal_forwarding_child ... ok
+test exec_read::tests::malformed_protocols_and_mutations_are_rejected ... ok
+test helper_bundle::tests::refuses_parallel_install_lock ... ok
+test helper_bundle::tests::refuses_symlink_and_non_managed_sources ... ok
+test strict_json::tests::duplicate_keys_are_rejected_at_every_depth ... ok
+test strict_json::tests::invalid_unicode_numbers_and_partial_frames_fail_closed ... ok
+test idempotency::tests::refuses_unsafe_and_corrupted_state ... ok
+test helper_bundle::tests::stages_verifiable_bundles_without_touching_user_binaries ... ok
+test idempotency::tests::durable_prepared_replay_is_never_autoexecuted ... ok
+test helper_bundle::tests::includes_stable_cli_in_generation ... ok
+test transaction::tests::phase_roundtrip ... ok
+test transaction::tests::refuses_rollback_while_installer_holds_install_lock ... ok
+test transaction::tests::rejects_corrupted_journal_before_any_link_change ... ok
+test transaction::tests::committed_recovery_never_rewinds_later_pointer_drift ... ok
+test transaction::tests::recovery_refuses_corrupt_before_without_moving_any_pointer ... ok
+test transaction::tests::interrupted_transaction_restores_before_snapshot ... ok
+test transaction::tests::pending_platform_journals_block_offline_mutation ... ok
+test exec_read::forward_tests::cancellation_signal_reaches_the_separate_owner_process_group ... ok
+test exec_read::forward_tests::inherited_stdout_cannot_outlive_owner_deadline ... ok
+test exec_read::forward_tests::overlong_response_is_bounded_and_untrusted_executable_refused ... ok
+test exec_read::forward_tests::timeout_allows_term_cleanup_then_reaps_the_owner ... ok
+test exec_read::forward_tests::invalid_error_shape_never_escapes_and_manual_override_code_survives ... ok
+test exec_read::forward_tests::forwards_only_verified_matching_response_shape ... ok
+
+test result: ok. 23 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.16s
+
+     Running unittests src/main.rs (cortetsu/rescue/target/debug/deps/cortetsu_rescue-2f64b54a58ad050c)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/exec_dnd.rs (cortetsu/rescue/target/debug/deps/exec_dnd-13568907855a3fe3)
+
+running 1 test
+test typed_dnd_cross_language_cas_and_replay ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/native_generation.rs (cortetsu/rescue/target/debug/deps/native_generation-4168848855b4d3ad)
+
+running 4 tests
+test helper_manifest_digest_is_verified_even_when_bundle_entries_are_valid ... ok
+test managed_launcher_replacement_is_detected ... ok
+test native_generation_verifies_and_detects_shell_file_drift ... ok
+test native_marker_cannot_downgrade_to_unsealed_or_forged_legacy_shell ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/schema2.rs (cortetsu/rescue/target/debug/deps/schema2-8ab468f9be2aac67)
+
+running 2 tests
+test refuses_corrupt_bundle_and_partial_schema2_manifest ... ok
+test complete_schema2_rollback_includes_helpers_and_returns ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/verify.rs (cortetsu/rescue/target/debug/deps/verify-3bbdecd58d9a2e15)
+
+running 7 tests
+test refuses_digest_mismatch_and_traversal ... ok
+test exec_v1_shared_fixture_verifies_a_real_generation ... ok
+test rejects_system_pointer_escape ... ok
+test verifies_existing_python_schema_1 ... ok
+test preflight_aborts_without_modifying_links_if_previous_is_tampered ... ok
+test two_generation_rollback_is_offline_reversible_and_explicit ... ok
+test sigkill_between_pointer_moves_recovers_from_durable_journal ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+   Doc-tests cortetsu_rescue
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Compiling cortetsu-platform v2.0.0 (/home/dilan/Documentos/GitHub/Cortetsu/cortetsu/platform-rs)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.63s
+     Running unittests src/main.rs (cortetsu/platform-rs/target/debug/deps/cortetsu_platform-530f349ccc8603c1)
+
+running 2 tests
+test imports::tests::kitty_import_drops_legacy_includes_and_keeps_one_state_overlay ... ok
+test imports::tests::committed_kitty_conf_is_the_normalized_fixed_point ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/platform.rs (cortetsu/platform-rs/target/debug/deps/platform-b24bf3d8269979eb)
+
+running 22 tests
+test preferences_migration_preserves_existing_values_and_copies_state ... ok
+test lifecycle_migration_is_backed_up_and_does_not_signal ... ok
+test build_metadata_and_status_are_native ... ok
+test normalize_shell_is_idempotent_and_fail_closed ... ok
+test rejects_dotfile_escape_without_touching_home ... ok
+test sensitive_import_is_blocked ... ok
+test stable_hyprland_loader_is_regular_file ... ok
+test native_theme_matches_committed_outputs ... ok
+test fish_import_apply_creates_valid_manifest ... ok
+test system_generations_exits_cleanly_when_stdout_is_closed ... ok
+test theme_adoption_preserves_kde_preferences_and_rejects_external_symlinks ... ok
+test dotfiles_roundtrip_preserves_backup_and_detects_drift ... ok
+test install_journal_refuses_corrupt_backups_before_mutating ... ok
+test theme_rejects_a_font_name_that_would_break_the_generated_string ... ok
+test interrupted_install_refuses_redirected_parent_before_recovery ... ok
+test standalone_dotfiles_apply_has_a_recoverable_durable_journal ... ok
+test schema2_promotes_rolls_back_all_components_and_checks_launchers ... ok
+test interrupted_install_restores_all_pointers_and_user_files ... ok
+test standalone_system_promotion_recovers_its_prepared_target ... ok
+test legacy_schema1_upgrade_creates_immutable_helper_aware_rollback_checkpoint ... ok
+test gc_preserves_helper_references_and_requires_current_plan ... ok
+test repository_runtime_can_be_composed_sealed_and_detects_drift ... ok
+
+test result: ok. 22 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.81s
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.02s
+     Running unittests src/main.rs (cortetsu/hardware-runtime-rs/target/debug/deps/cortetsu_hardware_runtime-0a73de07ca3de71d)
+
+running 5 tests
+test display::tests::lua_monitor_command_never_uses_legacy_keyword_parser ... ok
+test owner::strict_json::tests::invalid_unicode_numbers_and_partial_frames_fail_closed ... ok
+test owner::strict_json::tests::duplicate_keys_are_rejected_at_every_depth ... ok
+test util::tests::orphaned_subprocess_pipe_cannot_outlive_deadline ... ok
+test display::tests::planner_matches_legacy_golden_cases ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/contracts.rs (cortetsu/hardware-runtime-rs/target/debug/deps/contracts-ca28b88f2d65e400)
+
+running 19 tests
+test nvibrant_status_never_executes_the_writer ... ok
+test cpu_temp_reads_only_the_cpu_sensor_like_the_hardware_center ... ok
+test corrupt_game_journal_is_never_overwritten ... ok
+{"gpus":[{"vendor":"NVIDIA","name":"NVIDIA GPU","state":"unavailable","usage":null,"temp_c":null,"vram_used_gb":null,"vram_total_gb":null,"power_w":null}],"simulated":true}
+test cancellation_terminates_spawned_process_group ... ok
+test intel_unknown_and_unread_amd_gpus_never_report_invented_load ... ok
+test suspended_nvidia_is_reported_without_nvidia_smi ... ok
+test rollback_preserves_external_color_policy_even_with_unchanged_config ... ok
+test display_plan_never_writes_and_rejects_unproven_capabilities ... ok
+test rollback_refuses_to_overwrite_external_monitor_changes ... ok
+test expired_idempotency_record_remains_a_terminal_tombstone ... ok
+test typed_owner_detects_external_edits_before_cas ... ok
+test typed_failure_after_side_effect_never_reexecutes ... ok
+test failed_display_rollback_preserves_the_original_journal ... ok
+test typed_owner_cas_replay_and_manual_override ... ok
+test awake_nvidia_that_nvidia_smi_cannot_read_stays_listed ... ok
+test power_configuration_is_normalized_and_saved ... ok
+test display_preview_rejects_ignored_mode_and_transform ... ok
+test idle_power_watcher_blocks_instead_of_polling_and_handles_termination_signals ... ok
+test native_power_loop_keeps_manual_changes_until_rule_transition ... ok
+
+test result: ok. 19 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.14s
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.05s
+     Running unittests src/main.rs (cortetsu/desktop-runtime-rs/target/debug/deps/cortetsu_desktop_runtime-6404eb809bd1b702)
+
+running 37 tests
+test agents::tests::asks_the_wep_key_by_index ... ok
+test agents::tests::a_cancel_is_user_canceled ... ok
+test agents::tests::names_common_services ... ok
+test agents::tests::asks_psk_for_wpa_with_ssid_and_length ... ok
+test agents::tests::passkeys_are_six_digits_at_most ... ok
+test agents::tests::leaves_other_secrets_and_owe_alone ... ok
+test calendar::tests::oauth_stray_request_does_not_match ... ok
+test calendar::tests::google_desktop_client_and_events ... ok
+test connectivity::tests::invalid_secret_never_mutates ... ok
+test agents::tests::enterprise_asks_identity_and_tls_the_key_password ... ok
+test connectivity::tests::preserve_profile_readback_and_enterprise_rejection ... ok
+test lyrics::tests::bad_track_ids_are_refused ... ok
+test lyrics::tests::empty_lyrics_are_not_synced ... ok
+test lyrics::tests::spotify_payload_is_normalised ... ok
+test lyrics::tests::lrc_lines_are_sorted_and_multi_stamped ... ok
+test pomodoro::tests::invalid_state_recovers_without_dropping_user_keys ... ok
+test lyrics::tests::local_files_match_without_case ... ok
+test prompter::tests::request_maps_gcr_properties ... ok
+test prompter::tests::replies_only_to_the_right_token ... ok
+test quantizer::tests::legacy_cluster_initialization ... ok
+test sharepicker::tests::composes_each_selection_kind ... ok
+test sharepicker::tests::refuses_anything_not_offered ... ok
+test sharepicker::tests::parses_the_xdph_list_and_drops_malformed_entries ... ok
+test pomodoro::tests::phase_clock_and_pause_contract ... ok
+test sharepicker::tests::reuses_a_recent_choice_only_while_it_is_offered ... ok
+test pomodoro::tests::replaced_compares_resolved_binaries ... ok
+test sharepicker::tests::request_carries_hyprland_addresses_in_hex ... ok
+test shellprompt::tests::claim_lets_one_caller_in_and_cancel_frees_the_key ... ok
+test startup::tests::runtime_and_linked_states_are_distinct ... ok
+test palette::tests::kitty_colours_cover_every_role_and_reject_partial_schemes ... ok
+test palette::tests::material_variants_change_the_generated_roles_and_keep_required_tokens ... ok
+test startup::tests::duplicate_fieldcodes_and_exec_parse ... ok
+test palette::tests::all_material_roles_match_legacy_palette_fixtures ... ok
+test pomodoro::tests::boottime_tick_wakes_the_loop ... ok
+test sxaes::tests::refuses_bad_peer_values ... ok
+test sxaes::tests::round_trips_a_secret_through_the_client_half ... ok
+test palette::tests::quantized_sources_match_the_legacy_image_pipeline ... ok
+
+test result: ok. 37 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.19s
+
+     Running tests/agents.rs (cortetsu/desktop-runtime-rs/target/debug/deps/agents-b334b400bce92059)
+
+running 4 tests
+cortetsu-agents: NetworkManager secret agent registered
+cortetsu-agents: NetworkManager secret agent registered
+cortetsu-agents: NetworkManager secret agent registered
+cortetsu-agents: NetworkManager secret agent registered
+cortetsu-agents: BlueZ agent registered
+cortetsu-agents: BlueZ agent registered
+cortetsu-agents: BlueZ agent registered
+cortetsu-agents: BlueZ agent registered
+cortetsu-agents: no shell
+cortetsu-agents: no shell
+cortetsu-agents: NetworkManager secret agent registered
+cortetsu-agents: BlueZ agent registered
+test no_shell_refuses_and_daemon_restart_reregisters ... ok
+test wifi_password_cancel_and_no_interaction ... ok
+test a_second_helper_waits_for_the_first ... ok
+test bluetooth_pairing_dialogs ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.61s
+
+     Running tests/connectivity_dbus.rs (cortetsu/desktop-runtime-rs/target/debug/deps/connectivity_dbus-b7adc8aac1233e52)
+
+running 3 tests
+test enterprise_profile_never_calls_update ... ok
+test mismatching_readback_fails_closed ... ok
+test update2_preserves_profile_and_confirms_persistent_secret ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/contracts.rs (cortetsu/desktop-runtime-rs/target/debug/deps/contracts-8b181c9b39405b88)
+
+running 30 tests
+test emoji_dump_is_byte_exact ... ok
+test credential_rejects_bad_uuid_without_echoing_secret ... ok
+test corrupt_saved_theme_snapshot_is_rejected_without_mutation ... ok
+test calendar_cache_force_and_invalid_desktop_client ... ok
+test immutable_generation_resources_win_over_mutable_checkout ... ok
+test expired_pomodoro_announces_only_once ... ok
+test pomodoro_default_reset_and_state_mode ... ok
+test calendar_selection_and_no_credentials ... ok
+test explicit_scheme_choice_recovers_corrupt_state ... ok
+test theme_commit_ack_does_not_wait_for_hyprland_projection ... ok
+test area_capture_uses_argv_and_always_removes_temporary_image ... ok
+test theme_projection_without_a_palette_keeps_base_terminal_colours ... ok
+test wallpaper_palette_writer_rechecks_manual_ownership_at_commit_time ... ok
+{"committed":true,"name":"aura","flavour":"default","projectionApplied":true,"projectionError":null,"projections":{"version":1,"themeId":"ink","paletteHash":"0f916aa29f30156f21492105be65cd0036de00918b0005c5b758d8ed4207e0e9","targets":{"hyprland":{"status":"unavailable","detail":"No mutable Hyprland scheme installed","version":1},"kitty":{"status":"reopen","detail":"New windows or Kitty reload (Ctrl+Shift+F5)","version":1,"paletteHash":"0f916aa29f30156f21492105be65cd0036de00918b0005c5b758d8ed4207e0e9"},"gtk":{"status":"unavailable","detail":"Install a generation with the mutable GTK palette import","version":1},"qt":{"status":"unavailable","detail":"KDE palette selection is not owned by Cortetsu","version":1}}}}
+test wallpaper_watcher_does_not_repeat_after_palette_origin_is_written ... ok
+test wallpaper_updates_keep_theme_archive_and_restore_wallpaper_origin ... ok
+test theme_migrates_legacy_owner_and_rejects_stale_switches ... ok
+{"committed":true,"name":"aura","flavour":"default","projectionApplied":true,"projectionError":null,"projections":{"version":1,"themeId":"ink","paletteHash":"0f916aa29f30156f21492105be65cd0036de00918b0005c5b758d8ed4207e0e9","targets":{"hyprland":{"status":"unavailable","detail":"No mutable Hyprland scheme installed","version":1},"kitty":{"status":"reopen","detail":"New windows or Kitty reload (Ctrl+Shift+F5)","version":1,"paletteHash":"0f916aa29f30156f21492105be65cd0036de00918b0005c5b758d8ed4207e0e9"},"gtk":{"status":"unavailable","detail":"Install a generation with the mutable GTK palette import","version":1},"qt":{"status":"unavailable","detail":"KDE palette selection is not owned by Cortetsu","version":1}}}}
+test wallpaper_watcher_fails_closed_on_corrupt_persistent_state ... ok
+test scheme_catalog_contains_shipped_colours ... ok
+{"committed":true,"name":"aura","flavour":"default","projectionApplied":true,"projectionError":null,"projections":{"version":1,"themeId":"ink","paletteHash":"0f916aa29f30156f21492105be65cd0036de00918b0005c5b758d8ed4207e0e9","targets":{"hyprland":{"status":"unavailable","detail":"No mutable Hyprland scheme installed","version":1},"kitty":{"status":"reopen","detail":"New windows or Kitty reload (Ctrl+Shift+F5)","version":1,"paletteHash":"0f916aa29f30156f21492105be65cd0036de00918b0005c5b758d8ed4207e0e9"},"gtk":{"status":"unavailable","detail":"Install a generation with the mutable GTK palette import","version":1},"qt":{"status":"unavailable","detail":"KDE palette selection is not owned by Cortetsu","version":1}}}}
+test wallpaper_watcher_preserves_a_manual_scheme ... ok
+test wallpaper_watcher_only_applies_on_change_and_skips_running_engine ... ok
+cortetsu-wallpaper-color-daemon: wallpaper palette application failed
+test wallpaper_watcher_respects_disabled_wallpaper_sync ... ok
+{"committed":true,"name":"aura","flavour":"default","projectionApplied":true,"projectionError":null,"projections":{"version":1,"themeId":"ink","paletteHash":"0f916aa29f30156f21492105be65cd0036de00918b0005c5b758d8ed4207e0e9","targets":{"hyprland":{"status":"unavailable","detail":"No mutable Hyprland scheme installed","version":1},"kitty":{"status":"reopen","detail":"New windows or Kitty reload (Ctrl+Shift+F5)","version":1,"paletteHash":"0f916aa29f30156f21492105be65cd0036de00918b0005c5b758d8ed4207e0e9"},"gtk":{"status":"unavailable","detail":"Install a generation with the mutable GTK palette import","version":1},"qt":{"status":"unavailable","detail":"KDE palette selection is not owned by Cortetsu","version":1}}}}
+test wallpaper_watcher_retries_a_failed_palette_application ... ok
+test product_themes_restore_scheme_variant_and_origin ... ok
+{"committed":true,"name":"aura","flavour":"default","projectionApplied":true,"projectionError":null,"projections":{"version":1,"themeId":"ink","paletteHash":"0f916aa29f30156f21492105be65cd0036de00918b0005c5b758d8ed4207e0e9","targets":{"hyprland":{"status":"applied","version":1,"paletteHash":"0f916aa29f30156f21492105be65cd0036de00918b0005c5b758d8ed4207e0e9"},"kitty":{"status":"reopen","detail":"New windows or Kitty reload (Ctrl+Shift+F5)","version":1,"paletteHash":"0f916aa29f30156f21492105be65cd0036de00918b0005c5b758d8ed4207e0e9"},"gtk":{"status":"unavailable","detail":"Install a generation with the mutable GTK palette import","version":1},"qt":{"status":"unavailable","detail":"KDE palette selection is not owned by Cortetsu","version":1}}}}
+{"committed":true,"name":"aura","flavour":"default","projectionApplied":true,"projectionError":null,"projections":{"version":1,"themeId":"ink","paletteHash":"0f916aa29f30156f21492105be65cd0036de00918b0005c5b758d8ed4207e0e9","targets":{"hyprland":{"status":"unavailable","detail":"No mutable Hyprland scheme installed","version":1},"kitty":{"status":"reopen","detail":"New windows or Kitty reload (Ctrl+Shift+F5)","version":1,"paletteHash":"0f916aa29f30156f21492105be65cd0036de00918b0005c5b758d8ed4207e0e9"},"gtk":{"status":"unavailable","detail":"Install a generation with the mutable GTK palette import","version":1},"qt":{"status":"unavailable","detail":"KDE palette selection is not owned by Cortetsu","version":1}}}}
+test area_capture_keeps_the_preview_image_and_runs_its_actions ... ok
+cortetsu-scheme: invalid colour
+{"committed":true,"name":"nebula","flavour":"default","projectionApplied":true,"projectionError":null,"projections":{"version":1,"themeId":"ink","paletteHash":"01d402fd7b6d4f3695aa6b0ada62f162782430e0bb9f55ef25ab3ddfb309d39c","targets":{"hyprland":{"status":"applied","version":1,"paletteHash":"01d402fd7b6d4f3695aa6b0ada62f162782430e0bb9f55ef25ab3ddfb309d39c"},"kitty":{"status":"reopen","detail":"New windows or Kitty reload (Ctrl+Shift+F5)","version":1,"paletteHash":"01d402fd7b6d4f3695aa6b0ada62f162782430e0bb9f55ef25ab3ddfb309d39c"},"gtk":{"status":"unavailable","detail":"Install a generation with the mutable GTK palette import","version":1},"qt":{"status":"unavailable","detail":"KDE palette selection is not owned by Cortetsu","version":1}}}}
+test concurrent_manual_scheme_changes_leave_hypr_projection_at_latest_choice ... ok
+test kitty_colours_stay_outside_sealed_generations ... ok
+test pomodoro_daemon_adopts_a_promoted_helper_on_wake ... ok
+test daemon_is_idle_and_wakes_once_for_deadline ... ok
+test recorder_owns_process_and_preserves_output ... ok
+test startup_toggle_preserves_desktop_file_and_has_readback ... ok
+
+test result: ok. 30 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.09s
+
+     Running tests/prompter.rs (cortetsu/desktop-runtime-rs/target/debug/deps/prompter-7f96780f5803e372)
+
+running 4 tests
+test becomes_the_fallback_prompter_without_a_shell ... ok
+test creates_and_unlocks_a_real_keyring ... ok
+test pinentry_keeps_its_bus_alive_across_startup_probes ... FAILED
+test gpg_asks_through_pinentry_gnome3 ... ok
+
+failures:
+
+---- pinentry_keeps_its_bus_alive_across_startup_probes stdout ----
+
+thread 'pinentry_keeps_its_bus_alive_across_startup_probes' (16451) panicked at tests/prompter.rs:300:9:
+pinentry startup 21: Output { status: ExitStatus(unix_wait_status(139)), stdout: "", stderr: "" }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    pinentry_keeps_its_bus_alive_across_startup_probes
+
+test result: FAILED. 3 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.63s
+
+error: test failed, to rerun pass `--test prompter`

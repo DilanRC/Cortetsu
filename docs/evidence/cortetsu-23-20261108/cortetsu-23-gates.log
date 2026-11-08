@@ -1,0 +1,407 @@
+PASS: 32 stable native entrypoints; zero runtime Python; 49 exact archived test oracles
+PASS: native startup registry covers QML processes; historical XDG/systemd oracles use isolated fixtures
+PASS: 5 asset references resolve inside the staged runtime
+PASS: the ink material has one source (ui.toml) and one painter (CortetsuInkPanel)
+********* Start testing of qmltestrunner *********
+Config: Using QtTest library 6.12.0, Qt 6.12.0 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 16.2.1 20260810), cachyos unknown
+PASS   : qmltestrunner::HardwareHealth::initTestCase()
+PASS   : qmltestrunner::HardwareHealth::test_critical_issues_come_first()
+PASS   : qmltestrunner::HardwareHealth::test_each_gpu_is_reported_on_its_own()
+PASS   : qmltestrunner::HardwareHealth::test_every_target_is_a_page()
+PASS   : qmltestrunner::HardwareHealth::test_issue_names_metric_value_and_destination()
+PASS   : qmltestrunner::HardwareHealth::test_low_battery_only_matters_while_discharging()
+PASS   : qmltestrunner::HardwareHealth::test_missing_sensor_is_not_an_issue()
+PASS   : qmltestrunner::HardwareHealth::test_no_reading_is_unknown_not_ok()
+PASS   : qmltestrunner::HardwareHealth::test_ordinary_reading_is_ok()
+PASS   : qmltestrunner::HardwareHealth::test_thresholds_are_inclusive()
+PASS   : qmltestrunner::HardwareHealth::cleanupTestCase()
+PASS   : qmltestrunner::HardwareNavigation::initTestCase()
+PASS   : qmltestrunner::HardwareNavigation::test_duplicate_press_is_dropped()
+PASS   : qmltestrunner::HardwareNavigation::test_escape_is_recognized()
+PASS   : qmltestrunner::HardwareNavigation::test_page_action()
+PASS   : qmltestrunner::HardwareNavigation::test_seven_selects_seventh_tab()
+PASS   : qmltestrunner::HardwareNavigation::test_zero_selects_last_tab()
+PASS   : qmltestrunner::HardwareNavigation::cleanupTestCase()
+PASS   : qmltestrunner::HardwareNavBlock::initTestCase()
+PASS   : qmltestrunner::HardwareNavBlock::test_click_activates_and_takes_focus()
+PASS   : qmltestrunner::HardwareNavBlock::test_enter_return_and_space_activate()
+PASS   : qmltestrunner::HardwareNavBlock::test_exposes_itself_as_a_named_button()
+PASS   : qmltestrunner::HardwareNavBlock::test_hover_and_focus_name_the_destination()
+PASS   : qmltestrunner::HardwareNavBlock::test_tab_walks_blocks_in_order()
+PASS   : qmltestrunner::HardwareNavBlock::cleanupTestCase()
+PASS   : qmltestrunner::OmenFullscreen::initTestCase()
+PASS   : qmltestrunner::OmenFullscreen::test_fullscreen_game_blocks_the_key()
+PASS   : qmltestrunner::OmenFullscreen::test_maximized_window_is_not_fullscreen()
+PASS   : qmltestrunner::OmenFullscreen::test_normal_windows_open_the_center()
+PASS   : qmltestrunner::OmenFullscreen::test_unknown_state_never_blocks()
+PASS   : qmltestrunner::OmenFullscreen::cleanupTestCase()
+PASS   : qmltestrunner::ProfileChoiceGuard::initTestCase()
+PASS   : qmltestrunner::ProfileChoiceGuard::test_accessible_activation_obeys_busy_and_disabled_states()
+PASS   : qmltestrunner::ProfileChoiceGuard::test_keyboard_and_pointer_use_the_same_request_guard()
+PASS   : qmltestrunner::ProfileChoiceGuard::cleanupTestCase()
+PASS   : qmltestrunner::SystemInfo::initTestCase()
+PASS   : qmltestrunner::SystemInfo::test_bios_date_is_day_first()
+PASS   : qmltestrunner::SystemInfo::test_chassis_names()
+PASS   : qmltestrunner::SystemInfo::test_firmware_placeholders_read_as_missing()
+PASS   : qmltestrunner::SystemInfo::test_report_skips_missing_values()
+PASS   : qmltestrunner::SystemInfo::cleanupTestCase()
+Totals: 41 passed, 0 failed, 0 skipped, 0 blacklisted, 70ms
+********* Finished testing of qmltestrunner *********
+********* Start testing of qmltestrunner *********
+Config: Using QtTest library 6.12.0, Qt 6.12.0 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 16.2.1 20260810), cachyos unknown
+PASS   : qmltestrunner::CortetsuHyprActions::initTestCase()
+PASS   : qmltestrunner::CortetsuHyprActions::test_cursor_dpms_and_exit_actions_have_safe_shapes()
+PASS   : qmltestrunner::CortetsuHyprActions::test_lua_literals_escape_quotes_backslashes_and_controls()
+PASS   : qmltestrunner::CortetsuHyprActions::test_move_window_uses_numeric_or_escaped_workspace_selectors()
+PASS   : qmltestrunner::CortetsuHyprActions::test_window_addresses_are_validated_and_lua_escaped()
+PASS   : qmltestrunner::CortetsuHyprActions::test_workspace_and_special_name_actions_are_typed()
+PASS   : qmltestrunner::CortetsuHyprActions::cleanupTestCase()
+PASS   : qmltestrunner::CortetsuHyprEventPolicy::initTestCase()
+PASS   : qmltestrunner::CortetsuHyprEventPolicy::test_fullscreen_pin_float_minimize_and_groups_refresh_toplevels()
+PASS   : qmltestrunner::CortetsuHyprEventPolicy::test_monitor_legacy_events_refresh_only_monitors()
+PASS   : qmltestrunner::CortetsuHyprEventPolicy::test_native_title_and_focus_events_do_not_request_toplevel_refreshes()
+PASS   : qmltestrunner::CortetsuHyprEventPolicy::test_unrelated_or_invalid_events_do_not_trigger_queries()
+PASS   : qmltestrunner::CortetsuHyprEventPolicy::test_window_inventory_changes_refresh_toplevels_and_workspaces()
+PASS   : qmltestrunner::CortetsuHyprEventPolicy::test_workspace_and_focus_legacy_events_refresh_compositor_models()
+PASS   : qmltestrunner::CortetsuHyprEventPolicy::cleanupTestCase()
+PASS   : qmltestrunner::CortetsuToplevels::initTestCase()
+PASS   : qmltestrunner::CortetsuToplevels::test_closed_window_is_not_live()
+PASS   : qmltestrunner::CortetsuToplevels::test_no_windows_hides_every_leftover()
+PASS   : qmltestrunner::CortetsuToplevels::test_open_window_matches_either_address_form()
+PASS   : qmltestrunner::CortetsuToplevels::test_unusable_probe_is_told_apart_from_no_windows()
+PASS   : qmltestrunner::CortetsuToplevels::test_window_without_address_is_not_live()
+PASS   : qmltestrunner::CortetsuToplevels::cleanupTestCase()
+Totals: 22 passed, 0 failed, 0 skipped, 0 blacklisted, 13ms
+********* Finished testing of qmltestrunner *********
+********* Start testing of qmltestrunner *********
+Config: Using QtTest library 6.12.0, Qt 6.12.0 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 16.2.1 20260810), cachyos unknown
+PASS   : qmltestrunner::BottomHubAutoHide::initTestCase()
+PASS   : qmltestrunner::BottomHubAutoHide::test_disabling_auto_hide_restores_hub()
+PASS   : qmltestrunner::BottomHubAutoHide::test_hover_target_reports_real_pointer_transitions()
+PASS   : qmltestrunner::BottomHubAutoHide::test_manual_show_cancels_hover_hide()
+PASS   : qmltestrunner::BottomHubAutoHide::test_pointer_entry_reveals_and_exit_hides_after_delay()
+PASS   : qmltestrunner::BottomHubAutoHide::cleanupTestCase()
+PASS   : qmltestrunner::CortetsuShellInspect::initTestCase()
+PASS   : qmltestrunner::CortetsuShellInspect::test_ambiguous_owner_keeps_requested_and_observed_candidates_separate()
+PASS   : qmltestrunner::CortetsuShellInspect::test_conflicts_are_reported_for_coexisting_exclusive_surfaces()
+PASS   : qmltestrunner::CortetsuShellInspect::test_empty_snapshot_keeps_a_stable_json_shape()
+PASS   : qmltestrunner::CortetsuShellInspect::test_exclusive_layer_request_is_not_misreported_as_the_focused_toplevel()
+PASS   : qmltestrunner::CortetsuShellInspect::test_exclusive_surfaces_on_different_monitors_are_not_conflicts()
+PASS   : qmltestrunner::CortetsuShellInspect::test_focus_grab_is_observed_and_coalesces_its_allowed_windows()
+PASS   : qmltestrunner::CortetsuShellInspect::test_focused_toplevel_owns_keyboard_when_only_ondemand_layers_are_pending()
+PASS   : qmltestrunner::CortetsuShellInspect::test_focused_toplevel_uses_its_monitor_not_the_pointer_monitor()
+PASS   : qmltestrunner::CortetsuShellInspect::test_ondemand_layer_is_owner_only_when_active_is_observed()
+PASS   : qmltestrunner::CortetsuShellInspect::test_snapshot_has_versioned_sections_and_open_states()
+PASS   : qmltestrunner::CortetsuShellInspect::test_window_active_confirms_a_layer_owner()
+PASS   : qmltestrunner::CortetsuShellInspect::cleanupTestCase()
+PASS   : qmltestrunner::HoverEdges::initTestCase()
+PASS   : qmltestrunner::HoverEdges::test_closed_top_and_bottom_edges_are_reachable()
+PASS   : qmltestrunner::HoverEdges::test_drag_padding_preserves_the_reachable_screen_edges()
+PASS   : qmltestrunner::HoverEdges::cleanupTestCase()
+PASS   : qmltestrunner::HoverPreview::initTestCase()
+PASS   : qmltestrunner::HoverPreview::test_bottom_hub_launcher_button_is_an_explicit_promotion_target()
+PASS   : qmltestrunner::HoverPreview::test_panel_and_trigger_keep_preview_open()
+PASS   : qmltestrunner::HoverPreview::test_rect_edges_match_half_open_pointer_bounds()
+PASS   : qmltestrunner::HoverPreview::cleanupTestCase()
+PASS   : qmltestrunner::MiniSlider::initTestCase()
+PASS   : qmltestrunner::MiniSlider::test_mute_and_unavailable_states_are_distinct()
+PASS   : qmltestrunner::MiniSlider::test_presented_progress_converges_after_repeated_changes()
+PASS   : qmltestrunner::MiniSlider::test_reduced_motion_applies_the_final_value_without_transition()
+PASS   : qmltestrunner::MiniSlider::test_volume_above_one_hundred_percent_is_preserved()
+PASS   : qmltestrunner::MiniSlider::test_volume_displays_backend_value_and_scaled_range()
+PASS   : qmltestrunner::MiniSlider::cleanupTestCase()
+PASS   : qmltestrunner::OsdEscape::initTestCase()
+PASS   : qmltestrunner::OsdEscape::test_escape_closes_an_open_osd()
+PASS   : qmltestrunner::OsdEscape::test_escape_does_not_change_a_closed_osd()
+PASS   : qmltestrunner::OsdEscape::cleanupTestCase()
+PASS   : qmltestrunner::OverlayTransitions::initTestCase()
+PASS   : qmltestrunner::OverlayTransitions::test_close_everywhere()
+PASS   : qmltestrunner::OverlayTransitions::test_cycles_leave_nothing_open()
+PASS   : qmltestrunner::OverlayTransitions::test_fullscreen_blocks_opening_guarded_surfaces_only()
+PASS   : qmltestrunner::OverlayTransitions::test_osd_and_bar_are_left_alone()
+PASS   : qmltestrunner::OverlayTransitions::test_rejects_unknown_and_chrome_flags()
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(overview then calendar)
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(overview then calendar (typed))
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(overview then wallpaperManager)
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(overview then wallpaperManager (typed))
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(overview then clipboard)
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(overview then clipboard (typed))
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(overview then hardware)
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(overview then hardware (typed))
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(overview then displayManager)
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(overview then displayManager (typed))
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(overview then keyboards)
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(overview then keyboards (typed))
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(calendar then overview)
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(calendar then overview (typed))
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(calendar then wallpaperManager)
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(calendar then wallpaperManager (typed))
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(calendar then clipboard)
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(calendar then clipboard (typed))
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(calendar then hardware)
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(calendar then hardware (typed))
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(calendar then displayManager)
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(calendar then displayManager (typed))
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(calendar then keyboards)
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(calendar then keyboards (typed))
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(wallpaperManager then overview)
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(wallpaperManager then overview (typed))
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(wallpaperManager then calendar)
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(wallpaperManager then calendar (typed))
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(wallpaperManager then clipboard)
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(wallpaperManager then clipboard (typed))
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(wallpaperManager then hardware)
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(wallpaperManager then hardware (typed))
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(wallpaperManager then displayManager)
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(wallpaperManager then displayManager (typed))
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(wallpaperManager then keyboards)
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(wallpaperManager then keyboards (typed))
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(clipboard then overview)
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(clipboard then overview (typed))
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(clipboard then calendar)
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(clipboard then calendar (typed))
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(clipboard then wallpaperManager)
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(clipboard then wallpaperManager (typed))
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(clipboard then hardware)
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(clipboard then hardware (typed))
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(clipboard then displayManager)
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(clipboard then displayManager (typed))
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(clipboard then keyboards)
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(clipboard then keyboards (typed))
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(hardware then overview)
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(hardware then overview (typed))
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(hardware then calendar)
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(hardware then calendar (typed))
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(hardware then wallpaperManager)
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(hardware then wallpaperManager (typed))
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(hardware then clipboard)
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(hardware then clipboard (typed))
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(hardware then displayManager)
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(hardware then displayManager (typed))
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(hardware then keyboards)
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(hardware then keyboards (typed))
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(displayManager then overview)
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(displayManager then overview (typed))
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(displayManager then calendar)
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(displayManager then calendar (typed))
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(displayManager then wallpaperManager)
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(displayManager then wallpaperManager (typed))
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(displayManager then clipboard)
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(displayManager then clipboard (typed))
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(displayManager then hardware)
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(displayManager then hardware (typed))
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(displayManager then keyboards)
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(displayManager then keyboards (typed))
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(keyboards then overview)
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(keyboards then overview (typed))
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(keyboards then calendar)
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(keyboards then calendar (typed))
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(keyboards then wallpaperManager)
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(keyboards then wallpaperManager (typed))
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(keyboards then clipboard)
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(keyboards then clipboard (typed))
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(keyboards then hardware)
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(keyboards then hardware (typed))
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(keyboards then displayManager)
+PASS   : qmltestrunner::OverlayTransitions::test_retained_is_exclusive_across_screens(keyboards then displayManager (typed))
+PASS   : qmltestrunner::OverlayTransitions::test_retained_moves_instead_of_doubling()
+PASS   : qmltestrunner::OverlayTransitions::test_retained_toggle_closes_it_from_any_screen()
+PASS   : qmltestrunner::OverlayTransitions::test_sidebar_closes_the_wallpaper_manager()
+PASS   : qmltestrunner::OverlayTransitions::test_sidebar_over_hardware_is_one_surface()
+PASS   : qmltestrunner::OverlayTransitions::test_toggle_on_moves_to_its_screen()
+PASS   : qmltestrunner::OverlayTransitions::test_transient_closes_retained_on_any_screen(launcher)
+PASS   : qmltestrunner::OverlayTransitions::test_transient_closes_retained_on_any_screen(session)
+PASS   : qmltestrunner::OverlayTransitions::test_transient_closes_retained_on_any_screen(dashboard)
+PASS   : qmltestrunner::OverlayTransitions::test_transient_closes_retained_on_any_screen(utilities)
+PASS   : qmltestrunner::OverlayTransitions::test_transient_closes_retained_on_any_screen(settings)
+PASS   : qmltestrunner::OverlayTransitions::test_transient_closes_retained_on_any_screen(sidebar)
+PASS   : qmltestrunner::OverlayTransitions::test_transient_toggle_is_per_screen()
+PASS   : qmltestrunner::OverlayTransitions::cleanupTestCase()
+PASS   : qmltestrunner::ScrimHit::initTestCase()
+PASS   : qmltestrunner::ScrimHit::test_invisibleSurfaceIsIgnored()
+PASS   : qmltestrunner::ScrimHit::test_nothingOpen()
+PASS   : qmltestrunner::ScrimHit::test_outsidePanelIsBackdrop()
+PASS   : qmltestrunner::ScrimHit::test_panelIsNotBackdrop()
+PASS   : qmltestrunner::ScrimHit::test_sceneIsHitTestable()
+PASS   : qmltestrunner::ScrimHit::test_smallSurfaceCovers()
+PASS   : qmltestrunner::ScrimHit::cleanupTestCase()
+PASS   : qmltestrunner::SurfaceRegistry::initTestCase()
+PASS   : qmltestrunner::SurfaceRegistry::test_close_and_reopen_cycles_leave_nothing_retained()
+PASS   : qmltestrunner::SurfaceRegistry::test_close_other_panels_keeps_osd_and_bar()
+PASS   : qmltestrunner::SurfaceRegistry::test_close_other_retained_and_except()
+PASS   : qmltestrunner::SurfaceRegistry::test_close_preview_is_scoped_to_its_screen()
+PASS   : qmltestrunner::SurfaceRegistry::test_derived_flags_follow_the_registry()
+PASS   : qmltestrunner::SurfaceRegistry::test_drag_preview_cannot_compete_locally_and_promotes_explicitly()
+PASS   : qmltestrunner::SurfaceRegistry::test_explicit_osd_requests_keyboard_focus()
+PASS   : qmltestrunner::SurfaceRegistry::test_focus_capture_and_fullscreen_transition_are_observable()
+PASS   : qmltestrunner::SurfaceRegistry::test_hover_preview_preserves_an_exclusive_surface_on_another_monitor()
+PASS   : qmltestrunner::SurfaceRegistry::test_inventory_is_complete_and_unique()
+PASS   : qmltestrunner::SurfaceRegistry::test_legacy_close_turns_a_later_preview_reopen_into_explicit_open()
+PASS   : qmltestrunner::SurfaceRegistry::test_open_exclusive_is_idempotent()
+PASS   : qmltestrunner::SurfaceRegistry::test_plain_objects_keep_direct_writes()
+PASS   : qmltestrunner::SurfaceRegistry::test_policy_writes_go_through_setflag()
+PASS   : qmltestrunner::SurfaceRegistry::test_preview_close_does_not_close_an_explicit_surface()
+PASS   : qmltestrunner::SurfaceRegistry::test_previewable_surfaces_come_from_the_registry()
+PASS   : qmltestrunner::SurfaceRegistry::test_registry_is_frozen()
+PASS   : qmltestrunner::SurfaceRegistry::test_screens_are_independent()
+PASS   : qmltestrunner::SurfaceRegistry::test_setflag_routes_by_kind()
+PASS   : qmltestrunner::SurfaceRegistry::test_unknown_names_are_rejected()
+PASS   : qmltestrunner::SurfaceRegistry::test_wallpaper_exclusion_is_bidirectional()
+PASS   : qmltestrunner::SurfaceRegistry::cleanupTestCase()
+Totals: 173 passed, 0 failed, 0 skipped, 0 blacklisted, 616ms
+********* Finished testing of qmltestrunner *********
+********* Start testing of qmltestrunner *********
+Config: Using QtTest library 6.12.0, Qt 6.12.0 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 16.2.1 20260810), cachyos unknown
+PASS   : qmltestrunner::CalendarModel::initTestCase()
+PASS   : qmltestrunner::CalendarModel::test_all_day_end_is_exclusive()
+PASS   : qmltestrunner::CalendarModel::test_events_by_day_matches_per_day_filter()
+PASS   : qmltestrunner::CalendarModel::test_invalid_events_are_skipped()
+PASS   : qmltestrunner::CalendarModel::test_keyboard_moves_the_selected_day()
+PASS   : qmltestrunner::CalendarModel::test_month_grid_is_monday_first()
+PASS   : qmltestrunner::CalendarModel::test_month_navigation_round_trip()
+PASS   : qmltestrunner::CalendarModel::test_month_step_keeps_the_day_or_clamps()
+PASS   : qmltestrunner::CalendarModel::test_multi_day_event_across_months()
+PASS   : qmltestrunner::CalendarModel::test_same_day_and_day_start()
+PASS   : qmltestrunner::CalendarModel::test_timed_event_ending_at_midnight_stays_on_its_day()
+PASS   : qmltestrunner::CalendarModel::cleanupTestCase()
+Totals: 12 passed, 0 failed, 0 skipped, 0 blacklisted, 26ms
+********* Finished testing of qmltestrunner *********
+********* Start testing of qmltestrunner *********
+Config: Using QtTest library 6.12.0, Qt 6.12.0 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 16.2.1 20260810), cachyos unknown
+PASS   : qmltestrunner::PomodoroModel::initTestCase()
+PASS   : qmltestrunner::PomodoroModel::test_announcements_are_shown_once()
+PASS   : qmltestrunner::PomodoroModel::test_breaks_use_their_length()
+PASS   : qmltestrunner::PomodoroModel::test_corrupt_values_fall_back()
+PASS   : qmltestrunner::PomodoroModel::test_idle_shows_a_full_focus_session()
+PASS   : qmltestrunner::PomodoroModel::test_paused_freezes_the_remaining_time()
+PASS   : qmltestrunner::PomodoroModel::test_running_counts_down_to_zero()
+PASS   : qmltestrunner::PomodoroModel::cleanupTestCase()
+Totals: 8 passed, 0 failed, 0 skipped, 0 blacklisted, 3ms
+********* Finished testing of qmltestrunner *********
+********* Start testing of qmltestrunner *********
+Config: Using QtTest library 6.12.0, Qt 6.12.0 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 16.2.1 20260810), cachyos unknown
+PASS   : qmltestrunner::AudioProtection::initTestCase()
+PASS   : qmltestrunner::AudioProtection::test_limit_increases_but_allows_decreases()
+PASS   : qmltestrunner::AudioProtection::cleanupTestCase()
+PASS   : qmltestrunner::CortetsuPolicyModel::initTestCase()
+PASS   : qmltestrunner::CortetsuPolicyModel::test_argv_contains_only_an_allowlisted_domain()
+PASS   : qmltestrunner::CortetsuPolicyModel::test_epoch_and_socket_are_bound_to_the_session()
+PASS   : qmltestrunner::CortetsuPolicyModel::test_only_read_operations_can_cross_the_socket()
+PASS   : qmltestrunner::CortetsuPolicyModel::test_readback_cannot_confirm_another_sessions_activation()
+PASS   : qmltestrunner::CortetsuPolicyModel::test_revocation_requires_empty_owner_readback()
+PASS   : qmltestrunner::CortetsuPolicyModel::cleanupTestCase()
+Totals: 10 passed, 0 failed, 0 skipped, 0 blacklisted, 9ms
+********* Finished testing of qmltestrunner *********
+********* Start testing of qmltestrunner *********
+Config: Using QtTest library 6.12.0, Qt 6.12.0 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 16.2.1 20260810), cachyos unknown
+PASS   : qmltestrunner::PolkitDialog::initTestCase()
+PASS   : qmltestrunner::PolkitDialog::test_cancel_never_sends_an_answer()
+PASS   : qmltestrunner::PolkitDialog::test_empty_password_is_not_sent()
+PASS   : qmltestrunner::PolkitDialog::test_enter_submits_and_clears_the_password()
+PASS   : qmltestrunner::PolkitDialog::test_escape_cancels_the_request()
+PASS   : qmltestrunner::PolkitDialog::test_escape_cancels_while_pam_checks_the_answer()
+PASS   : qmltestrunner::PolkitDialog::test_escape_cancels_while_polkit_has_not_asked_yet()
+PASS   : qmltestrunner::PolkitDialog::test_finished_request_ignores_escape()
+PASS   : qmltestrunner::PolkitDialog::test_identity_switch_cycles_through_identities()
+PASS   : qmltestrunner::PolkitDialog::test_retry_after_a_wrong_password_sends_the_new_one()
+PASS   : qmltestrunner::PolkitDialog::test_single_identity_hides_the_switch()
+PASS   : qmltestrunner::PolkitDialog::test_supplementary_message_is_shown()
+PASS   : qmltestrunner::PolkitDialog::test_visible_response_and_prompt_come_from_polkit()
+PASS   : qmltestrunner::PolkitDialog::test_wrong_password_shows_an_error_and_refocuses()
+PASS   : qmltestrunner::PolkitDialog::cleanupTestCase()
+Totals: 15 passed, 0 failed, 0 skipped, 0 blacklisted, 61ms
+********* Finished testing of qmltestrunner *********
+********* Start testing of qmltestrunner *********
+Config: Using QtTest library 6.12.0, Qt 6.12.0 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 16.2.1 20260810), cachyos unknown
+PASS   : qmltestrunner::SecretPrompt::initTestCase()
+PASS   : qmltestrunner::SecretPrompt::test_bluetooth_confirmation_shows_the_code()
+PASS   : qmltestrunner::SecretPrompt::test_bluetooth_passkey_takes_six_visible_digits()
+PASS   : qmltestrunner::SecretPrompt::test_choice_is_sent_back()
+PASS   : qmltestrunner::SecretPrompt::test_confirm_prompt_has_no_field_and_enter_continues()
+PASS   : qmltestrunner::SecretPrompt::test_display_code_only_offers_cancel()
+PASS   : qmltestrunner::SecretPrompt::test_empty_message_has_a_heading()
+PASS   : qmltestrunner::SecretPrompt::test_enter_answers_with_the_password_and_clears_it()
+PASS   : qmltestrunner::SecretPrompt::test_enterprise_prefills_the_saved_user()
+PASS   : qmltestrunner::SecretPrompt::test_enterprise_sends_user_and_password()
+PASS   : qmltestrunner::SecretPrompt::test_escape_cancels_also_while_waiting()
+PASS   : qmltestrunner::SecretPrompt::test_mnemonics_are_dropped_from_labels()
+PASS   : qmltestrunner::SecretPrompt::test_new_keyring_may_be_blank()
+PASS   : qmltestrunner::SecretPrompt::test_new_keyring_needs_the_same_password_twice()
+PASS   : qmltestrunner::SecretPrompt::test_no_choice_hides_the_row()
+PASS   : qmltestrunner::SecretPrompt::test_pinentry_shape_names_the_caller()
+PASS   : qmltestrunner::SecretPrompt::test_retry_shows_the_warning_and_refocuses()
+PASS   : qmltestrunner::SecretPrompt::test_unlock_needs_a_password()
+PASS   : qmltestrunner::SecretPrompt::test_waiting_blocks_a_second_answer_and_says_so()
+PASS   : qmltestrunner::SecretPrompt::test_wifi_password_needs_eight_characters()
+PASS   : qmltestrunner::SecretPrompt::cleanupTestCase()
+Totals: 21 passed, 0 failed, 0 skipped, 0 blacklisted, 76ms
+********* Finished testing of qmltestrunner *********
+PASS: Bottom Hub presentation is fully first-party; BottomHub.qml is controller-only and compiler-free
+PASS: the hub badge fits its count, the Wi-Fi field marks focus and the badge popouts load cleanly
+PASS: notification and toast badges use the shared tones, long text stays inside and closing fades out
+PASS: the dashboard switches zones by keyboard in one fixed frame, closes on a click outside and on Escape, and stays for a click inside
+PASS: the lock card shows the empty, typing and rejected states, shakes on each rejection, keeps Caps Lock in the field and a long name on screen
+qml-design-lint: 0 findings in 179 files
+PASS: 15 surfaces in one registry (7 retained); no parallel lists in 5 consumers
+PASS: all generated Hyprland Lua actions use CortetsuHyprActions.js
+PASS: raw Hyprland event handling delegates refresh decisions to the tested policy
+PASS: qml-design-lint rules fire on bad QML and stay quiet on token-based QML
+qml-design-lint: 22 findings in 329 files
+      2  motion-ease-in  (ease-in curve (only valid on exits))
+      4  motion-layout-property  (animates width/height instead of opacity/scale/x/y)
+      1  color-untinted-neutral  (pure black/grey/white without a washi/sumi tint)
+      6  layout-small-target  (click target smaller than 36 px)
+      1  token-literal-color  (colour literal outside CortetsuDesign)
+      7  token-literal-radius  (radius literal outside CortetsuDesign)
+      1  token-literal-duration  (duration literal outside CortetsuDesign)
+by surface:
+      8  modules/clipboard
+      6  components
+      4  modules/background
+      2  modules
+      2  services
+PASS: Cortetsu quality gate: cold hidden pages, native visual primitives, canonical state; legacy QML shell exceptions explicitly registered
+PASS: 8 end-4 pages compose 17 Cortetsu sections, 75 preferences written by Settings all have a reader, and SUPER+I has one owner
+PASS: session-owned coordinator, explicit fixed-argv consent, bounded readback and reconnect
+PASS stock: one cancel adds one failure: 1
+PASS override, real pam_unix: three cancels: [0, 0, 0]
+PASS override: cancel then wrong password: [0, 1]
+PASS override: right password succeeds and resets: (0, 0)
+PASS override: three wrong passwords still count: [1, 2, 3]
+PASS override: locked account refuses the right password: 7
+PASS override auth modules match system-auth: ['auth required pam_faillock.so preauth', '-auth [] pam_systemd_home.so', 'auth [] pam_unix.so try_first_pass nullok', 'auth [] pam_faillock.so authfail', 'auth optional pam_permit.so', 'auth required pam_env.so', 'auth required pam_faillock.so authsucc']
+✔ descriptor is bound to the current session, socket and exact integer epoch (4.738079ms)
+✔ policy actions use only fixed argv and bounded allowed domains (0.773909ms)
+✔ snapshot parsing keeps displayed state separate from another session ownership (0.435831ms)
+✔ hello and responses reject stale negotiation and unknown request ids (0.211027ms)
+✔ actions finish only after authoritative readback of the requested value (0.282913ms)
+✔ read request builder cannot request mutation or command execution (0.310625ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 13.34488
+✔ merge freezes the sent base and reconciles concurrent dismissal before advancing saved IDs (5.715923ms)
+✔ empty owner readback closes only the frozen request and preserves later arrivals (0.292502ms)
+✔ a prior clear does not erase a new notification when the old array is reread (0.220866ms)
+✔ malformed history and readback are failures instead of empty successful saves (0.635838ms)
+✔ DND accepts only confirmed booleans and exact optional revisions (0.272063ms)
+✔ clear revisions identify explicit clears without replaying an old clear after restart (0.276481ms)
+✔ popup timeout: -1 means the server default, 0 never expires, positive values are kept (0.142368ms)
+✔ popup timeout over fullscreen: the fullscreen default replaces only the server default (0.102504ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 14.801605
+PASS: policy QML flow
+PASS: policy QML timeout
+PASS: policy QML mismatch
+PASS: policy QML readback-failure
+PASS: native notification QML readback, concurrent dismissal/clear, later arrivals, restart and DND recovery

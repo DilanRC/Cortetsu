@@ -1,0 +1,4 @@
+PASS: the Hardware summary reports its verdict, updates in place, links to each page and survives a failing probe
+PASS: the Calendar moves the day with arrows, PageUp/PageDown and Home, and its calendars toggle from the keyboard
+PASS: the Wallpaper Orbital browses, filters, previews, keeps its selection and reports every state
+PASS: the share picker shares by digit, arrows and Enter, remembers with Alt+R, reaches Región and shows its empty state

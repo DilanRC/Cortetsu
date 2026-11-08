@@ -1,0 +1,12 @@
+    Checking cortetsu-keyboards v2.0.0 (/home/dilan/Documentos/GitHub/Cortetsu/cortetsu/keyboards)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.38s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.05s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.04s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.04s
+    Checking cortetsu-rescue v0.1.0 (/home/dilan/Documentos/GitHub/Cortetsu/cortetsu/rescue)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.40s
+    Checking cortetsu-platform v2.0.0 (/home/dilan/Documentos/GitHub/Cortetsu/cortetsu/platform-rs)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.39s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.08s
+    Checking cortetsu-desktop-runtime v0.2.0 (/home/dilan/Documentos/GitHub/Cortetsu/cortetsu/desktop-runtime-rs)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.04s

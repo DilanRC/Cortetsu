@@ -1,0 +1,4 @@
+test-battery-policy.node: OK (threshold crossing and invalid inputs)
+Settings builds in 71 ms (1266 items); 20 cycles of open, eight pages and close take 2165 ms
+The window host opens, shows its eight pages, closes and reopens under weston
+PASS: Settings keeps its objects through colour, scheme and preference changes, shows pending, failed and unavailable states truthfully, and is fully usable from the keyboard
