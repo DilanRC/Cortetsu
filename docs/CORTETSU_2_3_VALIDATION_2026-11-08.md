@@ -130,8 +130,13 @@ Los respaldos privados previos están en
 motor permanecen en `theme-backups/`. La recuperación de generación usa
 `cortetsu rollback`; la recuperación del perfil usa `cortetsu-scheme profile
 import /ruta/visual-profile.json` y `sync-projections`. No se borró ninguna
-generación. Los dos artefactos .codebase-memory conservaron su SHA-256 y no se
-incluyen en los commits.
+generación. Los dos artefactos .codebase-memory no se incluyen en los commits. El
+indexador los regeneró localmente a las 08:36 a pesar de solicitar
+`persistence:false`; la comparación SHA-256 posterior solo demuestra que no
+volvieron a cambiar durante la verificación final. Ya estaban modificados antes
+de esta tarea y no hay un respaldo exacto del estado anterior al indexado; no
+se restablecieron a HEAD para evitar borrar esos cambios preexistentes. Esta
+incidencia local del indexador no forma parte del despliegue ni de la paleta.
 
 Las muestras de tres segundos de CPU/PSS están en
 [antes](evidence/cortetsu-23-20261108/live-before.json) y
