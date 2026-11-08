@@ -1,0 +1,37 @@
+{
+  "themes": [
+    {
+      "theme": "washi",
+      "preferencesConfirmed": true,
+      "targets": {
+        "hyprland": "applied",
+        "kitty": "reopen",
+        "gtk": "reopen",
+        "qt": "reopen"
+      }
+    },
+    {
+      "theme": "kurogane",
+      "preferencesConfirmed": true,
+      "targets": {
+        "hyprland": "applied",
+        "kitty": "reopen",
+        "gtk": "reopen",
+        "qt": "reopen"
+      }
+    },
+    {
+      "theme": "ink",
+      "preferencesConfirmed": true,
+      "targets": {
+        "hyprland": "applied",
+        "kitty": "reopen",
+        "gtk": "reopen",
+        "qt": "reopen"
+      }
+    }
+  ],
+  "profileRestored": true,
+  "focusedWindowAndFullscreenPreserved": true,
+  "monitorsPreserved": true
+}

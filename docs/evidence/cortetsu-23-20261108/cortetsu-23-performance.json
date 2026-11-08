@@ -1,0 +1,44 @@
+[
+  {
+    "version": "before",
+    "run": 0,
+    "openMs": 46,
+    "items": 876,
+    "cyclesMs": 1765
+  },
+  {
+    "version": "after",
+    "run": 0,
+    "openMs": 79,
+    "items": 1266,
+    "cyclesMs": 1956
+  },
+  {
+    "version": "before",
+    "run": 1,
+    "openMs": 48,
+    "items": 876,
+    "cyclesMs": 1951
+  },
+  {
+    "version": "after",
+    "run": 1,
+    "openMs": 67,
+    "items": 1266,
+    "cyclesMs": 2212
+  },
+  {
+    "version": "before",
+    "run": 2,
+    "openMs": 42,
+    "items": 876,
+    "cyclesMs": 1781
+  },
+  {
+    "version": "after",
+    "run": 2,
+    "openMs": 53,
+    "items": 1266,
+    "cyclesMs": 2152
+  }
+]
