@@ -20,7 +20,7 @@ Item {
     readonly property Item launcherButtonItem: launcherButton
 
     implicitWidth: content.implicitWidth + 18
-    implicitHeight: 50
+    implicitHeight: Math.max(46, CortetsuDesign.rowHeight - 2)
     width: implicitWidth
     height: implicitHeight
 

@@ -53,7 +53,7 @@ Item {
     }
 
     implicitWidth: statusRow.implicitWidth + 20
-    implicitHeight: 50
+    implicitHeight: Math.max(46, CortetsuDesign.rowHeight - 2)
     width: implicitWidth
     height: implicitHeight
 

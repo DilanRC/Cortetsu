@@ -18,7 +18,7 @@ Item {
     signal cycleRequested(string key, int direction)
 
     implicitWidth: Math.min(appRailContent.implicitWidth + 24, maxWidth)
-    implicitHeight: 50
+    implicitHeight: Math.max(46, CortetsuDesign.rowHeight - 2)
     width: implicitWidth
     height: implicitHeight
     clip: true

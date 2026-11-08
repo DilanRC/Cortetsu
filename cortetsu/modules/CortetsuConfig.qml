@@ -3,6 +3,7 @@ pragma Singleton
 import QtQml
 import Quickshell
 import Quickshell.Io
+import "ThemePreferences.js" as ThemePreferences
 
 // Functional preferences owned by Cortetsu. Design tokens remain separate.
 QtObject {
@@ -89,22 +90,40 @@ QtObject {
     property bool useFuzzyVariants: true
     onUseFuzzyVariantsChanged: if (loaded) save()
     property bool smartScheme: true
+    property var themeIntegrations: ({hyprland: true, kitty: true, gtk: true, qt: true})
+    onThemeIntegrationsChanged: if (loaded) save()
     property string wallpaperDirectory: "~/Imágenes/Wallpapers"
     property bool wallpaperEnabled: true
     property bool transparencyEnabled: false
     onTransparencyEnabledChanged: if (loaded) save()
     property var themePreferences: ({})
+    readonly property var activeThemeOverrides: ThemePreferences.sanitise(themePreferences[themeId]?.tokens)
+    function setThemeToken(name: string, value: var): void {
+        const preferences = Object.assign({}, themePreferences);
+        const profile = Object.assign({}, preferences[themeId] || {});
+        profile.tokens = ThemePreferences.sanitise(Object.assign({}, profile.tokens || {}, {[name]: value}));
+        preferences[themeId] = profile;
+        themePreferences = preferences;
+        save();
+    }
+    function resetThemeTokens(): void {
+        const preferences = Object.assign({}, themePreferences);
+        preferences[themeId] = Object.assign({}, preferences[themeId] || {}, {tokens: {}});
+        themePreferences = preferences;
+        save();
+    }
     function selectTheme(id: string): void {
         if (!["ink", "washi", "kurogane"].includes(id) || id === themeId)
             return;
         const saved = Object.assign({}, themePreferences);
-        saved[themeId] = { transparencyEnabled, reducedMotion, smartScheme };
+        saved[themeId] = Object.assign({}, saved[themeId] || {}, { transparencyEnabled, reducedMotion, smartScheme, borderThickness });
         themePreferences = saved;
-        const next = saved[id];
+        const next = Object.assign({transparencyEnabled: false, reducedMotion: false, smartScheme: true, borderThickness: 1}, saved[id] || {});
         if (next) {
             if (typeof next.transparencyEnabled === "boolean") transparencyEnabled = next.transparencyEnabled;
             if (typeof next.reducedMotion === "boolean") reducedMotion = next.reducedMotion;
             if (typeof next.smartScheme === "boolean") smartScheme = next.smartScheme;
+            if (Number.isInteger(next.borderThickness)) borderThickness = Math.max(0, Math.min(20, next.borderThickness));
         }
         themeId = id;
     }
@@ -134,7 +153,13 @@ QtObject {
     property int weatherRefreshInterval: 3600000
     property real audioIncrement: 0.1
     property real brightnessIncrement: 0.1
+    property int osdTimeoutMs: 1500
+    onOsdTimeoutMsChanged: if (loaded) save()
     property real maxVolume: 1.0
+    property bool audioProtectionEnabled: false
+    onAudioProtectionEnabledChanged: if (loaded) save()
+    property real audioMaxIncrease: 0.15
+    onAudioMaxIncreaseChanged: if (loaded) save()
     property bool colorCalibrationEnabled: false
     property int colorTemperature: 6000
     property int colorGamma: 100
@@ -374,6 +399,12 @@ QtObject {
         loaded = false;
         try {
             const data = JSON.parse(raw);
+            if (data.themeIntegrations && typeof data.themeIntegrations === "object") {
+                const integrations = Object.assign({}, themeIntegrations);
+                for (const key of ["hyprland", "kitty", "gtk", "qt"])
+                    if (typeof data.themeIntegrations[key] === "boolean") integrations[key] = data.themeIntegrations[key];
+                themeIntegrations = integrations;
+            }
             if (Array.isArray(data.favouriteApps))
                 favouriteApps = data.favouriteApps.filter(value => typeof value === "string");
             if (Array.isArray(data.hiddenApps))
@@ -563,6 +594,9 @@ QtObject {
                 brightnessIncrement = Math.max(0.01, Math.min(1, data.brightnessIncrement));
             if (typeof data.maxVolume === "number")
                 maxVolume = Math.max(0, Math.min(2, data.maxVolume));
+            if (Number.isInteger(data.osdTimeoutMs)) osdTimeoutMs = Math.max(500, Math.min(5000, data.osdTimeoutMs));
+            if (typeof data.audioProtectionEnabled === "boolean") audioProtectionEnabled = data.audioProtectionEnabled;
+            if (Number.isFinite(data.audioMaxIncrease)) audioMaxIncrease = Math.max(0.01, Math.min(1, data.audioMaxIncrease));
             if (data.displayCalibration && typeof data.displayCalibration === "object") {
                 if (typeof data.displayCalibration.enabled === "boolean")
                     colorCalibrationEnabled = data.displayCalibration.enabled;
@@ -662,6 +696,10 @@ QtObject {
         saveState = "pending";
         saveDelay.restart();
     }
+    function reloadPreferences(): void {
+        if (!writing && !saveDelay.running)
+            storage.reload();
+    }
 
     function flush(): void {
         if (!saveDelay.running)
@@ -686,6 +724,9 @@ QtObject {
 
     function snapshot(): var {
         return ({ schema: 1, favouriteApps, hiddenApps, hiddenTrayIcons, terminalCommand, audioCommand, playbackCommand, explorerCommand, gpuType, lyricsBackend, statusIcons, quickToggles, vpn: { providers: vpn.providers, selectedProvider: vpn.selectedProvider, enabled: vpn.enabled }, actions, actionPrefix, specialPrefix, enableDangerousActions, useFuzzyApps, useFuzzyWallpapers, useFuzzyActions, useFuzzySchemes, useFuzzyVariants, smartScheme, wallpaperDirectory, wallpaperEnabled, transparencyEnabled, themeId, themePreferences, reducedMotion, desktopClockEnabled, desktopClockPosition, desktopClockShowDate, borderThickness, borderSmoothing, useTwelveHourClock, useSecondPrecision, useFahrenheit, useFahrenheitPerformance, batteryLowWarningPercent, weatherLocation, screenRecordSavePath, screenSnipSavePath, weatherRefreshInterval, audioIncrement, brightnessIncrement, maxVolume, visualiserBars, visualiserEnabled, visualiserAutoHide, visualiserBlur, visualiserSpacing, visualiserRounding, defaultPlayer, playerAliases, toastAudioOutputChanged, toastAudioInputChanged, toastNowPlaying, toastFullscreen, maxToasts, toastChargingChanged, toastCapsLockChanged, toastNumLockChanged, toastKbLayoutChanged, toastKbLimit, toastVpnChanged, notificationExpire, suppressNotificationsInFullscreen, notificationDefaultExpireTimeout, notificationFullscreenExpireTimeout, notificationActionOnClick, notificationFullscreenMode, notificationClearThreshold, notificationExpandThreshold, notificationGroupPreviewNum, notificationOpenExpanded, toastDndChanged, toastGameModeChanged, lockRecolourLogo, lockHideNotifs, lockEnableFprint, lockMaxFprintTries, lockEnableHowdy, lockMaxHowdyTries, lockTriggerHowdyOnWake, vimKeybinds, workspacesShown, dashboardMediaUpdateInterval, dashboardResourceUpdateInterval, nexusWallpapersPerRow, nexusMaxNetworksShown, nexusNetworkRescanInterval, dashboard: { enabled: dashboard.enabled, showOnHover: dashboard.showOnHover, showDashboard: dashboard.showDashboard, showMedia: dashboard.showMedia, showPerformance: dashboard.showPerformance, showWeather: dashboard.showWeather, dragThreshold: dashboard.dragThreshold, performance: { showCpu: dashboard.performance.showCpu, showGpu: dashboard.performance.showGpu, showMemory: dashboard.performance.showMemory, showStorage: dashboard.performance.showStorage, showNetwork: dashboard.performance.showNetwork, showBattery: dashboard.performance.showBattery } }, launcher: { enabled: launcher.enabled, showOnHover: launcher.showOnHover, maxShown: launcher.maxShown, maxWallpapers: launcher.maxWallpapers, dragThreshold: launcher.dragThreshold }, sidebar: { enabled: sidebar.enabled, showOnHover: sidebar.showOnHover, dragThreshold: sidebar.dragThreshold, minHoverThreshold: sidebar.minHoverThreshold }, utilities: { enabled: utilities.enabled, cards: { keepAwake: utilities.cards.keepAwake, recorder: utilities.cards.recorder, quickToggles: utilities.cards.quickToggles } }, bar: { showOnHover: bar.showOnHover, dragThreshold: bar.dragThreshold, entries: bar.entries, scrollActions: { volume: bar.scrollActions.volume }, tray: { background: bar.tray.background, recolour: bar.tray.recolour }, activeWindow: { inverted: bar.activeWindow.inverted, showOnHover: bar.activeWindow.showOnHover }, popouts: { activeWindow: bar.popouts.activeWindow, statusIcons: bar.popouts.statusIcons, tray: bar.popouts.tray }, clock: { background: bar.clock.background, showIcon: bar.clock.showIcon }, workspaces: { activeIndicator: bar.workspaces.activeIndicator, activeTrail: bar.workspaces.activeTrail, occupiedBg: bar.workspaces.occupiedBg, showWindows: bar.workspaces.showWindows, showAppIcons: bar.workspaces.showAppIcons, monochromeIcons: bar.workspaces.monochromeIcons, maxWindowIcons: bar.workspaces.maxWindowIcons, showWindowsOnSpecialWorkspaces: bar.workspaces.showWindowsOnSpecialWorkspaces, perMonitorWorkspaces: bar.workspaces.perMonitorWorkspaces, displayType: bar.workspaces.displayType, label: bar.workspaces.label, occupiedLabel: bar.workspaces.occupiedLabel, activeLabel: bar.workspaces.activeLabel, capitalisation: bar.workspaces.capitalisation } }, idleInhibitWhenAudio, idleInhibitWhenCharging, idleLockBeforeSleep, idleTimeouts, idleSuspendOnBatteryOnly, idleInhibitWhenFullscreen,
+            themeIntegrations,
+            audioProtectionEnabled, audioMaxIncrease,
+            osdTimeoutMs,
             bottomHub: {
                 segments: { mode: bottomHub.segments.mode, apps: bottomHub.segments.apps, tray: bottomHub.segments.tray, status: bottomHub.segments.status },
                 statusCluster: { audio: bottomHub.statusCluster.audio, network: bottomHub.statusCluster.network, bluetooth: bottomHub.statusCluster.bluetooth, battery: bottomHub.statusCluster.battery, showNotificationCount: bottomHub.statusCluster.showNotificationCount }

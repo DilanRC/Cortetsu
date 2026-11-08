@@ -90,7 +90,7 @@ Item {
         width - Math.max(leftSegment.visible ? leftSegment.width : 0, rightOccupiedWidth) * 2 - 64
     )
 
-    implicitHeight: 60
+    implicitHeight: Math.max(56, CortetsuDesign.rowHeight + 8)
 
     // No backdrop: each segment is its own floating island (CortetsuIsland)
     // and the wallpaper shows between them.

@@ -19,6 +19,24 @@ ColumnLayout {
     SettingsGroup {
         title: qsTr("Límites de audio")
         detail: qsTr("El límite se aplica al próximo ajuste desde Cortetsu; los niveles actuales se conservan")
+        SettingToggleRow {
+            objectName: "audioProtection"
+            title: qsTr("Limitar aumentos bruscos")
+            detail: qsTr("Limita cada aumento solicitado desde Cortetsu; no controla otras aplicaciones")
+            checked: CortetsuConfig.audioProtectionEnabled
+            onToggled: enabled => { CortetsuConfig.audioProtectionEnabled = enabled; }
+        }
+        SettingSliderRow {
+            objectName: "audioMaxIncrease"
+            title: qsTr("Aumento máximo por ajuste")
+            from: 1
+            to: 100
+            step: 1
+            value: Math.round(CortetsuConfig.audioMaxIncrease * 100)
+            valueText: qsTr("%1 %").arg(Math.round(value))
+            disabled: !CortetsuConfig.audioProtectionEnabled
+            onMoved: next => { CortetsuConfig.audioMaxIncrease = next / 100; }
+        }
         SettingSliderRow {
             objectName: "audioLimit"
             title: qsTr("Límite al ajustar el volumen")

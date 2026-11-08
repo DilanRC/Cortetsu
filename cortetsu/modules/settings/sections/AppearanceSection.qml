@@ -5,6 +5,8 @@ import QtQuick.Layouts
 import Quickshell
 import "../../../components"
 import "../../../theme"
+import "../../../theme/ThemeProfiles.js" as Profiles
+import "../../../theme/CortetsuDesignDefaults.js" as Defaults
 import "../../../services"
 import "../.."
 import "../../launcher/services"
@@ -20,6 +22,7 @@ ColumnLayout {
 
     readonly property bool wide: true
     property string query: ""
+    property bool previewSchemes: false
     readonly property int columns: Math.max(2, Math.floor((grid.width + CortetsuDesign.spacingCompact) / 216))
     readonly property real cardWidth: Math.floor((grid.width - (columns - 1) * CortetsuDesign.spacingCompact) / columns)
     readonly property int shown: Schemes.list.filter(item => root.matches(item)).length
@@ -40,25 +43,94 @@ ColumnLayout {
     }
 
     spacing: CortetsuDesign.spacingSection
-
+    Component.onDestruction: CortetsuThemes.cancelPreview()
     SettingsGroup {
         title: qsTr("Tema de Cortetsu")
-        detail: qsTr("Materiales, tipografía, densidad y movimiento")
-        Repeater {
+        detail: qsTr("Colores base, materiales, tipografía y densidad")
+        Flow {
+            Layout.fillWidth: true
+            spacing: CortetsuDesign.spacingCompact
+            Repeater {
             model: [{ id: "ink", name: "Ink" }, { id: "washi", name: "Washi" }, { id: "kurogane", name: "Kurogane" }]
-            SettingActionRow {
+            CortetsuChoiceCard {
                 required property var modelData
+                readonly property var tokens: Profiles.tokens(modelData.id)
                 objectName: "theme-" + modelData.id
+                width: root.cardWidth
                 title: modelData.name
-                actionLabel: CortetsuConfig.themeId === modelData.id ? qsTr("Activo") : qsTr("Aplicar")
-                actionDisabled: CortetsuConfig.themeId === modelData.id || CortetsuThemes.busy
-                status: CortetsuThemes.busy ? "busy" : CortetsuThemes.error ? "error" : ""
-                statusText: CortetsuThemes.error || (CortetsuThemes.busy ? qsTr("Guardando el tema y actualizando Hyprland y Kitty") : "")
-                onActivated: CortetsuThemes.select(modelData.id)
+                subtitle: selected ? qsTr("Activo") : qsTr("Aplicar tema")
+                selected: CortetsuConfig.themeId === modelData.id
+                disabled: selected || CortetsuThemes.busy
+                swatches: [tokens.colorSumi || Defaults.colorSumi, tokens.colorSurface || Defaults.colorSurface,
+                    tokens.colorPrimary || Defaults.colorPrimary, tokens.colorOnSurface || Defaults.colorOnSurface]
+                onClicked: CortetsuThemes.select(modelData.id)
+            }
             }
         }
+        SettingValueRow {
+            objectName: "themeStatus"
+            visible: CortetsuThemes.error.length > 0 || CortetsuThemes.busy
+            title: qsTr("Estado del tema")
+            value: CortetsuThemes.pending || CortetsuConfig.themeId
+            status: CortetsuThemes.busy ? "busy" : "error"
+            statusText: CortetsuThemes.error || qsTr("Guardando tema y sincronizando aplicaciones")
+        }
     }
-
+    SettingsGroup {
+        title: qsTr("Vista previa reversible")
+        detail: qsTr("Prueba los colores y materiales sin guardar. Cerrar esta página cancela la vista previa.")
+        Repeater {
+            model: ["ink", "washi", "kurogane"]
+            SettingActionRow {
+                required property string modelData
+                objectName: "themePreview-" + modelData
+                title: modelData
+                actionLabel: CortetsuThemes.previewId === modelData ? qsTr("En vista previa") : qsTr("Previsualizar")
+                actionDisabled: CortetsuThemes.busy
+                onActivated: CortetsuThemes.previewTheme(modelData)
+            }
+        }
+        SettingActionRow {
+            objectName: "themePreviewCancel"
+            title: qsTr("Volver al tema guardado")
+            actionLabel: qsTr("Cancelar vista previa")
+            actionDisabled: CortetsuThemes.previewId.length === 0
+            onActivated: CortetsuThemes.cancelPreview()
+        }
+    }
+    SettingsGroup {
+        title: qsTr("Sincronización de aplicaciones")
+        detail: qsTr("La paleta se comparte con los destinos compatibles. Algunas aplicaciones deben abrirse de nuevo.")
+        Repeater {
+            model: [{id: "hyprland", title: qsTr("Compositor")}, {id: "kitty", title: qsTr("Terminal Kitty")},
+                {id: "gtk", title: qsTr("GTK")}, {id: "qt", title: qsTr("Qt / KDE")}]
+            SettingToggleRow {
+                required property var modelData
+                readonly property var result: CortetsuThemes.integrations[modelData.id] || ({status: "pending"})
+                objectName: "themeIntegration-" + modelData.id
+                title: modelData.title
+                checked: CortetsuConfig.themeIntegrations[modelData.id] !== false
+                disabled: CortetsuThemes.busy || CortetsuThemes.syncAfterSave
+                status: result.status === "error" ? "error" : CortetsuThemes.busy ? "busy" : ""
+                statusText: result.status === "error" ? result.detail || "" : ""
+                detail: result.status === "applied" ? qsTr("Aplicado")
+                    : result.status === "reopen" ? qsTr("Requiere reabrir la aplicación")
+                    : result.status === "disabled" ? qsTr("Desactivado")
+                    : result.status === "unavailable" ? qsTr("No disponible: %1").arg(result.detail || "")
+                    : result.status === "error" ? qsTr("Error de sincronización") : qsTr("Pendiente de sincronización")
+                onToggled: enabled => CortetsuThemes.setIntegration(modelData.id, enabled)
+            }
+        }
+        SettingActionRow {
+            objectName: "themeSync"
+            title: qsTr("Volver a sincronizar")
+            actionLabel: qsTr("Sincronizar")
+            actionDisabled: CortetsuThemes.busy
+            status: CortetsuThemes.error ? "error" : ""
+            statusText: CortetsuThemes.error
+            onActivated: CortetsuThemes.sync()
+        }
+    }
     SettingsGroup {
         title: qsTr("Esquema de color")
         detail: Schemes.loading
@@ -69,16 +141,42 @@ ColumnLayout {
             objectName: "activeScheme"
             title: Schemes.applying ? qsTr("Aplicando") : qsTr("Esquema activo")
             detail: Schemes.applyStatus === "applied" ? qsTr("Aplicado a todas las superficies") : ""
-            status: Schemes.applyStatus === "failed" ? "error" : ""
-            statusText: qsTr("%1 no se aplicó: %2").arg(Schemes.pendingScheme).arg(Schemes.applyError)
+            status: Schemes.applyError ? "error" : ""
+            statusText: Schemes.applyError
             value: Schemes.applying ? Schemes.pendingScheme : Schemes.currentScheme
+        }
+        SettingToggleRow {
+            objectName: "schemePreviewMode"
+            title: qsTr("Previsualizar esquemas antes de aplicar")
+            detail: qsTr("Pulsar una paleta muestra sus colores sin guardarlos")
+            checked: root.previewSchemes
+            onToggled: enabled => { root.previewSchemes = enabled; if (!enabled) CortetsuThemes.cancelPreview(); }
+        }
+        SettingActionRow {
+            objectName: "schemePreviewApply"
+            title: qsTr("Guardar el esquema de la vista previa")
+            actionLabel: qsTr("Aplicar esquema")
+            actionDisabled: !CortetsuThemes.previewSchemeName || CortetsuThemes.busy
+            onActivated: {
+                Schemes.apply(CortetsuThemes.previewSchemeName, CortetsuThemes.previewSchemeFlavour);
+                root.previewSchemes = false;
+            }
         }
 
         SettingToggleRow {
             title: qsTr("Esquema según el fondo")
             detail: qsTr("Al cambiar de fondo, derivar el esquema de la imagen")
-            checked: CortetsuConfig.smartScheme
-            onToggled: value => { CortetsuConfig.smartScheme = value; CortetsuConfig.save(); }
+            checked: CortetsuConfig.smartScheme && CortetsuColours.origin !== "manual"
+            disabled: CortetsuThemes.busy
+            onToggled: value => CortetsuThemes.setSource(value)
+        }
+        SettingToggleRow {
+            objectName: "paletteLightMode"
+            title: qsTr("Paleta clara")
+            detail: qsTr("Regenera los tonos Material conservando el tema y la variante")
+            checked: CortetsuColours.currentLight
+            disabled: CortetsuThemes.busy
+            onToggled: value => CortetsuThemes.setMode(value)
         }
     }
 
@@ -187,18 +285,22 @@ ColumnLayout {
                 width: root.cardWidth
                 height: 104
                 title: modelData.name
-                subtitle: card.key === Schemes.currentScheme
+                subtitle: CortetsuColours.showPreview && card.key === `${CortetsuThemes.previewSchemeName} ${CortetsuThemes.previewSchemeFlavour}`
+                    ? qsTr("%1 · vista previa").arg(modelData.flavour)
+                    : card.key === Schemes.currentScheme
                     ? qsTr("%1 · activo").arg(modelData.flavour)
                     : card.key === Schemes.pendingScheme && Schemes.applying
                         ? qsTr("%1 · aplicando").arg(modelData.flavour)
                         : modelData.flavour
                 selected: card.key === Schemes.currentScheme
-                disabled: Schemes.applying
+                disabled: Schemes.applying || CortetsuThemes.busy
                 swatches: root.swatches(modelData.colours)
                 Accessible.role: Accessible.RadioButton
                 Accessible.name: card.key
                 Accessible.checked: selected
-                onClicked: Schemes.apply(modelData.name, modelData.flavour)
+                onClicked: root.previewSchemes
+                    ? CortetsuThemes.previewScheme(modelData.name, modelData.flavour)
+                    : Schemes.apply(modelData.name, modelData.flavour)
             }
         }
     }
@@ -233,6 +335,9 @@ ColumnLayout {
             onMoved: next => { CortetsuConfig.borderThickness = Math.round(next); CortetsuConfig.save(); }
         }
     }
+
+    ThemeGeometrySection {}
+    ThemeProfileSection {}
 
     SettingsGroup {
         title: qsTr("Reloj y unidades")

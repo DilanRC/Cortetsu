@@ -21,7 +21,7 @@ Item {
     signal scrollRequested(string itemKey, int delta, bool horizontal)
 
     implicitWidth: trayRow.implicitWidth + 20
-    implicitHeight: 52
+    implicitHeight: Math.max(48, CortetsuDesign.rowHeight)
     width: visible ? implicitWidth : 0
     height: implicitHeight
     visible: items.length > 0

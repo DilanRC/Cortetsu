@@ -98,7 +98,7 @@ Item {
 
     Timer {
         id: hideTimer
-        interval: 1500
+        interval: CortetsuConfig.osdTimeoutMs
         onTriggered: {
             if (CortetsuShellState.screenshotActive) {
                 restart();
@@ -113,7 +113,7 @@ Item {
 
     Timer {
         id: compactTimer
-        interval: 1300
+        interval: Math.max(500, CortetsuConfig.osdTimeoutMs - 200)
         onTriggered: root.compactVisible = false
     }
 

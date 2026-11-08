@@ -6,10 +6,12 @@ That repository is GPL-3.0; this adaptation uses Cortetsu's existing QML
 primitives and service sections and does not copy its QML implementation.
 The pinned reference, license identifier, and per-control mapping are recorded
 in [settings-end4-parity.json](settings-end4-parity.json). It covers all 177
-controls found in the eight end-4 pages: 28 are adapted to tested Cortetsu
-owners and 149 are explicitly discarded because Cortetsu has no equivalent
-service or product control. Each discarded entry explains why an end-4-only
-option would have no real consumer.
+controls found in the eight end-4 pages. The current review classifies 34 as A
+(existing owner), 5 as B (extended owner), 2 as C (small component), 108 as D
+(outside this product/layout), and 28 as E (additional safety/privacy/asset or
+lifecycle review required). All 41 A/B/C adaptations have a concrete consumer.
+E entries are reopened decisions, not final discards. Each option records its
+specific decision and evidence.
 
 Opened with `Super+I`. A normal desktop window (`FloatingWindow`), one per
 screen, so it can be moved, tiled and resized like any other.
@@ -73,8 +75,10 @@ callers still open the correct composed page.
   Domain deep links such as `network` select their containing page (`services`).
   The page that is open is kept in `SettingsController`, so reopening returns
   to it.
-- Nothing in Settings polls. The single process a page starts is the read-only
-  `cortetsu-keybinds list` of the Shortcuts page, when that page is opened.
+- Settings adds no resident polling. Explicit palette, projection and profile
+  actions run native helpers; Shortcuts requests its keybinding list when opened.
+  Saving an integration change schedules synchronization after the preference
+  write and drains the request when an existing operation becomes idle.
 - The display colour filter is applied by `services/DisplayCalibration.qml`,
   which lives with the shell and restores a saved filter at start. It no longer
   depends on a Settings page having been built.
@@ -182,3 +186,26 @@ on 2026-11-07. [The evidence page](SETTINGS_VISUAL_QA_2026-11-07.md) links each
 of the eight page pairs and Washi/Kurogane captures. It records the isolated
 compositors and viewport sizes; Cortetsu keeps its own theme and groups controls
 by its existing service owners.
+
+
+## Global personalization
+
+Quick Settings retains the existing Appearance page and adds reversible theme
+previews, light/dark Material generation, explicit manual/automatic ownership,
+independent compositor/Kitty/GTK/Qt integration controls and confirmed status.
+Profile-specific UI/title/kanji families, radii, row height, section spacing,
+material opacity/grain/hairline and reset controls use existing design tokens.
+The Bottom Hub consumes the same geometry, material and border preferences while
+preserving separate islands. Profiles export/import only visual state and keep
+unrelated command, network and power preferences.
+
+General includes optional bounded volume increases through CortetsuAudio. This
+limits each request made by Cortetsu; it does not claim to control other mixers.
+Interface includes a persisted OSD timeout used by both real timers; repeated
+volume/brightness input restarts the compact timer. No emergency power or
+suspension thresholds are changed.
+
+See [the theming contract](THEMING.md) for precedence, compatibility, ownership,
+partial failures and restoration. `globalPersonalisation` and
+`globalPersonalisationRestore` in the runtime test exercise the new control flow
+and recover it in a fresh process.

@@ -19,6 +19,7 @@ Rectangle {
         0.82 * CortetsuDesign.materialGroundAlpha / CortetsuDefaults.materialGroundAlpha * transparencyFactor
     radius: Math.min(height / 2, CortetsuDesign.radiusSurface)
     color: Qt.alpha(CortetsuDesign.colorSumi, materialAlpha)
-    border.width: 1
-    border.color: Qt.alpha(CortetsuDesign.colorWashi, 0.08)
+    border.width: CortetsuConfig.borderThickness
+    border.color: Qt.alpha(CortetsuDesign.colorWashi,
+        0.08 * CortetsuDesign.materialHairlineAlpha / CortetsuDefaults.materialHairlineAlpha)
 }

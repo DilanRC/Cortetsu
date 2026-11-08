@@ -67,6 +67,7 @@ Searcher {
             return;
 
         root.error = "";
+        CortetsuThemes.cancelPreview();
         root.applyError = "";
         appliedNotice.stop();
         root.pendingScheme = `${name} ${flavour}`;
@@ -85,6 +86,7 @@ Searcher {
         }
 
         root.variantError = "";
+        CortetsuThemes.cancelPreview();
         root.pendingVariant = value;
         root.variantStatus = "applying";
         applyVariantProcess.command = ["cortetsu-scheme", "set", "-v", value];
@@ -149,13 +151,23 @@ Searcher {
         command: []
 
         stderr: StdioCollector { id: applyStderr }
+        stdout: StdioCollector { id: applyStdout }
 
         onExited: code => { // qmllint disable signal-handler-parameters
             const detail = applyStderr.text.trim();
             if (code === 0) {
-                root.applyStatus = "applied";
-                root.applyError = "";
-                appliedNotice.restart();
+                try {
+                    const result = JSON.parse(applyStdout.text);
+                    if (result.committed !== true || `${result.name} ${result.flavour}` !== root.pendingScheme)
+                        throw new Error("invalid scheme confirmation");
+                    root.applyStatus = "applied";
+                    root.applyError = result.projectionApplied === false
+                        ? qsTr("Paleta guardada; falló una proyección: %1").arg(result.projectionError || "") : "";
+                    appliedNotice.restart();
+                } catch (_) {
+                    root.applyStatus = "failed";
+                    root.applyError = qsTr("No se pudo confirmar el cambio de esquema");
+                }
             } else {
                 root.applyStatus = "failed";
                 root.applyError = detail || qsTr("No se pudo aplicar el esquema");

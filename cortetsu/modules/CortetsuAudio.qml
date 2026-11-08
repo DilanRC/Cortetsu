@@ -4,6 +4,7 @@ import Quickshell
 import Quickshell.Services.Pipewire
 import QtQml
 import "../services"
+import "AudioPolicy.js" as AudioPolicy
 
 Singleton {
     id: root
@@ -24,7 +25,8 @@ Singleton {
         if (!sink?.ready || !sink?.audio)
             return;
         sink.audio.muted = false;
-        sink.audio.volume = Math.max(0, Math.min(CortetsuConfig.maxVolume, value));
+        sink.audio.volume = AudioPolicy.request(volume, value, CortetsuConfig.maxVolume,
+            CortetsuConfig.audioProtectionEnabled, CortetsuConfig.audioMaxIncrease);
     }
 
     function incrementVolume(amount: real): void {
