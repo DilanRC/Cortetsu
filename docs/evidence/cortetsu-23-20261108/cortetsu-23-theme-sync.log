@@ -13,4 +13,3 @@ test hyprland_reload_retries_and_restoration_reloads ... ok
 test toolkit_projections_preserve_kde_keys_and_restore_on_disable ... ok
 
 test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
-
