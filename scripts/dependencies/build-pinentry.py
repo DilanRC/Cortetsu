@@ -31,7 +31,7 @@ def main() -> None:
             archive.extractall(build, filter="data")
         source = build / "pinentry-1.3.3"
         subprocess.run(["patch", "--batch", "--forward", "-p1", "-i",
-                        str(ROOT / "cortetsu/patches/pinentry-1.3.3-session-bus.patch")],
+                        str(ROOT / "scripts/dependencies/pinentry/pinentry-1.3.3-session-bus.patch")],
                        cwd=source, check=True)
         subprocess.run(["./configure", "--disable-pinentry-qt", "--disable-pinentry-qt5",
                         "--disable-pinentry-gtk2", "--disable-pinentry-fltk",

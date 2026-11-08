@@ -35,6 +35,7 @@ GPL. La referencia fijada y las razones individuales están en
 | `build-regressions.sh` sobre staging | PASS, incluido lint estricto; [log](evidence/cortetsu-23-20261108/cortetsu-23-gates.log) |
 | Rust fmt/Clippy, todos los targets de ocho crates | PASS; [log](evidence/cortetsu-23-20261108/cortetsu-23-rust-lint.log) |
 | Suite nativa completa con pinentry aislado corregido | PASS; [log](evidence/cortetsu-23-20261108/cortetsu-23-full-patched.log) |
+| Suite nativa completa con pinentry instalado 1.3.3-2 y sin override | PASS; [log](evidence/cortetsu-23-20261108/cortetsu-23-full-installed.log) |
 | Go test, vet y race | PASS |
 | Settings: estado real, teclado, fallos, preferencias y Weston | PASS; [log](evidence/cortetsu-23-20261108/cortetsu-23-settings-final.log) |
 | Controles nuevos | 38 comprobaciones de interacción/efecto y 17 de restauración en proceso nuevo |
@@ -87,15 +88,46 @@ exclusivo. Los tests confirman que cerrar Settings destruye sus páginas y que u
 cambio de paleta conserva los objetos existentes. No se añadió daemon ni polling
 residente al motor de temas; las escrituras iguales se omiten.
 
-## Limitaciones externas verificadas
+## Corrección persistente de pinentry del sistema
 
-El `/usr/bin/pinentry-gnome3` instalado reproduce SIGSEGV en el sondeo de arranque.
-La ejecución con ese binario queda FAIL, conservada en
-[el log del fallo](evidence/cortetsu-23-20261108/system-pinentry-failure.log).
-Se construyó pinentry 1.3.3 en `/tmp` con el parche existente y SHA-256 verificado
-por `scripts/dependencies/build-pinentry.py`; la suite completa con ese binario
-pasa, igual que la separación ya utilizada por CI. No se instaló globalmente ni
-se cambiaron bibliotecas o symlinks ABI. Véase también [DEVELOPMENT_2_2.md](DEVELOPMENT_2_2.md).
+El SIGSEGV inicial de `/usr/bin/pinentry-gnome3` está registrado en
+[el log](evidence/cortetsu-23-20261108/system-pinentry-failure.log). La corrección
+persistente reconstruye
+el paquete completo `pinentry` 1.3.3-2 con la receta de
+[`scripts/dependencies/pinentry/PKGBUILD`](../scripts/dependencies/pinentry/PKGBUILD)
+y el parche de referencia de sesión. Conserva la lista de archivos y dependencias
+del paquete instalado, mantiene todos sus frontends y no introduce symlinks ABI.
+La suite completa terminó con PASS usando `/usr/bin/pinentry-gnome3` por su ruta
+normal, sin definir `CORTETSU_TEST_PINENTRY`. Incluye 200 arranques sobre bus
+privado y una firma GPG real con el pinentry GNOME instalado. `pacman -Qkk pinentry`
+reporta 16 archivos y cero alterados; el paquete conserva sus dependencias y su
+lista de rutas. El log de esta ejecución está enlazado en la tabla de arriba.
+
+El `pkgrel=2` queda por encima del `1.1` instalado y una versión upstream nueva
+puede reemplazarlo normalmente. Para reconstruir este mismo arreglo en 1.3.3,
+desde la raíz del repositorio:
+
+```bash
+cd scripts/dependencies/pinentry
+makepkg --syncdeps
+sudo pacman -U pinentry-1.3.3-2-x86_64.pkg.tar.zst
+```
+
+Antes de actualizar la receta a otro `pkgver`, hay que comprobar que el parche
+aplica y repetir la suite contra el paquete instalado. Véase también
+[`DEVELOPMENT_2_2.md`](DEVELOPMENT_2_2.md).
+
+Rollback disponible durante esta sesión: el paquete oficial anterior permanece
+en la caché de pacman. Se restaura con
+`sudo pacman -U /var/cache/pacman/pkg/pinentry-1.3.3-1.1-x86_64_v4.pkg.tar.zst`.
+No se añadió `IgnorePkg`; una versión superior puede sustituir la reconstrucción.
+Si una reconstrucción de la misma versión llega a `pkgrel` 2 o más, hay que
+revisar su receta para confirmar que incluye el arreglo.
+
+Thermos final: corrección/seguridad PASS, sin hallazgos bloqueantes; calidad y
+mantenibilidad PASS, tras conservar los `CXXFLAGS` nativos. Anti-slop del texto
+técnico PASS, sin afirmaciones de funcionamiento sin evidencia. Revisión visual
+N/A porque no se cambió ninguna interfaz.
 
 Kitty y muchos consumidores GTK/Qt requieren recargar configuración o reabrir la
 aplicación. Libadwaita recibe modo y el acento nominal compatible más próximo;

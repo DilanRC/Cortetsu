@@ -45,7 +45,7 @@ El hilo `gdbus` cae en libgio mientras el hilo principal está en
 
 Pinentry abre y cierra un prompt Gcr para comprobar disponibilidad, libera
 la conexión compartida y la solicita otra vez para el screensaver. El parche
-`cortetsu/patches/pinentry-1.3.3-session-bus.patch` conserva una referencia
+`scripts/dependencies/pinentry/pinentry-1.3.3-session-bus.patch` conserva una referencia
 durante `main`: evita la destrucción entre ambos usuarios y la libera al
 salir, conservando el resultado del bucle Assuan y el fallback curses.
 La explicación coincide con el contrato de conexión compartida de
@@ -77,10 +77,9 @@ se sigue probando `/usr/bin/pinentry-gnome3`, sin skips ni retries. El test nuev
 comprueba 200 arranques sobre un bus privado y el de GPG mantiene firma y
 contenido real del prompt. El log normal del agente acompaña cualquier fallo.
 
-El paquete instalado sigue sin parche. Su promoción a la sesión no forma
-parte de esta pasada: una actualización del paquete debe incorporar este
-cambio o un arreglo equivalente upstream. La suite con binario aislado no
-certifica el pinentry instalado.
+Al cerrar esta pasada, el paquete instalado aún no tenía el parche. La reparación
+del paquete del sistema y su verificación posterior están registradas en
+[`CORTETSU_2_3_VALIDATION_2026-11-08.md`](CORTETSU_2_3_VALIDATION_2026-11-08.md).
 
 ## Comparación y medidas
 
