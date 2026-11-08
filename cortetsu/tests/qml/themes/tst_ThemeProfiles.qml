@@ -4,6 +4,7 @@ import "../../../modules"
 import "../../../theme"
 import "../../../theme/ThemeProfiles.js" as Profiles
 import "../../../theme/CortetsuDesignDefaults.js" as Defaults
+import "../../../modules/ThemePreferences.js" as Preferences
 
 TestCase {
     name: "ThemeProfiles"
@@ -18,6 +19,7 @@ TestCase {
 
     function cleanup() {
         CortetsuDesign.themeTokens = ({});
+        CortetsuDesign.userTokens = ({});
         CortetsuDesign.scheme = ({});
         CortetsuDesign.reducedMotion = false;
         bottomHubIsland.transparencyFactor = 1;
@@ -29,8 +31,8 @@ TestCase {
         compare(CortetsuDesign.materialGrain, Defaults.materialGrain);
         verify(Qt.colorEqual(CortetsuDesign.colorSurface, Defaults.colorSurface));
     }
-    function test_washi_overrides_a_dark_scheme_and_updates_live() {
-        CortetsuDesign.scheme = ({surface: "101010", onSurface: "ffffff"});
+    function test_washi_defaults_and_explicit_scheme_precedence() {
+        CortetsuDesign.scheme = ({});
         CortetsuDesign.themeTokens = Profiles.tokens("washi");
         verify(CortetsuDesign.luminance(CortetsuDesign.colorSurface) > 0.7);
         verify(CortetsuDesign.contrast(CortetsuDesign.colorOnSurface, CortetsuDesign.colorSurface) >= 4.5);
@@ -40,6 +42,8 @@ TestCase {
         verify(CortetsuDesign.luminance(CortetsuDesign.colorSurface) < 0.1);
         compare(CortetsuDesign.rowHeight, 46);
         compare(CortetsuDesign.materialGrain, 0.035);
+        CortetsuDesign.scheme = ({surface: "101010", onSurface: "ffffff"});
+        verify(Qt.colorEqual(CortetsuDesign.colorSurface,"#101010"));
     }
     function test_reduced_motion_wins_over_theme() {
         CortetsuDesign.themeTokens = Profiles.tokens("kurogane");
@@ -78,5 +82,15 @@ TestCase {
     }
     function test_unknown_theme_falls_back_to_ink() {
         compare(Object.keys(Profiles.tokens("unknown")).length, 0);
+    }
+    function test_validated_preferences_win_and_reset_recovers_theme() {
+        CortetsuDesign.themeTokens = Profiles.tokens("washi");
+        CortetsuDesign.userTokens = Preferences.sanitise({radiusSurface: 24, materialGrain: 9, fontUi: "\x01", rowHeight: -10});
+        compare(CortetsuDesign.radiusSurface, 24);
+        compare(CortetsuDesign.materialGrain, 0.3);
+        compare(CortetsuDesign.rowHeight, 36);
+        compare(CortetsuDesign.fontUi, "Noto Sans");
+        CortetsuDesign.userTokens = ({});
+        compare(CortetsuDesign.radiusSurface, 18);
     }
 }

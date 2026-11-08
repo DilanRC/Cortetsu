@@ -197,15 +197,16 @@ while :; do sleep 1; done"#,
         .unwrap();
     let ready = fixture.path.join("ready");
     let end = Instant::now() + Duration::from_secs(2);
-    while !ready.exists() {
+    let owner = loop {
+        if let Ok(text) = fs::read_to_string(&ready)
+            && let Ok(pid) = text.trim().parse::<i32>()
+            && pid > 0
+        {
+            break pid;
+        }
         assert!(Instant::now() < end, "forwarding child did not start");
         std::thread::sleep(Duration::from_millis(5));
-    }
-    let owner = fs::read_to_string(ready)
-        .unwrap()
-        .trim()
-        .parse::<i32>()
-        .unwrap();
+    };
     kill(Pid::from_raw(child.id() as i32), Signal::SIGTERM).unwrap();
     let end = Instant::now() + Duration::from_secs(1);
     let status = loop {

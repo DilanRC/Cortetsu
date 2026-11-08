@@ -40,6 +40,7 @@ QtObject {
     readonly property var activeNetwork: wifiEnabled ? (networks.find(network => network.connected) || null) : null
     property var activeEthernet: null
     property bool connecting: false
+    property bool scanning: false
     property string connectivity: "full"
     property var profiles: [{ uuid: "11111111-1111-4111-8111-111111111111", name: "Casa", ssid: "Casa", type: "802-11-wireless", autoconnect: true, interface: "" }]
     property var details: ({ wlan0: { uuid: "11111111-1111-4111-8111-111111111111", address: "192.168.0.2", gateway: "192.168.0.1", dns: ["1.1.1.1"] } })
@@ -167,6 +168,7 @@ POWER = """pragma Singleton
 import QtQuick
 QtObject {
     property bool hasBattery: true
+    readonly property bool available: hasBattery
     property bool laptopBattery: true
     property int percent: 86
     readonly property real value: percent / 100
@@ -337,6 +339,7 @@ def build_tree(folder: Path) -> None:
     for name in ("modules", "components", "utils", "services", "theme"):
         shutil.copytree(ROOT / name, folder / name, dirs_exist_ok=True)
     shutil.copytree(ROOT / "assets/branding", folder / "assets/branding", dirs_exist_ok=True)
+    shutil.copytree(ROOT / "assets/texture", folder / "assets/texture", dirs_exist_ok=True)
     for relative, text in STUBS.items():
         (folder / relative).write_text(text, encoding="utf-8")
     (folder / "BUILD.json").write_text(json.dumps({
@@ -505,10 +508,16 @@ def run(folder: Path, shell: str, scenario: str, *, preferences: dict | None = N
     if preferences is not None:
         (home / ".config/cortetsu/preferences.json").write_text(json.dumps(preferences), encoding="utf-8")
     runtime = home / "runtime"
+    if scenario == "themeProjectionFailure":
+        # A real per-destination I/O failure; partial palettes now resolve safely
+        # through theme defaults and no longer represent a projection failure.
+        (home / "state/cortetsu/kitty-colors.conf").mkdir()
     runtime.mkdir(mode=0o700)
     run_env = {**os.environ, "QT_QPA_PLATFORM": os.environ.get("CORTETSU_TEST_QPA", "offscreen"), "HOME": str(home),
                "XDG_RUNTIME_DIR": str(runtime),
                "XDG_STATE_HOME": str(home / "state"), "XDG_CONFIG_HOME": str(home / ".config"),
+               "XDG_DATA_HOME": str(home / "data"),
+               "GSETTINGS_BACKEND": "keyfile",
                "XDG_CACHE_HOME": str(home / ".cache"), "PATH": f'{binaries}:{os.environ["PATH"]}',
                "CORTETSU_SKIP_RELOAD": "1", "SETTINGS_FIXTURES": str(fixtures), "SETTINGS_SCENARIO": scenario,
                "CORTETSU_RENDER_DIR": os.environ.get("CORTETSU_RENDER_DIR", ""), **(env or {})}

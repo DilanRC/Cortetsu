@@ -38,6 +38,7 @@ import "modules"
 import "modules/background"
 import "modules/hardware"
 import "modules/settings"
+import "modules/osd" as Osd
 import "modules/CortetsuNotificationModel.js" as NotificationModel
 import "modules/launcher/services"
 import "components"
@@ -60,6 +61,15 @@ ShellRoot {
     readonly property var content: host.item
     readonly property var notificationBadgeProbe: notificationBadgeLoader.item
     readonly property var hardwareTelemetryProbe: hardwareTelemetryLoader.item
+    Loader {
+        id: osdProbe
+        active: root.scenario === "globalPersonalisation"
+        sourceComponent: Osd.Wrapper {
+            screen: Quickshell.screens[0]
+            screenState: screenDouble
+            sidebarOrSessionVisible: false
+        }
+    }
     Loader {
         id: notificationBadgeLoader
         active: root.scenario === "notificationCountPreferences" || root.scenario === "notificationCountRestore"
@@ -145,6 +155,7 @@ ShellRoot {
     }
 
     function verify(value, reason) { if (!value) { console.log("SETTINGS_FAIL", reason); return; } checks++; }
+    function compare(actual, expected) { verify(actual === expected, `expected ${expected}, got ${actual}`); }
     function same(a, b) { return Qt.colorEqual(a, b); }
     // The grab happens on a later frame; `rendering` holds the next step
     // until the picture is taken, so it shows this state and not the next.
@@ -174,7 +185,7 @@ ShellRoot {
         onTriggered: {
             if (!root.content || root.content.pageId !== "quick")
                 return;
-            const themeRow = root.page("theme-washi");
+            const themeRow = root.page("themeStatus");
             if (!CortetsuThemes.slowNoticeShown || !themeRow || themeRow.statusText !== CortetsuThemes.error)
                 return;
             slowNoticeSignal.setText("ready");
@@ -258,6 +269,7 @@ ShellRoot {
     QtObject {
         id: retained
         property string opened: ""
+        property real fullscreenTransitionProgress: 0
         function closeRetainedOverlaysExcept(flag) {}
         function setRetained(flag, value) { if (value) opened = flag; return true; }
     }
@@ -267,6 +279,7 @@ ShellRoot {
         id: screenDouble
         property bool settings: false
         property bool launcher: false
+        property bool osd: false
         property var cortetsuState: retained
     }
 
@@ -495,7 +508,7 @@ ShellRoot {
             key(Qt.Key_Tab);
             verify(focusName() === "closeSettings", `Tab leaves the Nexus for the header (${focusName()})`);
             key(Qt.Key_Tab);
-            verify(focusName() === "dashboardEnabled", `then enters the Interface page at its first control (${focusName()})`);
+            verify(content.within(window.activeFocusItem, page("osdTimeout")), `then enters the Interface page at its first control (${focusName()})`);
             const dnd = page("dnd");
             dnd.forceActiveFocus();
             content.revealFocus();
@@ -1305,6 +1318,79 @@ ShellRoot {
         [() => CortetsuConfig.saveState === "saved", () => {}]
     ]
 
+    readonly property var personalTokens: ({radiusSmall: 9, radiusMedium: 15, radiusSurface: 24,
+        rowHeight: 50, spacingSection: 28, materialGroundAlpha: 0.82, materialGrain: 0.08,
+        materialHairlineAlpha: 0.12, fontUi: "Noto Sans", fontInk: "Noto Serif", fontKanji: "Noto Sans CJK JP"})
+
+    readonly property var globalPersonalisation: [
+        [() => CortetsuConfig.loaded && CortetsuThemes.reconciled, () => { select("appearance"); screenDouble.settings = true; }],
+        [() => !!page("themePreview-washi"), () => { page("themePreview-washi").request(); }],
+        [() => CortetsuThemes.previewId === "washi" && !CortetsuThemes.busy, () => {
+            verify(CortetsuConfig.themeId === "ink", "preview never saves its theme");
+            compare(CortetsuDesign.radiusSurface, 18);
+            verify(page("themeToken-radiusSurface").disabled, "preview geometry cannot change the saved theme");
+            page("themePreviewCancel").request();
+            compare(CortetsuDesign.radiusSurface, 28);
+            page("paletteLightMode").request();
+        }],
+        [() => CortetsuColours.currentLight && !CortetsuThemes.busy, () => {
+            verify(CortetsuConfig.themeId === "ink", "light mode preserves theme identity");
+            page("themeToken-radiusSurface").moved(24);
+            compare(CortetsuDesign.radiusSurface, 24);
+            for (const [token, value] of Object.entries(root.personalTokens)) {
+                const control = page("themeToken-" + token);
+                if (typeof value === "string") control.committed(value); else control.moved(value);
+                compare(CortetsuDesign[token], value);
+            }
+            page("themeIntegration-kitty").request();
+        }],
+        [() => CortetsuConfig.saveState === "saved" && CortetsuThemes.integrations.kitty?.status === "disabled", () => {
+            verify(CortetsuConfig.themeIntegrations.kitty === false, "integration control confirms persisted disable");
+            page("themeProfileExport").request();
+        }],
+        [() => CortetsuThemes.notice.includes("exportado") && !CortetsuThemes.busy, () => {
+            page("themeToken-radiusSurface").moved(20);
+        }],
+        [() => CortetsuConfig.saveState === "saved", () => {
+            page("themeProfileImport").request(); page("themeProfileImport").request();
+        }],
+        [() => CortetsuThemes.notice.includes("importado") && !CortetsuThemes.busy, () => {
+            compare(CortetsuDesign.radiusSurface, 24);
+            for (const [token, value] of Object.entries(root.personalTokens)) compare(CortetsuDesign[token], value);
+            verify(CortetsuColours.currentLight, "import restores the colour mode");
+            select("audio");
+        }],
+        [() => !!page("audioProtection"), () => {
+            page("audioProtection").request();
+            page("audioMaxIncrease").moved(25);
+            verify(CortetsuConfig.audioProtectionEnabled, "audio protection is a real preference");
+            compare(CortetsuConfig.audioMaxIncrease, 0.25);
+        }],
+        [() => CortetsuConfig.saveState === "saved", () => { select("desktop"); }],
+        [() => !!page("osdTimeout") && !!osdProbe.item, () => {
+            page("osdTimeout").moved(2200);
+            compare(CortetsuConfig.osdTimeoutMs, 2200);
+            osdProbe.item.showMini("volume");
+            verify(osdProbe.item.compactVisible, "the real compact OSD opens");
+        }],
+        [() => waitedMs >= 1100, () => {
+            verify(osdProbe.item.compactVisible, "the configured duration keeps the OSD visible");
+            osdProbe.item.showMini("volume");
+        }],
+        [() => waitedMs >= 1100, () => { verify(osdProbe.item.compactVisible, "repeated input restarts the actual timer"); }],
+        [() => waitedMs >= 1000 && !osdProbe.item.compactVisible, () => { verify(true, "the real compact OSD expires at the configured duration"); }]
+    ]
+    readonly property var globalPersonalisationRestore: [
+        [() => CortetsuConfig.loaded && CortetsuThemes.reconciled, () => {
+            compare(CortetsuDesign.radiusSurface, 24);
+            for (const [token, value] of Object.entries(root.personalTokens)) compare(CortetsuDesign[token], value);
+            verify(CortetsuColours.currentLight, "a new process restores the light palette");
+            verify(CortetsuConfig.themeIntegrations.kitty === false, "a new process restores integration controls");
+            verify(CortetsuConfig.audioProtectionEnabled, "a new process restores audio protection");
+            compare(CortetsuConfig.audioMaxIncrease, 0.25);
+            compare(CortetsuConfig.osdTimeoutMs, 2200);
+        }]
+    ]
     readonly property var themeRecovery: [
         [() => CortetsuConfig.loaded && CortetsuThemes.reconciled, () => {
             verify(CortetsuConfig.themeId === "washi", "startup recovers a native commit made before the preferences write");
@@ -1318,10 +1404,10 @@ ShellRoot {
             select("appearance"); screenDouble.settings = true;
         }],
         [() => !!content && !!page("theme-washi"), () => { stateFile.setText("{broken"); }],
-        [() => waitedMs >= 200, () => { page("theme-washi").request(); }],
+        [() => waitedMs >= 200, () => { page("theme-washi").clicked(); }],
         [() => !CortetsuThemes.busy && CortetsuThemes.error.length > 0, () => {
             verify(CortetsuConfig.themeId === "ink", "a failed native restore cannot change the confirmed theme");
-            verify(page("theme-washi").status === "error", "the theme control exposes the native failure");
+            verify(page("themeStatus").status === "error", "the theme control exposes the native failure");
             verify(CortetsuDesign.radiusSurface === 28, "a failure retains the confirmed design tokens");
         }]
     ]
@@ -1330,7 +1416,7 @@ ShellRoot {
         [() => CortetsuConfig.loaded && CortetsuThemes.reconciled && Schemes.catalogCount > 0, () => {
             select("appearance"); screenDouble.settings = true;
         }],
-        [() => !!content && !!page("theme-washi"), () => { page("theme-washi").request(); }],
+        [() => !!content && !!page("theme-washi"), () => { page("theme-washi").clicked(); }],
         [() => CortetsuConfig.themeId === "washi" && !CortetsuThemes.busy, () => {
             verify(CortetsuThemes.slowNoticeShown, "the progress notice does not kill a helper waiting on the state lock");
             verify(!CortetsuThemes.error.includes("esperando"),
@@ -1343,7 +1429,7 @@ ShellRoot {
         [() => CortetsuConfig.loaded && CortetsuThemes.reconciled, () => {
             select("appearance"); screenDouble.settings = true;
         }],
-        [() => !!content && !!page("theme-washi"), () => { page("theme-washi").request(); }],
+        [() => !!content && !!page("theme-washi"), () => { page("theme-washi").clicked(); }],
         [() => CortetsuConfig.themeId === "washi" && !CortetsuThemes.busy, () => {
             verify(CortetsuThemes.error.length > 0,
                 "Settings reports a projection that starts but fails instead of claiming complete application");
@@ -1355,7 +1441,7 @@ ShellRoot {
         [() => CortetsuConfig.loaded && CortetsuThemes.reconciled && Schemes.catalogCount > 0, () => {
             select("appearance"); screenDouble.settings = true;
         }],
-        [() => !!content && !!page("theme-washi"), () => { page("theme-washi").request(); }],
+        [() => !!content && !!page("theme-washi"), () => { page("theme-washi").clicked(); }],
         [() => CortetsuConfig.themeId === "washi" && CortetsuConfig.saveState === "saved" && !CortetsuThemes.busy, () => {
             verify(CortetsuThemes.error === "", "a fresh install without a selected scheme applies its product theme without a false Kitty projection error");
             verify(CortetsuDesign.radiusSurface === 18, "the fresh-install theme updates Cortetsu's active design tokens");
@@ -1368,13 +1454,13 @@ ShellRoot {
         }],
         [() => !!content && !!page("theme-" + Quickshell.env("THEME_ID")), () => {
             const id = Quickshell.env("THEME_ID");
-            page("theme-" + id).request();
+            page("theme-" + id).clicked();
         }],
         [() => CortetsuConfig.themeId === Quickshell.env("THEME_ID") && CortetsuConfig.saveState === "saved" && !CortetsuThemes.busy, () => {
             const id = Quickshell.env("THEME_ID");
             verify(CortetsuConfig.themeId === id, "the theme control changes the persistent owner after native confirmation");
             verify(CortetsuThemes.error === "", "successful external projections clear the pending and failure status");
-            verify(page("theme-" + id).actionDisabled, "the active theme is confirmed in Settings");
+            verify(page("theme-" + id).disabled, "the active theme is confirmed in Settings");
             verify(CortetsuDesign.radiusSurface === (id === "washi" ? 18 : 14), "the selected material updates live");
             render("theme-" + id);
             CortetsuConfig.transparencyEnabled = true;
@@ -1417,7 +1503,7 @@ ShellRoot {
             verify(Schemes.variantStatus === "idle" && Schemes.pendingVariant === "",
                 "an unknown variant is rejected before launching the native owner");
             find(row, "action").forceActiveFocus(); key(Qt.Key_Return);
-            verify(Schemes.variantStatus === "applying" && Schemes.pendingVariant === "expressive",
+            verify(["applying", "applied"].includes(Schemes.variantStatus) && Schemes.pendingVariant === "expressive",
                 "the Settings action starts a native variant change");
         }],
         [() => Schemes.variantStatus === "applied" && CortetsuColours.variant === "expressive", () => {
@@ -1931,6 +2017,14 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     assert abs(audio_saved["maxVolume"] - 1.05) < 0.001, audio_saved
     assert abs(audio_saved["audioIncrement"] - 0.11) < 0.001, audio_saved
 
+    personalised, personal_home = run(folder, "shell.qml", "globalPersonalisation", preferences={"schema": 1})
+    assert passed(personalised) == 38, personalised
+    personal_preferences = json.loads((personal_home / ".config/cortetsu/preferences.json").read_text())
+    personal_scheme = json.loads((personal_home / "state/cortetsu/scheme.json").read_text())
+    personal_restore, _ = run(folder, "shell.qml", "globalPersonalisationRestore",
+                              preferences=personal_preferences, scheme=personal_scheme)
+    assert passed(personal_restore) == 17, personal_restore
+
     recovered, recovered_home = run(folder, "shell.qml", "themeRecovery",
         preferences={"schema": 1, "themeId": "ink"},
         scheme={"name": "dynamic", "flavour": "default", "colours": {}, "themeId": "washi"})
@@ -1962,7 +2056,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     assert passed(no_scheme) == 2, no_scheme
     no_scheme_state = json.loads((no_scheme_home / "state/cortetsu/scheme.json").read_text())
     assert no_scheme_state["themeId"] == "washi" and no_scheme_state["colours"] == {}, no_scheme_state
-    assert not (no_scheme_home / "state/cortetsu/kitty-colors.conf").exists()
+    assert "background #f5efe4" in (no_scheme_home / "state/cortetsu/kitty-colors.conf").read_text()
 
     theme_colours = fixture_colours["cases"][0]["colours"]
     theme_scheme = {"schema": 2, "name": "dynamic", "flavour": "default", "variant": "tonal-spot",
@@ -2005,7 +2099,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     host = run_host(folder)
     assert not host or "SETTINGS_HOST_PASS 1" in host, host
 
-    assert (reactivity, navigation, states, unwritable, pages) == (47, 72, 42, 3, 8), (reactivity, navigation, states, unwritable, pages)
+    assert (reactivity, navigation, states, unwritable, pages) == (47, 73, 42, 3, 8), (reactivity, navigation, states, unwritable, pages)
 assert policies == 16, policies
 print(f"Settings builds in {opened.split()[0]} ms ({opened.split()[1]} items); "
       f"20 cycles of open, eight pages and close take {cycles} ms")

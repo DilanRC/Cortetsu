@@ -23,6 +23,7 @@ import QtQuick
 QtObject {
     property bool transparencyEnabled: false
     property bool useTwelveHourClock: false
+    property int dashboardResourceUpdateInterval: 3000
 }
 """
 

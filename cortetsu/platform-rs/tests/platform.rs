@@ -85,6 +85,41 @@ fn system_generations_exits_cleanly_when_stdout_is_closed() {
 }
 
 #[test]
+fn mutable_theme_imports_are_resolved_before_generation_is_sealed() {
+    let s = Sandbox::new();
+    fixture(&s);
+    s.put("repo/dotfiles/manifest.toml", "schema = 1\n[defaults]\nprofile = 'personal'\n[[entry]]\nsource = 'source/gtk.css'\ntarget = '.config/gtk-3.0/cortetsu-colors.css'\n[[entry]]\nsource = 'source/kitty.conf'\ntarget = '.config/kitty/kitty.conf'\n");
+    s.put(
+        "repo/source/gtk.css",
+        "@define-color window_bg_color #123456;\n",
+    );
+    s.put(
+        "repo/source/kitty.conf",
+        "include ~/.local/state/cortetsu/kitty-colors.conf\n",
+    );
+    let repo = s.repo();
+    ok(s.run(&["dotfiles", "apply", "--repo", &repo]));
+    let gtk = s.0.join("home/.config/gtk-3.0/cortetsu-colors.css");
+    let before = fs::read(&gtk).unwrap();
+    assert!(String::from_utf8_lossy(&before).contains("/.local/state/cortetsu/gtk-colors.css\");"));
+    let kitty = fs::read_to_string(s.0.join("home/.config/kitty/kitty.conf")).unwrap();
+    assert!(kitty.contains(&format!(
+        "include {}/home/.local/state/cortetsu/kitty-colors.conf",
+        s.0.display()
+    )));
+    s.put(
+        "home/.local/state/cortetsu/gtk-colors.css",
+        "@define-color window_bg_color #abcdef;\n",
+    );
+    s.put(
+        "home/.local/state/cortetsu/kitty-colors.conf",
+        "background #abcdef\n",
+    );
+    ok(s.run(&["dotfiles", "verify", "--repo", &repo]));
+    assert_eq!(fs::read(&gtk).unwrap(), before);
+}
+
+#[test]
 fn dotfiles_roundtrip_preserves_backup_and_detects_drift() {
     let s = Sandbox::new();
     fixture(&s);

@@ -19,6 +19,8 @@ fn command(home: &TempDir, helper: &str, args: &[&str]) -> Command {
         .env("XDG_STATE_HOME", home.path().join("state"))
         .env("XDG_CONFIG_HOME", home.path().join("config"))
         .env("XDG_CACHE_HOME", home.path().join("cache"))
+        .env("XDG_DATA_HOME", home.path().join("data"))
+        .env("GSETTINGS_BACKEND", "keyfile")
         .env("XDG_CONFIG_DIRS", home.path().join("system-config"))
         .env(
             "CORTETSU_REPO_ROOT",
@@ -1224,6 +1226,11 @@ fn theme_migrates_legacy_owner_and_rejects_stale_switches() {
             .unwrap()
     };
     assert!(run(&["set", "-n", "aura", "default"]).status.success());
+    // Legacy selections predate explicit theme ownership. Modern `set` always
+    // records it, so remove that field to exercise the migration boundary.
+    let mut legacy: Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+    legacy.as_object_mut().unwrap().remove("themeId");
+    fs::write(&path, serde_json::to_vec(&legacy).unwrap()).unwrap();
     assert!(run(&["theme", "ink", "--from", "washi"]).status.success());
     let migrated: Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
     assert_eq!(migrated["themeId"], "ink");
@@ -1308,7 +1315,11 @@ fn theme_projection_without_a_palette_keeps_base_terminal_colours() {
         "{}",
         String::from_utf8_lossy(&projected.stderr)
     );
-    assert!(!state.join("kitty-colors.conf").exists());
+    assert!(
+        fs::read_to_string(state.join("kitty-colors.conf"))
+            .unwrap()
+            .contains("background #f5efe4")
+    );
 }
 
 #[test]

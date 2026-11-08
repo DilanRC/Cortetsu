@@ -72,7 +72,7 @@ def main():
             expected=prefs.payload_from_legacy(legacy)
             # The frozen Python migrator predates these Cortetsu preferences.
             # Rust migration emits their current defaults for new installs too.
-            for key in ('weatherRefreshInterval', 'screenRecordSavePath', 'screenSnipSavePath'):
+            for key in ('weatherRefreshInterval', 'screenRecordSavePath', 'screenSnipSavePath', 'audioProtectionEnabled', 'audioMaxIncrease', 'osdTimeoutMs', 'themeIntegrations', 'themePreferences', 'themeId', 'transparencyEnabled', 'reducedMotion', 'borderThickness'):
                 expected[key]=defaults[key]
             env={**os.environ,'HOME':str(h),'XDG_CONFIG_HOME':str(h/'.config'),'XDG_DATA_HOME':str(h/'.local/share'),'XDG_STATE_HOME':str(h/'.local/state')}
             native(binary,'migrate_config',env=env)
