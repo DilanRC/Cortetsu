@@ -5,14 +5,11 @@ local fn = require("utils.functions")
 -- HDMI externo a la izquierda, portátil a la derecha
 -- ============================================================
 
--- "preferred" toma el modo nativo que cada pantalla anuncia en su propia
--- EDID (el DTD marcado preferred) — se adapta sola a lo que esté conectado
--- en el puerto: 4K@60 en la Smart TV, lo que sea nativo en cualquier otro
--- monitor/proyector. cm="hdredid" activa HDR solo si esa pantalla lo declara
--- soportar en su EDID; si no, queda en sRGB sin romper nada.
+-- La TV anuncia 1080p a 119.88 Hz: prioriza fluidez y reduce la carga de GPU.
+-- Salida SDR de 8 bits.
 hl.monitor({
     output = "HDMI-A-1",
-    mode = "preferred",
+    mode = "1920x1080@119.88",
     position = "0x0",
     scale = 1,
     bitdepth = 8,
