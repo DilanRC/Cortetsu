@@ -65,8 +65,10 @@ Item {
         radius: width / 2
         x: root.checked ? parent.width - width - 4 : 4
         anchors.verticalCenter: parent.verticalCenter
+        // The knob sits on the primary track when on: it takes the colour
+        // made for that fill, which is not the light washi in every theme.
         color: root.checked
-            ? CortetsuDesign.colorWashi
+            ? CortetsuDesign.colorOnPrimary
             : CortetsuDesign.colorOnSurfaceMuted
         border.width: 1
         border.color: root.checked

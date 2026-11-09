@@ -7,12 +7,14 @@ Item {
     id: root
     property real radius: 0
     property real strength: 0.07
+    // Paper grain by default; Kurogane tiles brushed steel instead.
+    property url texture: Qt.resolvedUrl("../assets/texture/grain.png")
 
     Image {
         id: grain
         anchors.fill: parent
         // Relative to this file, so it loads without Quickshell (qmltestrunner).
-        source: Qt.resolvedUrl("../assets/texture/grain.png")
+        source: root.texture
         fillMode: Image.Tile
         visible: false
         smooth: false

@@ -208,7 +208,8 @@ Item {
                     id: badgeText
                     anchors.centerIn: parent
                     text: root.notificationCount > 9 ? qsTr("9+") : root.notificationCount
-                    color: CortetsuDesign.colorWashi
+                    // On the primary fill; colorWashi is only light in Ink.
+                    color: CortetsuDesign.colorOnPrimary
                     textSize: CortetsuTypography.labelSmallPx
                 }
             }

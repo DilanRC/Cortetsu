@@ -37,17 +37,22 @@ TestCase {
         verify(CortetsuDesign.luminance(CortetsuDesign.colorSurface) > 0.7);
         verify(CortetsuDesign.contrast(CortetsuDesign.colorOnSurface, CortetsuDesign.colorSurface) >= 4.5);
         compare(CortetsuDesign.fontUi, "Noto Sans");
-        compare(CortetsuDesign.radiusSurface, 18);
+        compare(CortetsuDesign.radiusSurface, 24);
+        compare(CortetsuDesign.materialStyle, 1);
+        compare(CortetsuDesign.fontHeading, "Noto Serif");
+        verify(CortetsuDesign.materialShadowAlpha > 0);
         CortetsuDesign.themeTokens = Profiles.tokens("kurogane");
         verify(CortetsuDesign.luminance(CortetsuDesign.colorSurface) < 0.1);
-        compare(CortetsuDesign.rowHeight, 46);
-        compare(CortetsuDesign.materialGrain, 0.035);
+        compare(CortetsuDesign.rowHeight, 44);
+        compare(CortetsuDesign.materialStyle, 2);
+        compare(CortetsuDesign.labelCaps, 1);
+        verify(CortetsuDesign.radiusSurface < Defaults.radiusSurface / 2, "steel is angular");
         CortetsuDesign.scheme = ({surface: "101010", onSurface: "ffffff"});
         verify(Qt.colorEqual(CortetsuDesign.colorSurface,"#101010"));
     }
     function test_reduced_motion_wins_over_theme() {
         CortetsuDesign.themeTokens = Profiles.tokens("kurogane");
-        compare(CortetsuDesign.motionStandardMs, 140);
+        compare(CortetsuDesign.motionStandardMs, 120);
         CortetsuDesign.reducedMotion = true;
         compare(CortetsuDesign.motionStandardMs, 0);
         compare(CortetsuDesign.motionPanelMs, 0);
@@ -57,10 +62,10 @@ TestCase {
         compare(bottomHubIsland.radius, bottomHubIsland.height / 2, "Ink keeps the existing capsule shape");
 
         CortetsuDesign.themeTokens = Profiles.tokens("washi");
-        compare(bottomHubIsland.radius, 18, "Washi applies its compiled surface radius to Bottom Hub");
+        compare(bottomHubIsland.radius, 24, "Washi applies its compiled surface radius to Bottom Hub");
 
         CortetsuDesign.themeTokens = Profiles.tokens("kurogane");
-        compare(bottomHubIsland.radius, 14, "Kurogane applies its technical surface radius to Bottom Hub");
+        compare(bottomHubIsland.radius, 8, "Kurogane applies its technical surface radius to Bottom Hub");
     }
     function test_bottom_hub_island_material_follows_theme_and_transparency() {
         bottomHubIsland.transparencyFactor = 1;
@@ -68,15 +73,15 @@ TestCase {
         compare(bottomHubIsland.color.a, 0.82, "Ink keeps the existing island opacity");
 
         CortetsuDesign.themeTokens = Profiles.tokens("washi");
-        verify(Math.abs(bottomHubIsland.color.a - 0.82 * 0.97 / Defaults.materialGroundAlpha) < 0.001,
+        verify(Math.abs(bottomHubIsland.color.a - 0.82 * 0.96 / Defaults.materialGroundAlpha) < 0.001,
             "Washi applies its compiled ground material opacity");
 
         CortetsuDesign.themeTokens = Profiles.tokens("kurogane");
-        verify(Math.abs(bottomHubIsland.color.a - 0.82 * 0.98 / Defaults.materialGroundAlpha) < 0.001,
+        verify(Math.abs(bottomHubIsland.color.a - 0.82 * 0.97 / Defaults.materialGroundAlpha) < 0.001,
             "Kurogane applies its compiled ground material opacity");
 
         bottomHubIsland.transparencyFactor = CortetsuDesign.materialTransparencyFactor;
-        verify(Math.abs(bottomHubIsland.color.a - 0.82 * 0.98 / Defaults.materialGroundAlpha
+        verify(Math.abs(bottomHubIsland.color.a - 0.82 * 0.97 / Defaults.materialGroundAlpha
             * CortetsuDesign.materialTransparencyFactor) < 0.001,
             "the transparency factor thins the island material");
     }
@@ -85,12 +90,12 @@ TestCase {
     }
     function test_validated_preferences_win_and_reset_recovers_theme() {
         CortetsuDesign.themeTokens = Profiles.tokens("washi");
-        CortetsuDesign.userTokens = Preferences.sanitise({radiusSurface: 24, materialGrain: 9, fontUi: "\x01", rowHeight: -10});
-        compare(CortetsuDesign.radiusSurface, 24);
+        CortetsuDesign.userTokens = Preferences.sanitise({radiusSurface: 30, materialGrain: 9, fontUi: "\x01", rowHeight: -10});
+        compare(CortetsuDesign.radiusSurface, 30);
         compare(CortetsuDesign.materialGrain, 0.3);
         compare(CortetsuDesign.rowHeight, 36);
         compare(CortetsuDesign.fontUi, "Noto Sans");
         CortetsuDesign.userTokens = ({});
-        compare(CortetsuDesign.radiusSurface, 18);
+        compare(CortetsuDesign.radiusSurface, 24);
     }
 }

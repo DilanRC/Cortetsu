@@ -13,7 +13,8 @@ Rectangle {
     property bool outlined: true
     property real radiusValue: CortetsuDesign.radiusMedium
     property color baseColor: CortetsuDesign.colorTetsu
-    property color hoverColor: Qt.lighter(baseColor, 1.12)
+    readonly property bool lightGround: CortetsuDesign.luminance(CortetsuDesign.colorTetsu) > 0.5
+    property color hoverColor: lightGround ? Qt.darker(baseColor, 1.06) : Qt.lighter(baseColor, 1.12)
     property color activeColor: danger
         ? CortetsuDesign.colorVermillion
         : CortetsuDesign.colorIndigo
@@ -23,7 +24,8 @@ Rectangle {
             ? Qt.alpha(CortetsuDesign.colorVermillion, 0.62)
             : active
                 ? Qt.alpha(CortetsuDesign.colorPrimary, 0.44)
-                : Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.34)
+                : Qt.alpha(CortetsuDesign.colorOutlineVariant, CortetsuDesign.materialStyle === 1 ? 0.22
+                    : CortetsuDesign.materialStyle === 2 ? 0.8 : 0.34)
 
     radius: radiusValue
     color: pressed

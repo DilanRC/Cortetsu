@@ -14,14 +14,17 @@ Rectangle {
     property bool outlined: true
     property real radiusValue: CortetsuDesign.radiusMedium
     property color baseColor: CortetsuDesign.colorTetsu
-    property color hoverColor: Qt.lighter(baseColor, 1.16)
+    // On Washi's light paper a hover darkens; on dark grounds it lightens.
+    readonly property bool lightGround: CortetsuDesign.luminance(CortetsuDesign.colorTetsu) > 0.5
+    property color hoverColor: lightGround ? Qt.darker(baseColor, 1.06) : Qt.lighter(baseColor, 1.16)
     property color activeColor: danger ? CortetsuDesign.colorVermillion : CortetsuDesign.colorIndigo
     // Indigo marks interaction and vermillion only danger. At rest the edge
     // is a translucent hairline rather than a solid border.
     property color outlineColor: focused ? CortetsuDesign.colorWashi
         : danger ? CortetsuDesign.colorVermillion
         : active ? CortetsuDesign.colorIndicator
-        : Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.56)
+        : Qt.alpha(CortetsuDesign.colorOutlineVariant, CortetsuDesign.materialStyle === 1 ? 0.3
+            : CortetsuDesign.materialStyle === 2 ? 0.9 : 0.56)
 
     readonly property real transparencyFactor: CortetsuConfig.transparencyEnabled ? CortetsuDesign.materialTransparencyFactor : 1
 

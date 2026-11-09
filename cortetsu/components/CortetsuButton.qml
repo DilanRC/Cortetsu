@@ -50,7 +50,8 @@ Item {
 
     CortetsuSurface {
         anchors.fill: parent
-        radiusValue: CortetsuDesign.radiusPill
+        // Kurogane's buttons are machined, not rounded.
+        radiusValue: CortetsuDesign.materialStyle === 2 ? CortetsuDesign.radiusSmall : CortetsuDesign.radiusPill
         active: root.active
         danger: root.danger
         disabled: root.disabled
