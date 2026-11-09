@@ -60,11 +60,41 @@ fn profile() -> Map<String, Value> {
         })
         .unwrap_or_default()
 }
-fn save(p: &Map<String, Value>) -> R<()> {
-    atomic_json(&directory().join("nvibrant.json"), &json!({"profile":p})).map_err(|e| Error {
+// nvibrant cannot read vibrance back. What it echoed after a write is the
+// only confirmation, and it holds for the boot it happened in: a reboot or a
+// driver reload resets the hardware while the saved profile stays.
+fn boot() -> String {
+    read(&procfs().join("sys/kernel/random/boot_id"))
+}
+fn applied() -> Map<String, Value> {
+    let file = json_file(&directory().join("nvibrant.json"), json!({}));
+    let current = boot();
+    if current.is_empty() || file["applied"]["boot"].as_str() != Some(current.as_str()) {
+        return Map::new();
+    }
+    file["applied"]["values"]
+        .as_object()
+        .cloned()
+        .unwrap_or_default()
+}
+fn save(p: &Map<String, Value>, confirmed: &Map<String, Value>) -> R<()> {
+    let mut values = applied();
+    values.extend(confirmed.clone());
+    atomic_json(
+        &directory().join("nvibrant.json"),
+        &json!({"profile":p,"applied":{"boot":boot(),"values":values}}),
+    )
+    .map_err(|e| Error {
         code: "profile-write-failed",
         message: e,
     })
+}
+fn confirmed(outputs: &[Value], values: &[i64]) -> Map<String, Value> {
+    outputs
+        .iter()
+        .zip(values)
+        .map(|(o, n)| (s(&o["connector"]), json!(n)))
+        .collect()
 }
 fn value(raw: &str) -> R<i64> {
     let n = raw.parse::<i64>().map_err(|_| Error {
@@ -131,10 +161,15 @@ fn apply(outputs: &[Value], values: &[i64]) -> R<()> {
 }
 fn action(args: &[String]) -> R<Value> {
     if args == ["status"] {
+        // value: what the profile asks for. applied: what nvibrant echoed in
+        // this boot, null when nothing confirms it.
         let p = profile();
+        let a = applied();
         let mut out = connectors();
         for o in &mut out {
-            o["value"] = p.get(&s(&o["connector"])).cloned().unwrap_or(Value::Null)
+            let name = s(&o["connector"]);
+            o["value"] = p.get(&name).cloned().unwrap_or(Value::Null);
+            o["applied"] = a.get(&name).cloned().unwrap_or(Value::Null);
         }
         let conflict = children(&config_home().join("systemd/user"))
             .iter()
@@ -143,7 +178,8 @@ fn action(args: &[String]) -> R<Value> {
                     && x.join("nvibrant.service").symlink_metadata().is_ok()
             });
         return Ok(
-            json!({"ok":true,"conflict":if conflict{"nvibrant.service"}else{""},"outputs":out}),
+            json!({"ok":true,"conflict":if conflict{"nvibrant.service"}else{""},
+                "driver":read(&sysfs().join("module/nvidia/version")),"outputs":out}),
         );
     }
     if args.first().is_none_or(|a| a != "set" && a != "apply") {
@@ -182,7 +218,7 @@ fn action(args: &[String]) -> R<Value> {
             })
             .collect::<Vec<_>>();
         apply(&outputs, &values)?;
-        save(&p)?;
+        save(&p, &confirmed(&outputs, &values))?;
         return Ok(json!({"ok":true,"connector":args[1],"value":n}));
     }
     let default = if args.len() == 1 {
@@ -207,14 +243,10 @@ fn action(args: &[String]) -> R<Value> {
         })
         .collect::<Vec<_>>();
     apply(&outputs, &values)?;
-    let mut applied = Map::new();
-    for (o, n) in outputs.iter().zip(values) {
-        let k = s(&o["connector"]);
-        p.insert(k.clone(), json!(n));
-        applied.insert(k, json!(n));
-    }
-    save(&p)?;
-    Ok(json!({"ok":true,"applied":true,"values":applied}))
+    let written = confirmed(&outputs, &values);
+    p.extend(written.clone());
+    save(&p, &written)?;
+    Ok(json!({"ok":true,"applied":true,"values":written}))
 }
 pub fn main(args: &[String]) -> (Value, i32) {
     match action(args) {

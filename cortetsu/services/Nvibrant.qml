@@ -18,10 +18,15 @@ Singleton {
     // A connected NVIDIA output exists; vibrance has nowhere to go otherwise.
     property bool available: false
     property string connector: ""
-    // Last value nvibrant confirmed for the connector. Unknown until this
-    // session or the hotplug service applied one.
+    // Last value nvibrant echoed for the connector in this boot (Settings or
+    // the hotplug service). Unknown after a reboot until one is applied:
+    // nvibrant cannot read the hardware.
     property bool known: false
     property int value: 0
+    // What the saved profile asks for; the hotplug service applies it.
+    property bool desiredKnown: false
+    property int desired: 0
+    property string driver: ""
     property int requested: 0
     property bool busy: false
     property bool writeQueued: false
@@ -79,11 +84,14 @@ Singleton {
         const output = (status.outputs ?? []).find(item => item.connected) ?? null;
         available = !!output;
         connector = output?.connector ?? "";
-        known = output !== null && Number.isInteger(output.value);
+        known = output !== null && Number.isInteger(output.applied);
         if (known)
-            value = output.value;
+            value = output.applied;
+        desiredKnown = output !== null && Number.isInteger(output.value);
+        desired = desiredKnown ? output.value : 0;
+        driver = status.driver ?? "";
         if (!busy)
-            requested = value;
+            requested = known ? value : desired;
         statusError = status.conflict
             ? qsTr("%1 también fija la vibrance al iniciar sesión; desactívala para que este valor se mantenga").arg(status.conflict)
             : "";
@@ -94,6 +102,8 @@ Singleton {
         if (result?.ok && Number.isInteger(result.value)) {
             value = result.value;
             known = true;
+            desired = result.value;
+            desiredKnown = true;
             writeError = "";
             return;
         }

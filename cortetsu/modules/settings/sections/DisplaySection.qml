@@ -83,9 +83,10 @@ ColumnLayout {
         SettingSliderRow {
             visible: Nvibrant.available
             title: qsTr("Vibrance NVIDIA · %1").arg(Nvibrant.connector)
-            valueText: Nvibrant.requested !== Nvibrant.value || !Nvibrant.known
-                ? (Nvibrant.busy ? qsTr("Aplicando %1").arg(Nvibrant.requested) : qsTr("Sin confirmar"))
-                : String(Nvibrant.value)
+            valueText: Nvibrant.busy ? qsTr("Aplicando %1").arg(Nvibrant.requested)
+                : Nvibrant.known && Nvibrant.requested === Nvibrant.value ? qsTr("%1 · confirmado").arg(Nvibrant.value)
+                : Nvibrant.desiredKnown ? qsTr("%1 guardado · sin confirmar en este arranque").arg(Nvibrant.desired)
+                : qsTr("Sin confirmar")
             from: Nvibrant.minimum
             to: Nvibrant.maximum
             step: 1

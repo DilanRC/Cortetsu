@@ -60,7 +60,14 @@ class Fixture:
         fake.write_text(FAKE_NVIBRANT)
         fake.chmod(0o755)
         (self.bin / "cortetsu-nvibrant").symlink_to(HELPER)
+        self.proc = base / "proc"
+        (self.proc / "sys/kernel/random").mkdir(parents=True)
+        self.boot("boot-1")
+        sysfs = base / "sys"
+        (sysfs / "module/nvidia").mkdir(parents=True)
+        (sysfs / "module/nvidia/version").write_text("615.78.08\n")
         self.env = dict(os.environ, CORTETSU_DRM_ROOT=str(self.drm), XDG_STATE_HOME=str(self.state),
+                        CORTETSU_PROCFS_ROOT=str(self.proc), CORTETSU_SYSFS_ROOT=str(sysfs),
                         XDG_CONFIG_HOME=str(base / "no-config"),
                         CORTETSU_NVIBRANT=str(fake), FAKE_NVIBRANT_LOG=str(self.log),
                         PATH=f"{self.bin}:{os.environ['PATH']}")
@@ -69,6 +76,13 @@ class Fixture:
         result = subprocess.run([str(HELPER), *args], text=True, capture_output=True,
                                 env=dict(self.env, **env), timeout=20)
         return result.returncode, json.loads(result.stdout) if result.stdout.strip() else {}
+
+    def boot(self, boot_id: str) -> None:
+        """A new boot id stands for a reboot: the hardware lost its vibrance."""
+        (self.proc / "sys/kernel/random/boot_id").write_text(boot_id + "\n")
+
+    def outputs(self) -> dict:
+        return {item["connector"]: item for item in self.run("status")[1]["outputs"]}
 
     def calls(self) -> list[list[str]]:
         return json.loads(self.log.read_text()) if self.log.exists() else []
@@ -87,8 +101,8 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-nvibrant-") as temporary:
 
     hdmi = Fixture(base / "hdmi", VICTUS)
     code, status = hdmi.run("status")
-    assert code == 0 and status["conflict"] == "" and status["outputs"] == [
-        {"connector": "HDMI-A-1", "card": "card1", "connected": True, "index": 0, "value": None}], status
+    assert code == 0 and status["conflict"] == "" and status["driver"] == "615.78.08" and status["outputs"] == [
+        {"connector": "HDMI-A-1", "card": "card1", "connected": True, "index": 0, "value": None, "applied": None}], status
     assert hdmi.calls() == [], "status must never run nvibrant: a bare call resets vibrance"
 
     for bad in ("1024", "-1025", "abc"):
@@ -101,6 +115,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-nvibrant-") as temporary:
     code, result = hdmi.run("set", "HDMI-A-1", "-300")
     assert code == 0 and result == {"ok": True, "connector": "HDMI-A-1", "value": -300}
     assert hdmi.calls() == [["-300"]] and hdmi.profile() == {"HDMI-A-1": -300}
+    assert hdmi.outputs()["HDMI-A-1"]["applied"] == -300, "an echoed write is confirmed for this boot"
 
     code, result = hdmi.run("set", "HDMI-A-1", "500", FAKE_NVIBRANT_MODE="fail")
     assert code == 1 and result["code"] == "nvibrant-failed" and "ioctl" in result["error"]
@@ -108,10 +123,16 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-nvibrant-") as temporary:
     code, result = hdmi.run("set", "HDMI-A-1", "500", FAKE_NVIBRANT_MODE="clamp")
     assert code == 1 and result["code"] == "not-applied", result
     assert hdmi.profile() == {"HDMI-A-1": -300}
+    assert hdmi.outputs()["HDMI-A-1"]["applied"] == -300, "failed writes leave the confirmed value alone"
 
+    # After a reboot the profile is still wanted but nothing confirms the hardware.
+    hdmi.boot("boot-2")
+    output = hdmi.outputs()["HDMI-A-1"]
+    assert output["value"] == -300 and output["applied"] is None, output
     code, result = hdmi.run("apply", "--default", "128")
     assert code == 0 and result["values"] == {"HDMI-A-1": -300}, "the saved profile wins over the default"
     assert hdmi.calls()[-1] == ["-300"]
+    assert hdmi.outputs()["HDMI-A-1"]["applied"] == -300, "the login reapply confirms it again"
 
     # A display order the helper did not predict is refused, not saved.
     code, result = hdmi.run("set", "HDMI-A-1", "50", FAKE_NVIBRANT_DISPLAYS="DP")
