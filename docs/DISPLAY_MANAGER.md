@@ -1,30 +1,32 @@
 # Cortetsu Display Manager
 
-Branch: `feature/display-manager`
+The display manager lives in **Settings → Sistema → Pantalla**
+(`cortetsu/modules/settings/display/`). There is no separate editor surface:
+`Super+Shift+O`, the IPC target `display` (`qs ipc call display open`) and the
+launcher's "Pantallas" action keep the `displayManager` surface key, and
+`modules/display/Wrapper.qml` turns that request into Settings opened on that
+page on the same screen.
 
-Reserved bind: `Super+Shift+O`.
+## Page
 
-Display Manager reuses the same native `ContentWindow` integration model as Hardware Center. The controller is always light; the display editor/probes are loaded only while the panel is open.
+| File | Role |
+|---|---|
+| `DisplayPage.qml` | Composition: arrangement, selected output, brightness and colour, apply, diagnostics, saved arrangements. |
+| `DisplayModel.qml` | Live inventory (`cortetsu-display-probe`), the proposal being edited, dry run (`cortetsu-display-plan`). |
+| `DisplayTransaction.qml` | Preview 15 s → Conservar / Revertir → Guardar, through `cortetsu-display-transaction` and `cortetsu-display-persist`. |
+| `DisplayArrangement.qml` | Outputs drawn to scale; click selects, drag moves with edge snapping, Left/Right change the selection. |
+| `DisplayPresetStore.qml` | Named arrangements (`cortetsu-display-presets`); loading one only fills the proposal. |
+| `DisplayLayout.js` | Pure helpers (modes, resolutions, rates, rotation, snapping, reflow, quick layouts), tested by `scripts/features/test-settings-display-layout.mjs`. |
 
-## Current implementation
+What the page offers is what the probe reports. Resolutions and refresh rates
+are the output's own `available_modes`; VRR appears only where
+`vrr_capable` is `true`; HDR, wide gamut and 10-bit stay hidden while the probe
+reports them as unknown. Saturation is offered only on the output nVibrant
+drives (an NVIDIA output); other outputs say why it is not available.
 
-Implemented:
-
-- native `DisplayController.qml` + `display/Wrapper.qml` integration;
-- `Super+Shift+O` and IPC target `display`;
-- monitor inventory from `hyprctl -j monitors all`;
-- workspace inventory from `hyprctl -j workspaces`;
-- DRM connector → card → GPU vendor mapping from `/sys/class/drm`;
-- current geometry, refresh, scale, transform, DPMS, VRR/current-format fields when Hyprland reports them;
-- topology canvas based on candidate logical coordinates;
-- per-output candidate mode, scale and X/Y editing;
-- current workspace, DPMS and GPU/card visibility;
-- `cortetsu-display-plan`: validates a complete candidate and renders the exact Hyprland monitor commands without executing them;
-- `cortetsu-display-transaction`: timed live preview with automatic rollback;
-- explicit `Preview 15s`, `Keep` and `Revert` controls;
-- shared `CortetsuButton` interaction states for header and safe-apply actions,
-  including keyboard focus and shared tooltips;
-- full installer, development updater and validator.
+Previsualizar first runs the dry-run planner and previews only an accepted
+proposal. Changing the proposal after Conservar requires a new preview before
+Guardar is offered.
 
 ## Safety model
 
@@ -43,65 +45,31 @@ The preview transaction follows this sequence:
 7. automatically restore the snapshot after 15 seconds unless `Keep` is pressed;
 8. restore immediately when `Revert` is pressed or when application/verification fails.
 
-The watchdog is independent of the QML panel, so closing Display Manager does not defeat the timeout rollback.
+The watchdog runs in its own process group, independent of QML, so closing Settings or restarting the shell during a preview does not defeat the timeout rollback.
 
-`Keep` currently means **keep for the current Hyprland session**. Persistence across login/reboot is deliberately not enabled until the managed `hypr-user.lua` write path is implemented with its own snapshot/rollback QA.
+`Conservar` keeps the arrangement for the current Hyprland session. `Guardar` is offered only for the exact proposal that was previewed and kept; `cortetsu-display-persist` then writes it to Cortetsu's managed monitor block with a backup and verification, and never touches the user's own Lua outside that block.
 
 No normal Display Manager action edits EDID data, creates arbitrary modelines, overclocks a GPU, writes color calibration blindly or leaves an unconfirmed monitor layout permanent.
 
 ## Files
 
-- `cortetsu/bin/cortetsu-display-probe`
-- `cortetsu/bin/cortetsu-display-plan`
-- `cortetsu/bin/cortetsu-display-transaction`
-- `cortetsu/modules/DisplayController.qml`
-- `cortetsu/modules/display/Wrapper.qml`
-- `cortetsu/modules/display/Content.qml`
-- `cortetsu/modules/display/Editor.qml`
-- `cortetsu/modules/display/PreviewControls.qml`
-- `scripts/features/install-display-manager.sh`
-- `scripts/features/update-display-manager.sh`
-- `scripts/features/validate-display-manager.py`
+- `cortetsu/bin/cortetsu-display-probe`, `-plan`, `-transaction`, `-persist`, `-presets` (native owner: `hardware-runtime-rs/src/display.rs`)
+- `cortetsu/modules/DisplayController.qml` (shortcut, IPC)
+- `cortetsu/modules/display/Wrapper.qml` (redirect to Settings)
+- `cortetsu/modules/settings/display/` (the page)
 
-## Install
+## Open and verify
+
+It ships with the shell (`scripts/cortetsu install`). Open it with
+`Super+Shift+O`, `qs ipc call display open` or Settings → Sistema → Pantalla.
 
 ```fish
-cd ~/Cortetsu
-git switch feature/display-manager
-git pull --ff-only
-bash scripts/features/install-display-manager.sh
-```
-
-Restart Caelestia and open:
-
-```text
-Super+Shift+O
-```
-
-or:
-
-```fish
-qs -c caelestia ipc call display open
-```
-
-## Validation
-
-```fish
-python3 scripts/features/validate-display-manager.py
+node scripts/features/test-settings-display-layout.mjs   # arrangement helpers
+python3 scripts/features/test-cortetsu-settings-runtime.py  # includes the "display" scenario
 ~/.local/bin/cortetsu-display-probe | jq
 ~/.local/bin/cortetsu-display-transaction status | jq
 ```
 
-Before testing a modified layout, first use **Dry run candidate**. Then `Preview 15s` may apply it temporarily. If no confirmation occurs, the watchdog restores the original live layout.
-
-## Next implementation block
-
-The next block is persistence and presets:
-
-- convert a confirmed candidate to managed `hl.monitor({...})` entries;
-- snapshot `~/.config/caelestia/hypr-user.lua` before every persistence attempt;
-- replace only a Cortetsu-owned monitor block rather than arbitrary user Lua;
-- reload and verify;
-- restore the previous file and live layout if verification fails;
-- named layouts such as Laptop only, Desk dual-monitor and external-display presets;
-- workspace-range reassignment only after monitor persistence is proven.
+The runtime harness drives the page against display tool doubles with a real
+preview deadline: dry run, preview with countdown, Conservar, Guardar and
+Revertir.

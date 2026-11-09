@@ -2,8 +2,13 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import Quickshell
-import "../../theme"
+import ".."
+import "../settings"
+import "../CortetsuOverlayPolicy.js" as OverlayPolicy
 
+// The display manager lives in Settings → Sistema → Pantalla. This keeps the
+// "displayManager" surface (SUPER+SHIFT+O, `qs ipc call display`, the launcher)
+// working: opening it opens Settings on that page on the same screen.
 Item {
     id: root
 
@@ -12,40 +17,13 @@ Item {
 
     readonly property bool shouldBeActive: screenState?.cortetsuState?.displayManager ?? false
 
-    visible: shouldBeActive
-    opacity: shouldBeActive ? 1 : 0
-
-    Behavior on opacity {
-        NumberAnimation {
-            duration: CortetsuDesign.motionFastMs
-            easing.type: Easing.BezierSpline
-            easing.bezierCurve: CortetsuDesign.easeOut
-        }
-    }
-
-    Rectangle {
-        anchors.fill: parent
-        visible: root.shouldBeActive
-        color: Qt.alpha(CortetsuDesign.colorScrim, 0.38)
-    }
-
-    Loader {
-        id: contentLoader
-        anchors.fill: parent
-        active: true
-        sourceComponent: Content {
-            screen: root.screen
-            screenState: root.screenState
-            displayVisible: root.shouldBeActive
-        }
-    }
+    visible: false
 
     onShouldBeActiveChanged: {
-        if (shouldBeActive) {
-            Qt.callLater(() => {
-                if (contentLoader.item)
-                    contentLoader.item.openDisplayManager();
-            });
-        }
+        if (!shouldBeActive)
+            return;
+        screenState.cortetsuState?.setRetained("displayManager", false);
+        SettingsController.select("display");
+        Qt.callLater(() => OverlayPolicy.open(CortetsuShellState.allStates(), root.screenState, "settings"));
     }
 }

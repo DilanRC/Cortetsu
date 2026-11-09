@@ -148,7 +148,7 @@ assert "root.screenState?.cortetsuState?.overview ? CortetsuDesign.scrimOpacity"
 for content_file, flag in (
     ("clipboard/Content.qml", "clipboard"),
     ("hardware/Content.qml", "hardware"),
-    ("display/Editor.qml", "displayManager"),
+    ("display/Wrapper.qml", "displayManager"),
     ("wallpaper/Content.qml", "wallpaperManager"),
     ("wallpaper/Wrapper.qml", "wallpaperManager"),
 ):

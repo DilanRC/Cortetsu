@@ -286,19 +286,84 @@ QtObject {
 
 NVIBRANT = """pragma Singleton
 import QtQuick
+// nVibrant double: the external HDMI output is on the NVIDIA GPU; a saved
+// value exists but nothing confirmed it in this boot.
 QtObject {
     readonly property int minimum: -1024
     readonly property int maximum: 1023
-    property bool available: false
-    property string connector: ""
+    property bool available: true
+    property string connector: "HDMI-A-1"
     property bool known: false
     property int value: 0
-    property int requested: 0
+    property bool desiredKnown: true
+    property int desired: 256
+    property string driver: "615.78.08"
+    property int requested: 256
     property bool busy: false
     property string error: ""
-    function setValue(next) { requested = next; value = next; known = true; }
+    function setValue(next) { requested = next; value = next; known = true; desired = next; }
 }
 """
+
+# Display tools under ~/.local/bin. The transaction keeps its preview in a
+# file with a real deadline, so the countdown, Keep and Revert are exercised.
+DISPLAY_TOOL = r"""#!/usr/bin/env python3
+import json, os, sys, time
+from pathlib import Path
+home = Path(os.environ["HOME"])
+state = home / "fixtures/display-preview.json"
+live = home / "fixtures/display-live.json"
+tool = Path(sys.argv[0]).name
+args = sys.argv[1:]
+def arg(flag):
+    return args[args.index(flag) + 1] if flag in args else None
+def out(value):
+    print(json.dumps(value))
+    sys.exit(0)
+def modes(*sizes):
+    return [f"{w}x{h}@{r:.2f}Hz" for (w, h, r) in sizes]
+monitors = json.loads(live.read_text()) if live.exists() else [
+    {"name": "eDP-1", "description": "BOE 0x0CFD", "width": 1920, "height": 1080, "refresh_hz": 144.003,
+     "x": 1920, "y": 0, "scale": 1, "transform": 0, "disabled": False, "vrr": False, "focused": True,
+     "current_format": "XRGB8888", "gpu_vendor": "AMD", "drm_connector": "card2-eDP-1",
+     "available_modes": modes((1920, 1080, 144.0), (1920, 1080, 60.0), (1680, 1050, 144.0), (1280, 720, 60.0)),
+     "vrr_capable": None, "hdr_capable": None, "wide_color_capable": None},
+    {"name": "HDMI-A-1", "description": "Samsung C27F390", "width": 1920, "height": 1080, "refresh_hz": 60.0,
+     "x": 0, "y": 0, "scale": 1, "transform": 0, "disabled": False, "vrr": False, "focused": False,
+     "current_format": "XRGB8888", "gpu_vendor": "NVIDIA", "drm_connector": "card1-HDMI-A-1",
+     "available_modes": modes((1920, 1080, 75.0), (1920, 1080, 60.0), (1600, 900, 60.0), (1280, 1024, 60.0)),
+     "vrr_capable": True, "hdr_capable": False, "wide_color_capable": False}]
+if tool == "cortetsu-display-probe":
+    out({"hyprland": monitors, "summary": {"connected": len(monitors), "focused": "eDP-1"}})
+if tool == "cortetsu-display-plan":
+    candidate = json.loads(arg("--candidate"))
+    if (home / "fixtures/display-plan-blocked").exists():
+        out({"ok": False, "errors": ["Las pantallas se solapan"], "warnings": []})
+    out({"ok": True, "commands": candidate["outputs"], "hypr_lines": []})
+if tool == "cortetsu-display-transaction":
+    now = time.time()
+    current = json.loads(state.read_text()) if state.exists() else {}
+    if args[:1] == ["preview"]:
+        state.write_text(json.dumps({"active": True, "deadline": now + int(arg("--timeout")),
+                                     "candidate": json.loads(arg("--candidate"))}))
+        out({"ok": True, "preview": True})
+    if args[:1] == ["status"]:
+        active = current.get("active") and current["deadline"] > now
+        out({"active": bool(active), "remaining_seconds": round(max(0, current.get("deadline", 0) - now), 1)})
+    if args[:1] == ["confirm"]:
+        state.unlink(missing_ok=True)
+        out({"ok": True, "confirmed": True})
+    if args[:1] == ["revert"]:
+        state.unlink(missing_ok=True)
+        out({"ok": True, "reverted": True})
+if tool == "cortetsu-display-persist":
+    out({"ok": True, "persisted": True})
+if tool == "cortetsu-display-presets":
+    out({"ok": True, "presets": [{"name": "Escritorio", "candidate": {"outputs": []}}]} if args[:1] == ["list"] else {"ok": True})
+out({"ok": False, "error": "unknown"})
+"""
+DISPLAY_TOOLS = ("cortetsu-display-probe", "cortetsu-display-plan", "cortetsu-display-transaction",
+                 "cortetsu-display-persist", "cortetsu-display-presets")
 
 STUBS = {
     "modules/CortetsuIdleInhibitor.qml": IDLE,
@@ -518,6 +583,11 @@ def run(folder: Path, shell: str, scenario: str, *, preferences: dict | None = N
     for name, text in COMMANDS.items():
         (binaries / name).write_text(text, encoding="utf-8")
         (binaries / name).chmod(0o755)
+    local = home / ".local/bin"
+    local.mkdir(parents=True)
+    for name in DISPLAY_TOOLS:
+        (local / name).write_text(DISPLAY_TOOL, encoding="utf-8")
+        (local / name).chmod(0o755)
     native_root = os.environ.get("CORTETSU_SETTINGS_NATIVE_ROOT")
     if native_root:
         (binaries / "cortetsu-scheme").write_text(

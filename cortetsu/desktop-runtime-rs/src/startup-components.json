@@ -380,22 +380,34 @@
   {
     "id": "cortetsu:display-presets",
     "name": "Display preset query",
-    "source": "modules/display/DisplayPresets.qml",
+    "source": "modules/settings/display/DisplayPresetStore.qml",
     "qmlId": "worker",
     "startupPhase": "on-demand",
-    "condition": "Al abrir el selector de distribuciones de pantalla",
+    "condition": "Al abrir Ajustes → Pantalla",
     "command": [
       "cortetsu-display-presets"
     ],
     "manageable": false
   },
   {
+    "id": "cortetsu:display-probe",
+    "name": "Display inventory",
+    "source": "modules/settings/display/DisplayModel.qml",
+    "qmlId": "probe",
+    "startupPhase": "on-demand",
+    "condition": "Al abrir Ajustes → Pantalla",
+    "command": [
+      "cortetsu-display-probe"
+    ],
+    "manageable": false
+  },
+  {
     "id": "cortetsu:display-preview-status",
     "name": "Display preview status",
-    "source": "modules/display/PreviewControls.qml",
+    "source": "modules/settings/display/DisplayTransaction.qml",
     "qmlId": "statusProbe",
     "startupPhase": "on-demand",
-    "condition": "Al abrir los controles de vista previa de pantalla",
+    "condition": "Al abrir Ajustes → Pantalla",
     "command": [
       "cortetsu-display-transaction",
       "status"

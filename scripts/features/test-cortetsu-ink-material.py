@@ -51,7 +51,7 @@ for path in QML.rglob("*.qml"):
 
 # The ink surfaces and every popout reach the material through the shared pieces.
 for rel in ("modules/dashboard/Dash.qml", "modules/SessionHost.qml", "modules/SettingsHost.qml",
-            "modules/hardware/Content.qml", "modules/keyboards/Content.qml", "modules/display/Editor.qml",
+            "modules/hardware/Content.qml", "modules/keyboards/Content.qml",
             "modules/clipboard/Content.qml", "modules/wallpaper/Content.qml", "modules/calendar/Content.qml",
             "modules/drawers/ContentWindow.qml"):
     assert "CortetsuInkPanel" in (QML / rel).read_text(encoding="utf-8"), rel

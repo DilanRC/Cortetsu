@@ -34,9 +34,10 @@ for relative in (
     assert "running: root.visible" in text, f"hidden-page polling regression: {relative}"
     assert "onVisibleChanged: { if (visible) refresh(); }" in text, f"missing wake-on-visible: {relative}"
 
-# The live display topology is built inline; its unused drag overlay was retired.
+# The display arrangement lives in Settings; the standalone editor was retired.
 assert not (modules / "display/TopologyDragOverlay.qml").exists()
-assert 'id: topologyCanvas' in (modules / "display/Editor.qml").read_text(encoding="utf-8")
+assert not (modules / "display/Editor.qml").exists()
+assert "drag.target" in (modules / "settings/display/DisplayArrangement.qml").read_text(encoding="utf-8")
 
 hub = (modules / "HubButton.qml").read_text(encoding="utf-8")
 status = (modules / "StatusPill.qml").read_text(encoding="utf-8")

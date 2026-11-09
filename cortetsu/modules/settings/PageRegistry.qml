@@ -6,6 +6,7 @@ import "controls"
 import "pages"
 import "sections"
 import "bluetooth"
+import "display"
 
 // What each destination shows. A page is created only while it is open; the
 // sections inside it are the same ones whatever page holds them, and each
@@ -35,7 +36,8 @@ QtObject {
 
     readonly property Component display: Component {
         SettingsPage {
-            DisplaySection { context: root.context }
+            kind: "wide"
+            DisplayPage { context: root.context; Layout.fillWidth: true }
         }
     }
     readonly property Component sound: Component {

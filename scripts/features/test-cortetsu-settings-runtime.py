@@ -1799,6 +1799,60 @@ ShellRoot {
         }]
     ]
 
+    // Sistema → Pantalla: arrangement, per-GPU saturation and the safe apply
+    // flow against display tool doubles with a real preview deadline.
+    function chip(group, name) { return find(page(group), name); }
+    readonly property var display: [
+        [() => CortetsuConfig.loaded, () => { select("display"); screenDouble.settings = true; }],
+        [() => !!page("displaySelect") && page("displaySelect").visible && waitedMs >= 300, () => {
+            verify(!!page("displayCanvas-eDP-1") && !!page("displayCanvas-HDMI-A-1"), "both outputs are drawn in the arrangement");
+            verify(page("displayCanvas-HDMI-A-1").x < page("displayCanvas-eDP-1").x, "the drawing follows the live positions");
+            verify(page("displayVibranceUnsupported").visible && !page("displayVibrance").visible
+                && page("displayVibranceUnsupported").detail.includes("AMD"), "the AMD panel offers no NVIDIA slider and says why");
+            verify(!page("displayVrr").visible, "VRR is not offered where the probe has no data");
+            verify(page("displayPreview").disabled, "nothing to preview before a change");
+            render("display-amd");
+        }],
+        [null, () => { chip("displaySelect", "displaySelect-HDMI-A-1").clicked(); }],
+        [() => page("displayVibrance")?.visible && waitedMs >= 300, () => {
+            verify(page("displayVibrance").valueText === "256 guardado · sin confirmar en este arranque",
+                `a saved vibrance is not shown as confirmed (${page("displayVibrance").valueText})`);
+            verify(page("displayVrr").visible, "VRR is offered where the output reports it");
+            verify(!!chip("displayResolution", "resolution-1600x900") && !chip("displayResolution", "resolution-1680x1050"),
+                "resolutions are the selected output's own modes");
+            render("display-nvidia");
+            chip("displayResolution", "resolution-1600x900").clicked();
+        }],
+        [() => !page("displayPreview").disabled, () => {
+            verify(page("displayApplyState").title === "Hay cambios sin aplicar", `a change is pending (${page("displayApplyState").title})`);
+            verify(!!chip("displayRefresh", "refresh-60") && !chip("displayRefresh", "refresh-75"), "rates follow the chosen resolution");
+            const left = page("displayCanvas-HDMI-A-1"), right = page("displayCanvas-eDP-1");
+            verify(Math.abs(left.x + left.width + 3 - right.x) <= 2, `a smaller output keeps its neighbour touching (${left.x + left.width} → ${right.x})`);
+            page("displayPreview").clicked();
+        }],
+        [() => page("displayKeep")?.visible, () => {
+            verify(page("displayRevert").visible && !page("displaySave").visible, "a preview offers keep and revert, not save");
+            verify(page("displayApplyState").detail.startsWith("Se revierte en"), `the countdown is shown (${page("displayApplyState").detail})`);
+            render("display-preview");
+            page("displayKeep").clicked();
+        }],
+        [() => page("displaySave")?.visible, () => {
+            verify(!page("displayKeep").visible, "kept: the countdown is gone");
+            page("displaySave").clicked();
+        }],
+        [() => page("displayApplyState").detail.startsWith("Guardado"), () => {
+            render("display-saved");
+            chip("displayScale", "scale-1.25").clicked();
+        }],
+        [() => !page("displayPreview").disabled && !page("displaySave").visible, () => {
+            page("displayPreview").clicked();
+        }],
+        [() => page("displayRevert")?.visible, () => { page("displayRevert").clicked(); }],
+        [() => !page("displayKeep").visible && page("displayApplyState").detail === "Se restauró la distribución anterior", () => {
+            verify(!page("displaySave").visible, "a reverted preview cannot be saved");
+        }]
+    ]
+
     // Every destination once: each category page and each subpage. A
     // category with a single subpage opens on it, so only the subpage counts.
     readonly property var destinations: SettingsController.categories
@@ -2230,6 +2284,8 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     # other than the ui.toml default.
     aura = {"name": "aura", "flavour": "default",
             "colours": json.loads(subprocess.check_output([str(ROOT / "bin/cortetsu-scheme"), "list"], text=True))["aura"]["default"]}
+    display = passed(run(folder, "shell.qml", "display")[0])
+    assert display == 15, display
     pages = passed(run(folder, "shell.qml", "pages")[0])
     passed(run(folder, "shell.qml", "pages", label="pages-narrow",
                env={"SETTINGS_WIDTH": "880", "SETTINGS_HEIGHT": "620", "SETTINGS_RENDER_SUFFIX": "-880"})[0])
