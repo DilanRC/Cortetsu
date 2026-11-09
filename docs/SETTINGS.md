@@ -1,78 +1,126 @@
 # Cortetsu Settings
 
-The eight-page shell follows the organization of end-4 Settings at
-`end-4/dots-hyprland` commit `2f2a376fdb2ad738bf55f693dd0b474b64bb0ab8`.
-That repository is GPL-3.0; this adaptation uses Cortetsu's existing QML
-primitives and service sections and does not copy its QML implementation.
-The pinned reference, license identifier, and per-control mapping are recorded
-in [settings-end4-parity.json](settings-end4-parity.json). It covers all 177
-controls found in the eight end-4 pages. The current review classifies 34 as A
-(existing owner), 5 as B (extended owner), 2 as C (small component), 108 as D
-(outside this product/layout), and 28 as E (additional safety/privacy/asset or
-lifecycle review required). All 41 A/B/C adaptations have a concrete consumer.
-E entries are reopened decisions, not final discards. Each option records its
-specific decision and evidence.
+Settings is organised like **Windows 11 Settings** (category › subpage ›
+controls), draws its controls with the density and vocabulary of **end-4
+Settings** (sections with an icon, segmented choices, compact switches,
+sliders with their value), and wears **Cortetsu's identity**: the same pages
+look like ink, paper or steel depending on the theme.
+
+end-4 (`end-4/dots-hyprland`, GPL-3.0) is a visual reference only. No QML is
+copied; every control is Cortetsu's own and uses the existing services. The
+earlier per-control mapping is kept in
+[settings-end4-parity.json](settings-end4-parity.json).
 
 Opened with `Super+I`. A normal desktop window (`FloatingWindow`), one per
 screen, so it can be moved, tiled and resized like any other.
 
 ## What it answers
 
-1. Where am I, and what is the state of each domain? The Nexus.
-2. What does this page control, and what is its value now? The page header and
-   each row.
-3. Did my change take effect? The switch itself, the row status, the save
+1. Where am I? The sidebar marks the category; the header writes the path,
+   "Personalización › Temas", and the category in it leads back.
+2. Where is a setting? The search at the top of the sidebar lists each
+   matching setting with its place; opening one goes to the page, scrolls to
+   the control, focuses it and marks it for a moment.
+3. What does this page control, and what is its value now? Each row.
+4. Did my change take effect? The control itself, the row status, the save
    indicator.
-4. What needs my attention? A vermillion dot in the Nexus and the reason in
-   the page header.
+5. What needs attention? A vermillion dot on the category, and the reason in
+   the page header and on the category page.
 
 ## Flow
 
 ```text
 SUPER+I
-  keybinds.lua: global cortetsu:settings
   Shortcuts.qml: screenState.settings = true (exclusive with other drawers)
-  SettingsHost.qml: FloatingWindow.visible; Loader builds Content
+  SettingsHost.qml: FloatingWindow; Loader builds Content
   settings/Content.qml
-    SettingsContext    live state of every domain, summary and alert per page
-    Nexus              end-4 navigation with eight destinations, search, collapse
-    Loader             the one page that is selected
-      pages/*.qml
-        sections/*.qml, NetworkPage.qml (composed by product area)
-        controls/*     SettingsGroup, SettingToggleRow, SettingSliderRow,
-                       SettingActionRow, SettingValueRow
-  services             CortetsuConfig, Schemes, CortetsuColours, Connectivity,
-                       CortetsuAudio, CortetsuPower, Brightness,
-                       DisplayCalibration, CortetsuNotifications
+    SettingsContext    live state of every domain; summary and alert per page
+    Nexus              sidebar: search, categories, results, compact mode
+    SettingsHeader     back, breadcrumb path, summary, save indicator
+    PageRegistry       destination id -> page component
+    Loader             the one page that is open
+      pages/*.qml          Home, category pages, About
+      controls/SettingsPage.qml   the shared page container (width contract)
+        sections/*.qml     each reads and writes its own service
+        controls/*         SettingsGroup, SettingsColumns, SettingChoiceChips,
+                           SettingToggleRow, SettingSliderRow, SettingNavRow,
+                           SettingActionRow, SettingValueRow, ThemePreview
+  SettingsController   category, subpage, history, search, legacy deep links
   persistence          ~/.config/cortetsu/preferences.json
                        ~/.local/state/cortetsu/scheme.json
 ```
 
-## Pages and retained Cortetsu settings
+## Categories and subpages
 
-| Reference page | Composed Cortetsu sections | Backend and saved state |
-| --- | --- | --- |
-| Quick Settings | Appearance | `Schemes`, `CortetsuColours`, `CortetsuThemes`, `CortetsuConfig`; palette variants regenerate Material roles from the saved seed and mode |
-| General | Audio, power, input | PipeWire/audio services, power service, Hyprland keyboard state and `preferences.json` |
-| Bar | Bottom Hub | `CortetsuConfig.bottomHub` and bar preferences |
-| Background | Wallpaper | Wallpaper service, scheme ownership, `preferences.json` and `scheme.json` |
-| Interface | Dashboard, launcher, notifications | Dashboard/launcher services, notification service and `preferences.json` |
-| Services | Network, Bluetooth, automation | Connectivity and policy bridge; service state remains owned outside Settings |
-| Advanced | Display, shortcuts | Brightness/display calibration and `cortetsu-keybinds`; persisted through the existing owners |
-| About | About | Read-only build metadata from the active generation |
+| Category | Subpages |
+| --- | --- |
+| Inicio | Desktop overview, status tiles, frequent switches, usual pages |
+| Sistema | Pantalla, Sonido, Energía y batería, Atajos de teclado, Capturas y grabación |
+| Bluetooth y dispositivos | Bluetooth, Teclado y entrada |
+| Red e Internet | Wi-Fi (opens directly) |
+| Personalización | Temas, Colores, Fondo, Bottom Hub, Paneles laterales |
+| Interfaz | Lanzador, Notificaciones, Indicadores y formatos |
+| Aplicaciones y servicios | Automatización, Clima |
+| Accesibilidad | Movimiento y contraste (opens directly) |
+| Avanzado | Sincronización de aplicaciones, Perfiles y recuperación, Diagnóstico |
+| Acerca de Cortetsu | Identity, components and their state, credits, documentation |
 
-The rail and filter route to the eight pages. Existing domain IDs remain valid
-as deep links through `SettingsController.pageForSection()`, so older internal
-callers still open the correct composed page.
+A category with one subpage opens straight on it; otherwise it shows its own
+page: one row per subpage with what it holds and how it stands. Every setting
+of the previous eight pages is still present (`test-cortetsu-settings.py`
+checks that every preference written has a reader and every section is shown
+by some page). Old ids (`quick`, `general`, `bar`, `services`, `audio`,
+`appearance`, `wallpaper`, ...) remain valid deep links through
+`SettingsController.legacy`.
+
+## Page width contract
+
+Every page sits in `controls/SettingsPage.qml`. A `form` page keeps a readable
+column of at most 780 px; a `wide` page (galleries, grids, two columns) at most
+1120 px. The column is centred in the main panel, so the free space is equal
+on both sides, and `SettingsColumns` puts groups side by side only from 900 px.
+The header uses the same column. The runtime test checks, for every
+destination and at 1368×900, 880×620 and 1100×720 at scale 1.25: the page fits,
+the margins differ by at most 2 px, no visible control leaves the column, and
+no category name in the expanded sidebar is cut.
+
+## Theme identity and colour precedence
+
+A theme is more than a palette. `theme-profiles.json` sets, per theme:
+
+| | Ink | Washi | Kurogane |
+| --- | --- | --- | --- |
+| Material (`materialStyle`) | sumi wash, grain, hairline | paper lit from above, fibres, soft shadow, no edge | matte steel gradient, brushed streaks, crisp outline, bevel, corner marks |
+| Headings | Rubik | Noto Serif, weight 500 | Adwaita Sans, small labels in capitals with tracking |
+| Geometry | radius 8–28 | soft, 10–24 | angular, 2–8; buttons and chips square |
+| Density | row 52 | airy, row 58, sections 40 | compact, row 44, control 30 |
+| Motion | 200 ms | 240 ms | 120 ms |
+
+`CortetsuInkPanel` draws the three materials and is under every large
+surface and popout, so the identity reaches Settings, Bottom Hub, Dashboard,
+launcher, Hardware Center, OSD, popouts and dialogs together.
+
+Colour precedence, resolved once in `cortetsu-scheme effective` and shared by
+QML and the native projections:
+
+1. The theme's palette is the base.
+2. A selected scheme (manual or from the wallpaper) overrides it. In Ink it
+   overrides every role. Washi and Kurogane **own their ground** (background,
+   surfaces, text, outlines and terminal colours): the scheme only sets their
+   accents, toned until they keep 3:1 on that ground, with containers rebuilt
+   from them. Washi stays paper and Kurogane steel with any scheme, and their
+   mode is fixed (light and dark respectively).
+3. The user's per-theme tokens (Personalización › Temas › Material,
+   tipografía y geometría) win over both.
 
 ## Resource model
 
 - A closed Settings holds nothing: `SettingsHost` builds `Content` only while
   the window is visible.
 - Only the selected page exists. Selecting another destroys it and builds the
-  next one. Each of the eight pages composes Cortetsu's existing feature
-  sections; the sections keep their original service and persistence owners.
-  Domain deep links such as `network` select their containing page (`services`).
+  next one. Each subpage composes Cortetsu's existing feature sections; the
+  sections keep their original service and persistence owners. Domain deep
+  links such as `network` select their subpage (`wifi`).
   The page that is open is kept in `SettingsController`, so reopening returns
   to it.
 - Settings adds no resident polling. Explicit palette, projection and profile
@@ -89,7 +137,7 @@ A change touches the properties that depend on it and nothing else.
 
 | Change | What updates | What must not happen |
 | --- | --- | --- |
-| Colour token or scheme | `CortetsuDesign` tokens notify; colours repaint | No page, row, card or Nexus entry is recreated; Settings stays open |
+| Colour token or scheme | `CortetsuDesign` tokens notify; colours repaint | No page, row, card or sidebar entry is recreated; Settings stays open |
 | Scheme applied | `scheme.json` changes; `Schemes.currentScheme` follows it; the selected card moves | No catalogue reload, no second query for the current scheme |
 | Catalogue gains or loses a scheme | One `Scheme` object and one card are added or removed | The other cards are not rebuilt |
 | Filter text | Cards and rows are hidden | No model is replaced |
@@ -111,7 +159,7 @@ change only calls the backend; the switch moves when the backend does.
 | --- | --- |
 | In flight | The row says "Aplicando…" and ignores further presses |
 | Applied | The switch moves; preferences show "Guardado" for two seconds |
-| Failed | The switch stays on the real value; the row gives the reason in vermillion; the Nexus flags the page |
+| Failed | The switch stays on the real value; the row gives the reason in vermillion; the sidebar flags the category |
 | Not available | The control is replaced by "No disponible" or a message saying what is missing; the rest of the page works |
 | Save failed | "No se pudo guardar" stays in the header until a later write succeeds |
 
@@ -135,17 +183,22 @@ to transient volume or brightness feedback.
 
 | Key | Effect |
 | --- | --- |
-| `Tab`, `Shift+Tab` | Nexus (search, collapse, current destination), Close, then the page top to bottom. Disabled and read-only rows are skipped |
-| `Up`, `Down` in the Nexus | Open the previous or next destination; the focus moves with it |
-| `Right` in the Nexus, `Left` in the page | Enter the page, return to the Nexus |
+| `Tab`, `Shift+Tab` | Sidebar (collapse, search, current category), the header (back, path, close), then the page top to bottom. Disabled and read-only rows are skipped |
+| `Up`, `Down` in the sidebar | Open the previous or next category; the focus moves with it |
+| `Right` in the sidebar, `Left` in the page | Enter the page, return to the sidebar |
 | `Enter`, `Space` | Activate the focused control |
+| `Left`, `Right` on choices and the clock grid | Move between options (`Up`, `Down` too on the grid) |
 | `Left`, `Right`, `Home`, `End` on a slider | Change the value |
 | `Ctrl+F` | Focus the search |
-| `Enter`, `Down` in the search | Open the first result |
+| `Down` in the search, then `Up`/`Down` | Move through the results |
+| `Enter` in the search or on a result | Open the setting |
+| `Alt+Left`, `Back` | Go back to the previous page, at the scroll position it was left |
+| `Ctrl+PgDown`, `Ctrl+PgUp` | Next or previous category |
 | `Escape` | Clear the search if it has text; otherwise close Settings |
 
-The focused control is scrolled into view. Below 940 px of content width the
-Nexus shows icons only, with the destination and its state in a tooltip.
+The focused control is scrolled into view. Below 1000 px of window content
+the sidebar shows icons only, with the category and its state in a tooltip;
+its button forces either mode.
 
 ## Existing preferences and control coverage
 
