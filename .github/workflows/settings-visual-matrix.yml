@@ -1,0 +1,60 @@
+name: Settings visual matrix
+# The full Settings matrix: 30 pages in Ink, Washi and Kurogane under six
+# conditions (540 renders, about an hour). Run on demand; the renders are an
+# artifact, not commits. Push CI already keeps the scenario renders.
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  matrix:
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    timeout-minutes: 150
+    steps:
+      - name: Install cloud test dependencies
+        run: |
+          pacman -Syu --noconfirm base-devel git python nodejs qt6-declarative quickshell rust go libxkbcommon dbus weston libnotify noto-fonts fontconfig ttf-material-symbols-variable
+          # A minimal Arch image has no fonts; Qt then measures missing glyphs
+          # at one em each, which is not a usable desktop text environment.
+          cortetsu_test_font="$(fc-match --format='%{file}' Rubik)"
+          test -n "$cortetsu_test_font"
+          test -r "$cortetsu_test_font"
+          fc-match Rubik
+          # fc-match silently returns Noto for an absent font. Verify the
+          # icon family instead of accepting a readable fallback.
+          icon_family="$(fc-match --format='%{family[0]}' 'Material Symbols Rounded')"
+          case "$icon_family" in
+            *"Material Symbols Rounded"*) echo "Material Symbols Rounded: $icon_family" ;;
+            *) echo "::error::Required icon font not resolved: $icon_family" >&2; exit 1 ;;
+          esac
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
+      - name: Trust the fixture repository for git
+        run: git config --system --add safe.directory "$GITHUB_WORKSPACE"
+      - uses: actions/cache/restore@v5
+        id: native-cache
+        with:
+          path: |
+            /root/.cargo/registry
+            /root/.cargo/git
+            cortetsu/*/target
+          key: native-arch-${{ hashFiles('cortetsu/**/Cargo.lock') }}
+      - name: Start an isolated runner system bus
+        run: |
+          mkdir -p /run/dbus
+          dbus-daemon --system --fork
+      - name: Build the native runtime
+        id: native-build
+        run: scripts/build-native.sh
+      - name: Render every page in every theme and condition
+        run: dbus-run-session -- python3 scripts/features/test-cortetsu-settings-visual.py --out "${{ runner.temp }}/settings-matrix"
+      - name: Keep the matrix
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: cortetsu-settings-visual-matrix
+          path: ${{ runner.temp }}/settings-matrix/
+          if-no-files-found: error
+          retention-days: 30

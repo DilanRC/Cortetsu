@@ -1,5 +1,7 @@
 # Settings: todas las páginas en los tres temas
 
+> Línea base anterior a Bluetooth 2.0 y a Pantalla integrada. El estado posterior y la matriz actual están en [`../settings-2-20261109/`](../settings-2-20261109/README.md).
+
 Capturas del arnés aislado (`scripts/features/test-cortetsu-settings-visual.py`), 1368×900, condición por defecto, commit `59ba7a53`. La matriz completa (540 capturas: estrecha, escala 1.25, transparencia, esquemas claro/oscuro) se regenera con ese script.
 
 | Página | Ink | Washi | Kurogane |
