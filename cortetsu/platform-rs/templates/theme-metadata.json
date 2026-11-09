@@ -191,6 +191,7 @@
     ]
   ],
   "READABLE_TEXT_ROLES": [
+    "colorVermillion",
     "colorWashi",
     "colorOnSurface",
     "colorMuted",
@@ -198,6 +199,7 @@
     "colorOnSurfaceVariant"
   ],
   "INDICATOR_ROLES": [
-    "colorIndicator"
+    "colorIndicator",
+    "colorOutline"
   ]
 }

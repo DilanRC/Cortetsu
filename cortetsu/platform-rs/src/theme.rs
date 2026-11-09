@@ -269,7 +269,19 @@ fn outputs(repo: &Path, v: &Value) -> Result<Vec<(PathBuf, String)>> {
                     ("color", read)
                 }
             } else if value.starts_with('"') {
-                ("color", format!("Defaults.{name}"))
+                // A fixed colour used as text (vermillion errors) still has to
+                // read at 4.5:1 on whatever surface the scheme brings.
+                let text_role = meta["READABLE_TEXT_ROLES"]
+                    .as_array()
+                    .is_some_and(|roles| roles.iter().any(|r| r == name));
+                if text_role {
+                    (
+                        "color",
+                        format!("readable(Defaults.{name}, [colorTetsu, colorSurfaceHigh])"),
+                    )
+                } else {
+                    ("color", format!("Defaults.{name}"))
+                }
             } else {
                 ("color", value.to_owned())
             };
