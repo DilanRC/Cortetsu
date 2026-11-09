@@ -412,6 +412,7 @@ test_cmd() {
     run_node_test "scripts/features/test-ascension-motion.js"
     run_node_test "scripts/features/test-connectivity-wifi-policy.cjs"
     run_node_test "scripts/features/test-connectivity-bluetooth.mjs"
+    run_node_test "scripts/features/test-settings-bluetooth-devices.mjs"
     run_node_test "scripts/features/test-hypr-shell-layer-rules.cjs"
     local directory
     for directory in focus components hardware hypr keyboards settings surfaces calendar pomodoro bottomhub polkit prompt launcher areapicker themes policy; do

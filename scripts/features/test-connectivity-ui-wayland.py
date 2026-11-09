@@ -25,6 +25,7 @@ import QtTest
 import Quickshell
 import qs.modules.settings as Settings
 import qs.modules.settings.sections as Sections
+import qs.modules.settings.bluetooth as BluetoothSettings
 import qs.services
 import qs.modules
 ShellRoot {
@@ -50,7 +51,7 @@ ShellRoot {
             ColumnLayout {
                 width: window.width - 32
                 Loader { id: wifi; Layout.fillWidth: true; Layout.preferredHeight: item?.implicitHeight ?? 0; active: root.page===0; visible: active; sourceComponent: Settings.NetworkPage { context: settingsContext } }
-                Loader { id: bt; Layout.fillWidth: true; Layout.preferredHeight: item?.implicitHeight ?? 0; active: root.page===1; visible: active; sourceComponent: Sections.BluetoothSection { context: settingsContext } }
+                Loader { id: bt; Layout.fillWidth: true; Layout.preferredHeight: item?.implicitHeight ?? 0; active: root.page===1; visible: active; sourceComponent: BluetoothSettings.BluetoothPage { context: settingsContext } }
             }
         }
         TestCase { id: input; when:false; optional:true }

@@ -5,6 +5,7 @@ import QtQuick.Layouts
 import "controls"
 import "pages"
 import "sections"
+import "bluetooth"
 
 // What each destination shows. A page is created only while it is open; the
 // sections inside it are the same ones whatever page holds them, and each
@@ -60,7 +61,8 @@ QtObject {
     }
     readonly property Component bluetooth: Component {
         SettingsPage {
-            BluetoothSection { context: root.context }
+            kind: "wide"
+            BluetoothPage { context: root.context; Layout.fillWidth: true }
         }
     }
     readonly property Component input: Component {

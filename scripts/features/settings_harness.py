@@ -83,26 +83,54 @@ QtObject {
     id: root
     property bool available: true
     property bool enabled: true
+    property bool discovering: enabled && Object.keys(scanOwners).length > 0
+    property var scanOwners: ({})
     readonly property var adapter: available ? adapterObject : null
-    readonly property QtObject adapterObject: QtObject { property string dbusPath: "/org/bluez/hci0" }
+    readonly property var adapters: available ? [adapterObject] : []
+    readonly property QtObject adapterObject: QtObject {
+        property string dbusPath: "/org/bluez/hci0"
+        property string name: "stelar"
+        property string adapterId: "hci0"
+        property bool discoverable: false
+    }
     property var allDevices: [
-        { name: "Auriculares", connected: true, paired: true, adapter: adapterObject },
-        { name: "Teclado", connected: false, paired: true, adapter: adapterObject }
+        { name: "Auriculares", address: "A0:5A:5F:74:12:C6", icon: "audio-headphones", connected: true, paired: true, bonded: true,
+          trusted: true, blocked: false, batteryAvailable: true, battery: 0.82, dbusPath: "/org/bluez/hci0/dev_A0", adapter: adapterObject },
+        { name: "Teclado", address: "12:11:B7:DC:06:70", icon: "input-keyboard", connected: false, paired: true, bonded: true,
+          trusted: false, blocked: false, batteryAvailable: false, battery: 0, dbusPath: "/org/bluez/hci0/dev_12", adapter: adapterObject },
+        { name: "Mando inalámbrico", address: "5C:BA:37:01:9E:44", icon: "input-gaming", connected: false, paired: false, bonded: false,
+          trusted: false, blocked: false, batteryAvailable: false, battery: 0, dbusPath: "/org/bluez/hci0/dev_5C", adapter: adapterObject }
     ]
+    readonly property var devices: available ? allDevices : []
     readonly property int connectedCount: allDevices.filter(device => device.connected).length
+    readonly property string authenticationNotice: "Pulsa Emparejar con el dispositivo en modo de emparejamiento. Si pide un código o un PIN, Cortetsu lo pregunta en un diálogo."
     property var operation: ({ id: 0, kind: "", state: "idle", target: null, lastError: "", lastErrorCode: "", retryable: false })
     property var operationTarget: null
     property bool pendingEnabled: false
     readonly property bool busy: operation.state === "pending"
 
+    function propertyValue(device, name) { return !!device?.[name]; }
+    function setScanOwner(owner, active) {
+        const next = Object.assign({}, scanOwners);
+        if (active) next[owner] = true; else delete next[owner];
+        scanOwners = next;
+    }
+    function begin(kind, target) {
+        operationTarget = target;
+        operation = { id: operation.id + 1, kind: kind, state: "pending", target: target, lastError: "", lastErrorCode: "", retryable: false };
+    }
     function selectAdapter(value) {}
-    function connectDevice(device) { operationTarget = device; operation = { id: operation.id + 1, kind: "connect", state: "pending", target: device, lastError: "", lastErrorCode: "", retryable: false }; }
-    function disconnectDevice(device) { connectDevice(device); }
-    function pairDevice(device) { connectDevice(device); }
+    function connectDevice(device) { begin("connect", device); }
+    function disconnectDevice(device) { begin("disconnect", device); }
+    function pairDevice(device) { begin("pair", device); }
+    function forgetDevice(device) { begin("forget", device); }
+    function setTrusted(device, value) { begin("trusted", device); }
+    function setBlocked(device, value) { begin("blocked", device); }
+    function setDiscoverable(value) { begin("discoverable", adapter); }
+    function cancelPair() { if (busy && operation.kind === "pair") operation = Object.assign({}, operation, { state: "cancelled" }); }
     function setEnabled(value) {
         pendingEnabled = value;
-        operationTarget = adapter;
-        operation = { id: operation.id + 1, kind: "power", state: "pending", target: adapter, lastError: "", lastErrorCode: "", retryable: false };
+        begin("power", adapter);
     }
     function settle(ok) {
         if (ok && operation.kind === "power")

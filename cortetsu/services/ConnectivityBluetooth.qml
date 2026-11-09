@@ -20,8 +20,7 @@ Singleton {
     readonly property int connectedCount: allDevices.filter(d => d.connected).length
     readonly property string state: !adapter ? "unavailable" : BluetoothAdapterState.toString(adapter.state).toLowerCase()
     readonly property bool discovering: adapter?.discovering ?? false
-    readonly property bool authenticationSupported: false
-    readonly property string authenticationNotice: qsTr("Si el dispositivo pide un PIN o confirmar un código, Cortetsu lo pregunta en un diálogo.")
+    readonly property string authenticationNotice: qsTr("Pulsa Emparejar con el dispositivo en modo de emparejamiento. Si pide un código o un PIN, Cortetsu lo pregunta en un diálogo.")
     property var operation: ({id: 0, kind: "", state: "idle", target: null, startedAt: 0,
         lastError: "", lastErrorCode: "", retryable: false})
     property var scanOwners: ({})

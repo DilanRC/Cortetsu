@@ -717,6 +717,66 @@ ShellRoot {
             verify(find(memo.bt, "switch").checked && memo.bt.status === "error" && text("bluetoothPower") === "El adaptador no respondió", "a failed power change keeps the real state and explains");
             render("bluetooth-error");
         }],
+        [null, () => { bluetooth.operation = Object.assign({}, bluetooth.operation, { state: "idle" }); }],
+        [() => !!page("bluetoothDeviceList") && page("bluetoothDeviceList").count === 3, () => {
+            verify(bluetooth.discovering && Object.keys(bluetooth.scanOwners).length === 1, "the open page owns one discovery");
+            verify(page("bluetoothDeviceList").width >= 320 && page("bluetoothInspector").width >= 400, "explorer and inspector share the wide page");
+            verify(page("bluetoothDeviceName").text === "Auriculares" && page("bluetoothBattery").visible
+                && page("bluetoothBattery").value === "82 %", "a connected device is selected first and shows its BlueZ battery");
+            verify(page("bluetoothPrimary").label === "Desconectar" && !page("bluetoothPairingNotice").visible, "a connected device offers to disconnect");
+            render("bluetooth-connected");
+        }],
+        [null, () => { page("bluetoothFilter-new").clicked(); }],
+        [() => page("bluetoothDeviceList").count === 1, () => {
+            verify(page("bluetoothDeviceName").text === "Mando inalámbrico" && page("bluetoothPrimary").label === "Emparejar", "the new filter shows devices that can be paired");
+            verify(page("bluetoothPairingNotice").visible && !page("bluetoothForget").visible && !page("bluetoothBlock").visible
+                && !page("bluetoothBattery").visible, "an unpaired device explains pairing and offers nothing to forget nor an invented battery");
+            page("bluetoothPrimary").clicked();
+            verify(bluetooth.busy && bluetooth.operation.kind === "pair" && page("bluetoothCancelPair").visible
+                && page("bluetoothDeviceState").text === "Emparejando…", "pairing is shown in flight with a way to cancel");
+            render("bluetooth-pairing");
+        }],
+        [null, () => { bluetooth.settle(false); }],
+        [() => !bluetooth.busy, () => {
+            verify(page("bluetoothError").visible && page("bluetoothPrimary").visible, "a failed pairing explains and can be retried");
+            render("bluetooth-pair-failed");
+        }],
+        [null, () => {
+            page("bluetoothPrimary").clicked();
+            page("bluetoothCancelPair").clicked();
+            verify(!bluetooth.busy && bluetooth.operation.state === "cancelled", "cancelling stops the pairing");
+            page("bluetoothFilter-paired").clicked();
+        }],
+        [() => page("bluetoothDeviceList").count === 2, () => {
+            root.memo.btSelect = page("bluetoothDeviceList");
+            root.memo.btSelect.forceActiveFocus();
+            key(Qt.Key_Down);
+            verify(page("bluetoothDeviceName").text === "Teclado" && page("bluetoothPrimary").label === "Conectar", "the keyboard moves the selection");
+            verify(!page("bluetoothTrusted").checked, `trust follows the selected device (${page("bluetoothTrusted").checked}, ${bluetooth.propertyValue(bluetooth.allDevices[1], "trusted")})`);
+            const forget = page("bluetoothForget");
+            forget.clicked();
+            verify(!bluetooth.busy && forget.label === "Confirmar", "forgetting needs a second press");
+            forget.clicked();
+            verify(bluetooth.busy && bluetooth.operation.kind === "forget", "the second press forgets");
+            bluetooth.settle(true);
+            const block = page("bluetoothBlock");
+            block.clicked();
+            verify(!bluetooth.busy && block.label === "Confirmar bloqueo", "blocking needs a second press");
+            verify(!page("bluetoothTrusted").checked && page("bluetoothDeviceList").currentItem?.selected, "the inspected device is the highlighted one and keeps its own trust");
+        }],
+        // Let the selection and switch transitions finish before the picture.
+        [() => waitedMs >= 400, () => {
+            render("bluetooth-confirm-block");
+        }],
+        [null, () => {
+            const block = page("bluetoothBlock");
+            block.clicked();
+            verify(bluetooth.operation.kind === "blocked", "the second press blocks");
+            bluetooth.settle(true);
+            page("bluetoothTrusted").toggled(true);
+            verify(bluetooth.operation.kind === "trusted", "trust is a decision the user makes");
+            bluetooth.settle(true);
+        }],
         [null, () => {
             bluetooth.available = false;
         }],
@@ -727,6 +787,9 @@ ShellRoot {
         }],
         [null, () => {
             select("audio");
+        }],
+        [() => content.pageId !== "bluetooth", () => {
+            verify(Object.keys(bluetooth.scanOwners).length === 0, "leaving Bluetooth releases its discovery");
         }],
         [() => ["sound", "power", "input"].includes(content.pageId) && !!page("outputVolume"), () => {
             verify(find(page("outputVolume"), "sliderValue").text === "62 %" && get("nexus-system").value.includes("62 %"), "the volume is the real one");
@@ -2160,7 +2223,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     host = run_host(folder)
     assert not host or "SETTINGS_HOST_PASS 1" in host, host
 
-    assert (reactivity, navigation, states, unwritable, pages) == (48, 56, 42, 3, 120), (reactivity, navigation, states, unwritable, pages)
+    assert (reactivity, navigation, states, unwritable, pages) == (48, 56, 60, 3, 120), (reactivity, navigation, states, unwritable, pages)
 assert policies == 16, policies
 print(f"Settings builds in {opened.split()[0]} ms ({opened.split()[1]} items); "
       f"20 cycles of open, every destination and close take {cycles} ms")
