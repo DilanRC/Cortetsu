@@ -34,3 +34,12 @@ Capturas del arnés aislado (`scripts/features/test-cortetsu-settings-visual.py`
 | themes | ![](ink/themes.png) | ![](washi/themes.png) | ![](kurogane/themes.png) |
 | weather | ![](ink/weather.png) | ![](washi/weather.png) | ![](kurogane/weather.png) |
 | wifi | ![](ink/wifi.png) | ![](washi/wifi.png) | ![](kurogane/wifi.png) |
+
+## Otras condiciones
+
+Cada carpeta de tema contiene además una subcarpeta por condición, con las 30 páginas:
+
+- `narrow/`: ventana estrecha (880×620).
+- `fractional/`: escala 1.25.
+- `transparent/`: superficies transparentes activadas.
+- `aura-light/`, `aura-dark/`: esquemas de color reales, claro y oscuro, dentro del tema.
