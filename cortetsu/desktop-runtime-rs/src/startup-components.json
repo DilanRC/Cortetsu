@@ -380,7 +380,7 @@
   {
     "id": "cortetsu:display-presets",
     "name": "Display preset query",
-    "source": "modules/settings/display/DisplayPresetStore.qml",
+    "source": "services/DisplayPresetStore.qml",
     "qmlId": "worker",
     "startupPhase": "on-demand",
     "condition": "Al abrir Ajustes → Pantalla",
@@ -392,7 +392,7 @@
   {
     "id": "cortetsu:display-probe",
     "name": "Display inventory",
-    "source": "modules/settings/display/DisplayModel.qml",
+    "source": "services/DisplayModel.qml",
     "qmlId": "probe",
     "startupPhase": "on-demand",
     "condition": "Al abrir Ajustes → Pantalla",
@@ -404,7 +404,7 @@
   {
     "id": "cortetsu:display-preview-status",
     "name": "Display preview status",
-    "source": "modules/settings/display/DisplayTransaction.qml",
+    "source": "services/DisplayTransaction.qml",
     "qmlId": "statusProbe",
     "startupPhase": "on-demand",
     "condition": "Al abrir Ajustes → Pantalla",

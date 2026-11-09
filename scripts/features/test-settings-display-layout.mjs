@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 
 // Settings → Pantalla arrangement helpers.
-const source = fs.readFileSync(new URL('../../cortetsu/modules/settings/display/DisplayLayout.js', import.meta.url), 'utf8');
+const source = fs.readFileSync(new URL('../../cortetsu/services/DisplayLayout.js', import.meta.url), 'utf8');
 const layout = vm.createContext({});
 vm.runInContext(source.replace(/^\.pragma library$/m, ''), layout);
 const plain = value => JSON.parse(JSON.stringify(value));

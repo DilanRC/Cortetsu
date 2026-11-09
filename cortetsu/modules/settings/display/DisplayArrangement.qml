@@ -5,7 +5,7 @@ import "../../../components"
 import "../.."
 import "../../../theme"
 import "../../CortetsuTypography.js" as CortetsuTypography
-import "DisplayLayout.js" as Arrange
+import "../../../services/DisplayLayout.js" as Arrange
 
 // The outputs drawn to scale. Click selects; dragging moves an output and it
 // snaps to the others' edges. Left and Right change the selection.

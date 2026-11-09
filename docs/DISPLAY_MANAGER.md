@@ -1,7 +1,8 @@
 # Cortetsu Display Manager
 
 The display manager lives in **Settings → Sistema → Pantalla**
-(`cortetsu/modules/settings/display/`). There is no separate editor surface:
+(views in `cortetsu/modules/settings/display/`, the logic that runs the tools in
+`cortetsu/services/Display*.qml`). There is no separate editor surface:
 `Super+Shift+O`, the IPC target `display` (`qs ipc call display open`) and the
 launcher's "Pantallas" action keep the `displayManager` surface key, and
 `modules/display/Wrapper.qml` turns that request into Settings opened on that
@@ -56,7 +57,7 @@ No normal Display Manager action edits EDID data, creates arbitrary modelines, o
 - `cortetsu/bin/cortetsu-display-probe`, `-plan`, `-transaction`, `-persist`, `-presets` (native owner: `hardware-runtime-rs/src/display.rs`)
 - `cortetsu/modules/DisplayController.qml` (shortcut, IPC)
 - `cortetsu/modules/display/Wrapper.qml` (redirect to Settings)
-- `cortetsu/modules/settings/display/` (the page)
+- `cortetsu/modules/settings/display/` (the page) and `cortetsu/services/DisplayModel.qml`, `DisplayTransaction.qml`, `DisplayPresetStore.qml`, `DisplayLayout.js`
 
 ## Open and verify
 
