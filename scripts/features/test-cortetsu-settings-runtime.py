@@ -757,6 +757,10 @@ ShellRoot {
             root.memo.btSelect.forceActiveFocus();
             key(Qt.Key_Down);
             verify(page("bluetoothDeviceName").text === "Teclado" && page("bluetoothPrimary").label === "Conectar", "the keyboard moves the selection");
+            key(Qt.Key_Return);
+            verify(bluetooth.busy && bluetooth.operation.kind === "connect" && bluetooth.operation.target.name === "Teclado",
+                "Enter on the list runs the selected device's main action");
+            bluetooth.settle(true);
             verify(!page("bluetoothTrusted").checked, `trust follows the selected device (${page("bluetoothTrusted").checked}, ${bluetooth.propertyValue(bluetooth.allDevices[1], "trusted")})`);
             const forget = page("bluetoothForget");
             forget.clicked();
@@ -2325,7 +2329,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     host = run_host(folder)
     assert not host or "SETTINGS_HOST_PASS 1" in host, host
 
-    assert (reactivity, navigation, states, unwritable, pages) == (48, 58, 60, 3, 151), (reactivity, navigation, states, unwritable, pages)
+    assert (reactivity, navigation, states, unwritable, pages) == (48, 58, 61, 3, 151), (reactivity, navigation, states, unwritable, pages)
 assert policies == 16, policies
 print(f"Settings builds in {opened.split()[0]} ms ({opened.split()[1]} items); "
       f"20 cycles of open, every destination and close take {cycles} ms")
