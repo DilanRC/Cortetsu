@@ -4,6 +4,33 @@ use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use std::{fs, os::unix::fs::PermissionsExt, path::Path};
 
+// Roles that carry a theme's identity rather than its palette: the ground,
+// its text and edges. The terminal colours (term*) belong to it as well.
+// Washi keeps its paper and Kurogane its steel whatever scheme is chosen;
+// the scheme still sets their accents.
+const GROUND_ROLES: [&str; 9] = [
+    "background",
+    "surface",
+    "surfaceContainer",
+    "surfaceContainerHigh",
+    "onSurface",
+    "onSurfaceVariant",
+    "outline",
+    "outlineVariant",
+    "success",
+];
+// Accents a scheme may move, and the contrast each keeps on the owned ground.
+const ACCENT_ROLES: [(&str, f64); 4] = [
+    ("primary", 3.0),
+    ("secondary", 3.0),
+    ("tertiary", 3.0),
+    ("inversePrimary", 3.0),
+];
+
+fn owns_ground(id: &str) -> bool {
+    id != "ink"
+}
+
 pub fn effective(saved: &Value) -> Result<Value> {
     let id = saved["themeId"].as_str().unwrap_or("ink");
     if !["ink", "washi", "kurogane"].contains(&id) {
@@ -11,50 +38,96 @@ pub fn effective(saved: &Value) -> Result<Value> {
     }
     let palettes: Value = serde_json::from_str(include_str!("../../theme/ThemePalettes.json"))?;
     let mut colours = palettes.get(id).unwrap_or(&palettes["ink"]).clone();
+    let owned = owns_ground(id);
+    let mut accented = false;
     // Explicit selections override theme defaults. Invalid colours never reach a file.
     for (role, value) in saved["colours"].as_object().into_iter().flatten() {
         hex(value)?;
+        let term = role.starts_with("term");
+        if owned && (GROUND_ROLES.contains(&role.as_str()) || term) {
+            continue;
+        }
+        accented |= owned && ACCENT_ROLES.iter().any(|(name, _)| name == role);
         colours[role] = value.clone();
     }
     for value in colours.as_object().ok_or("invalid palette")?.values() {
         hex(value)?;
     }
-    // Resolve text contrast once so native consumers and QML receive the same
-    // adjusted roles. The small margin prevents rounding across QML's 4.5 gate.
     let surfaces = [
         rgb(&colours["surface"])?,
         rgb(&colours["surfaceContainerHigh"])?,
     ];
-    for role in ["onSurface", "onSurfaceVariant"] {
-        let from = rgb(&colours[role])?;
-        let target = if surfaces.iter().all(|c| luminance(*c) < 0.18) {
-            1.0
-        } else {
-            0.0
-        };
-        for step in 0..=20 {
-            let t = step as f64 / 20.0;
-            let mixed = from.map(|c| ((c + (target - c) * t) * 255.0).round() / 255.0);
-            if surfaces.iter().all(|s| contrast(mixed, *s) >= 4.55) || step == 20 {
-                colours[role] = json!(format!(
-                    "#{:02X}{:02X}{:02X}",
-                    (mixed[0] * 255.0) as u8,
-                    (mixed[1] * 255.0) as u8,
-                    (mixed[2] * 255.0) as u8
-                ));
-                break;
-            }
+    let light_ground = !surfaces.iter().all(|c| luminance(*c) < 0.18);
+    if accented {
+        // A dark scheme's pastel accent would vanish on paper, a light
+        // scheme's deep one on steel: keep the hue, move the tone until it
+        // reads on the owned ground, and rebuild the containers from it.
+        for (role, ratio) in ACCENT_ROLES {
+            let toned = toward(rgb(&colours[role])?, !light_ground, &surfaces, ratio);
+            colours[role] = json!(to_hex(toned));
         }
+        let ground = rgb(&colours["surface"])?;
+        for (accent, container, on) in [
+            ("primary", "primaryContainer", "onPrimaryContainer"),
+            ("secondary", "secondaryContainer", "onSecondaryContainer"),
+        ] {
+            let accent = rgb(&colours[accent])?;
+            let mixed = blend(ground, accent, if light_ground { 0.2 } else { 0.32 });
+            colours[container] = json!(to_hex(mixed));
+            colours[on] = json!(to_hex(toward(accent, !light_ground, &[mixed], 4.55)));
+        }
+        let primary = rgb(&colours["primary"])?;
+        let white = contrast(primary, [1.0; 3]) >= contrast(primary, [0.0; 3]);
+        colours["onPrimary"] = json!(if white { "#FFFFFF" } else { "#000000" });
+    }
+    // Resolve text contrast once so native consumers and QML receive the same
+    // adjusted roles. The small margin prevents rounding across QML's 4.5 gate.
+    for role in ["onSurface", "onSurfaceVariant"] {
+        let mixed = toward(rgb(&colours[role])?, !light_ground, &surfaces, 4.55);
+        colours[role] = json!(to_hex(mixed));
     }
     let fallback_mode = if light_palette(&colours)? {
         "light"
     } else {
         "dark"
     };
-    Ok(
-        json!({"themeId":id,"colours":colours,"mode":saved["mode"].as_str().unwrap_or(fallback_mode),"version":1}),
+    // An owned ground decides the mode: a light Kurogane is not Kurogane.
+    let mode = if owned {
+        fallback_mode
+    } else {
+        saved["mode"].as_str().unwrap_or(fallback_mode)
+    };
+    Ok(json!({"themeId":id,"colours":colours,"mode":mode,"version":1}))
+}
+
+// `from` moved toward white (`lighten`) or black in twentieths, stopping at
+// the first step that reaches `ratio` on every surface. A colour that already
+// passes is returned unchanged.
+fn toward(from: [f64; 3], lighten: bool, surfaces: &[[f64; 3]], ratio: f64) -> [f64; 3] {
+    let target = if lighten { 1.0 } else { 0.0 };
+    for step in 0..=20 {
+        let t = step as f64 / 20.0;
+        let mixed = from.map(|c| ((c + (target - c) * t) * 255.0).round() / 255.0);
+        if surfaces.iter().all(|s| contrast(mixed, *s) >= ratio) || step == 20 {
+            return mixed;
+        }
+    }
+    unreachable!()
+}
+
+fn blend(a: [f64; 3], b: [f64; 3], amount: f64) -> [f64; 3] {
+    [0, 1, 2].map(|i| ((a[i] + (b[i] - a[i]) * amount) * 255.0).round() / 255.0)
+}
+
+fn to_hex(c: [f64; 3]) -> String {
+    format!(
+        "#{:02X}{:02X}{:02X}",
+        (c[0] * 255.0).round() as u8,
+        (c[1] * 255.0).round() as u8,
+        (c[2] * 255.0).round() as u8
     )
 }
+
 fn rgb(colour: &Value) -> Result<[f64; 3]> {
     let hex = hex(colour)?;
     let channel = |i| u8::from_str_radix(&hex[i..i + 2], 16).map(|c| c as f64 / 255.0);

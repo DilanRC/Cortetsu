@@ -59,6 +59,16 @@ var materialPopupGrain = 0.09
 var materialHairlineAlpha = 0.07
 var materialTransparencyFactor = 0.86
 
+// A theme's identity beyond colour. materialStyle picks how surfaces are
+// drawn (0 ink wash, 1 washi paper, 2 kurogane steel); the heading and label
+// tokens give each theme its own typographic voice.
+var materialStyle = 0
+var materialShadowAlpha = 0
+var fontHeading = "Rubik"
+var headingWeight = 600
+var labelCaps = 0
+var labelTracking = 0
+
 var overlayOpacity = 0.94
 var scrimOpacity = 0.22
 var outlineWidth = 1

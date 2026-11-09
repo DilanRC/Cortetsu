@@ -33,7 +33,7 @@
       "compact"
     ]
   },
-  "FONT_TOKENS": ["fontUi", "fontInk", "fontKanji"],
+  "FONT_TOKENS": ["fontUi", "fontInk", "fontHeading", "fontKanji"],
   "TOKEN_LIMITS": {
     "radiusSmall": [0, 24], "radiusMedium": [0, 32], "radiusSurface": [0, 40],
     "spacingSection": [16, 48], "rowHeight": [36, 72],

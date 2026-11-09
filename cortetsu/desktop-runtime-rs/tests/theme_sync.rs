@@ -39,7 +39,7 @@ fn effective_theme_palette_and_projection_failures_are_independent() {
             assert_eq!(palette["colours"]["surface"], "#F5EFE4");
         }
         if theme == "kurogane" {
-            assert_eq!(palette["colours"]["surface"], "#172029");
+            assert_eq!(palette["colours"]["surface"], "#171A1E");
         }
     }
     let result = payload(command(&home, "cortetsu-scheme", &["sync-projections"]));
@@ -111,7 +111,6 @@ fn toolkit_projections_preserve_kde_keys_and_restore_on_disable() {
 #[test]
 fn light_mode_is_persistent_and_keeps_theme_and_variant() {
     let home = TempDir::new().unwrap();
-    payload(command(&home, "cortetsu-scheme", &["theme", "kurogane"]));
     let result = payload(command(
         &home,
         "cortetsu-scheme",
@@ -119,9 +118,8 @@ fn light_mode_is_persistent_and_keeps_theme_and_variant() {
     ));
     assert_eq!(result["committed"], true);
     let palette = payload(command(&home, "cortetsu-scheme", &["effective"]));
-    assert_eq!(palette["themeId"], "kurogane");
+    assert_eq!(palette["themeId"], "ink");
     assert_eq!(palette["mode"], "light");
-    assert_ne!(palette["colours"]["surface"], "#172029");
     let bad = command(&home, "cortetsu-scheme", &["set", "--mode", "garbage"])
         .output()
         .unwrap();
@@ -130,6 +128,77 @@ fn light_mode_is_persistent_and_keeps_theme_and_variant() {
         payload(command(&home, "cortetsu-scheme", &["effective"])),
         palette
     );
+    // Kurogane owns its steel ground: a light mode leaves it dark.
+    payload(command(&home, "cortetsu-scheme", &["theme", "kurogane"]));
+    payload(command(
+        &home,
+        "cortetsu-scheme",
+        &["set", "--mode", "light"],
+    ));
+    let steel = payload(command(&home, "cortetsu-scheme", &["effective"]));
+    assert_eq!(steel["themeId"], "kurogane");
+    assert_eq!(steel["mode"], "dark");
+    assert_eq!(steel["colours"]["surface"], "#171A1E");
+}
+
+fn channels(value: &Value) -> [f64; 3] {
+    let hex = value.as_str().unwrap();
+    [1, 3, 5].map(|i| u8::from_str_radix(&hex[i..i + 2], 16).unwrap() as f64 / 255.0)
+}
+
+fn ratio(a: &Value, b: &Value) -> f64 {
+    let lum = |c: [f64; 3]| {
+        let l = c.map(|v| {
+            if v <= 0.03928 {
+                v / 12.92
+            } else {
+                ((v + 0.055) / 1.055).powf(2.4)
+            }
+        });
+        l[0] * 0.2126 + l[1] * 0.7152 + l[2] * 0.0722
+    };
+    let (x, y) = (lum(channels(a)), lum(channels(b)));
+    (x.max(y) + 0.05) / (x.min(y) + 0.05)
+}
+
+#[test]
+fn a_dark_scheme_tints_washi_without_darkening_its_paper() {
+    let home = TempDir::new().unwrap();
+    payload(command(&home, "cortetsu-scheme", &["theme", "washi"]));
+    let path = home.path().join("state/cortetsu/scheme.json");
+    let mut saved: Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+    // A dark Material scheme: pastel accent, near-black ground.
+    saved["colours"] = json!({
+        "background": "#111318", "surface": "#111318", "surfaceContainer": "#1D2024",
+        "surfaceContainerHigh": "#282A2F", "onSurface": "#E2E2E9", "onSurfaceVariant": "#C4C6D0",
+        "primary": "#AAC7FF", "secondary": "#BEC6DC", "tertiary": "#DDBCE0", "inversePrimary": "#415F91",
+        "outline": "#8E9099", "term0": "#111318", "term15": "#E2E2E9"
+    });
+    saved["mode"] = json!("dark");
+    fs::write(&path, serde_json::to_vec(&saved).unwrap()).unwrap();
+    let palette = payload(command(&home, "cortetsu-scheme", &["effective"]));
+    let c = &palette["colours"];
+    assert_eq!(palette["mode"], "light");
+    assert_eq!(c["surface"], "#F5EFE4");
+    assert_eq!(c["onSurface"], "#292824");
+    assert_eq!(c["term0"], "#F5EFE4");
+    // The accent keeps the scheme's blue but is deep enough to read on paper.
+    assert_ne!(c["primary"], "#334E68");
+    let p = channels(&c["primary"]);
+    assert!(p[2] > p[0], "the scheme's hue survives: {}", c["primary"]);
+    assert!(
+        ratio(&c["primary"], &c["surface"]) >= 3.0,
+        "{}",
+        c["primary"]
+    );
+    assert!(ratio(&c["onPrimaryContainer"], &c["primaryContainer"]) >= 4.5);
+    assert!(ratio(&c["onPrimary"], &c["primary"]) >= 4.5);
+    // Ink still follows the scheme all the way.
+    saved["themeId"] = json!("ink");
+    fs::write(&path, serde_json::to_vec(&saved).unwrap()).unwrap();
+    let ink = payload(command(&home, "cortetsu-scheme", &["effective"]));
+    assert_eq!(ink["colours"]["surface"], "#111318");
+    assert_eq!(ink["colours"]["primary"], "#AAC7FF");
 }
 
 #[test]
