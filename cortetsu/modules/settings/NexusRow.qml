@@ -101,8 +101,10 @@ Item {
 
     CortetsuTooltip {
         target: root
+        placement: "right"
         hovered: mouse.containsMouse
-        focused: root.activeFocus
+        // Keyboard focus only: a row focused on opening shows no tooltip.
+        focused: root.activeFocus && [Qt.TabFocusReason, Qt.BacktabFocusReason].includes(root.focusReason)
         text: root.alerting ? `${root.title}: ${root.alertText}`
             : root.value.length > 0 ? `${root.title} · ${root.value}`
             : root.collapsed ? root.title : ""

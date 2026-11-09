@@ -35,13 +35,36 @@ Item {
         searchField.selectAll();
     }
 
-    function focusSelected(): void {
+    // True while move() changes the selection, so the follow-up below does
+    // not focus the row before move() focuses it as a keyboard move.
+    property bool moving: false
+
+    // reason: Qt.TabFocusReason when the keyboard moved it, which shows the
+    // row's tooltip; opening Settings or a deep link focuses it quietly.
+    function focusSelected(reason): void {
         for (let i = 0; i < rows.count; ++i) {
             const entry = rows.itemAt(i);
             if (entry && entry.category.id === root.controller.selectedId) {
-                entry.row.forceActiveFocus();
+                entry.row.forceActiveFocus(reason ?? Qt.OtherFocusReason);
                 root.reveal(entry);
                 return;
+            }
+        }
+    }
+
+    // A selection made elsewhere (a deep link, a search result, a card on
+    // Inicio) moves the focus with it when the focus was on a category row;
+    // otherwise the old row would keep its focus ring and tooltip.
+    Connections {
+        target: root.controller
+        function onSelectedIdChanged(): void {
+            if (root.moving)
+                return;
+            for (let i = 0; i < rows.count; ++i) {
+                if (rows.itemAt(i)?.row.activeFocus) {
+                    root.focusSelected();
+                    return;
+                }
             }
         }
     }
@@ -58,8 +81,10 @@ Item {
     }
 
     function move(delta: int): void {
+        root.moving = true;
         root.controller.selectNeighbour(delta);
-        root.focusSelected();
+        root.moving = false;
+        root.focusSelected(Qt.TabFocusReason);
     }
 
     function focusResult(index: int): void {
@@ -129,7 +154,7 @@ Item {
             placeholderText: qsTr("Buscar un ajuste")
             Accessible.name: qsTr("Buscar un ajuste")
             onTextChanged: root.controller.search = text
-            Keys.onDownPressed: root.searching ? root.focusResult(0) : root.focusSelected()
+            Keys.onDownPressed: root.searching ? root.focusResult(0) : root.focusSelected(Qt.TabFocusReason)
             Keys.onReturnPressed: if (root.searching && root.controller.results.length) root.openResult(root.controller.results[0])
             Keys.onEnterPressed: if (root.searching && root.controller.results.length) root.openResult(root.controller.results[0])
             // Escape first empties the query. With nothing typed the

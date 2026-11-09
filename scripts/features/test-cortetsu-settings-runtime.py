@@ -488,6 +488,11 @@ ShellRoot {
         }],
         [() => window.active && waitedMs >= 200, () => {
             verify(focusName() === "nexus-home", `opening focuses the current destination (${focusName()})`);
+            // A selection made from outside the navigation (a deep link) takes the focus along.
+            select("bluetooth");
+            verify(focusName() === "nexus-devices", `the focus follows a selection made elsewhere (${focusName()})`);
+            select("home");
+            verify(focusName() === "nexus-home", `and comes back with it (${focusName()})`);
             SettingsController.search = "vim";
             verify(SettingsController.matchingIds.includes("devices")
                 && SettingsController.results.some(result => result.page === "input" && result.setting === "Navegación estilo Vim"),
@@ -1828,6 +1833,18 @@ ShellRoot {
         };
         walk(page);
         verify(over.length === 0, `${id} keeps every control inside its column: ${over.slice(0, 4).join(", ")}`);
+        // A group inside another draws its title inside the outer box.
+        const nested = [];
+        const groups = item => {
+            if (String(item).startsWith("SettingsGroup")) {
+                for (let up = item.parent; up && up !== page; up = up.parent)
+                    if (String(up).startsWith("SettingsGroup")) { nested.push(item.title ?? String(item)); break; }
+            }
+            const children = item.children ?? [];
+            for (let i = 0; i < children.length; ++i) groups(children[i]);
+        };
+        groups(page);
+        verify(nested.length === 0, `${id} has no group inside another group: ${nested.join(", ")}`);
         if (!content.collapsed) {
             const cut = SettingsController.categories.filter(category => find(get(`nexus-${category.id}`), "label")?.truncated);
             verify(cut.length === 0, `no category name is cut: ${cut.map(category => category.id)}`);
@@ -2223,7 +2240,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     host = run_host(folder)
     assert not host or "SETTINGS_HOST_PASS 1" in host, host
 
-    assert (reactivity, navigation, states, unwritable, pages) == (48, 56, 60, 3, 120), (reactivity, navigation, states, unwritable, pages)
+    assert (reactivity, navigation, states, unwritable, pages) == (48, 58, 60, 3, 150), (reactivity, navigation, states, unwritable, pages)
 assert policies == 16, policies
 print(f"Settings builds in {opened.split()[0]} ms ({opened.split()[1]} items); "
       f"20 cycles of open, every destination and close take {cycles} ms")

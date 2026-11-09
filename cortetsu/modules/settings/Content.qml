@@ -147,18 +147,12 @@ FocusScope {
 
     Shortcut {
         sequences: ["Ctrl+PgDown", "Ctrl+Tab"]
-        onActivated: {
-            root.controller.selectNeighbour(1);
-            nexus.focusSelected();
-        }
+        onActivated: nexus.move(1)
     }
 
     Shortcut {
         sequences: ["Ctrl+PgUp", "Ctrl+Shift+Tab"]
-        onActivated: {
-            root.controller.selectNeighbour(-1);
-            nexus.focusSelected();
-        }
+        onActivated: nexus.move(-1)
     }
 
     SettingsContext {
@@ -267,7 +261,7 @@ FocusScope {
                         NumberAnimation { duration: CortetsuDesign.motionFastMs; easing.type: Easing.BezierSpline; easing.bezierCurve: CortetsuDesign.easeOut }
                     }
 
-                    Keys.onLeftPressed: nexus.focusSelected()
+                    Keys.onLeftPressed: nexus.focusSelected(Qt.TabFocusReason)
 
                     Loader {
                         id: pageLoader
