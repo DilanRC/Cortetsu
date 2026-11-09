@@ -32,7 +32,7 @@ var profiles = {
     "headingWeight": 600,
     "labelCaps": 1,
     "labelTracking": 1.1,
-    "materialGrain": 0.0,
+    "materialGrain": 0.3,
     "materialGroundAlpha": 0.97,
     "materialHairlineAlpha": 0.22,
     "materialPopupGrain": 0.0,

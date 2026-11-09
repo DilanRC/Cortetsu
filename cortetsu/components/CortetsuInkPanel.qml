@@ -111,7 +111,7 @@ Item {
         anchors.fill: parent
         visible: strength > 0
         radius: root.radius
-        strength: root.steel ? 0.5 * root.transparencyFactor : root.grain
+        strength: root.grain
         texture: root.steel ? Qt.resolvedUrl("../assets/texture/brushed.png") : Qt.resolvedUrl("../assets/texture/grain.png")
     }
 

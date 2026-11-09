@@ -80,7 +80,7 @@
     "materialGroundAlpha": 0.97,
     "materialWashAlpha": 0.06,
     "materialPopupWashAlpha": 0.04,
-    "materialGrain": 0.0,
+    "materialGrain": 0.3,
     "materialPopupGrain": 0.0,
     "materialHairlineAlpha": 0.22,
     "motionStandardMs": 120,
