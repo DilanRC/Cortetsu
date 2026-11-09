@@ -62,12 +62,31 @@ ColumnLayout {
                     source: CortetsuWallpapers.actualCurrent ? `file://${CortetsuWallpapers.actualCurrent}` : ""
                 }
 
-                CortetsuIcon {
+                // Loading, missing or unreadable: say which instead of a bare icon.
+                Column {
+                    objectName: "wallpaperPreviewFallback"
                     anchors.centerIn: parent
+                    width: parent.width - CortetsuDesign.spacingSection * 2
                     visible: preview.status !== Image.Ready
-                    text: CortetsuWallpapers.actualCurrent ? "wallpaper" : "hide_image"
-                    iconSize: CortetsuTypography.iconLargePx
-                    color: CortetsuDesign.colorOnSurfaceVariant
+                    spacing: CortetsuDesign.spacingUnit
+
+                    CortetsuIcon {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        text: !CortetsuWallpapers.actualCurrent ? "hide_image"
+                            : preview.status === Image.Loading ? "wallpaper" : "broken_image"
+                        iconSize: CortetsuTypography.iconLargePx
+                        color: CortetsuDesign.colorOnSurfaceVariant
+                    }
+                    CortetsuText {
+                        width: parent.width
+                        horizontalAlignment: Text.AlignHCenter
+                        wrapMode: Text.WordWrap
+                        text: !CortetsuWallpapers.actualCurrent ? qsTr("Sin fondo de Cortetsu")
+                            : preview.status === Image.Loading ? qsTr("Cargando vista previa…")
+                            : qsTr("No se puede abrir la imagen")
+                        textSize: CortetsuTypography.labelSmallPx
+                        color: CortetsuDesign.colorOnSurfaceVariant
+                    }
                 }
             }
 

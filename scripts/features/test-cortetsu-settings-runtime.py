@@ -1904,8 +1904,31 @@ ShellRoot {
             verify(cut.length === 0, `no category name is cut: ${cut.map(category => category.id)}`);
         }
     }
+    // WCAG 2.2 on the effective tokens of this theme and scheme: text 4.5:1
+    // (1.4.3), boundaries and state indicators 3:1 (1.4.11). Toggles, sliders
+    // and the selection bar draw state with colorIndicator; colorPrimary only
+    // tints and decorates.
+    function contrastFailures() {
+        const d = CortetsuDesign;
+        const pairs = [
+            ["onSurface/surface", d.colorOnSurface, d.colorSurface, 4.5],
+            ["onSurfaceVariant/surface", d.colorOnSurfaceVariant, d.colorSurface, 4.5],
+            ["onSurface/surfaceHigh", d.colorOnSurface, d.colorSurfaceHigh, 4.5],
+            ["onPrimaryContainer/primaryContainer", d.colorOnPrimaryContainer, d.colorPrimaryContainer, 4.5],
+            ["onPrimary/primary", d.colorOnPrimary, d.colorPrimary, 4.5],
+            ["vermillion/surface", d.colorVermillion, d.colorSurface, 4.5],
+            ["indicator/surface", d.colorIndicator, d.colorSurface, 3],
+            ["outline/surface", d.colorOutline, d.colorSurface, 3]
+        ];
+        return pairs.filter(pair => d.contrast(pair[1], pair[2]) < pair[3])
+            .map(pair => `${pair[0]} ${d.contrast(pair[1], pair[2]).toFixed(2)}`);
+    }
     readonly property var pages: [
-        [() => CortetsuConfig.loaded && Schemes.catalogCount > 0, () => { screenDouble.settings = true; }]
+        [() => CortetsuConfig.loaded && Schemes.catalogCount > 0, () => {
+            screenDouble.settings = true;
+            const failed = root.contrastFailures();
+            verify(failed.length === 0, `theme tokens meet WCAG contrast: ${failed.join(", ")}`);
+        }]
     ].concat(destinations.map(id =>
         [() => { select(id); return !!content && content.pageId === SettingsController.pageId
             && SettingsController.resolve(id) !== null && !!content.page && waitedMs >= 350; }, () => {
@@ -2296,7 +2319,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     host = run_host(folder)
     assert not host or "SETTINGS_HOST_PASS 1" in host, host
 
-    assert (reactivity, navigation, states, unwritable, pages) == (48, 58, 60, 3, 150), (reactivity, navigation, states, unwritable, pages)
+    assert (reactivity, navigation, states, unwritable, pages) == (48, 58, 60, 3, 151), (reactivity, navigation, states, unwritable, pages)
 assert policies == 16, policies
 print(f"Settings builds in {opened.split()[0]} ms ({opened.split()[1]} items); "
       f"20 cycles of open, every destination and close take {cycles} ms")

@@ -209,6 +209,7 @@ ColumnLayout {
                 selected: card.key === Schemes.currentScheme
                 disabled: Schemes.applying || CortetsuThemes.busy
                 swatches: root.swatches(modelData.colours)
+                swatchFallback: qsTr("Colores tomados del fondo")
                 Accessible.role: Accessible.RadioButton
                 Accessible.name: card.key
                 Accessible.checked: selected

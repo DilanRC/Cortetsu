@@ -42,16 +42,17 @@ Item {
         radiusValue: CortetsuDesign.radiusPill
         active: root.checked
         disabled: root.disabled
+        // On is told apart from off by the track: indicator contrast (3:1).
         baseColor: root.checked
-            ? Qt.alpha(CortetsuDesign.colorPrimary, 0.78)
+            ? CortetsuDesign.colorIndicator
             : Qt.alpha(CortetsuDesign.colorSurfaceGlassStrong, 0.9)
-        activeColor: Qt.alpha(CortetsuDesign.colorPrimary, 0.88)
+        activeColor: CortetsuDesign.colorIndicator
         hoverColor: root.checked
-            ? Qt.alpha(CortetsuDesign.colorPrimary, 0.88)
+            ? Qt.lighter(CortetsuDesign.colorIndicator, 1.08)
             : CortetsuDesign.colorSurfaceGlassStrong
         outlineColor: root.activeFocus
             ? Qt.alpha(CortetsuDesign.colorWashi, 0.82)
-            : Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.36)
+            : Qt.alpha(CortetsuDesign.colorOutline, 0.9)
         outlined: true
         focused: root.activeFocus
         hovered: mouse.containsMouse

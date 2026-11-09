@@ -62,7 +62,8 @@ Item {
             width: track.width * root.progress
             height: parent.height
             radius: parent.radius
-            color: CortetsuDesign.colorPrimary
+            // The filled part carries the value: indicator contrast (3:1).
+            color: CortetsuDesign.colorIndicator
 
             Behavior on width {
                 enabled: !mouse.pressed
@@ -100,7 +101,7 @@ Item {
         anchors.verticalCenter: parent.verticalCenter
         color: mouse.containsMouse || mouse.pressed || root.activeFocus
             ? CortetsuDesign.colorWashi
-            : CortetsuDesign.colorPrimary
+            : CortetsuDesign.colorIndicator
         border.width: 1
         border.color: Qt.alpha(CortetsuDesign.colorOutline, 0.72)
 

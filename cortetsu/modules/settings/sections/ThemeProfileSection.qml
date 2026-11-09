@@ -15,6 +15,7 @@ SettingsGroup {
         title: qsTr("Archivo del perfil")
         value: root.profilePath
         placeholderText: qsTr("Ruta absoluta a un archivo JSON")
+        fieldWidth: Math.max(260, width * 0.66)
         disabled: CortetsuThemes.busy
         onCommitted: value => root.profilePath = value.trim()
     }

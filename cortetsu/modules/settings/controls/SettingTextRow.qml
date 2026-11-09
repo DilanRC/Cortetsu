@@ -8,6 +8,8 @@ SettingRow {
     id: root
     property string value: ""
     property string placeholderText: ""
+    // Paths and other long values need more than the default field.
+    property real fieldWidth: Math.min(260, root.width * 0.45)
     signal committed(string value)
 
     TextField {
@@ -16,7 +18,7 @@ SettingRow {
         property string draft: root.value
         onActiveFocusChanged: if (activeFocus) draft = text
         onTextEdited: draft = text
-        implicitWidth: Math.min(260, root.width * 0.45)
+        implicitWidth: root.fieldWidth
         implicitHeight: CortetsuDesign.controlHeight
         enabled: !root.disabled
         placeholderText: root.placeholderText

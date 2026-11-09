@@ -77,7 +77,8 @@ QtObject {
     readonly property color colorTetsu: token("colorTetsu", role("surface", Defaults.colorTetsu))
     readonly property color colorWashi: token("colorWashi", readable(role("onSurface", Defaults.colorWashi), [colorTetsu, colorSurfaceHigh]))
     readonly property color colorIndigo: token("colorIndigo", role("primary", Defaults.colorIndigo))
-    readonly property color colorVermillion: token("colorVermillion", Defaults.colorVermillion)
+    // Errors and destructive actions are text: 4.5:1 on the page surfaces.
+    readonly property color colorVermillion: token("colorVermillion", readable(Defaults.colorVermillion, [colorSurface, colorSurfaceHigh]))
     readonly property color colorMuted: token("colorMuted", readable(role("onSurfaceVariant", Defaults.colorMuted), [colorTetsu, colorSurfaceHigh]))
     readonly property color colorSurface: token("colorSurface", role("surface", Defaults.colorSurface))
     readonly property color colorSurfaceHigh: token("colorSurfaceHigh", role("surfaceContainerHigh", Defaults.colorSurfaceHigh))
@@ -91,7 +92,8 @@ QtObject {
     readonly property color colorSecondaryContainer: token("colorSecondaryContainer", role("secondaryContainer", Defaults.colorSecondaryContainer))
     readonly property color colorOnSecondaryContainer: token("colorOnSecondaryContainer", role("onSecondaryContainer", Defaults.colorOnSecondaryContainer))
     readonly property color colorTertiary: token("colorTertiary", role("tertiary", Defaults.colorTertiary))
-    readonly property color colorOutline: token("colorOutline", role("outline", Defaults.colorOutline))
+    // Control and field boundaries: 3:1 on the page surfaces (WCAG 1.4.11).
+    readonly property color colorOutline: token("colorOutline", readable(role("outline", Defaults.colorOutline), [colorSurface, colorSurfaceHigh], 3))
     readonly property color colorOutlineVariant: token("colorOutlineVariant", role("outlineVariant", Defaults.colorOutlineVariant))
     readonly property color colorScrim: token("colorScrim", Defaults.colorScrim)
     readonly property color colorSurfaceGlass: token("colorSurfaceGlass", role("surfaceContainer", Defaults.colorSurfaceGlass))
