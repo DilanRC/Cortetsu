@@ -7,8 +7,9 @@ import "../../../theme"
 import "../../CortetsuTypography.js" as CortetsuTypography
 import "../../../services/DisplayLayout.js" as Arrange
 
-// The outputs drawn to scale. Click selects; dragging moves an output and it
-// snaps to the others' edges. Left and Right change the selection.
+// The outputs drawn to scale. Click selects; dragging (or Shift+arrows)
+// moves an output and it snaps to the others' edges. Left and Right change
+// the selection.
 Item {
     id: root
 
@@ -27,8 +28,27 @@ Item {
     Accessible.role: Accessible.List
     Accessible.name: qsTr("Disposición de pantallas")
 
-    Keys.onLeftPressed: model.selectedIndex = Math.max(0, model.selectedIndex - 1)
-    Keys.onRightPressed: model.selectedIndex = Math.min(outputs.length - 1, model.selectedIndex + 1)
+    // Arrows change the selection; Shift+arrows move the selected output
+    // 100 logical px (snapping to edges), the alternative to dragging.
+    function nudge(dx, dy): void {
+        const output = outputs[model.selectedIndex];
+        if (output && outputs.length > 1)
+            model.move(model.selectedIndex, Number(output.x) + dx, Number(output.y) + dy);
+    }
+    Keys.onPressed: event => {
+        const shift = event.modifiers & Qt.ShiftModifier;
+        if (event.key === Qt.Key_Left)
+            shift ? nudge(-100, 0) : model.selectedIndex = Math.max(0, model.selectedIndex - 1);
+        else if (event.key === Qt.Key_Right)
+            shift ? nudge(100, 0) : model.selectedIndex = Math.min(outputs.length - 1, model.selectedIndex + 1);
+        else if (shift && event.key === Qt.Key_Up)
+            nudge(0, -100);
+        else if (shift && event.key === Qt.Key_Down)
+            nudge(0, 100);
+        else
+            return;
+        event.accepted = true;
+    }
 
     CortetsuSurface {
         anchors.fill: parent

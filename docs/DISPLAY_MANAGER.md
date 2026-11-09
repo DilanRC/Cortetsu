@@ -29,6 +29,24 @@ Previsualizar first runs the dry-run planner and previews only an accepted
 proposal. Changing the proposal after Conservar requires a new preview before
 Guardar is offered.
 
+## Saturation per GPU
+
+- **NVIDIA outputs** (HDMI-A-1 on the HP Victus): nVibrant writes Digital
+  Vibrance through the NVIDIA driver. `cortetsu-nvibrant status` reads sysfs
+  only (never runs nvibrant, never wakes the dGPU) and reports `value` (what
+  the profile wants) apart from `applied` (what nvibrant echoed in this boot).
+  nvibrant has no read-back, so "confirmado" means "echoed in this boot", not
+  a hardware readout. Installed `nvibrant-bin` 1.3.0 bundles builds up to
+  driver 615.71.09 and falls back to it on 615.78.08; 1.3.1 (2026-11-08) adds
+  the exact `615.78.08` build.
+- **AMD outputs** (the eDP-1 panel): not offered. Hyprland documents
+  `sdrsaturation` only for SDR content while the output is in HDR mode
+  (`cm = "hdr"`); there is no documented per-output saturation for an SDR
+  output (wiki.hypr.land/configuring/core/monitors/colors, read 2026-11-09).
+  A colour transform matrix could do it, but it is the mechanism the colour
+  filter (hyprsunset) already owns, so a second owner would fight it. The
+  page says the output is not compatible and why.
+
 ## Safety model
 
 `cortetsu-display-probe` is read-only.

@@ -1850,6 +1850,12 @@ ShellRoot {
         [() => page("displayRevert")?.visible, () => { page("displayRevert").clicked(); }],
         [() => !page("displayKeep").visible && page("displayApplyState").detail === "Se restauró la distribución anterior", () => {
             verify(!page("displaySave").visible, "a reverted preview cannot be saved");
+            // Moving without dragging (WCAG 2.5.7): Shift+Down on the selected output.
+            page("displayArrangement").forceActiveFocus();
+            key(Qt.Key_Down, Qt.ShiftModifier);
+        }],
+        [() => page("displayCanvas-HDMI-A-1").y > page("displayCanvas-eDP-1").y + 1, () => {
+            verify(page("displayApplyState").title === "Hay cambios sin aplicar", "Shift+arrows move the selected output from the keyboard");
         }]
     ]
 
@@ -2308,7 +2314,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     aura = {"name": "aura", "flavour": "default",
             "colours": json.loads(subprocess.check_output([str(ROOT / "bin/cortetsu-scheme"), "list"], text=True))["aura"]["default"]}
     display = passed(run(folder, "shell.qml", "display")[0])
-    assert display == 15, display
+    assert display == 16, display
     pages = passed(run(folder, "shell.qml", "pages")[0])
     passed(run(folder, "shell.qml", "pages", label="pages-narrow",
                env={"SETTINGS_WIDTH": "880", "SETTINGS_HEIGHT": "620", "SETTINGS_RENDER_SUFFIX": "-880"})[0])
