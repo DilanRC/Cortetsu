@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render the eight real Settings pages across themes and display conditions.
+"""Render every real Settings destination across themes and display conditions.
 
 Uses the runtime interaction fixture without executing its full scenario suite.
 The output directory is explicit; all application state remains temporary.
@@ -71,12 +71,16 @@ def main():
                          "SETTINGS_RENDER_SUFFIX": "-" + label,
                          "SETTINGS_WIDTH": str(width), "SETTINGS_HEIGHT": str(height),
                          "QT_SCALE_FACTOR": scale})
-                assert "SETTINGS_RUNTIME_PASS 8" in output, output
+                assert "SETTINGS_RUNTIME_PASS" in output and "SETTINGS_FAIL" not in output, output
                 (args.out / f"{label}.log").write_text(output)
                 print("PASS", label, flush=True)
     images = list(args.out.glob("*.png"))
-    assert len(images) == 144, len(images)
-    print(f"PASS: {len(images)} Settings screenshots; visual inspection remains required")
+    counts = {label: len(list(args.out.glob(f"*-{label}.png"))) for label in
+              (f"{t}-{v}" for t in ("ink", "washi", "kurogane")
+               for v in ("default", "narrow", "fractional", "transparent", "aura-dark", "aura-light"))}
+    assert len(set(counts.values())) == 1 and min(counts.values()) >= 25, counts
+    print(f"PASS: {len(images)} Settings screenshots, {min(counts.values())} destinations in each of "
+          f"{len(counts)} conditions; visual inspection remains required")
 
 
 if __name__ == "__main__":

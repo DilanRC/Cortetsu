@@ -20,6 +20,7 @@ ColumnLayout {
 
     SettingsGroup {
         title: qsTr("Brillo")
+        icon: "brightness_6"
         detail: root.context.screen?.name ?? ""
 
         SettingSliderRow {
@@ -42,6 +43,7 @@ ColumnLayout {
 
     SettingsGroup {
         title: qsTr("Color")
+        icon: "filter_vintage"
         detail: qsTr("Filtro aplicado por hyprsunset a todas las pantallas")
 
         SettingToggleRow {
@@ -96,6 +98,7 @@ ColumnLayout {
 
     SettingsGroup {
         title: qsTr("Monitores")
+        icon: "monitor"
         detail: root.context.monitorCount === 1 ? qsTr("1 detectado") : qsTr("%1 detectados").arg(root.context.monitorCount)
 
         Repeater {

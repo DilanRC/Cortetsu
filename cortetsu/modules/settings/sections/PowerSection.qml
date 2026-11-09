@@ -17,6 +17,7 @@ ColumnLayout {
 
     SettingsGroup {
         title: qsTr("Aviso de batería baja")
+        icon: "battery_alert"
         detail: qsTr("En equipos con batería, notifica al cruzar este nivel")
 
         SettingSliderRow {
@@ -36,6 +37,7 @@ ColumnLayout {
 
     SettingsGroup {
         title: qsTr("Batería")
+        icon: "battery_horiz_075"
         visible: CortetsuPower.hasBattery
 
         SettingValueRow {
@@ -58,6 +60,7 @@ ColumnLayout {
 
     SettingsGroup {
         title: qsTr("Alimentación")
+        icon: "power"
         visible: !CortetsuPower.hasBattery
 
         SettingValueRow {
@@ -70,6 +73,7 @@ ColumnLayout {
 
     SettingsGroup {
         title: qsTr("Reposo")
+        icon: "bedtime"
         detail: qsTr("Cuándo se mantiene despierta la sesión")
 
         SettingToggleRow {
@@ -149,6 +153,7 @@ ColumnLayout {
 
     SettingsGroup {
         title: qsTr("Perfiles de energía")
+        icon: "bolt"
 
         SettingActionRow {
             title: qsTr("Perfil, límites y automatización")

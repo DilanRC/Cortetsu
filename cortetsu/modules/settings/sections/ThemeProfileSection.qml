@@ -8,6 +8,7 @@ SettingsGroup {
     id: root
     property string profilePath: (Quickshell.env("HOME") || "") + "/cortetsu-visual-profile.json"
     title: qsTr("Perfiles visuales")
+    icon: "save"
     detail: qsTr("Incluye tema, paleta, materiales y preferencias visuales. Conserva comandos y ajustes de otras funciones.")
     SettingTextRow {
         objectName: "themeProfilePath"

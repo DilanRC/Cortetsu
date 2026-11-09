@@ -26,21 +26,30 @@ retired_bar_preferences = (
 assert not [key for key in retired_bar_preferences if f"CortetsuConfig.{key}" in legacy_panel_sources], \
     "Retired top-bar preferences must not have Settings controls"
 
-page_ids = re.findall(r'\{ id: "([a-z]+)", group: qsTr\("Ajustes"\), title: qsTr\("(?:Quick Settings|General|Bar|Background|Interface|Services|Advanced|About)"\)', controller)
-assert page_ids == ["quick", "general", "bar", "background", "interface", "services", "advanced", "about"], page_ids
-section_map = re.search(r"readonly property var pageSections: \(\{(.*?)\}\)", controller, re.S).group(1)
-section_groups = dict(re.findall(r'([a-z]+): \[([^\]]+)\]', section_map))
-section_ids = {page: [item.strip().strip('"') for item in values.split(",")] for page, values in section_groups.items()}
-assert sorted(section_ids) == sorted(page_ids), section_ids
-assert sorted(sum(section_ids.values(), [])) == sorted(["network", "bluetooth", "audio", "display", "power", "notifications", "input", "appearance", "wallpaper", "desktop", "bottomhub", "launcher", "shortcuts", "automation", "recorder", "screenshot", "about"])
-table = re.search(r"readonly property var pages: \(\{(.*?)\}\)", content, re.S).group(1)
-pages = dict(re.findall(r"([a-z]+): ([A-Za-z]+Page)", table))
-assert sorted(pages) == sorted(page_ids), (sorted(pages), sorted(page_ids))
-for component in pages.values():
-    assert re.search(rf"Component \{{ id: {component}; \w+ \{{ context: settingsContext \}} \}}", content), component
-    page_file = SETTINGS / "pages" / f"{component[0].upper()}{component[1:]}.qml"
-    assert page_file.is_file(), component
-
+# Windows 11 organisation: categories hold subpages. Every subpage, and every
+# category with more than one, has a page in the registry; nothing is empty.
+categories = re.findall(r'(?m)^        \{ id: "([a-z]+)", title: qsTr\("([^"]+)"\)', controller)
+category_ids = [item[0] for item in categories]
+assert category_ids == ["home", "system", "devices", "network", "personalization", "interface", "apps",
+                        "accessibility", "advanced", "about"], category_ids
+subpages = re.findall(r'(?m)^            \{ id: "([a-z]+)", title: qsTr\("([^"]+)"\)', controller)
+subpage_ids = [item[0] for item in subpages]
+assert len(subpage_ids) == len(set(subpage_ids)) >= 20, subpage_ids
+registry = (SETTINGS / "PageRegistry.qml").read_text(encoding="utf-8")
+table = re.search(r"const table = \{(.*?)\};", registry, re.S).group(1)
+registered = set(re.findall(r"([a-z]+): [a-z]+", table))
+assert set(subpage_ids) | {"home", "about"} <= registered, sorted(set(subpage_ids) - registered)
+for page in registered:
+    assert f"readonly property Component {page}: Component {{" in registry, page
+for category, body in re.findall(r'(?ms)^        \{ id: "([a-z]+)".*?pages: \[(.*?)\] \}', controller):
+    assert category in ("home", "about") or re.search(r'\{ id: "', body), f"{category} has no subpages"
+# Old destinations keep leading somewhere real.
+legacy = dict(re.findall(r'([a-z]+): "([a-z]+)"', re.search(r"readonly property var legacy: \(\{(.*?)\}\)", controller, re.S).group(1)))
+assert set(legacy.values()) <= set(subpage_ids), legacy
+# Every section is shown by some page.
+used = registry + "".join(text for path, text in sources.items() if path.name != "PageRegistry.qml")
+orphans = [path.stem for path in (SETTINGS / "sections").glob("*.qml") if not re.search(rf"\b{path.stem} \{{", used)]
+assert not orphans, orphans
 # A control must change something. A preference written from Settings needs a
 # reader in the running shell: not Settings itself, not the retired settings
 # panels, not the retired top bar. This is the check that would have caught
@@ -67,7 +76,7 @@ assert not unread, f"Settings writes preferences nothing reads: {unread}"
 
 # The content is built only while the window is open; a page only while selected.
 assert "active: false" in host and "sourceComponent: Content {" in host
-assert "sourceComponent: pages[shellPageId] ?? null" in content
+assert "sourceComponent: registry.component(pageId)" in content
 assert not re.search(r"visible: root\.(section|controller\.selectedId) ===", "\n".join(sources.values()))
 
 # Views bind and draw. Processes belong to services, except the one read-only
@@ -122,8 +131,8 @@ assert "CortetsuDesign.materialGroundAlpha / CortetsuDefaults.materialGroundAlph
 schemes = (SHELL / "modules/launcher/services/Schemes.qml").read_text(encoding="utf-8")
 app_list = (SHELL / "modules/launcher/AppList.qml").read_text(encoding="utf-8")
 variants = (SHELL / "modules/launcher/services/M3Variants.qml").read_text(encoding="utf-8")
-appearance = sources[SETTINGS / "sections/AppearanceSection.qml"]
-assert "Schemes.applyVariant(modelData.variant)" in appearance
+appearance = sources[SETTINGS / "sections/SchemeSection.qml"]
+assert "onChosen: value => Schemes.applyVariant(value)" in appearance
 assert "const valid = M3Variants.list.some(item => item.variant === value)" in schemes
 assert '"cortetsu-scheme", "set", "-v", value' in schemes
 assert "CortetsuColours.variant" in schemes
@@ -140,5 +149,5 @@ battery_monitor = (SHELL / "modules/BatteryMonitor.qml").read_text(encoding="utf
 assert "percentage <= 3 && !criticalNoticeSent" in battery_monitor
 assert "CortetsuSession.hibernate()" in battery_monitor and "CortetsuSession.suspend()" in battery_monitor
 
-print(f"PASS: {len(page_ids)} end-4 pages compose {sum(map(len, section_ids.values()))} Cortetsu sections, {len(written)} preferences written by Settings "
+print(f"PASS: {len(category_ids)} categories hold {len(subpage_ids)} subpages, {len(written)} preferences written by Settings "
       "all have a reader, and SUPER+I has one owner")

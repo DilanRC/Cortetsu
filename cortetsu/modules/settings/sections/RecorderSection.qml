@@ -10,6 +10,7 @@ SettingsGroup {
     property string pathError: ""
 
     title: qsTr("Grabador de pantalla")
+    icon: "videocam"
     detail: qsTr("La carpeta se usa al terminar una grabación")
 
     SettingTextRow {

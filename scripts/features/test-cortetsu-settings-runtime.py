@@ -183,7 +183,7 @@ ShellRoot {
         repeat: true
         running: root.scenario === "themeSlowCommit"
         onTriggered: {
-            if (!root.content || root.content.pageId !== "quick")
+            if (!root.content || root.content.pageId !== "themes")
                 return;
             const themeRow = root.page("themeStatus");
             if (!CortetsuThemes.slowNoticeShown || !themeRow || themeRow.statusText !== CortetsuThemes.error)
@@ -304,13 +304,11 @@ ShellRoot {
         }
 
         // The same frame SettingsHost draws, so a render shows the real surface.
-        CortetsuSurface {
+        CortetsuInkPanel {
             id: frame
             anchors.fill: parent
             anchors.margins: CortetsuDesign.spacingUnit
-            baseColor: Qt.alpha(CortetsuDesign.colorTetsu, 0.985)
-            radiusValue: CortetsuDesign.radiusSurface
-            outlined: true
+            radius: CortetsuDesign.radiusSurface
 
             // Same contract as SettingsHost: the content exists while open.
             Loader {
@@ -340,14 +338,18 @@ ShellRoot {
         }],
         [() => !!content && !!content.page && waitedMs >= 300, () => {
             window.requestActivate();
-            verify(content.pageId === "quick", "Settings opens on Quick Settings");
-            verify(!!page("transparency") && !get("outputVolume") && !get("wifiPower"), "only the open page exists");
-            verify(get("pageTitle").text === "Quick Settings", "the header names the end-4 page");
+            verify(content.pageId === "home", "Settings opens on Inicio");
+            verify(!!page("homeHero") && !get("outputVolume") && !get("wifiPower"), "only the open page exists");
+            verify(get("pageTitle").text === "Inicio", "the header names the page");
+            select("colors");
+        }],
+        [() => content.pageId === "colors" && !!page("scheme-nebula-default") && waitedMs >= 300, () => {
+            verify(get("pageTitle").text === "Colores" && get("breadcrumbCategory").visible, "a subpage is titled with its path");
             verify(same(CortetsuDesign.colorSurface, "#171B21"), "without a scheme the ui.toml default applies");
             memo.card = get("scheme-nebula-default");
             memo.nexus = get("nexus");
-            memo.row = get("nexus-quick");
-            memo.toggle = page("transparency");
+            memo.row = get("nexus-personalization");
+            memo.toggle = page("schemePreviewMode");
             verify(!!memo.card && !memo.card.selected, "the catalogue is drawn and nebula is not active");
             keep();
             // A token changes and nothing else: the preview channel recolours the tokens.
@@ -355,14 +357,14 @@ ShellRoot {
         }],
         [() => same(CortetsuDesign.colorSurface, "#112233"), () => {
             verify(churn() === "0 destroyed, 0 created", `a token change keeps every object (${churn()})`);
-            verify(get("nexus") === memo.nexus && get("nexus-quick") === memo.row && page("transparency") === memo.toggle,
+            verify(get("nexus") === memo.nexus && get("nexus-personalization") === memo.row && page("schemePreviewMode") === memo.toggle,
                 "the navigation, its row and the page controls are the same instances");
             verify(same(CortetsuDesign.colorPrimary, "#ff8800"), "the primary token follows");
             verify(same(get("pageTitle").color, "#f0e0d0") || get("pageTitle").color !== undefined, "text reads the new token");
             CortetsuColours.clearPreview();
         }],
         [() => same(CortetsuDesign.colorSurface, "#171B21") && waitedMs >= 300, () => {
-            verify(same(memo.nexus.color, Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.72)), "a live surface settles on the token colour");
+            verify(same(find(memo.row, "label").color, CortetsuDesign.colorOnSurface) || memo.row.selected, "a live label settles on the token colour");
             keep();
             memo.card.clicked();
             verify(Schemes.applying && Schemes.pendingScheme === "nebula default", "choosing a card starts one apply");
@@ -372,7 +374,7 @@ ShellRoot {
             verify(churn() === "0 destroyed, 0 created", `applying a scheme keeps every object (${churn()})`);
             verify(get("scheme-nebula-default") === memo.card && memo.card.selected, "the same card is now the selected one");
             verify(!same(CortetsuDesign.colorSurface, "#171B21"), "the tokens follow the applied scheme");
-            verify(get("nexus-quick").value === "nebula default", "the navigation names the active scheme");
+            verify(get("nexus-personalization").value.includes("nebula default"), "the navigation names the active scheme");
             verify(text("activeScheme") === "Aplicado a todas las superficies", "the apply is confirmed");
             verify(screenDouble.settings && get("nexus") === memo.nexus, "Settings stayed open through the change");
             keep();
@@ -381,7 +383,7 @@ ShellRoot {
         [() => Schemes.applyStatus === "failed", () => {
             verify(Schemes.currentScheme === "nebula default" && memo.card.selected, "a failed apply leaves the real scheme selected");
             verify(get("activeScheme").status === "error" && text("activeScheme").includes("esquema no encontrado"), "the failure is shown with its reason");
-            verify(get("nexus-quick").alerting && get("pageSummary").text.includes("esquema no encontrado"), "the navigation and header flag the page");
+            verify(get("nexus-personalization").alerting && get("pageSummary").text.includes("esquema no encontrado"), "the navigation and header flag the page");
             verify(value("activeScheme") === "nebula default", "the value shown is the scheme really in use");
             verify(churn() === "0 destroyed, 0 created", `a failure keeps every object (${churn()})`);
             // The scheme changes from outside Settings, as the launcher or a terminal would do.
@@ -428,6 +430,11 @@ ShellRoot {
         [() => get("schemeState").visible, () => {
             verify(get("schemeState").title === "Ningún esquema coincide", "a filter without matches says so");
             get("schemeFilter").text = "";
+            select("themes");
+        }],
+        [() => content.pageId === "themes" && !!page("transparency") && waitedMs >= 300, () => {
+            memo.toggle = page("transparency");
+            keep();
             // A local preference: one switch, one write, nothing rebuilt.
             root.writes = 0;
             memo.toggle.forceActiveFocus();
@@ -444,7 +451,7 @@ ShellRoot {
             verify(CortetsuConfig.bottomHub.segments.tray === false && CortetsuConfig.colorTemperature === 4500, `what was stored before is what is in use (${CortetsuConfig.bottomHub.segments.tray}, ${CortetsuConfig.colorTemperature})`);
             verify(get("saveIndicator").visible && find(get("saveIndicator"), "saveText").text === "Guardado", "the write is confirmed on screen");
             verify(churn() === "0 destroyed, 0 created", `a preference keeps every object (${churn()})`);
-            verify(find(page("borderThickness"), "sliderValue").text === "4 px", "a value changed elsewhere reaches its row");
+            verify(find(page("transparency"), "switch").checked, "a value changed elsewhere reaches its row");
             render("appearance");
         }],
         [null, () => {
@@ -456,14 +463,14 @@ ShellRoot {
             screenDouble.settings = true;
         }],
         [() => !!content && !!content.page, () => {
-            verify(content.pageId === "quick" && get("scheme-aura-default").selected, "reopening shows the same page and the real scheme");
+            verify(content.pageId === "themes" && Schemes.currentScheme === "aura default", "reopening shows the same page and the real scheme");
             // Open, visit every page and close, over and over: the tree goes
             // back to the same size each time.
             const started = Date.now();
             for (let cycle = 0; cycle < 20; ++cycle) {
                 screenDouble.settings = true;
-                for (const category of SettingsController.categories)
-                    select(category.id);
+                for (const id of root.destinations)
+                    select(id);
                 screenDouble.settings = false;
             }
             console.log("SETTINGS_CYCLES_MS", Date.now() - started);
@@ -480,47 +487,48 @@ ShellRoot {
             window.requestActivate();
         }],
         [() => window.active && waitedMs >= 200, () => {
-            verify(focusName() === "nexus-quick", `opening focuses the current destination (${focusName()})`);
+            verify(focusName() === "nexus-home", `opening focuses the current destination (${focusName()})`);
             SettingsController.search = "vim";
-            verify(SettingsController.matchingIds.includes("general"), "the moved Vim preference remains searchable");
+            verify(SettingsController.matchingIds.includes("devices")
+                && SettingsController.results.some(result => result.page === "input" && result.setting === "Navegación estilo Vim"),
+                "the Vim preference is found in Bluetooth y dispositivos › Teclado");
             SettingsController.search = "DNS";
-            verify(SettingsController.matchingIds.includes("services"), "network profile controls remain searchable");
+            verify(SettingsController.matchingIds.includes("network"), "network profile controls remain searchable");
             SettingsController.search = "Gamma";
-            verify(SettingsController.matchingIds.includes("advanced"), "display calibration controls remain searchable");
+            verify(SettingsController.results[0]?.path === "Sistema › Pantalla", "a result names where the setting lives");
             SettingsController.search = "";
             SettingsController.select("stale-domain");
-            verify(SettingsController.selectedId === "quick" && SettingsController.pageForSection("stale-domain") === "",
+            verify(SettingsController.selectedId === "home" && SettingsController.pageForSection("stale-domain") === "",
                 "an unknown deep link leaves the current page selected");
+            verify(SettingsController.pageForSection("quick") === "themes" && SettingsController.pageForSection("audio") === "sound"
+                && SettingsController.pageForSection("services") === "wifi", "old destinations still lead to their settings");
             key(Qt.Key_PageDown, Qt.ControlModifier);
-            verify(SettingsController.selectedId === "general" && focusName() === "nexus-general", "Ctrl+PageDown opens and focuses the next page");
+            verify(SettingsController.selectedId === "system" && focusName() === "nexus-system", "Ctrl+PageDown opens and focuses the next category");
             key(Qt.Key_PageUp, Qt.ControlModifier);
-            verify(SettingsController.selectedId === "quick" && focusName() === "nexus-quick", "Ctrl+PageUp restores the previous page");
+            verify(SettingsController.selectedId === "home" && focusName() === "nexus-home", "Ctrl+PageUp restores the previous category");
             key(Qt.Key_Down);
-            verify(SettingsController.selectedId === "general" && focusName() === "nexus-general", "Down opens the next end-4 page and moves focus with it");
+            verify(SettingsController.selectedId === "system" && focusName() === "nexus-system", "Down opens the next category and moves focus with it");
             key(Qt.Key_Up);
             key(Qt.Key_Up);
-            verify(SettingsController.selectedId === "quick", `Up walks back across pages (${SettingsController.selectedId})`);
+            verify(SettingsController.selectedId === "home", `Up walks back across categories (${SettingsController.selectedId})`);
             select("notifications");
             get("nexus").focusSelected();
         }],
-        [() => content.pageId === "interface" && !!page("dnd"), () => {
-            verify(!get("transparency"), "the previous page is gone");
-            key(Qt.Key_Tab);
-            verify(focusName() === "closeSettings", `Tab leaves the Nexus for the header (${focusName()})`);
-            key(Qt.Key_Tab);
-            verify(content.within(window.activeFocusItem, page("osdTimeout")), `then enters the Interface page at its first control (${focusName()})`);
+        [() => content.pageId === "notifications" && !!page("dnd"), () => {
+            verify(!get("homeHero"), "the previous page is gone");
+            verify(get("nexus-interface").selected && get("pageTitle").text === "Notificaciones", "the sidebar marks the category of the subpage");
+            for (let i = 0; i < 6 && !content.within(window.activeFocusItem, content.page); ++i)
+                key(Qt.Key_Tab);
+            verify(content.within(window.activeFocusItem, page("dnd")), `Tab leaves the sidebar for the page's first control (${focusName()})`);
             const dnd = page("dnd");
             dnd.forceActiveFocus();
             content.revealFocus();
-            const scroller = get("pageScroller");
-            scroller.contentY = Math.max(0, dnd.mapToItem(scroller.contentItem, 0, 0).y - scroller.height / 2);
             key(Qt.Key_Space);
             verify(CortetsuNotifications.dnd === true, "Space flips the switch");
             key(Qt.Key_Return);
             verify(CortetsuNotifications.dnd === false, "Enter flips it back");
-            scroller.contentY = Math.max(0, dnd.mapToItem(scroller.contentItem, 0, 0).y - scroller.height / 2);
         }],
-        [() => get("pageScroller").contentY > 0 && waitedMs >= 250, () => {
+        [() => waitedMs >= 250, () => {
             const dnd = page("dnd");
             // The pointer: on the label and on the switch itself, one flip each.
             memo.flips = 0;
@@ -533,8 +541,7 @@ ShellRoot {
             verify(text("dnd") === "Los avisos aparecen en pantalla al llegar", "the row describes the current state");
             dnd.forceActiveFocus();
             key(Qt.Key_Left);
-            verify(focusName() === "nexus-interface", "Left returns from a setting to the page navigation");
-            // The composed Interface page keeps all settings in one Tab chain.
+            verify(focusName() === "nexus-interface", "Left returns from a setting to the sidebar");
             key(Qt.Key_Right);
             const stops = [];
             const stopItems = new Set();
@@ -546,7 +553,7 @@ ShellRoot {
                 key(Qt.Key_Tab);
             }
             verify(stops.includes("dnd") && stops.includes("action") && stopItems.size === stops.length,
-                `Tab reaches notification controls in the composed page (${stops.join(",")})`);
+                `Tab reaches every notification control (${stops.join(",")})`);
             memo.clear = page("clearHistory");
             find(memo.clear, "action").forceActiveFocus();
             key(Qt.Key_Return);
@@ -554,33 +561,57 @@ ShellRoot {
             key(Qt.Key_Return);
             verify(CortetsuNotifications.count === 0 && !memo.clear.armed, "the second press runs it");
             verify(memo.clear.title === "El historial está vacío" && memo.clear.disabled, "the row then shows the new state and stops offering the action");
+            get("pageScroller").contentY = 120;
         }],
-        [() => waitedMs >= 100, () => {
-            select("services");
+        [() => waitedMs >= 400, () => {
+            select("themes");
+        }],
+        [() => content.pageId === "themes" && !!content.page && waitedMs >= 200, () => {
+            verify(get("settingsBack").visible && SettingsController.canGoBack, "a subpage offers the way back");
+            get("settingsBack").clicked();
+        }],
+        [() => content.pageId === "notifications" && !!content.page && waitedMs >= 200, () => {
+            verify(Math.abs(get("pageScroller").contentY - 120) <= 1, `going back lands where the page was left (${get("pageScroller").contentY})`);
+            get("breadcrumbCategory").forceActiveFocus();
+            key(Qt.Key_Return);
+        }],
+        [() => content.pageId === "interface" && !!page("subpage-launcher"), () => {
+            verify(get("pageTitle").text === "Interfaz" && page("subpage-notifications").visible, "the breadcrumb leads to the category page and its subpages");
+            page("subpage-launcher").activated();
+        }],
+        [() => content.pageId === "launcher" && !!page("launcherEnabled"), () => {
+            select("display");
             key(Qt.Key_F, Qt.ControlModifier);
             verify(focusName() === "nexusSearch", `Ctrl+F reaches the search (${focusName()})`);
             get("nexusSearch").text = "reloj";
         }],
-        [() => SettingsController.matchingIds.join(",") === "quick,background,interface", () => {
-            verify(get("nexus-quick").visible && get("nexus-background").visible && get("nexus-interface").visible && !get("nexus-general").visible, "the search keeps the pages that hold a matching setting");
-            verify(get("nexus-quick").value === "Reloj de 12 horas", "and names the setting that matched");
-            verify(get("nexus-general") !== null, "hidden rows still exist: the list is filtered, not rebuilt");
+        [() => SettingsController.results.length > 0 && get("nexusResult-0")?.visible, () => {
+            verify(!get("nexus-system").visible && get("nexus-system") !== null, "categories step aside for the results without being rebuilt");
+            memo.result = SettingsController.results[0];
+            verify(memo.result.title === "Posición del reloj" && memo.result.path === "Personalización › Fondo",
+                `results name the setting and its place (${memo.result.title}, ${memo.result.path})`);
+            verify(SettingsController.results.some(result => result.title === "Reloj de 12 horas" && result.page === "indicators"),
+                "every matching setting is offered");
             key(Qt.Key_Return);
-            verify(SettingsController.selectedId === "quick" && focusName() === "nexus-quick", `Enter opens the first result (${SettingsController.selectedId}, ${focusName()})`);
+        }],
+        [() => content.pageId === "background" && !!page("desktopClockEnabled") && waitedMs >= 300, () => {
+            verify(get("nexusSearch").text === "" && SettingsController.reveal === "", "opening a result clears the search");
+            verify(focusName().startsWith("clock-"), `the result opens on the setting itself (${focusName()})`);
+            verify(get("revealHighlight").visible, "and marks it");
             key(Qt.Key_F, Qt.ControlModifier);
             get("nexusSearch").text = "energia";
         }],
-        [() => SettingsController.matchingIds.join(",") === "general,services", () => {
-            verify(get("nexus-general").visible && get("nexus-services").visible
-                && !get("nexus-quick").visible && !get("nexus-bar").visible,
+        [() => SettingsController.results.length > 0, () => {
+            verify(SettingsController.results.some(result => result.page === "power")
+                && SettingsController.results.some(result => result.page === "automation"),
                 "an unaccented search finds both energy and automatic policy pages");
             get("nexusSearch").text = "zzzz";
         }],
-        [() => SettingsController.matchingIds.length === 0, () => {
+        [() => SettingsController.results.length === 0 && SettingsController.search === "zzzz", () => {
             verify(get("nexusEmpty").visible, "a search without results says so");
             key(Qt.Key_Escape);
             verify(get("nexusSearch").text === "" && screenDouble.settings, "Escape first clears the search");
-            verify(get("nexus-general").visible, "and every destination is back");
+            verify(get("nexus-system").visible, "and every category is back");
             key(Qt.Key_Escape);
             verify(screenDouble.settings === false, "Escape then closes Settings");
         }],
@@ -588,8 +619,6 @@ ShellRoot {
             screenDouble.settings = true;
         }],
         [() => !!content && !!content.page && waitedMs >= 200, () => {
-            // The history is empty, so its button is disabled and the focus
-            // has nowhere to sit inside the page: Escape must still close.
             frame.forceActiveFocus();
             key(Qt.Key_Escape);
             verify(screenDouble.settings === false, "Escape closes Settings even with the focus outside its controls");
@@ -601,7 +630,7 @@ ShellRoot {
             // A long page keeps the focused control in view.
             select("desktop");
         }],
-        [() => content.pageId === "interface" && !!page("dashboardMetrics"), () => {
+        [() => content.pageId === "panels" && !!page("dashboardMetrics"), () => {
             get("nexus").focusSelected();
             key(Qt.Key_Right);
             for (let i = 0; i < 12; ++i)
@@ -617,8 +646,8 @@ ShellRoot {
             get("nexusCollapse").clicked();
         }],
         [() => get("nexus").collapsed && waitedMs >= 300, () => {
-            verify(get("nexus").width < 80 && !get("nexusSearch").visible, "the Nexus folds to icons");
-            verify(get("nexus-interface").selected && get("nexus-interface").width > 0, "and still marks where you are");
+            verify(get("nexus").width < 80 && !get("nexusSearch").visible, "the sidebar folds to icons");
+            verify(get("nexus-personalization").selected && get("nexus-personalization").width > 0, "and still marks where you are");
             render("nexus-collapsed");
         }],
         [null, () => {
@@ -635,12 +664,12 @@ ShellRoot {
     // Operations that answer later, that fail, and values that move outside.
     readonly property var states: [
         [() => CortetsuConfig.loaded, () => { select("network"); screenDouble.settings = true; }],
-        [() => !!content && content.pageId === "services" && !!page("wifiPower"), () => {
+        [() => !!content && ["wifi", "bluetooth", "automation", "capture", "weather"].includes(content.pageId) && !!page("wifiPower"), () => {
             window.requestActivate();
             memo.wifi = page("wifiPower");
             verify(memo.wifi.width >= 500 && Math.abs(memo.wifi.width - content.page.width) <= 1,
                 "the Wi-Fi workbench fills the Settings viewport before its first group is drawn");
-            verify(find(memo.wifi, "switch").checked && get("nexus-services").value.includes("Casa"), "the page and navigation show the live connection");
+            verify(find(memo.wifi, "switch").checked && get("nexus-network").value.includes("Casa"), "the page and navigation show the live connection");
             memo.wifi.forceActiveFocus();
             key(Qt.Key_Space);
             verify(wifi.busy && memo.wifi.status === "busy" && text("wifiPower") === "Aplicando…", "an operation in flight is shown as such");
@@ -655,7 +684,7 @@ ShellRoot {
         [() => !wifi.busy, () => {
             verify(find(memo.wifi, "switch").checked && wifi.wifiEnabled, "a refused change leaves the switch on the real state");
             verify(memo.wifi.status === "error" && text("wifiPower") === "NetworkManager rechazó el cambio", "and says why it failed");
-            verify(get("nexus-services").alerting, "the Nexus flags the page");
+            verify(get("nexus-network").alerting, "the Nexus flags the page");
             render("network-error");
         }],
         [null, () => {
@@ -664,7 +693,7 @@ ShellRoot {
         }],
         [() => !wifi.busy && !wifi.wifiEnabled, () => {
             verify(!find(memo.wifi, "switch").checked && text("wifiPower") === "Apagado" && memo.wifi.status === "", "an accepted change is shown once the radio confirms it");
-            verify(get("nexus-services").value.includes("Wi-Fi apagado") && !get("nexus-services").alerting, "an ordinary off state is not an alert");
+            verify(get("nexus-network").value.includes("Wi-Fi apagado") && !get("nexus-network").alerting, "an ordinary off state is not an alert");
             verify(page("wifiScan").disabled, "scanning is not offered with the radio off");
             render("network-off");
         }],
@@ -673,12 +702,12 @@ ShellRoot {
             wifi.wifiEnabled = true;
         }],
         [() => find(memo.wifi, "switch").checked, () => {
-            verify(get("nexus-services").value.includes("Casa"), "an outside change reaches the open page and navigation");
+            verify(get("nexus-network").value.includes("Casa"), "an outside change reaches the open page and navigation");
             select("bluetooth");
         }],
-        [() => content.pageId === "services" && !!page("bluetoothPower"), () => {
+        [() => ["wifi", "bluetooth", "automation", "capture", "weather"].includes(content.pageId) && !!page("bluetoothPower"), () => {
             memo.bt = page("bluetoothPower");
-            verify(get("nexus-services").value.includes("1 conectado"), "the navigation counts connected devices");
+            verify(get("nexus-devices").value.includes("1 conectado"), "the navigation counts connected devices");
             memo.bt.forceActiveFocus();
             key(Qt.Key_Return);
             verify(memo.bt.status === "busy" && find(memo.bt, "switch").checked, "Bluetooth waits for the adapter");
@@ -693,14 +722,14 @@ ShellRoot {
         }],
         [() => !!page("noAdapter") && page("noAdapter").visible, () => {
             verify(!page("bluetoothPower").visible, "without an adapter there is no switch to press");
-            verify(get("nexus-services").value.includes("Sin adaptador"), "the navigation says the adapter is missing");
+            verify(get("nexus-devices").value.includes("Sin adaptador"), "the navigation says the adapter is missing");
             render("bluetooth-unavailable");
         }],
         [null, () => {
             select("audio");
         }],
-        [() => content.pageId === "general" && !!page("outputVolume"), () => {
-            verify(find(page("outputVolume"), "sliderValue").text === "62 %" && get("nexus-general").value.includes("62 %"), "the volume is the real one");
+        [() => ["sound", "power", "input"].includes(content.pageId) && !!page("outputVolume"), () => {
+            verify(find(page("outputVolume"), "sliderValue").text === "62 %" && get("nexus-system").value.includes("62 %"), "the volume is the real one");
             CortetsuAudio.speakers.audio.volume = 0.31;
         }],
         [() => find(page("outputVolume"), "sliderValue").text === "31 %", () => {
@@ -710,21 +739,21 @@ ShellRoot {
             verify(Math.abs(CortetsuAudio.volume - 0.36) < 0.001, "an arrow moves the real volume one step");
             page("outputMute").forceActiveFocus();
             key(Qt.Key_Space);
-            verify(CortetsuAudio.muted && get("nexus-general").value.includes("Silenciado"), "muting is reflected everywhere");
+            verify(CortetsuAudio.muted && get("nexus-system").value.includes("Silenciado"), "muting is reflected everywhere");
             render("audio");
         }],
         [null, () => {
             CortetsuAudio.available = false;
         }],
         [() => page("noOutput").visible, () => {
-            verify(!page("outputVolume").visible && get("nexus-general").alerting, "without PipeWire the page says so and the Nexus flags it");
+            verify(!page("outputVolume").visible && get("nexus-system").alerting, "without PipeWire the page says so and the Nexus flags it");
             verify(get("pageSummary").text === "No hay dispositivo de salida", "the header names the problem");
             render("audio-unavailable");
         }],
         [null, () => {
             select("display");
         }],
-        [() => content.pageId === "advanced" && !!page("colourFilter"), () => {
+        [() => ["display", "shortcuts"].includes(content.pageId) && !!page("colourFilter"), () => {
             memo.filter = page("colourFilter");
             verify(page("brightness").visible && find(page("brightness"), "sliderValue").text === "70 %", "brightness is the real one");
             Brightness.monitor.brightness = 0.4;
@@ -751,7 +780,7 @@ ShellRoot {
         }],
         [() => page("brightnessUnavailable").visible, () => {
             verify(!page("brightness").visible && value("brightnessUnavailable") === "No disponible", "a screen without backlight control says so instead of showing 0 %");
-            verify(get("nexus-advanced").value === "2 pantallas", "the Nexus falls back to what it does know");
+            verify(get("nexus-system").value.includes("2 pantallas"), "the Nexus falls back to what it does know");
             render("display-unavailable");
         }],
         [null, () => {
@@ -759,7 +788,7 @@ ShellRoot {
             select("shortcuts");
             page("shortcutsSection").load();
         }],
-        [() => content.pageId === "advanced" && page("shortcutsSection").state === "error", () => {
+        [() => ["display", "shortcuts"].includes(content.pageId) && page("shortcutsSection").state === "error", () => {
             verify(page("shortcutsState").visible && page("shortcutsState").kind === "error", "a helper that fails is an error with a retry, not an empty list");
             render("shortcuts-error");
         }],
@@ -775,15 +804,15 @@ ShellRoot {
             render("shortcuts");
         }],
         [null, () => {
-            select("about");
+            select("diagnostics");
         }],
-        [() => content.pageId === "about" && !!page("revision"), () => {
-            verify(value("revision") === "0123456" && value("generation") === "20261003-000000-1", "About reads the running generation");
-            verify(get("nexus-about").value === "0123456", "and the Nexus shows the revision");
+        [() => content.pageId === "diagnostics" && !!page("revision"), () => {
+            verify(value("revision") === "0123456" && value("generation") === "20261003-000000-1", "Diagnostics reads the running generation");
+            verify(get("nexus-about").value === "0123456", "and the sidebar names the revision of About");
             select("wallpaper");
         }],
         [() => content.pageId === "background" && !!page("wallpaperFile"), () => {
-            verify(value("wallpaperFile") === "montaña.png" && get("nexus-background").value === "montaña.png", "the wallpaper shown is the one applied");
+            verify(value("wallpaperFile") === "montaña.png" && get("nexus-personalization").value.includes("montaña.png"), "the wallpaper shown is the one applied");
             CortetsuWallpapers.applyStatusPath = "/home/prueba/Fondos/nuevo.png";
             CortetsuWallpapers.applyStatus = "applying";
         }],
@@ -794,22 +823,22 @@ ShellRoot {
         }],
         [() => page("wallpaperFile").status === "error", () => {
             verify(value("wallpaperFile") === "montaña.png", "a failed apply shows the wallpaper that is really set");
-            verify(text("wallpaperFile") === "el servicio de fondos no responde" && get("nexus-background").alerting, "with the reason, and the Nexus flags it");
+            verify(text("wallpaperFile") === "el servicio de fondos no responde" && get("nexus-personalization").alerting, "with the reason, and the Nexus flags it");
             render("wallpaper-error");
         }],
         [null, () => {
             select("power");
         }],
-        [() => content.pageId === "general" && !!page("batteryLevel"), () => {
-            verify(value("batteryLevel") === "86 %" && get("nexus-general").value.includes("86 %"), "battery is the real reading");
+        [() => ["sound", "power", "input"].includes(content.pageId) && !!page("batteryLevel"), () => {
+            verify(value("batteryLevel") === "86 %" && get("nexus-system").value.includes("86 %"), "battery is the real reading");
             CortetsuPower.percent = 12;
         }],
         [() => value("batteryLevel") === "12 %", () => {
-            verify(get("nexus-general").alerting && get("pageSummary").text === "Batería baja", "a low battery is flagged");
+            verify(get("nexus-system").alerting && get("pageSummary").text === "Batería baja", "a low battery is flagged");
             CortetsuPower.hasBattery = false;
         }],
         [() => page("noBattery").visible, () => {
-            verify(get("nexus-general").value.includes("Corriente") && get("nexus-general").alerting,
+            verify(get("nexus-system").value.includes("Corriente") && get("nexus-system").alerting,
                 "a desktop shows its power source while the page still flags its unavailable audio output");
         }]
     ]
@@ -820,7 +849,7 @@ ShellRoot {
             blockConfig.running = true;
             select("launcher"); screenDouble.settings = true;
         }],
-        [() => blockConfig.ready && !!content && content.pageId === "interface" && !!page("launcherEnabled"), () => {
+        [() => blockConfig.ready && !!content && ["panels", "launcher", "notifications", "indicators", "background"].includes(content.pageId) && !!page("launcherEnabled"), () => {
             window.requestActivate();
             page("launcherEnabled").forceActiveFocus();
             key(Qt.Key_Space);
@@ -836,7 +865,7 @@ ShellRoot {
     ]
 
     readonly property var weatherPreferences: [
-        [() => CortetsuConfig.loaded, () => { select("services"); screenDouble.settings = true; }],
+        [() => CortetsuConfig.loaded, () => { select("weather"); screenDouble.settings = true; }],
         [() => !!content && !!page("weatherLocation"), () => { window.requestActivate(); }],
         [() => window.active, () => {
             const interval = find(page("weatherRefreshInterval"), "slider");
@@ -872,7 +901,7 @@ ShellRoot {
         }]
     ]
     readonly property var recordingPathPreferences: [
-        [() => CortetsuConfig.loaded, () => { select("services"); screenDouble.settings = true; }],
+        [() => CortetsuConfig.loaded, () => { select("capture"); screenDouble.settings = true; }],
         [() => !!content && !!page("screenRecordSavePath"), () => { window.requestActivate(); }],
         [() => window.active, () => {
             const entry = page("screenRecordSavePath");
@@ -888,7 +917,7 @@ ShellRoot {
         [() => CortetsuConfig.saveState === "saved", () => {}]
     ]
     readonly property var recordingPathRestore: [
-        [() => CortetsuConfig.loaded, () => { select("services"); screenDouble.settings = true; }],
+        [() => CortetsuConfig.loaded, () => { select("capture"); screenDouble.settings = true; }],
         [() => !!content && !!page("screenRecordSavePath"), () => {
             verify(CortetsuConfig.screenRecordSavePath === "~/Vídeos/Grabaciones"
                 && page("screenRecordSavePath").value === "~/Vídeos/Grabaciones",
@@ -898,7 +927,7 @@ ShellRoot {
         }]
     ]
     readonly property var screenshotPathPreferences: [
-        [() => CortetsuConfig.loaded, () => { select("services"); screenDouble.settings = true; }],
+        [() => CortetsuConfig.loaded, () => { select("capture"); screenDouble.settings = true; }],
         [() => !!content && !!page("screenSnipSavePath"), () => { window.requestActivate(); }],
         [() => window.active, () => {
             const entry = page("screenSnipSavePath");
@@ -912,7 +941,7 @@ ShellRoot {
         [() => CortetsuConfig.saveState === "saved", () => {}]
     ]
     readonly property var screenshotPathRestore: [
-        [() => CortetsuConfig.loaded, () => { select("services"); screenDouble.settings = true; }],
+        [() => CortetsuConfig.loaded, () => { select("capture"); screenDouble.settings = true; }],
         [() => !!content && !!page("screenSnipSavePath"), () => {
             verify(CortetsuConfig.screenSnipSavePath === "~/Imágenes/Recortes"
                 && page("screenSnipSavePath").value === "~/Imágenes/Recortes",
@@ -960,7 +989,7 @@ ShellRoot {
         }]
     ]
     readonly property var weatherVisibilityPreferences: [
-        [() => CortetsuConfig.loaded, () => { select("interface"); screenDouble.settings = true; }],
+        [() => CortetsuConfig.loaded, () => { select("panels"); screenDouble.settings = true; }],
         [() => !!content && !!page("dashboardWeather"), () => { window.requestActivate(); }],
         [() => window.active, () => {
             const toggle = page("dashboardWeather");
@@ -978,7 +1007,7 @@ ShellRoot {
     ]
 
     readonly property var regionalPreferences: [
-        [() => CortetsuConfig.loaded, () => { select("quick"); screenDouble.settings = true; }],
+        [() => CortetsuConfig.loaded, () => { select("indicators"); screenDouble.settings = true; }],
         [() => !!content && !!page("clockFormat") && !!page("clockSeconds"), () => { window.requestActivate(); }],
         [() => window.active, () => {
             verify(!CortetsuConfig.useSecondPrecision && CortetsuRegional.clockPattern === "h:mm"
@@ -1013,7 +1042,7 @@ ShellRoot {
         }]
     ]
     readonly property var notificationCountPreferences: [
-        [() => CortetsuConfig.loaded, () => { select("bar"); screenDouble.settings = true; }],
+        [() => CortetsuConfig.loaded, () => { select("bottomhub"); screenDouble.settings = true; }],
         [() => !!content && !!page("notificationCount"), () => { window.requestActivate(); }],
         [() => window.active, () => {
             const toggle = page("notificationCount");
@@ -1029,7 +1058,7 @@ ShellRoot {
         [() => CortetsuConfig.saveState === "saved", () => {}]
     ]
     readonly property var notificationCountRestore: [
-        [() => CortetsuConfig.loaded, () => { select("bar"); screenDouble.settings = true; }],
+        [() => CortetsuConfig.loaded, () => { select("bottomhub"); screenDouble.settings = true; }],
         [() => !!content && !!page("notificationCount"), () => {
             verify(!CortetsuConfig.bottomHub.statusCluster.showNotificationCount
                 && !page("notificationCount").checked && !notificationBadgeVisible(),
@@ -1147,7 +1176,7 @@ ShellRoot {
     ]
     readonly property var hardwareSamplePreferences: [
         [() => CortetsuConfig.loaded, () => { select("automation"); screenDouble.settings = true; }],
-        [() => !!content && content.pageId === "services" && !!page("hardwareSampleInterval") && !!hardwareTelemetryProbe, () => {
+        [() => !!content && ["wifi", "bluetooth", "automation", "capture", "weather"].includes(content.pageId) && !!page("hardwareSampleInterval") && !!hardwareTelemetryProbe, () => {
             window.requestActivate();
         }],
         [() => window.active, () => {
@@ -1168,7 +1197,7 @@ ShellRoot {
     ]
     readonly property var hardwareSampleRestore: [
         [() => CortetsuConfig.loaded, () => { select("automation"); screenDouble.settings = true; }],
-        [() => !!content && content.pageId === "services" && !!page("hardwareSampleInterval") && !!hardwareTelemetryProbe, () => {
+        [() => !!content && ["wifi", "bluetooth", "automation", "capture", "weather"].includes(content.pageId) && !!page("hardwareSampleInterval") && !!hardwareTelemetryProbe, () => {
             verify(CortetsuConfig.dashboardResourceUpdateInterval === 2750
                 && page("hardwareSampleInterval").value === 2750
                 && hardwareTelemetryProbe.intervalMs === 2750,
@@ -1177,7 +1206,7 @@ ShellRoot {
     ]
     readonly property var hardwareSampleNormalize: [
         [() => CortetsuConfig.loaded, () => { select("automation"); screenDouble.settings = true; }],
-        [() => !!content && content.pageId === "services" && !!page("hardwareSampleInterval"), () => {
+        [() => !!content && ["wifi", "bluetooth", "automation", "capture", "weather"].includes(content.pageId) && !!page("hardwareSampleInterval"), () => {
             verify(CortetsuConfig.dashboardResourceUpdateInterval === 5000
                 && page("hardwareSampleInterval").value === 5000,
                 "stored sampling values are bounded and rounded to a supported 250-millisecond step");
@@ -1185,14 +1214,14 @@ ShellRoot {
     ]
     readonly property var hardwareSampleNormalizeLow: [
         [() => CortetsuConfig.loaded, () => { select("automation"); screenDouble.settings = true; }],
-        [() => !!content && content.pageId === "services" && !!page("hardwareSampleInterval"), () => {
+        [() => !!content && ["wifi", "bluetooth", "automation", "capture", "weather"].includes(content.pageId) && !!page("hardwareSampleInterval"), () => {
             verify(CortetsuConfig.dashboardResourceUpdateInterval === 1000
                 && page("hardwareSampleInterval").value === 1000,
                 "stored sampling values cannot exceed the lower safe query-rate bound");
         }]
     ]
     readonly property var actionPrefixPreferences: [
-        [() => CortetsuConfig.loaded, () => { select("interface"); screenDouble.settings = true; }],
+        [() => CortetsuConfig.loaded, () => { select("launcher"); screenDouble.settings = true; }],
         [() => !!content && !!page("actionPrefix"), () => { window.requestActivate(); }],
         [() => window.active, () => {
             const entry = find(page("actionPrefix"), "entry");
@@ -1216,7 +1245,7 @@ ShellRoot {
         }]
     ]
     readonly property var launcherHoverPreferences: [
-        [() => CortetsuConfig.loaded, () => { select("interface"); screenDouble.settings = true; }],
+        [() => CortetsuConfig.loaded, () => { select("launcher"); screenDouble.settings = true; }],
         [() => !!content && !!page("launcherShowOnHover"), () => { window.requestActivate(); }],
         [() => window.active, () => {
             const toggle = page("launcherShowOnHover");
@@ -1284,7 +1313,7 @@ ShellRoot {
                 "the existing clock shows its date by default");
             page("clock-middle-center").request();
             verify(CortetsuConfig.desktopClockPosition === "middle-center", "the position control updates the background owner");
-            verify(page("clock-middle-center").actionDisabled, "the selected position is confirmed");
+            verify(page("clock-middle-center").selected, "the selected position is confirmed");
             const toggle = page("clockShowDate");
             toggle.forceActiveFocus(); key(Qt.Key_Space);
             verify(!CortetsuConfig.desktopClockShowDate && root.clockDateExists() && !root.clockDateVisible(),
@@ -1323,11 +1352,13 @@ ShellRoot {
         materialHairlineAlpha: 0.12, fontUi: "Noto Sans", fontInk: "Noto Serif", fontKanji: "Noto Sans CJK JP"})
 
     readonly property var globalPersonalisation: [
-        [() => CortetsuConfig.loaded && CortetsuThemes.reconciled, () => { select("appearance"); screenDouble.settings = true; }],
+        [() => CortetsuConfig.loaded && CortetsuThemes.reconciled, () => { select("themes"); screenDouble.settings = true; }],
         [() => !!page("themePreview-washi"), () => { page("themePreview-washi").request(); }],
         [() => CortetsuThemes.previewId === "washi" && !CortetsuThemes.busy, () => {
             verify(CortetsuConfig.themeId === "ink", "preview never saves its theme");
-            compare(CortetsuDesign.radiusSurface, 18);
+            compare(CortetsuDesign.radiusSurface, 24);
+            compare(CortetsuDesign.materialStyle, 1);
+            verify(page("themePreviewBar").visible, "a preview always offers its way back");
             verify(page("themeToken-radiusSurface").disabled, "preview geometry cannot change the saved theme");
             page("themePreviewCancel").request();
             compare(CortetsuDesign.radiusSurface, 28);
@@ -1342,14 +1373,20 @@ ShellRoot {
                 if (typeof value === "string") control.committed(value); else control.moved(value);
                 compare(CortetsuDesign[token], value);
             }
+            select("sync");
+        }],
+        [() => content.pageId === "sync" && !!page("themeIntegration-kitty"), () => {
             page("themeIntegration-kitty").request();
         }],
         [() => CortetsuConfig.saveState === "saved" && CortetsuThemes.integrations.kitty?.status === "disabled", () => {
             verify(CortetsuConfig.themeIntegrations.kitty === false, "integration control confirms persisted disable");
+            select("profiles");
+        }],
+        [() => content.pageId === "profiles" && !!page("themeProfileExport"), () => {
             page("themeProfileExport").request();
         }],
         [() => CortetsuThemes.notice.includes("exportado") && !CortetsuThemes.busy, () => {
-            page("themeToken-radiusSurface").moved(20);
+            CortetsuConfig.setThemeToken("radiusSurface", 20);
         }],
         [() => CortetsuConfig.saveState === "saved", () => {
             page("themeProfileImport").request(); page("themeProfileImport").request();
@@ -1366,7 +1403,7 @@ ShellRoot {
             verify(CortetsuConfig.audioProtectionEnabled, "audio protection is a real preference");
             compare(CortetsuConfig.audioMaxIncrease, 0.25);
         }],
-        [() => CortetsuConfig.saveState === "saved", () => { select("desktop"); }],
+        [() => CortetsuConfig.saveState === "saved", () => { select("indicators"); }],
         [() => !!page("osdTimeout") && !!osdProbe.item, () => {
             page("osdTimeout").moved(2200);
             compare(CortetsuConfig.osdTimeoutMs, 2200);
@@ -1394,14 +1431,14 @@ ShellRoot {
     readonly property var themeRecovery: [
         [() => CortetsuConfig.loaded && CortetsuThemes.reconciled, () => {
             verify(CortetsuConfig.themeId === "washi", "startup recovers a native commit made before the preferences write");
-            verify(CortetsuDesign.radiusSurface === 18, "recovered native ownership reaches the design tokens");
+            verify(CortetsuDesign.radiusSurface === 24 && CortetsuDesign.materialStyle === 1, "recovered native ownership reaches the design tokens");
         }],
         [() => CortetsuConfig.saveState === "saved", () => {}]
     ]
 
     readonly property var themeFailure: [
         [() => CortetsuConfig.loaded && Schemes.catalogCount > 0, () => {
-            select("appearance"); screenDouble.settings = true;
+            select("themes"); screenDouble.settings = true;
         }],
         [() => !!content && !!page("theme-washi"), () => { stateFile.setText("{broken"); }],
         [() => waitedMs >= 200, () => { page("theme-washi").clicked(); }],
@@ -1414,7 +1451,7 @@ ShellRoot {
 
     readonly property var themeSlowCommit: [
         [() => CortetsuConfig.loaded && CortetsuThemes.reconciled && Schemes.catalogCount > 0, () => {
-            select("appearance"); screenDouble.settings = true;
+            select("themes"); screenDouble.settings = true;
         }],
         [() => !!content && !!page("theme-washi"), () => { page("theme-washi").clicked(); }],
         [() => CortetsuConfig.themeId === "washi" && !CortetsuThemes.busy, () => {
@@ -1427,7 +1464,7 @@ ShellRoot {
 
     readonly property var themeProjectionFailure: [
         [() => CortetsuConfig.loaded && CortetsuThemes.reconciled, () => {
-            select("appearance"); screenDouble.settings = true;
+            select("themes"); screenDouble.settings = true;
         }],
         [() => !!content && !!page("theme-washi"), () => { page("theme-washi").clicked(); }],
         [() => CortetsuConfig.themeId === "washi" && !CortetsuThemes.busy, () => {
@@ -1439,18 +1476,18 @@ ShellRoot {
 
     readonly property var themeWithoutScheme: [
         [() => CortetsuConfig.loaded && CortetsuThemes.reconciled && Schemes.catalogCount > 0, () => {
-            select("appearance"); screenDouble.settings = true;
+            select("themes"); screenDouble.settings = true;
         }],
         [() => !!content && !!page("theme-washi"), () => { page("theme-washi").clicked(); }],
         [() => CortetsuConfig.themeId === "washi" && CortetsuConfig.saveState === "saved" && !CortetsuThemes.busy, () => {
             verify(CortetsuThemes.error === "", "a fresh install without a selected scheme applies its product theme without a false Kitty projection error");
-            verify(CortetsuDesign.radiusSurface === 18, "the fresh-install theme updates Cortetsu's active design tokens");
+            verify(CortetsuDesign.radiusSurface === 24 && CortetsuDesign.materialStyle === 1, "the fresh-install theme updates Cortetsu's active design tokens");
         }]
     ]
 
     readonly property var themeSelect: [
         [() => CortetsuConfig.loaded && Schemes.catalogCount > 0, () => {
-            select("appearance"); screenDouble.settings = true;
+            select("themes"); screenDouble.settings = true;
         }],
         [() => !!content && !!page("theme-" + Quickshell.env("THEME_ID")), () => {
             const id = Quickshell.env("THEME_ID");
@@ -1461,7 +1498,7 @@ ShellRoot {
             verify(CortetsuConfig.themeId === id, "the theme control changes the persistent owner after native confirmation");
             verify(CortetsuThemes.error === "", "successful external projections clear the pending and failure status");
             verify(page("theme-" + id).disabled, "the active theme is confirmed in Settings");
-            verify(CortetsuDesign.radiusSurface === (id === "washi" ? 18 : 14), "the selected material updates live");
+            verify(CortetsuDesign.radiusSurface === (id === "washi" ? 24 : 8) && CortetsuDesign.materialStyle === (id === "washi" ? 1 : 2), "the selected material updates live");
             render("theme-" + id);
             CortetsuConfig.transparencyEnabled = true;
             CortetsuConfig.reducedMotion = true;
@@ -1487,28 +1524,28 @@ ShellRoot {
             CortetsuConfig.selectTheme("ink");
             verify(!CortetsuConfig.transparencyEnabled && !CortetsuConfig.reducedMotion && CortetsuConfig.smartScheme, "the inactive theme also survives process restart");
             CortetsuConfig.selectTheme(Quickshell.env("THEME_ID"));
-            verify(CortetsuDesign.radiusSurface === (CortetsuConfig.themeId === "washi" ? 18 : 14), "restored preferences reach the design tokens");
+            verify(CortetsuDesign.radiusSurface === (CortetsuConfig.themeId === "washi" ? 24 : 8), "restored preferences reach the design tokens");
         }]
     ]
 
     readonly property var paletteVariant: [
         [() => CortetsuConfig.loaded && Schemes.catalogCount > 0, () => {
-            select("quick"); screenDouble.settings = true;
+            select("colors"); screenDouble.settings = true;
         }],
         [() => !!content && !!page("variant-expressive"), () => {
             const row = page("variant-expressive");
             memo.palettePrimary = CortetsuColours.currentColours.primary;
-            verify(row.actionLabel === "Aplicar", "the current variant is not marked active");
+            verify(!row.selected, "the current variant is not marked active");
             Schemes.applyVariant("not-a-material-variant");
             verify(Schemes.variantStatus === "idle" && Schemes.pendingVariant === "",
                 "an unknown variant is rejected before launching the native owner");
-            find(row, "action").forceActiveFocus(); key(Qt.Key_Return);
+            row.forceActiveFocus(); key(Qt.Key_Return);
             verify(["applying", "applied"].includes(Schemes.variantStatus) && Schemes.pendingVariant === "expressive",
                 "the Settings action starts a native variant change");
         }],
         [() => Schemes.variantStatus === "applied" && CortetsuColours.variant === "expressive", () => {
             verify(Schemes.variantIsCurrent("expressive"), "the live palette state confirms the selected variant");
-            verify(page("variant-expressive").actionLabel === "Activa", "the selected variant is reflected by Settings");
+            verify(page("variant-expressive").selected, "the selected variant is reflected by Settings");
             verify(Schemes.variantError === "", "a successful native update clears prior errors");
             verify(CortetsuColours.currentColours.primary !== memo.palettePrimary,
                 "the selected variant regenerates palette tokens instead of changing metadata only");
@@ -1517,26 +1554,26 @@ ShellRoot {
 
     readonly property var paletteVariantRestore: [
         [() => CortetsuConfig.loaded && CortetsuColours.variant === "expressive", () => {
-            select("quick"); screenDouble.settings = true;
+            select("colors"); screenDouble.settings = true;
         }],
         [() => !!content && !!page("variant-expressive"), () => {
-            verify(page("variant-expressive").actionLabel === "Activa",
+            verify(page("variant-expressive").selected,
                 "a fresh Settings process restores the persisted variant selection");
         }]
     ]
 
     readonly property var paletteVariantUnavailable: [
         [() => CortetsuConfig.loaded && Schemes.catalogCount > 0, () => {
-            select("quick"); screenDouble.settings = true;
+            select("colors"); screenDouble.settings = true;
         }],
         [() => !!content && !!page("variant-expressive"), () => {
-            verify(!Schemes.variantAvailable && find(page("variant-expressive"), "action").disabled,
+            verify(!Schemes.variantAvailable && page("variant-expressive").disabled,
                 "variant actions stay disabled until a colour palette exists");
             const variantStatus = Schemes.variantStatus;
             M3Variants.list[0].onClicked(null);
             verify(Schemes.variantStatus === variantStatus && !Schemes.variantAvailable,
                 "a stale or direct launcher variant action is a no-op until a seed exists");
-            verify(page("paletteVariants").detail.includes("Aplica primero"),
+            verify(find(page("paletteVariants"), "rowDetail").text.includes("Aplica primero"),
                 "the unavailable state explains how to enable palette variants");
         }]
     ]
@@ -1544,7 +1581,7 @@ ShellRoot {
     readonly property var migratedControls: [
         [() => CortetsuConfig.loaded, () => {
             root.writes = 0;
-            select("interface"); screenDouble.settings = true; window.requestActivate();
+            select("background"); screenDouble.settings = true; window.requestActivate();
         }],
         [() => window.active && !!page("desktopClockEnabled"), () => {
             const toggle = page("desktopClockEnabled");
@@ -1558,14 +1595,14 @@ ShellRoot {
             verify(CortetsuConfig.bottomHub.segments.apps && toggle.checked, "the applications segment starts enabled");
             toggle.forceActiveFocus(); key(Qt.Key_Space);
             verify(!CortetsuConfig.bottomHub.segments.apps && !toggle.checked, "the segment control updates Bottom Hub state");
-            select("quick");
+            select("indicators");
         }],
         [() => !!page("useFahrenheit"), () => {
             const toggle = page("useFahrenheit");
             verify(!CortetsuConfig.useFahrenheit && !toggle.checked, "the temperature control starts in Celsius");
             toggle.forceActiveFocus(); key(Qt.Key_Space);
             verify(CortetsuConfig.useFahrenheit && toggle.checked, "the temperature control updates the shared unit preference");
-            select("interface");
+            select("launcher");
         }],
         [() => !!page("fuzzyApplications"), () => {
             const toggle = page("fuzzyApplications");
@@ -1588,7 +1625,7 @@ ShellRoot {
     ]
 
     readonly property var existingPreferenceControls: [
-        [() => CortetsuConfig.loaded, () => { select("interface"); screenDouble.settings = true; window.requestActivate(); }],
+        [() => CortetsuConfig.loaded, () => { select("launcher"); screenDouble.settings = true; window.requestActivate(); }],
         [() => window.active && !!page("fuzzyActions") && !!page("fuzzySchemes"), () => {
             verify(Actions.useFuzzy && Schemes.useFuzzy, "launcher search services start from their saved fuzzy preferences");
             const actions = page("fuzzyActions");
@@ -1644,7 +1681,7 @@ ShellRoot {
 
     readonly property var policies: [
         [() => CortetsuConfig.loaded, () => { select("automation"); screenDouble.settings = true; }],
-        [() => !!content && content.pageId === "services" && !!page("policy-gamemode"), () => {
+        [() => !!content && ["wifi", "bluetooth", "automation", "capture", "weather"].includes(content.pageId) && !!page("policy-gamemode"), () => {
             verify(page("policy-gamemode").disabled && !page("policy-gamemode").checked, "an unavailable coordinator cannot grant consent");
             verify(value("policyConnection") === "No disponible", "connection state is visible");
             policyDouble.usable = true;
@@ -1694,28 +1731,52 @@ ShellRoot {
         }]
     ]
 
-    // One PNG per page, for visual review at the size given by the environment.
-    readonly property var pages: [
-        [() => CortetsuConfig.loaded && Schemes.catalogCount > 0, () => { select("network"); screenDouble.settings = true; }]
-    ].concat(SettingsController.categories.map(category =>
-        [() => { select(category.id); return !!content && content.pageId === category.id && !!content.page && waitedMs >= 350; }, () => {
-            const scroller = get("pageScroller");
-            if (content.page.width > scroller.width || content.page.implicitWidth > scroller.width) {
-                const widths = (item, path, depth, parentWide) => {
-                    if (depth > 5) return;
-                    const tooWide = item.width > scroller.width || item.implicitWidth > scroller.width;
-                    if (depth < 2 || parentWide || tooWide)
-                        console.log("SETTINGS_WIDTH", path, String(item), JSON.stringify({
-                            name: item.objectName, width: item.width, implicitWidth: item.implicitWidth,
-                            x: item.x, childrenWidth: item.childrenRect?.width, text: item.text ?? ""}));
-                    const children = item.children ?? [];
-                    for (let i = 0; i < children.length; ++i) widths(children[i], `${path}/${i}`, depth + 1, tooWide);
-                };
-                widths(content.page, category.id, 0, false);
+    // Every destination once: each category page and each subpage. A
+    // category with a single subpage opens on it, so only the subpage counts.
+    readonly property var destinations: SettingsController.categories
+        .filter(category => category.pages.length !== 1).map(category => category.id)
+        .concat(Object.keys(SettingsController.pages))
+    function clipped(item, stop) {
+        for (let current = item.parent; current && current !== stop; current = current.parent)
+            if (current.clip) return true;
+        return false;
+    }
+    // The page is centred, nothing leaves it sideways, and the sidebar shows
+    // every category name whole.
+    function checkLayout(id) {
+        const scroller = get("pageScroller");
+        const page = content.page;
+        const loader = page.parent;
+        verify(page.width <= scroller.width && page.implicitWidth <= scroller.width,
+            `${id} fits the width it is given (${page.implicitWidth} in ${scroller.width})`);
+        const left = loader.x + page.columnX;
+        const right = scroller.width - (loader.x + page.columnX + page.columnWidth);
+        verify(Math.abs(left - right) <= 2, `${id} is centred (${left} left, ${right} right)`);
+        const over = [];
+        const walk = item => {
+            if (!item.visible || item.opacity === 0) return;
+            if (item !== page && item.width > 0 && !root.clipped(item, page)) {
+                const at = item.mapToItem(page, 0, 0);
+                if (at.x < page.columnX - 1 || at.x + item.width > page.columnX + page.columnWidth + 1)
+                    over.push(`${item}${item.objectName ? "#" + item.objectName : ""} x=${Math.round(at.x)} w=${Math.round(item.width)}`);
             }
-            verify(content.page.width <= scroller.width && content.page.implicitWidth <= scroller.width,
-                `${category.id} fits the width it is given (${content.page.implicitWidth} in ${scroller.width})`);
-            render(`page-${category.id}`);
+            const children = item.children ?? [];
+            for (let i = 0; i < children.length; ++i) walk(children[i]);
+        };
+        walk(page);
+        verify(over.length === 0, `${id} keeps every control inside its column: ${over.slice(0, 4).join(", ")}`);
+        if (!content.collapsed) {
+            const cut = SettingsController.categories.filter(category => find(get(`nexus-${category.id}`), "label")?.truncated);
+            verify(cut.length === 0, `no category name is cut: ${cut.map(category => category.id)}`);
+        }
+    }
+    readonly property var pages: [
+        [() => CortetsuConfig.loaded && Schemes.catalogCount > 0, () => { screenDouble.settings = true; }]
+    ].concat(destinations.map(id =>
+        [() => { select(id); return !!content && content.pageId === SettingsController.pageId
+            && SettingsController.resolve(id) !== null && !!content.page && waitedMs >= 350; }, () => {
+            root.checkLayout(id);
+            render(`page-${id}`);
         }]
     ))
 
@@ -1822,9 +1883,9 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     calls = (home / "fixtures/calls.log").read_text().splitlines()
     assert calls.count("systemctl --user start hyprsunset.service") == 2, calls
     assert "hyprctl hyprsunset temperature 6000" in calls and "hyprctl hyprsunset gamma 100" in calls, calls
-    # Advanced composes the shortcuts section: one initial read plus the
-    # explicit failed attempt and successful retry in this scenario.
-    assert calls.count("cortetsu-keybinds list") == 3, calls
+    # Shortcuts is its own page: Pantalla no longer reads the bindings. Only the
+    # page's failed attempt and its successful retry list them.
+    assert calls.count("cortetsu-keybinds list") == 2, calls
 
     output, home = run(folder, "shell.qml", "unwritable", preferences={"schema": 1})
     unwritable = passed(output)
@@ -2018,7 +2079,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     assert abs(audio_saved["audioIncrement"] - 0.11) < 0.001, audio_saved
 
     personalised, personal_home = run(folder, "shell.qml", "globalPersonalisation", preferences={"schema": 1})
-    assert passed(personalised) == 38, personalised
+    assert passed(personalised) == 40, personalised
     personal_preferences = json.loads((personal_home / ".config/cortetsu/preferences.json").read_text())
     personal_scheme = json.loads((personal_home / "state/cortetsu/scheme.json").read_text())
     personal_restore, _ = run(folder, "shell.qml", "globalPersonalisationRestore",
@@ -2099,11 +2160,11 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     host = run_host(folder)
     assert not host or "SETTINGS_HOST_PASS 1" in host, host
 
-    assert (reactivity, navigation, states, unwritable, pages) == (47, 73, 42, 3, 8), (reactivity, navigation, states, unwritable, pages)
+    assert (reactivity, navigation, states, unwritable, pages) == (48, 56, 42, 3, 120), (reactivity, navigation, states, unwritable, pages)
 assert policies == 16, policies
 print(f"Settings builds in {opened.split()[0]} ms ({opened.split()[1]} items); "
-      f"20 cycles of open, eight pages and close take {cycles} ms")
-print("The window host opens, shows its eight pages, closes and reopens under weston" if host
+      f"20 cycles of open, every destination and close take {cycles} ms")
+print("The window host opens, shows its pages, closes and reopens under weston" if host
       else "SKIP: weston is not installed, the window host was not mapped")
 print("PASS: Settings keeps its objects through colour, scheme and preference changes, "
       "shows pending, failed and unavailable states truthfully, and is fully usable from the keyboard")

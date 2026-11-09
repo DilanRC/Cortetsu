@@ -18,6 +18,7 @@ ColumnLayout {
 
     SettingsGroup {
         title: qsTr("Lanzador")
+        icon: "apps"
 
         SettingToggleRow {
             objectName: "launcherEnabled"
@@ -68,6 +69,7 @@ ColumnLayout {
 
     SettingsGroup {
         title: qsTr("Búsqueda aproximada")
+        icon: "manage_search"
         detail: qsTr("Aceptar nombres parecidos a lo escrito")
 
         SettingToggleRow {

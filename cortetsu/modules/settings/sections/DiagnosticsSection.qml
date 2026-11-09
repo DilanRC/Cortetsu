@@ -5,7 +5,8 @@ import QtQuick.Layouts
 import "../../../theme"
 import "../controls"
 
-// What is installed and running, read from the generation's own manifest.
+// What is running, read from the generation's own manifest, and where to
+// look when something is wrong.
 ColumnLayout {
     id: root
 
@@ -14,16 +15,11 @@ ColumnLayout {
     readonly property var build: root.context.build
     readonly property bool known: (build.buildId ?? "").length > 0
 
-    function builtAt(): string {
-        const moment = new Date(build.builtAt ?? "");
-        return isNaN(moment.getTime()) ? qsTr("No disponible") : Qt.formatDateTime(moment, "yyyy-MM-dd HH:mm");
-    }
-
     spacing: CortetsuDesign.spacingSection
 
     SettingsGroup {
-        title: qsTr("Cortetsu")
-        detail: qsTr("Shell de escritorio sobre Quickshell y Hyprland")
+        title: qsTr("Generación en uso")
+        icon: "deployed_code"
 
         SettingValueRow {
             objectName: "revision"
@@ -40,18 +36,25 @@ ColumnLayout {
         }
 
         SettingValueRow {
+            objectName: "runtimeManifest"
             visible: root.known
-            title: qsTr("Construida")
-            value: root.builtAt()
+            title: qsTr("Manifiesto del runtime")
+            value: String(root.build.runtimeManifestSha256 ?? "").slice(0, 12)
         }
     }
 
     SettingsGroup {
         title: qsTr("Mantenimiento")
+        icon: "monitor_heart"
 
         SettingValueRow {
             title: qsTr("Estado y diagnóstico")
             detail: qsTr("Desde una terminal: cortetsu status y cortetsu doctor")
+        }
+
+        SettingValueRow {
+            title: qsTr("Volver a la generación anterior")
+            detail: qsTr("Desde una terminal: cortetsu rollback restaura shell, dotfiles y helpers")
         }
     }
 }

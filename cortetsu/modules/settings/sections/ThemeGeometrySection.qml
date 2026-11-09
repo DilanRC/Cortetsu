@@ -8,11 +8,12 @@ import "../../ThemePreferences.js" as Preferences
 import "../controls"
 
 SettingsGroup {
-    title: qsTr("Material y geometría del tema")
+    title: qsTr("Material, tipografía y geometría")
+    icon: "architecture"
     detail: qsTr("Cada tema conserva sus ajustes. Restaurar recupera sus valores originales.")
     Repeater {
-        model: [{token: "fontUi", title: qsTr("Fuente de interfaz")}, {token: "fontInk", title: qsTr("Fuente de títulos")},
-            {token: "fontKanji", title: qsTr("Fuente de sellos y kanji")}]
+        model: [{token: "fontUi", title: qsTr("Fuente de interfaz")}, {token: "fontHeading", title: qsTr("Fuente de títulos")},
+            {token: "fontInk", title: qsTr("Fuente de tinta")}, {token: "fontKanji", title: qsTr("Fuente de sellos y kanji")}]
         SettingTextRow {
             required property var modelData
             objectName: "themeToken-" + modelData.token
@@ -46,13 +47,5 @@ SettingsGroup {
             valueText: Preferences.limits[modelData.token][1] <= 1 ? qsTr("%1 %").arg(Math.round(value * 100)) : qsTr("%1 px").arg(Math.round(value))
             onMoved: next => CortetsuConfig.setThemeToken(modelData.token, next)
         }
-    }
-    SettingActionRow {
-        objectName: "resetThemeTokens"
-        title: qsTr("Restaurar colores, material y geometría del tema")
-        actionLabel: qsTr("Restaurar tema")
-        confirm: true
-        actionDisabled: CortetsuThemes.previewId.length > 0 || CortetsuThemes.busy
-        onActivated: CortetsuThemes.resetTheme()
     }
 }

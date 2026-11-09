@@ -10,6 +10,7 @@ SettingsGroup {
     property string pathError: ""
 
     title: qsTr("Capturas de pantalla")
+    icon: "screenshot"
     detail: qsTr("La carpeta se usa al guardar una captura de área")
 
     SettingTextRow {

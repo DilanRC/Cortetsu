@@ -17,6 +17,7 @@ ColumnLayout {
 
     SettingsGroup {
         title: qsTr("Interrupciones")
+        icon: "do_not_disturb_on"
 
         SettingToggleRow {
             objectName: "dnd"
@@ -38,6 +39,7 @@ ColumnLayout {
 
     SettingsGroup {
         title: qsTr("Duración de los avisos")
+        icon: "timer"
         detail: qsTr("Para avisos nuevos cuando la aplicación no indica una duración")
         SettingSliderRow {
             objectName: "notificationTimeout"
@@ -55,6 +57,7 @@ ColumnLayout {
 
     SettingsGroup {
         title: qsTr("Avisos")
+        icon: "notifications_active"
 
         SettingToggleRow {
             title: qsTr("Avisar del modo de juego")
@@ -114,6 +117,7 @@ ColumnLayout {
 
     SettingsGroup {
         title: qsTr("Historial")
+        icon: "history"
 
         SettingActionRow {
             objectName: "clearHistory"

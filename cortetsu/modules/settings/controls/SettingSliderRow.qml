@@ -51,7 +51,7 @@ Item {
             CortetsuText {
                 Layout.fillWidth: true
                 text: root.title
-                textSize: CortetsuTypography.bodyPx
+                textSize: CortetsuTypography.bodyLargePx
                 elide: Text.ElideRight
             }
 

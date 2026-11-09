@@ -85,6 +85,7 @@ ColumnLayout {
 
     SettingsGroup {
         title: qsTr("Edición")
+        icon: "edit"
 
         SettingActionRow {
             title: qsTr("Cambiar o añadir atajos")

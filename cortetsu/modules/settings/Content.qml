@@ -9,12 +9,11 @@ import "../../theme"
 import ".."
 import "../CortetsuTypography.js" as CortetsuTypography
 import "controls"
-import "pages"
-import "sections"
 
-// Settings: the Nexus on the left says where you are and how each domain
-// stands; the right side holds the one page that is open. A page exists only
-// while it is selected, so nothing outside it runs or rebuilds.
+// Settings: the sidebar on the left lists the categories; the main panel
+// holds the one page that is open, under a header that says where it is and
+// leads back. A page exists only while it is shown, so nothing outside it
+// runs or rebuilds.
 FocusScope {
     id: root
 
@@ -22,15 +21,22 @@ FocusScope {
     required property var screen
     required property var controller
 
-    // Automatic density follows the window until the user chooses a rail mode.
+    // Automatic density follows the window until the user chooses a mode.
     property int railMode: 0 // 0 automatic, 1 expanded, -1 compact
-    readonly property bool collapsed: railMode === 0 ? width <= 900 : railMode < 0
+    readonly property bool collapsed: railMode === 0 ? width < 1000 : railMode < 0
     readonly property var category: controller.selectedCategory
-    readonly property string alert: category ? settingsContext.pageAlert(category.id) : ""
-    readonly property string summary: category ? settingsContext.pageSummary(category.id) : ""
+    readonly property var subpage: controller.selectedPage
+    readonly property string pageId: controller.pageId
+    readonly property string alert: subpage ? settingsContext.pageAlert(pageId) : category ? settingsContext.categoryAlert(category.id) : ""
+    readonly property string summary: subpage ? settingsContext.pageSummary(pageId) : pageId === "about" ? settingsContext.pageSummary("about") : ""
     readonly property Item focusItem: Window.activeFocusItem
     readonly property alias page: pageLoader.item
-    readonly property alias pageId: pageLoader.pageId
+    // Where each page was scrolled to, so going back lands where you were.
+    property var positions: ({})
+    property bool returning: false
+    // The page column, shared by the header so both line up.
+    readonly property real columnWidth: Math.min(scroller.width - root.gutter * 2, page?.maxWidth ?? 780)
+    readonly property real gutter: CortetsuDesign.spacingSpacious
 
     function close(): void {
         root.screenState.settings = false;
@@ -38,6 +44,13 @@ FocusScope {
 
     function open(): void {
         nexus.focusSelected();
+    }
+
+    function goBack(): void {
+        if (!root.controller.canGoBack)
+            return;
+        root.returning = true;
+        root.controller.back();
     }
 
     function within(item, ancestor): bool {
@@ -56,12 +69,7 @@ FocusScope {
             first.forceActiveFocus(Qt.TabFocusReason);
     }
 
-    // Keeps the control that has the focus inside the visible part.
-    function revealFocus(): void {
-        const item = root.focusItem;
-        if (!item || !pageLoader.item || !root.within(item, pageLoader.item))
-            return;
-        const margin = CortetsuDesign.spacingStandard;
+    function scrollTo(item, margin): void {
         const top = item.mapToItem(scroller.contentItem, 0, 0).y;
         const bottom = top + item.height;
         if (top - margin < scroller.contentY)
@@ -70,7 +78,53 @@ FocusScope {
             scroller.contentY = Math.min(Math.max(0, scroller.contentHeight - scroller.height), bottom + margin - scroller.height);
     }
 
+    // Keeps the control that has the focus inside the visible part.
+    function revealFocus(): void {
+        const item = root.focusItem;
+        if (item && pageLoader.item && root.within(item, pageLoader.item))
+            root.scrollTo(item, CortetsuDesign.spacingStandard);
+    }
+
+    // The item a search result named: the first visible one whose title is
+    // the setting. Rows, groups and choices all expose `title`.
+    function findTitled(item, title) {
+        if (!item || item.visible === false)
+            return null;
+        if (item !== pageLoader.item && item.title === title)
+            return item;
+        const children = item.children ?? [];
+        for (let i = 0; i < children.length; ++i) {
+            const found = root.findTitled(children[i], title);
+            if (found)
+                return found;
+        }
+        return null;
+    }
+
+    function revealSetting(): void {
+        const title = root.controller.reveal;
+        if (!title || !pageLoader.item)
+            return;
+        root.controller.reveal = "";
+        const target = root.findTitled(pageLoader.item, title);
+        if (!target)
+            return;
+        if (target.collapsible === true)
+            target.expanded = true;
+        scroller.contentY = Math.max(0, Math.min(scroller.contentHeight - scroller.height,
+            target.mapToItem(scroller.contentItem, 0, 0).y - scroller.height / 3));
+        // A group or a grid is not a stop itself: its first control is.
+        const stop = target.activeFocusOnTab ? target : target.nextItemInFocusChain(true);
+        if (stop && root.within(stop, target))
+            stop.forceActiveFocus(Qt.OtherFocusReason);
+        highlight.show(target);
+    }
+
     onFocusItemChanged: root.revealFocus()
+    Connections {
+        target: root.controller
+        function onRevealChanged(): void { Qt.callLater(root.revealSetting); }
+    }
 
     // A shortcut, not a key handler: it works wherever the focus is, even
     // when a control that held it has just been disabled. It steps aside
@@ -84,6 +138,11 @@ FocusScope {
     Shortcut {
         sequences: [StandardKey.Find]
         onActivated: nexus.focusSearch()
+    }
+
+    Shortcut {
+        sequences: [StandardKey.Back, "Alt+Left"]
+        onActivated: root.goBack()
     }
 
     Shortcut {
@@ -108,183 +167,196 @@ FocusScope {
         screenState: root.screenState
     }
 
+    PageRegistry {
+        id: registry
+        context: settingsContext
+        controller: root.controller
+    }
+
     RowLayout {
         anchors.fill: parent
-        spacing: CortetsuDesign.spacingSection
+        spacing: CortetsuDesign.spacingComfortable
 
-        ColumnLayout {
+        Nexus {
+            id: nexus
+            objectName: "nexus"
             Layout.fillHeight: true
-            Layout.preferredWidth: root.collapsed ? 52 : 150
+            Layout.preferredWidth: root.collapsed ? 56 : 268
             Layout.maximumWidth: Layout.preferredWidth
-            spacing: CortetsuDesign.spacingStandard
+            controller: root.controller
+            context: settingsContext
+            collapsed: root.collapsed
+            onCollapseRequested: root.railMode = root.collapsed ? 1 : -1
+            onContentRequested: root.focusPage()
 
             Behavior on Layout.preferredWidth {
                 NumberAnimation { duration: CortetsuDesign.motionStandardMs; easing.type: Easing.BezierSpline; easing.bezierCurve: CortetsuDesign.easeOut }
             }
-
-            RowLayout {
-                Layout.fillWidth: true
-                Layout.preferredHeight: 44
-                Layout.leftMargin: root.collapsed ? 0 : CortetsuDesign.spacingCompact
-                spacing: CortetsuDesign.spacingStandard
-
-                CortetsuEvolvingMark {
-                    Layout.preferredWidth: 28
-                    Layout.preferredHeight: 28
-                    Layout.alignment: root.collapsed ? Qt.AlignHCenter : Qt.AlignVCenter
-                    phase: "Ascended"
-                    animated: false
-                    monochrome: true
-                    monochromeColor: CortetsuDesign.colorWashi
-                }
-
-                CortetsuText {
-                    Layout.fillWidth: true
-                    visible: !root.collapsed
-                    text: qsTr("Ajustes")
-                    textSize: CortetsuTypography.titleMediumPx
-                    font.weight: Font.DemiBold
-                    elide: Text.ElideRight
-                }
-            }
-
-            Nexus {
-                id: nexus
-                objectName: "nexus"
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                controller: root.controller
-                context: settingsContext
-                collapsed: root.collapsed
-                onCollapseRequested: root.railMode = root.collapsed ? 1 : -1
-                onContentRequested: root.focusPage()
-            }
         }
 
-        ColumnLayout {
+        // The main panel: its own material, set apart from the sidebar.
+        Item {
+            id: main
+            objectName: "mainPanel"
             Layout.fillWidth: true
             Layout.fillHeight: true
-            spacing: CortetsuDesign.spacingStandard
 
-            RowLayout {
-                Layout.fillWidth: true
-                Layout.preferredHeight: 44
-                spacing: CortetsuDesign.spacingStandard
-
-                ColumnLayout {
-                    Layout.fillWidth: true
-                    spacing: 0
-
-                    CortetsuText {
-                        objectName: "pageTitle"
-                        Layout.fillWidth: true
-                        text: root.category?.title ?? qsTr("Ajustes")
-                        textSize: CortetsuTypography.titleLargePx
-                        font.weight: Font.DemiBold
-                        elide: Text.ElideRight
-                    }
-
-                    // The current state of the page's domain, or what is
-                    // wrong with it.
-                    CortetsuText {
-                        objectName: "pageSummary"
-                        Layout.fillWidth: true
-                        visible: text.length > 0
-                        text: root.alert.length > 0 ? root.alert : root.summary
-                        textSize: CortetsuTypography.bodySmallPx
-                        color: root.alert.length > 0 ? CortetsuDesign.colorVermillion : CortetsuDesign.colorOnSurfaceVariant
-                        elide: Text.ElideRight
-                    }
-                }
-
-                SaveIndicator {
-                    objectName: "saveIndicator"
-                    Layout.alignment: Qt.AlignVCenter
-                }
-
-                CortetsuButton {
-                    objectName: "closeSettings"
-                    Layout.alignment: Qt.AlignVCenter
-                    compact: true
-                    icon: "close"
-                    label: qsTr("Cerrar")
-                    Accessible.name: qsTr("Cerrar Ajustes")
-                    onClicked: root.close()
-                }
+            CortetsuInkPanel {
+                anchors.fill: parent
+                radius: CortetsuDesign.radiusLarge
+                ground: CortetsuDesign.colorTetsu
+                groundAlpha: CortetsuDesign.materialStyle === 1 ? 0.92 : 0.6
+                washAlpha: CortetsuDesign.materialWashAlpha * 0.5
+                washX: 0.9
+                grain: CortetsuDesign.materialGrain * 0.5
+                marks: false
             }
 
-            Flickable {
-                id: scroller
-                objectName: "pageScroller"
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                clip: true
-                contentWidth: width
-                contentHeight: pageLoader.implicitHeight + CortetsuDesign.spacingSpacious
-                boundsBehavior: Flickable.StopAtBounds
+            ColumnLayout {
+                anchors.fill: parent
+                anchors.topMargin: CortetsuDesign.spacingSpacious
+                spacing: CortetsuDesign.spacingStandard
 
-                ScrollBar.vertical: ScrollBar {
-                    policy: scroller.contentHeight > scroller.height ? ScrollBar.AsNeeded : ScrollBar.AlwaysOff
+                Item {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: header.implicitHeight
+
+                    SettingsHeader {
+                        id: header
+                        x: Math.round((parent.width - width) / 2)
+                        width: root.columnWidth
+                        category: root.category
+                        subpage: root.subpage
+                        summary: root.alert.length > 0 ? root.alert : root.summary
+                        alerting: root.alert.length > 0
+                        canGoBack: root.controller.canGoBack
+                        onBackRequested: root.goBack()
+                        onCategoryRequested: root.controller.select(root.category.id)
+                    }
+
+                    CortetsuButton {
+                        objectName: "closeSettings"
+                        anchors.right: parent.right
+                        anchors.rightMargin: CortetsuDesign.spacingStandard
+                        anchors.top: parent.top
+                        compact: true
+                        icon: "close"
+                        label: ""
+                        tooltipText: qsTr("Cerrar")
+                        Accessible.name: qsTr("Cerrar Ajustes")
+                        onClicked: root.close()
+                    }
                 }
 
-                Behavior on contentY {
-                    NumberAnimation { duration: CortetsuDesign.motionFastMs; easing.type: Easing.BezierSpline; easing.bezierCurve: CortetsuDesign.easeOut }
-                }
+                Flickable {
+                    id: scroller
+                    objectName: "pageScroller"
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    clip: true
+                    contentWidth: width
+                    contentHeight: pageLoader.implicitHeight + CortetsuDesign.spacingSection
+                    boundsBehavior: Flickable.StopAtBounds
 
-                Keys.onLeftPressed: nexus.focusSelected()
+                    ScrollBar.vertical: ScrollBar {
+                        policy: scroller.contentHeight > scroller.height ? ScrollBar.AsNeeded : ScrollBar.AlwaysOff
+                    }
 
-                Loader {
-                    id: pageLoader
+                    Behavior on contentY {
+                        enabled: !root.returning
+                        NumberAnimation { duration: CortetsuDesign.motionFastMs; easing.type: Easing.BezierSpline; easing.bezierCurve: CortetsuDesign.easeOut }
+                    }
 
-                    readonly property string pageId: root.controller.selectedId
-                    readonly property string shellPageId: root.controller.pageForSection(pageId)
-                    readonly property var pages: ({
-                        quick: quickPage, general: generalPage, bar: barPage, background: backgroundPage,
-                        interface: interfacePage, services: servicesPage, advanced: advancedPage, about: aboutPage
-                    })
+                    Keys.onLeftPressed: nexus.focusSelected()
 
-                    // Leaves room for the scroll bar so it never covers a
-                    // control. Rows of label and switch stop growing before
-                    // the two drift apart; a page that is a grid asks for all.
-                    width: Math.min(scroller.width - CortetsuDesign.spacingStandard,
-                        item?.wide === true ? Infinity : 820)
-                    sourceComponent: pages[shellPageId] ?? null
+                    Loader {
+                        id: pageLoader
 
-                    onPageIdChanged: scroller.contentY = 0
-                    onLoaded: arrive.restart()
+                        readonly property string pageId: root.pageId
+                        property string shownId: ""
 
-                    ParallelAnimation {
-                        id: arrive
-                        NumberAnimation {
-                            target: pageLoader
-                            property: "opacity"
-                            from: 0
-                            to: 1
-                            duration: CortetsuDesign.motionStandardMs
-                            easing.type: Easing.BezierSpline
-                            easing.bezierCurve: CortetsuDesign.easeOut
+                        // Equal gutters on both sides: one of them holds the
+                        // scroll bar, so it never covers a control.
+                        x: root.gutter
+                        width: scroller.width - root.gutter * 2
+                        sourceComponent: registry.component(pageId)
+
+                        onPageIdChanged: {
+                            if (shownId)
+                                root.positions[shownId] = scroller.contentY;
+                            shownId = pageId;
                         }
+                        onLoaded: {
+                            scroller.contentY = root.returning ? root.positions[pageId] ?? 0 : 0;
+                            root.returning = false;
+                            arrive.restart();
+                            Qt.callLater(root.revealSetting);
+                        }
+
+                        ParallelAnimation {
+                            id: arrive
+                            NumberAnimation {
+                                target: pageLoader
+                                property: "opacity"
+                                from: 0
+                                to: 1
+                                duration: CortetsuDesign.motionStandardMs
+                                easing.type: Easing.BezierSpline
+                                easing.bezierCurve: CortetsuDesign.easeOut
+                            }
+                            NumberAnimation {
+                                target: pageLoader
+                                property: "y"
+                                from: CortetsuDesign.materialStyle === 2 ? 8 : 20
+                                to: 0
+                                duration: CortetsuDesign.motionStandardMs
+                                easing.type: Easing.BezierSpline
+                                easing.bezierCurve: CortetsuDesign.easeOut
+                            }
+                        }
+                    }
+
+                    // Marks the setting a search result opened, then fades.
+                    Rectangle {
+                        id: highlight
+                        objectName: "revealHighlight"
+                        property Item target: null
+                        function show(item): void {
+                            target = item;
+                            const at = item.mapToItem(scroller.contentItem, 0, 0);
+                            x = at.x - 4;
+                            y = at.y - 4;
+                            width = item.width + 8;
+                            height = item.height + 8;
+                            fadeOut.stop();
+                            opacity = 1;
+                            hold.restart();
+                        }
+                        visible: opacity > 0
+                        opacity: 0
+                        radius: CortetsuDesign.radiusMedium
+                        color: Qt.alpha(CortetsuDesign.colorPrimary, 0.12)
+                        border.width: 2
+                        border.color: CortetsuDesign.colorIndicator
+
+                        // How long the mark stays is reading time, not motion:
+                        // it holds even with reduced motion.
+                        Timer {
+                            id: hold
+                            interval: 1400
+                            onTriggered: fadeOut.restart()
+                        }
+
                         NumberAnimation {
-                            target: pageLoader
-                            property: "y"
-                            from: 20
+                            id: fadeOut
+                            target: highlight
+                            property: "opacity"
                             to: 0
-                            duration: CortetsuDesign.motionStandardMs
-                            easing.type: Easing.BezierSpline
-                            easing.bezierCurve: CortetsuDesign.easeOut
+                            duration: CortetsuDesign.motionDeliberateMs
                         }
                     }
                 }
             }
         }
     }
-
-    Component { id: quickPage; QuickPage { context: settingsContext } }
-    Component { id: generalPage; GeneralPage { context: settingsContext } }
-    Component { id: barPage; BarPage { context: settingsContext } }
-    Component { id: backgroundPage; BackgroundPage { context: settingsContext } }
-    Component { id: interfacePage; InterfacePage { context: settingsContext } }
-    Component { id: servicesPage; ServicesPage { context: settingsContext } }
-    Component { id: advancedPage; AdvancedPage { context: settingsContext } }
-    Component { id: aboutPage; AboutPage { context: settingsContext } }
 }

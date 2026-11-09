@@ -7,12 +7,13 @@ import "../../theme"
 import ".."
 import "../CortetsuSearchBar.qml"
 import "../CortetsuTypography.js" as CortetsuTypography
-import "Navigation.js" as Navigation
 
-// The map of Settings. Every destination is always there and says how its
-// domain stands; a search hides what does not match instead of rebuilding
-// the list, so the rows keep their identity and their focus.
-CortetsuSurface {
+// The map of Settings, organised as in Windows 11: search on top, then every
+// category with its full name. While a search has text the list becomes the
+// results, each naming the setting and where it lives; opening one goes
+// straight to it. Categories are filtered, not rebuilt, so rows keep their
+// identity and their focus.
+Item {
     id: root
 
     required property var controller
@@ -23,18 +24,9 @@ CortetsuSurface {
 
     readonly property bool searching: controller.search.trim().length > 0
     readonly property bool searchHoldsEscape: searchField.activeFocus && searchField.text.length > 0
-    // The first visible category of each group carries the group label.
-    readonly property var groupHeads: {
-        const heads = ({});
-        const seen = ({});
-        for (const category of controller.categories) {
-            if (!controller.matchingIds.includes(category.id) || seen[category.group])
-                continue;
-            seen[category.group] = true;
-            heads[category.id] = true;
-        }
-        return heads;
-    }
+    // Home stands alone and the maintenance pages close the list, as the
+    // groups of the Windows 11 sidebar do.
+    readonly property var groupStarts: ["system", "advanced"]
 
     function focusSearch(): void {
         if (root.collapsed)
@@ -70,35 +62,49 @@ CortetsuSurface {
         root.focusSelected();
     }
 
-    radiusValue: CortetsuDesign.radiusLarge
-    baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.72)
-    outlined: true
-    outlineColor: Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.48)
+    function focusResult(index: int): void {
+        const entry = results.itemAt(Math.max(0, Math.min(results.count - 1, index)));
+        if (entry) {
+            entry.forceActiveFocus();
+            root.reveal(entry);
+        }
+    }
+
+    function openResult(result): void {
+        root.controller.openResult(result.page, result.setting);
+        searchField.clear();
+        root.contentRequested();
+    }
 
     ColumnLayout {
         anchors.fill: parent
-        anchors.margins: CortetsuDesign.spacingCompact
-        spacing: CortetsuDesign.spacingCompact
+        spacing: CortetsuDesign.spacingStandard
 
         RowLayout {
             Layout.fillWidth: true
-            spacing: CortetsuDesign.spacingCompact
+            Layout.preferredHeight: 44
+            Layout.leftMargin: root.collapsed ? 0 : CortetsuDesign.spacingCompact
+            spacing: CortetsuDesign.spacingStandard
 
-            CortetsuSearchBar {
-                id: searchField
-                objectName: "nexusSearch"
+            CortetsuEvolvingMark {
+                Layout.preferredWidth: 28
+                Layout.preferredHeight: 28
+                Layout.alignment: root.collapsed ? Qt.AlignHCenter : Qt.AlignVCenter
+                visible: !root.collapsed
+                phase: "Ascended"
+                animated: false
+                monochrome: true
+                monochromeColor: CortetsuDesign.colorOnSurface
+            }
+
+            CortetsuText {
                 Layout.fillWidth: true
                 visible: !root.collapsed
-                compact: true
-                placeholderText: qsTr("Buscar un ajuste")
-                Accessible.name: qsTr("Buscar un ajuste")
-                onTextChanged: root.controller.search = text
-                Keys.onDownPressed: root.move(root.controller.matchingIds.includes(root.controller.selectedId) ? 0 : 1)
-                Keys.onReturnPressed: root.move(root.controller.matchingIds.includes(root.controller.selectedId) ? 0 : 1)
-                Keys.onEnterPressed: root.move(root.controller.matchingIds.includes(root.controller.selectedId) ? 0 : 1)
-                // Escape first empties the query. With nothing typed the
-                // window's own shortcut takes it and closes.
-                Keys.onEscapePressed: clear()
+                text: qsTr("Ajustes")
+                textSize: CortetsuTypography.titleMediumPx
+                font.family: CortetsuDesign.fontHeading
+                font.weight: CortetsuDesign.headingWeight
+                elide: Text.ElideRight
             }
 
             CortetsuButton {
@@ -112,6 +118,23 @@ CortetsuSurface {
                 Accessible.name: tooltipText
                 onClicked: root.collapseRequested()
             }
+        }
+
+        CortetsuSearchBar {
+            id: searchField
+            objectName: "nexusSearch"
+            Layout.fillWidth: true
+            visible: !root.collapsed
+            compact: true
+            placeholderText: qsTr("Buscar un ajuste")
+            Accessible.name: qsTr("Buscar un ajuste")
+            onTextChanged: root.controller.search = text
+            Keys.onDownPressed: root.searching ? root.focusResult(0) : root.focusSelected()
+            Keys.onReturnPressed: if (root.searching && root.controller.results.length) root.openResult(root.controller.results[0])
+            Keys.onEnterPressed: if (root.searching && root.controller.results.length) root.openResult(root.controller.results[0])
+            // Escape first empties the query. With nothing typed the
+            // window's own shortcut takes it and closes.
+            Keys.onEscapePressed: clear()
         }
 
         Flickable {
@@ -130,6 +153,7 @@ CortetsuSurface {
             Column {
                 id: column
                 width: list.width
+                spacing: 2
 
                 Repeater {
                     id: rows
@@ -141,34 +165,22 @@ CortetsuSurface {
                         required property var modelData
                         readonly property var category: modelData
                         readonly property alias row: row
-                        readonly property var found: Navigation.match(category, root.controller.search)
 
                         width: column.width
-                        visible: found.matches
+                        visible: !root.searching
+                        spacing: 2
+
+                        Rectangle {
+                            visible: root.groupStarts.includes(entry.category.id)
+                            x: CortetsuDesign.spacingStandard
+                            width: parent.width - CortetsuDesign.spacingStandard * 2
+                            height: visible ? 1 : 0
+                            color: Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.5)
+                        }
 
                         Item {
                             width: parent.width
-                            visible: root.groupHeads[entry.category.id] === true
-                            height: root.collapsed ? CortetsuDesign.spacingStandard : groupLabel.implicitHeight + CortetsuDesign.spacingStandard
-
-                            Rectangle {
-                                visible: root.collapsed && entry.y > 0
-                                anchors.centerIn: parent
-                                width: 20
-                                height: 1
-                                color: Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.6)
-                            }
-
-                            CortetsuText {
-                                id: groupLabel
-                                visible: !root.collapsed
-                                anchors.bottom: parent.bottom
-                                anchors.bottomMargin: CortetsuDesign.spacingUnit
-                                x: CortetsuDesign.spacingStandard
-                                text: entry.category.group
-                                textSize: CortetsuTypography.labelSmallPx
-                                color: CortetsuDesign.colorOnSurfaceVariant
-                            }
+                            height: root.groupStarts.includes(entry.category.id) ? CortetsuDesign.spacingCompact : 0
                         }
 
                         NexusRow {
@@ -177,11 +189,8 @@ CortetsuSurface {
                             width: parent.width
                             icon: entry.category.icon
                             title: entry.category.title
-                            // While searching, the row names the setting that matched.
-                            value: root.searching && entry.found.setting.length > 0
-                                ? entry.found.setting
-                                : root.context.pageSummary(entry.category.id)
-                            alertText: root.context.pageAlert(entry.category.id)
+                            value: root.context.categorySummary(entry.category.id)
+                            alertText: root.context.categoryAlert(entry.category.id)
                             selected: root.controller.selectedId === entry.category.id
                             collapsed: root.collapsed
                             onActivated: root.controller.select(entry.category.id)
@@ -189,6 +198,24 @@ CortetsuSurface {
                             Keys.onDownPressed: root.move(1)
                             Keys.onRightPressed: root.contentRequested()
                         }
+                    }
+                }
+
+                Repeater {
+                    id: results
+                    model: root.searching ? root.controller.results : []
+
+                    delegate: NexusResult {
+                        required property var modelData
+                        required property int index
+                        objectName: `nexusResult-${index}`
+                        width: column.width
+                        icon: modelData.icon
+                        title: modelData.title
+                        path: modelData.path
+                        onActivated: root.openResult(modelData)
+                        Keys.onUpPressed: index === 0 ? searchField.forceActiveFocus() : root.focusResult(index - 1)
+                        Keys.onDownPressed: root.focusResult(index + 1)
                     }
                 }
             }
@@ -199,7 +226,7 @@ CortetsuSurface {
                 anchors.topMargin: CortetsuDesign.spacingSection
                 x: CortetsuDesign.spacingCompact
                 width: list.width - CortetsuDesign.spacingCompact * 2
-                visible: !root.collapsed && root.controller.matchingIds.length === 0
+                visible: !root.collapsed && root.searching && root.controller.results.length === 0
                 kind: "empty"
                 icon: "search_off"
                 title: qsTr("Sin resultados")

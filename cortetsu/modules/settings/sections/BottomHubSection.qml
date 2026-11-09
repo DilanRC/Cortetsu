@@ -8,15 +8,14 @@ import "../../../theme"
 import "../.."
 import "../controls"
 
-ColumnLayout {
+SettingsColumns {
     id: root
 
     required property var context
 
-    spacing: CortetsuDesign.spacingSection
-
     SettingsGroup {
         title: qsTr("Segmentos")
+        icon: "view_column"
         detail: qsTr("Qué grupos ocupan la barra")
 
         SettingToggleRow {
@@ -52,44 +51,8 @@ ColumnLayout {
     }
 
     SettingsGroup {
-        title: qsTr("Indicadores de estado")
-        detail: qsTr("Qué muestra el grupo de la derecha")
-
-        SettingToggleRow {
-            objectName: "notificationCount"
-            title: qsTr("Mostrar cantidad de notificaciones")
-            detail: qsTr("Mostrar el total conservado en el historial junto al botón")
-            checked: CortetsuConfig.bottomHub.statusCluster.showNotificationCount
-            onToggled: value => { CortetsuConfig.bottomHub.statusCluster.showNotificationCount = value; CortetsuConfig.save(); }
-        }
-
-        SettingToggleRow {
-            title: qsTr("Audio")
-            checked: CortetsuConfig.bottomHub.statusCluster.audio
-            onToggled: value => { CortetsuConfig.bottomHub.statusCluster.audio = value; CortetsuConfig.save(); }
-        }
-
-        SettingToggleRow {
-            title: qsTr("Red")
-            checked: CortetsuConfig.bottomHub.statusCluster.network
-            onToggled: value => { CortetsuConfig.bottomHub.statusCluster.network = value; CortetsuConfig.save(); }
-        }
-
-        SettingToggleRow {
-            title: qsTr("Bluetooth")
-            checked: CortetsuConfig.bottomHub.statusCluster.bluetooth
-            onToggled: value => { CortetsuConfig.bottomHub.statusCluster.bluetooth = value; CortetsuConfig.save(); }
-        }
-
-        SettingToggleRow {
-            title: qsTr("Batería")
-            checked: CortetsuConfig.bottomHub.statusCluster.battery
-            onToggled: value => { CortetsuConfig.bottomHub.statusCluster.battery = value; CortetsuConfig.save(); }
-        }
-    }
-
-    SettingsGroup {
         title: qsTr("Interacción")
+        icon: "touch_app"
 
         SettingToggleRow {
             objectName: "barAutoHide"
@@ -114,46 +77,95 @@ ColumnLayout {
         }
     }
 
-    SettingsGroup {
-        title: qsTr("Espacios de trabajo")
-        detail: qsTr("Cuántos espacios muestra Bottom Hub alrededor del activo")
+    aside: [
+        SettingsGroup {
+            title: qsTr("Indicadores de estado")
+            icon: "toggle_on"
+            detail: qsTr("Qué muestra el grupo de la derecha")
 
-        SettingSliderRow {
-            objectName: "workspacesShown"
-            title: qsTr("Espacios visibles")
-            valueText: qsTr("%1").arg(CortetsuConfig.workspacesShown)
-            from: 1
-            to: 20
-            step: 1
-            value: CortetsuConfig.workspacesShown
-            onMoved: value => CortetsuConfig.setWorkspacesShown(Math.round(value))
-        }
+            SettingToggleRow {
+                objectName: "notificationCount"
+                title: qsTr("Mostrar cantidad de notificaciones")
+                detail: qsTr("Mostrar el total conservado en el historial junto al botón")
+                checked: CortetsuConfig.bottomHub.statusCluster.showNotificationCount
+                onToggled: value => { CortetsuConfig.bottomHub.statusCluster.showNotificationCount = value; CortetsuConfig.save(); }
+            }
 
-        SettingToggleRow {
-            objectName: "workspaceNumbers"
-            title: qsTr("Mostrar números")
-            detail: qsTr("Usar cifras en lugar de indicadores gráficos")
-            checked: CortetsuConfig.bar.workspaces.displayType === 1
-            onToggled: value => {
-                CortetsuConfig.bar.workspaces.displayType = value ? 1 : 0;
-                CortetsuConfig.save();
+            SettingToggleRow {
+                title: qsTr("Audio")
+                checked: CortetsuConfig.bottomHub.statusCluster.audio
+                onToggled: value => { CortetsuConfig.bottomHub.statusCluster.audio = value; CortetsuConfig.save(); }
+            }
+
+            SettingToggleRow {
+                title: qsTr("Red")
+                checked: CortetsuConfig.bottomHub.statusCluster.network
+                onToggled: value => { CortetsuConfig.bottomHub.statusCluster.network = value; CortetsuConfig.save(); }
+            }
+
+            SettingToggleRow {
+                title: qsTr("Bluetooth")
+                checked: CortetsuConfig.bottomHub.statusCluster.bluetooth
+                onToggled: value => { CortetsuConfig.bottomHub.statusCluster.bluetooth = value; CortetsuConfig.save(); }
+            }
+
+            SettingToggleRow {
+                title: qsTr("Batería")
+                checked: CortetsuConfig.bottomHub.statusCluster.battery
+                onToggled: value => { CortetsuConfig.bottomHub.statusCluster.battery = value; CortetsuConfig.save(); }
+            }
+        },
+
+        SettingsGroup {
+            title: qsTr("Espacios de trabajo")
+            icon: "workspaces"
+            detail: qsTr("Cuántos espacios muestra Bottom Hub alrededor del activo")
+
+            SettingSliderRow {
+                objectName: "workspacesShown"
+                title: qsTr("Espacios visibles")
+                valueText: qsTr("%1").arg(CortetsuConfig.workspacesShown)
+                from: 1
+                to: 20
+                step: 1
+                value: CortetsuConfig.workspacesShown
+                onMoved: value => CortetsuConfig.setWorkspacesShown(Math.round(value))
+            }
+
+            SettingToggleRow {
+                objectName: "workspaceNumbers"
+                title: qsTr("Mostrar números")
+                detail: qsTr("Usar cifras en lugar de indicadores gráficos")
+                checked: CortetsuConfig.bar.workspaces.displayType === 1
+                onToggled: value => {
+                    CortetsuConfig.bar.workspaces.displayType = value ? 1 : 0;
+                    CortetsuConfig.save();
+                }
+            }
+
+            SettingToggleRow {
+                objectName: "workspaceAppIcons"
+                title: qsTr("Icono de la aplicación")
+                detail: qsTr("Mostrar el icono de una ventana en los espacios ocupados")
+                checked: CortetsuConfig.bar.workspaces.showAppIcons
+                onToggled: value => { CortetsuConfig.bar.workspaces.showAppIcons = value; }
+            }
+
+            SettingToggleRow {
+                objectName: "workspaceMonochromeIcons"
+                title: qsTr("Iconos monocromos")
+                detail: qsTr("Aplicar el color de texto del tema a los iconos de aplicación")
+                checked: CortetsuConfig.bar.workspaces.monochromeIcons
+                onToggled: value => { CortetsuConfig.bar.workspaces.monochromeIcons = value; }
+            }
+
+            SettingToggleRow {
+                objectName: "perMonitorWorkspaces"
+                title: qsTr("Espacios por monitor")
+                detail: qsTr("Cada pantalla marca el espacio activo de su propio monitor")
+                checked: CortetsuConfig.bar.workspaces.perMonitorWorkspaces
+                onToggled: value => { CortetsuConfig.bar.workspaces.perMonitorWorkspaces = value; CortetsuConfig.save(); }
             }
         }
-
-        SettingToggleRow {
-            objectName: "workspaceAppIcons"
-            title: qsTr("Icono de la aplicación")
-            detail: qsTr("Mostrar el icono de una ventana en los espacios ocupados")
-            checked: CortetsuConfig.bar.workspaces.showAppIcons
-            onToggled: value => { CortetsuConfig.bar.workspaces.showAppIcons = value; }
-        }
-
-        SettingToggleRow {
-            objectName: "workspaceMonochromeIcons"
-            title: qsTr("Iconos monocromos")
-            detail: qsTr("Aplicar el color de texto del tema a los iconos de aplicación")
-            checked: CortetsuConfig.bar.workspaces.monochromeIcons
-            onToggled: value => { CortetsuConfig.bar.workspaces.monochromeIcons = value; }
-        }
-    }
+    ]
 }

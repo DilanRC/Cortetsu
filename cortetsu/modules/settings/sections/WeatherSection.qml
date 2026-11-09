@@ -9,6 +9,7 @@ SettingsGroup {
     id: root
     property string locationError: ""
     title: qsTr("Clima")
+    icon: "partly_cloudy_day"
     detail: qsTr("Ubicación utilizada para solicitar el pronóstico")
     SettingTextRow {
         objectName: "weatherLocation"
@@ -36,6 +37,7 @@ SettingsGroup {
 
     SettingsGroup {
         title: qsTr("Actualización del pronóstico")
+        icon: "update"
         detail: qsTr("Frecuencia de consulta del servicio meteorológico")
         SettingSliderRow {
             objectName: "weatherRefreshInterval"

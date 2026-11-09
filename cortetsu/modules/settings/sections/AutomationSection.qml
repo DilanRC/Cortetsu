@@ -20,6 +20,7 @@ ColumnLayout {
 
     SettingsGroup {
         title: qsTr("Muestreo de hardware")
+        icon: "speed"
         detail: qsTr("Actualiza los datos de Hardware Center solo mientras está abierto")
         SettingSliderRow {
             objectName: "hardwareSampleInterval"
@@ -62,6 +63,7 @@ ColumnLayout {
 
     SettingsGroup {
         title: qsTr("Coordinador")
+        icon: "hub"
         detail: qsTr("La activación pertenece a esta sesión")
         SettingValueRow {
             objectName: "policyConnection"
@@ -141,6 +143,7 @@ ColumnLayout {
 
     SettingsGroup {
         title: qsTr("Decisiones recientes")
+        icon: "history"
         detail: qsTr("Qué ocurrió y por qué")
         SettingValueRow {
             objectName: "policyNoDecisions"

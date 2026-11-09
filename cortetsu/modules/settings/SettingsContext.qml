@@ -48,31 +48,37 @@ QtObject {
         }
     }
 
+    property string hostName: ""
+    readonly property FileView hostFile: FileView {
+        path: "/etc/hostname"
+        printErrors: false
+        onLoaded: root.hostName = text().trim()
+    }
+
+    // A subpage names the domain it sums up (`summary` in the controller).
     function pageSummary(pageId: string): string {
-        switch (pageId) {
-        case "quick": return root.summary.appearance;
-        case "general": return [root.summary.audio, root.summary.power, root.summary.input].filter(Boolean).join(" · ");
-        case "bar": return "";
-        case "background": return root.summary.wallpaper;
-        case "interface": return [root.summary.desktop, root.summary.launcher, root.summary.notifications].filter(Boolean).join(" · ");
-        case "services": return [root.summary.network, root.summary.bluetooth].filter(Boolean).join(" · ");
-        case "advanced": return root.summary.display;
-        case "about": return root.summary.about;
-        default: return "";
-        }
+        if (pageId === "about")
+            return root.summary.about;
+        const key = SettingsController.pages[pageId]?.summary ?? "";
+        return key ? root.summary[key] ?? "" : "";
     }
 
     function pageAlert(pageId: string): string {
-        switch (pageId) {
-        case "quick": return root.alert.appearance;
-        case "general": return root.alert.power || root.alert.input || root.alert.audio;
-        case "bar": return "";
-        case "background": return root.alert.wallpaper;
-        case "interface": return root.alert.notifications;
-        case "services": return root.alert.network || root.alert.bluetooth || root.alert.automation;
-        case "advanced": return root.alert.display;
-        default: return "";
-        }
+        const key = SettingsController.pages[pageId]?.summary ?? "";
+        return key ? root.alert[key] ?? "" : "";
+    }
+
+    // A category sums up its subpages; its alert is the first of theirs.
+    function categorySummary(categoryId: string): string {
+        if (categoryId === "about")
+            return root.summary.about;
+        const category = SettingsController.categories.find(item => item.id === categoryId);
+        return (category?.pages ?? []).map(page => root.pageSummary(page.id)).filter(Boolean).join(" · ");
+    }
+
+    function categoryAlert(categoryId: string): string {
+        const category = SettingsController.categories.find(item => item.id === categoryId);
+        return (category?.pages ?? []).map(page => root.pageAlert(page.id)).find(Boolean) ?? "";
     }
 
     // Live status lines for Cortetsu's original settings sections.
@@ -111,6 +117,7 @@ QtObject {
                 : CortetsuNotifications.count > 1 ? qsTr("%1 guardadas").arg(CortetsuNotifications.count) : ""
         readonly property string input: root.keyboardLayout
         readonly property string appearance: Schemes.currentScheme
+        readonly property string theme: ({ ink: "Ink", washi: "Washi", kurogane: "Kurogane" })[CortetsuConfig.themeId] ?? CortetsuConfig.themeId
         readonly property string wallpaper: root.wallpaperName
         readonly property string desktop: CortetsuConfig.dashboard.enabled ? "" : qsTr("Sin Dashboard")
         readonly property string bottomhub: ""
@@ -137,6 +144,7 @@ QtObject {
         readonly property string notifications: ""
         readonly property string input: ""
         readonly property string appearance: Schemes.applyStatus === "failed" ? Schemes.applyError : ""
+        readonly property string theme: CortetsuThemes.error
         readonly property string wallpaper: CortetsuWallpapers.applyStatus === "failed"
             ? (CortetsuWallpapers.applyError || qsTr("No se pudo aplicar el fondo"))
             : ""

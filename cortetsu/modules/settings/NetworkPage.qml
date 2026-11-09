@@ -57,7 +57,7 @@ Item {
     readonly property bool selectedCanCopyPassword: !!root.selectedProfile && (!root.selectedNetwork
         || [WifiSecurityType.WpaPsk, WifiSecurityType.Wpa2Psk, WifiSecurityType.Sae].includes(root.selectedNetwork.security))
     readonly property string secretState: CortetsuSettingsNetwork.secretState
-    readonly property bool compactLayout: width < 700
+    readonly property bool compactLayout: width < 760
     readonly property var activeDetails: CortetsuSettingsNetwork.activeDetails
 
     // Content.qml places the page in the settings Flickable. This is tall

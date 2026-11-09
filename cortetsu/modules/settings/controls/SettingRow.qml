@@ -20,6 +20,9 @@ Item {
     // Set by the rows that react to a click anywhere on them.
     property bool interactive: false
     property bool disabled: false
+    // A glyph before the labels, in a small tile, for rows that lead
+    // somewhere or name a device.
+    property string leadingIcon: ""
     readonly property bool hovered: hover.hovered
     // Children of a row go to its right-hand slot, so the handlers for the
     // row as a whole live here and report through this signal.
@@ -80,6 +83,21 @@ Item {
         spacing: CortetsuDesign.spacingStandard
         opacity: root.disabled ? 0.52 : 1
 
+        Rectangle {
+            visible: root.leadingIcon.length > 0
+            implicitWidth: 32
+            implicitHeight: 32
+            radius: CortetsuDesign.materialStyle === 2 ? CortetsuDesign.radiusSmall : CortetsuDesign.radiusSmall + 2
+            color: Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.7)
+
+            CortetsuIcon {
+                anchors.centerIn: parent
+                text: root.leadingIcon
+                iconSize: CortetsuTypography.iconSmallPx
+                color: CortetsuDesign.colorOnPrimaryContainer
+            }
+        }
+
         ColumnLayout {
             id: labels
             Layout.fillWidth: true
@@ -88,7 +106,7 @@ Item {
             CortetsuText {
                 Layout.fillWidth: true
                 text: root.title
-                textSize: CortetsuTypography.bodyPx
+                textSize: CortetsuTypography.bodyLargePx
                 elide: Text.ElideRight
             }
 
@@ -101,7 +119,7 @@ Item {
                     : root.status === "busy" && root.statusText.length > 0
                         ? root.statusText
                         : root.detail
-                textSize: CortetsuTypography.labelSmallPx
+                textSize: CortetsuTypography.bodySmallPx
                 color: root.status === "error"
                     ? CortetsuDesign.colorVermillion
                     : CortetsuDesign.colorOnSurfaceVariant

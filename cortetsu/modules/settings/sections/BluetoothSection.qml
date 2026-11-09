@@ -48,6 +48,7 @@ ColumnLayout {
 
     SettingsGroup {
         title: qsTr("Adaptador")
+        icon: "bluetooth"
 
         CortetsuStateMessage {
             objectName: "noAdapter"
@@ -74,6 +75,7 @@ ColumnLayout {
 
     SettingsGroup {
         title: qsTr("Dispositivos")
+        icon: "devices_other"
         detail: qsTr("Conocidos por este equipo")
         visible: !!root.bluetooth.adapter && root.bluetooth.enabled
 

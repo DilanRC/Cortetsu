@@ -18,6 +18,7 @@ ColumnLayout {
 
     SettingsGroup {
         title: qsTr("Límites de audio")
+        icon: "shield"
         detail: qsTr("El límite se aplica al próximo ajuste desde Cortetsu; los niveles actuales se conservan")
         SettingToggleRow {
             objectName: "audioProtection"
@@ -61,6 +62,7 @@ ColumnLayout {
 
     SettingsGroup {
         title: qsTr("Salida")
+        icon: "speaker"
         detail: root.context.outputName
 
         CortetsuStateMessage {
@@ -119,6 +121,7 @@ ColumnLayout {
 
     SettingsGroup {
         title: qsTr("Entrada")
+        icon: "mic"
         detail: root.context.inputName
 
         SettingValueRow {
@@ -171,6 +174,7 @@ ColumnLayout {
 
     SettingsGroup {
         title: qsTr("Aplicaciones")
+        icon: "apps"
         detail: qsTr("Volumen de cada una")
 
         SettingValueRow {

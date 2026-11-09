@@ -5,8 +5,10 @@ import "../../components"
 import "../../theme"
 import "../CortetsuTypography.js" as CortetsuTypography
 
-// One destination of the Nexus: where it leads and, to its right, how that
-// domain stands right now. A vermillion dot means the page needs a look.
+// One category of the sidebar: its icon and its full name. How the domain
+// stands is not printed beside the name, where it would squeeze it; it is
+// the row's tooltip and accessible description, and a vermillion dot marks
+// a category that needs a look.
 Item {
     id: root
 
@@ -20,46 +22,48 @@ Item {
     signal activated()
 
     implicitHeight: 40
-    // Only the open page is a Tab stop; the arrows reach the rest. A row that
-    // holds the focus stays one until it lets go: Qt refuses to drop the flag
-    // from the focused item, and would leave it set for good.
+    // Only the open category is a Tab stop; the arrows reach the rest. A row
+    // that holds the focus stays one until it lets go: Qt refuses to drop the
+    // flag from the focused item, and would leave it set for good.
     activeFocusOnTab: selected || activeFocus
 
     Accessible.role: Accessible.PageTab
     Accessible.name: root.alerting ? qsTr("%1, requiere atención: %2").arg(root.title).arg(root.alertText) : root.title
+    Accessible.description: root.value
     Accessible.selected: root.selected
 
     CortetsuSurface {
         anchors.fill: parent
-        radiusValue: CortetsuDesign.radiusSmall
+        radiusValue: CortetsuDesign.materialStyle === 2 ? CortetsuDesign.radiusSmall : CortetsuDesign.radiusMedium
         active: root.selected
         focused: root.activeFocus
         hovered: mouse.containsMouse
         pressed: mouse.pressed
         baseColor: "transparent"
-        hoverColor: Qt.alpha(CortetsuDesign.colorSurfaceGlassStrong, 0.9)
-        activeColor: Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.72)
+        hoverColor: Qt.alpha(CortetsuDesign.colorOnSurface, 0.07)
+        activeColor: Qt.alpha(CortetsuDesign.colorPrimaryContainer, CortetsuDesign.materialStyle === 1 ? 0.9 : 0.72)
         outlineColor: root.activeFocus
             ? Qt.alpha(CortetsuDesign.colorWashi, 0.82)
-            : Qt.alpha(CortetsuDesign.colorPrimary, 0.32)
-        outlined: root.selected
+            : Qt.alpha(CortetsuDesign.colorPrimary, 0.4)
+        outlined: root.selected && CortetsuDesign.materialStyle === 2
     }
 
-    // The same washi tick marks the current item across Cortetsu lists.
+    // The current category is marked by an accent bar on its left edge.
     Rectangle {
         anchors.left: parent.left
-        anchors.leftMargin: 3
+        anchors.leftMargin: 2
         anchors.verticalCenter: parent.verticalCenter
         visible: root.selected
-        width: 2
-        height: 20
-        color: CortetsuDesign.colorWashi
+        width: 3
+        height: 18
+        radius: CortetsuDesign.materialStyle === 2 ? 0 : 1.5
+        color: CortetsuDesign.colorIndicator
     }
 
     CortetsuIcon {
         id: glyph
         anchors.verticalCenter: parent.verticalCenter
-        x: root.collapsed ? (root.width - width) / 2 : CortetsuDesign.spacingStandard
+        x: root.collapsed ? (root.width - width) / 2 : CortetsuDesign.spacingStandard + 2
         text: root.icon
         iconSize: CortetsuTypography.iconSmallPx
         color: root.selected ? CortetsuDesign.colorOnPrimaryContainer : CortetsuDesign.colorOnSurfaceVariant
@@ -67,34 +71,17 @@ Item {
 
     CortetsuText {
         id: label
+        objectName: "label"
         visible: !root.collapsed
         anchors.verticalCenter: parent.verticalCenter
         anchors.left: glyph.right
         anchors.leftMargin: CortetsuDesign.spacingStandard
-        width: Math.min(implicitWidth, root.width - x - CortetsuDesign.spacingStandard)
+        anchors.right: alertDot.visible ? alertDot.left : parent.right
+        anchors.rightMargin: CortetsuDesign.spacingCompact
         text: root.title
-        textSize: CortetsuTypography.bodyPx
+        textSize: CortetsuTypography.bodyLargePx
         font.weight: root.selected ? Font.DemiBold : Font.Normal
         color: root.selected ? CortetsuDesign.colorOnPrimaryContainer : CortetsuDesign.colorOnSurface
-        elide: Text.ElideRight
-    }
-
-    CortetsuText {
-        objectName: "value"
-        visible: !root.collapsed && text.length > 0
-        anchors.verticalCenter: parent.verticalCenter
-        anchors.left: label.right
-        anchors.leftMargin: CortetsuDesign.spacingCompact
-        anchors.right: alertDot.visible ? alertDot.left : parent.right
-        anchors.rightMargin: alertDot.visible ? CortetsuDesign.spacingCompact : CortetsuDesign.spacingStandard
-        horizontalAlignment: Text.AlignRight
-        text: root.value
-        textSize: CortetsuTypography.labelSmallPx
-        // Full strength on the selected fill: dimmed text there falls under
-        // 4.5:1 on schemes with a light container. The dot carries the alert.
-        color: root.selected
-            ? CortetsuDesign.colorOnPrimaryContainer
-            : root.alerting ? CortetsuDesign.colorVermillion : CortetsuDesign.colorOnSurfaceVariant
         elide: Text.ElideRight
     }
 
@@ -102,8 +89,8 @@ Item {
         id: alertDot
         objectName: "alertDot"
         visible: root.alerting
-        width: 6
-        height: 6
+        width: 7
+        height: 7
         radius: width / 2
         color: CortetsuDesign.colorVermillion
         anchors.verticalCenter: root.collapsed ? undefined : parent.verticalCenter
@@ -116,9 +103,9 @@ Item {
         target: root
         hovered: mouse.containsMouse
         focused: root.activeFocus
-        text: root.collapsed
-            ? (root.alerting ? `${root.title}: ${root.alertText}` : root.value.length > 0 ? `${root.title} · ${root.value}` : root.title)
-            : root.alertText
+        text: root.alerting ? `${root.title}: ${root.alertText}`
+            : root.value.length > 0 ? `${root.title} · ${root.value}`
+            : root.collapsed ? root.title : ""
     }
 
     MouseArea {

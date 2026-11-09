@@ -17,6 +17,7 @@ ColumnLayout {
 
     SettingsGroup {
         title: qsTr("Teclado")
+        icon: "keyboard"
 
         SettingValueRow {
             objectName: "layout"
