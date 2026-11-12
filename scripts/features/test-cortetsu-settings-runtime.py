@@ -40,6 +40,7 @@ import "modules/hardware"
 import "modules/settings"
 import "modules/osd" as Osd
 import "modules/CortetsuNotificationModel.js" as NotificationModel
+import "modules/settings/Material.js" as SettingsMaterial
 import "modules/launcher/services"
 import "components"
 import "services"
@@ -1963,8 +1964,8 @@ ShellRoot {
     // by channel, so the luminance of the stack on any wallpaper lies between
     // the stack on black and on white. Text passes on every wallpaper when it
     // passes on both ends and its own luminance is outside that range.
-    // Mirrors SettingsHost.qml (window ink), Content.qml (mainPanel) and
-    // SettingsGroup.qml (panel groups).
+    // The window ink (SettingsHost.qml), then the main panel and its groups
+    // with the opacities Content.qml and SettingsGroup.qml draw them with.
     function over(top, alpha, under) {
         return Qt.rgba(top.r * alpha + under.r * (1 - alpha), top.g * alpha + under.g * (1 - alpha),
                        top.b * alpha + under.b * (1 - alpha), 1);
@@ -1973,8 +1974,8 @@ ShellRoot {
         const d = CortetsuDesign;
         const factor = CortetsuConfig.transparencyEnabled ? d.materialTransparencyFactor : 1;
         const windowAlpha = d.materialGroundAlpha * factor;
-        const panelAlpha = d.materialStyle === 1 ? 0.92 : 0.6;
-        const groupAlpha = (d.materialStyle === 1 ? 0.6 : 0.72) * factor;
+        const panelAlpha = SettingsMaterial.panelAlpha(d.materialStyle);
+        const groupAlpha = SettingsMaterial.groupAlpha(d.materialStyle) * factor;
         const grounds = {};
         for (const [end, wallpaper] of [["black", Qt.rgba(0, 0, 0, 1)], ["white", Qt.rgba(1, 1, 1, 1)]]) {
             const panel = over(d.colorTetsu, panelAlpha, over(d.colorSumi, windowAlpha, wallpaper));

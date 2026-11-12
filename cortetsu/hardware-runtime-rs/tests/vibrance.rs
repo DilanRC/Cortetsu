@@ -9,7 +9,15 @@ fn fake_vibrance_hyprctl(t: &TempDir) {
     // Remembers the shader path set through eval, as Hyprland does.
     exe(
         &t.path().join("bin/hyprctl"),
-        "#!/bin/sh\nstate=\"$HOME/shader-path\"\ncase \"$1\" in\n-j) echo '[{\"id\":0,\"name\":\"eDP-1\"},{\"id\":3,\"name\":\"DP-1\"}]';;\ngetoption) printf '{\"str\":\"%s\",\"set\":true}\\n' \"$(cat \"$state\" 2>/dev/null)\";;\neval) printf '%s' \"$2\" | sed -n 's/.*screen_shader=\"\\([^\"]*\\)\".*/\\1/p' > \"$state\"; echo \"$2\" >> \"$HOME/evals\"; echo ok;;\n*) exit 77;;\nesac\n",
+        r#"#!/bin/sh
+state="$HOME/shader-path"
+case "$1" in
+-j) echo '[{"id":0,"name":"eDP-1"},{"id":3,"name":"DP-1"}]';;
+getoption) printf '{"str":"%s","set":true}\n' "$(cat "$state" 2>/dev/null)";;
+eval) printf '%s' "$2" | sed -n 's/.*screen_shader="\([^"]*\)".*/\1/p' > "$state"; echo "$2" >> "$HOME/evals"; echo ok;;
+*) exit 77;;
+esac
+"#,
     );
 }
 #[test]

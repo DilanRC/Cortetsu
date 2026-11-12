@@ -47,7 +47,7 @@ Item {
         "Z": qsTr("Zombi")
     })
 
-    property int detailIntervalMs: 5000
+    required property int detailIntervalMs
     readonly property string rssHelp: qsTr("Resident Set Size: páginas del proceso en RAM ahora, incluidas las que comparte con otros. No incluye swap. La tabla usa el contador rápido del kernel (statm), que puede ser aproximado; aquí se muestra el valor exacto de smaps_rollup cuando está disponible.")
     readonly property string pssHelp: qsTr("Proportional Set Size: el RSS con cada página compartida repartida entre quienes la usan. Sumado entre procesos da la RAM real ocupada.")
     readonly property string swapHelp: qsTr("Páginas del proceso movidas a swap (zram), fuera de la RAM, incluida la memoria compartida que mapea. Va aparte: no forma parte del RSS ni del PSS.")
@@ -61,14 +61,16 @@ Item {
     // no signal reaches it, so the actions stay off.
     readonly property bool selectedZombie: root.hasSelection && String(selectedProcess?.state ?? "") === "Z"
     readonly property bool canSignal: root.hasSelection && !root.selectedZombie
-    readonly property real selectedStartTicks: root.hasSelection ? Number(selectedProcess?.start_ticks ?? -1) : -1
-    // The breakdown is shown only for the process it was read from: same PID
-    // and same start time, so a reused PID never shows another's numbers.
-    readonly property var selectedDetail: root.hasSelection
-        && processDetail
-        && Number(processDetail.pid) === root.selectedPid
-        && Number(processDetail.start_ticks) === root.selectedStartTicks
-        ? processDetail : null
+    // PID and start time name one process: a reused PID gets a later start.
+    // The telemetry reads the breakdown for this key and hands back only a
+    // reading that carries it, so `processDetail` is always this process's.
+    readonly property string selectedKey: root.hasSelection ? root.identity(selectedProcess) : ""
+
+    function identity(proc): string {
+        const pid = Number(proc?.pid ?? -1);
+        const start = Number(proc?.start_ticks ?? -1);
+        return pid > 0 && start >= 0 ? `${pid}:${start}` : "";
+    }
 
     function buildProcesses(source): var {
         const query = filterText.trim().toLowerCase();
@@ -124,6 +126,13 @@ Item {
         const pid = Number(selectedProcess?.pid ?? -1);
         if (pid <= 1 || root.selectedZombie)
             return;
+        // The row may be old (a frozen list): the signal goes only to the
+        // process the latest reading still shows under this PID.
+        const live = (processes ?? []).find(p => Number(p?.pid) === pid);
+        if (root.selectedKey === "" || root.identity(live) !== root.selectedKey) {
+            actionStatus = qsTr("El proceso %1 ya no existe; no se envió ninguna señal").arg(pid);
+            return;
+        }
         Quickshell.execDetached(["kill", `-${signal}`, String(pid)]);
         actionStatus = qsTr("Señal %1 enviada al proceso %2").arg(signal).arg(pid);
     }
@@ -150,7 +159,12 @@ Item {
         processList.positionViewAtIndex(next, ListView.Contain);
     }
 
-    onSelectedPidChanged: root.killArmed = false
+    // The armed confirmation and the last action's message belong to the
+    // process they were about.
+    onSelectedPidChanged: {
+        root.killArmed = false;
+        root.actionStatus = "";
+    }
 
     Timer {
         id: disarm
@@ -176,19 +190,19 @@ Item {
     // The inspector shows the exact Rss of the same smaps_rollup read as PSS
     // and swap; until that read arrives, the table's statm figure.
     function inspectorRssText(): string {
-        if (root.numericMode && root.selectedDetail?.status === "ok" && root.selectedDetail?.smaps === "ok")
-            return Format.bytes(root.selectedDetail.rss_bytes);
+        if (root.numericMode && root.processDetail?.status === "ok" && root.processDetail?.smaps === "ok")
+            return Format.bytes(root.processDetail.rss_bytes);
         return root.ramText(root.selectedProcess);
     }
 
     // A breakdown field: "Leyendo…" until the first read for this process,
     // "" (shown as unavailable) when the kernel did not give it.
     function detailText(field): string {
-        if (!root.selectedDetail)
+        if (!root.processDetail)
             return qsTr("Leyendo…");
-        if (root.selectedDetail.status !== "ok")
+        if (root.processDetail.status !== "ok")
             return "";
-        return Format.bytes(root.selectedDetail[field]);
+        return Format.bytes(root.processDetail[field]);
     }
 
     onVisibleProcessesChanged: {
@@ -417,9 +431,9 @@ Item {
                         objectName: "memoryDetailCaption"
                         width: parent.width
                         topPadding: CortetsuDesign.spacingCompact
-                        text: root.selectedDetail?.status !== "ok" || root.selectedDetail?.smaps === "ok"
+                        text: root.processDetail?.status !== "ok" || root.processDetail?.smaps === "ok"
                             ? qsTr("Desglose de memoria · cada %1 s").arg(Math.round(root.detailIntervalMs / 1000))
-                            : root.selectedDetail.smaps === "denied"
+                            : root.processDetail.smaps === "denied"
                             ? qsTr("Desglose de memoria · sin permiso para leer el resto")
                             : qsTr("Desglose de memoria · el kernel no lo ofrece para este proceso")
                         color: CortetsuDesign.colorOnSurfaceMuted

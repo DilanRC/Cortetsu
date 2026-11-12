@@ -240,6 +240,30 @@ pub fn atomic(path: &Path, data: &[u8]) -> Result<()> {
 pub fn atomic_json(path: &Path, value: &Value) -> Result<()> {
     atomic(path, &serde_json::to_vec(value).map_err(|e| e.to_string())?)
 }
+// What a file held before a multi-file write, to put it back if a later
+// step fails. A file that could not be read is neither bytes nor absent:
+// restoring leaves it alone.
+pub enum FileSnapshot {
+    Missing,
+    Bytes(Vec<u8>),
+    Unreadable,
+}
+impl FileSnapshot {
+    pub fn take(path: &Path) -> Self {
+        match fs::read(path) {
+            Ok(bytes) => Self::Bytes(bytes),
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => Self::Missing,
+            Err(_) => Self::Unreadable,
+        }
+    }
+    pub fn restore(&self, path: &Path) -> Result<()> {
+        match self {
+            Self::Bytes(bytes) => atomic(path, bytes),
+            Self::Missing => remove(path),
+            Self::Unreadable => Ok(()),
+        }
+    }
+}
 pub fn remove(path: &Path) -> Result<()> {
     match fs::remove_file(path) {
         Ok(()) => {

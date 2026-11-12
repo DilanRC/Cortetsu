@@ -101,9 +101,9 @@ QtObject {
                         : qsTr("Encendido")
         readonly property string audio: !CortetsuAudio.sink
             ? qsTr("Sin salida")
-            : CortetsuAudio.muted ? qsTr("Silenciado") : qsTr("%1 %").arg(root.volumePercent)
+            : CortetsuAudio.muted ? qsTr("Silenciado") : qsTr("Volumen %1 %").arg(root.volumePercent)
         readonly property string display: root.brightnessValue >= 0
-            ? qsTr("%1 %").arg(Math.round(root.brightnessValue * 100))
+            ? qsTr("Brillo %1 %").arg(Math.round(root.brightnessValue * 100))
             : root.monitorCount === 1 ? qsTr("1 pantalla") : qsTr("%1 pantallas").arg(root.monitorCount)
         readonly property string power: !CortetsuPower.hasBattery
             ? qsTr("Corriente")

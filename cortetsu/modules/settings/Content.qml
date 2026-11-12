@@ -8,6 +8,7 @@ import "../../components"
 import "../../theme"
 import ".."
 import "../CortetsuTypography.js" as CortetsuTypography
+import "Material.js" as Material
 import "controls"
 
 // Settings: the sidebar on the left lists the categories; the main panel
@@ -199,7 +200,7 @@ FocusScope {
                 anchors.fill: parent
                 radius: CortetsuDesign.radiusLarge
                 ground: CortetsuDesign.colorTetsu
-                groundAlpha: CortetsuDesign.materialStyle === 1 ? 0.92 : 0.6
+                groundAlpha: Material.panelAlpha(CortetsuDesign.materialStyle)
                 washAlpha: CortetsuDesign.materialWashAlpha * 0.5
                 washX: 0.9
                 grain: CortetsuDesign.materialGrain * 0.5

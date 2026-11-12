@@ -349,7 +349,7 @@ ShellRoot {
         [() => telemetry.sampleCount > kept.runs && !telemetry.sampling, () => {
             verify(telemetry.processDetail?.pid === 101, "a run without a breakdown keeps the last one");
             processesPage().selectedPid = 102;
-            verify(processesPage().selectedDetail === null, "a new selection never shows the previous process's numbers");
+            verify(processesPage().processDetail === null, "a new selection never shows the previous process's numbers");
         }],
         [() => telemetry.processDetail?.pid === 102, () => {
             const page = processesPage();
@@ -357,6 +357,13 @@ ShellRoot {
             verify(page.detailText("swap_bytes") === "12.0 MiB", "swap from status survives a denied smaps");
             verify(page.inspectorRssText() === page.ramText(page.selectedProcess), "a denied smaps falls back to the statm RSS");
             verify(find(content, "memoryDetailCaption").text.indexOf("sin permiso") > 0, "a denied smaps says so");
+            // A frozen list can hold a row whose PID now belongs to another
+            // process: the signal is refused, never sent to the newcomer.
+            page.togglePause();
+            page.frozenProcesses = page.frozenProcesses.map(p => Number(p.pid) === 102 ? Object.assign({}, p, { start_ticks: 1 }) : p);
+            page.sendSignal("TERM");
+            verify(page.actionStatus.indexOf("ya no existe") >= 0, `a reused PID gets no signal (${page.actionStatus})`);
+            page.togglePause();
             page.selectedPid = 103;
         }],
         [() => telemetry.processDetail?.pid === 103, () => {
@@ -394,7 +401,7 @@ ShellRoot {
             content.currentPage = 0;
         }],
         [() => telemetry.snapshot.processes.length === 5, () => {
-            verify(telemetry.detailPid === -1, "leaving Processes forgets the selection");
+            verify(telemetry.detailKey === "", "leaving Processes forgets the selection");
         }]
     ]
 
@@ -549,11 +556,11 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-hardware-home-") as temporary:
     assert calls[-1] == "--top-processes 5", "leaving Processes returns to the trimmed reading"
 
     output, calls = run(folder, "processes", "ok")
-    assert "HARDWARE_RUNTIME_PASS 34" in output, output
+    assert "HARDWARE_RUNTIME_PASS 35" in output, output
     # The selection bar exists for light paper: prove it there and on steel.
     for theme in ("washi", "kurogane"):
         themed, _ = run(folder, "processes", "ok", theme=theme)
-        assert "HARDWARE_RUNTIME_PASS 34" in themed, (theme, themed)
+        assert "HARDWARE_RUNTIME_PASS 35" in themed, (theme, themed)
     detail_calls = [c for c in calls if "--process-detail" in c]
     assert detail_calls and all(c.split()[-1] in ("101:5001", "102:5002", "103:5003") for c in detail_calls), calls
     assert all("--process-detail" not in c for c in calls if c.startswith("--top-processes")), \

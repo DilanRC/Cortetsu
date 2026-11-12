@@ -5,6 +5,7 @@ import QtQuick.Layouts
 import "../../../components"
 import "../../../theme"
 import "../../CortetsuTypography.js" as CortetsuTypography
+import "../Material.js" as Material
 
 // One subject: a heading with its icon and the rows that belong to it. The
 // rows share one panel and are told apart by a hairline, not a card each.
@@ -134,7 +135,7 @@ ColumnLayout {
         CortetsuSurface {
             anchors.fill: parent
             radiusValue: CortetsuDesign.radiusMedium
-            baseColor: root.panel ? Qt.alpha(CortetsuDesign.colorSurfaceGlass, CortetsuDesign.materialStyle === 1 ? 0.6 : 0.72) : "transparent"
+            baseColor: root.panel ? Qt.alpha(CortetsuDesign.colorSurfaceGlass, Material.groupAlpha(CortetsuDesign.materialStyle)) : "transparent"
             outlined: root.panel
             outlineColor: Qt.alpha(CortetsuDesign.colorOutlineVariant, CortetsuDesign.materialStyle === 1 ? 0.3
                 : CortetsuDesign.materialStyle === 2 ? 0.85 : 0.48)

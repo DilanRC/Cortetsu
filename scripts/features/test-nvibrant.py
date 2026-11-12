@@ -171,7 +171,8 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-nvibrant-") as temporary:
     before = len(qml.calls())
     folder = base / "shell"
     folder.mkdir()
-    shutil.copy(REPO / "cortetsu/services/Nvibrant.qml", folder / "Nvibrant.qml")
+    for name in ("Nvibrant.qml", "HelperWriteQueue.qml"):
+        shutil.copy(REPO / "cortetsu/services" / name, folder / name)
     (folder / "shell.qml").write_text('''import QtQuick
 import Quickshell
 import "."

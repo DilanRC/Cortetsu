@@ -11,6 +11,7 @@ import Quickshell.Io
 Singleton {
     id: root
 
+    // Placeholders until the first status read; the helper owns the range.
     property int minimum: -100
     property int maximum: 100
     property int defaultValue: 16
@@ -18,13 +19,12 @@ Singleton {
     // or another tool set a different shader, so a change would not show.
     property bool active: false
     property var values: ({})
-    property bool busy: false
-    // Latest unsent value per output. A slider drag outruns the shader
-    // rebuild, and moving to another output mid-write must not drop the first.
-    property var pending: ({})
+    readonly property bool busy: writes.busy
     property string writeError: ""
     property string statusError: ""
     readonly property string error: writeError || statusError
+    // A status read that arrived while values were still being written.
+    property bool statusStale: false
 
     function valueFor(name: string): int {
         return values[name] ?? defaultValue;
@@ -32,14 +32,6 @@ Singleton {
 
     function hasOutput(name: string): bool {
         return values[name] !== undefined;
-    }
-
-    function parse(text: string): var {
-        try {
-            return JSON.parse(text);
-        } catch (error) {
-            return null;
-        }
     }
 
     // startup inventory: cortetsu:display-vibrance-status
@@ -51,42 +43,37 @@ Singleton {
         }
     }
 
-    readonly property Process writeProcess: Process {
-        property string sentName: ""
-        property int sentValue: 0
-        command: ["cortetsu-display-vibrance", "set", sentName, String(sentValue)]
-        running: false
-        stdout: StdioCollector {
-            onStreamFinished: root.applyWrite(text)
+    readonly property HelperWriteQueue writes: HelperWriteQueue {
+        command: (name, value) => ["cortetsu-display-vibrance", "set", name, String(value)]
+        startError: qsTr("No se pudo ejecutar cortetsu-display-vibrance")
+        // `values` already holds what was asked for, and a newer value for
+        // the same output may be waiting: an accepted write changes nothing.
+        onAnswered: (name, value, result) => {
+            if (result?.ok) {
+                root.active = true;
+                root.writeError = "";
+                return;
+            }
+            root.writeError = result?.error ?? qsTr("No se pudo aplicar la saturación");
+            root.statusStale = true;
         }
-        onExited: root.writeFinished()
-        // A helper that cannot start never emits exited. Deferred, so a
-        // normal exit is handled by onExited first.
-        onRunningChanged: if (!running) Qt.callLater(root.writeNeverRan)
-    }
-
-    // A status read that arrived during a write was not applied.
-    property bool statusStale: false
-
-    function writeFinished(): void {
-        busy = false;
-        startWrite();
-        if (!busy && statusStale) {
-            statusStale = false;
-            reload();
+        onUnstartable: (name, value, error) => {
+            root.writeError = error;
+            root.statusStale = true;
         }
-    }
-
-    function writeNeverRan(): void {
-        if (!busy || writeProcess.running)
-            return;
-        writeError = qsTr("No se pudo ejecutar cortetsu-display-vibrance");
-        statusStale = true;
-        writeFinished();
+        // Back to what the profile holds after a failure, and the read a
+        // hotplug asked for mid-drag.
+        onDrained: {
+            if (root.statusStale)
+                root.reload();
+        }
     }
 
     function applyStatus(text: string): void {
-        const status = parse(text);
+        let status = null;
+        try {
+            status = JSON.parse(text);
+        } catch (error) {}
         if (!status?.ok) {
             statusError = status?.error ?? qsTr("cortetsu-display-vibrance devolvió un estado ilegible");
             return;
@@ -95,34 +82,17 @@ Singleton {
         maximum = status.maximum;
         defaultValue = status.default;
         active = status.active === true;
+        statusError = "";
+        // Values not yet written win over what the profile still says.
+        if (!writes.idle) {
+            statusStale = true;
+            return;
+        }
+        statusStale = false;
         const next = {};
         for (const output of status.outputs ?? [])
             next[output.name] = output.value;
-        // Values not yet written win over what the profile still says; the
-        // read is repeated once the queue drains (a hotplug mid-drag).
-        if (!busy && Object.keys(pending).length === 0)
-            values = next;
-        else
-            statusStale = true;
-        statusError = "";
-    }
-
-    function applyWrite(text: string): void {
-        const result = parse(text);
-        // `values` already holds what was asked for (setValue), and a newer
-        // value for the same output may be in flight: an accepted write
-        // changes nothing there.
-        if (result?.ok) {
-            active = true;
-            writeError = "";
-            return;
-        }
-        writeError = result?.error ?? qsTr("No se pudo aplicar la saturación");
-        // Back to what the profile holds, once nothing else is being written.
-        if (busy)
-            statusStale = true;
-        else
-            reload();
+        values = next;
     }
 
     function reload(): void {
@@ -130,30 +100,14 @@ Singleton {
             statusProcess.running = true;
     }
 
-    function startWrite(): void {
-        const name = Object.keys(pending)[0];
-        if (busy || name === undefined)
-            return;
-        const rest = Object.assign({}, pending);
-        writeProcess.sentName = name;
-        writeProcess.sentValue = rest[name];
-        delete rest[name];
-        pending = rest;
-        busy = true;
-        writeProcess.running = true;
-    }
-
     function setValue(name: string, nextValue: real): void {
         if (!hasOutput(name))
             return;
         const clamped = Math.max(minimum, Math.min(maximum, Math.round(nextValue)));
-        const queued = Object.assign({}, pending);
-        queued[name] = clamped;
-        pending = queued;
         const next = Object.assign({}, values);
         next[name] = clamped;
         values = next;
-        startWrite();
+        writes.enqueue(name, clamped);
     }
 
     Connections {

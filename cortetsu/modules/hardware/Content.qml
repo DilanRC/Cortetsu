@@ -333,12 +333,8 @@ FocusScope {
 
             // The page names its selection; the telemetry reads its memory
             // breakdown. Leaving the page clears it.
-            Binding { target: telemetry; property: "detailPid"; value: processesPage.selectedPid }
-            Binding { target: telemetry; property: "detailStartTicks"; value: processesPage.selectedStartTicks }
-            Component.onDestruction: {
-                telemetry.detailPid = -1;
-                telemetry.detailStartTicks = -1;
-            }
+            Binding { target: telemetry; property: "detailKey"; value: processesPage.selectedKey }
+            Component.onDestruction: telemetry.detailKey = ""
         }
     }
 

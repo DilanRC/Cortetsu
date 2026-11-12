@@ -28,8 +28,7 @@ Singleton {
     property int desired: 0
     property string driver: ""
     property int requested: 0
-    property bool busy: false
-    property bool writeQueued: false
+    readonly property bool busy: writes.busy
     // A failed write stays visible until a later write succeeds; a status
     // refresh does not hide it.
     property string writeError: ""
@@ -49,21 +48,12 @@ Singleton {
         }
     }
 
-    readonly property Process writeProcess: Process {
-        property string sentConnector: ""
-        property int sentValue: 0
-        command: ["cortetsu-nvibrant", "set", sentConnector, String(sentValue)]
-        running: false
-        stdout: StdioCollector {
-            onStreamFinished: root.applyWrite(text)
-        }
-        onExited: {
-            root.busy = false;
-            const again = root.writeQueued && root.requested !== root.writeProcess.sentValue;
-            root.writeQueued = false;
-            if (again)
-                root.startWrite();
-        }
+    // A slider drag outruns nvibrant; the queue keeps only the latest value.
+    readonly property HelperWriteQueue writes: HelperWriteQueue {
+        command: (connector, value) => ["cortetsu-nvibrant", "set", connector, String(value)]
+        startError: qsTr("No se pudo ejecutar cortetsu-nvibrant")
+        onAnswered: (connector, value, result) => root.applyWrite(result)
+        onUnstartable: (connector, value, error) => root.writeError = error
     }
 
     function parse(text: string): var {
@@ -97,8 +87,7 @@ Singleton {
             : "";
     }
 
-    function applyWrite(text: string): void {
-        const result = parse(text);
+    function applyWrite(result: var): void {
         if (result?.ok && Number.isInteger(result.value)) {
             value = result.value;
             known = true;
@@ -118,22 +107,11 @@ Singleton {
             statusProcess.running = true;
     }
 
-    function startWrite(): void {
-        busy = true;
-        writeProcess.sentConnector = connector;
-        writeProcess.sentValue = requested;
-        writeProcess.running = true;
-    }
-
     function setValue(nextValue: real): void {
         if (!available)
             return;
         requested = Math.max(minimum, Math.min(maximum, Math.round(nextValue)));
-        // A slider drag outruns nvibrant; keep only the latest value.
-        if (busy)
-            writeQueued = true;
-        else
-            startWrite();
+        writes.enqueue(connector, requested);
     }
 
     Connections {

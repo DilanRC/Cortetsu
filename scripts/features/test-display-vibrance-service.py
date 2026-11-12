@@ -77,13 +77,13 @@ ShellRoot {
             } else if (step === 1 && v.valueFor("eDP-1") !== 50) {
                 console.log(`VIBRANCE_FAIL queued value lost on screen: ${v.valueFor("eDP-1")}`);
                 Qt.quit();
-            } else if (step === 1 && !v.busy && Object.keys(v.pending).length === 0) {
+            } else if (step === 1 && v.writes.idle) {
                 console.log(`VIBRANCE_DONE ${JSON.stringify(v.values)} ${v.error}`);
                 Qt.quit();
             }
         }
     }
-    Timer { interval: 8000; running: true; onTriggered: { console.log("VIBRANCE_FAIL timeout"); Qt.quit(); } }
+    Timer { interval: 8000; running: true; onTriggered: { console.log(`VIBRANCE_FAIL timeout at step ${step}: ${JSON.stringify(DisplayVibrance.values)} ${DisplayVibrance.error}`); Qt.quit(); } }
 }
 '''
 
@@ -103,16 +103,19 @@ def vanish() -> None:
 def launch(root: Path, **extra: str) -> tuple[str, Path]:
     (root / "config/services").mkdir(parents=True)
     shutil.copy(SERVICE, root / "config/services/DisplayVibrance.qml")
+    shutil.copy(SERVICE.with_name("HelperWriteQueue.qml"), root / "config/services/HelperWriteQueue.qml")
     (root / "config/shell.qml").write_text(SHELL)
     (root / "bin").mkdir()
     helper = root / "bin/cortetsu-display-vibrance"
     helper.write_text(FAKE_HELPER)
     helper.chmod(0o755)
     log = root / "calls.json"
-    env = dict(os.environ, PATH=f"{root / 'bin'}:{os.environ['PATH']}", FAKE_VIBRANCE_LOG=str(log),
+    # System directories only: the installed helper in ~/.local/bin must
+    # never stand in for the fake one, least of all once it is removed.
+    env = dict(os.environ, PATH=f"{root / 'bin'}:/usr/bin:/bin", FAKE_VIBRANCE_LOG=str(log),
                QT_QPA_PLATFORM="offscreen", XDG_CONFIG_HOME=str(root / "no-config"), **extra)
     result = subprocess.run(["qs", "-p", str(root / "config/shell.qml"), "--no-color"],
-                            env=env, text=True, capture_output=True, timeout=20)
+                            env=env, text=True, capture_output=True, timeout=60)
     return result.stdout + result.stderr, log
 
 

@@ -1220,21 +1220,12 @@ fn persist_inner(candidate: &Value) -> Result<(Value, i32)> {
     let policy_state = json!({"version":2,"primary":m1,"secondary":m2,"saved_at":now()as i64,"backup":backup,"output_policy":color});
     let state = json!({"version":2,"saved_at":now()as i64,"outputs":normalized["outputs"],"managed_outputs":managed,"workspace_policy":policy,"backup":backup});
     // Both JSON files change together: if the second write fails, the first
-    // goes back to what it held (or away, if it did not exist).
-    // An unreadable file is neither: it is left alone on rollback.
-    let previous_policy = match fs::read(workspace_state()) {
-        Ok(bytes) => Some(Some(bytes)),
-        Err(e) if e.kind() == std::io::ErrorKind::NotFound => Some(None),
-        Err(_) => None,
-    };
+    // goes back to what it held.
+    let previous_policy = FileSnapshot::take(&workspace_state());
     if let Err(e) =
         atomic_json(&workspace_state(), &policy_state).and_then(|_| atomic_json(&saved(), &state))
     {
-        let _ = match &previous_policy {
-            Some(Some(bytes)) => atomic(&workspace_state(), bytes),
-            Some(None) => remove(&workspace_state()),
-            None => Ok(()),
-        };
+        let _ = previous_policy.restore(&workspace_state());
         let rollback = restore_file(&original, &updated, Some(&original_live));
         return Ok((
             json!({"ok":false,"error":e,"rolled_back":rollback.is_ok(),"rollback_error":rollback.err(),"backup":backup}),

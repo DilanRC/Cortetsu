@@ -51,8 +51,7 @@ Item {
     // page names it by PID and start time; the next probe run reads its
     // smaps_rollup, at most once every detailIntervalMs for the same process,
     // so no process is started for it and no other row is ever walked.
-    property int detailPid: -1
-    property real detailStartTicks: -1
+    property string detailKey: ""
     readonly property int detailIntervalMs: 5000
     property var processDetail: null
     property real detailRequestedAt: 0
@@ -110,9 +109,9 @@ Item {
     }
 
     function detailArgs(): var {
-        if (!root.fullProcessList || root.detailPid <= 0 || root.detailStartTicks < 0)
+        const key = root.detailKey;
+        if (!root.fullProcessList || key === "")
             return [];
-        const key = `${root.detailPid}:${root.detailStartTicks}`;
         const now = Date.now();
         if (key === root.detailRequestKey && now - root.detailRequestedAt < root.detailIntervalMs)
             return [];
@@ -121,8 +120,7 @@ Item {
         return ["--process-detail", key];
     }
 
-    onDetailPidChanged: root.processDetail = null
-    onDetailStartTicksChanged: root.processDetail = null
+    onDetailKeyChanged: root.processDetail = null
 
     function accept(text): void {
         let parsed;
@@ -135,7 +133,7 @@ Item {
             return;
         root.runProducedReading = true;
         const detail = parsed.process_detail;
-        if (detail && Number(detail.pid) === root.detailPid && Number(detail.start_ticks) === root.detailStartTicks)
+        if (detail && `${Number(detail.pid)}:${Number(detail.start_ticks)}` === root.detailKey)
             root.processDetail = detail;
         root.snapshot = parsed;
         root.recordHistory(parsed);
