@@ -52,9 +52,13 @@ import Quickshell
 import Quickshell.Io
 import "modules"
 import "modules/hardware"
+import "theme"
+import "theme/ThemeProfiles.js" as Profiles
 
 ShellRoot {
     id: root
+    // HARDWARE_THEME=washi renders with that theme's tokens; empty is Ink.
+    Component.onCompleted: CortetsuDesign.themeTokens = Profiles.tokens(Quickshell.env("HARDWARE_THEME") || "ink")
     property int checks: 0
     property int step: 0
     property var kept: ({})
@@ -66,7 +70,8 @@ ShellRoot {
     function verify(value, reason) { if (!value) { console.log("HARDWARE_FAIL", reason); return; } checks++; }
     function render(name) {
         if (renderDir)
-            content.grabToImage(result => result.saveToFile(`${renderDir}/${name}.png`));
+            content.grabToImage(result => result.saveToFile(
+                `${renderDir}/${name}${Quickshell.env("HARDWARE_THEME") ? "-" + Quickshell.env("HARDWARE_THEME") : ""}.png`));
     }
     // Written synchronously, so the next probe run is certain to see it.
     function mode(name) { modeFile.setText(name); content.refresh(); }
@@ -367,6 +372,13 @@ ShellRoot {
             const rows = find(page, "processList");
             const bars = Array.from({ length: rows.count }, (_, i) => find(rows.itemAtIndex(i), "selectionBar")?.visible === true);
             verify(bars.filter(b => b).length === 1 && rows.itemAtIndex(bars.indexOf(true)).modelData.pid === 108, "only the selected row shows the indicator bar");
+            // WCAG 1.4.11: the bar is a state indicator, 3:1 against the
+            // selected fill and the ground around it, in every theme.
+            const bar = find(rows.itemAtIndex(bars.indexOf(true)), "selectionBar").color;
+            const d = CortetsuDesign;
+            const fill = Qt.tint(d.colorSurface, page.selectedRowColor);
+            verify(d.contrast(bar, fill) >= 3 && d.contrast(bar, d.colorSurface) >= 3,
+                `the selection bar reads at 3:1 (${d.contrast(bar, fill).toFixed(2)} on the row, ${d.contrast(bar, d.colorSurface).toFixed(2)} on the ground)`);
             verify(find(content, "forceClose").disabled, "no forced close for a zombie");
             page.forceClose();
             verify(!page.killArmed && page.actionStatus === "", "a zombie never arms or sends a signal");
@@ -467,11 +479,11 @@ def reading(**overrides) -> dict:
     return base
 
 
-def run(folder: Path, scenario: str, start_mode: str, with_probe: bool = True) -> str:
-    fixtures = folder / f"fixtures-{scenario}"
+def run(folder: Path, scenario: str, start_mode: str, with_probe: bool = True, theme: str = "") -> str:
+    fixtures = folder / f"fixtures-{scenario}{'-' + theme if theme else ''}"
     shutil.copytree(folder / "fixtures", fixtures)
     (fixtures / "mode").write_text(start_mode)
-    home = folder / f"home-{scenario}"
+    home = folder / f"home-{scenario}{'-' + theme if theme else ''}"
     (home / ".local/bin").mkdir(parents=True)
     if with_probe:
         probe = home / ".local/bin/cortetsu-hardware-probe"
@@ -481,7 +493,8 @@ def run(folder: Path, scenario: str, start_mode: str, with_probe: bool = True) -
         ["quickshell", "-p", str(folder / "shell.qml")],
         env={**os.environ, "QT_QPA_PLATFORM": os.environ.get("CORTETSU_TEST_QPA", "offscreen"), "HOME": str(home),
              "XDG_STATE_HOME": str(home / "state"), "XDG_CACHE_HOME": str(home / "cache"),
-             "HARDWARE_FIXTURES": str(fixtures), "HARDWARE_SCENARIO": scenario, "CORTETSU_RENDER_DIR": RENDER_DIR},
+             "HARDWARE_FIXTURES": str(fixtures), "HARDWARE_SCENARIO": scenario, "CORTETSU_RENDER_DIR": RENDER_DIR,
+             "HARDWARE_THEME": theme},
         capture_output=True, text=True, timeout=90,
     )
     output = result.stdout + result.stderr
@@ -536,7 +549,11 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-hardware-home-") as temporary:
     assert calls[-1] == "--top-processes 5", "leaving Processes returns to the trimmed reading"
 
     output, calls = run(folder, "processes", "ok")
-    assert "HARDWARE_RUNTIME_PASS 33" in output, output
+    assert "HARDWARE_RUNTIME_PASS 34" in output, output
+    # The selection bar exists for light paper: prove it there and on steel.
+    for theme in ("washi", "kurogane"):
+        themed, _ = run(folder, "processes", "ok", theme=theme)
+        assert "HARDWARE_RUNTIME_PASS 34" in themed, (theme, themed)
     detail_calls = [c for c in calls if "--process-detail" in c]
     assert detail_calls and all(c.split()[-1] in ("101:5001", "102:5002", "103:5003") for c in detail_calls), calls
     assert all("--process-detail" not in c for c in calls if c.startswith("--top-processes")), \

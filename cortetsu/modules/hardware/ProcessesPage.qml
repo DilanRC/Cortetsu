@@ -15,6 +15,15 @@ Item {
     required property var processes
     // Memory breakdown from the probe for the selected process, or null.
     property var processDetail: null
+    // The selected row's fill and the indicator bar on it. The page ground
+    // depends on the material, so the bar reaches 3:1 (WCAG 1.4.11) against
+    // the fill composited over each ground it can sit on, and the grounds.
+    readonly property color selectedRowColor: Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.76)
+    readonly property color selectionBarColor: {
+        const d = CortetsuDesign;
+        const grounds = [d.colorTetsu, d.colorSurface, d.colorSurfaceHigh];
+        return d.readable(d.colorIndicator, grounds.concat(grounds.map(g => Qt.tint(g, root.selectedRowColor))), 3);
+    }
 
     property string filterText: ""
     property string sortKey: "cpu"
@@ -301,7 +310,7 @@ Item {
                         focused: processRow.selected && processList.activeFocus
                         baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0)
                         hoverColor: CortetsuDesign.colorSurfaceGlassStrong
-                        activeColor: Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.76)
+                        activeColor: root.selectedRowColor
                         outlineColor: Qt.alpha(CortetsuDesign.colorWashi, 0.86)
                     }
 
@@ -316,7 +325,9 @@ Item {
                         width: 3
                         height: 18
                         radius: CortetsuDesign.materialStyle === 2 ? 0 : 1.5
-                        color: CortetsuDesign.colorIndicator
+                        // colorIndicator is lifted against the plain grounds;
+                        // here it sits on the selected fill too (2.98:1 in Ink).
+                        color: root.selectionBarColor
                     }
 
                     MouseArea {

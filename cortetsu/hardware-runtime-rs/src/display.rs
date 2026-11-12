@@ -1231,15 +1231,7 @@ fn persist_inner(candidate: &Value) -> Result<(Value, i32)> {
     {
         let _ = match &previous_policy {
             Some(bytes) => atomic(&workspace_state(), bytes),
-            None => fs::remove_file(workspace_state())
-                .or_else(|e| {
-                    if e.kind() == std::io::ErrorKind::NotFound {
-                        Ok(())
-                    } else {
-                        Err(e)
-                    }
-                })
-                .map_err(|e| e.to_string()),
+            None => remove(&workspace_state()),
         };
         let rollback = restore_file(&original, &updated, Some(&original_live));
         return Ok((
