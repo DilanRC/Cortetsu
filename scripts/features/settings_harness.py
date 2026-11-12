@@ -305,6 +305,27 @@ QtObject {
 }
 """
 
+DISPLAY_VIBRANCE = """pragma Singleton
+import QtQuick
+// Screen-shader saturation double: both outputs are live in Hyprland.
+QtObject {
+    property int minimum: -100
+    property int maximum: 100
+    property int defaultValue: 16
+    property bool active: true
+    property var values: ({ "eDP-1": 16, "HDMI-A-1": 24 })
+    property bool busy: false
+    property string error: ""
+    property var calls: []
+    function valueFor(name) { return values[name] ?? defaultValue; }
+    function hasOutput(name) { return values[name] !== undefined; }
+    function setValue(name, next) {
+        calls = calls.concat([[name, Math.round(next)]]);
+        const copy = Object.assign({}, values); copy[name] = Math.round(next); values = copy;
+    }
+}
+"""
+
 # Display tools under ~/.local/bin. The transaction keeps its preview in a
 # file with a real deadline, so the countdown, Keep and Revert are exercised.
 DISPLAY_TOOL = r"""#!/usr/bin/env python3
@@ -378,6 +399,7 @@ STUBS = {
     "modules/CortetsuNotifications.qml": NOTIFICATIONS,
     "modules/CortetsuWallpapers.qml": WALLPAPERS,
     "services/Nvibrant.qml": NVIBRANT,
+    "services/DisplayVibrance.qml": DISPLAY_VIBRANCE,
     "services/Requests.qml": REQUESTS,
 }
 

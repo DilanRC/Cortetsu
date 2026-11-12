@@ -7,6 +7,9 @@ import "../../../theme"
 SettingRow {
     id: root
     property string value: ""
+    // What the field shows while not edited, e.g. a path with ~ for home.
+    // Editing always starts from the full value.
+    property string displayValue: value
     property string placeholderText: ""
     // Paths and other long values need more than the default field.
     property real fieldWidth: Math.min(260, root.width * 0.45)
@@ -16,7 +19,12 @@ SettingRow {
         id: field
         objectName: "entry"
         property string draft: root.value
-        onActiveFocusChanged: if (activeFocus) draft = text
+        onActiveFocusChanged: {
+            if (!activeFocus)
+                return;
+            text = root.value;
+            draft = text;
+        }
         onTextEdited: draft = text
         implicitWidth: root.fieldWidth
         implicitHeight: CortetsuDesign.controlHeight
@@ -34,7 +42,7 @@ SettingRow {
             border.width: field.activeFocus ? 2 : 1
             border.color: field.activeFocus ? CortetsuDesign.colorIndicator : CortetsuDesign.colorOutlineVariant
         }
-        Binding { target: field; property: "text"; value: root.value; when: !field.activeFocus }
+        Binding { target: field; property: "text"; value: root.displayValue; when: !field.activeFocus }
         onEditingFinished: {
             if (draft !== root.value)
                 root.committed(draft);

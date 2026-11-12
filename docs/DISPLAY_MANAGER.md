@@ -22,30 +22,40 @@ page on the same screen.
 What the page offers is what the probe reports. Resolutions and refresh rates
 are the output's own `available_modes`; VRR appears only where
 `vrr_capable` is `true`; HDR, wide gamut and 10-bit stay hidden while the probe
-reports them as unknown. Saturation is offered only on the output nVibrant
-drives (an NVIDIA output); other outputs say why it is not available.
+reports them as unknown. Saturation is offered on every output Hyprland has
+active; NVIDIA outputs also offer Digital Vibrance through nVibrant.
 
 Previsualizar first runs the dry-run planner and previews only an accepted
 proposal. Changing the proposal after Conservar requires a new preview before
 Guardar is offered.
 
-## Saturation per GPU
+## Saturation per output
 
-- **NVIDIA outputs** (HDMI-A-1 on the HP Victus): nVibrant writes Digital
-  Vibrance through the NVIDIA driver. `cortetsu-nvibrant status` reads sysfs
-  only (never runs nvibrant, never wakes the dGPU) and reports `value` (what
-  the profile wants) apart from `applied` (what nvibrant echoed in this boot).
-  nvibrant has no read-back, so "confirmado" means "echoed in this boot", not
-  a hardware readout. Installed `nvibrant-bin` 1.3.0 bundles builds up to
-  driver 615.71.09 and falls back to it on 615.78.08; 1.3.1 (2026-11-08) adds
-  the exact `615.78.08` build.
-- **AMD outputs** (the eDP-1 panel): not offered. Hyprland documents
-  `sdrsaturation` only for SDR content while the output is in HDR mode
-  (`cm = "hdr"`); there is no documented per-output saturation for an SDR
-  output (wiki.hypr.land/configuring/core/monitors/colors, read 2026-11-09).
-  A colour transform matrix could do it, but it is the mechanism the colour
-  filter (hyprsunset) already owns, so a second owner would fight it. The
-  page says the output is not compatible and why.
+- **Every output, any GPU** (eDP-1 and DP-1 on AMD, HDMI-A-1 on NVIDIA):
+  `cortetsu-display-vibrance` generates the screen shader Hyprland runs on
+  every output. The shader receives `wl_output` (the Hyprland monitor id),
+  so it holds one strength per output: `-100` greys out, `0` leaves colour
+  untouched, `16` is the previous fixed `vibrance-contrast.glsl` strength and
+  the default, `100` is the maximum. Dull colours move most; saturated ones
+  are protected. The profile lives in `~/.local/state/cortetsu/vibrance.json`;
+  the shader in `screen-shader.glsl` next to it, which `hypr-user.lua` names
+  so a Hyprland reload reads the same thing (it falls back to the old fixed
+  shader until the file exists). A change sets a content-hashed copy through
+  `hyprctl eval`, because only a new path makes Hyprland recompile, and is
+  verified with `getoption`. Hyprland startup, `monitor.added` and
+  `monitor.removed` run `apply`, since monitor ids change on hotplug. No
+  extra render pass: the screen shader already ran on every output.
+- **Why not a colour matrix**: `hyprland-ctm-control-v1` rejects negative
+  coefficients, so a CTM can lower saturation but never raise it, and only
+  one client may hold it (hyprsunset does). Hyprland's `sdrsaturation` only
+  applies in HDR mode.
+- **NVIDIA outputs, in addition**: nVibrant writes Digital Vibrance through
+  the NVIDIA driver. `cortetsu-nvibrant status` reads sysfs only (never runs
+  nvibrant, never wakes the dGPU) and reports `value` (what the profile wants)
+  apart from `applied` (what nvibrant echoed in this boot). nvibrant has no
+  read-back, so "confirmado" means "echoed in this boot". It cannot reach
+  AMD outputs. `nvibrant-bin` comes from the AUR (`yay -S nvibrant-bin`,
+  not `pacman`); 1.3.1 bundles the exact `615.78.08` build.
 
 ## Safety model
 

@@ -243,6 +243,19 @@
     "manageable": false
   },
   {
+    "id": "cortetsu:display-vibrance-status",
+    "name": "Per-output saturation profile",
+    "source": "services/DisplayVibrance.qml",
+    "qmlId": "statusProcess",
+    "startupPhase": "on-demand",
+    "condition": "Al abrir los controles de pantalla o cambiar los monitores; lee el perfil y los monitores de Hyprland",
+    "command": [
+      "cortetsu-display-vibrance",
+      "status"
+    ],
+    "manageable": false
+  },
+  {
     "id": "cortetsu:cpu-temperature",
     "name": "CPU temperature probe",
     "source": "services/Cpu.qml",

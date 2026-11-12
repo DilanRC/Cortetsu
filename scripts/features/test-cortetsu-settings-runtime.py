@@ -1455,6 +1455,13 @@ ShellRoot {
             select("profiles");
         }],
         [() => content.pageId === "profiles" && !!page("themeProfileExport"), () => {
+            const entry = find(page("themeProfilePath"), "entry");
+            const full = Quickshell.env("HOME") + "/cortetsu-visual-profile.json";
+            verify(entry.text === "~/cortetsu-visual-profile.json", `the idle path abbreviates home (${entry.text})`);
+            entry.forceActiveFocus();
+            verify(entry.text === full, `editing starts from the absolute path (${entry.text})`);
+            entry.focus = false;
+            verify(entry.text === "~/cortetsu-visual-profile.json", "leaving without a change keeps the saved path");
             page("themeProfileExport").request();
         }],
         [() => CortetsuThemes.notice.includes("exportado") && !CortetsuThemes.busy, () => {
@@ -1811,14 +1818,18 @@ ShellRoot {
         [() => !!page("displaySelect") && page("displaySelect").visible && waitedMs >= 300, () => {
             verify(!!page("displayCanvas-eDP-1") && !!page("displayCanvas-HDMI-A-1"), "both outputs are drawn in the arrangement");
             verify(page("displayCanvas-HDMI-A-1").x < page("displayCanvas-eDP-1").x, "the drawing follows the live positions");
-            verify(page("displayVibranceUnsupported").visible && !page("displayVibrance").visible
-                && page("displayVibranceUnsupported").detail.includes("AMD"), "the AMD panel offers no NVIDIA slider and says why");
+            verify(page("displaySaturation").visible && page("displaySaturation").valueText === "16"
+                && !page("displayVibrance").visible, "the AMD panel offers shader saturation and no NVIDIA slider");
+            page("displaySaturation").moved(40);
+            verify(JSON.stringify(DisplayVibrance.calls) === JSON.stringify([["eDP-1", 40]])
+                && page("displaySaturation").valueText === "40", "saturation is set on the selected output only");
             verify(!page("displayVrr").visible, "VRR is not offered where the probe has no data");
             verify(page("displayPreview").disabled, "nothing to preview before a change");
             render("display-amd");
         }],
         [null, () => { chip("displaySelect", "displaySelect-HDMI-A-1").clicked(); }],
         [() => page("displayVibrance")?.visible && waitedMs >= 300, () => {
+            verify(page("displaySaturation").valueText === "24", "each output keeps its own saturation");
             verify(page("displayVibrance").valueText === "256 guardado · sin confirmar en este arranque",
                 `a saved vibrance is not shown as confirmed (${page("displayVibrance").valueText})`);
             verify(page("displayVrr").visible, "VRR is offered where the output reports it");
@@ -1909,6 +1920,19 @@ ShellRoot {
         };
         groups(page);
         verify(nested.length === 0, `${id} has no group inside another group: ${nested.join(", ")}`);
+        // A text field shows its whole value (a path cut at either end hides
+        // where the file goes).
+        const hidden = [];
+        const fields = item => {
+            if (!item.visible) return;
+            if (item.objectName === "entry" && item.contentWidth !== undefined
+                    && item.contentWidth > item.width - item.leftPadding - item.rightPadding + 1)
+                hidden.push(`${item.parent?.objectName ?? item} ${Math.round(item.contentWidth)} in ${Math.round(item.width)}`);
+            const children = item.children ?? [];
+            for (let i = 0; i < children.length; ++i) fields(children[i]);
+        };
+        fields(page);
+        verify(hidden.length === 0, `${id} shows every text field whole: ${hidden.join(", ")}`);
         if (!content.collapsed) {
             const cut = SettingsController.categories.filter(category => find(get(`nexus-${category.id}`), "label")?.truncated);
             verify(cut.length === 0, `no category name is cut: ${cut.map(category => category.id)}`);
@@ -1931,8 +1955,54 @@ ShellRoot {
             ["outline/surface", d.colorOutline, d.colorSurface, 3]
         ];
         return pairs.filter(pair => d.contrast(pair[1], pair[2]) < pair[3])
-            .map(pair => `${pair[0]} ${d.contrast(pair[1], pair[2]).toFixed(2)}`);
+            .map(pair => `${pair[0]} ${d.contrast(pair[1], pair[2]).toFixed(2)}`)
+            .concat(root.translucentFailures());
     }
+    // The main panel and its groups are translucent, so what text sits on
+    // depends on the wallpaper behind the window. Qt blends in sRGB, channel
+    // by channel, so the luminance of the stack on any wallpaper lies between
+    // the stack on black and on white. Text passes on every wallpaper when it
+    // passes on both ends and its own luminance is outside that range.
+    // Mirrors SettingsHost.qml (window ink), Content.qml (mainPanel) and
+    // SettingsGroup.qml (panel groups).
+    function over(top, alpha, under) {
+        return Qt.rgba(top.r * alpha + under.r * (1 - alpha), top.g * alpha + under.g * (1 - alpha),
+                       top.b * alpha + under.b * (1 - alpha), 1);
+    }
+    function translucentFailures() {
+        const d = CortetsuDesign;
+        const factor = CortetsuConfig.transparencyEnabled ? d.materialTransparencyFactor : 1;
+        const windowAlpha = d.materialGroundAlpha * factor;
+        const panelAlpha = d.materialStyle === 1 ? 0.92 : 0.6;
+        const groupAlpha = (d.materialStyle === 1 ? 0.6 : 0.72) * factor;
+        const grounds = {};
+        for (const [end, wallpaper] of [["black", Qt.rgba(0, 0, 0, 1)], ["white", Qt.rgba(1, 1, 1, 1)]]) {
+            const panel = over(d.colorTetsu, panelAlpha, over(d.colorSumi, windowAlpha, wallpaper));
+            grounds[`panel/${end}`] = panel;
+            grounds[`group/${end}`] = over(d.colorSurfaceGlass, groupAlpha, panel);
+        }
+        const texts = [["onSurface", d.colorOnSurface, 4.5], ["onSurfaceVariant", d.colorOnSurfaceVariant, 4.5],
+                       ["indicator", d.colorIndicator, 3]];
+        const failed = [];
+        for (const [name, colour, minimum] of texts) {
+            for (const layer of ["panel", "group"]) {
+                const dark = grounds[`${layer}/black`], light = grounds[`${layer}/white`];
+                const own = d.luminance(colour);
+                if (own > d.luminance(dark) && own < d.luminance(light)) {
+                    failed.push(`${name}/${layer} matches some wallpaper (1.00)`);
+                    continue;
+                }
+                const worst = Math.min(d.contrast(colour, dark), d.contrast(colour, light));
+                // A missing token gives NaN, which compares false and would pass.
+                if (!(worst >= minimum))
+                    failed.push(`${name}/${layer} on any wallpaper ${worst.toFixed(2)}`);
+            }
+        }
+        return failed;
+    }
+    // Only the contrast gate, for every theme and condition without the
+    // screenshots (test-cortetsu-settings-visual.py --scenario contrast).
+    readonly property var contrast: [pages[0]]
     readonly property var pages: [
         [() => CortetsuConfig.loaded && Schemes.catalogCount > 0, () => {
             screenDouble.settings = true;
@@ -2246,7 +2316,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     assert abs(audio_saved["audioIncrement"] - 0.11) < 0.001, audio_saved
 
     personalised, personal_home = run(folder, "shell.qml", "globalPersonalisation", preferences={"schema": 1})
-    assert passed(personalised) == 40, personalised
+    assert passed(personalised) == 43, personalised
     personal_preferences = json.loads((personal_home / ".config/cortetsu/preferences.json").read_text())
     personal_scheme = json.loads((personal_home / "state/cortetsu/scheme.json").read_text())
     personal_restore, _ = run(folder, "shell.qml", "globalPersonalisationRestore",
@@ -2318,7 +2388,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     aura = {"name": "aura", "flavour": "default",
             "colours": json.loads(subprocess.check_output([str(ROOT / "bin/cortetsu-scheme"), "list"], text=True))["aura"]["default"]}
     display = passed(run(folder, "shell.qml", "display")[0])
-    assert display == 16, display
+    assert display == 18, display
     pages = passed(run(folder, "shell.qml", "pages")[0])
     passed(run(folder, "shell.qml", "pages", label="pages-narrow",
                env={"SETTINGS_WIDTH": "880", "SETTINGS_HEIGHT": "620", "SETTINGS_RENDER_SUFFIX": "-880"})[0])
@@ -2329,7 +2399,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     host = run_host(folder)
     assert not host or "SETTINGS_HOST_PASS 1" in host, host
 
-    assert (reactivity, navigation, states, unwritable, pages) == (48, 58, 61, 3, 151), (reactivity, navigation, states, unwritable, pages)
+    assert (reactivity, navigation, states, unwritable, pages) == (48, 58, 61, 3, 181), (reactivity, navigation, states, unwritable, pages)
 assert policies == 16, policies
 print(f"Settings builds in {opened.split()[0]} ms ({opened.split()[1]} items); "
       f"20 cycles of open, every destination and close take {cycles} ms")

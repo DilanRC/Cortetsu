@@ -11,6 +11,7 @@ cortetsu-hardware-power	cortetsu-hardware-runtime	cortetsu-hardware-power
 cortetsu-hardware-probe	cortetsu-hardware-runtime	cortetsu-hardware-probe
 cortetsu-gamemode	cortetsu-hardware-runtime	cortetsu-gamemode
 cortetsu-nvibrant	cortetsu-hardware-runtime	cortetsu-nvibrant
+cortetsu-display-vibrance	cortetsu-hardware-runtime	cortetsu-display-vibrance
 cortetsu-power-auto	cortetsu-hardware-runtime	cortetsu-power-auto
 cortetsu-power-auto-control	cortetsu-hardware-runtime	cortetsu-power-auto-control
 cortetsu-calendar	cortetsu-desktop-runtime	cortetsu-calendar

@@ -6,8 +6,8 @@ import "../.."
 import "../controls"
 
 // Brightness, saturation and the colour filter of Settings → Pantalla. They
-// apply at once, without the preview flow. Saturation follows the GPU that
-// drives the selected output: nVibrant on NVIDIA, unavailable elsewhere.
+// apply at once, without the preview flow. Saturation works on any output
+// through the screen shader; NVIDIA outputs also offer Digital Vibrance.
     SettingsGroup {
     id: root
     objectName: "displayColour"
@@ -15,7 +15,8 @@ import "../controls"
     // The output selected in the arrangement and what the probe knows of it.
     required property var selected
     required property var live
-    readonly property bool nvidiaOutput: String(live?.gpu_vendor ?? "").toUpperCase() === "NVIDIA"
+    readonly property bool saturation: DisplayVibrance.hasOutput(selected?.name ?? "")
+    readonly property int saturationValue: DisplayVibrance.valueFor(selected?.name ?? "")
     readonly property bool vibrance: Nvibrant.available && Nvibrant.connector === (selected?.name ?? "")
     readonly property bool calibrating: DisplayCalibration.state === "applying"
 
@@ -40,11 +41,35 @@ import "../controls"
         value: qsTr("No disponible")
     }
 
-    // nVibrant drives NVIDIA's Digital Vibrance on the selected output.
+    SettingSliderRow {
+        objectName: "displaySaturation"
+        visible: root.saturation
+        title: qsTr("Saturación · %1").arg(root.selected?.name ?? "")
+        valueText: DisplayVibrance.busy ? qsTr("Aplicando %1").arg(root.saturationValue) : String(root.saturationValue)
+        from: DisplayVibrance.minimum
+        to: DisplayVibrance.maximum
+        step: 1
+        value: root.saturationValue
+        status: DisplayVibrance.error.length > 0 || !DisplayVibrance.active ? "error" : ""
+        statusText: DisplayVibrance.error
+            || qsTr("Hyprland usa otro shader de pantalla; recarga Hyprland para ver el cambio")
+        onMoved: next => DisplayVibrance.setValue(root.selected?.name ?? "", next)
+    }
+
+    SettingValueRow {
+        objectName: "displaySaturationUnavailable"
+        visible: !!root.selected && !root.saturation
+        title: qsTr("Saturación")
+        detail: qsTr("Hyprland no tiene esta salida activa")
+        value: qsTr("No disponible")
+    }
+
+    // nVibrant drives NVIDIA's Digital Vibrance in the driver, on top of the
+    // shader saturation above.
     SettingSliderRow {
         objectName: "displayVibrance"
         visible: root.vibrance
-        title: qsTr("Saturación (NVIDIA) · %1").arg(Nvibrant.connector)
+        title: qsTr("Digital Vibrance (NVIDIA) · %1").arg(Nvibrant.connector)
         valueText: Nvibrant.busy ? qsTr("Aplicando %1").arg(Nvibrant.requested)
             : Nvibrant.known && Nvibrant.requested === Nvibrant.value ? qsTr("%1 · confirmado").arg(Nvibrant.value)
             : Nvibrant.desiredKnown ? qsTr("%1 guardado · sin confirmar en este arranque").arg(Nvibrant.desired)
@@ -56,16 +81,6 @@ import "../controls"
         status: Nvibrant.error.length > 0 ? "error" : ""
         statusText: Nvibrant.error
         onMoved: next => Nvibrant.setValue(next)
-    }
-
-    SettingValueRow {
-        objectName: "displayVibranceUnsupported"
-        visible: !!root.selected && !root.vibrance
-        title: qsTr("Saturación")
-        detail: root.nvidiaOutput
-            ? qsTr("nVibrant no encuentra esta salida NVIDIA conectada")
-            : qsTr("Solo las salidas de la GPU NVIDIA la admiten (nVibrant). Esta la controla %1.").arg(root.live?.gpu_vendor ?? qsTr("otra GPU"))
-        value: qsTr("No compatible")
     }
 
     SettingToggleRow {

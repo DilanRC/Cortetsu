@@ -5,6 +5,7 @@ mod nvibrant;
 mod owner;
 mod power;
 mod util;
+mod vibrance;
 fn main() {
     if let Err(error) = util::init_signals() {
         eprintln!("{error}");
@@ -45,6 +46,7 @@ fn main() {
         }
         "cortetsu-gamemode" => gamemode::main(args),
         "cortetsu-nvibrant" => nvibrant::main(args),
+        "cortetsu-display-vibrance" => vibrance::main(args),
         "cortetsu-hardware-probe" => hardware::main(args),
         "cortetsu-hardware-power" if args.first().is_some_and(|a| a == "set-profile") => {
             owner::manual_cli("power", || power::hardware(args))

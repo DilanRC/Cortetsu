@@ -429,6 +429,7 @@ test_cmd() {
     bash "$ROOT/cortetsu/tests/test-wallpaper-first-select.sh"
     bash "$ROOT/cortetsu/tests/test-qml-compile-check.sh"
     bash "$ROOT/cortetsu/tests/test-cortetsu-realm.sh"
+    bash "$ROOT/cortetsu/tests/test-feature-contracts.sh"
     printf '\nCortetsu native regressions passed.\n'
 }
 

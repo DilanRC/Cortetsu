@@ -29,11 +29,17 @@ hl.monitor({
     sdr_eotf = "gamma22",
 })
 
--- BOE0CFD: compensación moderada para su cobertura limitada (62.5% sRGB).
--- El shader conserva los extremos 0/1 y evita saturar colores que ya son vivos.
+-- Saturación por pantalla: cortetsu-display-vibrance genera el shader con un
+-- valor por salida (Ajustes → Pantalla). Conserva los extremos 0/1 y protege
+-- los colores ya vivos. Hasta que exista, sirve el shader fijo anterior.
+local state_home = os.getenv("XDG_STATE_HOME") or (os.getenv("HOME") .. "/.local/state")
+local cortetsu_shader = state_home .. "/cortetsu/screen-shader.glsl"
+local shader_file = io.open(cortetsu_shader, "r")
+if shader_file then shader_file:close() end
 hl.config({
     decoration = {
-        screen_shader = "/home/dilan/.config/hypr/shaders/vibrance-contrast.glsl",
+        screen_shader = shader_file and cortetsu_shader
+            or (os.getenv("HOME") .. "/.config/hypr/shaders/vibrance-contrast.glsl"),
     },
     render = {
     cm_enabled = true,

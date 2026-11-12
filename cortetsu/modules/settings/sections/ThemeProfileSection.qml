@@ -6,7 +6,8 @@ import "../controls"
 
 SettingsGroup {
     id: root
-    property string profilePath: (Quickshell.env("HOME") || "") + "/cortetsu-visual-profile.json"
+    readonly property string home: Quickshell.env("HOME") || ""
+    property string profilePath: root.home + "/cortetsu-visual-profile.json"
     title: qsTr("Perfiles visuales")
     icon: "save"
     detail: qsTr("Incluye tema, paleta, materiales y preferencias visuales. Conserva comandos y ajustes de otras funciones.")
@@ -14,6 +15,8 @@ SettingsGroup {
         objectName: "themeProfilePath"
         title: qsTr("Archivo del perfil")
         value: root.profilePath
+        displayValue: root.home.length > 0 && root.profilePath.startsWith(root.home + "/")
+            ? "~" + root.profilePath.slice(root.home.length) : root.profilePath
         placeholderText: qsTr("Ruta absoluta a un archivo JSON")
         fieldWidth: Math.max(260, width * 0.66)
         disabled: CortetsuThemes.busy

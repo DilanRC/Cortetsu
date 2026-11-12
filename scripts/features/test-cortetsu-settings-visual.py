@@ -18,6 +18,8 @@ from settings_harness import REPO, ROOT, build_tree, run
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out", type=Path, required=True)
+    # "contrast" runs only the WCAG gate (solid and translucent) per condition.
+    parser.add_argument("--scenario", default="pages", choices=("pages", "contrast"))
     args = parser.parse_args()
     args.out.mkdir(parents=True, exist_ok=False)
     source = Path(__file__).with_name("test-cortetsu-settings-runtime.py")
@@ -63,7 +65,7 @@ def main():
             ):
                 label = f"{theme}-{variant}"
                 scheme = schemes[variant.removeprefix("aura-")] if variant.startswith("aura-") else base
-                output, _ = run(folder, "shell.qml", "pages", label=label,
+                output, _ = run(folder, "shell.qml", args.scenario, label=label,
                     preferences={"schema": 1, "themeId": theme,
                                  "transparencyEnabled": transparent, "reducedMotion": reduced},
                     scheme=scheme,
@@ -71,9 +73,12 @@ def main():
                          "SETTINGS_RENDER_SUFFIX": "-" + label,
                          "SETTINGS_WIDTH": str(width), "SETTINGS_HEIGHT": str(height),
                          "QT_SCALE_FACTOR": scale})
-                assert "SETTINGS_RUNTIME_PASS" in output and "SETTINGS_FAIL" not in output, output
+                assert "SETTINGS_RUNTIME_PASS" in output and "SETTINGS_FAIL" not in output, (label, [l for l in output.splitlines() if "SETTINGS_FAIL" in l] or output)
                 (args.out / f"{label}.log").write_text(output)
                 print("PASS", label, flush=True)
+    if args.scenario == "contrast":
+        print("PASS: contrast gate in every theme and condition")
+        return
     images = list(args.out.glob("*.png"))
     counts = {label: len(list(args.out.glob(f"*-{label}.png"))) for label in
               (f"{t}-{v}" for t in ("ink", "washi", "kurogane")

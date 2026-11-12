@@ -1207,6 +1207,14 @@ fn product_themes_restore_scheme_variant_and_origin() {
     assert_eq!(washi["name"], "nebula");
     assert_eq!(washi["variant"], "vibrant");
     assert_eq!(washi["themeProfiles"]["ink"]["name"], "aura");
+    // A theme never visited starts from its own scheme: manual choices made
+    // under Ink or Washi do not leak into it.
+    run(&["theme", "kurogane"]);
+    let kurogane: Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+    assert_eq!(kurogane["name"], "kurogane");
+    assert_eq!(kurogane["origin"], "theme");
+    assert_eq!(kurogane["themeProfiles"]["washi"]["name"], "nebula");
+    assert_eq!(kurogane["themeProfiles"]["ink"]["name"], "aura");
     fs::write(&path, b"{broken").unwrap();
     let output = command(&home, "cortetsu-scheme", &["theme", "ink"])
         .output()

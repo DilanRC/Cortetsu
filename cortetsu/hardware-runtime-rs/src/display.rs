@@ -1223,9 +1223,24 @@ fn persist_inner(candidate: &Value) -> Result<(Value, i32)> {
     let policy = json!({"ok":true,"synced":true,"primary":m1,"secondary":m2,"output_policy":color,"backup":backup});
     let policy_state = json!({"version":2,"primary":m1,"secondary":m2,"saved_at":now()as i64,"backup":backup,"output_policy":color});
     let state = json!({"version":2,"saved_at":now()as i64,"outputs":normalized["outputs"],"managed_outputs":managed,"workspace_policy":policy,"backup":backup});
+    // Both JSON files change together: if the second write fails, the first
+    // goes back to what it held (or away, if it did not exist).
+    let previous_policy = fs::read(workspace_state()).ok();
     if let Err(e) =
         atomic_json(&workspace_state(), &policy_state).and_then(|_| atomic_json(&saved(), &state))
     {
+        let _ = match &previous_policy {
+            Some(bytes) => atomic(&workspace_state(), bytes),
+            None => fs::remove_file(workspace_state())
+                .or_else(|e| {
+                    if e.kind() == std::io::ErrorKind::NotFound {
+                        Ok(())
+                    } else {
+                        Err(e)
+                    }
+                })
+                .map_err(|e| e.to_string()),
+        };
         let rollback = restore_file(&original, &updated, Some(&original_live));
         return Ok((
             json!({"ok":false,"error":e,"rolled_back":rollback.is_ok(),"rollback_error":rollback.err(),"backup":backup}),

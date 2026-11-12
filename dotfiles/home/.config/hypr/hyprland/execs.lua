@@ -2,6 +2,8 @@ local vars = require("variables")
 local fn   = require("utils.functions")
 
 local nvibrant_apply = os.getenv("HOME") .. "/.local/bin/cortetsu-nvibrant apply --default 128"
+-- Los ids de monitor que lee el shader cambian al conectar una pantalla.
+local vibrance_apply = os.getenv("HOME") .. "/.local/bin/cortetsu-display-vibrance apply"
 
 hl.on("hyprland.start", function()
     -- Keyring. The shell is the polkit agent (PolkitHost.qml) and falls back
@@ -36,6 +38,7 @@ hl.on("hyprland.start", function()
     -- nvidia-modeset tarda en aceptar ioctls tras el login; la unit
     -- nvibrant.service anterior esperaba lo mismo.
     hl.exec_cmd("sleep 5 && " .. nvibrant_apply)
+    hl.exec_cmd(vibrance_apply)
 end)
 
 -- Reaplica el perfil de vibrance NVIDIA que edita Ajustes al conectar un
@@ -43,6 +46,11 @@ end)
 -- no ejecuta nvibrant y no despierta la dGPU; 128 solo vale sin perfil guardado.
 hl.on("monitor.added", function()
     hl.exec_cmd(nvibrant_apply)
+    hl.exec_cmd(vibrance_apply)
+end)
+
+hl.on("monitor.removed", function()
+    hl.exec_cmd(vibrance_apply)
 end)
 
 -- Resizer listeners
