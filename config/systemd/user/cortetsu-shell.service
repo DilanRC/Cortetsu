@@ -9,6 +9,12 @@ Type=simple
 # Without it, a shell started before PipeWire never connects: Quickshell only
 # watches for the socket on request. Mid-session restarts reconnect anyway.
 Environment=QS_PIPEWIRE_IMMEDIATE_RECONNECT=1
+# Quickshell's crash handler restarts by execve in the same PID: the dead
+# image's helpers (nmcli monitor, the sleep inhibitor...) keep running with no
+# owner, and its coredump fork and crash reporter stay as zombies until the
+# shell exits. Without it a crash ends the unit and Restart= relaunches it
+# with a clean cgroup; systemd-coredump and the journal keep the evidence.
+Environment=QS_DISABLE_CRASH_HANDLER=1
 ExecStart=/usr/bin/qs -p %h/.config/quickshell/cortetsu/current -n
 Restart=on-failure
 RestartSec=1

@@ -67,6 +67,8 @@ La recolección de generaciones es explícita y coordinada; ver la sección *Gen
 
 `cortetsu install` compila los owners, valida el shell y fija sus recursos al bundle. Bajo el journal de instalación activa las capas, aplica integraciones y verifica el conjunto antes de commit. El servicio `cortetsu-shell.service` se instala pero no se habilita automáticamente mientras exista la posibilidad de un autostart previo.
 
+El servicio arranca Quickshell con `QS_DISABLE_CRASH_HANDLER=1`. El gestor de fallos de Quickshell reinicia con `execve` dentro del mismo PID: los helpers de la imagen anterior (`nmcli monitor`, el inhibidor de suspensión, `dbus-monitor`) siguen vivos sin dueño junto a los nuevos, y el fork del coredump y el informe de fallo quedan como zombis hasta que el shell sale. Sin ese gestor, un fallo termina la unidad y `Restart=on-failure` la relanza con el cgroup limpio. La evidencia queda en `coredumpctl` y en el journal; se pierde el diálogo de Quickshell y su informe en `~/.cache/quickshell/crashes`.
+
 ## Dirección
 
 El siguiente crecimiento de esta misma plataforma incorpora Hyprland completo, terminal, shell interactivo, Git, GTK/Qt, apps, package bootstrap, themes compilados y scenes al manifest. Caelestia permanece temporalmente como adapter del shell; no es dueño del sistema ni de los dotfiles.

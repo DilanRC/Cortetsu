@@ -34,13 +34,18 @@ cortetsu-rollback
 
 El rollback comparte el lock del constructor y conmuta enlaces atómicamente. El instalador coloca únicamente helpers `cortetsu-*`, la CLI, el wrapper de Caelestia, configuración Hyprland, bridge de temas y unidades systemd de usuario.
 
-## Reinicio
+## Ciclo de vida y recuperación
+
+`cortetsu-shell.service` (unidad de usuario) es el único dueño del proceso `qs`. No lances `qs -d` ni uses `pkill -x qs`: un shell fuera de la unidad no se recupera y deja helpers sin dueño.
 
 ```bash
-pkill -TERM -x qs
-sleep 1
-qs -p ~/.config/quickshell/cortetsu/current -n -d
+cortetsu shell reload                         # recarga QML en el mismo proceso
+systemctl --user restart cortetsu-shell.service  # proceso nuevo, cgroup limpio
 ```
+
+La unidad arranca Quickshell con `QS_DISABLE_CRASH_HANDLER=1` y `Restart=on-failure`. El gestor de fallos de Quickshell reinicia con `execve` dentro del mismo PID, así que los helpers de la imagen anterior (`nmcli monitor`, el inhibidor de suspensión) seguían vivos sin dueño y el fork del volcado quedaba zombi. Sin él, un fallo termina la unidad, systemd mata el cgroup entero y la relanza en un segundo. La evidencia queda en `coredumpctl list qs` y `journalctl --user -u cortetsu-shell`.
+
+Comprobación tras un fallo: `systemctl --user status cortetsu-shell` debe mostrar un único `qs` y sus helpers bajo el cgroup de la unidad, y `ps -eo stat,ppid,comm | awk '$1 ~ /Z/'` no debe listar hijos de `qs`. `scripts/features/test-shell-lifecycle.py` fija el contrato de la unidad.
 
 ## Migración v2
 

@@ -7,7 +7,22 @@ import tempfile
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
-SCRIPT = REPO / "core/shell_lifecycle.py"
+PLATFORM_CRATE = REPO / "cortetsu/platform-rs"
+
+
+def platform_binary() -> Path:
+    """The lifecycle migration is native since c372e671; build and use it."""
+    subprocess.run(
+        ["cargo", "build", "-q", "--manifest-path", str(PLATFORM_CRATE / "Cargo.toml")],
+        check=True,
+    )
+    target = Path(os.environ.get("CARGO_TARGET_DIR", PLATFORM_CRATE / "target"))
+    binary = target / "debug/cortetsu-platform"
+    assert binary.is_file() and os.access(binary, os.X_OK), binary
+    return binary
+
+
+PLATFORM = platform_binary()
 UNIT = REPO / "config/systemd/user/cortetsu-shell.service"
 INSTALLER = REPO / "scripts/install-cortetsu.sh"
 
@@ -15,6 +30,13 @@ unit_text = UNIT.read_text(encoding="utf-8")
 assert "Type=simple" in unit_text
 # A shell started before PipeWire must still connect once the socket appears.
 assert "Environment=QS_PIPEWIRE_IMMEDIATE_RECONNECT=1" in unit_text
+# Quickshell's crash handler restarts by execve in the same PID: the dead
+# image's helpers (nmcli monitor, the sleep inhibitor...) keep running unowned
+# and its coredump fork and crash reporter stay as zombies. systemd must
+# restart the whole cgroup instead.
+assert "Environment=QS_DISABLE_CRASH_HANDLER=1" in unit_text
+assert "Restart=on-failure" in unit_text
+assert "KillMode=" not in unit_text or "KillMode=control-group" in unit_text
 exec_start = next(line for line in unit_text.splitlines() if line.startswith("ExecStart="))
 assert "/usr/bin/qs" in exec_start
 assert " -n" in exec_start
@@ -68,7 +90,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-shell-lifecycle-") as tmp:
     env.update(HOME=str(home), CORTETSU_DATA_ROOT=str(data))
 
     scan = subprocess.run(
-        ["python3", str(SCRIPT), "scan", "--home", str(home)],
+        [str(PLATFORM), "shell_lifecycle", "scan", "--home", str(home)],
         cwd=REPO,
         env=env,
         text=True,
@@ -79,7 +101,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-shell-lifecycle-") as tmp:
     assert "execs.lua" in scan.stdout and "keybinds.lua" in scan.stdout
 
     migrated = subprocess.run(
-        ["python3", str(SCRIPT), "migrate", "--home", str(home)],
+        [str(PLATFORM), "shell_lifecycle", "migrate", "--home", str(home)],
         cwd=REPO,
         env=env,
         text=True,
@@ -108,7 +130,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-shell-lifecycle-") as tmp:
     assert "caelestia shell -d" in backups[0].read_text(encoding="utf-8")
 
     verify = subprocess.run(
-        ["python3", str(SCRIPT), "verify", "--home", str(home)],
+        [str(PLATFORM), "shell_lifecycle", "verify", "--home", str(home)],
         cwd=REPO,
         env=env,
         text=True,
@@ -119,7 +141,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-shell-lifecycle-") as tmp:
     assert "PASS: Hyprland shell lifecycle is systemd-owned" in verify.stdout
 
     second = subprocess.run(
-        ["python3", str(SCRIPT), "migrate", "--home", str(home)],
+        [str(PLATFORM), "shell_lifecycle", "migrate", "--home", str(home)],
         cwd=REPO,
         env=env,
         text=True,
