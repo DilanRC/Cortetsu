@@ -47,6 +47,21 @@ La unidad arranca Quickshell con `QS_DISABLE_CRASH_HANDLER=1` y `Restart=on-fail
 
 Comprobación tras un fallo: `systemctl --user status cortetsu-shell` debe mostrar un único `qs` y sus helpers bajo el cgroup de la unidad, y `ps -eo stat,ppid,comm | awk '$1 ~ /Z/'` no debe listar hijos de `qs`. `scripts/features/test-shell-lifecycle.py` fija el contrato de la unidad.
 
+## Saludo de SDDM en el portátil híbrido
+
+Síntoma: tras arrancar queda una tty sin pantalla de inicio de sesión y hay que ejecutar `systemctl restart sddm`. En el journal, `sddm` registra `Greeter stopped` un segundo después de `Greeter session started successfully`.
+
+Causa: Weston (el compositor del saludo) elige la tarjeta DRM por su cuenta. Si en ese instante no puede tomar la AMD (`Could not take device: Device or resource busy`), usa la NVIDIA, cuyo único conector es el HDMI externo. Sin monitor conectado no hay salida que activar, Weston termina y SDDM no vuelve a lanzar el saludo.
+
+`config/sddm/cortetsu-greeter-compositor` lanza Weston con `--drm-device` apuntando a la tarjeta que tiene el conector eDP (los números `cardN` cambian entre arranques) y lo reintenta hasta seis veces si muere en menos de cinco segundos. Es configuración del sistema y `cortetsu install` no la toca:
+
+```bash
+sudo scripts/install-sddm-greeter.sh            # instala y cambia CompositorCommand en /etc/sddm.conf
+sudo scripts/install-sddm-greeter.sh --remove   # lo deshace
+```
+
+Queda una copia en `/etc/sddm.conf.cortetsu-backup`. Cada reintento se registra en `journalctl -b -u sddm` con el prefijo `cortetsu-greeter-compositor`.
+
 ## Migración v2
 
 `scripts/migrate-cortetsu-v2.sh` es idempotente. Antes de retirar nombres instalados antiguos crea un backup timestamped en `~/.local/share/cortetsu/migrations/`, migra Calendar/Pomodoro al namespace XDG de Cortetsu, migra el secreto de Calendar sin imprimirlo y conserva el opt-in del servicio de energía.

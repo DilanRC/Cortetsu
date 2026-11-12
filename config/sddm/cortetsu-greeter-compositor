@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+# Compositor for the SDDM greeter on a hybrid laptop.
+#
+# Weston picks a DRM card on its own. When it cannot take the integrated GPU
+# at that instant ("Could not take device: Device or resource busy") it falls
+# back to the discrete one, whose only connector is the external HDMI: with
+# nothing plugged in there is no output to enable, weston exits within a
+# second and SDDM does not start the greeter again, leaving a bare tty.
+#
+# This names the card that drives the internal panel and starts weston again
+# when it dies right away. Arguments go to weston unchanged.
+set -u
+
+drm="${CORTETSU_GREETER_DRM:-/sys/class/drm}"
+weston="${CORTETSU_GREETER_WESTON:-weston}"
+attempts=6
+# A greeter that lived this long was working: its exit is a logout or a stop.
+settled_seconds=5
+
+# The card with an eDP connector; failing that, the firmware's boot display.
+panel_card() {
+    local path name
+    for path in "$drm"/card*-eDP-*; do
+        [[ -e "$path" ]] || continue
+        name="${path##*/}"
+        printf '%s\n' "${name%%-*}"
+        return 0
+    done
+    for path in "$drm"/card*; do
+        name="${path##*/}"
+        [[ "$name" =~ ^card[0-9]+$ && "$(cat "$path/device/boot_vga" 2>/dev/null)" == 1 ]] || continue
+        printf '%s\n' "$name"
+        return 0
+    done
+    return 1
+}
+
+child=""
+stopped=0
+stop() {
+    stopped=1
+    [[ -n "$child" ]] && kill -TERM "$child" 2>/dev/null
+}
+trap stop TERM INT HUP
+
+status=1
+for ((attempt = 1; attempt <= attempts; attempt++)); do
+    # The connector appears a moment after the driver binds.
+    card=""
+    for _ in 1 2 3 4 5 6 7 8 9 10; do
+        card="$(panel_card)" && break
+        sleep 0.3
+    done
+    args=()
+    [[ -n "$card" ]] && args+=("--drm-device=$card")
+    started=$SECONDS
+    "$weston" "${args[@]}" "$@" &
+    child=$!
+    wait "$child"
+    status=$?
+    # A signal interrupts wait before weston is gone: collect its real status.
+    if ((stopped)); then
+        wait "$child" 2>/dev/null
+        exit $?
+    fi
+    child=""
+    if ((status == 0 || SECONDS - started >= settled_seconds)); then
+        exit "$status"
+    fi
+    printf 'cortetsu-greeter-compositor: weston exited with %d on %s (attempt %d of %d)\n' \
+        "$status" "${card:-its own choice}" "$attempt" "$attempts" >&2
+    sleep 0.5
+done
+exit "$status"
