@@ -31,15 +31,18 @@ fn profile() -> Map<String, Value> {
         })
         .unwrap_or_default()
 }
-fn monitors() -> Vec<(i64, String)> {
-    let mut out = hypr_json(&["-j", "monitors", "all"])
+// A failed read is an error, never "no monitors": a shader generated from
+// an empty list would put every output back on the default.
+fn monitors() -> Result<Vec<(i64, String)>> {
+    let listed = hypr_json(&["-j", "monitors", "all"]);
+    let mut out = listed
         .as_array()
-        .into_iter()
-        .flatten()
+        .ok_or("Hyprland no devolvió la lista de monitores")?
+        .iter()
         .filter_map(|m| Some((m["id"].as_i64()?, m["name"].as_str()?.to_string())))
         .collect::<Vec<_>>();
     out.sort();
-    out
+    Ok(out)
 }
 fn strength(value: i64) -> String {
     format!("{:.2}", value as f64 / 100.0)
@@ -107,7 +110,7 @@ fn current_shader() -> String {
 // Writes the shader and points Hyprland at it. The live path carries the
 // content hash: setting a new path is what makes Hyprland recompile.
 fn apply(p: &Map<String, Value>) -> Result<Value> {
-    let outputs = monitors()
+    let outputs = monitors()?
         .into_iter()
         .map(|(id, name)| {
             (
@@ -181,7 +184,7 @@ fn action(args: &[String]) -> Result<Value> {
                     .to_string_lossy()
                     .to_string(),
             );
-            let outputs = monitors()
+            let outputs = monitors()?
                 .into_iter()
                 .map(|(id, name)| json!({"id":id,"value":p.get(&name).and_then(Value::as_i64).unwrap_or(DEFAULT),"name":name}))
                 .collect::<Vec<_>>();
@@ -196,7 +199,7 @@ fn action(args: &[String]) -> Result<Value> {
         ["set", name, raw] => {
             let n = value(raw)?;
             let _lock = lock(&directory().join("vibrance.lock"))?;
-            if !monitors().iter().any(|(_, m)| m == name) {
+            if !monitors()?.iter().any(|(_, m)| m == name) {
                 return Err(format!("{name} no está conectada"));
             }
             let previous = profile();

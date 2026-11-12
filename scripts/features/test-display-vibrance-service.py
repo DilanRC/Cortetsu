@@ -30,6 +30,9 @@ if args == ["status"]:
                                   for n in ("eDP-1", "HDMI-A-1")]}))
     sys.exit(0)
 if args[:1] == ["set"]:
+    if int(args[2]) == 99:
+        # The entry point disappears (a broken link during an install).
+        Path(sys.argv[0]).unlink()
     state = json.loads(log.read_text()) if log.exists() else {"calls": [], "profile": {}}
     state["calls"].append([args[1], int(args[2])])
     time.sleep(0.3)
@@ -59,6 +62,18 @@ ShellRoot {
                 // A status read now must not undo the queued values.
                 v.reload();
                 step = 1;
+            } else if (Quickshell.env("VIBRANCE_SCENARIO") === "vanish") {
+                // The first write removes the helper; the second cannot start.
+                if (step === 1 && v.valueFor("eDP-1") === 50 && !v.busy) {
+                    v.setValue("eDP-1", 99);
+                    step = 2;
+                } else if (step === 2 && !v.busy) {
+                    v.setValue("HDMI-A-1", 5);
+                    step = 3;
+                } else if (step === 3 && !v.busy && v.error.length > 0) {
+                    console.log("VIBRANCE_DONE unstartable helper frees the queue");
+                    Qt.quit();
+                }
             } else if (step === 1 && v.valueFor("eDP-1") !== 50) {
                 console.log(`VIBRANCE_FAIL queued value lost on screen: ${v.valueFor("eDP-1")}`);
                 Qt.quit();
@@ -74,28 +89,42 @@ ShellRoot {
 
 
 def main() -> None:
+    queue()
+    vanish()
+    print("PASS: queued saturation writes keep every output's latest value; an unstartable helper frees the queue")
+
+
+def vanish() -> None:
     with tempfile.TemporaryDirectory(prefix="cortetsu-vibrance-service-") as tmp:
-        root = Path(tmp)
-        (root / "config/services").mkdir(parents=True)
-        shutil.copy(SERVICE, root / "config/services/DisplayVibrance.qml")
-        (root / "config/shell.qml").write_text(SHELL)
-        (root / "bin").mkdir()
-        helper = root / "bin/cortetsu-display-vibrance"
-        helper.write_text(FAKE_HELPER)
-        helper.chmod(0o755)
-        log = root / "calls.json"
-        env = dict(os.environ, PATH=f"{root / 'bin'}:{os.environ['PATH']}", FAKE_VIBRANCE_LOG=str(log),
-                   QT_QPA_PLATFORM="offscreen", XDG_CONFIG_HOME=str(root / "no-config"))
-        result = subprocess.run(["qs", "-p", str(root / "config/shell.qml"), "--no-color"],
-                                env=env, text=True, capture_output=True, timeout=20)
-        output = result.stdout + result.stderr
+        output, _ = launch(Path(tmp), VIBRANCE_SCENARIO="vanish")
+        assert "unstartable helper frees the queue" in output and "VIBRANCE_FAIL" not in output, output
+
+
+def launch(root: Path, **extra: str) -> tuple[str, Path]:
+    (root / "config/services").mkdir(parents=True)
+    shutil.copy(SERVICE, root / "config/services/DisplayVibrance.qml")
+    (root / "config/shell.qml").write_text(SHELL)
+    (root / "bin").mkdir()
+    helper = root / "bin/cortetsu-display-vibrance"
+    helper.write_text(FAKE_HELPER)
+    helper.chmod(0o755)
+    log = root / "calls.json"
+    env = dict(os.environ, PATH=f"{root / 'bin'}:{os.environ['PATH']}", FAKE_VIBRANCE_LOG=str(log),
+               QT_QPA_PLATFORM="offscreen", XDG_CONFIG_HOME=str(root / "no-config"), **extra)
+    result = subprocess.run(["qs", "-p", str(root / "config/shell.qml"), "--no-color"],
+                            env=env, text=True, capture_output=True, timeout=20)
+    return result.stdout + result.stderr, log
+
+
+def queue() -> None:
+    with tempfile.TemporaryDirectory(prefix="cortetsu-vibrance-service-") as tmp:
+        output, log = launch(Path(tmp))
         assert "VIBRANCE_DONE" in output and "VIBRANCE_FAIL" not in output, output
         state = json.loads(log.read_text())
         assert state["calls"] == [["eDP-1", 40], ["HDMI-A-1", 30], ["eDP-1", 50]], state["calls"]
         assert state["profile"] == {"eDP-1": 50, "HDMI-A-1": 30}, state["profile"]
         done = next(line for line in output.splitlines() if "VIBRANCE_DONE" in line)
         assert '"eDP-1":50' in done and '"HDMI-A-1":30' in done, done
-    print("PASS: queued saturation writes keep every output's latest value")
 
 
 if __name__ == "__main__":

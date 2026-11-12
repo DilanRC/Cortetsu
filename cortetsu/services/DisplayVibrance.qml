@@ -59,10 +59,30 @@ Singleton {
         stdout: StdioCollector {
             onStreamFinished: root.applyWrite(text)
         }
-        onExited: {
-            root.busy = false;
-            root.startWrite();
+        onExited: root.writeFinished()
+        // A helper that cannot start never emits exited. Deferred, so a
+        // normal exit is handled by onExited first.
+        onRunningChanged: if (!running) Qt.callLater(root.writeNeverRan)
+    }
+
+    // A status read that arrived during a write was not applied.
+    property bool statusStale: false
+
+    function writeFinished(): void {
+        busy = false;
+        startWrite();
+        if (!busy && statusStale) {
+            statusStale = false;
+            reload();
         }
+    }
+
+    function writeNeverRan(): void {
+        if (!busy || writeProcess.running)
+            return;
+        writeError = qsTr("No se pudo ejecutar cortetsu-display-vibrance");
+        statusStale = true;
+        writeFinished();
     }
 
     function applyStatus(text: string): void {
@@ -78,26 +98,31 @@ Singleton {
         const next = {};
         for (const output of status.outputs ?? [])
             next[output.name] = output.value;
-        // Values not yet written win over what the profile still says.
+        // Values not yet written win over what the profile still says; the
+        // read is repeated once the queue drains (a hotplug mid-drag).
         if (!busy && Object.keys(pending).length === 0)
             values = next;
+        else
+            statusStale = true;
         statusError = "";
     }
 
     function applyWrite(text: string): void {
         const result = parse(text);
+        // `values` already holds what was asked for (setValue), and a newer
+        // value for the same output may be in flight: an accepted write
+        // changes nothing there.
         if (result?.ok) {
-            if (pending[result.name] === undefined) {
-                const next = Object.assign({}, values);
-                next[result.name] = result.value;
-                values = next;
-            }
             active = true;
             writeError = "";
             return;
         }
         writeError = result?.error ?? qsTr("No se pudo aplicar la saturación");
-        reload();
+        // Back to what the profile holds, once nothing else is being written.
+        if (busy)
+            statusStale = true;
+        else
+            reload();
     }
 
     function reload(): void {

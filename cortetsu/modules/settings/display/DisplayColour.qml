@@ -52,7 +52,7 @@ import "../controls"
         value: root.saturationValue
         status: DisplayVibrance.error.length > 0 || !DisplayVibrance.active ? "error" : ""
         statusText: DisplayVibrance.error
-            || qsTr("Hyprland usa otro shader de pantalla; recarga Hyprland para ver el cambio")
+            || qsTr("Hyprland usa otro shader de pantalla; mover el control lo sustituye por el de Cortetsu")
         onMoved: next => DisplayVibrance.setValue(root.selected?.name ?? "", next)
     }
 

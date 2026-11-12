@@ -110,5 +110,14 @@ fn vibrance_rejects_bad_values_and_keeps_the_profile_when_hyprland_refuses() {
         accepted,
         "the next Hyprland reload reads the shader it last accepted"
     );
+    // Monitors that cannot be read are not "no monitors": apply must not
+    // write a shader that puts every output back on the default.
+    exe(
+        &t.path().join("bin/hyprctl"),
+        "#!/bin/sh\ncase \"$1\" in -j) exit 1;; getoption) echo 'str: /elsewhere';; *) echo ok;; esac\n",
+    );
+    let unread = run(&t, &["cortetsu-display-vibrance", "apply"]);
+    assert!(!unread.status.success());
+    assert_eq!(fs::read(&stable).unwrap(), accepted);
 }
 
