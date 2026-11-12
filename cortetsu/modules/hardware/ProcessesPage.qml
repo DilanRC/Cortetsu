@@ -13,7 +13,8 @@ Item {
     id: root
 
     required property var processes
-    property real memoryTotalGb: 0
+    // Memory breakdown from the probe for the selected process, or null.
+    property var processDetail: null
 
     property string filterText: ""
     property string sortKey: "cpu"
@@ -37,10 +38,28 @@ Item {
         "Z": qsTr("Zombi")
     })
 
+    property int detailIntervalMs: 5000
+    readonly property string rssHelp: qsTr("Resident Set Size: páginas del proceso en RAM ahora, incluidas las que comparte con otros. No incluye swap. La tabla usa el contador rápido del kernel (statm), que puede ser aproximado; aquí se muestra el valor exacto de smaps_rollup cuando está disponible.")
+    readonly property string pssHelp: qsTr("Proportional Set Size: el RSS con cada página compartida repartida entre quienes la usan. Sumado entre procesos da la RAM real ocupada.")
+    readonly property string swapHelp: qsTr("Páginas del proceso movidas a swap (zram), fuera de la RAM, incluida la memoria compartida que mapea. Va aparte: no forma parte del RSS ni del PSS.")
+
     readonly property var sourceProcesses: paused ? frozenProcesses : processes
     readonly property var visibleProcesses: buildProcesses(sourceProcesses)
+    readonly property var rowSlots: Array.from({ length: visibleProcesses.length }, (_, i) => i)
     readonly property var selectedProcess: findSelected()
     readonly property bool selectedStopped: String(selectedProcess?.state ?? "") === "T"
+    // A zombie has already exited and only waits for its parent to reap it:
+    // no signal reaches it, so the actions stay off.
+    readonly property bool selectedZombie: root.hasSelection && String(selectedProcess?.state ?? "") === "Z"
+    readonly property bool canSignal: root.hasSelection && !root.selectedZombie
+    readonly property real selectedStartTicks: root.hasSelection ? Number(selectedProcess?.start_ticks ?? -1) : -1
+    // The breakdown is shown only for the process it was read from: same PID
+    // and same start time, so a reused PID never shows another's numbers.
+    readonly property var selectedDetail: root.hasSelection
+        && processDetail
+        && Number(processDetail.pid) === root.selectedPid
+        && Number(processDetail.start_ticks) === root.selectedStartTicks
+        ? processDetail : null
 
     function buildProcesses(source): var {
         const query = filterText.trim().toLowerCase();
@@ -94,13 +113,15 @@ Item {
 
     function sendSignal(signal): void {
         const pid = Number(selectedProcess?.pid ?? -1);
-        if (pid <= 1)
+        if (pid <= 1 || root.selectedZombie)
             return;
         Quickshell.execDetached(["kill", `-${signal}`, String(pid)]);
         actionStatus = qsTr("Señal %1 enviada al proceso %2").arg(signal).arg(pid);
     }
 
     function forceClose(): void {
+        if (!root.canSignal)
+            return;
         if (!root.killArmed) {
             root.killArmed = true;
             disarm.restart();
@@ -137,16 +158,28 @@ Item {
         return numericMode ? (usage / 100).toFixed(2) : `${usage.toFixed(1)} %`;
     }
 
-    function ramGiB(proc): real {
-        return Math.max(0, Number(memoryTotalGb)) * Math.max(0, Number(proc?.mem ?? 0)) / 100;
+    // Resident bytes as read by the probe, or their share of RAM. The two are
+    // separate readings: the size never comes back from the percentage.
+    function ramText(proc): string {
+        return numericMode ? Format.bytes(proc?.rss_bytes) : Format.withUnit(proc?.mem, 1, "%");
     }
 
-    function ramText(proc): string {
-        const pct = Number(proc?.mem ?? 0);
-        if (!numericMode)
-            return `${pct.toFixed(1)} %`;
-        const gib = ramGiB(proc);
-        return gib < 1 ? `${Math.round(gib * 1024)} MiB` : `${gib.toFixed(2)} GiB`;
+    // The inspector shows the exact Rss of the same smaps_rollup read as PSS
+    // and swap; until that read arrives, the table's statm figure.
+    function inspectorRssText(): string {
+        if (root.numericMode && root.selectedDetail?.status === "ok" && root.selectedDetail?.smaps === "ok")
+            return Format.bytes(root.selectedDetail.rss_bytes);
+        return root.ramText(root.selectedProcess);
+    }
+
+    // A breakdown field: "Leyendo…" until the first read for this process,
+    // "" (shown as unavailable) when the kernel did not give it.
+    function detailText(field): string {
+        if (!root.selectedDetail)
+            return qsTr("Leyendo…");
+        if (root.selectedDetail.status !== "ok")
+            return "";
+        return Format.bytes(root.selectedDetail[field]);
     }
 
     onVisibleProcessesChanged: {
@@ -221,7 +254,7 @@ Item {
                 ColumnHeader { x: parent.width * 0.42; width: parent.width * 0.16; label: qsTr("Usuario"); key: "user" }
                 ColumnHeader { x: parent.width * 0.58; width: parent.width * 0.12; label: qsTr("PID"); key: "pid"; alignRight: true }
                 ColumnHeader { x: parent.width * 0.70; width: parent.width * 0.15; label: root.numericMode ? qsTr("Núcleos") : qsTr("CPU"); key: "cpu"; alignRight: true }
-                ColumnHeader { x: parent.width * 0.85; width: parent.width * 0.15; label: qsTr("Memoria"); key: "mem"; alignRight: true }
+                ColumnHeader { x: parent.width * 0.85; width: parent.width * 0.15; label: qsTr("RSS"); key: "rss_bytes"; alignRight: true }
             }
 
             ListView {
@@ -234,11 +267,13 @@ Item {
                 clip: true
                 boundsBehavior: Flickable.StopAtBounds
                 activeFocusOnTab: true
-                // Rows are matched by PID, so a new reading moves and updates
-                // them in place and the scroll position stays where it was.
+                // The model holds row positions, not processes: a new reading
+                // only adds or drops rows at the end and each row reads its
+                // process by position, so the scroll position stays put. Rows
+                // matched by PID made every re-sort a row move, and Qt 6.12's
+                // delegate model crashed the shell on one of those moves.
                 model: ScriptModel {
-                    values: root.visibleProcesses
-                    objectProp: "pid"
+                    values: root.rowSlots
                 }
 
                 Keys.onUpPressed: root.moveSelection(-1)
@@ -250,7 +285,8 @@ Item {
 
                 delegate: Item {
                     id: processRow
-                    required property var modelData
+                    required property int index
+                    readonly property var modelData: root.visibleProcesses[processRow.index] ?? null
                     readonly property bool selected: Number(processRow.modelData?.pid) === root.selectedPid
 
                     width: processList.width
@@ -267,6 +303,20 @@ Item {
                         hoverColor: CortetsuDesign.colorSurfaceGlassStrong
                         activeColor: Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.76)
                         outlineColor: Qt.alpha(CortetsuDesign.colorWashi, 0.86)
+                    }
+
+                    // The fill alone is too faint on light themes: mark the
+                    // selection like Settings' sidebar, with the 3:1 indicator.
+                    Rectangle {
+                        objectName: "selectionBar"
+                        anchors.left: parent.left
+                        anchors.leftMargin: 2
+                        anchors.verticalCenter: parent.verticalCenter
+                        visible: processRow.selected
+                        width: 3
+                        height: 18
+                        radius: CortetsuDesign.materialStyle === 2 ? 0 : 1.5
+                        color: CortetsuDesign.colorIndicator
                     }
 
                     MouseArea {
@@ -340,11 +390,37 @@ Item {
                     width: parent.width
 
                     FactRow { width: parent.width; label: root.numericMode ? qsTr("Núcleos en uso") : qsTr("CPU"); value: root.cpuText(root.selectedProcess); emphasized: true }
-                    FactRow { width: parent.width; label: qsTr("Memoria"); value: root.ramText(root.selectedProcess); emphasized: true }
+                    FactRow { width: parent.width; label: qsTr("RSS"); value: root.inspectorRssText(); emphasized: true; tooltipText: root.rssHelp }
                     FactRow { width: parent.width; label: qsTr("Estado"); value: root.stateLabels[root.selectedProcess?.state] ?? String(root.selectedProcess?.state ?? "") }
                     FactRow { width: parent.width; label: qsTr("Hilos"); value: Format.fixed(root.selectedProcess?.threads, 0) }
                     FactRow { width: parent.width; label: qsTr("Proceso padre"); value: Format.fixed(root.selectedProcess?.ppid, 0) }
                     FactRow { width: parent.width; label: qsTr("Tiempo activo"); value: Format.duration(root.selectedProcess?.elapsed_sec) }
+                }
+
+                Column {
+                    objectName: "memoryDetail"
+                    visible: root.hasSelection
+                    width: parent.width
+
+                    CortetsuText {
+                        objectName: "memoryDetailCaption"
+                        width: parent.width
+                        topPadding: CortetsuDesign.spacingCompact
+                        text: root.selectedDetail?.status !== "ok" || root.selectedDetail?.smaps === "ok"
+                            ? qsTr("Desglose de memoria · cada %1 s").arg(Math.round(root.detailIntervalMs / 1000))
+                            : root.selectedDetail.smaps === "denied"
+                            ? qsTr("Desglose de memoria · sin permiso para leer el resto")
+                            : qsTr("Desglose de memoria · el kernel no lo ofrece para este proceso")
+                        color: CortetsuDesign.colorOnSurfaceMuted
+                        textSize: CortetsuTypography.labelSmallPx
+                        elide: Text.ElideRight
+                    }
+
+                    FactRow { width: parent.width; label: qsTr("PSS"); value: root.detailText("pss_bytes"); tooltipText: root.pssHelp }
+                    FactRow { width: parent.width; label: qsTr("Memoria privada"); value: root.detailText("private_bytes"); tooltipText: qsTr("Páginas residentes que solo usa este proceso (Private_Clean + Private_Dirty): lo que se liberaría al cerrarlo.") }
+                    FactRow { width: parent.width; label: qsTr("Memoria anónima"); value: root.detailText("pss_anon_bytes"); tooltipText: qsTr("Parte del PSS que no viene de archivos: montículo, pilas y búferes (Pss_Anon).") }
+                    FactRow { width: parent.width; label: qsTr("Swap"); value: root.detailText("swap_bytes"); tooltipText: root.swapHelp }
+                    FactRow { width: parent.width; label: qsTr("THP"); value: root.detailText("anon_huge_bytes"); tooltipText: qsTr("Memoria anónima en páginas grandes de 2 MiB (AnonHugePages). Ya está contada en el RSS.") }
                 }
             }
 
@@ -353,6 +429,16 @@ Item {
                 anchors.right: parent.right
                 anchors.bottom: parent.bottom
                 spacing: CortetsuDesign.spacingCompact
+
+                CortetsuText {
+                    objectName: "zombieNote"
+                    width: parent.width
+                    visible: root.selectedZombie
+                    text: qsTr("Este proceso ya terminó. Queda en la tabla hasta que su padre (PID %1) recoja su estado o se cierre; no admite señales.").arg(Format.fixed(root.selectedProcess?.ppid, 0))
+                    color: CortetsuDesign.colorOnSurfaceVariant
+                    textSize: CortetsuTypography.labelSmallPx
+                    wrapMode: Text.WordWrap
+                }
 
                 CortetsuText {
                     width: parent.width
@@ -376,7 +462,7 @@ Item {
 
                     CortetsuButton {
                         width: actions.cell
-                        disabled: !root.hasSelection
+                        disabled: !root.canSignal
                         icon: root.selectedStopped ? "play_arrow" : "pause"
                         label: root.selectedStopped ? qsTr("Reanudar") : qsTr("Pausar")
                         onClicked: root.toggleSelectedPause()
@@ -384,7 +470,7 @@ Item {
 
                     CortetsuButton {
                         width: actions.cell
-                        disabled: !root.hasSelection
+                        disabled: !root.canSignal
                         icon: "cancel"
                         label: qsTr("Interrumpir")
                         tooltipText: qsTr("Envía SIGINT, como Ctrl+C")
@@ -393,7 +479,7 @@ Item {
 
                     CortetsuButton {
                         width: actions.cell
-                        disabled: !root.hasSelection
+                        disabled: !root.canSignal
                         icon: "power_settings_new"
                         label: qsTr("Terminar")
                         tooltipText: qsTr("Envía SIGTERM: el proceso puede cerrar con orden")
@@ -403,7 +489,7 @@ Item {
                     CortetsuButton {
                         objectName: "forceClose"
                         width: actions.cell
-                        disabled: !root.hasSelection
+                        disabled: !root.canSignal
                         danger: true
                         icon: "dangerous"
                         label: root.killArmed ? qsTr("Confirmar") : qsTr("Forzar cierre")

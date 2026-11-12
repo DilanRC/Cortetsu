@@ -40,7 +40,9 @@ case "$mode" in
     fail) exit 3 ;;
     garbage) echo "not json" ;;
     hang) exec sleep 30 ;;
-    *) if [ "$1" = "--top-processes" ]; then cat "$HARDWARE_FIXTURES/$mode.json"; else cat "$HARDWARE_FIXTURES/$mode.full.json"; fi ;;
+    *) all="$*"; case "$all" in *--process-detail*) target=${all##*--process-detail }; target=${target%%:*} ;; *) target="" ;; esac
+       if [ -n "$target" ]; then cat "$HARDWARE_FIXTURES/$mode.detail-$target.json"
+       elif [ "$1" = "--top-processes" ]; then cat "$HARDWARE_FIXTURES/$mode.json"; else cat "$HARDWARE_FIXTURES/$mode.full.json"; fi ;;
 esac
 """
 
@@ -288,6 +290,102 @@ ShellRoot {
         }]
     ]
 
+    function processesPage() { return typed(content, "ProcessesPage"); }
+    function processRow(name) { return telemetry.snapshot.processes.find(p => p.name === name); }
+
+    // Processes: exact RSS in the table, the smaps breakdown for the
+    // selected process only, unknown fields shown as unknown, never as 0.
+    readonly property var processes: [
+        [null, () => {
+            retained.hardware = true;
+            content.openHardware();
+            content.currentPage = 2;
+        }],
+        [() => telemetry.snapshot?.processes?.length === 9 && !!processesPage(), () => {
+            const page = processesPage();
+            verify(page.ramText(processRow("qs")) === "470.6 MiB", `RSS comes from bytes, not from a rounded share (${page.ramText(processRow("qs"))})`);
+            verify(page.ramText(processRow("brave")) === "1.21 GiB", "a gibibyte or more reads in GiB");
+            page.numericMode = false;
+            verify(page.ramText(processRow("qs")) === "3.1 %", "the share of RAM stays as its own reading");
+            page.numericMode = true;
+            // Regression: re-sorting moved rows in the ListView model and Qt
+            // 6.12's delegate model crashed the shell (SIGSEGV in
+            // QQmlDelegateModel::_q_itemsMoved). Rows now hold positions, so a
+            // re-sort must never emit a move and each row shows its slot.
+            const list = find(page, "processList");
+            let moves = 0;
+            list.model.rowsMoved.connect(() => moves++);
+            page.setSort("rss_bytes");
+            page.setSort("name");
+            page.setSort("cpu");
+            page.setSort("rss_bytes");
+            verify(moves === 0, `a re-sort moves no model rows (${moves})`);
+            verify(list.count === page.visibleProcesses.length, "one row per visible process");
+            verify(list.itemAtIndex(0)?.modelData?.name === page.visibleProcesses[0].name, "the first row shows the first process after a re-sort");
+            verify(page.visibleProcesses[0].name === "brave" && page.visibleProcesses[1].name === "qs", "the RSS column sorts by bytes");
+            verify(page.visibleProcesses[2].name === "kitty", "bytes break the tie that equal rounded percentages made");
+            page.selectedPid = 101;
+            verify(page.detailText("pss_bytes") === "Leyendo…", "the breakdown is pending, not zero");
+            verify(page.inspectorRssText() === "470.6 MiB", "until smaps arrives the inspector shows the table's statm RSS");
+        }],
+        [() => telemetry.processDetail?.pid === 101, () => {
+            const page = processesPage();
+            verify(page.detailText("pss_bytes") === "348.5 MiB", `PSS (${page.detailText("pss_bytes")})`);
+            verify(page.inspectorRssText() === "471.1 MiB", `the inspector RSS comes from the same smaps read as PSS (${page.inspectorRssText()})`);
+            verify(page.ramText(processRow("qs")) === "470.6 MiB", "the table keeps the cheap statm figure");
+            verify(page.detailText("swap_bytes") === "43.2 MiB", "swap is shown apart");
+            verify(page.detailText("anon_huge_bytes") === "44.0 MiB", "THP");
+            verify(page.detailText("private_bytes") === "300.0 MiB", "private pages");
+            verify(page.detailText("pss_anon_bytes") === "293.2 MiB", "anonymous PSS");
+            verify(find(content, "memoryDetail").visible, "the inspector shows the breakdown");
+            kept = { runs: telemetry.sampleCount };
+            render("processes-detail");
+        }],
+        [() => telemetry.sampleCount > kept.runs && !telemetry.sampling, () => {
+            verify(telemetry.processDetail?.pid === 101, "a run without a breakdown keeps the last one");
+            processesPage().selectedPid = 102;
+            verify(processesPage().selectedDetail === null, "a new selection never shows the previous process's numbers");
+        }],
+        [() => telemetry.processDetail?.pid === 102, () => {
+            const page = processesPage();
+            verify(page.detailText("pss_bytes") === "", "smaps that cannot be read is unavailable, not 0");
+            verify(page.detailText("swap_bytes") === "12.0 MiB", "swap from status survives a denied smaps");
+            verify(page.inspectorRssText() === page.ramText(page.selectedProcess), "a denied smaps falls back to the statm RSS");
+            verify(find(content, "memoryDetailCaption").text.indexOf("sin permiso") > 0, "a denied smaps says so");
+            page.selectedPid = 103;
+        }],
+        [() => telemetry.processDetail?.pid === 103, () => {
+            verify(processesPage().detailText("pss_bytes") === "", "a process that ended has no breakdown");
+            verify(find(content, "memoryDetailCaption").text.indexOf("sin permiso") < 0, "an ended process is not reported as a permission problem");
+            // A zombie has already exited: signals reach nothing, so the
+            // actions are off and the inspector says why.
+            const page = processesPage();
+            page.selectedPid = 108;
+            verify(page.selectedZombie, "state Z is a zombie");
+            // The fill alone all but vanished on Washi's paper (1.1:1): the
+            // selected row also carries the indicator bar, like Settings' sidebar.
+            const rows = find(page, "processList");
+            const bars = Array.from({ length: rows.count }, (_, i) => find(rows.itemAtIndex(i), "selectionBar")?.visible === true);
+            verify(bars.filter(b => b).length === 1 && rows.itemAtIndex(bars.indexOf(true)).modelData.pid === 108, "only the selected row shows the indicator bar");
+            verify(find(content, "forceClose").disabled, "no forced close for a zombie");
+            page.forceClose();
+            verify(!page.killArmed && page.actionStatus === "", "a zombie never arms or sends a signal");
+            verify(find(content, "zombieNote").visible && find(content, "zombieNote").text.indexOf("PID 1") > 0, "the inspector names the parent that has to reap it");
+        }],
+        // Rows fade their highlight in: grab once it settles, then wait a
+        // tick more because the grab itself is asynchronous.
+        [() => root.waitedMs >= 600, () => render("processes-zombie")],
+        [null, () => {
+            const page = processesPage();
+            page.selectedPid = 101;
+            verify(!find(content, "forceClose").disabled && !find(content, "zombieNote").visible, "a live process gets its actions back");
+            content.currentPage = 0;
+        }],
+        [() => telemetry.snapshot.processes.length === 5, () => {
+            verify(telemetry.detailPid === -1, "leaving Processes forgets the selection");
+        }]
+    ]
+
     readonly property var missing: [
         [null, () => {
             retained.hardware = true;
@@ -328,12 +426,15 @@ ShellRoot {
 
 def reading(**overrides) -> dict:
     processes = [
-        {"pid": 100 + index, "ppid": 1, "name": name, "user": "dilan", "state": "S", "threads": 4,
-         "elapsed_sec": 600, "cpu": cpu, "mem": mem, "command": name}
-        for index, (name, cpu, mem) in enumerate([
-            ("Hyprland", 22.3, 0.5), ("qs", 9.1, 3.6), ("brave", 6.4, 5.2), ("kitty", 2.0, 0.6),
-            ("pipewire", 1.1, 0.2), ("fish", 0.4, 0.1), ("dbus-broker", 0.2, 0.1), ("systemd", 0.1, 0.1),
-            ("NetworkManager", 0.0, 0.1)])
+        {"pid": 100 + index, "ppid": 1, "name": name, "user": "dilan", "state": "Z" if name == "NetworkManager" else "S", "threads": 4,
+         "elapsed_sec": 600, "cpu": cpu, "mem": mem, "rss_bytes": rss, "start_ticks": 5000 + index,
+         "command": name}
+        # RSS in bytes; mem is that share of 14.85 GiB, rounded as the probe does.
+        for index, (name, cpu, mem, rss) in enumerate([
+            ("Hyprland", 22.3, 0.5, 80_000_000), ("qs", 9.1, 3.1, 493_510_656), ("brave", 6.4, 8.1, 1_300_000_000),
+            ("kitty", 2.0, 0.6, 95_000_000), ("pipewire", 1.1, 0.6, 94_000_000), ("fish", 0.4, 0.1, 9_000_000),
+            ("dbus-broker", 0.2, 0.1, 8_000_000), ("systemd", 0.1, 0.1, 7_000_000),
+            ("NetworkManager", 0.0, 0.1, 6_000_000)])
     ]
     base = {
         "timestamp": 1791054718, "host": "fixture", "kernel": "7.2.8-1-cachyos", "uptime_sec": 65422,
@@ -413,12 +514,34 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-hardware-home-") as temporary:
         # The scripted probe honours --top-processes the way the real one does.
         (fixtures / f"{name}.full.json").write_text(json.dumps(data))
         (fixtures / f"{name}.json").write_text(json.dumps({**data, "processes": data["processes"][:5]}))
+    mib = 1024 * 1024
+    details = {
+        101: {"status": "ok", "smaps": "ok", "rss_bytes": 494_000_000, "pss_bytes": round(348.49 * mib),
+              "pss_anon_bytes": round(293.18 * mib), "pss_file_bytes": round(55.34 * mib), "pss_shmem_bytes": 0,
+              "private_bytes": 300 * mib, "swap_bytes": round(43.24 * mib), "swap_pss_bytes": round(43.24 * mib),
+              "anon_huge_bytes": 44 * mib},
+        102: {"status": "ok", "smaps": "denied", "rss_bytes": 1_300_000_000, "pss_bytes": None, "pss_anon_bytes": None,
+              "pss_file_bytes": None, "pss_shmem_bytes": None, "private_bytes": None, "swap_bytes": 12 * mib,
+              "swap_pss_bytes": None, "anon_huge_bytes": None},
+        103: {"status": "gone"},
+    }
+    for pid, detail in details.items():
+        detail = {"pid": pid, "start_ticks": 4900 + pid, **detail}
+        (fixtures / f"ok.detail-{pid}.json").write_text(json.dumps({**readings["ok"], "process_detail": detail}))
 
     output, calls = run(folder, "summary", "ok")
     assert "HARDWARE_RUNTIME_PASS 29" in output, output
     assert calls and calls[0] == "--top-processes 5", calls[:3]
     assert "" in calls, "the Processes page asks for the whole table"
     assert calls[-1] == "--top-processes 5", "leaving Processes returns to the trimmed reading"
+
+    output, calls = run(folder, "processes", "ok")
+    assert "HARDWARE_RUNTIME_PASS 33" in output, output
+    detail_calls = [c for c in calls if "--process-detail" in c]
+    assert detail_calls and all(c.split()[-1] in ("101:5001", "102:5002", "103:5003") for c in detail_calls), calls
+    assert all("--process-detail" not in c for c in calls if c.startswith("--top-processes")), \
+        "the summary never asks for a breakdown"
+    assert len(detail_calls) < len(calls), "not every run reads smaps"
 
     output, calls = run(folder, "failing", "hang")
     assert "HARDWARE_RUNTIME_PASS 8" in output, output

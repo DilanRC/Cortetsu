@@ -583,31 +583,44 @@ fn processes(previous: &Value, now: f64, uptime: f64, total_mem: u64) -> (Vec<Va
                 .unwrap_or_else(|| uid.to_string())
         });
         let tick = user_ticks + sys_ticks;
-        let key = pid.to_string();
+        // PID and start time: a reused PID must not inherit the counters of
+        // the process that held it in the previous sample.
+        let key = format!("{pid}:{start}");
         ticks.insert(key.clone(), json!(tick));
         let old = previous["process_ticks"]
             .get(&key)
             .and_then(Value::as_i64)
             .unwrap_or(tick);
         let cpu = (tick - old).max(0) as f64 / clock / elapsed * 100.;
+        // Resident bytes from statm: one cheap read per row. The kernel
+        // documents it as approximate (split per-CPU counters); the rss field
+        // of stat drifts more. The exact figure comes from smaps_rollup, read
+        // only for the selected process in process_detail. The share of RAM
+        // is derived from these bytes and is reported as a separate reading.
+        let resident = read(&p.join("statm"))
+            .split_whitespace()
+            .nth(1)
+            .and_then(|x| x.parse::<i64>().ok())
+            .unwrap_or(rss);
+        let rss_bytes = resident.max(0) as u64 * page as u64;
         let mem = if total_mem > 0 {
-            rss as f64 * page / total_mem as f64 * 100.
+            rss_bytes as f64 / total_mem as f64 * 100.
         } else {
             0.
         };
-        let name = read_default(&p.join("comm"), &key);
+        let name = read_default(&p.join("comm"), &pid.to_string());
         let cmd = read(&p.join("cmdline")).replace('\0', " ");
         let cmd = if cmd.trim().is_empty() {
             name.clone()
         } else {
             cmd.trim().chars().take(700).collect()
         };
-        out.push(json!({"pid":pid,"ppid":ppid,"name":name,"user":user,"state":fields[0],"threads":nthreads,"elapsed_sec":round((uptime-start as f64/clock).max(0.),0),"cpu":round(cpu,1),"mem":round(mem,1),"command":cmd}));
+        out.push(json!({"pid":pid,"ppid":ppid,"name":name,"user":user,"state":fields[0],"threads":nthreads,"elapsed_sec":round((uptime-start as f64/clock).max(0.),0),"cpu":round(cpu,1),"mem":round(mem,1),"rss_bytes":rss_bytes,"start_ticks":start,"command":cmd}));
     }
     out.sort_by(|a, b| {
         f(b, "cpu", 0.)
             .total_cmp(&f(a, "cpu", 0.))
-            .then_with(|| f(b, "mem", 0.).total_cmp(&f(a, "mem", 0.)))
+            .then_with(|| f(b, "rss_bytes", 0.).total_cmp(&f(a, "rss_bytes", 0.)))
             .then_with(|| {
                 text(a, "name", "")
                     .to_lowercase()
@@ -616,8 +629,92 @@ fn processes(previous: &Value, now: f64, uptime: f64, total_mem: u64) -> (Vec<Va
     });
     (out, json!({"process_time":now,"process_ticks":ticks}))
 }
+// Start time in clock ticks since boot (field 22 of stat). With the PID it
+// names one process: a reused PID gets a later start.
+fn start_ticks(pid: u32) -> Option<i64> {
+    let stat = read(&procfs().join(pid.to_string()).join("stat"));
+    let end = stat.rfind(')')?;
+    stat[end + 1..].split_whitespace().nth(19)?.parse().ok()
+}
+// "Key:   123 kB" lines of status or smaps_rollup, in bytes.
+fn kib_fields(text: &str) -> HashMap<&str, u64> {
+    text.lines()
+        .filter_map(|l| {
+            let (k, v) = l.split_once(':')?;
+            let mut v = v.split_whitespace();
+            let n = v.next()?.parse::<u64>().ok()?;
+            (v.next() == Some("kB")).then_some((k.trim(), n * 1024))
+        })
+        .collect()
+}
+// Memory breakdown of one process, read only for the row the user selected.
+// smaps_rollup walks the page tables, so it is never read for every row.
+// A field the kernel does not give (permission, kernel thread) is null,
+// never 0: the view says it is unavailable.
+fn process_detail(pid: u32, start: i64) -> Value {
+    let identity = json!({"pid":pid,"start_ticks":start});
+    let status_of = |s: &str| {
+        let mut v = identity.clone();
+        v["status"] = json!(s);
+        v
+    };
+    match start_ticks(pid) {
+        None => return status_of("gone"),
+        Some(s) if s != start => return status_of("replaced"),
+        _ => {}
+    }
+    let dir = procfs().join(pid.to_string());
+    let status = std::fs::read_to_string(dir.join("status")).unwrap_or_default();
+    let status = kib_fields(&status);
+    let rollup = std::fs::read_to_string(dir.join("smaps_rollup"));
+    let smaps_state = match &rollup {
+        Ok(t) if t.contains("Rss:") => "ok",
+        Ok(_) => "empty",
+        Err(e) if e.kind() == std::io::ErrorKind::PermissionDenied => "denied",
+        Err(_) => "unavailable",
+    };
+    let rollup = rollup.unwrap_or_default();
+    let smaps = kib_fields(&rollup);
+    let field = |k: &str| smaps.get(k).copied();
+    let private = field("Private_Clean")
+        .zip(field("Private_Dirty"))
+        .map(|(a, b)| a + b);
+    // The PID could have exited and been reused while it was being read.
+    if start_ticks(pid) != Some(start) {
+        return status_of("gone");
+    }
+    let mut v = identity;
+    for (k, x) in [
+        ("rss_bytes", field("Rss").or(status.get("VmRSS").copied())),
+        ("pss_bytes", field("Pss")),
+        ("pss_anon_bytes", field("Pss_Anon")),
+        ("pss_file_bytes", field("Pss_File")),
+        ("pss_shmem_bytes", field("Pss_Shmem")),
+        ("private_bytes", private),
+        // Swap from the same rollup as Rss and Pss. VmSwap counts only
+        // anonymous swap entries; the rollup also counts swapped shared
+        // memory the process maps, as Rss counts it while resident.
+        (
+            "swap_bytes",
+            field("Swap").or(status.get("VmSwap").copied()),
+        ),
+        ("swap_pss_bytes", field("SwapPss")),
+        ("anon_huge_bytes", field("AnonHugePages")),
+    ] {
+        v[k] = json!(x);
+    }
+    v["smaps"] = json!(smaps_state);
+    v["status"] = json!("ok");
+    v["sampled_at_ms"] = json!((now() * 1000.) as i64);
+    v
+}
+fn parse_detail_target(arg: &str) -> Option<(u32, i64)> {
+    let (pid, start) = arg.split_once(':')?;
+    Some((pid.parse().ok().filter(|p| *p > 0)?, start.parse().ok()?))
+}
 pub fn main(args: &[String]) -> (Value, i32) {
     let (mut top, mut only_gpus, mut only_cpu_temp) = (0_i64, false, false);
+    let mut detail = None;
     let mut options = args.iter();
     while let Some(option) = options.next() {
         match option.as_str() {
@@ -630,9 +727,16 @@ pub fn main(args: &[String]) -> (Value, i32) {
                     return (Value::Null, 2);
                 }
             },
+            "--process-detail" => match options.next().and_then(|s| parse_detail_target(s)) {
+                Some(target) => detail = Some(target),
+                None => {
+                    eprintln!("cortetsu-hardware-probe: --process-detail requires PID:START_TICKS");
+                    return (Value::Null, 2);
+                }
+            },
             "-h" | "--help" => {
                 eprintln!(
-                    "usage: cortetsu-hardware-probe [--gpus | --cpu-temp] [--top-processes N]"
+                    "usage: cortetsu-hardware-probe [--gpus | --cpu-temp | --process-detail PID:START_TICKS] [--top-processes N]"
                 );
                 return (Value::Null, 0);
             }
@@ -648,6 +752,7 @@ pub fn main(args: &[String]) -> (Value, i32) {
     if only_cpu_temp {
         return (json!({"temp_c": rounded(cpu_temp(), 1)}), 0);
     }
+    let process_detail = detail.map(|(pid, start)| process_detail(pid, start));
     let state = runtime().join("cortetsu-hardware-probe-state.json");
     let _lock = lock(&state.with_extension("lock")).ok();
     let previous = json_file(&state, json!({}));
@@ -678,7 +783,7 @@ pub fn main(args: &[String]) -> (Value, i32) {
         .map(|n| round(n, 2))
         .collect::<Vec<_>>();
     (
-        json!({"timestamp":now()as i64,"host":read(&procfs().join("sys/kernel/hostname")),"kernel":read(&procfs().join("sys/kernel/osrelease")),"uptime_sec":round(uptime,0),"load":load,"cpu":cpu,"memory":memory,"disk":disk(),"disk_io":disk_io,"disks_io":disks_io,"battery":battery(),"network":net,"gpus":gpus(),"fans":fans(),"processes":processes,"process_count":count,"simulated":simulated()}),
+        json!({"timestamp":now()as i64,"host":read(&procfs().join("sys/kernel/hostname")),"kernel":read(&procfs().join("sys/kernel/osrelease")),"uptime_sec":round(uptime,0),"load":load,"cpu":cpu,"memory":memory,"disk":disk(),"disk_io":disk_io,"disks_io":disks_io,"battery":battery(),"network":net,"gpus":gpus(),"fans":fans(),"processes":processes,"process_count":count,"process_detail":process_detail,"simulated":simulated()}),
         0,
     )
 }

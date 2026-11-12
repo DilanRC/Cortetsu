@@ -241,7 +241,6 @@ Item {
                     width: parent.width
                     height: parent.height - levels.height - parent.spacing
                     processes: root.snapshot?.processes ?? []
-                    memoryTotalGb: root.memory.total_gb
                     destination: root.pageLabels.processes
                     onActivated: root.pageRequested("processes")
                 }

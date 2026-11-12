@@ -326,8 +326,19 @@ FocusScope {
     Component {
         id: processesComponent
         ProcessesPage {
+            id: processesPage
             processes: telemetry.snapshot?.processes ?? []
-            memoryTotalGb: Number(telemetry.snapshot?.memory?.total_gb ?? 0)
+            processDetail: telemetry.processDetail
+            detailIntervalMs: telemetry.detailIntervalMs
+
+            // The page names its selection; the telemetry reads its memory
+            // breakdown. Leaving the page clears it.
+            Binding { target: telemetry; property: "detailPid"; value: processesPage.selectedPid }
+            Binding { target: telemetry; property: "detailStartTicks"; value: processesPage.selectedStartTicks }
+            Component.onDestruction: {
+                telemetry.detailPid = -1;
+                telemetry.detailStartTicks = -1;
+            }
         }
     }
 

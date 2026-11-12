@@ -31,7 +31,7 @@ uses the same native surface as Launcher, Overview and Clipboard.
 
 1. **Resumen** — the verdict first, then the machine. See "Summary page" below.
 2. **Rendimiento** — CPU, memory, network, disk and one graph per GPU, each with its scale and min/average/max. The newest sample sits at the right edge and a short history starts there instead of being stretched. CPU cycles Total → Núcleo 0 → Núcleo 1…; memory toggles cache/swap.
-3. **Procesos** — sortable table (CPU, memory, PID, name) over every readable process, multi-term search, list freeze, `Up`/`Down`/`PageUp`/`PageDown` selection and a detail panel with Pausar/Reanudar, Interrumpir, Terminar and Forzar cierre. Forzar cierre needs a second press within four seconds.
+3. **Procesos** — sortable table (CPU, RSS, PID, name) over every readable process, multi-term search, list freeze, `Up`/`Down`/`PageUp`/`PageDown` selection and a detail panel with Pausar/Reanudar, Interrumpir, Terminar and Forzar cierre. Forzar cierre needs a second press within four seconds. The RSS column shows resident bytes from `statm` (MiB with one decimal, GiB with two above 1 GiB) or, in percentage mode, their share of RAM; neither is derived from the other. The detail panel adds a memory breakdown for the selected process only, all from one `smaps_rollup` read: the exact RSS, PSS, private pages (`Private_Clean + Private_Dirty`), anonymous PSS (`Pss_Anon`), swap (`Swap` of `smaps_rollup`, which includes swapped shared memory) and THP (`AnonHugePages`), each with a tooltip. RSS, PSS and swap overlap or exclude each other in different ways and are never added together. A field the kernel does not give (another user's process, a kernel thread) reads «No disponible», never 0. A zombie (state Z) has already exited and only waits for its parent to collect its status: no signal reaches it, so the four actions are disabled and the panel names the parent PID. It leaves the list when the parent reaps it or exits. The selection keys act on the list once it has focus (click a row or `Tab` to it); from the search field they do nothing.
 4. **Sensores** — temperatures against their limits, load per core, fan RPM and battery readings. A sensor the machine does not expose says so instead of showing zero.
 5. **E/S** — root filesystem, block devices with throughput, IOPS and totals, and the network interface with rates, totals, IPv4, MAC and Wi-Fi data.
 6. **Energía** — Power Profiles choice (three options, the active one marked), CPU driver/governor/EPP/platform profile, AC and battery state, and one panel per GPU.
@@ -140,7 +140,7 @@ reading dimmed, retry in the verdict strip) and live.
 
 ## Telemetry
 
-`~/.local/bin/cortetsu-hardware-probe [--top-processes N]` provides:
+`~/.local/bin/cortetsu-hardware-probe [--top-processes N] [--process-detail PID:START_TICKS]` provides:
 
 - CPU total/per-core usage, average frequency, package temperature and governor.
 - RAM used/available/cache/buffers plus swap.
@@ -154,6 +154,8 @@ reading dimmed, retry in the verdict strip) and live.
 - Active network interface, RX/TX rates/totals, IPv4/MAC and Wi-Fi SSID/signal/link bitrate when available.
 - Exposed fan RPM values.
 - All readable `/proc` processes with instantaneous CPU deltas, RAM, user, state, threads, parent PID, elapsed time and command line. The UI performs filtering/sorting locally so PID/name/command searches can find idle processes too. With `--top-processes N` only the N most active are emitted; every process is still scanned so the next sample has correct deltas. `process_count` always reports the number scanned.
+- Each process row carries `rss_bytes` (resident pages from `/proc/PID/statm`: one cheap read per row. The kernel documents it as possibly approximate; on 7.3.1-cachyos it matched `smaps_rollup` `Rss` byte for byte in every sample of the 2026-11-11 validation. The `rss` field of `/proc/PID/stat` drifts more and is only a fallback), `mem` (that size as a share of `MemTotal`, rounded to 0.1 %) and `start_ticks` (start time since boot, field 22 of `stat`).
+- `--process-detail PID:START_TICKS` adds `process_detail` for that one process: `rss_bytes`, `pss_bytes`, `pss_anon_bytes`, `pss_file_bytes`, `pss_shmem_bytes`, `private_bytes`, `swap_bytes`, `swap_pss_bytes`, `anon_huge_bytes` from one `smaps_rollup` read (`rss_bytes` and `swap_bytes` fall back to `VmRSS`/`VmSwap` of `status` when the rollup cannot be read; `VmSwap` omits swapped shared memory), plus `smaps` (`ok`, `denied`, `empty`, `unavailable`) and `status`. When the PID no longer exists, or exists with another start time (reused PID), `status` is `gone` or `replaced` and no figures are sent. The start time is checked again after reading, so a PID reused during the read is not reported. Unknown fields are `null`. Without the option `process_detail` is `null`. Hardware Center passes it only from the Processes page, for the selected row, at most once every 5 s per process, on the probe run it already makes: no extra process and no `smaps_rollup` walk for other rows.
 - Host, kernel, uptime and load average.
 
 `~/.local/bin/cortetsu-hardware-power` provides:

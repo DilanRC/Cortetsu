@@ -35,6 +35,15 @@ function size(gibibytes) {
     return Number(gibibytes) < 1 ? `${Math.round(Number(gibibytes) * 1024)} MiB` : gib(gibibytes);
 }
 
+// An exact byte count, rounded only here, for display: whole tenths of a
+// mebibyte below one gibibyte, hundredths of a gibibyte above.
+function bytes(value) {
+    if (!known(value))
+        return "";
+    const mib = Math.max(0, Number(value)) / 1048576;
+    return mib < 1024 ? `${mib.toFixed(1)} MiB` : `${(mib / 1024).toFixed(2)} GiB`;
+}
+
 function gigahertz(mhz) {
     return known(mhz) && Number(mhz) > 0 ? `${(Number(mhz) / 1000).toFixed(1)} GHz` : "";
 }

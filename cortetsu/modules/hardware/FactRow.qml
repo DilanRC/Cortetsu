@@ -11,6 +11,8 @@ Item {
     property string label: ""
     property string value: ""
     property bool emphasized: false
+    // What the reading means, shown on hover.
+    property string tooltipText: ""
 
     implicitHeight: 28
 
@@ -36,5 +38,16 @@ Item {
         font.weight: root.emphasized && root.value ? Font.DemiBold : Font.Normal
         horizontalAlignment: Text.AlignRight
         elide: Text.ElideLeft
+    }
+
+    HoverHandler {
+        id: hover
+        enabled: root.tooltipText.length > 0
+    }
+
+    CortetsuTooltip {
+        target: root
+        hovered: hover.hovered
+        text: root.tooltipText
     }
 }

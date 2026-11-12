@@ -72,5 +72,5 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-native-contracts-") as directo
         (folder / "cmdline").write_text(f"fixture-{pid}\0--read-only\0")
     os.environ["CORTETSU_PROCFS_ROOT"] = str(proc)
     run("cortetsu/tests/test-hardware-probe.py", [
-        ('["python3", str(PROBE),', '[NATIVE_BINARY, "cortetsu-hardware-probe",'),
+        ('[str(PROBE),', '[NATIVE_BINARY, "cortetsu-hardware-probe",'),
     ])

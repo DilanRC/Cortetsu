@@ -47,6 +47,18 @@ Item {
     property var gpu0History: []
     property var gpu1History: []
 
+    // Memory breakdown of the process selected on the Processes page. The
+    // page names it by PID and start time; the next probe run reads its
+    // smaps_rollup, at most once every detailIntervalMs for the same process,
+    // so no process is started for it and no other row is ever walked.
+    property int detailPid: -1
+    property real detailStartTicks: -1
+    readonly property int detailIntervalMs: 5000
+    property var processDetail: null
+    property real detailRequestedAt: 0
+    property string detailRequestKey: ""
+    property var runDetailArgs: []
+
     property bool runProducedReading: false
     property bool rerunRequested: false
     property int overdueTicks: 0
@@ -93,8 +105,24 @@ Item {
         root.overdueTicks = 0;
         root.runProducedReading = false;
         root.rerunRequested = false;
+        root.runDetailArgs = root.detailArgs();
         probe.running = true;
     }
+
+    function detailArgs(): var {
+        if (!root.fullProcessList || root.detailPid <= 0 || root.detailStartTicks < 0)
+            return [];
+        const key = `${root.detailPid}:${root.detailStartTicks}`;
+        const now = Date.now();
+        if (key === root.detailRequestKey && now - root.detailRequestedAt < root.detailIntervalMs)
+            return [];
+        root.detailRequestKey = key;
+        root.detailRequestedAt = now;
+        return ["--process-detail", key];
+    }
+
+    onDetailPidChanged: root.processDetail = null
+    onDetailStartTicksChanged: root.processDetail = null
 
     function accept(text): void {
         let parsed;
@@ -106,6 +134,9 @@ Item {
         if (!parsed || typeof parsed !== "object" || !parsed.cpu)
             return;
         root.runProducedReading = true;
+        const detail = parsed.process_detail;
+        if (detail && Number(detail.pid) === root.detailPid && Number(detail.start_ticks) === root.detailStartTicks)
+            root.processDetail = detail;
         root.snapshot = parsed;
         root.recordHistory(parsed);
         root.sampleCount += 1;
@@ -147,9 +178,9 @@ Item {
     // startup inventory: cortetsu:hardware-probe
     Process {
         id: probe
-        command: root.fullProcessList
+        command: (root.fullProcessList
             ? [root.probePath]
-            : [root.probePath, "--top-processes", String(root.summaryProcessCount)]
+            : [root.probePath, "--top-processes", String(root.summaryProcessCount)]).concat(root.runDetailArgs)
 
         stdout: StdioCollector {
             onStreamFinished: root.accept(text)

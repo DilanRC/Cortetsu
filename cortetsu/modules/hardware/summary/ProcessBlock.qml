@@ -11,7 +11,6 @@ NavBlock {
     id: root
 
     required property var processes
-    required property var memoryTotalGb
     property int maximumRows: 5
 
     readonly property int rowHeight: 28
@@ -103,10 +102,8 @@ NavBlock {
                     anchors.verticalCenter: parent.verticalCenter
                     width: 76
                     horizontalAlignment: Text.AlignRight
-                    // The probe reports resident memory as a share of the total.
-                    text: Format.known(row.process.mem) && Format.known(root.memoryTotalGb)
-                        ? Format.size(Number(row.process.mem) / 100 * Number(root.memoryTotalGb))
-                        : ""
+                    // Resident bytes from the probe, rounded only to display.
+                    text: Format.bytes(row.process.rss_bytes)
                     color: CortetsuDesign.colorOnSurfaceMuted
                     textSize: CortetsuTypography.bodyPx
                 }
