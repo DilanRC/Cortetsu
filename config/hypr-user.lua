@@ -31,16 +31,16 @@ hl.monitor({
 
 -- Saturación por pantalla: cortetsu-display-vibrance genera el shader con un
 -- valor por salida (Ajustes → Pantalla). Conserva los extremos 0/1 y protege
--- los colores ya vivos. Hasta que exista, sirve el shader fijo anterior.
+-- los colores ya vivos. Antes de la primera aplicación no hay shader: el hook
+-- de hyprland.start (execs.lua) lo genera y lo activa.
 local state_home = os.getenv("XDG_STATE_HOME") or (os.getenv("HOME") .. "/.local/state")
 local cortetsu_shader = state_home .. "/cortetsu/screen-shader.glsl"
 local shader_file = io.open(cortetsu_shader, "r")
-if shader_file then shader_file:close() end
+if shader_file then
+    shader_file:close()
+    hl.config({ decoration = { screen_shader = cortetsu_shader } })
+end
 hl.config({
-    decoration = {
-        screen_shader = shader_file and cortetsu_shader
-            or (os.getenv("HOME") .. "/.config/hypr/shaders/vibrance-contrast.glsl"),
-    },
     render = {
     cm_enabled = true,
     cm_sdr_eotf = "gamma22",

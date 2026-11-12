@@ -23,8 +23,7 @@ fn call(args: &[&str]) -> Result<String> {
     Ok(r.stdout)
 }
 fn get(option: &str) -> Result<Value> {
-    let v: Value = serde_json::from_str(&call(&["getoption", option, "-j"])?)
-        .map_err(|_| format!("hyprctl getoption {option}: no JSON"))?;
+    let v = hypr_option(option)?;
     if let Some(b) = v.get("bool") {
         return Ok(json!(truth(b)));
     }
@@ -70,7 +69,7 @@ fn lua_value(v: &Value) -> String {
     if !t.is_empty() && t.chars().all(|c| c.is_ascii_digit()) {
         t
     } else {
-        json!(t).to_string()
+        lua_string(&t)
     }
 }
 fn insert_path(node: &mut Map<String, Value>, parts: &[&str], value: &Value) {
@@ -108,7 +107,7 @@ fn write(values: &Value, backend: &str) -> Result<()> {
         return Ok(());
     }
     let result = if backend == "lua" {
-        call(&["eval", &lua_config(values)]).map(|_| ())
+        hypr_eval(&lua_config(values), 5.)
     } else {
         map.iter()
             .try_for_each(|(k, v)| call(&["keyword", k, &value_text(v)]).map(|_| ()))

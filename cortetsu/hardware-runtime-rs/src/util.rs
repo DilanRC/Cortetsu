@@ -359,6 +359,38 @@ pub fn hypr(args: &[&str], timeout: f64) -> Result<Output> {
         timeout,
     )
 }
+// A Lua string literal. JSON escapes are not Lua: \u0001 is not valid
+// there, so control characters use Lua's decimal form.
+pub fn lua_string(text: &str) -> String {
+    let mut out = String::with_capacity(text.len() + 2);
+    out.push('"');
+    for c in text.chars() {
+        match c {
+            '"' => out.push_str("\\\""),
+            '\\' => out.push_str("\\\\"),
+            c if c.is_ascii_control() => out.push_str(&format!("\\{:03}", c as u32)),
+            c => out.push(c),
+        }
+    }
+    out.push('"');
+    out
+}
+// Runs Lua in Hyprland. hyprctl exits non-zero when the chunk raises.
+pub fn hypr_eval(lua: &str, timeout: f64) -> Result<()> {
+    let r = hypr(&["eval", lua], timeout)?;
+    if r.code != 0 {
+        return Err(format!("hyprctl eval failed: {}", r.detail().trim()));
+    }
+    Ok(())
+}
+// One option as hyprctl's JSON object: {"option":..,"int"|"str"|..:..,"set":..}.
+pub fn hypr_option(option: &str) -> Result<Value> {
+    let r = hypr(&["getoption", option, "-j"], 5.)?;
+    if r.code != 0 {
+        return Err(format!("hyprctl getoption failed: {}", r.detail().trim()));
+    }
+    serde_json::from_str(&r.stdout).map_err(|_| format!("hyprctl getoption {option}: no JSON"))
+}
 pub fn hypr_json(args: &[&str]) -> Value {
     hypr(args, 3.)
         .ok()
@@ -446,6 +478,14 @@ pub fn timestamp() -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn lua_strings_escape_what_json_would_get_wrong() {
+        assert_eq!(lua_string("eDP-1"), "\"eDP-1\"");
+        assert_eq!(lua_string("a\"b\\c"), "\"a\\\"b\\\\c\"");
+        // JSON would write \u0001, which Lua rejects.
+        assert_eq!(lua_string("a\u{1}b\n"), "\"a\\001b\\010\"");
+        assert_eq!(lua_string("ñ"), "\"ñ\"");
+    }
     #[test]
     fn orphaned_subprocess_pipe_cannot_outlive_deadline() {
         let started = Instant::now();

@@ -531,7 +531,7 @@ fn lua_command(command: &Value) -> Result<String> {
     if fields.len() == 2 && fields[1] == "disable" {
         return Ok(format!(
             "hl.monitor({{ output = {}, disable = true }})",
-            json!(fields[0])
+            lua_string(fields[0])
         ));
     }
     if fields.len() < 4 {
@@ -545,7 +545,7 @@ fn lua_command(command: &Value) -> Result<String> {
     for pair in fields[4..].as_chunks::<2>().0 {
         fieldsmap.insert(pair[0], pair[1]);
     }
-    let mut lua = vec![format!("output = {}", json!(fields[0]))];
+    let mut lua = vec![format!("output = {}", lua_string(fields[0]))];
     for key in [
         "mode",
         "position",
@@ -561,7 +561,7 @@ fn lua_command(command: &Value) -> Result<String> {
                 "transform" | "bitdepth" | "vrr" => {
                     raw.parse::<i64>().map_err(|e| e.to_string())?.to_string()
                 }
-                _ => json!(raw).to_string(),
+                _ => lua_string(raw),
             };
             lua.push(format!("{key} = {value}"));
         }
@@ -576,11 +576,7 @@ fn execute(plan: &Value) -> Result<()> {
         .as_array()
         .ok_or("planner returned unexpected commands")?
     {
-        let lua = lua_command(cmd)?;
-        let r = hypr(&["eval", &lua], 6.)?;
-        if r.code != 0 {
-            return Err(r.detail());
-        }
+        hypr_eval(&lua_command(cmd)?, 6.)?;
     }
     Ok(())
 }

@@ -557,17 +557,15 @@ fn processes(previous: &Value, now: f64, uptime: f64, total_mem: u64) -> (Vec<Va
             _ => continue,
         };
         let stat = read(&p.join("stat"));
-        let Some(end) = stat.rfind(')') else { continue };
-        let fields = stat[end + 1..].split_whitespace().collect::<Vec<_>>();
-        if fields.len() < 22 {
+        let Some(fields) = stat_fields(&stat) else {
             continue;
-        }
+        };
         let parse = |i: usize| fields[i].parse::<i64>().ok();
         let Some((ppid, user_ticks, sys_ticks, nthreads, start, rss)) = parse(1)
             .zip(parse(11))
             .zip(parse(12))
             .zip(parse(17))
-            .zip(parse(19))
+            .zip(parse(STAT_START))
             .zip(parse(21))
             .map(|(((((a, b), c), d), e), f)| (a, b, c, d, e, f))
         else {
@@ -633,8 +631,16 @@ fn processes(previous: &Value, now: f64, uptime: f64, total_mem: u64) -> (Vec<Va
 // names one process: a reused PID gets a later start.
 fn start_ticks(pid: u32) -> Option<i64> {
     let stat = read(&procfs().join(pid.to_string()).join("stat"));
-    let end = stat.rfind(')')?;
-    stat[end + 1..].split_whitespace().nth(19)?.parse().ok()
+    stat_fields(&stat)?[STAT_START].parse().ok()
+}
+// Fields of /proc/PID/stat after the command name, which may itself hold
+// spaces and parentheses: index 0 is the state (field 3 of proc(5)).
+const STAT_START: usize = 19;
+fn stat_fields(stat: &str) -> Option<Vec<&str>> {
+    let fields = stat[stat.rfind(')')? + 1..]
+        .split_whitespace()
+        .collect::<Vec<_>>();
+    (fields.len() >= 22).then_some(fields)
 }
 // "Key:   123 kB" lines of status or smaps_rollup, in bytes.
 fn kib_fields(text: &str) -> HashMap<&str, u64> {

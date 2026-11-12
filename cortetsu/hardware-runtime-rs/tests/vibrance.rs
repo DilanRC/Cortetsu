@@ -9,7 +9,7 @@ fn fake_vibrance_hyprctl(t: &TempDir) {
     // Remembers the shader path set through eval, as Hyprland does.
     exe(
         &t.path().join("bin/hyprctl"),
-        "#!/bin/sh\nstate=\"$HOME/shader-path\"\ncase \"$1\" in\n-j) echo '[{\"id\":0,\"name\":\"eDP-1\"},{\"id\":3,\"name\":\"DP-1\"}]';;\ngetoption) printf 'str: %s\\nset: true\\n' \"$(cat \"$state\" 2>/dev/null)\";;\neval) printf '%s' \"$2\" | sed -n 's/.*screen_shader=\"\\([^\"]*\\)\".*/\\1/p' > \"$state\"; echo \"$2\" >> \"$HOME/evals\"; echo ok;;\n*) exit 77;;\nesac\n",
+        "#!/bin/sh\nstate=\"$HOME/shader-path\"\ncase \"$1\" in\n-j) echo '[{\"id\":0,\"name\":\"eDP-1\"},{\"id\":3,\"name\":\"DP-1\"}]';;\ngetoption) printf '{\"str\":\"%s\",\"set\":true}\\n' \"$(cat \"$state\" 2>/dev/null)\";;\neval) printf '%s' \"$2\" | sed -n 's/.*screen_shader=\"\\([^\"]*\\)\".*/\\1/p' > \"$state\"; echo \"$2\" >> \"$HOME/evals\"; echo ok;;\n*) exit 77;;\nesac\n",
     );
 }
 #[test]
@@ -93,7 +93,7 @@ fn vibrance_rejects_bad_values_and_keeps_the_profile_when_hyprland_refuses() {
     let accepted = fs::read(&stable).unwrap();
     exe(
         &t.path().join("bin/hyprctl"),
-        "#!/bin/sh\ncase \"$1\" in -j) echo '[{\"id\":3,\"name\":\"DP-1\"}]';; getoption) echo 'str: /elsewhere';; *) echo 'lua error' ; exit 1;; esac\n",
+        "#!/bin/sh\ncase \"$1\" in -j) echo '[{\"id\":3,\"name\":\"DP-1\"}]';; getoption) echo '{\"str\":\"/elsewhere\"}';; *) echo 'lua error' ; exit 1;; esac\n",
     );
     let refused = run(&t, &["cortetsu-display-vibrance", "set", "DP-1", "80"]);
     assert!(!refused.status.success());
@@ -114,7 +114,7 @@ fn vibrance_rejects_bad_values_and_keeps_the_profile_when_hyprland_refuses() {
     // write a shader that puts every output back on the default.
     exe(
         &t.path().join("bin/hyprctl"),
-        "#!/bin/sh\ncase \"$1\" in -j) exit 1;; getoption) echo 'str: /elsewhere';; *) echo ok;; esac\n",
+        "#!/bin/sh\ncase \"$1\" in -j) exit 1;; getoption) echo '{\"str\":\"/elsewhere\"}';; *) echo ok;; esac\n",
     );
     let unread = run(&t, &["cortetsu-display-vibrance", "apply"]);
     assert!(!unread.status.success());

@@ -35,12 +35,12 @@ Guardar is offered.
   `cortetsu-display-vibrance` generates the screen shader Hyprland runs on
   every output. The shader receives `wl_output` (the Hyprland monitor id),
   so it holds one strength per output: `-100` greys out, `0` leaves colour
-  untouched, `16` is the previous fixed `vibrance-contrast.glsl` strength and
-  the default, `100` is the maximum. Dull colours move most; saturated ones
+  untouched, `16` is the default (the strength of the hand-written shader
+  it replaced), `100` is the maximum. Dull colours move most; saturated ones
   are protected. The profile lives in `~/.local/state/cortetsu/vibrance.json`;
   the shader in `screen-shader.glsl` next to it, which `hypr-user.lua` names
-  so a Hyprland reload reads the same thing (it falls back to the old fixed
-  shader until the file exists). A change sets a content-hashed copy through
+  so a Hyprland reload reads the same thing (no screen shader until the
+  `hyprland.start` hook writes it the first time). A change sets a content-hashed copy through
   `hyprctl eval`, because only a new path makes Hyprland recompile, and is
   verified with `getoption`. Hyprland startup, `monitor.added` and
   `monitor.removed` run `apply`, since monitor ids change on hotplug. No

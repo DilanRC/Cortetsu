@@ -1,8 +1,8 @@
 // Saturation per output for any GPU. Hyprland runs one screen shader on
 // every output and tells it which one through `wl_output` (the monitor id),
-// so the shader is generated with one strength per id. It replaces the static
-// vibrance-contrast.glsl and keeps its S curve and vibrance formula, so the
-// default (16) looks exactly as before. A colour transform matrix cannot do
+// so the shader is generated with one strength per id. This file is the only
+// copy of the S curve and vibrance formula; 16 is the strength the former
+// hand-written shader used. A colour transform matrix cannot do
 // this: hyprland-ctm-control-v1 rejects negative values, so it can only
 // desaturate, and hyprsunset already owns it.
 use crate::util::*;
@@ -20,8 +20,21 @@ fn directory() -> PathBuf {
 pub fn stable() -> PathBuf {
     directory().join("screen-shader.glsl")
 }
+fn profile_path() -> PathBuf {
+    directory().join("vibrance.json")
+}
+fn lock_path() -> PathBuf {
+    directory().join("vibrance.lock")
+}
+// A hashed live copy this helper wrote (not the stable one).
+fn is_live_copy(path: &std::path::Path) -> bool {
+    let name = basename(path);
+    path.parent() == Some(directory().as_path())
+        && name.starts_with("screen-shader-")
+        && name.ends_with(".glsl")
+}
 fn profile() -> Map<String, Value> {
-    json_file(&directory().join("vibrance.json"), json!({}))["profile"]
+    json_file(&profile_path(), json!({}))["profile"]
         .as_object()
         .map(|p| {
             p.iter()
@@ -88,42 +101,37 @@ void main() {{
         default = strength(DEFAULT)
     )
 }
-fn lua_string(path: &str) -> Result<String> {
-    if path
-        .chars()
-        .any(|c| c == '"' || c == '\\' || c.is_control())
-    {
-        return Err(format!("unsupported character in shader path {path}"));
-    }
-    Ok(format!("\"{path}\""))
-}
 fn current_shader() -> String {
-    hypr(&["getoption", "decoration:screen_shader"], 5.0)
-        .map(|r| r.stdout)
+    hypr_option("decoration:screen_shader")
+        .ok()
+        .and_then(|v| v["str"].as_str().map(str::to_owned))
         .unwrap_or_default()
-        .lines()
-        .find_map(|l| l.strip_prefix("str: "))
-        .unwrap_or("")
-        .trim()
-        .to_string()
+}
+// Each connected output with the strength its profile entry gives it.
+#[derive(serde::Serialize)]
+struct Output {
+    id: i64,
+    name: String,
+    value: i64,
+}
+fn resolve(profile: &Map<String, Value>) -> Result<Vec<Output>> {
+    Ok(monitors()?
+        .into_iter()
+        .map(|(id, name)| Output {
+            id,
+            value: profile.get(&name).and_then(Value::as_i64).unwrap_or(DEFAULT),
+            name,
+        })
+        .collect())
 }
 // Writes the shader and points Hyprland at it. The live path carries the
 // content hash: setting a new path is what makes Hyprland recompile.
 fn apply(p: &Map<String, Value>) -> Result<Value> {
-    let outputs = monitors()?
-        .into_iter()
-        .map(|(id, name)| {
-            (
-                id,
-                name.clone(),
-                p.get(&name).and_then(Value::as_i64).unwrap_or(DEFAULT),
-            )
-        })
-        .collect::<Vec<_>>();
+    let outputs = resolve(p)?;
     let source = render(
         &outputs
             .iter()
-            .map(|(id, _, v)| (*id, *v))
+            .map(|o| (o.id, o.value))
             .collect::<Vec<_>>(),
     );
     let hash = format!("{:x}", Sha256::digest(source.as_bytes()));
@@ -133,19 +141,16 @@ fn apply(p: &Map<String, Value>) -> Result<Value> {
     atomic(&live, source.as_bytes())?;
     let live_text = live.to_string_lossy().to_string();
     if current_shader() != live_text {
-        let call = format!(
-            "hl.config({{decoration={{screen_shader={}}}}})",
-            lua_string(&live_text)?
-        );
-        let r = hypr(&["eval", &call], 5.0)?;
-        if r.code != 0 || r.stdout.trim() != "ok" {
-            return Err(format!(
-                "Hyprland rejected the shader: {}",
-                r.detail().trim()
-            ));
-        }
+        hypr_eval(
+            &format!(
+                "hl.config({{decoration={{screen_shader={}}}}})",
+                lua_string(&live_text)
+            ),
+            5.0,
+        )
+        .map_err(|e| format!("Hyprland rechazó el shader: {e}"))?;
         if current_shader() != live_text {
-            return Err("Hyprland did not take the new shader".into());
+            return Err("Hyprland no adoptó el shader nuevo".into());
         }
     }
     // The screen already shows this profile, so a failed stable copy is
@@ -153,13 +158,12 @@ fn apply(p: &Map<String, Value>) -> Result<Value> {
     // contradict the screen. The next apply rewrites it.
     let stable_error = atomic(&stable(), source.as_bytes()).err();
     for old in children(&directory()) {
-        let name = basename(&old);
-        if name.starts_with("screen-shader-") && name.ends_with(".glsl") && old != live {
+        if is_live_copy(&old) && old != live {
             let _ = fs::remove_file(old);
         }
     }
     Ok(
-        json!({"ok":true,"shader":live,"stableError":stable_error,"outputs":outputs.iter().map(|(id,name,v)|json!({"id":id,"name":name,"value":v})).collect::<Vec<_>>()}),
+        json!({"ok":true,"shader":live,"stableError":stable_error,"outputs":outputs}),
     )
 }
 fn value(raw: &str) -> Result<i64> {
@@ -176,36 +180,26 @@ fn action(args: &[String]) -> Result<Value> {
         .as_slice()
     {
         ["status"] => {
-            let p = profile();
-            let live = current_shader();
-            let ours = live.starts_with(
-                &directory()
-                    .join("screen-shader")
-                    .to_string_lossy()
-                    .to_string(),
-            );
-            let outputs = monitors()?
-                .into_iter()
-                .map(|(id, name)| json!({"id":id,"value":p.get(&name).and_then(Value::as_i64).unwrap_or(DEFAULT),"name":name}))
-                .collect::<Vec<_>>();
+            let live = PathBuf::from(current_shader());
+            let ours = live == stable() || is_live_copy(&live);
             Ok(
-                json!({"ok":true,"active":ours,"default":DEFAULT,"minimum":RANGE.start(),"maximum":RANGE.end(),"outputs":outputs}),
+                json!({"ok":true,"active":ours,"default":DEFAULT,"minimum":RANGE.start(),"maximum":RANGE.end(),"outputs":resolve(&profile())?}),
             )
         }
         ["apply"] => {
-            let _lock = lock(&directory().join("vibrance.lock"))?;
+            let _lock = lock(&lock_path())?;
             apply(&profile())
         }
         ["set", name, raw] => {
             let n = value(raw)?;
-            let _lock = lock(&directory().join("vibrance.lock"))?;
+            let _lock = lock(&lock_path())?;
             if !monitors()?.iter().any(|(_, m)| m == name) {
                 return Err(format!("{name} no está conectada"));
             }
             let previous = profile();
             let mut p = previous.clone();
             p.insert((*name).to_string(), json!(n));
-            atomic_json(&directory().join("vibrance.json"), &json!({"profile":p}))?;
+            atomic_json(&profile_path(), &json!({"profile":p}))?;
             match apply(&p) {
                 Ok(mut v) => {
                     v["name"] = json!(name);
@@ -214,15 +208,12 @@ fn action(args: &[String]) -> Result<Value> {
                 }
                 Err(e) => {
                     // The saved profile only says what the screen shows.
-                    let _ = atomic_json(
-                        &directory().join("vibrance.json"),
-                        &json!({"profile":previous}),
-                    );
+                    let _ = atomic_json(&profile_path(), &json!({"profile":previous}));
                     Err(e)
                 }
             }
         }
-        _ => Err("usage: status | set OUTPUT VALUE | apply".into()),
+        _ => Err("uso: status | set SALIDA VALOR | apply".into()),
     }
 }
 pub fn main(args: &[String]) -> (Value, i32) {
