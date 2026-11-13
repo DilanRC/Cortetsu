@@ -201,7 +201,8 @@ GridView {
         case "variant":
             return 116;
         default:
-            return 108;
+            // The icon and two lines of name.
+            return 116;
         }
     }
 
@@ -260,6 +261,8 @@ GridView {
                 color: app.selected
                     ? CortetsuDesign.colorSecondaryContainer
                     : "transparent"
+                // Premium sobria: a cell has an edge only while it is the selection.
+                outlined: app.selected
             }
 
             CortetsuStateLayer {
@@ -298,14 +301,19 @@ GridView {
 
                 anchors.leftMargin: 9
                 anchors.rightMargin: 9
-                anchors.bottomMargin: 10
+                anchors.bottomMargin: 6
 
+                objectName: "appName"
                 text: app.modelData?.name ?? ""
                 font.pixelSize: CortetsuTypography.labelSmallPx
 
+                // A long name takes a second line before it is cut short.
                 horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignTop
+                height: Math.ceil(font.pixelSize * 2.6)
+                wrapMode: Text.WordWrap
                 elide: Text.ElideRight
-                maximumLineCount: 1
+                maximumLineCount: 2
             }
 
             /*
@@ -361,6 +369,8 @@ GridView {
                 color: action.selected
                     ? CortetsuDesign.colorSecondaryContainer
                     : "transparent"
+                // Premium sobria: a cell has an edge only while it is the selection.
+                outlined: action.selected
             }
 
             CortetsuStateLayer {
@@ -557,6 +567,8 @@ GridView {
                 color: emoji.selected
                     ? CortetsuDesign.colorSecondaryContainer
                     : "transparent"
+                // Premium sobria: a cell has an edge only while it is the selection.
+                outlined: emoji.selected
             }
 
             CortetsuStateLayer {
@@ -751,6 +763,8 @@ GridView {
                 color: variant.selected
                     ? CortetsuDesign.colorSecondaryContainer
                     : "transparent"
+                // Premium sobria: a cell has an edge only while it is the selection.
+                outlined: variant.selected
             }
 
             CortetsuStateLayer {

@@ -44,7 +44,9 @@ Un estado solo sube con la evidencia que cita. Lo que no se probó se dice.
 - Estado: IN_PROGRESS
 - Hecho: Settings en un solo marco (barra lateral y página comparten hoja); Wi-Fi y Bluetooth sin paneles de 580 px, con altura según contenido; hero de red; olvidar red o perfil pide confirmación; selector de posición del Hub.
 - Pruebas: `scripts/features/test-cortetsu-settings-runtime.py` (navegación, estados, teclado, persistencia, contraste), 30 destinos renderizados en Ink, Washi, Kurogane y ventana estrecha.
-- Pendiente: Inicio (cuatro tarjetas iguales), repaso de las páginas restantes contra ADR-008, Launcher compacto y exploración.
+- Launcher (2026-11-13): ya abría compacto; las celdas dejan de llevar un marco cada una (solo la selección tiene fondo y borde) y un nombre largo ocupa dos líneas antes de cortarse. Captura: `docs/evidence/cortetsu-30-launcher-20261113/`. Pasan `tests/qml/launcher` y `scripts/integration/test-launcher-dismiss.py` (anidado, 25 comprobaciones).
+- Fallos previos, no causados por este trabajo (fallan igual en `f47f9c0c`): `test-cortetsu-launcher-apps-runtime.py` y `test-cortetsu-launcher-mode-actions-runtime.py`; tampoco pasan `test-cortetsu-native-design-system.py` ni `test-cortetsu-button-tooltip.py`. Ninguno está en un gate.
+- Pendiente: Inicio (cuatro tarjetas iguales), repaso de las páginas restantes contra ADR-008, modo de exploración del Launcher (categorías, recientes).
 
 #### Fase 3 - Hub multiposición
 
