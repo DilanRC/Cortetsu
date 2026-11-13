@@ -12,6 +12,7 @@ import "../../components"
 import "../utilities" as Utilities
 import "../bar/popouts" as BarPopouts
 import "../../theme"
+import "../HubAnchor.js" as HubAnchor
 
 Item {
     id: root
@@ -32,6 +33,11 @@ Item {
     readonly property alias utilities: utilities
     readonly property alias sidebar: sidebar
 
+    // What the Hub takes from each edge of this screen. The panels that
+    // share an edge with it stand clear by this much.
+    readonly property var hubReserved: HubAnchor.reserved(
+        CortetsuConfig.bottomHub.anchorFor(root.screen?.name ?? ""), CortetsuDesign.bottomHubHeight)
+
     anchors.fill: parent
     anchors.margins: borderThickness
     anchors.leftMargin: bar.implicitWidth
@@ -41,9 +47,9 @@ Item {
 
     Item {
         id: osdWrapper
-        // Keep transient OSD cards above BottomHub when the bar is visible.
+        // Keep transient OSD cards clear of the Hub, wherever it sits.
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: CortetsuDesign.bottomHubHeight + CortetsuDesign.spacingStandard
+        anchors.bottomMargin: root.hubReserved.bottom + CortetsuDesign.spacingStandard
         anchors.right: parent.right
         anchors.rightMargin: sessionWrapper.anchors.rightMargin + session.width * (1 - session.offsetScale)
         clip: session.visible
@@ -70,8 +76,8 @@ Item {
         anchors.right: parent.right
         // The same inset as the notification drawer on this edge
         // (sidebar/Wrapper.qml), so a card never touches the screen corner.
-        anchors.topMargin: CortetsuDesign.spacingCompact
-        anchors.rightMargin: CortetsuDesign.spacingCompact
+        anchors.topMargin: CortetsuDesign.spacingCompact + root.hubReserved.top
+        anchors.rightMargin: CortetsuDesign.spacingCompact + root.hubReserved.right
     }
 
     Item {
@@ -79,6 +85,7 @@ Item {
         visible: false
         anchors.verticalCenter: parent.verticalCenter
         anchors.right: parent.right
+        anchors.rightMargin: root.hubReserved.right
         clip: false
         implicitWidth: session.implicitWidth * (1 - session.offsetScale)
         implicitHeight: session.implicitHeight
@@ -105,6 +112,7 @@ Item {
         id: dashboard
         visible: false
         screenState: root.screenState
+        hubReserved: root.hubReserved
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: parent.top
     }
@@ -128,6 +136,7 @@ Item {
     Sidebar.Wrapper {
         id: sidebar
         screenState: root.screenState
+        hubReserved: root.hubReserved
         anchors.top: parent.top
         anchors.bottom: parent.bottom
         anchors.right: root.screenState?.utilities ? utilities.left : parent.right

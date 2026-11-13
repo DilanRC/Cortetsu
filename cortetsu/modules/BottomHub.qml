@@ -246,6 +246,9 @@ Scope {
                     popup: popup?.currentName ?? "", open: popup?.hasCurrent ?? false,
                     closing: popup?.closing ?? false, detached: popup?.detachedMode ?? "",
                     anchor: popup?.bottomAnchorCenter ?? -1, focus: popup?.activeFocus ?? false,
+                    hubAnchor: CortetsuConfig.bottomHub.anchorFor(screen.name),
+                    popupRect: popupWindow ? [popupWindow.x + (panels?.x ?? 0), popupWindow.y + (panels?.y ?? 0),
+                        popupWindow.width, popupWindow.height] : [],
                     tray: { itemKey: trayLoader?.modelData?.key ?? null,
                         popupName: trayLoader?.name ?? null,
                         shouldBeActive: trayLoader?.shouldBeActive ?? false,
@@ -264,6 +267,25 @@ Scope {
             if (!state)
                 return;
             hubRoot.toggleLauncherFor(state.modelData);
+        }
+        // Where the Hub sits. `monitor` is an output name, or "" for every
+        // monitor without an anchor of its own. Also the way back from a
+        // Hub that ended up somewhere unusable:
+        //   qs ipc call bottomHub -- anchor "" bottom-center
+        function anchor(monitor: string, id: string): bool {
+            if (!HubAnchor.valid(id))
+                return false;
+            CortetsuConfig.bottomHub.setAnchor(monitor, id);
+            return true;
+        }
+        function clearAnchor(monitor: string): void {
+            CortetsuConfig.bottomHub.clearAnchor(monitor);
+        }
+        function anchors(): string {
+            const out = {};
+            for (const screen of CortetsuScreens.screens)
+                out[screen.name] = CortetsuConfig.bottomHub.anchorFor(screen.name);
+            return JSON.stringify(out);
         }
         // Same fullscreen guard as SUPER+N and `drawers toggle`: these do not
         // open over a fullscreen window; closing still works.
@@ -805,12 +827,13 @@ Scope {
             color: "transparent"
 
             // Only the islands, the reveal strip and the toasts take the
-            // pointer. The air between two islands belongs to what is behind.
+            // pointer. The air between two islands belongs to what is behind,
+            // and so does the place of an island that is switched off.
             mask: Region {
-                Region { item: hubRoot.shown ? bottomHubView.islands[0] : null }
-                Region { item: hubRoot.shown ? bottomHubView.islands[1] : null }
-                Region { item: hubRoot.shown ? bottomHubView.islands[2] : null }
-                Region { item: hubRoot.shown ? bottomHubView.islands[3] : null }
+                Region { item: hubRoot.shown && bottomHubView.islands[0].visible ? bottomHubView.islands[0] : null }
+                Region { item: hubRoot.shown && bottomHubView.islands[1].visible ? bottomHubView.islands[1] : null }
+                Region { item: hubRoot.shown && bottomHubView.islands[2].visible ? bottomHubView.islands[2] : null }
+                Region { item: hubRoot.shown && bottomHubView.islands[3].visible ? bottomHubView.islands[3] : null }
                 Region {
                     readonly property int strip: win.revealStripVisible ? 3 : 0
                     x: win.hubPlace.edge === "right" ? win.width - strip : 0
@@ -853,7 +876,9 @@ Scope {
             exclusiveZone: hubRoot.shown ? bottomHubView.thickness + edgeMargin : 0
 
             // Room for the toasts beside the Hub, on its inner side.
-            readonly property real toastRoom: 6 + (hubVertical ? toasts.implicitWidth : toasts.implicitHeight) + toasts.spacing
+            // A lateral Hub only widens its window while a toast shows.
+            readonly property real toastRoom: 6 + toasts.spacing + (toasts.visibleToasts.length === 0 ? 0
+                : hubVertical ? toasts.implicitWidth : toasts.implicitHeight)
             implicitWidth: hubVertical
                 ? bottomHubView.thickness + toastRoom
                 : (modelData?.width ?? 0) - hubMargin * 2

@@ -32,16 +32,77 @@ No existe un camino soportado que escriba directamente en `/etc/xdg/quickshell/c
 
 Las vistas no pueden depender de `Hypr`, `SystemTray`, `Audio`, `Nmcli`, `Bluetooth`, `UPower`, `Notifs`, `Recorder`, `DesktopEntries`, `GlobalConfig`, `Apps`, `Wallpapers`, `qs.services`, `Caelestia.Config`, `Colours`, `Tokens`, `StyledRect`, `StyledText`, `MaterialIcon` o `ColouredIcon`. El gate `scripts/features/test-native-bottom-hub.py` hace cumplir esta frontera.
 
+## Posición
+
+Desde Cortetsu 3.0 la denominación visible es **Hub**. Los nombres internos
+(`BottomHub.qml`, el destino IPC `bottomHub`, la clave `bottomHub` de las
+preferencias y el namespace `cortetsu-bottom-hub`) se conservan.
+
+El Hub se apoya en uno de ocho anclajes, el mismo para todas las pantallas o
+uno propio por salida. `modules/HubAnchor.js` es el modelo: geometría pura,
+sin compositor, probada en `tests/qml/bottomhub/tst_HubAnchor.qml`.
+
+| Anclaje | Borde | Islas |
+| --- | --- | --- |
+| `bottom-center` (por defecto), `top-center` | inferior, superior | repartidas: modo a un extremo, aplicaciones al centro, bandeja y estado al otro |
+| `bottom-left`, `bottom-right`, `top-left`, `top-right` | inferior, superior | juntas en esa esquina |
+| `middle-left`, `middle-right` | izquierdo, derecho | apiladas: las mismas islas en columna, sin rotar nada |
+
+Reglas:
+
+- Un valor desconocido se lee como `bottom-center`. Una preferencia dañada no
+  puede dejar el Hub fuera de pantalla.
+- La ventana reserva en su borde el grosor del Hub y nada más (`exclusiveZone`).
+- La máscara de entrada es la unión de las islas, la franja de revelado y los
+  toasts. El aire entre dos islas no captura el puntero.
+- Un popout anclado se abre hacia el interior, centrado en el control que lo
+  abrió y siempre dentro de la pantalla (`HubAnchor.popoutPosition`).
+- OSD, avisos, sesión, panel lateral y Dashboard se apartan del borde que ocupa
+  el Hub (`HubAnchor.reserved`, leído en `drawers/Panels.qml`).
+- Los tooltips salen hacia el interior: debajo con el Hub arriba, al lado con
+  el Hub lateral.
+- En un Hub lateral el reloj muestra solo la hora y las píldoras REC/DND/Activo
+  solo su icono; el tooltip sigue nombrándolas.
+
+Cómo cambiarlo:
+
+- Ajustes → Personalización → Hub → Posición: un selector con los ocho puntos,
+  un solo paso de `Tab`, flechas para recorrerlos y `Enter` para elegir. Con
+  más de una pantalla se elige a cuál aplica.
+- IPC, que también sirve para recuperar un Hub mal colocado:
+
+```sh
+qs ipc call bottomHub -- anchor "" bottom-center      # todas las pantallas
+qs ipc call bottomHub -- anchor HDMI-A-1 top-right    # solo esa salida
+qs ipc call bottomHub clearAnchor HDMI-A-1            # vuelve a la común
+qs ipc call bottomHub anchors                         # anclaje efectivo por salida
+```
+
+Preferencias (`~/.config/cortetsu/preferences.json`): `bottomHub.anchor`
+(cadena) y `bottomHub.anchors` (mapa salida → anclaje). Un archivo anterior a
+3.0 no las tiene y se comporta como `bottom-center`.
+
+Prueba con compositor real: `scripts/integration/test-hub-anchors.py`, bajo
+`ws2_run.py`. Recorre los ocho anclajes en un Hyprland anidado y comprueba la
+capa, la zona reservada, la posición del popout, el anclaje por monitor, el
+rechazo de un valor desconocido y que el log de QML quede limpio.
+
+Pendiente: mover el Hub arrastrándolo en un modo de edición. Hoy se elige en
+Ajustes o por IPC.
+
 ## Geometría
 
-El `PanelWindow` ocupa el ancho útil del monitor menos 8 px por lado. `CortetsuBottomHubView` compone cuatro zonas:
+La ventana ocupa el largo útil de su borde menos 8 px por extremo.
+`CortetsuBottomHubView` coloca cuatro islas a lo largo de él:
 
-1. izquierda: modo/launcher/wallpaper/workspaces;
-2. centro: App Rail, centrado respecto al monitor y limitado por el espacio simétrico disponible;
-3. derecha intermedia: tray adaptativo;
-4. derecha: estado/sistema.
+1. modo: lanzador y espacios de trabajo;
+2. aplicaciones, centradas respecto al monitor cuando el Hub va repartido y
+   limitadas por el espacio simétrico disponible;
+3. bandeja adaptativa;
+4. estado y sistema.
 
-Los segmentos visuales usan tamaño explícito derivado de su `implicitWidth`/`implicitHeight`; el App Rail usa `Flickable` únicamente cuando el contenido excede el ancho disponible.
+Las islas usan tamaño explícito derivado de su tamaño implícito; el riel de
+aplicaciones usa `Flickable` únicamente cuando el contenido excede el espacio.
 
 ## Contrato de comportamiento
 

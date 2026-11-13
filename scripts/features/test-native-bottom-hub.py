@@ -185,7 +185,9 @@ def assert_view_contract(source: dict[str, str]) -> None:
     assert "signal hoverRequested(string itemKey, real centerX)" in tray
     assert "signal activateRequested(string itemKey)" in tray
     assert "signal secondaryRequested(string itemKey, real centerX)" in tray
-    assert "width: visible ? implicitWidth : 0" in tray
+    # A hidden tray takes no room along the Hub, whichever way it runs.
+    assert "width: visible || vertical ? implicitWidth : 0" in tray
+    assert "height: visible || !vertical ? implicitHeight : 0" in tray
     assert "modelData.title" in tray
     assert "CortetsuTooltip" in tray
     assert "onPressed: trayItem.forceActiveFocus()" in tray

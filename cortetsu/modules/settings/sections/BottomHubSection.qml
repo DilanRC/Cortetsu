@@ -13,6 +13,51 @@ SettingsColumns {
 
     required property var context
 
+    // "" edits the anchor every monitor shares; an output name, its own.
+    property string anchorMonitor: ""
+    readonly property var monitorNames: (CortetsuScreens.screens ?? []).map(screen => screen.name)
+    readonly property bool hasOwnAnchor: anchorMonitor.length > 0
+        && CortetsuConfig.bottomHub.anchors[anchorMonitor] !== undefined
+
+    SettingsGroup {
+        objectName: "hubPosition"
+        title: qsTr("Posición")
+        icon: "picture_in_picture"
+        detail: qsTr("En qué borde de la pantalla se apoya el Hub. A los lados, sus islas se apilan.")
+
+        SettingChoiceChips {
+            objectName: "hubAnchorMonitor"
+            visible: root.monitorNames.length > 1
+            title: qsTr("Pantalla")
+            options: [{ value: "", label: qsTr("Todas"), icon: "desktop_windows", name: "hubMonitor-all" }]
+                .concat(root.monitorNames.map(name => ({ value: name, label: name, icon: "monitor", name: `hubMonitor-${name}` })))
+            current: root.anchorMonitor
+            detail: root.anchorMonitor.length === 0
+                ? qsTr("Vale para cada pantalla que no tenga una posición propia")
+                : root.hasOwnAnchor ? qsTr("Esta pantalla tiene su propia posición")
+                : qsTr("Esta pantalla sigue la posición común; elige una para darle la suya")
+            onChosen: value => root.anchorMonitor = value
+        }
+
+        HubAnchorPicker {
+            objectName: "hubAnchorPicker"
+            current: root.anchorMonitor.length > 0
+                ? CortetsuConfig.bottomHub.anchorFor(root.anchorMonitor)
+                : CortetsuConfig.bottomHub.anchor
+            onChosen: id => CortetsuConfig.bottomHub.setAnchor(root.anchorMonitor, id)
+        }
+
+        SettingActionRow {
+            objectName: "hubAnchorCommon"
+            visible: root.hasOwnAnchor
+            title: qsTr("Usar la posición común")
+            detail: qsTr("%1 vuelve a seguir la posición de todas las pantallas").arg(root.anchorMonitor)
+            actionLabel: qsTr("Restablecer")
+            actionIcon: "undo"
+            onActivated: CortetsuConfig.bottomHub.clearAnchor(root.anchorMonitor)
+        }
+    }
+
     SettingsGroup {
         title: qsTr("Segmentos")
         icon: "view_column"
@@ -57,7 +102,7 @@ SettingsColumns {
         SettingToggleRow {
             objectName: "barAutoHide"
             title: qsTr("Ocultar automáticamente")
-            detail: qsTr("Ocultar Bottom Hub al alejar el puntero; se revela desde el borde inferior y también se abre con el atajo")
+            detail: qsTr("Ocultar el Hub al alejar el puntero; se revela desde su borde y también se abre con el atajo")
             checked: CortetsuConfig.bar.showOnHover
             onToggled: value => { CortetsuConfig.bar.showOnHover = value; }
         }
@@ -119,7 +164,7 @@ SettingsColumns {
         SettingsGroup {
             title: qsTr("Espacios de trabajo")
             icon: "workspaces"
-            detail: qsTr("Cuántos espacios muestra Bottom Hub alrededor del activo")
+            detail: qsTr("Cuántos espacios muestra el Hub alrededor del activo")
 
             SettingSliderRow {
                 objectName: "workspacesShown"

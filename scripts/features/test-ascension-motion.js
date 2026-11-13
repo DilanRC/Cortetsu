@@ -20,11 +20,12 @@ for (const mode of ['network', 'audio', 'traymenu0']) {
     const popup = { hasCurrent: true, closing: true, detachedMode: 'any' };
     const context = vm.createContext({ ...popup, closeTimer: { stop() { pending = false; } } });
     popup.cancelClose = () => { vm.runInContext(body(wrapper, 'cancelClose'), context); popup.closing = context.closing; };
-    const screen = {};
+    const screen = { name: 'eDP-1' };
     const ownState = {};
     let cleared = null;
     const open = vm.createContext({ popouts: popup, screen, mode, anchorCenter: 720,
         CortetsuScreens: { screens: [screen] },
+        CortetsuConfig: { bottomHub: { anchorFor: name => name === 'eDP-1' ? 'top-right' : 'bottom-center' } },
         CortetsuShellState: { componentsFor: () => ({ popouts: popup }), forScreen: s => s === screen ? ownState : null },
         OverlayPolicy: { closeExclusiveEverywhere(states) { cleared = states; } },
         closeAllLaunchers() {}, closeAllPanels() {}, setShown(value) { popup.shown = value; } });
@@ -34,6 +35,7 @@ for (const mode of ['network', 'audio', 'traymenu0']) {
     assert.equal(popup.currentName, mode);
     assert.equal(popup.detachedMode, '');
     assert.equal(popup.bottomAnchorCenter, 720);
+    assert.equal(popup.hubAnchor, 'top-right', 'the popout opens from the edge its own screen keeps the Hub on');
     assert.equal(popup.hasCurrent, true);
     assert.equal(popup.shown, true, 'opening the attached control keeps the Bottom Hub shown');
     assert(cleared.length === 1 && cleared[0] === ownState, 'an attached popout only clears its own screen');

@@ -106,10 +106,6 @@ Item {
     // window's input mask is exactly these, so the air between two islands
     // belongs to whatever is behind the Hub.
     readonly property var islands: [leftSegment, appSegment, traySegment, statusSegment]
-    function islandRect(island: Item): rect {
-        return island.visible ? Qt.rect(island.x, island.y, island.width, island.height) : Qt.rect(0, 0, 0, 0);
-    }
-
     function along(item: Item): real { return !item.visible ? 0 : root.vertical ? item.height : item.width; }
     function across(item: Item): real {
         return Math.round(((root.vertical ? root.width : root.height) - (root.vertical ? item.width : item.height)) / 2);
@@ -127,10 +123,14 @@ Item {
 
     readonly property real modeAt: spread ? edgeGap : packedStart
     readonly property real appsAt: spread ? Math.round((length - appsLength) / 2) : modeAt + step(leftSegment)
-    readonly property real statusAt: spread ? length - edgeGap - statusLength : trayAt + step(traySegment)
-    readonly property real trayAt: spread
-        ? statusAt - (statusLength > 0 ? gap + 2 : 0) - trayLength
-        : appsAt + step(appSegment)
+    // Spread and packed are worked out apart: read from one another, the
+    // tray and the status island form a binding loop when the pack changes.
+    readonly property real statusAtSpread: length - edgeGap - statusLength
+    readonly property real trayAtSpread: statusAtSpread - (statusLength > 0 ? gap + 2 : 0) - trayLength
+    readonly property real trayAtPacked: appsAt + step(appSegment)
+    readonly property real statusAtPacked: trayAtPacked + step(traySegment)
+    readonly property real statusAt: spread ? statusAtSpread : statusAtPacked
+    readonly property real trayAt: spread ? trayAtSpread : trayAtPacked
 
     // Spread: the rail stays centred, so it may only grow as far as the
     // longer of its two neighbours allows on both sides. Packed: whatever

@@ -76,16 +76,4 @@ TestCase {
         compare(HubAnchor.reserved("middle-right", 60), { top: 0, bottom: 0, left: 0, right: 60 });
         compare(HubAnchor.reserved("junk", 60), { top: 0, bottom: 60, left: 0, right: 0 });
     }
-
-    function test_nearest_anchor_covers_the_whole_screen() {
-        compare(HubAnchor.nearest(10, 10, 1920, 1080), "top-left");
-        compare(HubAnchor.nearest(960, 10, 1920, 1080), "top-center");
-        compare(HubAnchor.nearest(1900, 1070, 1920, 1080), "bottom-right");
-        compare(HubAnchor.nearest(10, 540, 1920, 1080), "middle-left");
-        compare(HubAnchor.nearest(960, 700, 1920, 1080), "bottom-center");
-        compare(HubAnchor.nearest(700, 540, 1920, 1080), "middle-left");
-        for (let x = 0; x <= 1920; x += 96)
-            for (let y = 0; y <= 1080; y += 54)
-                verify(HubAnchor.valid(HubAnchor.nearest(x, y, 1920, 1080)), `(${x}, ${y})`);
-    }
 }

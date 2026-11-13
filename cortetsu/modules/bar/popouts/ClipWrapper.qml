@@ -26,9 +26,14 @@ Item {
 
     // An attached popout opens inwards from the Hub's edge, centred on the
     // control that opened it and always inside the screen.
-    readonly property var attachedAt: HubAnchor.popoutPosition(content.hubAnchor, content.bottomAnchorCenter,
+    // The anchor arrives in screen coordinates; this item lives in Panels.
+    readonly property var hubPlace: HubAnchor.describe(content.hubAnchor)
+    readonly property real alongHere: content.bottomAnchorCenter < 0 ? -1
+        : Math.max(0, content.bottomAnchorCenter - (hubPlace.vertical ? parent.y : parent.x))
+    readonly property var attachedAt: HubAnchor.popoutPosition(content.hubAnchor, alongHere,
         content.nonAnimWidth, content.nonAnimHeight, parent.width, parent.height,
         content.bottomOffset - CortetsuDesign.spacingStandard, CortetsuDesign.spacingStandard, 8)
+    readonly property var travel: HubAnchor.popoutTravel(content.hubAnchor)
     x: content.isDetached
         ? (parent.width - content.nonAnimWidth) / 2
         : (content.bottomAttached || content.closing) ? attachedAt.x : 0
@@ -61,10 +66,12 @@ Item {
         // content at the local origin prevents a second horizontal offset
         // from pulling popouts away from their BottomHub/tray icon.
         x: 0
-        transformOrigin: Item.Bottom
+        transformOrigin: root.hubPlace.edge === "top" ? Item.Top : root.hubPlace.edge === "left" ? Item.Left
+            : root.hubPlace.edge === "right" ? Item.Right : Item.Bottom
         opacity: 1 - root.offsetScale
         // design-lint: allow motion-scale-from-zero: offsetScale is 0..1, so the scale stays in 0.975..1
         scale: 1 - 0.025 * root.offsetScale
-        transform: Translate { y: 12 * root.offsetScale }
+        // It arrives from the Hub and leaves towards it.
+        transform: Translate { x: 12 * root.offsetScale * root.travel.x; y: 12 * root.offsetScale * root.travel.y }
     }
 }

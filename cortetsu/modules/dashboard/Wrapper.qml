@@ -9,8 +9,11 @@ Item {
     readonly property bool shouldBeActive: screenState?.dashboard === true
     property real offsetScale: shouldBeActive ? 0 : 1
 
+    // What the Hub takes from each edge (Panels sets it per screen).
+    property var hubReserved: ({ top: 0, bottom: CortetsuDesign.bottomHubHeight, left: 0, right: 0 })
+
     visible: offsetScale < 1
-    anchors.topMargin: (-implicitHeight - CortetsuDesign.spacingStandard) * offsetScale
+    anchors.topMargin: hubReserved.top * (1 - offsetScale) + (-implicitHeight - CortetsuDesign.spacingStandard) * offsetScale
     implicitWidth: content.implicitWidth
     implicitHeight: content.implicitHeight
     opacity: 1 - offsetScale

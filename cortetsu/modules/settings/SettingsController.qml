@@ -57,9 +57,9 @@ QtObject {
             { id: "background", title: qsTr("Fondo"), icon: "wallpaper", summary: "wallpaper", detail: qsTr("Fondo de escritorio, reloj y visualizador"),
               keywords: qsTr("fondo wallpaper imagen orbital reloj escritorio visualizador barras"),
               settings: [qsTr("Fondo actual"), qsTr("Elegir otro fondo"), qsTr("Posición del reloj"), qsTr("Reloj del escritorio"), qsTr("Mostrar fecha"), qsTr("Espacios por monitor"), qsTr("Visualizador de audio"), qsTr("Número de barras")] },
-            { id: "bottomhub", title: qsTr("Bottom Hub"), icon: "dock_to_bottom", summary: "", detail: qsTr("Segmentos, estados, espacios e interacción"),
-              keywords: qsTr("bottom hub barra ocultar automáticamente bandeja iconos monocromos espacios estado rueda"),
-              settings: [qsTr("Ocultar automáticamente"), qsTr("Detalle al pulsar un estado"), qsTr("Volumen con la rueda"), qsTr("Modo y espacios"), qsTr("Aplicaciones"), qsTr("Bandeja"), qsTr("Iconos monocromos de la bandeja"), qsTr("Mostrar cantidad de notificaciones"), qsTr("Espacios visibles"), qsTr("Mostrar números"), qsTr("Icono de la aplicación")] },
+            { id: "bottomhub", title: qsTr("Hub"), icon: "dock_to_bottom", summary: "", detail: qsTr("Posición, islas, estados, espacios e interacción"),
+              keywords: qsTr("hub bottom hub barra dock posición borde anclaje lateral arriba abajo izquierda derecha monitor ocultar automáticamente bandeja iconos monocromos espacios estado rueda"),
+              settings: [qsTr("Posición"), qsTr("Ocultar automáticamente"), qsTr("Detalle al pulsar un estado"), qsTr("Volumen con la rueda"), qsTr("Modo y espacios"), qsTr("Aplicaciones"), qsTr("Bandeja"), qsTr("Iconos monocromos de la bandeja"), qsTr("Mostrar cantidad de notificaciones"), qsTr("Espacios visibles"), qsTr("Mostrar números"), qsTr("Icono de la aplicación")] },
             { id: "panels", title: qsTr("Paneles laterales"), icon: "side_navigation", summary: "desktop", detail: qsTr("Dashboard, panel de avisos y utilidades"),
               keywords: qsTr("dashboard panel lateral sidebar utilidades multimedia clima métricas cpu gpu memoria"),
               settings: [qsTr("Dashboard"), qsTr("Abrir al acercar el puntero"), qsTr("Multimedia"), qsTr("Clima"), qsTr("Métricas"), qsTr("Panel de avisos"), qsTr("Panel de utilidades")] }

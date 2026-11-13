@@ -1165,12 +1165,29 @@ ShellRoot {
             toggle.forceActiveFocus(); key(Qt.Key_Space);
             verify(!CortetsuConfig.bottomHub.statusCluster.showNotificationCount && !notificationBadgeVisible(),
                 "the preference changes the Bottom Hub badge visibility policy");
+            // The Hub's position: one Tab stop, arrows walk the screen, Enter chooses.
+            const picker = page("hubAnchorPicker");
+            verify(picker.current === "bottom-center" && find(picker, "hubAnchorName").text === "Abajo, a lo ancho",
+                `the picker starts on the saved anchor (${picker.current})`);
+            picker.forceActiveFocus();
+            key(Qt.Key_Up);
+            verify(picker.focused === "top-center" && CortetsuConfig.bottomHub.anchor === "bottom-center",
+                `Up crosses the empty centre and only moves the mark (${picker.focused})`);
+            key(Qt.Key_Left);
+            key(Qt.Key_Left);
+            verify(picker.focused === "top-left", "the mark stops at the screen's corner");
+            key(Qt.Key_Return);
+            verify(CortetsuConfig.bottomHub.anchor === "top-left" && picker.current === "top-left"
+                && find(picker, "hubAnchor-top-left").selected, "Enter moves the Hub to the marked anchor");
+            verify(!page("hubAnchorCommon").visible, "the shared anchor offers nothing to restore");
         }],
         [() => CortetsuConfig.saveState === "saved", () => {}]
     ]
     readonly property var notificationCountRestore: [
         [() => CortetsuConfig.loaded, () => { select("bottomhub"); screenDouble.settings = true; }],
         [() => !!content && !!page("notificationCount"), () => {
+            verify(CortetsuConfig.bottomHub.anchor === "top-left" && page("hubAnchorPicker").current === "top-left",
+                `the Hub's anchor restores in a new process (${CortetsuConfig.bottomHub.anchor})`);
             verify(!CortetsuConfig.bottomHub.statusCluster.showNotificationCount
                 && !page("notificationCount").checked && !notificationBadgeVisible(),
                 "the notification count preference restores on launch");
@@ -2229,11 +2246,13 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
 
     output, notification_count_home = run(folder, "shell.qml", "notificationCountPreferences",
                                           preferences={"schema": 1})
-    assert passed(output) == 2, output
+    assert passed(output) == 7, output
     notification_count_saved = json.loads((notification_count_home / ".config/cortetsu/preferences.json").read_text())
     assert notification_count_saved["bottomHub"]["statusCluster"]["showNotificationCount"] is False, notification_count_saved
+    assert notification_count_saved["bottomHub"]["anchor"] == "top-left", notification_count_saved["bottomHub"]
+    assert notification_count_saved["bottomHub"]["anchors"] == {}, notification_count_saved["bottomHub"]
     restored, _ = run(folder, "shell.qml", "notificationCountRestore", preferences=notification_count_saved)
-    assert passed(restored) == 1, restored
+    assert passed(restored) == 2, restored
 
     output, battery_low_home = run(folder, "shell.qml", "batteryLowPreferences", preferences={"schema": 1})
     assert passed(output) == 2, output

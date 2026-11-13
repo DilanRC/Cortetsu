@@ -118,23 +118,3 @@ function reserved(id, thickness) {
         right: edge === "right" ? thickness : 0
     };
 }
-
-// The nearest anchor to a point of the monitor, for dropping the Hub while
-// it is being moved in edit mode. The screen is cut in thirds each way; the
-// very centre belongs to the nearest side.
-function nearest(x, y, width, height) {
-    const column = x < width / 3 ? 0 : x > width * 2 / 3 ? 2 : 1;
-    const row = y < height / 3 ? 0 : y > height * 2 / 3 ? 2 : 1;
-    if (row === 1 && column === 1) {
-        const dx = Math.min(x, width - x) / width;
-        const dy = Math.min(y, height - y) / height;
-        if (dx < dy)
-            return x < width / 2 ? "middle-left" : "middle-right";
-        return y < height / 2 ? "top-center" : "bottom-center";
-    }
-    return [
-        ["top-left", "top-center", "top-right"],
-        ["middle-left", "", "middle-right"],
-        ["bottom-left", "bottom-center", "bottom-right"]
-    ][row][column];
-}
