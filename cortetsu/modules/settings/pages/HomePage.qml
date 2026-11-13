@@ -29,18 +29,15 @@ SettingsPage {
     kind: "wide"
 
     // The desktop as it is: wallpaper, theme and palette, with the way to
-    // change each one.
-    CortetsuSurface {
+    // change each one. The page's one protagonist block.
+    CortetsuHero {
         objectName: "homeHero"
         Layout.fillWidth: true
-        implicitHeight: heroRow.implicitHeight + CortetsuDesign.spacingSpacious * 2
-        radiusValue: CortetsuDesign.radiusLarge
-        baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.75)
+        padding: CortetsuDesign.spacingSpacious
 
         GridLayout {
             id: heroRow
-            anchors.fill: parent
-            anchors.margins: CortetsuDesign.spacingSpacious
+            width: parent.width
             columns: width >= 620 ? 2 : 1
             columnSpacing: CortetsuDesign.spacingSpacious
             rowSpacing: CortetsuDesign.spacingStandard
@@ -132,92 +129,29 @@ SettingsPage {
         }
     }
 
-    // The main domains at a glance; each tile opens its page.
-    GridLayout {
-        Layout.fillWidth: true
-        columns: width >= 880 ? 4 : 2
-        columnSpacing: CortetsuDesign.spacingStandard
-        rowSpacing: CortetsuDesign.spacingStandard
+    SettingsColumns {
+        // How the main domains stand, as rows: what is normal stays quiet,
+        // what needs a look is named in vermillion. Each row opens its page.
+        SettingsGroup {
+            objectName: "homeStatus"
+            title: qsTr("Estado")
+            icon: "monitor_heart"
 
-        Repeater {
-            model: root.tiles
+            Repeater {
+                model: root.tiles
 
-            Item {
-                id: tile
-                required property var modelData
-                objectName: `homeTile-${modelData.page}`
-                Layout.fillWidth: true
-                Layout.preferredWidth: 1
-                implicitHeight: 96
-                activeFocusOnTab: true
-                Accessible.role: Accessible.Link
-                Accessible.name: `${modelData.title}: ${modelData.alert || modelData.value}`
-                Accessible.onPressAction: root.controller.select(modelData.page)
-                Keys.onReturnPressed: root.controller.select(modelData.page)
-                Keys.onEnterPressed: root.controller.select(modelData.page)
-                Keys.onSpacePressed: root.controller.select(modelData.page)
-
-                CortetsuSurface {
-                    anchors.fill: parent
-                    radiusValue: CortetsuDesign.radiusLarge
-                    focused: tile.activeFocus
-                    hovered: tileMouse.containsMouse
-                    pressed: tileMouse.pressed
-                    baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.72)
-                }
-
-                ColumnLayout {
-                    anchors.fill: parent
-                    anchors.margins: CortetsuDesign.spacingComfortable
-                    spacing: 2
-
-                    RowLayout {
-                        Layout.fillWidth: true
-
-                        CortetsuIcon {
-                            text: tile.modelData.icon
-                            iconSize: CortetsuTypography.iconMediumPx
-                            color: tile.modelData.alert ? CortetsuDesign.colorVermillion : CortetsuDesign.colorPrimary
-                        }
-                        Item { Layout.fillWidth: true }
-                        CortetsuIcon {
-                            text: "chevron_right"
-                            iconSize: CortetsuTypography.iconSmallPx
-                            color: CortetsuDesign.colorOnSurfaceVariant
-                        }
-                    }
-
-                    Item { Layout.fillHeight: true }
-
-                    CortetsuText {
-                        Layout.fillWidth: true
-                        text: tile.modelData.title
-                        textSize: CortetsuTypography.bodyLargePx
-                        font.weight: Font.DemiBold
-                        elide: Text.ElideRight
-                    }
-
-                    CortetsuText {
-                        Layout.fillWidth: true
-                        text: tile.modelData.alert || tile.modelData.value
-                        textSize: CortetsuTypography.bodySmallPx
-                        color: tile.modelData.alert ? CortetsuDesign.colorVermillion : CortetsuDesign.colorOnSurfaceVariant
-                        elide: Text.ElideRight
-                    }
-                }
-
-                MouseArea {
-                    id: tileMouse
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: root.controller.select(tile.modelData.page)
+                SettingNavRow {
+                    required property var modelData
+                    objectName: `homeTile-${modelData.page}`
+                    title: modelData.title
+                    icon: modelData.icon
+                    value: modelData.value
+                    alertText: modelData.alert
+                    onActivated: root.controller.select(modelData.page)
                 }
             }
         }
-    }
 
-    SettingsColumns {
         SettingsGroup {
             title: qsTr("Ajustes frecuentes")
             icon: "bolt"

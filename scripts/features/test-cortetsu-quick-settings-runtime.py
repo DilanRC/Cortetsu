@@ -124,6 +124,11 @@ ShellRoot {
         () => {
             const mic = find(panel, "quickMicrophone");
             verify(!mic.clickable && mic.label === "Sin micrófono", "without an input the tile is a reading, not a dead switch");
+            // It was the focus item when the input went away: keys reach it
+            // and must do nothing.
+            events.keyClick(Qt.Key_Space, Qt.NoModifier, -1);
+            events.keyClick(Qt.Key_Return, Qt.NoModifier, -1);
+            verify(!mic.enabled && !mic.activeFocus, "a reading is disabled, so no key or Tab reaches it");
             verify(find(panel, "quickEnergy").text.length > 0, "energy keeps its one line");
             grab("no-audio");
             return true;
@@ -152,7 +157,7 @@ def main():
         (folder / "quick.qml").write_text(SHELL, encoding="utf-8")
         output, _ = run(folder, "quick.qml", "quick", preferences={"schema": 1})
         failures = [line for line in output.splitlines() if "SETTINGS_FAIL" in line]
-        assert not failures and "SETTINGS_RUNTIME_PASS 13" in output, failures or output[-3000:]
+        assert not failures and "SETTINGS_RUNTIME_PASS 14" in output, failures or output[-3000:]
     print("PASS: Quick Settings toggles Wi-Fi through its service, waits for the radio, reports a refusal, "
           "mutes the microphone, and turns into readings when there is nothing to operate")
 

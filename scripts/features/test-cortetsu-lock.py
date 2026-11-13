@@ -20,7 +20,7 @@ for marker in (
     "Contraseña",
     "Contraseña incorrecta. Inténtalo de nuevo.",
     "lockBackdrop",
-    "CortetsuWallpapers.current",
+    "CortetsuWallpapers.actualCurrent",
     "CortetsuEvolvingMark",
     'phase: root.markPhase',
     "property bool authenticationAccepted",

@@ -139,7 +139,10 @@ assert "CortetsuColours.variant" in schemes
 assert 'if (!M3Variants.variantAvailable)' in app_list
 assert "if (!root.variantAvailable)" in variants
 assert "readonly property bool variantAvailable: M3Variants.variantAvailable" in schemes
-assert "anchors.bottom: true" in bottom_hub
+# The Hub anchors to the edge its preference names; the bottom is the default
+# and what an unknown value falls back to (HubAnchor.js).
+assert 'anchors.bottom: hubPlace.edge === "bottom"' in bottom_hub
+assert 'var fallback = "bottom-center";' in (SHELL / "modules/HubAnchor.js").read_text(encoding="utf-8")
 assert all("CortetsuIsland {}" in (SHELL / "modules" / filename).read_text(encoding="utf-8")
            for filename in ("CortetsuModeSegment.qml", "CortetsuAppRail.qml",
                             "CortetsuTraySegment.qml", "CortetsuStatusSegment.qml"))

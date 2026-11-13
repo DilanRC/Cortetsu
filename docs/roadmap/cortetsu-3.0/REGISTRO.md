@@ -46,7 +46,8 @@ Un estado solo sube con la evidencia que cita. Lo que no se probó se dice.
 - Pruebas: `scripts/features/test-cortetsu-settings-runtime.py` (navegación, estados, teclado, persistencia, contraste), 30 destinos renderizados en Ink, Washi, Kurogane y ventana estrecha.
 - Launcher (2026-11-13): ya abría compacto; las celdas dejan de llevar un marco cada una (solo la selección tiene fondo y borde) y un nombre largo ocupa dos líneas antes de cortarse. Captura: `docs/evidence/cortetsu-30-launcher-20261113/`. Pasan `tests/qml/launcher` y `scripts/integration/test-launcher-dismiss.py` (anidado, 25 comprobaciones).
 - Fallos previos, no causados por este trabajo (fallan igual en `f47f9c0c`): `test-cortetsu-launcher-apps-runtime.py` y `test-cortetsu-launcher-mode-actions-runtime.py`; tampoco pasan `test-cortetsu-native-design-system.py` ni `test-cortetsu-button-tooltip.py`. Ninguno está en un gate.
-- Pendiente: Inicio (cuatro tarjetas iguales), repaso de las páginas restantes contra ADR-008, modo de exploración del Launcher (categorías, recientes).
+- Inicio (2026-11-13): las cuatro tarjetas iguales (red, Bluetooth, sonido, energía) pasan a un grupo "Estado" de filas que abren su página; una alerta se nombra en bermellón y lo normal queda en una línea. El bloque del escritorio es el `CortetsuHero` de la página.
+- Pendiente: repaso de las páginas restantes contra ADR-008, modo de exploración del Launcher (categorías, recientes).
 
 #### Fase 3 - Hub multiposición
 
@@ -82,3 +83,12 @@ Un estado solo sube con la evidencia que cita. Lo que no se probó se dice.
 - Pruebas: `tests/qml/surfaces/tst_MiniSlider.qml` (10), `scripts/features/test-cortetsu-quick-settings-runtime.py` (13 comprobaciones, añadida a `build-regressions.sh`), `test-cortetsu-notice-cards-runtime.py`, gate de Settings.
 - Decisión: Bloq Mayús/Num, distribución, cambio de dispositivo, carga y modo juego siguen siendo toasts (`CortetsuToaster`), con sus interruptores en Ajustes. Pasarlos al OSD crearía un segundo dueño del mismo aviso.
 - Pendiente: OSD de perfil de energía; secciones expandibles en el centro de control; medir latencia; probar el OSD con el Hub lateral y en `HDMI-A-1`; sesión real.
+
+#### Revisión del bloque 2026-11-12/13
+
+- Thermos: las dos pasadas (corrección/seguridad y mantenibilidad) se hicieron en línea y en secuencia, sin subagentes, por preferencia de Dilan; no son independientes del autor.
+  - Corrección: un hallazgo propio resultó falso al verificarlo (un `CortetsuActionTile` no pulsable ya está `enabled: false`, así que no recibe teclas); se deshizo el cambio y quedó solo una comprobación de nulo en el micrófono. Hallazgo real P3: el fondo del bloqueo leía `CortetsuWallpapers.current`, que durante una vista previa es la imagen previsualizada; ahora usa `actualCurrent`.
+  - Mantenibilidad: sin código muerto nuevo; `HubAnchor.nearest` (sin uso) se retiró antes del commit del Hub.
+- Revisión externa: Codex `gpt-6-luna`, solo lectura, sobre `36dea6db..HEAD`: sin defectos confirmados en Hub, bloqueo, Ajustes rápidos, Settings ni mantenibilidad. Estática: no ejecutó pruebas.
+- Gate de instalación (`build-regressions.sh` sobre un runtime preparado en un directorio temporal, sin instalar) encontró tres regresiones de este trabajo, ya corregidas: el inventario de procesos de arranque apuntaba a la sonda de teclado en `LockSurface.qml` (ahora en `Lock.qml`); dos fixtures copiaban `CortetsuConfig.qml` sin `HubAnchor.js`; una aserción exigía el Hub anclado abajo. Pasa completo.
+- Fallos previos, ajenos a 3.0 (fallan igual en `36dea6db`): `test-cortetsu-idle-runtime.py`, `test-gamemode-runtime.py`, `test-cortetsu-brightness.py`.

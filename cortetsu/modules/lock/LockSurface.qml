@@ -57,7 +57,8 @@ WlSessionLockSurface {
     Image {
         objectName: "lockBackdrop"
         anchors.fill: parent
-        source: CortetsuWallpapers.current
+        // The applied wallpaper, never one being previewed.
+        source: CortetsuWallpapers.actualCurrent
         fillMode: Image.PreserveAspectCrop
         asynchronous: true
         cache: true

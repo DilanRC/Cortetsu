@@ -206,7 +206,8 @@ Item {
                 highlighted: root.microphonePresent && !CortetsuAudio.sourceMuted
                 warning: false
                 clickable: root.microphonePresent
-                onActivated: CortetsuAudio.source.audio.muted = !CortetsuAudio.source.audio.muted
+                onActivated: if (CortetsuAudio.source?.audio)
+                    CortetsuAudio.source.audio.muted = !CortetsuAudio.source.audio.muted
             }
 
             CortetsuActionTile {

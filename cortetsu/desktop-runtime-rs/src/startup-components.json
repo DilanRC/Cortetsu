@@ -353,10 +353,10 @@
   {
     "id": "cortetsu:lock-keyboard-probe",
     "name": "Lock keyboard discovery",
-    "source": "modules/lock/LockSurface.qml",
+    "source": "modules/lock/Lock.qml",
     "qmlId": "keyboardProbe",
     "startupPhase": "on-demand",
-    "condition": "Al mostrar la pantalla de bloqueo",
+    "condition": "Mientras la sesión está bloqueada, una lectura para todas las pantallas",
     "command": [
       "hyprctl",
       "-j",

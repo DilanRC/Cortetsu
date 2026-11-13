@@ -110,6 +110,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-keyboard-state-") as temporary
         shutil.copy(ROOT / "modules" / helper, folder / "modules" / helper)
     shutil.copy(ROOT / "modules/CortetsuConfig.qml", folder / "modules/CortetsuConfig.qml")
     shutil.copy(ROOT / "modules/ThemePreferences.js", folder / "modules/ThemePreferences.js")
+    shutil.copy(ROOT / "modules/HubAnchor.js", folder / "modules/HubAnchor.js")
     (folder / "theme").mkdir()
     shutil.copy(ROOT / "theme/ThemeProfiles.js", folder / "theme/ThemeProfiles.js")
     (folder / "services").mkdir()
