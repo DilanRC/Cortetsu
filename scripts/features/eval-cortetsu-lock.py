@@ -8,7 +8,7 @@ pam = (ROOT / "cortetsu/base/modules/lock/Pam.qml").read_text(encoding="utf-8")
 assert "Qt.alpha(CortetsuDesign.colorSumi" in surface
 assert 'import ".."' in surface
 assert "contraseña" in card.lower()
-surface = surface + card
+surface = surface + card + (ROOT / "cortetsu/modules/lock/Lock.qml").read_text(encoding="utf-8")
 assert "repeat(root.pam.buffer.length)" in card
 assert "CortetsuPower" in surface and "CortetsuNetwork.active" in surface
 assert "Icons.getBatteryIcon" in surface and "batteryCharging" in surface
@@ -22,7 +22,7 @@ assert 'Qt.callLater(() => keyboardFocus.forceActiveFocus())' in surface
 assert 'function onSecureChanged(): void' in surface
 assert 'root.lock.secure && !activeFocus' in surface
 assert 'property bool authenticationAccepted' in surface
-assert ' ? "Ascended"' in surface and ' ? "Awakening"' in surface and ': "Human"' in surface
+assert 'accepted ? "Cosmic" : rejected ? "Monster" : "Ascended"' in surface
 assert 'function onAuthenticationSucceeded(): void' in surface
 assert 'pam.releaseAfterSuccess()' in surface
 assert 'interval: CortetsuDesign.motionStandardMs' in surface

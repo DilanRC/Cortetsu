@@ -5,7 +5,8 @@ lock = (ROOT / "cortetsu/modules/lock/Lock.qml").read_text(encoding="utf-8")
 surface_only = (ROOT / "cortetsu/modules/lock/LockSurface.qml").read_text(encoding="utf-8")
 # LockSurface owns keys, focus and PAM; LockCard draws what they show.
 card = (ROOT / "cortetsu/modules/lock/LockCard.qml").read_text(encoding="utf-8")
-surface = surface_only + card
+# The keyboard probe lives in Lock.qml: one for every surface.
+surface = surface_only + card + lock
 pam = (ROOT / "cortetsu/base/modules/lock/Pam.qml").read_text(encoding="utf-8")
 shell = (ROOT / "cortetsu/shell.qml").read_text(encoding="utf-8")
 
@@ -18,18 +19,17 @@ for marker in (
     "pam.handleKey",
     "Contraseña",
     "Contraseña incorrecta. Inténtalo de nuevo.",
-    "ScreencopyView",
+    "lockBackdrop",
+    "CortetsuWallpapers.current",
     "CortetsuEvolvingMark",
     'phase: root.markPhase',
     "property bool authenticationAccepted",
-    "interactionActive",
     "Qt.callLater(() => keyboardFocus.forceActiveFocus())",
     "onSecureChanged",
     "onActiveFocusChanged",
     "root.lock.secure && !activeFocus",
-    ' ? "Ascended"',
-    ' ? "Awakening"',
-    ': "Human"',
+    'accepted ? "Cosmic" : rejected ? "Monster" : "Ascended"',
+    "accepted: root.authenticationAccepted",
     "onAuthenticationSucceeded",
     "unlockTransition",
     "pam.releaseAfterSuccess",
@@ -50,8 +50,10 @@ for marker in (
 assert "Keyboard layout · Enter to authenticate" not in surface
 assert "root.keyboardLayout" in surface
 assert "root.userLabel" in surface
-mark_start = surface_only.index("readonly property string markPhase")
-assert "pam.state" not in surface_only[mark_start:mark_start + 320]
+# The surface never copies the desktop and never decides the mark: the card
+# derives it from PAM's state and from the acceptance the surface reports.
+assert "ScreencopyView" not in surface and "markPhase" not in surface_only
+assert "keyboardProbe" not in surface_only
 assert 'qsTr("Bloq Mayús")' in card and 'qsTr("CAPS")' not in surface
 assert "Pulsa Enter" not in surface
 assert "Lock { id: lock }" in shell

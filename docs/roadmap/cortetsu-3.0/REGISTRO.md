@@ -14,7 +14,7 @@ Un estado solo sube con la evidencia que cita. Lo que no se probó se dice.
 | 4 Islas, popouts y tray | NOT_STARTED |
 | 5 OSD 3.0 y Ajustes rápidos | NOT_STARTED |
 | 6 Centros de servicio | NOT_STARTED |
-| 7 Lockscreen, Dashboard y widgets | NOT_STARTED |
+| 7 Lockscreen, Dashboard y widgets | PARTIAL |
 | 8 Audio avanzado y superficies restantes | NOT_STARTED |
 | 9 Certificación | NOT_STARTED |
 
@@ -58,3 +58,14 @@ Un estado solo sube con la evidencia que cita. Lo que no se probó se dice.
 - Limitaciones: no instalado en la sesión real; sin prueba en `eDP-1` + `HDMI-A-1` físicos con anclajes distintos ni a escala 1.25; fullscreen y modo juego solo probados con el Hub abajo; el modo de edición con arrastre no existe (se elige en Ajustes o por IPC); el launcher y la cuenta de `bottomHubHeight` del OSD compacto no se revisaron con el Hub lateral.
 - Rollback: `qs ipc call bottomHub -- anchor "" bottom-center` devuelve el Hub abajo sin tocar código; `git revert` del commit de la fase.
 - Decisión de gate: código y pruebas anidadas en verde; la matriz física queda para la fase 9.
+
+#### Fase 7 - Lockscreen, Dashboard y widgets
+
+- Estado: PARTIAL (bloqueo hecho en código; Dashboard y widgets sin empezar)
+- Fecha: 2026-11-13.
+- QML modificados: `modules/lock/{Lock,LockSurface,LockCard}.qml`. `base/modules/lock/Pam.qml` no se tocó: la ruta de autenticación y de liberación es la misma.
+- Cambios: el emblema sigue a PAM (Ascended bloqueado, Monster tras rechazo o demasiados intentos, Cosmic tras éxito); "Demasiados intentos" tenía su mensaje tapado por el de contraseña incorrecta y ahora se muestra; "autenticación no disponible" ya no se pinta como contraseña errónea; el fondo es el wallpaper atenuado y no una captura del escritorio; la lectura de distribución y Bloq Mayús/Num es una sola para todas las pantallas y solo corre con la sesión bloqueada (antes una por superficie); con movimiento reducido el rechazo no sacude el campo.
+- Pruebas: `test-cortetsu-lock-card-runtime.py` (19 comprobaciones de estados, antes 10), `scripts/integration/test-lock-surface-nested.py` (la superficie real carga y bloquea dos salidas en un Hyprland anidado; no envía contraseña), `test-cortetsu-lock-runtime.py` (PAM real con `pam_permit`/`pam_deny`: solo el éxito libera).
+- No probado: desbloqueo con la contraseña real en la sesión física, huella, suspensión y reanudación bloqueado, conexión de un monitor con la sesión bloqueada con estos cambios. El emblema no se dibuja con render por software, así que su tamaño y color nuevos no tienen captura.
+- Seguridad: no hay ruta nueva de desbloqueo ni IPC nuevo; el bloqueo no se instaló. **Antes de `cortetsu install`, probar bloqueo y desbloqueo a mano con una TTY abierta como salida.**
+- Rollback: `git revert` del commit; `Pam.qml` intacto.

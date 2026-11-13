@@ -133,13 +133,16 @@ rendered product.
 
 The lock surface now lives in the first-party `cortetsu/modules/lock` module.
 `WlSessionLock` and the existing PAM provider remain the authentication and
-session boundary; the new UI only consumes that backend. It uses the current
-screen capture with controlled dimming, Cortetsu mark, clock/date, password
-echo, failure feedback, battery/network status, and a restrained keyboard hint.
-The mark is Human while the surface waits, Awakening while password, fingerprint,
-or face authentication is active, and Ascended only after PAM reports a real
-success. The mark gets one standard motion interval before the lock releases.
-Failed, error, and maximum-tries results never select Ascended.
+session boundary; the new UI only consumes that backend. It draws the dimmed
+wallpaper (never a capture of the desktop, whose windows would be readable on a
+locked screen), the Cortetsu mark, clock/date, password echo, failure feedback,
+battery/network status, and a restrained keyboard hint.
+Since Cortetsu 3.0 (ADR-008) the mark follows the authentication: Ascended
+while the session is locked, including while typing; Monster after PAM rejects
+an attempt or reports too many of them, until another attempt is allowed; and
+Cosmic only after PAM reports a real success, for one standard motion interval
+before the lock releases. Human and Awakening are not used on the lock.
+Failed, error, and maximum-tries results never select Cosmic.
 
 PAM success is the only way out of the lock. The `cortetsu:lock` shortcut and
 the `lock` IPC target expose `lock` and `isLocked`; there is no `unlock`

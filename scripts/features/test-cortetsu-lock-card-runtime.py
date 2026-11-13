@@ -30,6 +30,7 @@ ShellRoot {
     property bool busy: false
     property int grabs: 0
     property real shakeSeen: 0
+    property int settle: 0
     readonly property string renderDir: Quickshell.env("CORTETSU_RENDER_DIR")
     function verify(value, reason) { if (!value) console.log("LOCK_FAIL", reason); else checks++; }
     function grab(name) {
@@ -71,12 +72,14 @@ ShellRoot {
 
     readonly property var steps: [
         () => window.active && card.passwordField.width > 0,
-        () => { verify(shown("Contraseña"), "an empty field says what goes in it");
+        () => { verify(card.markPhase === "Ascended", `a locked session shows Ascended (${card.markPhase})`);
+                verify(shown("Contraseña"), "an empty field says what goes in it");
                 verify(!find(card, c => c.objectName === "lockCapsLock").visible, "no Caps Lock badge while it is off");
                 grab("empty"); return true; },
         () => grabs === 1,
         () => { pam.buffer = "secret"; return true; },
-        () => { verify(shown("• • • • • • "), "typed characters show as dots");
+        () => { verify(card.markPhase === "Ascended", "typing does not change the mark");
+                verify(shown("• • • • • • "), "typed characters show as dots");
                 grab("typing"); return true; },
         () => grabs === 2,
         // Enter: PAM takes the buffer and is checking; a previous error must not show.
@@ -88,8 +91,31 @@ ShellRoot {
         () => { verify(root.shakeSeen >= 6, `a rejected attempt shakes the field (${root.shakeSeen} px)`);
                 verify(Qt.colorEqual(card.passwordField.border.color, CortetsuDesign.colorVermillion), "the field edge turns vermillion");
                 verify(shown("Contraseña incorrecta. Inténtalo de nuevo."), "the message says what failed");
+                verify(card.markPhase === "Monster", `a rejected attempt shows Monster (${card.markPhase})`);
                 grab("failed"); return true; },
         () => grabs === 3,
+        // Too many attempts used to be shadowed by the wrong-password text.
+        () => { pam.state = 2; return true; },
+        () => { verify(shown("Demasiados intentos. Espera antes de volver a probar.")
+                       && !shown("Contraseña incorrecta. Inténtalo de nuevo."), "too many attempts has its own message");
+                verify(card.markPhase === "Monster" && Qt.colorEqual(card.passwordField.border.color, CortetsuDesign.colorVermillion),
+                       "and stays in the rejected state");
+                pam.state = 1; return true; },
+        () => { verify(shown("La autenticación no está disponible") && card.markPhase === "Ascended"
+                       && !Qt.colorEqual(card.passwordField.border.color, CortetsuDesign.colorVermillion),
+                       "an unavailable backend is not presented as a wrong password");
+                pam.state = 0; card.accepted = true; return true; },
+        () => { verify(card.markPhase === "Cosmic", "Cosmic shows only once PAM accepted");
+                grab("accepted"); return true; },
+        () => grabs === 4,
+        () => { card.accepted = false; pam.state = 3; return true; },
+        () => { verify(card.markPhase === "Monster", "acceptance is the only way to Cosmic");
+                // Reduced motion: the rejection is still shown, nothing moves.
+                CortetsuDesign.reducedMotion = true; root.shakeSeen = 0; pam.flashMsg(); return true; },
+        () => { root.settle += 1; return root.settle > 5; },
+        () => { verify(root.shakeSeen === 0 && shown("Contraseña incorrecta. Inténtalo de nuevo."),
+                       `reduced motion shows the rejection without the shake (${root.shakeSeen} px)`);
+                CortetsuDesign.reducedMotion = false; return true; },
         () => { root.shakeSeen = 0; pam.flashMsg(); return true; },
         () => root.shakeSeen > 0 && card.passwordField.transform[0].x === 0,
         () => { verify(true, "a second rejection shakes again");
@@ -102,7 +128,7 @@ ShellRoot {
                 const end = name.mapToItem(card, name.width, 0).x;
                 verify(end <= 640, `a long user name stays on screen (${end})`);
                 grab("caps-narrow"); return true; },
-        () => grabs === 4
+        () => grabs === 5
     ]
 
     Timer {
@@ -129,17 +155,22 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-lock-card-") as temporary:
     (folder / "shell.qml").write_text(SHELL)
     home = folder / "home"
     (home / ".config").mkdir(parents=True)
-    env = {**os.environ, "QT_QPA_PLATFORM": "offscreen", "HOME": str(home),
+    # offscreen draws no shader effects (the mark is one). To see it, point
+    # WAYLAND_DISPLAY at a headless GL compositor and set CORTETSU_TEST_QPA=wayland.
+    platform = os.environ.get("CORTETSU_TEST_QPA", "offscreen")
+    env = {**os.environ, "QT_QPA_PLATFORM": platform, "HOME": str(home),
            "XDG_CONFIG_HOME": str(home / ".config"), "XDG_CACHE_HOME": str(home / ".cache"),
            "XDG_STATE_HOME": str(home / ".local/state"),
            "CORTETSU_RENDER_DIR": os.environ.get("CORTETSU_RENDER_DIR", "")}
-    env.pop("WAYLAND_DISPLAY", None)
+    if platform == "offscreen":
+        env.pop("WAYLAND_DISPLAY", None)
     result = subprocess.run(["quickshell", "-p", str(folder / "shell.qml")], env=env,
                             capture_output=True, text=True, timeout=90)
     output = result.stdout + result.stderr
-    assert "LOCK_CARD_PASS 10" in output, output
+    assert "LOCK_CARD_PASS 19" in output, output
     for marker in ("LOCK_FAIL", "TypeError", "ReferenceError", "Binding loop", "is not a type"):
         assert marker not in output, output
 
-print("PASS: the lock card shows the empty, typing and rejected states, shakes on each rejection, "
+print("PASS: the lock card shows the empty, typing, rejected, locked-out, unavailable and accepted states "
+      "with the mark each one calls for, shakes on a rejection unless motion is reduced, "
       "keeps Caps Lock in the field and a long name on screen")

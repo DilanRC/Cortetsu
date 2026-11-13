@@ -17,9 +17,10 @@ WlSessionLockSurface {
     required property WlSessionLock lock
     required property Pam pam
 
-    property string keyboardLayout: qsTr("Distribución desconocida")
-    property bool capsLock: false
-    property bool numLock: false
+    // Layout and lock keys, read once by Lock.qml for every surface.
+    required property var keyboard
+    readonly property string keyboardLayout: keyboard.layout.length > 0
+        ? keyboard.layout : qsTr("Distribución desconocida")
     readonly property string userLabel: Quickshell.env("USER") || qsTr("Usuario")
     readonly property int batteryPercent: CortetsuPower.percent
     readonly property bool batteryCharging: CortetsuPower.charging
@@ -30,37 +31,9 @@ WlSessionLockSurface {
         ? qsTr("Ethernet")
         : CortetsuNetwork.active?.ssid ?? qsTr("Sin conexión")
     property bool authenticationAccepted: false
-    readonly property bool interactionActive: pam.buffer.length > 0
-        || pam.passwd.active || pam.fprint.active || pam.howdy.active
-    readonly property string markPhase: authenticationAccepted
-        ? "Ascended"
-        : interactionActive
-            ? "Awakening"
-            : "Human"
-
     color: CortetsuDesign.colorSumi
 
-    function updateKeyboardState(raw: string): void {
-        try {
-            const devices = JSON.parse(raw);
-            const keyboards = devices?.keyboards ?? [];
-            const keyboard = keyboards.find(device => device.main) || keyboards[0];
-            if (!keyboard)
-                return;
-
-            const active = String(keyboard.active_keymap ?? keyboard.activeKeymap ?? "").trim();
-            keyboardLayout = active.length > 0 ? active : qsTr("Distribución desconocida");
-            capsLock = Boolean(keyboard.capsLock ?? keyboard.caps_lock ?? false);
-            numLock = Boolean(keyboard.numLock ?? keyboard.num_lock ?? false);
-        } catch (_) {
-            keyboardLayout = qsTr("Distribución desconocida");
-            capsLock = false;
-            numLock = false;
-        }
-    }
-
     Component.onCompleted: {
-        keyboardProbe.running = true;
         Qt.callLater(() => keyboardFocus.forceActiveFocus());
         // A surface created after PAM succeeded (output hotplug) must still finish the release.
         if (pam.successPending) {
@@ -78,15 +51,24 @@ WlSessionLockSurface {
         }
     }
 
-    ScreencopyView {
+    // The wallpaper, dimmed: never a copy of the desktop, whose windows
+    // would be readable by whoever stands in front of a locked screen. If
+    // the image cannot load, the surface stays plain sumi.
+    Image {
+        objectName: "lockBackdrop"
         anchors.fill: parent
-        captureSource: root.screen
-        opacity: 0.28
+        source: CortetsuWallpapers.current
+        fillMode: Image.PreserveAspectCrop
+        asynchronous: true
+        cache: true
+        sourceSize.width: root.width
+        sourceSize.height: root.height
+        visible: status === Image.Ready
     }
 
     Rectangle {
         anchors.fill: parent
-        color: Qt.alpha(CortetsuDesign.colorSumi, 0.76)
+        color: Qt.alpha(CortetsuDesign.colorSumi, 0.72)
     }
 
     Item {
@@ -103,31 +85,14 @@ WlSessionLockSurface {
         }
     }
 
-    // startup inventory: cortetsu:lock-keyboard-probe (on-demand lock surface)
-    Process {
-        id: keyboardProbe
-        command: ["hyprctl", "-j", "devices"]
-        stdout: StdioCollector {
-            onStreamFinished: root.updateKeyboardState(text)
-        }
-    }
-
-    Timer {
-        interval: 2000
-        repeat: true
-        running: true
-        onTriggered: if (!keyboardProbe.running)
-            keyboardProbe.running = true
-    }
-
     LockCard {
         anchors.fill: parent
         pam: root.pam
-        markPhase: root.markPhase
+        accepted: root.authenticationAccepted
         userLabel: root.userLabel
         keyboardLayout: root.keyboardLayout
-        capsLock: root.capsLock
-        numLock: root.numLock
+        capsLock: root.keyboard.capsLock
+        numLock: root.keyboard.numLock
         batteryLabel: root.batteryLabel
         batteryCharging: root.batteryCharging
         networkLabel: root.networkLabel

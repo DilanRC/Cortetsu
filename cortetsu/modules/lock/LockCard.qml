@@ -15,7 +15,12 @@ Item {
     id: root
 
     required property var pam
-    property string markPhase: "Human"
+    // PAM accepted the attempt; the lock is about to be released.
+    property bool accepted: false
+    // The mark follows the authentication, never the other way round
+    // (ADR-008): Ascended while locked, even while typing; Monster after PAM
+    // rejects an attempt, until another is allowed; Cosmic once PAM accepts.
+    readonly property string markPhase: accepted ? "Cosmic" : rejected ? "Monster" : "Ascended"
     property string userLabel: ""
     property string keyboardLayout: ""
     property bool capsLock: false
@@ -23,7 +28,12 @@ Item {
     property string batteryLabel: ""
     property bool batteryCharging: false
     property string networkLabel: ""
-    readonly property bool failed: root.pam.state === 2 || root.pam.state === 3
+    // Pam.PamState: 1 Error, 2 MaxTries, 3 Failed. LockCard is rendered
+    // with a plain double as well, so it reads the numbers.
+    readonly property bool unavailable: root.pam.state === 1
+    readonly property bool lockedOut: root.pam.state === 2
+    readonly property bool failed: root.pam.state === 3
+    readonly property bool rejected: failed || lockedOut
     readonly property alias passwordField: field
 
     readonly property bool checking: root.pam.checking ?? false
@@ -35,7 +45,7 @@ Item {
     Connections {
         target: root.pam
         function onFlashMsg(): void {
-            if (root.pam.state >= 2)
+            if (root.rejected && !CortetsuDesign.reducedMotion)
                 shake.restart();
         }
     }
@@ -45,13 +55,18 @@ Item {
         width: Math.min(parent.width - CortetsuDesign.spacingSection * 2, 480)
         spacing: CortetsuDesign.spacingStandard
 
+        // The mark is the lock's emblem: large, and the one place where
+        // the state of the authentication is drawn rather than written.
         CortetsuEvolvingMark {
+            objectName: "lockMark"
             phase: root.markPhase
+            animated: !CortetsuDesign.reducedMotion
             monochrome: true
-            monochromeColor: CortetsuDesign.colorWashi
-            Layout.preferredWidth: 56
-            Layout.preferredHeight: 56
+            monochromeColor: root.rejected ? CortetsuDesign.colorVermillion : CortetsuDesign.colorWashi
+            Layout.preferredWidth: 96
+            Layout.preferredHeight: 96
             Layout.alignment: Qt.AlignHCenter
+            Layout.bottomMargin: CortetsuDesign.spacingCompact
         }
 
         // The clock is the focal point; the date and the user follow it.
@@ -87,7 +102,7 @@ Item {
             radius: CortetsuDesign.radiusMedium
             color: Qt.alpha(CortetsuDesign.colorSurfaceGlassStrong, 0.92)
             border.width: 1
-            border.color: root.failed ? CortetsuDesign.colorVermillion : CortetsuDesign.colorIndicator
+            border.color: root.rejected ? CortetsuDesign.colorVermillion : CortetsuDesign.colorIndicator
             transform: Translate { id: nudge }
 
             CortetsuText {
@@ -133,13 +148,19 @@ Item {
 
         // Says what failed and what to do; empty while nothing went wrong.
         CortetsuText {
+            objectName: "lockMessage"
             Layout.alignment: Qt.AlignHCenter
+            Layout.maximumWidth: parent.width
             Layout.preferredHeight: implicitHeight
+            horizontalAlignment: Text.AlignHCenter
+            wrapMode: Text.WordWrap
             opacity: root.pam.state > 0 && !root.checking ? 1 : 0
-            text: root.failed
-                ? qsTr("Contraseña incorrecta. Inténtalo de nuevo.")
-                : root.pam.state === 2
-                    ? qsTr("Demasiados intentos. Espera antes de volver a probar.")
+            // Too many attempts is its own state: it used to be shadowed by
+            // the wrong-password text and was never shown.
+            text: root.lockedOut
+                ? qsTr("Demasiados intentos. Espera antes de volver a probar.")
+                : root.failed
+                    ? qsTr("Contraseña incorrecta. Inténtalo de nuevo.")
                     : qsTr("La autenticación no está disponible")
             textSize: CortetsuTypography.bodySmallPx
             color: CortetsuDesign.colorVermillion

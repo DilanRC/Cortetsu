@@ -23,7 +23,7 @@ prueba que lo nombran. `dead` es un QML propio que nada referencia.
 | `base/modules/bar/popouts/Content.qml` | compat/upstream | base | 235 | 20 | CortetsuTokens | - | movimiento | 74 |
 | `base/modules/bar/popouts/PopoutState.qml` | compat/upstream | base | 14 | 4 | - | - | - | 2 |
 | `base/modules/bar/popouts/kblayout/KbLayoutModel.qml` | compat/upstream | base | 221 | 1 | - | - | - | 0 |
-| `base/modules/lock/Pam.qml` | compat/upstream | base | 308 | 2 | - | - | deshabilitado | 5 |
+| `base/modules/lock/Pam.qml` | compat/upstream | base | 308 | 3 | - | - | deshabilitado | 5 |
 | `base/services/VPN.qml` | compat/upstream | base | 961 | 1 | CortetsuToaster | - | - | 5 |
 | `base/utils/Searcher.qml` | compat/upstream | base | 56 | 3 | - | - | - | 1 |
 | `base/utils/Strings.qml` | compat/upstream | base | 27 | 3 | - | - | - | 2 |
@@ -99,7 +99,7 @@ prueba que lo nombran. `dead` es un QML propio que nada referencia.
 | `modules/CortetsuSurface.qml` | owned-first-party | modules | 51 | 54 | - | - | deshabilitado, movimiento | 16 |
 | `modules/CortetsuText.qml` | owned-first-party | modules | 28 | 109 | - | - | deshabilitado, movimiento | 8 |
 | `modules/CortetsuTraySegment.qml` | owned-first-party | modules | 167 | 1 | - | teclado, ratón | deshabilitado | 14 |
-| `modules/CortetsuWallpapers.qml` | owned-first-party | modules | 321 | 10 | CortetsuColours | - | - | 19 |
+| `modules/CortetsuWallpapers.qml` | owned-first-party | modules | 321 | 11 | CortetsuColours | - | - | 20 |
 | `modules/CortetsuWorkspaceDots.qml` | owned-first-party | modules | 158 | 1 | - | teclado, ratón | deshabilitado, movimiento | 9 |
 | `modules/DashboardHost.qml` | owned-first-party | modules | 65 | 4 | - | - | deshabilitado | 9 |
 | `modules/DisplayController.qml` | owned-first-party | modules | 10 | 1 | - | - | - | 8 |
@@ -224,9 +224,9 @@ prueba que lo nombran. `dead` es un QML propio que nada referencia.
 | `modules/launcher/services/Emojis.qml` | owned-first-party | modules/launcher | 55 | 1 | CortetsuToaster | ratón | - | 0 |
 | `modules/launcher/services/M3Variants.qml` | owned-first-party | modules/launcher | 93 | 3 | CortetsuColours | ratón | - | 5 |
 | `modules/launcher/services/Schemes.qml` | owned-first-party | modules/launcher | 240 | 3 | CortetsuColours, CortetsuThemes, M3Variants | ratón | - | 5 |
-| `modules/lock/Lock.qml` | owned-first-party | modules/lock | 40 | 5 | - | - | - | 10 |
-| `modules/lock/LockCard.qml` | owned-first-party | modules/lock | 180 | 1 | CortetsuPower, Time | ratón | movimiento | 6 |
-| `modules/lock/LockSurface.qml` | owned-first-party | modules/lock | 154 | 2 | CortetsuPower | teclado | - | 5 |
+| `modules/lock/Lock.qml` | owned-first-party | modules/lock | 76 | 6 | - | - | - | 10 |
+| `modules/lock/LockCard.qml` | owned-first-party | modules/lock | 201 | 1 | CortetsuPower, Time | ratón | movimiento | 7 |
+| `modules/lock/LockSurface.qml` | owned-first-party | modules/lock | 119 | 2 | CortetsuPower | teclado | - | 6 |
 | `modules/lock/weather/Forecast.qml` | owned-first-party | modules/lock | 41 | 1 | Weather | - | - | 1 |
 | `modules/notifications/Notification.qml` | owned-first-party | modules/notifications | 238 | 3 | - | teclado, ratón | movimiento | 9 |
 | `modules/notifications/Wrapper.qml` | owned-first-party | modules/notifications | 58 | 4 | Notifs | - | movimiento | 53 |
