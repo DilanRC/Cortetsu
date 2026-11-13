@@ -13,6 +13,9 @@ Item {
     required property var items
     property var delegateModel: items
     property bool monochromeIcons: false
+    property bool vertical: false
+    property string tooltipPlacement: "above"
+    readonly property real thickness: Math.max(48, CortetsuDesign.rowHeight)
 
     signal hoverRequested(string itemKey, real centerX)
     signal activateRequested(string itemKey)
@@ -20,17 +23,18 @@ Item {
     signal secondaryActivateRequested(string itemKey)
     signal scrollRequested(string itemKey, int delta, bool horizontal)
 
-    implicitWidth: trayRow.implicitWidth + 20
-    implicitHeight: Math.max(48, CortetsuDesign.rowHeight)
-    width: visible ? implicitWidth : 0
-    height: implicitHeight
+    implicitWidth: vertical ? thickness : trayRow.implicitWidth + 20
+    implicitHeight: vertical ? trayRow.implicitHeight + 20 : thickness
+    width: visible || vertical ? implicitWidth : 0
+    height: visible || !vertical ? implicitHeight : 0
     visible: items.length > 0
 
     CortetsuIsland {}
 
-    Row {
+    HubFlow {
         id: trayRow
         anchors.centerIn: parent
+        vertical: root.vertical
         spacing: 2
 
         Repeater {
@@ -48,9 +52,10 @@ Item {
                 height: implicitHeight
                 activeFocusOnTab: enabled
 
-                // In segment coordinates: the row is centred inside the pill.
+                // Along the Hub, in segment coordinates: the icons are
+                // centred inside the pill.
                 function centerX(): real {
-                    return trayRow.x + x + width / 2;
+                    return root.vertical ? trayRow.y + y + height / 2 : trayRow.x + x + width / 2;
                 }
 
                 function activatePrimary(): void {
@@ -153,6 +158,7 @@ Item {
                     hovered: trayMouse.containsMouse
                     focused: trayItem.activeFocus
                     text: trayItem.modelData.title
+                    placement: root.tooltipPlacement
                 }
             }
         }

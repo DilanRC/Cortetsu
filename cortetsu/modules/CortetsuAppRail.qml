@@ -9,16 +9,20 @@ Item {
     id: root
 
     required property var items
+    // The most the rail may take along the Hub before it scrolls.
     required property real maxWidth
     property var delegateModel: items
+    property bool vertical: false
+    property string tooltipPlacement: "above"
+    readonly property real thickness: Math.max(46, CortetsuDesign.rowHeight - 2)
 
     signal activateRequested(string key)
     signal togglePinnedRequested(string key)
     signal closeRequested(string key)
     signal cycleRequested(string key, int direction)
 
-    implicitWidth: Math.min(appRailContent.implicitWidth + 24, maxWidth)
-    implicitHeight: Math.max(46, CortetsuDesign.rowHeight - 2)
+    implicitWidth: vertical ? thickness : Math.min(appRailContent.implicitWidth + 24, maxWidth)
+    implicitHeight: vertical ? Math.min(appRailContent.implicitHeight + 24, maxWidth) : thickness
     width: implicitWidth
     height: implicitHeight
     clip: true
@@ -28,17 +32,21 @@ Item {
     Flickable {
         id: appRail
         anchors.fill: parent
-        anchors.leftMargin: 12
-        anchors.rightMargin: 12
-        contentWidth: appRailContent.implicitWidth
-        contentHeight: height
+        anchors.leftMargin: root.vertical ? 0 : 12
+        anchors.rightMargin: root.vertical ? 0 : 12
+        anchors.topMargin: root.vertical ? 12 : 0
+        anchors.bottomMargin: root.vertical ? 12 : 0
+        contentWidth: root.vertical ? width : appRailContent.implicitWidth
+        contentHeight: root.vertical ? appRailContent.implicitHeight : height
         boundsBehavior: Flickable.StopAtBounds
-        interactive: contentWidth > width
+        interactive: root.vertical ? contentHeight > height : contentWidth > width
         clip: true
 
-        Row {
+        HubFlow {
             id: appRailContent
-            height: parent.height
+            vertical: root.vertical
+            x: root.vertical ? Math.round((appRail.width - width) / 2) : 0
+            y: root.vertical ? 0 : Math.round((appRail.height - height) / 2)
             spacing: 2
 
             Repeater {
@@ -184,12 +192,20 @@ Item {
                     Keys.onSpacePressed: root.activateRequested(appItem.modelData.key)
                     Keys.onLeftPressed: root.cycleRequested(appItem.modelData.key, -1)
                     Keys.onRightPressed: root.cycleRequested(appItem.modelData.key, 1)
+                    // Tab into an item that scrolled out of the rail.
+                    onActiveFocusChanged: if (activeFocus) {
+                        if (root.vertical)
+                            appRail.contentY = Math.max(0, Math.min(y, Math.max(0, appRail.contentHeight - appRail.height)));
+                        else
+                            appRail.contentX = Math.max(0, Math.min(x, Math.max(0, appRail.contentWidth - appRail.width)));
+                    }
 
                     CortetsuTooltip {
                         target: appItem
                         hovered: appMouse.containsMouse
                         focused: appItem.activeFocus
                         text: appItem.modelData.title
+                        placement: root.tooltipPlacement
                     }
                 }
             }

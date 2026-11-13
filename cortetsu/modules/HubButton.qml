@@ -20,6 +20,7 @@ Item {
     property bool disabled: false
     property string tooltip: ""
     property bool tooltipOnHover: true
+    property string tooltipPlacement: "above"
     property int buttonSize: 48
     property int iconSize: CortetsuTypography.iconMediumPx
     property color activeColor: Qt.alpha(CortetsuDesign.colorIndigo, 0.62)
@@ -171,6 +172,7 @@ Item {
         hovered: root.tooltipOnHover && root.hovered
         focused: root.activeFocus
         text: root.tooltip
+        placement: root.tooltipPlacement
     }
 
     MouseArea {

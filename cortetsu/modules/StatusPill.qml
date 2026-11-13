@@ -13,23 +13,29 @@ Item {
     property bool idleInhibited: false
 
     readonly property bool hasStatus: recordingActive || dndActive || idleInhibited
+    // In a lateral Hub the states stack and show their glyph only; the
+    // tooltip still names each one.
+    property bool vertical: false
+    property string tooltipPlacement: "above"
+    // The pill opens along the Hub: its length is animated, never its girth.
+    property real along: hasStatus ? (vertical ? pill.implicitHeight : pill.implicitWidth) : 0
 
     signal stopRecordingRequested()
     signal toggleDndRequested()
     signal toggleIdleInhibitorRequested()
 
-    width: hasStatus ? pill.implicitWidth : 0
+    width: vertical ? 44 : along
+    height: vertical ? along : 44
     implicitWidth: width
-    implicitHeight: 44
-    height: implicitHeight
-    visible: hasStatus || width > 0
+    implicitHeight: height
+    visible: hasStatus || along > 0
     opacity: hasStatus ? 1 : 0
     scale: hasStatus ? 1 : 0.97
     transformOrigin: Item.Center
     clip: true
 
     // design-lint: allow motion-layout-property: the hub row opens the gap with the pill; without it the neighbours jump
-    Behavior on width {
+    Behavior on along {
         NumberAnimation {
             duration: CortetsuDesign.motionStandardMs
             easing.type: Easing.BezierSpline
@@ -57,17 +63,18 @@ Item {
         id: pill
 
         anchors.centerIn: parent
-        implicitWidth: statusRow.implicitWidth + CortetsuDesign.spacingStandard * 2
-        implicitHeight: 36
-        radiusValue: height / 2
+        implicitWidth: root.vertical ? 36 : statusRow.implicitWidth + CortetsuDesign.spacingStandard * 2
+        implicitHeight: root.vertical ? statusRow.implicitHeight + CortetsuDesign.spacingCompact * 2 : 36
+        radiusValue: Math.min(width, height) / 2
         baseColor: Qt.lighter(CortetsuDesign.colorTetsu, 1.04)
         outlined: true
 
-        Row {
+        HubFlow {
             id: statusRow
 
             anchors.centerIn: parent
-            spacing: CortetsuDesign.spacingCompact
+            vertical: root.vertical
+            spacing: root.vertical ? 2 : CortetsuDesign.spacingCompact
 
             StatusPillItem {
                 visible: root.recordingActive
@@ -111,9 +118,8 @@ Item {
     }
 
     component StatusPillDivider: Rectangle {
-        width: 1
-        height: 18
-        anchors.verticalCenter: parent.verticalCenter
+        width: root.vertical ? 18 : 1
+        height: root.vertical ? 1 : 18
         color: Qt.darker(CortetsuDesign.colorMuted, 1.9)
     }
 
@@ -129,9 +135,11 @@ Item {
 
         signal clicked()
 
-        implicitWidth: content.implicitWidth + CortetsuDesign.spacingCompact
-        implicitHeight: 36
+        implicitWidth: root.vertical ? 32 : content.implicitWidth + CortetsuDesign.spacingCompact
+        implicitHeight: root.vertical ? 32 : 36
         activeFocusOnTab: true
+        Accessible.role: Accessible.Button
+        Accessible.name: item.tooltip
 
         CortetsuSurface {
             anchors.fill: parent
@@ -180,6 +188,7 @@ Item {
 
             CortetsuText {
                 anchors.verticalCenter: parent.verticalCenter
+                visible: !root.vertical
                 text: item.label
                 color: item.textColor
                 textSize: CortetsuTypography.labelSmallPx
@@ -191,6 +200,7 @@ Item {
             hovered: mouse.containsMouse
             focused: item.activeFocus
             text: item.tooltip
+            placement: root.tooltipPlacement
         }
 
         MouseArea {

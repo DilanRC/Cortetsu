@@ -15,20 +15,26 @@ Item {
     required property int activeWsId
     required property var occupiedWorkspaceIds
 
+    property bool vertical: false
+    property string tooltipPlacement: "above"
+    // What the island takes across the Hub, whichever way it runs.
+    readonly property real thickness: Math.max(46, CortetsuDesign.rowHeight - 2)
+
     signal launcherRequested()
     signal workspaceRequested(int workspaceId)
     readonly property Item launcherButtonItem: launcherButton
 
-    implicitWidth: content.implicitWidth + 18
-    implicitHeight: Math.max(46, CortetsuDesign.rowHeight - 2)
+    implicitWidth: vertical ? thickness : content.implicitWidth + 18
+    implicitHeight: vertical ? content.implicitHeight + 18 : thickness
     width: implicitWidth
     height: implicitHeight
 
     CortetsuIsland {}
 
-    Row {
+    HubFlow {
         id: content
         anchors.centerIn: parent
+        vertical: root.vertical
         spacing: 2
 
         HubButton {
@@ -41,19 +47,18 @@ Item {
                     : "Human"
             active: root.launcherActive
             tooltip: qsTr("Aplicaciones")
+            tooltipPlacement: root.tooltipPlacement
             onClicked: root.launcherRequested()
         }
 
         Rectangle {
-            anchors.verticalCenter: parent.verticalCenter
-            width: 1
-            height: 22
-            radius: 1
+            width: root.vertical ? 22 : 1
+            height: root.vertical ? 1 : 22
             color: Qt.alpha(CortetsuDesign.colorMuted, 0.14)
         }
 
         CortetsuWorkspaceDots {
-            anchors.verticalCenter: parent.verticalCenter
+            vertical: root.vertical
             workspaceCount: root.workspaceCount
             displayType: root.workspaceDisplayType
             showAppIcons: root.workspaceShowAppIcons

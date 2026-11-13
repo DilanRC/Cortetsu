@@ -4,6 +4,7 @@ import QtQuick
 import Quickshell
 import "."
 import "../../../theme"
+import "../../HubAnchor.js" as HubAnchor
 
 Item {
     id: root
@@ -23,18 +24,19 @@ Item {
     width: implicitWidth
     height: implicitHeight
 
+    // An attached popout opens inwards from the Hub's edge, centred on the
+    // control that opened it and always inside the screen.
+    readonly property var attachedAt: HubAnchor.popoutPosition(content.hubAnchor, content.bottomAnchorCenter,
+        content.nonAnimWidth, content.nonAnimHeight, parent.width, parent.height,
+        content.bottomOffset - CortetsuDesign.spacingStandard, CortetsuDesign.spacingStandard, 8)
     x: content.isDetached
         ? (parent.width - content.nonAnimWidth) / 2
-        : (content.bottomAttached || content.closing)
-            ? content.bottomAnchorCenter >= 0
-                ? Math.max(8, Math.min(parent.width - content.nonAnimWidth - 8, content.bottomAnchorCenter - content.nonAnimWidth / 2))
-                : parent.width - content.nonAnimWidth - content.bottomRightMargin
-            : 0
+        : (content.bottomAttached || content.closing) ? attachedAt.x : 0
     y: {
         if (content.isDetached)
             return (parent.height - content.nonAnimHeight) / 2;
         if (content.bottomAttached)
-            return parent.height - content.nonAnimHeight - content.bottomOffset;
+            return attachedAt.y;
         const off = content.currentCenter - borderThickness - content.nonAnimHeight / 2;
         const diff = parent.height - Math.floor(off + content.nonAnimHeight);
         if (diff < 0)

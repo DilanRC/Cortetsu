@@ -3,7 +3,7 @@ import QtQuick.Effects
 import "../theme"
 import "CortetsuTypography.js" as CortetsuTypography
 
-Row {
+HubFlow {
     id: root
 
     required property int workspaceCount
@@ -27,8 +27,8 @@ Row {
     spacing: 6
 
     Item {
-        width: 3
-        height: 1
+        width: root.vertical ? 1 : 3
+        height: root.vertical ? 3 : 1
     }
 
     Repeater {
@@ -53,12 +53,14 @@ Row {
                 restoreFocus.restart();
             }
 
-            width: root.displayType === 1 ? 24 : showAppIcon ? 20 : active ? 20 : 6
-            height: 36
+            // The dot grows along the Hub: wider in a row, taller in a column.
+            property real along: root.displayType === 1 ? 24 : showAppIcon ? 20 : active ? 20 : 6
+            width: root.vertical ? 36 : along
+            height: root.vertical ? along : 36
             activeFocusOnTab: true
 
-            // design-lint: allow motion-layout-property: active and icon-bearing workspaces widen
-            Behavior on width {
+            // design-lint: allow motion-layout-property: active and icon-bearing workspaces lengthen
+            Behavior on along {
                 NumberAnimation {
                     duration: CortetsuDesign.motionStandardMs
                     easing.type: Easing.BezierSpline
@@ -78,9 +80,9 @@ Row {
                 objectName: `workspace-shape-${workspaceDot.wsId}`
                 anchors.centerIn: parent
                 visible: root.displayType === 0
-                width: parent.width
-                height: 6
-                radius: height / 2
+                width: root.vertical ? 6 : parent.width
+                height: root.vertical ? parent.height : 6
+                radius: Math.min(width, height) / 2
                 // Active: scheme accent. Occupied and empty: the scheme's text
                 // colour at two strengths, so the row follows the wallpaper.
                 color: workspaceDot.active
@@ -125,8 +127,10 @@ Row {
             // no dead pixels between workspaces in either display mode.
             MouseArea {
                 anchors.fill: parent
-                anchors.leftMargin: -root.spacing / 2
-                anchors.rightMargin: -root.spacing / 2
+                anchors.leftMargin: root.vertical ? 0 : -root.spacing / 2
+                anchors.rightMargin: root.vertical ? 0 : -root.spacing / 2
+                anchors.topMargin: root.vertical ? -root.spacing / 2 : 0
+                anchors.bottomMargin: root.vertical ? -root.spacing / 2 : 0
                 cursorShape: Qt.PointingHandCursor
                 onPressed: workspaceDot.forceActiveFocus()
                 onClicked: workspaceDot.activateWorkspace(workspaceDot.wsId)
@@ -135,17 +139,19 @@ Row {
             Keys.onEnterPressed: workspaceDot.activateWorkspace(workspaceDot.wsId)
             Keys.onReturnPressed: workspaceDot.activateWorkspace(workspaceDot.wsId)
             Keys.onSpacePressed: workspaceDot.activateWorkspace(workspaceDot.wsId)
-            Keys.onLeftPressed: workspaceDot.activateWorkspace(
-                Math.max(root.workspaceOffset + 1, workspaceDot.wsId - 1)
-            )
-            Keys.onRightPressed: workspaceDot.activateWorkspace(
-                Math.min(root.workspaceOffset + root.workspaceCount, workspaceDot.wsId + 1)
-            )
+            function step(delta: int): void {
+                activateWorkspace(Math.max(root.workspaceOffset + 1,
+                    Math.min(root.workspaceOffset + root.workspaceCount, wsId + delta)));
+            }
+            Keys.onLeftPressed: event => { if (root.vertical) event.accepted = false; else step(-1); }
+            Keys.onRightPressed: event => { if (root.vertical) event.accepted = false; else step(1); }
+            Keys.onUpPressed: event => { if (root.vertical) step(-1); else event.accepted = false; }
+            Keys.onDownPressed: event => { if (root.vertical) step(1); else event.accepted = false; }
         }
     }
 
     Item {
-        width: 7
-        height: 1
+        width: root.vertical ? 1 : 7
+        height: root.vertical ? 7 : 1
     }
 }

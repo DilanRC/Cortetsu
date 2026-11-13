@@ -4,6 +4,7 @@ import QtQml
 import Quickshell
 import Quickshell.Io
 import "ThemePreferences.js" as ThemePreferences
+import "HubAnchor.js" as HubAnchor
 
 // Functional preferences owned by Cortetsu. Design tokens remain separate.
 QtObject {
@@ -36,6 +37,34 @@ QtObject {
     ]
     onStatusIconsChanged: if (loaded) save()
     readonly property QtObject bottomHub: QtObject {
+        // Where the Hub sits (HubAnchor.js): the anchor for every monitor and
+        // the monitors that have their own, by output name.
+        property string anchor: HubAnchor.fallback
+        onAnchorChanged: if (root.loaded) root.save()
+        property var anchors: ({})
+        onAnchorsChanged: if (root.loaded) root.save()
+        function anchorFor(monitorName: string): string {
+            return HubAnchor.forMonitor(anchor, anchors, monitorName);
+        }
+        // "" as the monitor sets the anchor of every monitor without its own.
+        function setAnchor(monitorName: string, id: string): void {
+            if (!HubAnchor.valid(id))
+                return;
+            if (monitorName.length === 0) {
+                anchor = id;
+                return;
+            }
+            const next = Object.assign({}, anchors);
+            next[monitorName] = id;
+            anchors = next;
+        }
+        function clearAnchor(monitorName: string): void {
+            if (anchors[monitorName] === undefined)
+                return;
+            const next = Object.assign({}, anchors);
+            delete next[monitorName];
+            anchors = next;
+        }
         readonly property QtObject segments: QtObject {
             property bool mode: true
             onModeChanged: if (root.loaded) root.save()
@@ -422,6 +451,9 @@ QtObject {
             if (Array.isArray(data.statusIcons))
                 statusIcons = data.statusIcons.filter(value => value && typeof value === "object" && typeof value.id === "string").map(value => ({ id: value.id, enabled: value.enabled !== false }));
             if (data.bottomHub && typeof data.bottomHub === "object") {
+                // An unknown anchor reads as the bottom, never as nowhere.
+                bottomHub.anchor = HubAnchor.normalize(data.bottomHub.anchor);
+                bottomHub.anchors = HubAnchor.sanitizeMap(data.bottomHub.anchors);
                 if (data.bottomHub.segments && typeof data.bottomHub.segments === "object")
                     for (const key of ["mode", "apps", "tray", "status"])
                         if (typeof data.bottomHub.segments[key] === "boolean")
@@ -728,6 +760,8 @@ QtObject {
             audioProtectionEnabled, audioMaxIncrease,
             osdTimeoutMs,
             bottomHub: {
+                anchor: bottomHub.anchor,
+                anchors: bottomHub.anchors,
                 segments: { mode: bottomHub.segments.mode, apps: bottomHub.segments.apps, tray: bottomHub.segments.tray, status: bottomHub.segments.status },
                 statusCluster: { audio: bottomHub.statusCluster.audio, network: bottomHub.statusCluster.network, bluetooth: bottomHub.statusCluster.bluetooth, battery: bottomHub.statusCluster.battery, showNotificationCount: bottomHub.statusCluster.showNotificationCount }
             },

@@ -32,6 +32,8 @@ Item {
     property real bottomOffset: 60 + CortetsuDesign.spacingStandard
     property real bottomRightMargin: 4
     property real bottomAnchorCenter: -1
+    // Where this screen's Hub sits (HubAnchor.js); set by the Hub on open.
+    property string hubAnchor: "bottom-center"
 
     // Content crossfade and the detached size morph. It used to start at 0
     // and only took a value after the first detach.

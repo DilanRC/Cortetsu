@@ -9,9 +9,11 @@ ToolTip {
     property Item target: null
     property bool hovered: false
     property bool focused: false
-    // "above" centres it over the target; "right" sets it beside the target,
-    // for side navigation where above would cover the previous row.
+    // "above" centres it over the target and "below" under it; "right" and
+    // "left" set it beside the target, for side navigation and a lateral Hub,
+    // where above would cover the previous row.
     property string placement: "above"
+    readonly property bool beside: placement === "right" || placement === "left"
 
     readonly property bool wanted: root.target !== null
         && root.text.length > 0
@@ -22,9 +24,13 @@ ToolTip {
     readonly property int warmGraceMs: CortetsuDesign.tooltipDelayMs * 2
 
     parent: root.target
-    x: root.placement === "right" && root.target ? root.target.width + CortetsuDesign.spacingCompact
-        : root.target ? Math.round((root.target.width - root.width) / 2) : 0
-    y: root.placement === "right" && root.target ? Math.round((root.target.height - root.height) / 2)
+    x: !root.target ? 0
+        : root.placement === "right" ? root.target.width + CortetsuDesign.spacingCompact
+        : root.placement === "left" ? -root.width - CortetsuDesign.spacingCompact
+        : Math.round((root.target.width - root.width) / 2)
+    y: !root.target ? 0
+        : root.beside ? Math.round((root.target.height - root.height) / 2)
+        : root.placement === "below" ? root.target.height + CortetsuDesign.spacingCompact / 2
         : -root.height - CortetsuDesign.spacingCompact / 2
     delay: 0
     visible: false

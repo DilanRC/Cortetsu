@@ -11,6 +11,7 @@ import "../utils"
 import "launcher/services"
 import "BottomHubResolver.js" as BottomHubResolver
 import "BottomHubTray.js" as BottomHubTray
+import "HubAnchor.js" as HubAnchor
 import "CortetsuOverlayPolicy.js" as OverlayPolicy
 import "OverlayPolicy.js" as Exclusion
 import "utilities/toasts" as Toasts
@@ -198,6 +199,7 @@ Scope {
         }
         popouts.cancelClose();
         popouts.detachedMode = "";
+        popouts.hubAnchor = CortetsuConfig.bottomHub.anchorFor(screen.name);
         popouts.bottomAnchorCenter = anchorCenter;
         popouts.bottomAttached = true;
         popouts.currentName = mode;
@@ -380,6 +382,26 @@ Scope {
                 || (cortetsuState?.wallpaperManager ?? false)
             onFullSurfaceOpenChanged: if (fullSurfaceOpen) hubRoot.closeAllPopouts()
             readonly property int hubMargin: 8
+            // Where this monitor's Hub sits. An unknown or damaged value
+            // reads as the bottom (HubAnchor.normalize).
+            readonly property string hubAnchor: CortetsuConfig.bottomHub.anchorFor(modelData?.name ?? "")
+            readonly property var hubPlace: HubAnchor.describe(hubAnchor)
+            readonly property bool hubVertical: hubPlace.vertical
+            readonly property int edgeMargin: 2
+            // The window's origin on its screen. Layer shell centres a
+            // surface along the edge it is anchored to.
+            readonly property real originX: hubPlace.edge === "left" ? edgeMargin
+                : hubPlace.edge === "right" ? (modelData?.width ?? 0) - edgeMargin - width
+                : Math.round(((modelData?.width ?? 0) - width) / 2)
+            readonly property real originY: hubPlace.edge === "top" ? edgeMargin
+                : hubPlace.edge === "bottom" ? (modelData?.height ?? 0) - edgeMargin - height
+                : Math.round(((modelData?.height ?? 0) - height) / 2)
+            // An attached popout opens at this point along the Hub's edge,
+            // in screen coordinates.
+            function alongScreen(center: real): real {
+                return (hubVertical ? originY + bottomHubView.y : originX + bottomHubView.x) + center;
+            }
+            onHubAnchorChanged: hubRoot.closeAllPopouts()
             readonly property int activeWsId: CortetsuConfig.bar.workspaces.perMonitorWorkspaces
                 ? monitor?.activeWorkspace?.id ?? CortetsuHypr.activeWsId
                 : CortetsuHypr.activeWsId
@@ -645,7 +667,7 @@ Scope {
                 hubRoot.showAttachedControlFor(
                     modelData,
                     BottomHubTray.menuName(itemKey),
-                    hubMargin + centerX
+                    alongScreen(centerX)
                 );
             }
 
@@ -656,7 +678,7 @@ Scope {
                 hubRoot.openAttachedControlNow(
                     modelData,
                     BottomHubTray.menuName(itemKey),
-                    hubMargin + centerX
+                    alongScreen(centerX)
                 );
             }
 
@@ -680,15 +702,13 @@ Scope {
                     item.scroll(delta, horizontal);
             }
 
-            // The bell in screen coordinates. The surface is anchored only at
-            // the bottom, so layer shell centres it horizontally.
+            // The bell in screen coordinates.
             function notificationsButtonRect(): rect {
                 const bell = bottomHubView.notificationsButton;
                 if (!visible || !hubRoot.shown || !bell?.visible)
                     return Qt.rect(0, 0, 0, 0);
                 const p = bell.mapToItem(contentItem, 0, 0);
-                return Qt.rect(Math.round((modelData.width - width) / 2) + p.x,
-                    modelData.height - margins.bottom - height + p.y, bell.width, bell.height);
+                return Qt.rect(originX + p.x, originY + p.y, bell.width, bell.height);
             }
 
             function notificationsButtonContains(x: real, y: real): bool {
@@ -701,8 +721,7 @@ Scope {
                 if (!visible || !hubRoot.shown || !button?.visible)
                     return Qt.rect(0, 0, 0, 0);
                 const p = button.mapToItem(contentItem, 0, 0);
-                return Qt.rect(Math.round((modelData.width - width) / 2) + p.x,
-                    modelData.height - margins.bottom - height + p.y, button.width, button.height);
+                return Qt.rect(originX + p.x, originY + p.y, button.width, button.height);
             }
 
             function launcherButtonContains(x: real, y: real): bool {
@@ -785,18 +804,19 @@ Scope {
             visible: hubRoot.shown || toasts.visibleToasts.length > 0 || visibility.autoHideEnabled
             color: "transparent"
 
+            // Only the islands, the reveal strip and the toasts take the
+            // pointer. The air between two islands belongs to what is behind.
             mask: Region {
+                Region { item: hubRoot.shown ? bottomHubView.islands[0] : null }
+                Region { item: hubRoot.shown ? bottomHubView.islands[1] : null }
+                Region { item: hubRoot.shown ? bottomHubView.islands[2] : null }
+                Region { item: hubRoot.shown ? bottomHubView.islands[3] : null }
                 Region {
-                    x: 0
-                    y: win.height - bottomHubView.height
-                    width: hubRoot.shown ? win.width : 0
-                    height: bottomHubView.height
-                }
-                Region {
-                    x: 0
-                    y: win.height - 3
-                    width: win.revealStripVisible ? win.width : 0
-                    height: win.revealStripVisible ? 3 : 0
+                    readonly property int strip: win.revealStripVisible ? 3 : 0
+                    x: win.hubPlace.edge === "right" ? win.width - strip : 0
+                    y: win.hubPlace.edge === "bottom" ? win.height - strip : 0
+                    width: win.hubVertical ? strip : win.revealStripVisible ? win.width : 0
+                    height: win.hubVertical ? (win.revealStripVisible ? win.height : 0) : strip
                 }
                 Region {
                     x: toasts.x
@@ -814,27 +834,41 @@ Scope {
                 ? WlrKeyboardFocus.OnDemand
                 : WlrKeyboardFocus.None
 
-            anchors.bottom: true
-            margins.bottom: 2
+            anchors.top: hubPlace.edge === "top"
+            anchors.bottom: hubPlace.edge === "bottom"
+            anchors.left: hubPlace.edge === "left"
+            anchors.right: hubPlace.edge === "right"
+            margins.top: hubPlace.edge === "top" ? edgeMargin : 0
+            margins.bottom: hubPlace.edge === "bottom" ? edgeMargin : 0
+            margins.left: hubPlace.edge === "left" ? edgeMargin : 0
+            margins.right: hubPlace.edge === "right" ? edgeMargin : 0
 
             WlrLayershell.layer: WlrLayer.Top
             WlrLayershell.namespace: "cortetsu-bottom-hub"
-            // Windows stop above the islands. The window also grows for
-            // toasts, so the zone is the hub row only, not the window height.
-            // The old opaque bar hid windows running under it; floating
-            // islands would show them, so the row is reserved while shown.
-            exclusiveZone: hubRoot.shown ? bottomHubView.implicitHeight + margins.bottom : 0
+            // Windows stop short of the islands. The window also grows for
+            // toasts, so the zone is the Hub's thickness only, not the
+            // window's. The old opaque bar hid windows running under it;
+            // floating islands would show them, so the edge is reserved
+            // while the Hub is shown.
+            exclusiveZone: hubRoot.shown ? bottomHubView.thickness + edgeMargin : 0
 
-            implicitWidth: (modelData?.width ?? 0) - hubMargin * 2
-            implicitHeight: bottomHubView.implicitHeight + 6 + toasts.implicitHeight + toasts.spacing
+            // Room for the toasts beside the Hub, on its inner side.
+            readonly property real toastRoom: 6 + (hubVertical ? toasts.implicitWidth : toasts.implicitHeight) + toasts.spacing
+            implicitWidth: hubVertical
+                ? bottomHubView.thickness + toastRoom
+                : (modelData?.width ?? 0) - hubMargin * 2
+            implicitHeight: hubVertical
+                ? (modelData?.height ?? 0) - hubMargin * 2
+                : bottomHubView.thickness + toastRoom
 
             CortetsuBottomHubView {
                 id: bottomHubView
 
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.bottom: parent.bottom
-                height: implicitHeight
+                anchor: win.hubAnchor
+                x: win.hubPlace.edge === "right" ? win.width - width : 0
+                y: win.hubPlace.edge === "bottom" ? win.height - height : 0
+                width: win.hubVertical ? thickness : win.width
+                height: win.hubVertical ? win.height : thickness
                 visible: hubRoot.shown
 
                 launcherActive: win.screenState?.launcher ?? false
@@ -892,12 +926,12 @@ Scope {
                 onAttachedControlRequested: (mode, centerX) => hubRoot.showAttachedControlFor(
                     win.modelData,
                     mode,
-                    win.hubMargin + centerX
+                    win.alongScreen(centerX)
                 )
                 onAttachedControlEntered: (mode, centerX) => hubRoot.enterAttachedControl(
                     win.modelData,
                     mode,
-                    win.hubMargin + centerX
+                    win.alongScreen(centerX)
                 )
                 onSystemControlsEntered: hoverSurfaceController.enterTrigger()
                 onSystemControlsExited: hoverSurfaceController.leaveTrigger()
@@ -932,11 +966,16 @@ Scope {
                 onPointerExited: visibility.pointerExited()
             }
 
+            // Toasts stack on the Hub's inner side, at the screen's right
+            // (bottom right for a lateral Hub).
             Toasts.Toasts {
                 id: toasts
-                anchors.right: parent.right
-                anchors.bottom: bottomHubView.top
-                anchors.margins: toasts.spacing
+                x: win.hubPlace.edge === "left" ? bottomHubView.width + spacing
+                    : win.hubPlace.edge === "right" ? bottomHubView.x - width - spacing
+                    : win.width - width - spacing
+                y: win.hubPlace.edge === "top" ? bottomHubView.height + spacing
+                    : win.hubPlace.edge === "bottom" ? bottomHubView.y - height - spacing
+                    : win.height - height - spacing
                 z: 100
             }
 
