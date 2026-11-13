@@ -14,6 +14,7 @@ done
 python3 "$REPO/scripts/features/test-native-bottom-hub.py" --runtime "$STAGING/modules/BottomHub.qml"
 python3 "$REPO/scripts/features/test-cortetsu-hub-controls-runtime.py"
 python3 "$REPO/scripts/features/test-cortetsu-notice-cards-runtime.py"
+python3 "$REPO/scripts/features/test-cortetsu-quick-settings-runtime.py"
 python3 "$REPO/scripts/features/test-cortetsu-dashboard-dismiss-runtime.py"
 python3 "$REPO/scripts/features/test-cortetsu-lock-card-runtime.py"
 # Redesigned surfaces stay at zero design-lint findings (phase 3).

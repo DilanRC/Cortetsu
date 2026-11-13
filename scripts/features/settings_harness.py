@@ -38,6 +38,7 @@ QtObject {
         { name: "Vecinos", connected: false, signalStrength: 41, security: 3, known: false, device: { name: "wlan0" } }
     ]
     readonly property var activeNetwork: wifiEnabled ? (networks.find(network => network.connected) || null) : null
+    readonly property var active: activeNetwork ? ({ ssid: activeNetwork.name, strength: activeNetwork.signalStrength }) : null
     property var activeEthernet: null
     property bool connecting: false
     property bool scanning: false

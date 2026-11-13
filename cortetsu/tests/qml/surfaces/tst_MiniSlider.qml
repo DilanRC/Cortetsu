@@ -22,6 +22,7 @@ TestCase {
         slider.maximum = 1.5;
         slider.available = true;
         slider.muted = false;
+        slider.name = "";
     }
     function cleanup() { CortetsuDesign.reducedMotion = false; }
     function test_reduced_motion_applies_the_final_value_without_transition() {
@@ -48,6 +49,39 @@ TestCase {
         slider.value = 1.4;
         compare(slider.amount, "140%");
         compare(slider.progress, 1.4 / 1.5);
+    }
+
+    function test_a_muted_output_says_so_instead_of_a_percentage() {
+        slider.muted = true;
+        compare(slider.amount, "Silenciado");
+        verify(!slider.attention, "silence is not an alarm");
+        verify(Qt.colorEqual(slider.tone, CortetsuDesign.colorOnSurfaceVariant));
+    }
+
+    function test_the_output_is_named_when_the_system_names_it() {
+        compare(slider.label, "Volumen");
+        slider.name = "Auriculares";
+        compare(slider.label, "Auriculares");
+        compare(slider.Accessible.name, "Auriculares: 75%");
+    }
+
+    function test_microphone_is_a_state_not_a_level() {
+        slider.kind = "microphone";
+        slider.muted = true;
+        compare(slider.label, "Micrófono");
+        compare(slider.amount, "Silenciado");
+        compare(slider.icon, "mic_off");
+        verify(slider.attention && Qt.colorEqual(slider.tone, CortetsuDesign.colorVermillion),
+            "a muted microphone is the reading that asks for attention");
+        verify(!slider.level && slider.implicitHeight < 64, "it has no bar to read");
+        slider.muted = false;
+        compare(slider.amount, "Activo");
+        compare(slider.icon, "mic");
+        verify(!slider.attention);
+        slider.available = false;
+        compare(slider.amount, "No disponible");
+        compare(slider.icon, "mic_off");
+        verify(!slider.attention, "a missing microphone is not reported as muted");
     }
 
     function test_mute_and_unavailable_states_are_distinct() {

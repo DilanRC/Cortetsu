@@ -30,8 +30,6 @@ Item {
     readonly property bool batteryAvailable: CortetsuPower.available
     readonly property bool laptopBatteryAvailable: CortetsuPower.hasBattery
     readonly property int batteryPercent: CortetsuPower.percent
-    readonly property string networkName: CortetsuNetwork.active?.ssid
-        ?? (CortetsuNetwork.activeEthernet ? qsTr("Ethernet") : qsTr("Sin conexión"))
     readonly property string networkDetail: CortetsuNetwork.connecting
         ? qsTr("Conectando")
         : CortetsuNetwork.active
@@ -39,6 +37,9 @@ Item {
             : CortetsuNetwork.activeEthernet
                 ? qsTr("Conexión cableada")
                 : qsTr("Red no disponible")
+    readonly property var wifi: Connectivity.wifi
+    readonly property bool wifiOperable: !!wifi.wifiDevice && wifi.hardwareEnabled
+    readonly property bool microphonePresent: !!CortetsuAudio.source?.audio
     readonly property bool markPressed: soundTile.pressed || dndTile.pressed || bluetoothTile.pressed
     readonly property bool markIntent: markPressed
         || soundTile.hovered || soundTile.activeFocus
@@ -163,11 +164,22 @@ Item {
                 onActivated: Connectivity.bluetooth.setEnabled(!Connectivity.bluetooth.enabled)
             }
 
+            // The radio is the action; the link it holds is the detail. A
+            // machine without a Wi-Fi device, or with it blocked by its
+            // switch, gets the same tile as a reading with nothing to press.
             CortetsuActionTile {
+                id: networkTile
+                objectName: "quickWifi"
                 Layout.fillWidth: true
-                label: root.networkName
-                detail: root.networkDetail
-                icon: CortetsuNetwork.activeEthernet
+                label: CortetsuNetwork.activeEthernet && !CortetsuNetwork.active ? qsTr("Ethernet")
+                    : root.wifi.wifiEnabled ? (CortetsuNetwork.active?.ssid ?? qsTr("Wi-Fi")) : qsTr("Wi-Fi apagado")
+                detail: root.wifi.busy && root.wifi.operation.kind === "enable" ? qsTr("Aplicando…")
+                    : root.wifi.operation.kind === "enable" && root.wifi.operation.state === "failed" ? root.wifi.operation.lastError
+                    : !root.wifi.wifiDevice ? root.networkDetail
+                    : !root.wifi.hardwareEnabled ? qsTr("Bloqueado por el interruptor del equipo")
+                    : !root.wifi.wifiEnabled ? qsTr("Pulsa para encenderlo")
+                    : root.networkDetail
+                icon: CortetsuNetwork.activeEthernet && !CortetsuNetwork.active
                     ? "cable"
                     : CortetsuNetwork.connecting
                         ? "sync"
@@ -175,8 +187,26 @@ Item {
                             ? "wifi"
                             : "wifi_off"
                 highlighted: !!CortetsuNetwork.active || !!CortetsuNetwork.activeEthernet
-                warning: !CortetsuNetwork.active && !CortetsuNetwork.activeEthernet && !CortetsuNetwork.connecting
-                clickable: false
+                // Off by choice is not a fault; no link with the radio on is.
+                warning: root.wifi.wifiEnabled && !CortetsuNetwork.active && !CortetsuNetwork.activeEthernet && !CortetsuNetwork.connecting
+                clickable: root.wifiOperable
+                onActivated: if (!root.wifi.busy) root.wifi.setEnabled(!root.wifi.wifiEnabled)
+            }
+
+            CortetsuActionTile {
+                id: microphoneTile
+                objectName: "quickMicrophone"
+                Layout.fillWidth: true
+                label: !root.microphonePresent ? qsTr("Sin micrófono")
+                    : CortetsuAudio.sourceMuted ? qsTr("Micrófono silenciado") : qsTr("Micrófono")
+                detail: !root.microphonePresent ? qsTr("No hay una entrada de audio")
+                    : CortetsuAudio.sourceMuted ? qsTr("Pulsa para reactivarlo")
+                    : (CortetsuAudio.source?.description ?? qsTr("Entrada activa"))
+                icon: root.microphonePresent && !CortetsuAudio.sourceMuted ? "mic" : "mic_off"
+                highlighted: root.microphonePresent && !CortetsuAudio.sourceMuted
+                warning: false
+                clickable: root.microphonePresent
+                onActivated: CortetsuAudio.source.audio.muted = !CortetsuAudio.source.audio.muted
             }
 
             CortetsuActionTile {
@@ -202,7 +232,6 @@ Item {
             }
 
             CortetsuActionTile {
-                Layout.columnSpan: 2
                 Layout.fillWidth: true
                 seal: "遊"
                 label: GameMode.enabled ? qsTr("Desactivar modo juego") : qsTr("Activar modo juego")
@@ -279,7 +308,7 @@ Item {
             onMoved: nextValue => CortetsuAudio.setVolume(nextValue)
         }
 
-        // Energy and connection as two margin notes under a brush rule.
+        // Energy as a margin note under a brush rule.
         CortetsuBrushStroke {
             Layout.fillWidth: true
             Layout.topMargin: CortetsuDesign.spacingCompact
@@ -288,42 +317,24 @@ Item {
             inkAlpha: 0.1
         }
 
-        RowLayout {
+        // Energy as one margin note; the connection is already its tile.
+        ColumnLayout {
             Layout.fillWidth: true
-            spacing: CortetsuDesign.spacingSection
-
-            ColumnLayout {
+            spacing: 2
+            CortetsuInkLabel { mark: "電"; title: qsTr("Energía") }
+            CortetsuText {
+                objectName: "quickEnergy"
                 Layout.fillWidth: true
-                Layout.preferredWidth: 1
-                spacing: 2
-                CortetsuInkLabel { mark: "電"; title: qsTr("Energía") }
-                CortetsuText {
-                    Layout.fillWidth: true
-                    text: root.laptopBatteryAvailable
-                        ? qsTr("Batería %1%").arg(root.batteryPercent)
-                        : CortetsuPower.laptopBattery
-                            ? qsTr("Batería no disponible")
-                            : CortetsuPower.devicePresent
-                                ? qsTr("Alimentación externa")
-                                : qsTr("Energía no disponible")
-                    textSize: CortetsuTypography.bodyPx
-                    font.weight: Font.DemiBold
-                    elide: Text.ElideRight
-                }
-            }
-
-            ColumnLayout {
-                Layout.fillWidth: true
-                Layout.preferredWidth: 1
-                spacing: 2
-                CortetsuInkLabel { mark: "網"; title: qsTr("Conexión") }
-                CortetsuText {
-                    Layout.fillWidth: true
-                    text: root.networkName
-                    textSize: CortetsuTypography.bodyPx
-                    font.weight: Font.DemiBold
-                    elide: Text.ElideRight
-                }
+                text: root.laptopBatteryAvailable
+                    ? qsTr("Batería %1%").arg(root.batteryPercent)
+                    : CortetsuPower.laptopBattery
+                        ? qsTr("Batería no disponible")
+                        : CortetsuPower.devicePresent
+                            ? qsTr("Alimentación externa")
+                            : qsTr("Energía no disponible")
+                textSize: CortetsuTypography.bodyPx
+                font.weight: Font.DemiBold
+                elide: Text.ElideRight
             }
         }
     }

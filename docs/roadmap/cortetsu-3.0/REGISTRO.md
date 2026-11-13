@@ -12,7 +12,7 @@ Un estado solo sube con la evidencia que cita. Lo que no se probó se dice.
 | 2 Settings integral y Launcher | IN_PROGRESS |
 | 3 Hub multiposición | DONE_WITH_CONCERNS |
 | 4 Islas, popouts y tray | NOT_STARTED |
-| 5 OSD 3.0 y Ajustes rápidos | NOT_STARTED |
+| 5 OSD 3.0 y Ajustes rápidos | PARTIAL |
 | 6 Centros de servicio | NOT_STARTED |
 | 7 Lockscreen, Dashboard y widgets | PARTIAL |
 | 8 Audio avanzado y superficies restantes | NOT_STARTED |
@@ -69,3 +69,14 @@ Un estado solo sube con la evidencia que cita. Lo que no se probó se dice.
 - No probado: desbloqueo con la contraseña real en la sesión física, huella, suspensión y reanudación bloqueado, conexión de un monitor con la sesión bloqueada con estos cambios. El emblema no se dibuja con render por software, así que su tamaño y color nuevos no tienen captura.
 - Seguridad: no hay ruta nueva de desbloqueo ni IPC nuevo; el bloqueo no se instaló. **Antes de `cortetsu install`, probar bloqueo y desbloqueo a mano con una TTY abierta como salida.**
 - Rollback: `git revert` del commit; `Pam.qml` intacto.
+
+#### Fase 5 - OSD 3.0 y Ajustes rápidos
+
+- Estado: PARTIAL
+- Fecha: 2026-11-13.
+- Punto de partida real: el OSD transitorio (`osd/MiniSlider.qml`) y el centro de control (`osd/FullContent.qml`) ya eran dos superficies con un solo dueño (`osd/Wrapper.qml`); `utilities/` no tiene host visual. No hubo que separar nada.
+- OSD transitorio: nuevo estado de micrófono (silenciado en bermellón, activo, no disponible), sin barra porque es un estado y no un nivel; una salida silenciada dice "Silenciado" en vez de un porcentaje; el volumen nombra el dispositivo de salida; un cambio de silencio que llega con un micrófono nuevo no se anuncia. Los valores siguen siendo lectura de PipeWire y del monitor, no la intención de la orden. Sin foco ni puntero (`test-cortetsu-osd-focus.sh`).
+- Ajustes rápidos: el mosaico de red era `clickable: false`; ahora enciende y apaga el Wi-Fi con `ConnectivityWifi.setEnabled`, espera la respuesta de la radio, dice por qué se rechazó un cambio y queda como lectura sin acción si no hay dispositivo o está bloqueado por hardware. Nuevo mosaico de micrófono. Se quitó la línea "Conexión", que repetía el mosaico.
+- Pruebas: `tests/qml/surfaces/tst_MiniSlider.qml` (10), `scripts/features/test-cortetsu-quick-settings-runtime.py` (13 comprobaciones, añadida a `build-regressions.sh`), `test-cortetsu-notice-cards-runtime.py`, gate de Settings.
+- Decisión: Bloq Mayús/Num, distribución, cambio de dispositivo, carga y modo juego siguen siendo toasts (`CortetsuToaster`), con sus interruptores en Ajustes. Pasarlos al OSD crearía un segundo dueño del mismo aviso.
+- Pendiente: OSD de perfil de energía; secciones expandibles en el centro de control; medir latencia; probar el OSD con el Hub lateral y en `HDMI-A-1`; sesión real.

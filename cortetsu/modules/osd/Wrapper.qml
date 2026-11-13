@@ -18,7 +18,12 @@ Item {
     readonly property bool volumeAvailable: !!CortetsuAudio.sink?.ready && !!CortetsuAudio.sink?.audio
     property real brightness: monitor?.supported ? monitor.brightness : -1
     property bool compactVisible: false
+    // "volume" | "brightness" | "microphone"
     property string compactKind: "volume"
+    // The microphone whose mute state has been seen settled. A mute change
+    // that arrives with a new default source is that source's own state,
+    // not something the user just did, and is not announced.
+    property var settledSource: CortetsuAudio.source
     readonly property bool fullVisible: !!screenState?.osd
     // Interactions.qml controls hover state through the wrapper instance.
     // Expose the child state instead of assigning an undeclared property.
@@ -63,6 +68,14 @@ Item {
             root.muted = CortetsuAudio.muted;
             if (CortetsuShellState.forActive() === root.screenState)
                 root.showMini("volume");
+        }
+        function onSourceChanged(): void {
+            Qt.callLater(() => root.settledSource = CortetsuAudio.source);
+        }
+        function onSourceMutedChanged(): void {
+            if (CortetsuAudio.source && root.settledSource === CortetsuAudio.source
+                    && CortetsuShellState.forActive() === root.screenState)
+                root.showMini("microphone");
         }
     }
 
@@ -136,9 +149,13 @@ Item {
         anchors.left: parent.left
         visible: root.compactVisible && !root.fullVisible
         kind: root.compactKind
-        value: root.compactKind === "volume" ? root.volume : root.brightness
-        maximum: root.compactKind === "volume" ? CortetsuConfig.maxVolume : 1
-        available: root.compactKind === "volume" ? root.volumeAvailable : root.brightness >= 0
-        muted: root.muted
+        value: root.compactKind === "volume" ? root.volume
+            : root.compactKind === "microphone" ? CortetsuAudio.sourceVolume : root.brightness
+        maximum: root.compactKind === "brightness" ? 1 : CortetsuConfig.maxVolume
+        available: root.compactKind === "volume" ? root.volumeAvailable
+            : root.compactKind === "microphone" ? !!CortetsuAudio.source?.audio : root.brightness >= 0
+        muted: root.compactKind === "microphone" ? CortetsuAudio.sourceMuted : root.muted
+        // The output's own name, so a change of device is told apart.
+        name: root.compactKind === "volume" ? (CortetsuAudio.sink?.description ?? "") : ""
     }
 }
