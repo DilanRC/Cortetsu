@@ -56,9 +56,11 @@ QtObject {
     function refresh() {}
     function refreshDetails(device) {}
     function refreshProfiles() {}
-    function connectNetwork(network, password, profile) {}
+    function connectNetwork(network, password, profile) { joined = joined.concat([{ name: network.name, password: password }]); }
     function disconnectNetwork(network) {}
-    function forgetProfile(uuid) {}
+    property var forgotten: []
+    property var joined: []
+    function forgetProfile(uuid) { forgotten = forgotten.concat([uuid]); }
     function setAutoconnect(uuid, enabled) {}
     function setEnabled(enabled) {
         pendingEnabled = enabled;

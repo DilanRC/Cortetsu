@@ -58,6 +58,8 @@ var materialGrain = 0.11
 var materialPopupGrain = 0.09
 var materialHairlineAlpha = 0.07
 var materialTransparencyFactor = 0.86
+var materialSeparatorAlpha = 0.36
+var materialHeroWashAlpha = 0.3
 
 // A theme's identity beyond colour. materialStyle picks how surfaces are
 // drawn (0 ink wash, 1 washi paper, 2 kurogane steel); the heading and label

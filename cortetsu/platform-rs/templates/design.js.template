@@ -58,6 +58,8 @@ var materialGrain = {{material.grain}}
 var materialPopupGrain = {{material.popup_grain}}
 var materialHairlineAlpha = {{material.hairline_alpha}}
 var materialTransparencyFactor = {{material.transparency_factor}}
+var materialSeparatorAlpha = {{material.separator_alpha}}
+var materialHeroWashAlpha = {{material.hero_wash_alpha}}
 
 // A theme's identity beyond colour. materialStyle picks how surfaces are
 // drawn (0 ink wash, 1 washi paper, 2 kurogane steel); the heading and label

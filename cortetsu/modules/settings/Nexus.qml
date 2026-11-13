@@ -122,13 +122,21 @@ Item {
                 monochromeColor: CortetsuDesign.colorOnSurface
             }
 
+            // The product names itself once, here; the page says the rest.
+            CortetsuText {
+                visible: !root.collapsed
+                text: "Cortetsu"
+                textSize: CortetsuTypography.titleMediumPx
+                font.family: CortetsuDesign.fontHeading
+                font.weight: CortetsuDesign.headingWeight
+            }
+
             CortetsuText {
                 Layout.fillWidth: true
                 visible: !root.collapsed
                 text: qsTr("Ajustes")
-                textSize: CortetsuTypography.titleMediumPx
-                font.family: CortetsuDesign.fontHeading
-                font.weight: CortetsuDesign.headingWeight
+                textSize: CortetsuTypography.bodyLargePx
+                color: CortetsuDesign.colorOnSurfaceVariant
                 elide: Text.ElideRight
             }
 

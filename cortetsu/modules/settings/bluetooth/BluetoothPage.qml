@@ -25,6 +25,9 @@ Item {
     readonly property string scanOwner: "settings-bluetooth-" + String(root)
     readonly property bool powerBusy: bluetooth.busy && operation.kind === "power"
     readonly property bool compactLayout: width < 760
+    // As tall as what it holds: the adapter rows, then the taller of the
+    // explorer and the inspector (or both, stacked, in a narrow window).
+    implicitHeight: page.implicitHeight
 
     property string filter: "all"
     property string query: ""
@@ -35,8 +38,6 @@ Item {
     readonly property var shownDevices: Devices.visible(root.devices, root.filter, root.query)
     readonly property var selectedDevice: root.shownDevices.find(device => device.dbusPath === root.selectedPath)
         ?? root.shownDevices[0] ?? null
-
-    implicitHeight: (root.compactLayout ? 1120 : 600) + header.implicitHeight + CortetsuDesign.spacingStandard
 
     function property(device, name): bool {
         return root.bluetooth.propertyValue ? root.bluetooth.propertyValue(device, name) : !!device?.[name];
@@ -83,8 +84,10 @@ Item {
     onFilterChanged: selectedPath = ""
 
     ColumnLayout {
-        anchors.fill: parent
-        spacing: CortetsuDesign.spacingStandard
+        id: page
+        anchors.left: parent.left
+        anchors.right: parent.right
+        spacing: CortetsuDesign.spacingSection
 
         SettingsGroup {
             id: header
@@ -151,12 +154,11 @@ Item {
         Flow {
             id: workbench
             Layout.fillWidth: true
-            Layout.fillHeight: true
-            visible: root.ready
-            spacing: CortetsuDesign.spacingSection
-            height: root.compactLayout
+            Layout.preferredHeight: root.compactLayout
                 ? listPanel.implicitHeight + detailPanel.implicitHeight + spacing
                 : Math.max(listPanel.implicitHeight, detailPanel.implicitHeight)
+            visible: root.ready
+            spacing: CortetsuDesign.spacingSection
 
             DeviceListPanel {
                 id: listPanel

@@ -26,7 +26,9 @@ Item {
     readonly property int battery: Devices.batteryPercent(device)
 
     height: implicitHeight
-    implicitHeight: 580
+    implicitHeight: root.device
+        ? inspector.implicitHeight + CortetsuDesign.spacingStandard * 2
+        : noDevice.implicitHeight + CortetsuDesign.spacingSection * 2
 
     // Arming is per device: selecting another one disarms both.
     readonly property string devicePath: device?.dbusPath ?? ""
@@ -41,6 +43,7 @@ Item {
     }
 
     CortetsuStateMessage {
+        id: noDevice
         anchors.centerIn: parent
         width: Math.min(parent.width, 360)
         visible: !root.device
@@ -51,8 +54,11 @@ Item {
     }
 
     ColumnLayout {
+        id: inspector
         objectName: "bluetoothInspector"
-        anchors.fill: parent
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: parent.top
         anchors.margins: CortetsuDesign.spacingStandard
         visible: !!root.device
         spacing: CortetsuDesign.spacingStandard
@@ -328,6 +334,5 @@ Item {
             }
         }
 
-        Item { Layout.fillHeight: true }
     }
 }

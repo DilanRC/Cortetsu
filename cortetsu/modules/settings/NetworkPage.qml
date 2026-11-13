@@ -11,14 +11,18 @@ import "../CortetsuTypography.js" as CortetsuTypography
 import "network"
 import "controls"
 
-// Wi-Fi is a workbench: the active link stays visible while the explorer and
-// inspector handle discovery, saved profiles and NetworkManager actions.
-Item {
+// Wi-Fi: the radio first, then the network you are on as the one protagonist
+// block, the list that chooses it and, beside them, what can be read and done
+// about the selection. Every block is as tall as what it holds, so one
+// network does not open a page-high panel.
+ColumnLayout {
     id: root
+    objectName: "networkPage"
+    spacing: CortetsuDesign.spacingSection
+
 
     required property var context
 
-    readonly property bool wide: true
     readonly property var wifi: Connectivity.wifi
     readonly property string scanOwner: "settings-wifi-" + String(root)
     property bool showingProfiles: false
@@ -57,13 +61,7 @@ Item {
     readonly property bool selectedCanCopyPassword: !!root.selectedProfile && (!root.selectedNetwork
         || [WifiSecurityType.WpaPsk, WifiSecurityType.Wpa2Psk, WifiSecurityType.Sae].includes(root.selectedNetwork.security))
     readonly property string secretState: CortetsuSettingsNetwork.secretState
-    readonly property bool compactLayout: width < 760
     readonly property var activeDetails: CortetsuSettingsNetwork.activeDetails
-
-    // Content.qml places the page in the settings Flickable. This is tall
-    // enough for the split workbench while still allowing the compact layout
-    // to grow naturally when a narrow window wraps it vertically.
-    implicitHeight: (root.compactLayout ? 1180 : 620) + radio.implicitHeight + CortetsuDesign.spacingStandard
 
     function signalLabel(signal): string {
         const value = Number(signal ?? -1);
@@ -174,104 +172,74 @@ Item {
     readonly property var operation: CortetsuSettingsNetwork.operation
     readonly property bool radioBusy: CortetsuSettingsNetwork.busy && operation.kind === "enable"
 
-    ColumnLayout {
-        anchors.fill: parent
-        spacing: CortetsuDesign.spacingStandard
+    SettingsGroup {
+        id: radio
 
-        SettingsGroup {
-            id: radio
+        SettingToggleRow {
+            objectName: "wifiPower"
+            title: qsTr("Wi-Fi")
+            detail: !root.wifi.hardwareEnabled
+                ? qsTr("Apagado por el interruptor del equipo")
+                : CortetsuSettingsNetwork.wifiEnabled ? qsTr("Encendido") : qsTr("Apagado")
+            checked: CortetsuSettingsNetwork.wifiEnabled
+            disabled: !root.wifi.hardwareEnabled
+            status: root.radioBusy
+                ? "busy"
+                : root.operation.kind === "enable" && CortetsuSettingsNetwork.state === "error" ? "error" : ""
+            statusText: root.radioBusy ? qsTr("Aplicando…") : CortetsuSettingsNetwork.error
+            onToggled: value => CortetsuSettingsNetwork.setWifi(value)
+        }
+    }
 
-            SettingToggleRow {
-                objectName: "wifiPower"
-                title: qsTr("Wi-Fi")
-                detail: !root.wifi.hardwareEnabled
-                    ? qsTr("Apagado por el interruptor del equipo")
-                    : CortetsuSettingsNetwork.wifiEnabled ? qsTr("Encendido") : qsTr("Apagado")
-                checked: CortetsuSettingsNetwork.wifiEnabled
-                disabled: !root.wifi.hardwareEnabled
-                status: root.radioBusy
-                    ? "busy"
-                    : root.operation.kind === "enable" && CortetsuSettingsNetwork.state === "error" ? "error" : ""
-                statusText: root.radioBusy ? qsTr("Aplicando…") : CortetsuSettingsNetwork.error
-                onToggled: value => CortetsuSettingsNetwork.setWifi(value)
+    CortetsuSurface {
+        Layout.fillWidth: true
+        visible: CortetsuSettingsNetwork.state === "error" && root.operation.kind !== "enable"
+        implicitHeight: 52
+        baseColor: Qt.alpha(CortetsuDesign.colorWarning, 0.12)
+        outlineColor: Qt.alpha(CortetsuDesign.colorWarning, 0.54)
+        outlined: true
+        radiusValue: CortetsuDesign.radiusMedium
+
+        RowLayout {
+            anchors.fill: parent
+            anchors.margins: CortetsuDesign.spacingStandard
+            spacing: CortetsuDesign.spacingStandard
+
+            CortetsuIcon {
+                text: "warning"
+                color: CortetsuDesign.colorWarning
+                iconSize: CortetsuTypography.iconMediumPx
             }
 
-            SettingActionRow {
-                objectName: "wifiScan"
-                title: qsTr("Redes cercanas")
-                detail: CortetsuSettingsNetwork.wifiEnabled
-                    ? qsTr("%1 a la vista").arg(root.networks.length)
-                    : qsTr("Enciende el Wi-Fi para buscarlas")
-                actionLabel: qsTr("Buscar de nuevo")
-                actionIcon: "refresh"
-                disabled: CortetsuSettingsNetwork.busy || !CortetsuSettingsNetwork.wifiEnabled
-                onActivated: root.refreshAll()
+            CortetsuText {
+                Layout.fillWidth: true
+                text: CortetsuSettingsNetwork.error
+                textSize: CortetsuTypography.bodySmallPx
+                color: CortetsuDesign.colorWarning
+                elide: Text.ElideRight
+            }
+
+            CortetsuButton {
+                compact: true
+                icon: "refresh"
+                label: qsTr("Reintentar")
+                disabled: CortetsuSettingsNetwork.busy
+                onClicked: root.retrySelected()
             }
         }
+    }
 
-        CortetsuSurface {
-            Layout.fillWidth: true
-            visible: CortetsuSettingsNetwork.state === "error" && root.operation.kind !== "enable"
-            implicitHeight: 52
-            baseColor: Qt.alpha(CortetsuDesign.colorWarning, 0.12)
-            outlineColor: Qt.alpha(CortetsuDesign.colorWarning, 0.54)
-            outlined: true
-            radiusValue: CortetsuDesign.radiusMedium
-
-            RowLayout {
-                anchors.fill: parent
-                anchors.margins: CortetsuDesign.spacingStandard
-                spacing: CortetsuDesign.spacingStandard
-
-                CortetsuIcon {
-                    text: "warning"
-                    color: CortetsuDesign.colorWarning
-                    iconSize: CortetsuTypography.iconMediumPx
-                }
-
-                CortetsuText {
-                    Layout.fillWidth: true
-                    text: CortetsuSettingsNetwork.error
-                    textSize: CortetsuTypography.bodySmallPx
-                    color: CortetsuDesign.colorWarning
-                    elide: Text.ElideRight
-                }
-
-                CortetsuButton {
-                    compact: true
-                    icon: "refresh"
-                    label: qsTr("Reintentar")
-                    disabled: CortetsuSettingsNetwork.busy
-                    onClicked: root.retrySelected()
-                }
-            }
+    SettingsColumns {
+        NetworkHero {
+            page: root
         }
 
-        Flow {
-            id: workbench
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            spacing: CortetsuDesign.spacingSection
-            property bool compact: root.compactLayout
-            height: compact
-                ? listPanel.implicitHeight + detailPanel.implicitHeight + spacing
-                : Math.max(listPanel.implicitHeight, detailPanel.implicitHeight)
+        NetworkListPanel {
+            page: root
+        }
 
-            NetworkListPanel {
-                id: listPanel
-                page: root
-                width: workbench.compact
-                    ? workbench.width
-                    : Math.min(390, Math.max(340, workbench.width * 0.34))
-            }
-
-            NetworkDetailPanel {
-                id: detailPanel
-                page: root
-                width: workbench.compact
-                    ? workbench.width
-                    : Math.max(0, workbench.width - listPanel.width - workbench.spacing)
-            }
+        aside: NetworkDetailPanel {
+            page: root
         }
     }
 }

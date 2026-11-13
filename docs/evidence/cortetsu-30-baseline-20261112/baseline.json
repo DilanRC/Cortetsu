@@ -1,0 +1,59 @@
+{
+ "taken": "2026-11-12",
+ "head": "36dea6dbbda52b9ba8dae1abbdb0721ba976833f",
+ "origin_main": "97d40b4caab84e214889ea89f3409e5cee98cb66",
+ "installed_generation": {
+  "build_id": "20261112-123052-132232",
+  "source": "0b2fc36542f3d446161165e9b727560c15f0aa9c",
+  "previous_build_id": "20261112-120953-59643"
+ },
+ "packages": [
+  "quickshell-git 0.3.2.r0.g4f508be-1",
+  "hyprland 0.57.1-1.1",
+  "qt6-base 6.12.0-3",
+  "pipewire 1:1.6.10-1",
+  "networkmanager 1.58.1-3",
+  "bluez 5.87-3",
+  "upower 1.91.5-1.1"
+ ],
+ "kernel": "7.3.1-1-cachyos",
+ "monitors": [
+  {
+   "name": "eDP-1",
+   "width": 1920,
+   "height": 1080,
+   "refreshRate": 144.00301,
+   "scale": 1,
+   "description": "BOE 0x0CFD"
+  }
+ ],
+ "shell": {
+  "pss_kb": 353115,
+  "rss_kb": 486980,
+  "swap_kb": 43000,
+  "threads": 70,
+  "children": [
+   "dbus-monitor",
+   "cortetsu-deskto",
+   "nmcli",
+   "cortetsu-deskto",
+   "systemd-inhibit",
+   "cortetsu-deskto",
+   "cortetsu-coordi"
+  ],
+  "ActiveEnterTimestamp": "Thu 2026-11-12 19:03:04 CST",
+  "NRestarts": "0",
+  "MemoryCurrent": "421855232",
+  "CPUUsageNSec": "9514658000"
+ },
+ "nvidia_runtime_status": {
+  "0000:01:00.0": "suspended",
+  "0000:01:00.1": "suspended"
+ },
+ "qml_design_lint_findings": 29,
+ "notes": [
+  "HDMI-A-1 no estaba conectado al tomar la línea base",
+  "MIGRACION_PROYECTO_ARCH_2026-09-02.md no se encontró en el equipo",
+  "PSS de smaps_rollup del proceso quickshell del servicio cortetsu-shell"
+ ]
+}

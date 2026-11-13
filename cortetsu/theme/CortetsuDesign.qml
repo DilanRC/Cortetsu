@@ -122,6 +122,8 @@ QtObject {
     readonly property real materialPopupGrain: token("materialPopupGrain", Defaults.materialPopupGrain)
     readonly property real materialHairlineAlpha: token("materialHairlineAlpha", Defaults.materialHairlineAlpha)
     readonly property real materialTransparencyFactor: token("materialTransparencyFactor", Defaults.materialTransparencyFactor)
+    readonly property real materialSeparatorAlpha: token("materialSeparatorAlpha", Defaults.materialSeparatorAlpha)
+    readonly property real materialHeroWashAlpha: token("materialHeroWashAlpha", Defaults.materialHeroWashAlpha)
     readonly property real materialStyle: token("materialStyle", Defaults.materialStyle)
     readonly property real materialShadowAlpha: token("materialShadowAlpha", Defaults.materialShadowAlpha)
     readonly property string fontHeading: token("fontHeading", Defaults.fontHeading)

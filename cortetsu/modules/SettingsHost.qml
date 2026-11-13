@@ -75,8 +75,9 @@ Scope {
                 Loader {
                     id: contentLoader
                     objectName: "settingsContentLoader"
+                    // Content reaches the frame: its sidebar and its page
+                    // are two grounds of one sheet, not a panel in a panel.
                     anchors.fill: parent
-                    anchors.margins: CortetsuDesign.spacingSpacious
                     active: false
                     focus: true
                     sourceComponent: Content {

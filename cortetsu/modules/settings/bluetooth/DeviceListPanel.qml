@@ -16,8 +16,10 @@ Item {
 
     required property var page
 
+    // As tall as its rows up to `maxListHeight`; then the list scrolls.
+    readonly property int maxListHeight: 448
     height: implicitHeight
-    implicitHeight: 580
+    implicitHeight: column.implicitHeight
 
     readonly property var filters: [
         { value: "all", label: qsTr("Todos") },
@@ -30,16 +32,10 @@ Item {
         available: qsTr("Disponibles")
     })
 
-    CortetsuSurface {
-        anchors.fill: parent
-        baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.60)
-        outlined: true
-        radiusValue: CortetsuDesign.radiusMedium
-    }
-
     ColumnLayout {
-        anchors.fill: parent
-        anchors.margins: CortetsuDesign.spacingCompact
+        id: column
+        anchors.left: parent.left
+        anchors.right: parent.right
         spacing: CortetsuDesign.spacingCompact
 
         RowLayout {
@@ -95,8 +91,12 @@ Item {
             id: deviceList
             objectName: "bluetoothDeviceList"
             Layout.fillWidth: true
-            Layout.fillHeight: true
+            Layout.preferredHeight: count > 0
+                ? Math.min(contentHeight + topMargin + bottomMargin, root.maxListHeight)
+                : emptyState.implicitHeight + CortetsuDesign.spacingSpacious * 2
             clip: true
+            interactive: contentHeight + topMargin + bottomMargin > root.maxListHeight
+            boundsBehavior: Flickable.StopAtBounds
             spacing: 3
             topMargin: 4
             bottomMargin: 4
@@ -152,25 +152,15 @@ Item {
                     Accessible.role: Accessible.ListItem
                     Accessible.name: `${Devices.displayName(entry.modelData)}, ${root.page.stateText(entry.modelData)}`
 
-                    CortetsuSurface {
-                        anchors.fill: parent
-                        baseColor: entry.selected
-                            ? Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.86)
-                            : rowMouse.containsMouse ? Qt.alpha(CortetsuDesign.colorSurfaceGlassStrong, 0.94) : "transparent"
-                        outlineColor: entry.selected ? Qt.alpha(CortetsuDesign.colorPrimary, 0.44) : "transparent"
-                        outlined: entry.selected
-                        radiusValue: CortetsuDesign.radiusSmall
-                        hovered: rowMouse.containsMouse
-                    }
-
+                    // Open rows: a ground only under the pointer or the selection.
                     Rectangle {
-                        anchors.left: parent.left
-                        anchors.leftMargin: 3
-                        anchors.verticalCenter: parent.verticalCenter
-                        width: 2
-                        height: 28
-                        visible: entry.selected
-                        color: CortetsuDesign.colorWashi
+                        anchors.fill: parent
+                        radius: CortetsuDesign.radiusMedium
+                        color: entry.selected
+                            ? Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.86)
+                            : Qt.alpha(CortetsuDesign.colorOnSurface, rowMouse.containsMouse ? 0.06 : 0)
+                        border.width: entry.selected ? CortetsuDesign.outlineWidth : 0
+                        border.color: Qt.alpha(CortetsuDesign.colorIndicator, 0.5)
                     }
 
                     RowLayout {
@@ -249,6 +239,7 @@ Item {
             }
 
             CortetsuStateMessage {
+                id: emptyState
                 objectName: "noDevices"
                 anchors.centerIn: parent
                 visible: deviceList.count === 0

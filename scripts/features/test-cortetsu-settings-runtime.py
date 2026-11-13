@@ -315,7 +315,6 @@ ShellRoot {
             Loader {
                 id: host
                 anchors.fill: parent
-                anchors.margins: CortetsuDesign.spacingSpacious
                 active: screenDouble.settings
                 focus: true
                 sourceComponent: Content {
@@ -567,7 +566,7 @@ ShellRoot {
             key(Qt.Key_Return);
             verify(CortetsuNotifications.count === 0 && !memo.clear.armed, "the second press runs it");
             verify(memo.clear.title === "El historial está vacío" && memo.clear.disabled, "the row then shows the new state and stops offering the action");
-            get("pageScroller").contentY = 120;
+            get("pageScroller").contentY = 60;
         }],
         [() => waitedMs >= 400, () => {
             select("themes");
@@ -577,7 +576,7 @@ ShellRoot {
             get("settingsBack").clicked();
         }],
         [() => content.pageId === "notifications" && !!content.page && waitedMs >= 200, () => {
-            verify(Math.abs(get("pageScroller").contentY - 120) <= 1, `going back lands where the page was left (${get("pageScroller").contentY})`);
+            verify(Math.abs(get("pageScroller").contentY - 60) <= 1, `going back lands where the page was left (${get("pageScroller").contentY})`);
             get("breadcrumbCategory").forceActiveFocus();
             key(Qt.Key_Return);
         }],
@@ -709,6 +708,45 @@ ShellRoot {
         }],
         [() => find(memo.wifi, "switch").checked, () => {
             verify(get("nexus-network").value.includes("Casa"), "an outside change reaches the open page and navigation");
+            // Premium sobria: every block is as tall as what it holds.
+            memo.net = page("networkPage");
+            memo.list = page("networkList");
+            verify(memo.list.count === 2 && memo.list.height === 112, `two networks take two rows, not a panel (${memo.list.height})`);
+            verify(!page("networkFilter").visible, "a filter is not offered for a list this short");
+            verify(page("networkHero").visible && find(page("networkHero"), "networkHeroName").text === "Casa", "the hero names the network in use");
+            verify(page("connectionState").visible && !page("connectionJoin").visible && value("networkAddress") === "192.168.0.2",
+                "a connected network shows its link, not a way in");
+            verify(content.page.implicitHeight < 520, `the page is as tall as its content (${content.page.implicitHeight})`);
+            memo.forget = page("forgetNetwork");
+            find(memo.forget, "action").forceActiveFocus();
+            key(Qt.Key_Return);
+            verify(memo.forget.armed && wifi.forgotten.length === 0, "forgetting a network waits for a second press");
+            key(Qt.Key_Return);
+            verify(wifi.forgotten.length === 1 && wifi.forgotten[0] === wifi.profiles[0].uuid && !memo.forget.armed, "the second press forgets that profile");
+            memo.list.forceActiveFocus();
+            key(Qt.Key_Down);
+        }],
+        [() => memo.net.selectedIndex === 1 && page("connectionJoin").visible, () => {
+            verify(!page("connectionState").visible && find(page("networkHero"), "networkHeroName").text === "Vecinos", "Down selects the next network and the page follows");
+            memo.join = page("connectNetwork");
+            verify(find(memo.join, "action").disabled, "a protected network cannot be joined without its password");
+            const entry = find(page("connectionJoin"), "entry");
+            entry.forceActiveFocus();
+            for (const letter of "clave")
+                events.keyClick(Qt.Key_A + letter.charCodeAt(0) - 97, Qt.NoModifier, -1);
+            verify(entry.echoMode === TextInput.Password && memo.net.password === "clave", `the password is typed hidden (${memo.net.password})`);
+            key(Qt.Key_Return);
+            verify(wifi.joined.length === 1 && wifi.joined[0].name === "Vecinos" && wifi.joined[0].password === "clave" && memo.net.password === "",
+                "Enter joins with the password and the page forgets it");
+            render("network-join");
+            memo.net.showingProfiles = true;
+        }],
+        [() => page("savedProfile").visible, () => {
+            verify(!page("networkHero").visible && memo.list.count === 1 && memo.list.height === 56, "saved profiles reuse the list at its own height");
+            const forget = page("forgetProfile");
+            find(forget, "action").clicked();
+            verify(forget.armed && wifi.forgotten.length === 1, "a saved profile is not deleted by one click");
+            memo.net.showingProfiles = false;
             select("bluetooth");
         }],
         [() => ["wifi", "bluetooth", "automation", "capture", "weather"].includes(content.pageId) && !!page("bluetoothPower"), () => {
@@ -2400,7 +2438,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     host = run_host(folder)
     assert not host or "SETTINGS_HOST_PASS 1" in host, host
 
-    assert (reactivity, navigation, states, unwritable, pages) == (48, 58, 61, 3, 181), (reactivity, navigation, states, unwritable, pages)
+    assert (reactivity, navigation, states, unwritable, pages) == (48, 58, 74, 3, 181), (reactivity, navigation, states, unwritable, pages)
 assert policies == 16, policies
 print(f"Settings builds in {opened.split()[0]} ms ({opened.split()[1]} items); "
       f"20 cycles of open, every destination and close take {cycles} ms")

@@ -64,6 +64,12 @@ hairline_alpha = 0.07
 # Settings > Appearance > Transparent surfaces multiplies every ground and
 # surface alpha by this factor, so the wallpaper shows through all of them alike.
 transparency_factor = 0.86
+# Premium sobria: rows and groups are told apart by a hairline of the outline
+# colour at this strength, not by a frame each.
+separator_alpha = 0.36
+# The one protagonist block of a view (CortetsuHero) carries a wash of the
+# accent this strong; everything around it stays on the plain ground.
+hero_wash_alpha = 0.3
 
 # Type families. The UI family carries data and controls; the ink family is
 # the serif of the big moments (hour, titles, the line being sung); the

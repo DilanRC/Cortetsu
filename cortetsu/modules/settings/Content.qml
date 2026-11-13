@@ -168,14 +168,19 @@ FocusScope {
         controller: root.controller
     }
 
+    // One frame, two grounds. The sidebar sits on the window's own material
+    // and the page on a lighter one that runs to the frame's edge; a hairline
+    // is all that parts them.
     RowLayout {
         anchors.fill: parent
-        spacing: CortetsuDesign.spacingComfortable
+        spacing: 0
 
         Nexus {
             id: nexus
             objectName: "nexus"
             Layout.fillHeight: true
+            Layout.margins: root.collapsed ? CortetsuDesign.spacingStandard : CortetsuDesign.spacingComfortable
+            Layout.topMargin: CortetsuDesign.spacingSpacious
             Layout.preferredWidth: root.collapsed ? 56 : 268
             Layout.maximumWidth: Layout.preferredWidth
             controller: root.controller
@@ -189,22 +194,28 @@ FocusScope {
             }
         }
 
-        // The main panel: its own material, set apart from the sidebar.
+        CortetsuDivider {
+            objectName: "nexusDivider"
+            vertical: true
+            Layout.fillHeight: true
+        }
+
         Item {
             id: main
             objectName: "mainPanel"
             Layout.fillWidth: true
             Layout.fillHeight: true
 
-            CortetsuInkPanel {
+            Rectangle {
+                objectName: "mainGround"
                 anchors.fill: parent
-                radius: CortetsuDesign.radiusLarge
-                ground: CortetsuDesign.colorTetsu
-                groundAlpha: Material.panelAlpha(CortetsuDesign.materialStyle)
-                washAlpha: CortetsuDesign.materialWashAlpha * 0.5
-                washX: 0.9
-                grain: CortetsuDesign.materialGrain * 0.5
-                marks: false
+                // Inside the frame's hairline, following its right corners.
+                anchors.topMargin: 1
+                anchors.rightMargin: 1
+                anchors.bottomMargin: 1
+                topRightRadius: CortetsuDesign.radiusSurface - 1
+                bottomRightRadius: CortetsuDesign.radiusSurface - 1
+                color: Qt.alpha(CortetsuDesign.colorTetsu, Material.panelAlpha(CortetsuDesign.materialStyle))
             }
 
             ColumnLayout {
@@ -232,7 +243,7 @@ FocusScope {
                     CortetsuButton {
                         objectName: "closeSettings"
                         anchors.right: parent.right
-                        anchors.rightMargin: CortetsuDesign.spacingStandard
+                        anchors.rightMargin: CortetsuDesign.spacingComfortable
                         anchors.top: parent.top
                         compact: true
                         icon: "close"

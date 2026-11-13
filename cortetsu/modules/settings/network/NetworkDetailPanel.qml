@@ -8,346 +8,212 @@ import "../../../services"
 import "../.."
 import "../../../theme"
 import "../../CortetsuTypography.js" as CortetsuTypography
+import "../controls"
 
-Item {
+// What can be read and done about the selection: the link's addresses and
+// its actions when connected, the way in when it is not, and the stored
+// preferences of a saved profile. Forgetting always asks twice.
+ColumnLayout {
     id: root
 
     required property var page
+    readonly property bool onNetwork: !root.page.showingProfiles && !!root.page.selectedNetwork
+    readonly property bool onProfile: root.page.showingProfiles && !!root.page.selectedProfile
+    readonly property bool connecting: root.page.wifi.operationNetwork === root.page.selectedNetwork
+        && root.page.wifi.operation.state === "connecting"
 
-    height: implicitHeight
-    implicitHeight: 580
+    Layout.fillWidth: true
+    spacing: CortetsuDesign.spacingSection
 
-    CortetsuSurface {
-        id: detailBackdrop
-        anchors.fill: detailColumn
-        visible: !root.page.showingProfiles && !!root.page.selectedNetwork
-        z: -1
-        baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.58)
-        outlined: true
-        radiusValue: CortetsuDesign.radiusMedium
+    SettingsGroup {
+        objectName: "connectionState"
+        visible: root.onNetwork && root.page.selectedIsActive
+        title: qsTr("Estado de la conexión")
+        icon: "info"
+
+        SettingValueRow {
+            objectName: "networkAddress"
+            title: qsTr("Dirección IP")
+            value: root.page.detailsValue(root.page.activeDetails.address)
+        }
+
+        SettingValueRow {
+            title: qsTr("Puerta de enlace")
+            value: root.page.detailsValue(root.page.activeDetails.gateway)
+        }
+
+        SettingValueRow {
+            title: qsTr("DNS")
+            value: root.page.detailsValue((root.page.activeDetails.dns ?? []).join(", "))
+        }
+
+        SettingValueRow {
+            visible: CortetsuSettingsNetwork.detailsState === "error"
+            title: qsTr("No se pudieron leer los detalles")
+            detail: CortetsuSettingsNetwork.detailsError
+            attention: true
+        }
+
+        SettingToggleRow {
+            objectName: "networkAutoconnect"
+            visible: !!root.page.selectedProfile
+            title: qsTr("Conexión automática")
+            detail: qsTr("Conectar cuando la red esté al alcance")
+            checked: root.page.selectedProfile?.autoconnect ?? false
+            disabled: CortetsuSettingsNetwork.busy
+            onToggled: checked => root.page.wifi.setAutoconnect(root.page.selectedProfile.uuid, checked)
+        }
+
+        SettingActionRow {
+            objectName: "disconnectNetwork"
+            title: qsTr("Desconectar")
+            detail: qsTr("Conserva el perfil guardado")
+            actionLabel: qsTr("Desconectar")
+            actionIcon: "link_off"
+            disabled: CortetsuSettingsNetwork.busy
+            onActivated: root.page.disconnectSelected()
+        }
+
+        SettingActionRow {
+            objectName: "forgetNetwork"
+            visible: !!root.page.selectedProfile
+            title: qsTr("Olvidar esta red")
+            detail: armed
+                ? qsTr("Se borrará el perfil y su contraseña. Pulsa de nuevo para confirmar.")
+                : qsTr("Borra el perfil y su contraseña")
+            actionLabel: qsTr("Olvidar")
+            actionIcon: "delete_outline"
+            danger: true
+            confirm: true
+            disabled: CortetsuSettingsNetwork.busy
+            onActivated: root.page.forgetSelected()
+        }
     }
 
-    ColumnLayout {
-        id: detailColumn
-        anchors.fill: parent
-        anchors.margins: root.page.showingProfiles || !root.page.selectedNetwork ? 0 : CortetsuDesign.spacingStandard
-        spacing: root.page.showingProfiles || !root.page.selectedNetwork ? CortetsuDesign.spacingStandard : 0
+    SettingsGroup {
+        objectName: "connectionJoin"
+        visible: root.onNetwork && !root.page.selectedIsActive
+        title: qsTr("Conectar")
+        icon: "wifi"
+        detail: root.page.selectedNeedsPassword
+            ? qsTr("Esta red pide contraseña.")
+            : root.page.selectedNetwork?.known
+                ? qsTr("Ya tienes un perfil guardado para esta red.")
+                : qsTr("Red abierta: no se pide contraseña y el tráfico no va cifrado.")
 
-        RowLayout {
-            id: detailHeader
-            Layout.fillWidth: true
-            visible: root.page.showingProfiles || !root.page.selectedNetwork
+        SettingRow {
+            visible: root.page.selectedNeedsPassword
+            title: qsTr("Contraseña")
 
-            ColumnLayout {
-                Layout.fillWidth: true
-                spacing: 2
-
-                CortetsuText {
-                    Layout.fillWidth: true
-                    text: root.page.showingProfiles
-                        ? (root.page.selectedProfile?.name ?? qsTr("Perfil guardado"))
-                        : (root.page.selectedNetwork?.name ?? qsTr("Selecciona una red"))
-                    textSize: CortetsuTypography.titleMediumPx
-                    font.weight: Font.DemiBold
-                    elide: Text.ElideRight
-                }
-
-                CortetsuText {
-                    Layout.fillWidth: true
-                    text: root.page.showingProfiles
-                        ? qsTr("Preferencias de conexión guardadas")
-                        : root.page.selectedNetwork
-                            ? qsTr("%1 · %2")
-                                .arg(root.page.securityLabel(root.page.selectedNetwork))
-                                .arg(root.page.selectedNetwork.device.name || qsTr("dispositivo no disponible"))
-                            : qsTr("Elige una red para ver sus propiedades")
-                    textSize: CortetsuTypography.labelSmallPx
-                    color: CortetsuDesign.colorOnSurfaceVariant
-                    elide: Text.ElideRight
+            TextField {
+                id: passwordField
+                objectName: "entry"
+                implicitWidth: Math.min(240, root.width * 0.5)
+                implicitHeight: CortetsuDesign.controlHeight
+                echoMode: root.page.passwordVisible ? TextInput.Normal : TextInput.Password
+                text: root.page.password
+                onTextEdited: root.page.password = text
+                onAccepted: if (text.length > 0) root.page.connectSelected()
+                color: CortetsuDesign.colorOnSurface
+                placeholderText: qsTr("Contraseña de Wi-Fi")
+                placeholderTextColor: CortetsuDesign.colorOnSurfaceVariant
+                selectionColor: CortetsuDesign.colorPrimaryContainer
+                selectedTextColor: CortetsuDesign.colorOnPrimaryContainer
+                font.family: CortetsuDesign.fontUi
+                Accessible.name: qsTr("Contraseña de Wi-Fi")
+                Accessible.passwordEdit: true
+                background: Rectangle {
+                    color: CortetsuDesign.colorSurfaceHigh
+                    radius: CortetsuDesign.radiusSmall
+                    border.width: passwordField.activeFocus ? 2 : 1
+                    border.color: passwordField.activeFocus ? CortetsuDesign.colorIndicator : CortetsuDesign.colorOutlineVariant
                 }
             }
 
             CortetsuButton {
-                visible: !root.page.showingProfiles && root.page.selectedCanCopyPassword
                 compact: true
-                icon: root.page.secretState === "ready" ? "check" : "key"
-                label: root.page.secretState === "ready"
-                    ? qsTr("Contraseña copiada")
-                    : qsTr("Copiar contraseña")
-                disabled: CortetsuSettingsNetwork.secretBusy
-                onClicked: root.page.copySelectedPassword()
+                label: ""
+                icon: root.page.passwordVisible ? "visibility_off" : "visibility"
+                tooltipText: root.page.passwordVisible ? qsTr("Ocultar contraseña") : qsTr("Mostrar contraseña")
+                Accessible.name: tooltipText
+                onClicked: root.page.passwordVisible = !root.page.passwordVisible
             }
         }
 
-        SelectedNetworkCard {
-            Layout.fillWidth: true
-            page: root.page
+        SettingActionRow {
+            objectName: "connectNetwork"
+            title: root.page.selectedNetwork?.name || qsTr("Red sin nombre")
+            detail: root.page.securityLabel(root.page.selectedNetwork)
+            status: root.connecting ? "busy" : ""
+            statusText: qsTr("Conectando…")
+            actionLabel: qsTr("Conectar")
+            actionIcon: "wifi"
+            actionDisabled: CortetsuSettingsNetwork.busy
+                || (root.page.selectedNeedsPassword && root.page.password.length === 0)
+            onActivated: root.page.connectSelected()
+        }
+    }
+
+    SettingsGroup {
+        objectName: "savedProfile"
+        visible: root.onProfile
+        title: root.page.selectedProfile?.name ?? ""
+        icon: "bookmark"
+        detail: qsTr("Perfil guardado en NetworkManager")
+
+        SettingToggleRow {
+            title: qsTr("Conexión automática")
+            detail: qsTr("Conectar cuando la red esté al alcance")
+            checked: root.page.selectedProfile?.autoconnect ?? false
+            disabled: CortetsuSettingsNetwork.busy
+            onToggled: checked => root.page.wifi.setAutoconnect(root.page.selectedProfile?.uuid ?? "", checked)
         }
 
-        CortetsuSurface {
-            Layout.fillWidth: true
-            visible: !root.page.showingProfiles && !!root.page.selectedNetwork
-            implicitHeight: 134
-            baseColor: "transparent"
-            outlined: false
-            radiusValue: 0
-
-            ColumnLayout {
-                anchors.fill: parent
-                anchors.margins: CortetsuDesign.spacingStandard
-                spacing: CortetsuDesign.spacingCompact
-
-                DetailRow {
-                    label: qsTr("Seguridad")
-                    value: root.page.securityLabel(root.page.selectedNetwork)
-                }
-
-                DetailRow {
-                    label: qsTr("Dispositivo")
-                    value: root.page.detailsValue(root.page.selectedNetwork?.device?.name)
-                }
-
-                RowLayout {
-                    Layout.fillWidth: true
-                    CortetsuText {
-                        Layout.fillWidth: true
-                        text: root.page.selectedProfile?.autoconnect
-                            ? qsTr("Conexión automática")
-                            : qsTr("Conexión automática desactivada")
-                        textSize: CortetsuTypography.bodySmallPx
-                        color: CortetsuDesign.colorOnSurfaceVariant
-                    }
-                    CortetsuToggle {
-                        checked: root.page.selectedProfile?.autoconnect ?? false
-                        visible: !!root.page.selectedProfile
-                        disabled: CortetsuSettingsNetwork.busy
-                        onToggled: checked => root.page.wifi.setAutoconnect(root.page.selectedProfile.uuid, checked)
-                    }
-                }
-            }
+        SettingActionRow {
+            visible: root.page.selectedProfile?.uuid === root.page.activeDetails.uuid
+            title: qsTr("Desconectar")
+            detail: qsTr("Es la red en uso; el perfil se conserva")
+            actionLabel: qsTr("Desconectar")
+            actionIcon: "link_off"
+            disabled: CortetsuSettingsNetwork.busy
+            onActivated: root.page.disconnectProfile()
         }
 
-        CortetsuSurface {
-            Layout.fillWidth: true
-            visible: !root.page.showingProfiles && root.page.selectedIsActive
-            implicitHeight: 92
-            baseColor: "transparent"
-            outlined: false
-            radiusValue: 0
-
-            GridLayout {
-                anchors.fill: parent
-                anchors.margins: CortetsuDesign.spacingStandard
-                columns: 3
-                columnSpacing: CortetsuDesign.spacingStandard
-                rowSpacing: CortetsuDesign.spacingCompact
-
-                CortetsuText { text: qsTr("Dirección IP"); textSize: CortetsuTypography.labelSmallPx; color: CortetsuDesign.colorOnSurfaceVariant }
-                CortetsuText { text: qsTr("Puerta de enlace"); textSize: CortetsuTypography.labelSmallPx; color: CortetsuDesign.colorOnSurfaceVariant }
-                CortetsuText { text: qsTr("DNS"); textSize: CortetsuTypography.labelSmallPx; color: CortetsuDesign.colorOnSurfaceVariant }
-                CortetsuText { Layout.fillWidth: true; text: root.page.detailsValue(root.page.activeDetails.address); textSize: CortetsuTypography.bodySmallPx; font.weight: Font.DemiBold; elide: Text.ElideRight }
-                CortetsuText { Layout.fillWidth: true; text: root.page.detailsValue(root.page.activeDetails.gateway); textSize: CortetsuTypography.bodySmallPx; font.weight: Font.DemiBold; elide: Text.ElideRight }
-                CortetsuText { Layout.fillWidth: true; text: root.page.detailsValue((root.page.activeDetails.dns ?? []).join(", ")); textSize: CortetsuTypography.bodySmallPx; font.weight: Font.DemiBold; elide: Text.ElideRight }
-            }
+        SettingActionRow {
+            objectName: "forgetProfile"
+            title: qsTr("Olvidar perfil")
+            detail: armed
+                ? qsTr("Se borrará el perfil y su contraseña. Pulsa de nuevo para confirmar.")
+                : qsTr("Borra el perfil y su contraseña")
+            actionLabel: qsTr("Olvidar")
+            actionIcon: "delete_outline"
+            danger: true
+            confirm: true
+            disabled: CortetsuSettingsNetwork.busy
+            onActivated: root.page.wifi.forgetProfile(root.page.selectedProfile?.uuid ?? "")
         }
+    }
 
-        CortetsuSurface {
-            Layout.fillWidth: true
-            visible: !root.page.showingProfiles && root.page.selectedIsActive
-                && CortetsuSettingsNetwork.detailsState === "error"
-            implicitHeight: 44
-            baseColor: Qt.alpha(CortetsuDesign.colorWarning, 0.10)
-            outlineColor: Qt.alpha(CortetsuDesign.colorWarning, 0.34)
-            outlined: true
-            radiusValue: CortetsuDesign.radiusSmall
-            CortetsuText {
-                anchors.fill: parent
-                anchors.margins: CortetsuDesign.spacingStandard
-                text: CortetsuSettingsNetwork.detailsError
-                textSize: CortetsuTypography.labelSmallPx
-                color: CortetsuDesign.colorWarning
-                elide: Text.ElideRight
-            }
-        }
+    CortetsuStateMessage {
+        objectName: "networkDetailState"
+        Layout.fillWidth: true
+        Layout.topMargin: CortetsuDesign.spacingSpacious
+        visible: !root.onNetwork && !root.onProfile
+        kind: "empty"
+        icon: root.page.showingProfiles ? "bookmark" : "wifi_find"
+        title: root.page.showingProfiles ? qsTr("Selecciona un perfil") : qsTr("Selecciona una red")
+        detail: root.page.showingProfiles
+            ? qsTr("Elige un perfil para administrar su conexión automática")
+            : qsTr("Elige una red de la lista para ver su estado y sus acciones")
+    }
 
-        CortetsuSurface {
-            Layout.fillWidth: true
-            visible: !root.page.showingProfiles && !!root.page.selectedNetwork
-            implicitHeight: 108
-            baseColor: Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.26)
-            outlineColor: "transparent"
-            outlined: false
-            radiusValue: CortetsuDesign.radiusSmall
-
-            ColumnLayout {
-                anchors.fill: parent
-                anchors.margins: CortetsuDesign.spacingStandard
-                spacing: CortetsuDesign.spacingCompact
-
-                RowLayout {
-                    Layout.fillWidth: true
-                    CortetsuIcon {
-                        text: "info"
-                        color: CortetsuDesign.colorPrimary
-                        iconSize: CortetsuTypography.iconMediumPx
-                    }
-                    CortetsuText {
-                        Layout.fillWidth: true
-                        text: root.page.selectedIsActive
-                            ? qsTr("Estás conectado a esta red.")
-                            : root.page.selectedNeedsPassword
-                                ? qsTr("Esta red requiere una contraseña para conectarse.")
-                                : qsTr("Esta red está abierta y puede conectarse directamente.")
-                        textSize: CortetsuTypography.bodySmallPx
-                        wrapMode: Text.WordWrap
-                    }
-                }
-
-                RowLayout {
-                    Layout.fillWidth: true
-                    visible: root.page.selectedIsActive
-                    spacing: CortetsuDesign.spacingCompact
-
-                    CortetsuText {
-                        Layout.fillWidth: true
-                        text: forget.armed
-                            ? qsTr("Olvidar borra el perfil y su contraseña. Pulsa de nuevo para confirmar.")
-                            : qsTr("Desconectar conserva el perfil guardado.")
-                        textSize: CortetsuTypography.labelSmallPx
-                        color: forget.armed ? CortetsuDesign.colorVermillion : CortetsuDesign.colorOnSurfaceVariant
-                        wrapMode: Text.WordWrap
-                    }
-                    CortetsuButton {
-                        objectName: "disconnectNetwork"
-                        compact: true
-                        icon: "link_off"
-                        label: qsTr("Desconectar")
-                        disabled: CortetsuSettingsNetwork.busy
-                        onClicked: root.page.disconnectSelected()
-                    }
-                    CortetsuButton {
-                        id: forget
-                        objectName: "forgetNetwork"
-                        // The first press arms it; it disarms on its own.
-                        property bool armed: false
-                        visible: !!root.page.selectedProfile
-                        compact: true
-                        danger: true
-                        icon: armed ? "warning" : "delete_outline"
-                        label: armed ? qsTr("Confirmar") : qsTr("Olvidar")
-                        disabled: CortetsuSettingsNetwork.busy
-                        onClicked: {
-                            if (!armed) {
-                                armed = true;
-                                disarm.restart();
-                                return;
-                            }
-                            armed = false;
-                            root.page.forgetSelected();
-                        }
-                        Timer { id: disarm; interval: 4000; onTriggered: forget.armed = false }
-                    }
-                }
-
-                RowLayout {
-                    Layout.fillWidth: true
-                    visible: !root.page.selectedIsActive
-                    CortetsuText {
-                        Layout.fillWidth: true
-                        text: root.page.selectedNeedsPassword
-                            ? qsTr("Introduce la contraseña y pulsa Conectar.")
-                            : qsTr("No se solicitará contraseña.")
-                        textSize: CortetsuTypography.labelSmallPx
-                        color: CortetsuDesign.colorOnSurfaceVariant
-                    }
-                    CortetsuButton {
-                        compact: true
-                        icon: "wifi"
-                        label: root.page.wifi.operationNetwork === root.page.selectedNetwork && root.page.wifi.operation.state === "connecting" ? qsTr("Conectando…") : qsTr("Conectar")
-                        disabled: CortetsuSettingsNetwork.busy
-                            || (root.page.selectedNeedsPassword && root.page.password.length === 0)
-                        onClicked: root.page.connectSelected()
-                    }
-                }
-            }
-        }
-
-        TextField {
-
-            font.family: CortetsuDesign.fontUi
-            Layout.fillWidth: true
-            visible: !root.page.showingProfiles && root.page.selectedNeedsPassword
-            placeholderText: qsTr("Contraseña de Wi‑Fi")
-            echoMode: root.page.passwordVisible ? TextInput.Normal : TextInput.Password
-            text: root.page.password
-            onTextChanged: root.page.password = text
-            color: CortetsuDesign.colorOnSurface
-            placeholderTextColor: CortetsuDesign.colorOnSurfaceVariant
-            leftPadding: CortetsuDesign.spacingStandard
-            rightPadding: CortetsuDesign.spacingStandard
-            implicitHeight: 42
-            background: CortetsuSurface {
-                radiusValue: CortetsuDesign.radiusSmall
-                baseColor: CortetsuDesign.colorSurfaceGlassStrong
-                outlined: true
-            }
-        }
-
-        CortetsuButton {
-            Layout.fillWidth: true
-            visible: !root.page.showingProfiles && root.page.selectedNeedsPassword
-            compact: true
-            label: root.page.passwordVisible ? qsTr("Ocultar contraseña") : qsTr("Mostrar contraseña")
-            icon: root.page.passwordVisible ? "visibility_off" : "visibility"
-            onClicked: root.page.passwordVisible = !root.page.passwordVisible
-        }
-
-        CortetsuSurface {
-            Layout.fillWidth: true
-            visible: !root.page.showingProfiles && root.page.selectedCanCopyPassword
-                && CortetsuSettingsNetwork.secretState === "error"
-            implicitHeight: 44
-            baseColor: Qt.alpha(CortetsuDesign.colorWarning, 0.10)
-            outlineColor: Qt.alpha(CortetsuDesign.colorWarning, 0.34)
-            outlined: true
-            radiusValue: CortetsuDesign.radiusSmall
-            CortetsuText {
-                anchors.fill: parent
-                anchors.margins: CortetsuDesign.spacingStandard
-                text: CortetsuSettingsNetwork.secretError
-                textSize: CortetsuTypography.labelSmallPx
-                color: CortetsuDesign.colorWarning
-                elide: Text.ElideRight
-            }
-        }
-
-        SavedProfileCard {
-            Layout.fillWidth: true
-            page: root.page
-        }
-
-        CortetsuStateMessage {
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            visible: root.page.showingProfiles
-                ? !root.page.selectedProfile
-                : !root.page.selectedNetwork
-            kind: "empty"
-            title: root.page.showingProfiles
-                ? qsTr("Selecciona un perfil")
-                : qsTr("Selecciona una red")
-            detail: root.page.showingProfiles
-                ? qsTr("Elige un perfil para administrar su conexión automática")
-                : qsTr("Elige una red de la lista para consultar su señal, seguridad y acciones")
-        }
-
-        CortetsuText {
-            Layout.fillWidth: true
-            visible: CortetsuSettingsNetwork.lastMessage.length > 0
-            text: CortetsuSettingsNetwork.lastMessage
-            textSize: CortetsuTypography.bodySmallPx
-            color: CortetsuDesign.colorSuccess
-            wrapMode: Text.WordWrap
-        }
+    CortetsuText {
+        objectName: "networkLastMessage"
+        Layout.fillWidth: true
+        visible: CortetsuSettingsNetwork.lastMessage.length > 0
+        text: CortetsuSettingsNetwork.lastMessage
+        textSize: CortetsuTypography.bodySmallPx
+        color: CortetsuDesign.colorSuccess
+        wrapMode: Text.WordWrap
     }
 }
