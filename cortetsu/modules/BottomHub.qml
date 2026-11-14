@@ -442,6 +442,7 @@ Scope {
             required property ShellScreen modelData
 
             readonly property var monitor: CortetsuScreens.monitorFor(modelData)
+            readonly property var hubView: bottomHubView
             readonly property var screenState: CortetsuShellState.forScreen(modelData)
             readonly property var cortetsuState: screenState?.cortetsuState
             readonly property bool hubShown: hubRoot.shown

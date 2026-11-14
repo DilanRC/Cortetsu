@@ -18,6 +18,11 @@ ToolTip {
     readonly property bool wanted: root.target !== null
         && root.text.length > 0
         && (root.hovered || root.focused)
+        && !(root.host?.tooltipsSuppressed ?? false)
+    // The nearest ancestor that declares `tooltipExtent` (the Hub view): it
+    // keeps room for these tooltips and may ask them to step aside while a
+    // popout of its own is showing, so none lands on the popout.
+    property Item host: null
     // Shown without delay or fade because another tooltip was just open.
     property bool warm: false
     // How long a closed tooltip keeps the next one warm.
@@ -53,6 +58,7 @@ ToolTip {
         let host = root.target;
         while (host && !("tooltipExtent" in host))
             host = host.parent;
+        root.host = host;
         if (!host || root.text.length === 0)
             return;
         const extent = host.tooltipExtent;

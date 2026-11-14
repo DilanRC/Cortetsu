@@ -11,6 +11,12 @@ cortetsu/modules/CortetsuStatusSegment.qml
 cortetsu/modules/bar
 cortetsu/base/modules/bar/popouts/kblayout
 cortetsu/components/CortetsuIconBadge.qml
+# Cortetsu 3.0 fase 4: islands and the Hub's edit mode
+cortetsu/modules/CortetsuIsland.qml
+cortetsu/modules/CortetsuModeSegment.qml
+cortetsu/modules/HubFlow.qml
+cortetsu/modules/HubEditMode.qml
+cortetsu/modules/HubEditHost.qml
 # 3.2 Launcher and Overview
 cortetsu/modules/LauncherHost.qml
 cortetsu/modules/launcher

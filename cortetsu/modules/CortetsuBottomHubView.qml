@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import "../theme"
 import "HubAnchor.js" as HubAnchor
+import "WindowPreview.js" as WindowPreview
 
 // The Hub's islands on one edge of a monitor. `anchor` (HubAnchor.js) says
 // which edge and how they are packed: spread along it, or together at one
@@ -13,7 +14,33 @@ Item {
     id: root
 
     property string anchor: HubAnchor.fallback
-    readonly property var place: HubAnchor.describe(anchor)
+    // The anchor the islands are laid out for. It follows `anchor` with
+    // the layout animations off: a Hub that changes edge is placed at once,
+    // while islands that grow or appear on the same edge glide.
+    property string layoutAnchor: HubAnchor.fallback
+    property bool glide: false
+    onAnchorChanged: {
+        glide = false;
+        layoutAnchor = anchor;
+        glideOn.restart();
+    }
+    Component.onCompleted: {
+        layoutAnchor = anchor;
+        glideOn.restart();
+    }
+    // One shot after an edge change: the window takes its new size from the
+    // compositor a moment later, and that reflow must not glide either.
+    Timer {
+        id: glideOn
+        interval: 250
+        onTriggered: root.glide = true
+    }
+    readonly property var place: HubAnchor.describe(layoutAnchor)
+    // Towards the middle of the screen: where an engaged island leans.
+    readonly property var inward: {
+        const travel = HubAnchor.popoutTravel(layoutAnchor);
+        return Qt.point(-travel.x, -travel.y);
+    }
     readonly property bool vertical: place.vertical
     readonly property string tooltipPlacement: place.edge === "top" ? "below"
         : place.edge === "left" ? "right" : place.edge === "right" ? "left" : "above"
@@ -21,6 +48,9 @@ Item {
     // it; it only grows). The window keeps that much room on its inner side,
     // outside its input mask, so a tooltip never lands on its own control.
     property size tooltipExtent: Qt.size(0, 0)
+    // A popout or panel from the Hub is showing: its tooltips step aside so
+    // none lands on it (CortetsuTooltip reads this from its host).
+    readonly property bool tooltipsSuppressed: engagedPopout.length > 0 || statusPanelOpen || launcherActive
     readonly property real tooltipRoom: tooltipExtent.height <= 0 ? 0
         : (vertical ? tooltipExtent.width : tooltipExtent.height) + CortetsuDesign.spacingCompact + 6
 
@@ -111,12 +141,18 @@ Item {
 
     readonly property Item notificationsButton: statusSegment.notificationsButton
     readonly property Item traySegmentItem: traySegment
+    readonly property Item appRailItem: appSegment
     readonly property Item launcherButton: leftSegment.launcherButtonItem
 
     // What the Hub takes from its edge.
     readonly property real thickness: Math.max(56, CortetsuDesign.rowHeight + 8)
+    // The popouts the status island opens.
+    readonly property var statusModes: ["audio", "network", "bluetooth", "battery", "kblayout", "lockstatus", "activewindow"]
     readonly property real edgeGap: 8
-    readonly property real gap: 6
+    // Between the three groups (Núcleo, Aplicaciones, Sistema), and between
+    // the two islands of Sistema (tray and status), which belong together.
+    readonly property real gap: 12
+    readonly property real pairGap: 4
 
     implicitWidth: thickness
     implicitHeight: thickness
@@ -136,7 +172,8 @@ Item {
     readonly property real appsLength: along(appSegment)
     readonly property real trayLength: along(traySegment)
     readonly property real statusLength: along(statusSegment)
-    readonly property real packedLength: Math.max(0, step(leftSegment) + step(appSegment) + step(traySegment) + step(statusSegment) - gap)
+    readonly property real systemLength: trayLength + statusLength + (trayLength > 0 && statusLength > 0 ? pairGap : 0)
+    readonly property real packedLength: Math.max(0, step(leftSegment) + step(appSegment) + systemLength - (systemLength > 0 ? 0 : gap))
     readonly property bool spread: place.pack === "spread"
     readonly property real packedStart: place.pack === "end" ? length - edgeGap - packedLength : edgeGap
 
@@ -145,9 +182,9 @@ Item {
     // Spread and packed are worked out apart: read from one another, the
     // tray and the status island form a binding loop when the pack changes.
     readonly property real statusAtSpread: length - edgeGap - statusLength
-    readonly property real trayAtSpread: statusAtSpread - (statusLength > 0 ? gap + 2 : 0) - trayLength
+    readonly property real trayAtSpread: statusAtSpread - (statusLength > 0 ? pairGap : 0) - trayLength
     readonly property real trayAtPacked: appsAt + step(appSegment)
-    readonly property real statusAtPacked: trayAtPacked + step(traySegment)
+    readonly property real statusAtPacked: trayAtPacked + (trayLength > 0 ? trayLength + pairGap : 0)
     readonly property real statusAt: spread ? statusAtSpread : statusAtPacked
     readonly property real trayAt: spread ? trayAtSpread : trayAtPacked
 
@@ -155,11 +192,34 @@ Item {
     // longer of its two neighbours allows on both sides. Packed: whatever
     // the other islands leave.
     readonly property real appRailMaxWidth: Math.max(180, spread
-        ? length - Math.max(modeLength, statusLength + (trayLength > 0 ? trayLength + gap + 2 : 0)) * 2 - 64
-        : length - edgeGap * 2 - step(leftSegment) - step(traySegment) - step(statusSegment))
+        ? length - Math.max(modeLength, systemLength) * 2 - 64
+        : length - edgeGap * 2 - step(leftSegment) - (systemLength > 0 ? systemLength + gap : 0))
+
+    // An engaged island leans 2 px towards its popout; islands that grow
+    // or appear glide to their new place (layoutAnchor keeps an edge change
+    // instant). Durations are motion tokens, so reduced motion is instant.
+    component Lean: Translate {
+        required property bool engaged
+        x: engaged ? 2 * root.inward.x : 0
+        y: engaged ? 2 * root.inward.y : 0
+        Behavior on x { NumberAnimation { duration: CortetsuDesign.motionFastMs; easing.type: Easing.BezierSpline; easing.bezierCurve: CortetsuDesign.easeOut } }
+        Behavior on y { NumberAnimation { duration: CortetsuDesign.motionFastMs; easing.type: Easing.BezierSpline; easing.bezierCurve: CortetsuDesign.easeOut } }
+    }
+    component Glide: NumberAnimation {
+        duration: CortetsuDesign.motionStandardMs
+        easing.type: Easing.BezierSpline
+        easing.bezierCurve: CortetsuDesign.easeOut
+    }
 
     CortetsuModeSegment {
         id: leftSegment
+
+        engaged: root.launcherActive
+        transform: Lean { engaged: leftSegment.engaged }
+        // design-lint: allow motion-layout-property: an island glides to the place its neighbours left it; the input mask follows
+        Behavior on x { enabled: root.glide; Glide {} }
+        // design-lint: allow motion-layout-property: same glide along a lateral Hub
+        Behavior on y { enabled: root.glide; Glide {} }
 
         visible: root.modeVisible
         vertical: root.vertical
@@ -182,6 +242,13 @@ Item {
     CortetsuAppRail {
         id: appSegment
 
+        engaged: root.engagedPopout.startsWith(WindowPreview.prefix)
+        transform: Lean { engaged: appSegment.engaged }
+        // design-lint: allow motion-layout-property: an island glides to the place its neighbours left it; the input mask follows
+        Behavior on x { enabled: root.glide; Glide {} }
+        // design-lint: allow motion-layout-property: same glide along a lateral Hub
+        Behavior on y { enabled: root.glide; Glide {} }
+
         visible: root.appsVisible && root.dockItems.length > 0
         vertical: root.vertical
         tooltipPlacement: root.tooltipPlacement
@@ -202,6 +269,13 @@ Item {
 
     CortetsuTraySegment {
         id: traySegment
+
+        engaged: root.engagedPopout.startsWith("traymenu")
+        transform: Lean { engaged: traySegment.engaged }
+        // design-lint: allow motion-layout-property: an island glides to the place its neighbours left it; the input mask follows
+        Behavior on x { enabled: root.glide; Glide {} }
+        // design-lint: allow motion-layout-property: same glide along a lateral Hub
+        Behavior on y { enabled: root.glide; Glide {} }
 
         visible: root.trayVisible && root.trayItems.length > 0
         vertical: root.vertical
@@ -224,6 +298,13 @@ Item {
 
     CortetsuStatusSegment {
         id: statusSegment
+
+        engaged: root.statusPanelOpen || root.statusModes.includes(root.engagedPopout)
+        transform: Lean { engaged: statusSegment.engaged }
+        // design-lint: allow motion-layout-property: an island glides to the place its neighbours left it; the input mask follows
+        Behavior on x { enabled: root.glide; Glide {} }
+        // design-lint: allow motion-layout-property: same glide along a lateral Hub
+        Behavior on y { enabled: root.glide; Glide {} }
 
         visible: root.statusVisible
         vertical: root.vertical

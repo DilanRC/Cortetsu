@@ -7,6 +7,9 @@ import "CortetsuTypography.js" as CortetsuTypography
 Item {
     id: root
 
+    // A popout or panel opened from this island is showing (CortetsuIsland).
+    property bool engaged: false
+
     required property string volumeIcon
     required property bool volumeMuted
     required property string networkIcon

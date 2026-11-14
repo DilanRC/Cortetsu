@@ -10,6 +10,9 @@ import "BottomHubTray.js" as BottomHubTray
 Item {
     id: root
 
+    // A popout or panel opened from this island is showing (CortetsuIsland).
+    property bool engaged: false
+
     required property var items
     property var delegateModel: items
     property bool monochromeIcons: false

@@ -5,8 +5,22 @@ import QtQuick
 Grid {
     property bool vertical: false
 
-    rows: vertical ? -1 : 1
-    columns: vertical ? 1 : -1
+    // Released before the other is fixed: as two bindings, rows and columns
+    // both read 1 for a moment and Grid warns that the items do not fit.
+    function orient(): void {
+        if (vertical) {
+            rows = -1;
+            columns = 1;
+        } else {
+            columns = -1;
+            rows = 1;
+        }
+    }
+
+    rows: 1
+    columns: -1
+    onVerticalChanged: orient()
+    Component.onCompleted: orient()
     horizontalItemAlignment: Grid.AlignHCenter
     verticalItemAlignment: Grid.AlignVCenter
 }

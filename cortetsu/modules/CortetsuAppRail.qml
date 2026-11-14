@@ -8,6 +8,9 @@ import "CortetsuTypography.js" as CortetsuTypography
 Item {
     id: root
 
+    // A popout or panel opened from this island is showing (CortetsuIsland).
+    property bool engaged: false
+
     required property var items
     // The most the rail may take along the Hub before it scrolls.
     required property real maxWidth

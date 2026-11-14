@@ -34,6 +34,12 @@ Item {
         content.nonAnimWidth, content.nonAnimHeight, parent.width, parent.height,
         content.bottomOffset - CortetsuDesign.spacingStandard, CortetsuDesign.spacingStandard, 8)
     readonly property var travel: HubAnchor.popoutTravel(content.hubAnchor)
+    // It grows out of the point that faces its control and shrinks back
+    // into it; a detached popout grows from its middle.
+    readonly property var origin: content.isDetached || !content.bottomAttached
+        ? Qt.point(content.nonAnimWidth / 2, content.nonAnimHeight / 2)
+        : HubAnchor.popoutOrigin(content.hubAnchor, alongHere, attachedAt.x, attachedAt.y,
+            content.nonAnimWidth, content.nonAnimHeight)
     x: content.isDetached
         ? (parent.width - content.nonAnimWidth) / 2
         : (content.bottomAttached || content.closing) ? attachedAt.x : 0
@@ -66,12 +72,17 @@ Item {
         // content at the local origin prevents a second horizontal offset
         // from pulling popouts away from their BottomHub/tray icon.
         x: 0
-        transformOrigin: root.hubPlace.edge === "top" ? Item.Top : root.hubPlace.edge === "left" ? Item.Left
-            : root.hubPlace.edge === "right" ? Item.Right : Item.Bottom
         opacity: 1 - root.offsetScale
-        // design-lint: allow motion-scale-from-zero: offsetScale is 0..1, so the scale stays in 0.975..1
-        scale: 1 - 0.025 * root.offsetScale
-        // It arrives from the Hub and leaves towards it.
-        transform: Translate { x: 12 * root.offsetScale * root.travel.x; y: 12 * root.offsetScale * root.travel.y }
+        // It arrives from its control on the Hub and leaves towards it.
+        transform: [
+            // design-lint: allow motion-scale-from-zero: offsetScale is 0..1, so the scale stays in 0.94..1
+            Scale {
+                origin.x: root.origin.x
+                origin.y: root.origin.y
+                xScale: 1 - 0.06 * root.offsetScale
+                yScale: 1 - 0.06 * root.offsetScale
+            },
+            Translate { x: 8 * root.offsetScale * root.travel.x; y: 8 * root.offsetScale * root.travel.y }
+        ]
     }
 }

@@ -5,6 +5,9 @@ import "../theme"
 Item {
     id: root
 
+    // A popout or panel opened from this island is showing (CortetsuIsland).
+    property bool engaged: false
+
     required property bool launcherActive
     required property int workspaceCount
     required property int workspaceDisplayType
