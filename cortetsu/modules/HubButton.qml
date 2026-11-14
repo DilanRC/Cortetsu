@@ -25,11 +25,18 @@ Item {
     property int iconSize: CortetsuTypography.iconMediumPx
     property color activeColor: Qt.alpha(CortetsuDesign.colorIndigo, 0.62)
     property color hoverColor: Qt.alpha(CortetsuDesign.colorSurfaceHigh, 0.92)
-    property color iconColor: active || hovered || activeFocus
+    property color iconColor: active || hovered || focusVisible
         ? CortetsuDesign.colorWashi
         : CortetsuDesign.colorMuted
     readonly property bool hovered: mouse.containsMouse
     readonly property bool pressed: mouse.pressed
+    // A press takes the keyboard focus, and the Hub keeps the keyboard after
+    // a click, so a focus mark left there stayed over the Hub (the network
+    // tooltip with its SSID) long after the pointer had gone. Only focus the
+    // keyboard is using shows: the first key, or focus that came by keyboard.
+    property bool pointerFocus: false
+    readonly property bool focusVisible: activeFocus && !pointerFocus
+    onActiveFocusChanged: if (!activeFocus) pointerFocus = false
 
     signal clicked()
     signal wheel(real delta)
@@ -65,7 +72,7 @@ Item {
         baseColor: "transparent"
         hoverColor: root.hoverColor
         activeColor: root.activeColor
-        outlineColor: root.activeFocus
+        outlineColor: root.focusVisible
             ? Qt.alpha(CortetsuDesign.colorWashi, 0.82)
             : root.active
                 ? Qt.alpha(CortetsuDesign.colorWashi, 0.22)
@@ -73,7 +80,7 @@ Item {
         hovered: root.hovered
         pressed: root.pressed
         active: root.active
-        focused: root.activeFocus
+        focused: root.focusVisible
         disabled: root.disabled
         outlined: root.active
         scale: root.visualScale
@@ -119,7 +126,7 @@ Item {
         fillMode: root.cropImage ? Image.PreserveAspectCrop : Image.PreserveAspectFit
         smooth: true
         mipmap: true
-        opacity: root.hovered || root.active || root.activeFocus ? 1 : 0.86
+        opacity: root.hovered || root.active || root.focusVisible ? 1 : 0.86
         scale: root.visualScale
 
         Behavior on opacity {
@@ -158,7 +165,7 @@ Item {
         anchors.bottomMargin: 4
         visible: root.active
         // Focus arrives by keyboard, so the wider mark appears at once.
-        width: root.activeFocus ? 20 : 16
+        width: root.focusVisible ? 20 : 16
         height: 2
         radius: height / 2
         color: root.activeColor === CortetsuDesign.colorVermillion
@@ -170,7 +177,7 @@ Item {
     CortetsuTooltip {
         target: root
         hovered: root.tooltipOnHover && root.hovered
-        focused: root.activeFocus
+        focused: root.focusVisible
         text: root.tooltip
         placement: root.tooltipPlacement
     }
@@ -181,7 +188,10 @@ Item {
         enabled: !root.disabled
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
-        onPressed: root.forceActiveFocus()
+        onPressed: {
+            root.pointerFocus = true;
+            root.forceActiveFocus();
+        }
         onClicked: root.clicked()
         onWheel: event => {
             root.wheel(event.angleDelta.y);
@@ -189,7 +199,13 @@ Item {
         }
     }
 
-    Keys.onEnterPressed: root.clicked()
-    Keys.onReturnPressed: root.clicked()
-    Keys.onSpacePressed: root.clicked()
+    // Keys emits these before onPressed and stops there, so each one also
+    // brings the focus mark back.
+    Keys.onPressed: event => {
+        root.pointerFocus = false;
+        event.accepted = false;
+    }
+    Keys.onEnterPressed: { root.pointerFocus = false; root.clicked(); }
+    Keys.onReturnPressed: { root.pointerFocus = false; root.clicked(); }
+    Keys.onSpacePressed: { root.pointerFocus = false; root.clicked(); }
 }

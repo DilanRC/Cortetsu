@@ -23,6 +23,9 @@ Rectangle {
     readonly property bool hovered: hover.hovered
     readonly property bool focused: {
         let item = root.Window.activeFocusItem;
+        // A control whose focus came from a press shows no mark (HubButton).
+        if (item?.focusVisible === false)
+            return false;
         while (item) {
             if (item === root.segment)
                 return true;
