@@ -201,7 +201,12 @@ Scope {
         // keyboard away; any other popout starts without it.
         if (!popouts.hasCurrent || popouts.currentName !== mode)
             popouts.keyboardHeld = false;
+        // Opened again while it is closing: it starts over (a tray menu at
+        // its first level). Later in the fade Content.qml does the same.
+        const reopening = popouts.closing && popouts.currentName === mode;
         popouts.cancelClose();
+        if (reopening)
+            popouts.current?.reset?.();
         popouts.detachedMode = "";
         popouts.hubAnchor = CortetsuConfig.bottomHub.anchorFor(screen.name);
         popouts.bottomAnchorCenter = anchorCenter;

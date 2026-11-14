@@ -134,13 +134,12 @@ Item {
 
                 required property var modelData
                 readonly property var menuHandle: modelData?.item?.menu ?? null
-                property bool menuReady: true
 
                 name: TrayIdentity.popupName(modelData.key)
-                sourceComponent: menuHandle && menuReady ? trayMenuComp : null
+                sourceComponent: menuHandle ? trayMenuComp : null
 
                 Component.onDestruction: {
-                    if (shouldBeActive && menuReady)
+                    if (shouldBeActive)
                         root.popouts.close();
                 }
 
@@ -149,23 +148,16 @@ Item {
                         root.popouts.close();
                 }
 
-                Timer {
-                    id: menuReload
-                    interval: 0
-                    repeat: false
-                    onTriggered: trayMenu.menuReady = true
-                }
-
-                Connections {
-                    function onHasCurrentChanged(): void {
-                        if (root.popouts.hasCurrent && trayMenu.shouldBeActive) {
-                            trayMenu.menuReady = false;
-                            menuReload.restart();
-                        }
-                    }
-
-                    target: root.popouts
-                }
+                // The menu only outlives its popout while it fades out. Opened
+                // again then, it starts over in place. It used to be rebuilt
+                // on every hasCurrent change, and closing by key or action
+                // flips hasCurrent off and on (Wrapper keeps it for the close
+                // animation): each such close destroyed the menu on screen.
+                // With the software renderer's render thread that crashed Qt
+                // now and then (QQuickShapeSoftwareRenderNode::render reads
+                // the destroyed panel's window; Qt 6.12, REGISTRO fase 4).
+                onShouldBeActiveChanged: if (shouldBeActive)
+                    (item as CortetsuTrayMenu)?.reset()
 
                 Component {
                     id: trayMenuComp

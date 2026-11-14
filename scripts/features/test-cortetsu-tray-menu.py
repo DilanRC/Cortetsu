@@ -32,7 +32,10 @@ assert "initialItem: menuComponent" in source
 assert "childrenRect.height + padding * 2" in source, "menu height must track actual delegate insertion/removal"
 assert "signal closeRequested()" in popout_state and "function close(): void" in popout_state
 assert "onCloseRequested: root.close()" in popout_wrapper
-assert "if (shouldBeActive && menuReady)" in popouts, "menu reload must not close the active popup"
+assert "menuReady" not in popouts, "a menu reopened while fading out is reset in place, never rebuilt on screen"
+assert "onShouldBeActiveChanged: if (shouldBeActive)" in popouts and "?.reset()" in popouts and "function reset(): void" in source, "reopening during the fade resets the menu"
+assert "onHasCurrentChanged" not in popouts.split("TrayIdentity.popupName(modelData.key)")[1].split("component Popout")[0], "a close flips hasCurrent: the menu must not react to it"
+assert "if (shouldBeActive)\n                        root.popouts.close();" in popouts, "a tray item that goes away closes its open menu"
 for field in ("itemKey", "popupName", "shouldBeActive", "loaderActive", "menuHandle", "stackDepth", "menuContentHeight", "menuHeight", "popupY", "popupHeight"):
     assert f"{field}:" in bottom_hub_qml, f"runtime tray inspector must expose {field}"
 assert "stack.push(menuComponent, { handle: entry, subMenu: true })" in source

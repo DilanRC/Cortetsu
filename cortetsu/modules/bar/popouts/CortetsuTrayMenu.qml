@@ -33,6 +33,18 @@ CortetsuPopupSurface {
         return currentPage?.handleKey(currentPage.focusedIndex, key, modifiers) ?? false;
     }
 
+    // Back to the first level with focus on its first row, for a menu
+    // opened again before it finished closing (Content.qml).
+    function reset(): void {
+        stack.pop(null, StackView.Immediate);
+        const page = stack.currentItem;
+        if (!page)
+            return;
+        page.focusedEntry = null;
+        page.focusedIndex = -1;
+        page.restoreFocus();
+    }
+
     StackView {
         id: stack
         anchors.fill: parent

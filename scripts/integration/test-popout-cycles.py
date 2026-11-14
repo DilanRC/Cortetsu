@@ -78,8 +78,8 @@ def main() -> int:
             fixture = subprocess.Popen([sys.executable, str(FIXTURE), "--instances", "1"], env=session.env(),
                                        stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
                                        start_new_session=True)
-            tray = H.wait_for(lambda: [float(v) for v in session.ipc("bottomHub", "trayButton").stdout.split()] or None,
-                              "icono del proveedor SNI en la bandeja")
+            tray = H.settled(lambda: [float(v) for v in session.ipc("bottomHub", "trayButton").stdout.split()] or None,
+                             "icono del proveedor SNI en la bandeja")
             assert len(tray) == 4 and tray[2] > 0, tray
             tx, ty = int(tray[0] + tray[2] / 2), int(tray[1] + tray[3] / 2)
 
@@ -144,6 +144,60 @@ def main() -> int:
                 H.wait_for(lambda: not inspect(session)[name]["open"], f"bandeja {cycle}: menú cerrado")
                 session.move(tx, ty - 300)
 
+            # A menu closed by a key stays as it was while it closes: it used
+            # to be rebuilt on screen at that moment (the close flips
+            # hasCurrent), which crashed Qt's software renderer now and then
+            # (REGISTRO, fase 4). Opened again while it closes or fades out, it
+            # starts over at its first level, in place.
+            #   "watch":   Escape, then look at it during the closing phase
+            #   "closing": the click goes in while Escape is still held (Escape
+            #              acts on press), inside the 120 ms closing phase
+            #   "fade":    0.2 s later, during the fade that follows
+            for case in ("watch", "closing", "fade"):
+                session.move(tx, ty)
+                time.sleep(0.05)
+                session.send(f"button {BTN_RIGHT} 1")
+                time.sleep(0.03)
+                session.send(f"button {BTN_RIGHT} 0")
+                H.wait_for(lambda: inspect(session)[name]["tray"]["menuContentHeight"] > 0, f"{case}: menú")
+                time.sleep(0.3)
+                session.tap(KEY_DOWN)
+                time.sleep(0.15)
+                session.tap(KEY_RIGHT)
+                H.wait_for(lambda: inspect(session)[name]["tray"]["stackDepth"] == 2, f"{case}: submenú")
+                if case == "watch":
+                    session.send(f"key {KEY_ESC} 1")
+                    seen = [inspect(session)[name] for _ in range(4)]
+                    session.send(f"key {KEY_ESC} 0")
+                    closing = [state for state in seen if state["open"] and state["closing"]]
+                    assert closing, f"no se vio la fase de cierre: {seen}"
+                    assert all(state["tray"]["stackDepth"] == 2 for state in closing), \
+                        f"el menú se reconstruyó en pantalla al cerrarse: {[s['tray'] for s in closing]}"
+                    H.wait_for(lambda: not inspect(session)[name]["open"], "cerrado sin reconstruirse")
+                    session.move(tx, ty - 300)
+                    time.sleep(0.6)
+                    continue
+                if case == "closing":
+                    session.send(f"key {KEY_ESC} 1")
+                    session.send(f"button {BTN_RIGHT} 1")
+                    session.send(f"button {BTN_RIGHT} 0")
+                    session.send(f"key {KEY_ESC} 0")
+                else:
+                    session.tap(KEY_ESC)
+                    time.sleep(0.2)
+                    session.send(f"button {BTN_RIGHT} 1")
+                    time.sleep(0.03)
+                    session.send(f"button {BTN_RIGHT} 0")
+                H.wait_for(lambda: inspect(session)[name]["open"] and not inspect(session)[name]["closing"],
+                           f"{case}: reabierto")
+                time.sleep(0.4)
+                state = inspect(session)[name]
+                assert state["open"] and state["tray"]["stackDepth"] == 1, f"{case}: reabierto en el primer nivel: {state}"
+                session.tap(KEY_ESC)
+                H.wait_for(lambda: not inspect(session)[name]["open"], f"{case}: cerrado")
+                session.move(tx, ty - 300)
+                time.sleep(0.6)
+
             # Resting on the icon opens the menu without taking the keyboard,
             # and leaving for anywhere but the menu closes it (it used to stay).
             session.move(tx, ty)
@@ -168,6 +222,9 @@ def main() -> int:
             log = (session.logs / "qs.log").read_text(errors="replace")
             bad = [line for line in log.splitlines() if any(marker in line for marker in FAILURES)]
             assert not bad, "\n".join(bad[:12])
+            # The crash handler restarts the shell in place: without this a
+            # crash between two checks would go unseen.
+            assert not session.crash_reports(), "Quickshell se cayó y se reinició durante la prueba"
         except Exception:
             log = session.logs / "qs.log"
             if log.exists():

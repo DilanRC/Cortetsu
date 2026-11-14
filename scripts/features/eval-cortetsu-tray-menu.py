@@ -16,7 +16,7 @@ criteria = {
     "content-sized menu height follows live children": all(token in source for token in ("readonly property real naturalHeight", "childrenRect.height + padding * 2")),
     "position follows current page natural height": all(token in source for token in ("currentPage?.naturalHeight", "menuContentHeight: currentPage?.naturalHeight ?? 48", "readonly property int menuDepth")),
     "runtime inspector exposes tray routing and geometry": all(token in bottom_hub for token in ("itemKey:", "popupName:", "shouldBeActive:", "loaderActive:", "menuHandle:", "stackDepth:", "popupY:", "popupHeight:")),
-    "tray destruction closes through the owning popup": all(token in popout_state + popout_wrapper + popouts for token in ("signal closeRequested()", "onCloseRequested: root.close()", "root.popouts.close()", "shouldBeActive && menuReady")),
+    "tray destruction closes through the owning popup": all(token in popout_state + popout_wrapper + popouts for token in ("signal closeRequested()", "onCloseRequested: root.close()", "root.popouts.close()", "if (shouldBeActive)")) and "menuReady" not in popouts,
     "stale and non-actionable activation guarded": "if (!entry || !entry.enabled || entry.isSeparator)" in source,
     "typed menu delegates": "required property QsMenuEntry modelData" in source,
     "shared popup surface": "CortetsuPopupSurface" in source,

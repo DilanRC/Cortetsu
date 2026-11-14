@@ -28,6 +28,24 @@ KEY_1 = 2
 BTN_LEFT = 272
 
 
+def settled(read, what: str, timeout: float = 20.0, quiet: float = 0.3):
+    """The first value of `read()` that holds for `quiet` seconds.
+
+    The Hub lays itself out again when an island appears (its Grid on the
+    next polish, then a short glide): a rect read at once can point at the
+    island next to the one meant, and the click lands there.
+    """
+    deadline = time.monotonic() + timeout
+    last = None
+    while time.monotonic() < deadline:
+        value = read()
+        if value and value == last:
+            return value
+        last = value
+        time.sleep(quiet)
+    raise AssertionError(f"timeout esperando que se asiente: {what}")
+
+
 def wait_for(predicate, what: str, timeout: float = 20.0):
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
@@ -213,6 +231,33 @@ class Session:
                     os.killpg(process.pid, signal.SIGKILL)
         self.sweep()
         shutil.rmtree(self.runtime, ignore_errors=True)
+        self.keep_crash_reports()
+
+    def crash_reports(self) -> list[Path]:
+        """Reports written by Quickshell's crash handler since start().
+
+        The handler restarts the shell with execve in the same PID, so a test
+        that only watches the process can pass straight through a crash. The
+        report (with a symbolised stack) goes to XDG_CACHE_HOME, which is
+        inside this test's temporary HOME.
+        """
+        root = self.home / ".cache/quickshell/crashes"
+        return sorted(p for p in root.iterdir() if p.is_dir()) if root.is_dir() else []
+
+    def keep_crash_reports(self) -> Path | None:
+        """Copy crash reports and logs out of the temporary HOME before the
+        caller deletes it. CORTETSU_TEST_CRASH_DIR overrides the target."""
+        reports = self.crash_reports()
+        if not reports:
+            return None
+        root = Path(os.environ.get("CORTETSU_TEST_CRASH_DIR")
+                    or Path.home() / ".local/state/cortetsu/test-crashes")
+        target = root / f"{time.strftime('%Y%m%d-%H%M%S')}-{os.getpid()}"
+        for report in reports:
+            shutil.copytree(report, target / report.name, dirs_exist_ok=True)
+        shutil.copytree(self.logs, target / "logs", dirs_exist_ok=True)
+        print(f"CRASH: {len(reports)} informe(s) de Quickshell conservado(s) en {target}", flush=True)
+        return target
 
     def sweep(self) -> list[int]:
         """Kill anything still running with this test's runtime directory.
