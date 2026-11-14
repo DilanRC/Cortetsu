@@ -216,7 +216,9 @@ def assert_view_contract(source: dict[str, str]) -> None:
     assert "CortetsuIcon {" in button
     assert "CortetsuSurface {" in button
     assert "CortetsuDesign.hoverScale" in button
-    assert "onPressed: root.forceActiveFocus()" in button
+    # A press still takes the keyboard focus; only focus the keyboard uses shows.
+    assert "root.pointerFocus = true;\n            root.forceActiveFocus();" in button
+    assert "readonly property bool focusVisible: activeFocus && !pointerFocus" in button
 
     pill = source["StatusPill.qml"]
     assert "CortetsuIcon {" in pill
