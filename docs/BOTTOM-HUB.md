@@ -87,6 +87,15 @@ Prueba con compositor real: `scripts/integration/test-hub-anchors.py`, bajo
 capa, la zona reservada, la posición del popout, el anclaje por monitor, el
 rechazo de un valor desconocido y que el log de QML quede limpio.
 
+Con «Ocultar automáticamente» (`bar.showOnHover`) el Hub vuelve desde el último
+píxel de su borde. Su ventana queda dentro de las zonas exclusivas de las demás
+superficies (el borde de pantalla reserva 1 px), así que `HubRevealEdge` pone en
+el propio borde una tira de 3 px que ignora esas zonas; su hover cuenta como el
+del Hub, también con el puntero quieto en el borde. Solo existe con el auto-hide
+activo, porque cada ventana de capa cuesta un contexto GL. Un cambio de anclaje
+con el auto-hide activo desmapea el Hub un ciclo: oculto no pinta, y sin eso el
+compositor no recibía el borde nuevo. Prueba: `scripts/integration/test-hub-autohide-edge.py`.
+
 Pendiente: mover el Hub arrastrándolo en un modo de edición. Hoy se elige en
 Ajustes o por IPC.
 

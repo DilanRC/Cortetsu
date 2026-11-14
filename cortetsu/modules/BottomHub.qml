@@ -433,6 +433,29 @@ Scope {
         }
     }
 
+    // Auto-hide only: each layer window costs a GL context (Exclusions.qml).
+    // The edge is part of the model, so a new anchor gets a new strip: a
+    // transparent surface never draws again, and its new anchors would never
+    // be committed.
+    Variants {
+        model: visibility.autoHideEnabled
+            ? CortetsuScreens.screens.map(screen => ({ screen,
+                edge: HubAnchor.describe(CortetsuConfig.bottomHub.anchorFor(screen?.name ?? "")).edge }))
+            : []
+
+        HubRevealEdge {
+            required property var modelData
+
+            screen: modelData.screen
+            edge: modelData.edge
+            onPointerEntered: {
+                hideTimer.stop();
+                visibility.pointerEntered();
+            }
+            onPointerExited: visibility.pointerExited()
+        }
+    }
+
     Variants {
         model: CortetsuScreens.screens
 
@@ -490,7 +513,18 @@ Scope {
             function alongScreen(center: real): real {
                 return (hubVertical ? originY + bottomHubView.y : originX + bottomHubView.x) + center;
             }
-            onHubAnchorChanged: hubRoot.closeAllPopouts()
+            // With auto-hide the window stays mapped while hidden, draws
+            // nothing, and new anchors and size never reached the compositor:
+            // the Hub came back on the old edge. Unmapped for one turn, it is
+            // configured afresh.
+            property bool remapping: false
+            onHubAnchorChanged: {
+                hubRoot.closeAllPopouts();
+                if (visibility.autoHideEnabled) {
+                    remapping = true;
+                    Qt.callLater(() => remapping = false);
+                }
+            }
             readonly property int activeWsId: CortetsuConfig.bar.workspaces.perMonitorWorkspaces
                 ? monitor?.activeWorkspace?.id ?? CortetsuHypr.activeWsId
                 : CortetsuHypr.activeWsId
@@ -947,7 +981,7 @@ Scope {
             }
 
             screen: modelData
-            visible: hubRoot.shown || toasts.visibleToasts.length > 0 || visibility.autoHideEnabled
+            visible: !remapping && (hubRoot.shown || toasts.visibleToasts.length > 0 || visibility.autoHideEnabled)
             color: "transparent"
 
             // Only the islands, the reveal strip and the toasts take the

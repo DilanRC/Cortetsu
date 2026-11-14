@@ -216,14 +216,23 @@ class Session:
         for _ in range(outputs - 1):
             self.hyprctl("output", "create", "headless")
         wait_for(lambda: len(self.monitors()) == outputs, f"{outputs} salidas")
-        self.shell = subprocess.Popen(["qs", "-p", str(self.shell_dir)], env=self.env(), start_new_session=True,
-                                      stdout=(self.logs / "qs.log").open("w"), stderr=subprocess.STDOUT)
-        wait_for(lambda: self.ipc("drawers", "list").returncode == 0, "IPC de Cortetsu",
-                 timeout=60)
+        self.start_shell("w")
         self.input = subprocess.Popen([str(self.vinput_bin)], env=self.env(), text=True, start_new_session=True,
                                       stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         assert self.input.stdout.readline().strip() == "ready", "vinput no arrancó"
         time.sleep(1.0)
+
+    def start_shell(self, log_mode: str = "a") -> None:
+        self.shell = subprocess.Popen(["qs", "-p", str(self.shell_dir)], env=self.env(), start_new_session=True,
+                                      stdout=(self.logs / "qs.log").open(log_mode), stderr=subprocess.STDOUT)
+        wait_for(lambda: self.ipc("drawers", "list").returncode == 0, "IPC de Cortetsu",
+                 timeout=60)
+
+    def restart_shell(self) -> None:
+        """The nested shell again on the same home, for what it reads only at start (preferences)."""
+        os.killpg(self.shell.pid, signal.SIGTERM)
+        self.shell.wait(10)
+        self.start_shell()
 
     def stop(self) -> None:
         for process in (self.client, self.input, self.shell, self.compositor, self.bus):
