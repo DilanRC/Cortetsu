@@ -121,7 +121,7 @@ StyledWindow {
     anchors.right: true
     Shortcut {
         sequence: "Escape"
-        enabled: focusGrab.active || panels.popouts.hasCurrent || root.screenState?.osd
+        enabled: focusGrab.active || panels.popouts.hasCurrent || (root.screenState?.osd ?? false)
         onActivated: {
             if (root.screenState?.osd) {
                 root.screenState.osd = false;
