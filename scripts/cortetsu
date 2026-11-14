@@ -157,15 +157,30 @@ reconcile_shell_lifecycle() {
 }
 
 shell_reload() {
-    local pid after
+    local pid after cursor log="" result="" i
     pid="$(systemctl --user show "$SHELL_UNIT" -p MainPID --value 2>/dev/null || true)"
     [[ "$pid" =~ ^[1-9][0-9]*$ ]] || fail "$SHELL_UNIT no tiene un MainPID válido"
     systemctl --user is-active --quiet "$SHELL_UNIT" || fail "$SHELL_UNIT no está activo"
+    # The IPC call returns before Quickshell loads the new files. A load that
+    # fails leaves the old configuration running in the same PID, so the
+    # result is only in the log: wait for it.
+    cursor="$(journalctl --user -u "$SHELL_UNIT" -n 0 --show-cursor --no-pager 2>/dev/null | sed -n 's/^-- cursor: //p' || true)"
+    [[ -n "$cursor" ]] || fail "no se puede leer el journal de $SHELL_UNIT; la recarga no se podría comprobar"
     qs ipc --pid "$pid" call cortetsu-shell reload || fail "no se pudo solicitar la recarga suave de Quickshell"
-    sleep 1
+    for ((i = 0; i < 150; i++)); do
+        log="$(journalctl --user -u "$SHELL_UNIT" --after-cursor="$cursor" -o cat --no-pager 2>/dev/null || true)"
+        result="$(grep -E -o 'Configuration Loaded|Failed to load configuration' <<<"$log" | tail -n 1 || true)"
+        [[ -z "$result" ]] || break
+        sleep 0.1
+    done
     systemctl --user is-active --quiet "$SHELL_UNIT" || fail "$SHELL_UNIT dejó de estar activo después de la recarga suave"
     after="$(systemctl --user show "$SHELL_UNIT" -p MainPID --value 2>/dev/null || true)"
     [[ "$after" == "$pid" ]] || fail "la recarga suave cambió el proceso de Quickshell: antes=$pid después=$after"
+    if [[ "$result" != "Configuration Loaded" ]]; then
+        grep -E 'ERROR' <<<"$log" | sed 's/\x1b\[[0-9;]*m//g' >&2 || true
+        [[ -n "$result" ]] || fail "Quickshell no confirmó la carga en 15 s; revisa: cortetsu shell logs"
+        fail "Quickshell rechazó la generación nueva y sigue con la anterior (PID $pid). Para adoptarla: cortetsu shell restart"
+    fi
     printf 'Cortetsu shell: recarga suave completada en el mismo proceso (%s)\n' "$pid"
 }
 
