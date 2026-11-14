@@ -24,6 +24,10 @@ CortetsuPopupSurface {
     function markedRow(): int {
         return currentPage?.markedIndex() ?? -1;
     }
+    // Per row: "" or the toggle drawn, "check-on", "radio-off"...
+    function rowToggles(): var {
+        return currentPage?.toggleMarks() ?? [];
+    }
     // Keep long DBus labels readable without letting one Steam title stretch
     // the popup. The width cap leaves the useful name prefix visible and
     // lets Text.ElideRight handle the rest.
@@ -190,6 +194,13 @@ CortetsuPopupSurface {
                 entries.itemAt(index).forceActiveFocus();
             }
 
+            function toggleMarks(): var {
+                const marks = [];
+                for (let index = 0; index < entries.count; index++)
+                    marks.push(entries.itemAt(index)?.toggleMark ?? "");
+                return marks;
+            }
+
             function markedIndex(): int {
                 for (let index = 0; index < entries.count; index++)
                     if (entries.itemAt(index)?.outlined)
@@ -283,14 +294,27 @@ CortetsuPopupSurface {
                 onItemRemoved: focusRestore.restart()
 
                 CortetsuSurface {
+                    id: entryItem
                     required property int index
                     required property QsMenuEntry modelData
                     readonly property bool separator: modelData?.isSeparator ?? false
                     onEnabledChanged: focusRestore.restart()
                     onSeparatorChanged: focusRestore.restart()
+                    // A check box or radio row (nm-applet's "Enable Networking",
+                    // a radio group of modes) shows its state.
+                    readonly property int toggleType: modelData?.buttonType ?? QsMenuButtonType.None
+                    readonly property bool toggleOn: (modelData?.checkState ?? Qt.Unchecked) === Qt.Checked
+                    Accessible.role: toggleType === QsMenuButtonType.RadioButton ? Accessible.RadioButton
+                        : toggleType === QsMenuButtonType.CheckBox ? Accessible.CheckBox : Accessible.MenuItem
+                    Accessible.name: modelData?.text ?? ""
+                    Accessible.checkable: toggleType !== QsMenuButtonType.None
+                    Accessible.checked: toggleOn
+                    readonly property string toggleMark: !toggleIcon.visible ? ""
+                        : `${toggleType === QsMenuButtonType.RadioButton ? "radio" : "check"}-${toggleOn ? "on" : "off"}`
                     readonly property real naturalWidth: (modelData?.isSeparator ?? false)
                         ? 0
                         : labelMetrics.width
+                            + (toggleIcon.visible ? toggleIcon.width + row.spacing : 0)
                             + (menuIcon.visible ? menuIcon.width + row.spacing : 0)
                             + (submenuIcon.visible ? submenuIcon.width + row.spacing : 0)
                             + CortetsuDesign.spacingCompact * 2
@@ -321,6 +345,16 @@ CortetsuPopupSurface {
                         anchors.margins: CortetsuDesign.spacingCompact
                         spacing: CortetsuDesign.spacingStandard
 
+                        CortetsuIcon {
+                            id: toggleIcon
+                            visible: entryItem.toggleType !== QsMenuButtonType.None
+                            text: entryItem.toggleType === QsMenuButtonType.RadioButton
+                                ? (entryItem.toggleOn ? "radio_button_checked" : "radio_button_unchecked")
+                                : (entryItem.toggleOn ? "check_box" : "check_box_outline_blank")
+                            color: entryItem.toggleOn ? CortetsuDesign.colorWashi : CortetsuDesign.colorOnSurfaceVariant
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+
                         IconImage {
                             id: menuIcon
                             visible: (modelData?.icon ?? "") !== ""
@@ -332,6 +366,7 @@ CortetsuPopupSurface {
                         CortetsuText {
                             id: label
                             width: Math.max(0, row.width
+                                - (toggleIcon.visible ? toggleIcon.width + row.spacing : 0)
                                 - (menuIcon.visible ? menuIcon.width + row.spacing : 0)
                                 - (submenuIcon.visible ? submenuIcon.width + row.spacing : 0))
                             text: modelData?.text ?? ""
@@ -346,7 +381,7 @@ CortetsuPopupSurface {
                             id: submenuIcon
                             visible: modelData?.hasChildren ?? false
                             text: "chevron_right"
-                            color: activeFocus
+                            color: entryItem.keyboardRow
                                 ? CortetsuDesign.colorWashi
                                 : CortetsuDesign.colorOnSurfaceVariant
                             anchors.verticalCenter: parent.verticalCenter

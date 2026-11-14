@@ -132,6 +132,10 @@ def main() -> int:
                     tray_state = inspect(session)[name]["tray"]
                     assert tray_state["focusedRow"] >= 0 and tray_state["markedRow"] == tray_state["focusedRow"], \
                         f"la fila elegida con el teclado no se ve: {tray_state}"
+                    # The fixture ends with a check box that is on and a radio
+                    # entry that is off: both show their state.
+                    assert tray_state["toggles"][-2:] == ["check-on", "radio-off"], \
+                        f"casilla y radio sin estado visible: {tray_state['toggles']}"
                     session.tap(KEY_RIGHT)
                     H.wait_for(lambda: inspect(session)[name]["tray"]["stackDepth"] == 2,
                                "submenú abierto con la flecha derecha")
@@ -209,7 +213,9 @@ def main() -> int:
             session.move(tx, ty)
             H.wait_for(lambda: inspect(session)[name]["open"], "menú abierto por hover")
             assert not inspect(session)[name]["keyboardHeld"], "un menú abierto por hover no toma el teclado"
-            session.move(tx, ty - 300)
+            # Up and well to the side: straight up would land on the menu,
+            # which rightly stays open under the pointer.
+            session.move(tx - 500, ty - 300)
             H.wait_for(lambda: not inspect(session)[name]["open"], "menú de hover cerrado al salir")
 
             session.ipc("bottomHub", "closeControl")

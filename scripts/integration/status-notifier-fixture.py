@@ -197,10 +197,17 @@ class Menu(dbus.service.Object):
         super().__init__(name, path)
 
     def entry(self, node_id, depth=-1, names=()):
-        label = {1: "Action", 2: "Disabled entry", 3: "Submenu", 4: "Second level", 5: "Back"}.get(node_id, "")
+        label = {1: "Action", 2: "Disabled entry", 3: "Submenu", 4: "Second level", 5: "Back",
+                 7: "Checked option", 8: "Radio option"}.get(node_id, "")
         props = dbus.Dictionary({"label": dbus.String(label), "enabled": dbus.Boolean(node_id != 2),
                  "visible": dbus.Boolean(True), "type": dbus.String("separator" if node_id == 6 else "standard")},
                  signature="sv")
+        if node_id == 7:  # a check box that is on, like nm-applet's "Enable Networking"
+            props["toggle-type"] = dbus.String("checkmark")
+            props["toggle-state"] = dbus.Int32(1)
+        if node_id == 8:  # a radio entry that is off
+            props["toggle-type"] = dbus.String("radio")
+            props["toggle-state"] = dbus.Int32(0)
         if node_id == 3:
             props["children-display"] = dbus.String("submenu")
         if node_id == 4:
@@ -208,7 +215,7 @@ class Menu(dbus.service.Object):
         if names:
             props = dbus.Dictionary({key: value for key, value in props.items() if key in names},
                                     signature="sv")
-        child_ids = {0: [1, 2, 3, 6, 5], 3: [4], 4: [1]}.get(node_id, [])
+        child_ids = {0: [1, 2, 3, 6, 5, 7, 8], 3: [4], 4: [1]}.get(node_id, [])
         if depth == 0:
             child_ids = []
         child_depth = depth - 1 if depth > 0 else depth

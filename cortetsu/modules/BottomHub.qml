@@ -304,6 +304,7 @@ Scope {
                         stackDepth: trayMenu?.menuDepth ?? 0,
                         focusedRow: trayMenu?.focusedRow ?? -1,
                         markedRow: trayMenu?.markedRow?.() ?? -1,
+                        toggles: trayMenu?.rowToggles?.() ?? [],
                         menuContentHeight: trayMenu?.menuContentHeight ?? 0,
                         menuHeight: trayMenu?.implicitHeight ?? 0,
                         popupY: popupWindow?.y ?? 0,
