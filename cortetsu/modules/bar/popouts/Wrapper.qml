@@ -153,6 +153,7 @@ Item {
 
     PopoutState {
         id: popoutState
+        screen: root.screen
         onDetachRequested: mode => root.detach(mode)
         onCloseRequested: root.close()
     }

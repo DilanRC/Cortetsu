@@ -31,7 +31,13 @@ Item {
     required property bool workspaceMonochromeIcons
     property bool trayMonochromeIcons: false
     property var trayMenuKeyHandler: null
+    property var appPreviewKeyHandler: null
     property string openPopoutName: ""
+    // The popout showing on this screen, "" while none is or it is closing.
+    property string engagedPopout: ""
+    // A panel opened from the status island (notifications, calendar,
+    // session) is showing on this screen.
+    property bool statusPanelOpen: false
     required property var workspaceAppIconSources
     required property int workspaceOffset
     required property int activeWsId
@@ -80,6 +86,9 @@ Item {
     signal appTogglePinnedRequested(string key)
     signal appCloseRequested(string key)
     signal appCycleRequested(string key, int direction)
+    signal appPreviewHoverRequested(string key, real centerX)
+    signal appPreviewHoverEnded()
+    signal appPreviewRequested(string key, real centerX)
     signal trayHoverRequested(string itemKey, real centerX)
     signal trayHoverEnded()
     signal trayActivateRequested(string itemKey)
@@ -185,6 +194,10 @@ Item {
         onTogglePinnedRequested: key => root.appTogglePinnedRequested(key)
         onCloseRequested: key => root.appCloseRequested(key)
         onCycleRequested: (key, direction) => root.appCycleRequested(key, direction)
+        previewKeyHandler: root.appPreviewKeyHandler
+        onPreviewHoverRequested: (key, centerX) => root.appPreviewHoverRequested(key, root.appsAt + centerX)
+        onPreviewHoverEnded: root.appPreviewHoverEnded()
+        onPreviewRequested: (key, centerX) => root.appPreviewRequested(key, root.appsAt + centerX)
     }
 
     CortetsuTraySegment {

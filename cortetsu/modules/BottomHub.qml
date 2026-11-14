@@ -12,6 +12,7 @@ import "launcher/services"
 import "BottomHubResolver.js" as BottomHubResolver
 import "BottomHubTray.js" as BottomHubTray
 import "HubAnchor.js" as HubAnchor
+import "WindowPreview.js" as WindowPreview
 import "CortetsuOverlayPolicy.js" as OverlayPolicy
 import "OverlayPolicy.js" as Exclusion
 import "utilities/toasts" as Toasts
@@ -260,6 +261,20 @@ Scope {
                 return "";
             return `${state.modelData.x + r.x} ${state.modelData.y + r.y} ${r.width} ${r.height}`;
         }
+        // Read-only: the App Rail of the focused screen, as
+        // [{key, running, windows, pinned}], and one icon's rect.
+        function apps(): string {
+            const hub = CortetsuShellState.forActive()?.cortetsuState?.bottomHub;
+            return JSON.stringify((hub?.dockViewItems ?? []).map(item => ({ key: item.key, running: item.running,
+                windows: item.windowCount, pinned: item.pinned })));
+        }
+        function appButton(key: string): string {
+            const state = CortetsuShellState.forActive();
+            const r = state?.cortetsuState?.bottomHub?.appButtonRect(key);
+            if (!r || r.width <= 0)
+                return "";
+            return `${state.modelData.x + r.x} ${state.modelData.y + r.y} ${r.width} ${r.height}`;
+        }
         // Read-only runtime evidence for focus, lifetime and monitor ownership.
         function inspect(): string {
             return JSON.stringify(CortetsuScreens.screens.map(screen => {
@@ -275,6 +290,9 @@ Scope {
                     closing: popup?.closing ?? false, detached: popup?.detachedMode ?? "",
                     anchor: popup?.bottomAnchorCenter ?? -1, focus: popup?.activeFocus ?? false,
                     keyboardHeld: popup?.keyboardHeld ?? false,
+                    engaged: (state?.cortetsuState?.bottomHub?.hubView?.islands ?? []).map(island => island.engaged),
+                    preview: { app: WindowPreview.appKeyOf(popup?.currentName ?? ""),
+                        cards: popup?.current?.cardCount ?? 0, selected: popup?.current?.selected ?? -1 },
                     hubAnchor: CortetsuConfig.bottomHub.anchorFor(screen.name),
                     popupRect: popupWindow ? [popupWindow.x + (panels?.x ?? 0), popupWindow.y + (panels?.y ?? 0),
                         popupWindow.width, popupWindow.height] : [],
@@ -730,6 +748,33 @@ Scope {
                     togglePinned(item);
             }
 
+            function launchDockKey(key): void {
+                const entry = dockItemForKey(key)?.entry;
+                if (entry)
+                    Apps.launch(entry);
+            }
+
+            // An app's window preview: by hover after a longer dwell than the
+            // status icons (crossing the rail opens nothing), or from the
+            // keyboard, which hands it the keys typed on the icon.
+            readonly property int previewDwellMs: 450
+            function showAppPreview(key, centerX): void {
+                if (!CortetsuConfig.bottomHub.windowPreviews || !(dockItemForKey(key)?.windows.length > 0))
+                    return;
+                hubRoot.enterAttachedControl(modelData, WindowPreview.popoutName(key), alongScreen(centerX), previewDwellMs);
+            }
+
+            function openAppPreview(key, centerX): void {
+                if (!(dockItemForKey(key)?.windows.length > 0))
+                    return;
+                hubRoot.openAttachedControlNow(modelData, WindowPreview.popoutName(key), alongScreen(centerX));
+                const popouts = CortetsuShellState.componentsFor(modelData)?.popouts;
+                if (!popouts)
+                    return;
+                popouts.keyboardHeld = true;
+                Qt.callLater(() => popouts.current?.selectInitial?.());
+            }
+
             function showTrayMenu(itemKey, centerX): void {
                 const item = trayItemForKey(itemKey);
                 if (!item || BottomHubTray.contextAction(item) !== "menu")
@@ -755,13 +800,13 @@ Scope {
                     popouts.keyboardHeld = true;
             }
 
-            // A tray menu opened by a click is driven from here: the right
-            // click already gave this window the keyboard (OnDemand), and an
-            // attached popout's window never takes it, so the keys typed on
-            // the tray icon are passed on to the menu.
-            function forwardTrayMenuKey(key, modifiers): bool {
+            // A tray menu opened by a click, or a window preview opened from
+            // the keyboard, is driven from here: the Hub already has the
+            // keyboard (OnDemand), and an attached popout's window never
+            // takes it, so the keys typed on the icon are passed on to it.
+            function forwardHeldKey(key, modifiers): bool {
                 const popouts = CortetsuShellState.componentsFor(modelData)?.popouts;
-                if (!popouts?.keyboardHeld || popouts.closing || !popouts.currentName.startsWith("traymenu"))
+                if (!popouts?.keyboardHeld || popouts.closing)
                     return false;
                 return popouts.current?.handleKey?.(key, modifiers) ?? false;
             }
@@ -793,6 +838,14 @@ Scope {
                     return Qt.rect(0, 0, 0, 0);
                 const p = bell.mapToItem(contentItem, 0, 0);
                 return Qt.rect(originX + p.x, originY + p.y, bell.width, bell.height);
+            }
+
+            function appButtonRect(key: string): rect {
+                const button = bottomHubView.appRailItem?.buttonFor(key);
+                if (!visible || !hubRoot.shown || !button?.visible)
+                    return Qt.rect(0, 0, 0, 0);
+                const p = button.mapToItem(contentItem, 0, 0);
+                return Qt.rect(originX + p.x, originY + p.y, button.width, button.height);
             }
 
             function traySegmentRect(): rect {
@@ -973,11 +1026,18 @@ Scope {
                 workspaceShowAppIcons: CortetsuConfig.bar.workspaces.showAppIcons
                 workspaceMonochromeIcons: CortetsuConfig.bar.workspaces.monochromeIcons
                 trayMonochromeIcons: CortetsuConfig.bar.tray.recolour
-                trayMenuKeyHandler: (key, modifiers) => win.forwardTrayMenuKey(key, modifiers)
+                trayMenuKeyHandler: (key, modifiers) => win.forwardHeldKey(key, modifiers)
+                appPreviewKeyHandler: (key, modifiers) => win.forwardHeldKey(key, modifiers)
                 openPopoutName: {
                     const popouts = CortetsuShellState.componentsFor(win.modelData)?.popouts;
                     return popouts?.hasCurrent ? popouts.currentName : "";
                 }
+                engagedPopout: {
+                    const popouts = CortetsuShellState.componentsFor(win.modelData)?.popouts;
+                    return popouts?.hasCurrent && !popouts.closing && popouts.bottomAttached ? popouts.currentName : "";
+                }
+                statusPanelOpen: (win.screenState?.sidebar ?? false) || (win.screenState?.session ?? false)
+                    || (win.cortetsuState?.calendar ?? false)
                 workspaceAppIconSources: win.workspaceAppIconSources
                 workspaceOffset: win.workspaceOffset
                 activeWsId: win.activeWsId
@@ -1018,6 +1078,9 @@ Scope {
                 onAppTogglePinnedRequested: key => win.togglePinnedKey(key)
                 onAppCloseRequested: key => win.closeDockKey(key)
                 onAppCycleRequested: (key, direction) => win.cycleDockKey(key, direction)
+                onAppPreviewHoverRequested: (key, centerX) => win.showAppPreview(key, centerX)
+                onAppPreviewHoverEnded: hoverSurfaceController.leaveTrigger()
+                onAppPreviewRequested: (key, centerX) => win.openAppPreview(key, centerX)
                 onTrayHoverRequested: (itemKey, centerX) => win.showTrayMenu(itemKey, centerX)
                 // Without it a tray menu opened by hover stayed open after the
                 // pointer left the icon for anywhere but the menu itself.

@@ -26,7 +26,9 @@ Item {
         return !!popouts && popouts.hasCurrent && popouts.bottomAttached && !popouts.closing;
     }
 
-    function request(screen, mode, anchorCenter): void {
+    // `dwell` overrides openDelay for this request: the App Rail waits
+    // longer, so sweeping the pointer along the rail opens nothing.
+    function request(screen, mode, anchorCenter, dwell = -1): void {
         const samePending = pendingScreen === screen
             && pendingMode === mode
             && pendingAnchor === anchorCenter;
@@ -51,6 +53,7 @@ Item {
         // change while a popup is open gets a bounded handoff delay.
         if (openTimer.running || (samePending && hasPendingPopup()))
             return;
+        openTimer.interval = dwell >= 0 ? dwell : root.openDelay;
         openTimer.restart();
     }
 

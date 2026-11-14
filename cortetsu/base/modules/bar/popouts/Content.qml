@@ -8,6 +8,7 @@ import qs.components
 import qs.modules
 import qs.services
 import "../SystemTrayIdentity.js" as TrayIdentity
+import "../../../modules/WindowPreview.js" as WindowPreview
 
 Item {
     id: root
@@ -121,6 +122,16 @@ Item {
             sourceComponent: CortetsuLockStatusPopup {}
         }
 
+        // One loader for every app of the rail: moving from one icon to the
+        // next keeps the popout and changes what it shows.
+        Popout {
+            name: "apppreview"
+            prefix: WindowPreview.prefix
+            sourceComponent: CortetsuWindowPreview {
+                popouts: root.popouts
+            }
+        }
+
         Repeater {
             model: ScriptModel {
                 // Keys come from the full list: a filtered call would drop the keys
@@ -175,7 +186,11 @@ Item {
         id: popout
 
         required property string name
-        readonly property bool shouldBeActive: root.popouts.currentName === name
+        // Set: every popout name that starts with it opens this one.
+        property string prefix: ""
+        readonly property bool shouldBeActive: prefix.length > 0
+            ? root.popouts.currentName.startsWith(prefix)
+            : root.popouts.currentName === name
 
         anchors.centerIn: parent
 

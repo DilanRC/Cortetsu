@@ -65,6 +65,13 @@ QtObject {
             delete next[monitorName];
             anchors = next;
         }
+        // The App Rail's window preview: whether resting the pointer on a
+        // running app opens it (the Menu key always does), and whether its
+        // cards take a frame of each window or show the app's icon.
+        property bool windowPreviews: true
+        onWindowPreviewsChanged: if (root.loaded) root.save()
+        property bool windowThumbnails: true
+        onWindowThumbnailsChanged: if (root.loaded) root.save()
         readonly property QtObject segments: QtObject {
             property bool mode: true
             onModeChanged: if (root.loaded) root.save()
@@ -454,6 +461,10 @@ QtObject {
                 // An unknown anchor reads as the bottom, never as nowhere.
                 bottomHub.anchor = HubAnchor.normalize(data.bottomHub.anchor);
                 bottomHub.anchors = HubAnchor.sanitizeMap(data.bottomHub.anchors);
+                if (typeof data.bottomHub.windowPreviews === "boolean")
+                    bottomHub.windowPreviews = data.bottomHub.windowPreviews;
+                if (typeof data.bottomHub.windowThumbnails === "boolean")
+                    bottomHub.windowThumbnails = data.bottomHub.windowThumbnails;
                 if (data.bottomHub.segments && typeof data.bottomHub.segments === "object")
                     for (const key of ["mode", "apps", "tray", "status"])
                         if (typeof data.bottomHub.segments[key] === "boolean")
@@ -762,6 +773,8 @@ QtObject {
             bottomHub: {
                 anchor: bottomHub.anchor,
                 anchors: bottomHub.anchors,
+                windowPreviews: bottomHub.windowPreviews,
+                windowThumbnails: bottomHub.windowThumbnails,
                 segments: { mode: bottomHub.segments.mode, apps: bottomHub.segments.apps, tray: bottomHub.segments.tray, status: bottomHub.segments.status },
                 statusCluster: { audio: bottomHub.statusCluster.audio, network: bottomHub.statusCluster.network, bluetooth: bottomHub.statusCluster.bluetooth, battery: bottomHub.statusCluster.battery, showNotificationCount: bottomHub.statusCluster.showNotificationCount }
             },

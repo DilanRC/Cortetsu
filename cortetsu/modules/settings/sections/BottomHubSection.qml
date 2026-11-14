@@ -131,6 +131,22 @@ SettingsColumns {
             checked: CortetsuConfig.bar.scrollActions.volume
             onToggled: value => { CortetsuConfig.bar.scrollActions.volume = value; CortetsuConfig.save(); }
         }
+
+        SettingToggleRow {
+            objectName: "windowPreviews"
+            title: qsTr("Ventanas al pasar el puntero")
+            detail: qsTr("Detenerse sobre una aplicación abierta muestra sus ventanas; la tecla Menú las muestra siempre")
+            checked: CortetsuConfig.bottomHub.windowPreviews
+            onToggled: value => { CortetsuConfig.bottomHub.windowPreviews = value; }
+        }
+
+        SettingToggleRow {
+            objectName: "windowThumbnails"
+            title: qsTr("Miniaturas de ventanas")
+            detail: qsTr("Una imagen de cada ventana; desactivadas se ve el icono de la aplicación")
+            checked: CortetsuConfig.bottomHub.windowThumbnails
+            onToggled: value => { CortetsuConfig.bottomHub.windowThumbnails = value; }
+        }
     }
 
     aside: [

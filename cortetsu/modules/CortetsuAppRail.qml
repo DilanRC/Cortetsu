@@ -20,6 +20,23 @@ Item {
     signal togglePinnedRequested(string key)
     signal closeRequested(string key)
     signal cycleRequested(string key, int direction)
+    // The window preview of a running app: by hover (the Hub adds a dwell)
+    // or from the Menu key, which also hands the preview the keys typed here.
+    signal previewHoverRequested(string key, real centerX)
+    signal previewHoverEnded()
+    signal previewRequested(string key, real centerX)
+    // (key, modifiers) => bool: an open preview takes the keys typed here.
+    property var previewKeyHandler: null
+
+    // The icon of `key`, or null (IPC evidence for pointer tests).
+    function buttonFor(key: string): Item {
+        for (let i = 0; i < appRepeater.count; ++i) {
+            const item = appRepeater.itemAt(i);
+            if (item?.modelData?.key === key)
+                return item;
+        }
+        return null;
+    }
 
     implicitWidth: vertical ? thickness : Math.min(appRailContent.implicitWidth + 24, maxWidth)
     implicitHeight: vertical ? Math.min(appRailContent.implicitHeight + 24, maxWidth) : thickness
@@ -50,6 +67,7 @@ Item {
             spacing: 2
 
             Repeater {
+                id: appRepeater
                 model: root.delegateModel
 
                 Item {
@@ -60,6 +78,17 @@ Item {
 
                     implicitWidth: 46
                     implicitHeight: 50
+
+                    // Along the Hub, in rail coordinates: the flickable's
+                    // margin, minus what has scrolled away.
+                    function centerX(): real {
+                        return root.vertical
+                            ? appRail.y + appRailContent.y + y - appRail.contentY + height / 2
+                            : appRail.x + appRailContent.x + x - appRail.contentX + width / 2;
+                    }
+                    function previewTakes(event): bool {
+                        return !!root.previewKeyHandler?.(event.key, event.modifiers);
+                    }
                     width: implicitWidth
                     height: implicitHeight
                     activeFocusOnTab: enabled
@@ -165,6 +194,9 @@ Item {
                         cursorShape: Qt.PointingHandCursor
 
                         onPressed: appItem.forceActiveFocus()
+                        onEntered: if (appItem.modelData.running)
+                            root.previewHoverRequested(appItem.modelData.key, appItem.centerX())
+                        onExited: root.previewHoverEnded()
 
                         onClicked: event => {
                             if (event.button === Qt.RightButton) {
@@ -187,11 +219,17 @@ Item {
                         }
                     }
 
-                    Keys.onEnterPressed: root.activateRequested(appItem.modelData.key)
-                    Keys.onReturnPressed: root.activateRequested(appItem.modelData.key)
-                    Keys.onSpacePressed: root.activateRequested(appItem.modelData.key)
-                    Keys.onLeftPressed: root.cycleRequested(appItem.modelData.key, -1)
-                    Keys.onRightPressed: root.cycleRequested(appItem.modelData.key, 1)
+                    // An open preview takes the keys first. Keys emits the
+                    // specific signals before onPressed and stops there, so
+                    // each of them asks too.
+                    Keys.onPressed: event => event.accepted = appItem.previewTakes(event)
+                    Keys.onEnterPressed: event => { if (!appItem.previewTakes(event)) root.activateRequested(appItem.modelData.key); }
+                    Keys.onReturnPressed: event => { if (!appItem.previewTakes(event)) root.activateRequested(appItem.modelData.key); }
+                    Keys.onSpacePressed: event => { if (!appItem.previewTakes(event)) root.activateRequested(appItem.modelData.key); }
+                    Keys.onLeftPressed: event => { if (!appItem.previewTakes(event)) root.cycleRequested(appItem.modelData.key, -1); }
+                    Keys.onRightPressed: event => { if (!appItem.previewTakes(event)) root.cycleRequested(appItem.modelData.key, 1); }
+                    Keys.onMenuPressed: if (appItem.modelData.running)
+                        root.previewRequested(appItem.modelData.key, appItem.centerX())
                     // Tab into an item that scrolled out of the rail.
                     onActiveFocusChanged: if (activeFocus) {
                         if (root.vertical)
