@@ -19,6 +19,13 @@ import time
 from nested_gpu import MESA_ONLY, compositor_env
 
 REPO = Path(__file__).resolve().parents[2]
+# The shell renders as in the session: Qt's RHI on Mesa (MESA_ONLY keeps the
+# NVIDIA driver unloaded). The software backend's render thread crashes in Qt
+# 6.12 when a QtQuick.Shapes item goes away mid-frame
+# (QQuickShapeSoftwareRenderNode::render reads the item's window), a path the
+# session never takes. CORTETSU_TEST_QUICK_BACKEND=software brings it back.
+QUICK_BACKEND = ({"QT_QUICK_BACKEND": os.environ["CORTETSU_TEST_QUICK_BACKEND"]}
+                 if os.environ.get("CORTETSU_TEST_QUICK_BACKEND") else {})
 HERE = Path(__file__).resolve().parent
 HYPRCTL = os.environ.get("CORTETSU_TEST_HYPRCTL") or shutil.which("hyprctl") or "hyprctl"
 
@@ -171,9 +178,9 @@ class Session:
             "XDG_STATE_HOME": str(self.home / ".local/state"), "XDG_DATA_HOME": str(self.home / ".local/share"),
             "XDG_CACHE_HOME": str(self.home / ".cache"), "WAYLAND_DISPLAY": self.socket,
             "HYPRLAND_INSTANCE_SIGNATURE": signature, "QT_QPA_PLATFORM": "wayland",
-            "XDG_CURRENT_DESKTOP": "Hyprland", "QT_QUICK_BACKEND": "software",
+            "XDG_CURRENT_DESKTOP": "Hyprland",
             "DBUS_SESSION_BUS_ADDRESS": self.bus_address, "QT_NO_XDG_DESKTOP_PORTAL": "1",
-            **MESA_ONLY,
+            **MESA_ONLY, **QUICK_BACKEND,
         }
 
     def start_bus(self) -> None:
