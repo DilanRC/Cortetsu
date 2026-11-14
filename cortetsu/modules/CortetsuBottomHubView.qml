@@ -198,28 +198,15 @@ Item {
     // An engaged island leans 2 px towards its popout; islands that grow
     // or appear glide to their new place (layoutAnchor keeps an edge change
     // instant). Durations are motion tokens, so reduced motion is instant.
-    component Lean: Translate {
-        required property bool engaged
-        x: engaged ? 2 * root.inward.x : 0
-        y: engaged ? 2 * root.inward.y : 0
-        Behavior on x { NumberAnimation { duration: CortetsuDesign.motionFastMs; easing.type: Easing.BezierSpline; easing.bezierCurve: CortetsuDesign.easeOut } }
-        Behavior on y { NumberAnimation { duration: CortetsuDesign.motionFastMs; easing.type: Easing.BezierSpline; easing.bezierCurve: CortetsuDesign.easeOut } }
-    }
-    component Glide: NumberAnimation {
-        duration: CortetsuDesign.motionStandardMs
-        easing.type: Easing.BezierSpline
-        easing.bezierCurve: CortetsuDesign.easeOut
-    }
-
     CortetsuModeSegment {
         id: leftSegment
 
         engaged: root.launcherActive
-        transform: Lean { engaged: leftSegment.engaged }
+        transform: HubLean { engaged: leftSegment.engaged; inward: root.inward }
         // design-lint: allow motion-layout-property: an island glides to the place its neighbours left it; the input mask follows
-        Behavior on x { enabled: root.glide; Glide {} }
+        Behavior on x { enabled: root.glide; HubGlide {} }
         // design-lint: allow motion-layout-property: same glide along a lateral Hub
-        Behavior on y { enabled: root.glide; Glide {} }
+        Behavior on y { enabled: root.glide; HubGlide {} }
 
         visible: root.modeVisible
         vertical: root.vertical
@@ -243,11 +230,11 @@ Item {
         id: appSegment
 
         engaged: root.engagedPopout.startsWith(WindowPreview.prefix)
-        transform: Lean { engaged: appSegment.engaged }
+        transform: HubLean { engaged: appSegment.engaged; inward: root.inward }
         // design-lint: allow motion-layout-property: an island glides to the place its neighbours left it; the input mask follows
-        Behavior on x { enabled: root.glide; Glide {} }
+        Behavior on x { enabled: root.glide; HubGlide {} }
         // design-lint: allow motion-layout-property: same glide along a lateral Hub
-        Behavior on y { enabled: root.glide; Glide {} }
+        Behavior on y { enabled: root.glide; HubGlide {} }
 
         visible: root.appsVisible && root.dockItems.length > 0
         vertical: root.vertical
@@ -271,11 +258,11 @@ Item {
         id: traySegment
 
         engaged: root.engagedPopout.startsWith("traymenu")
-        transform: Lean { engaged: traySegment.engaged }
+        transform: HubLean { engaged: traySegment.engaged; inward: root.inward }
         // design-lint: allow motion-layout-property: an island glides to the place its neighbours left it; the input mask follows
-        Behavior on x { enabled: root.glide; Glide {} }
+        Behavior on x { enabled: root.glide; HubGlide {} }
         // design-lint: allow motion-layout-property: same glide along a lateral Hub
-        Behavior on y { enabled: root.glide; Glide {} }
+        Behavior on y { enabled: root.glide; HubGlide {} }
 
         visible: root.trayVisible && root.trayItems.length > 0
         vertical: root.vertical
@@ -300,11 +287,11 @@ Item {
         id: statusSegment
 
         engaged: root.statusPanelOpen || root.statusModes.includes(root.engagedPopout)
-        transform: Lean { engaged: statusSegment.engaged }
+        transform: HubLean { engaged: statusSegment.engaged; inward: root.inward }
         // design-lint: allow motion-layout-property: an island glides to the place its neighbours left it; the input mask follows
-        Behavior on x { enabled: root.glide; Glide {} }
+        Behavior on x { enabled: root.glide; HubGlide {} }
         // design-lint: allow motion-layout-property: same glide along a lateral Hub
-        Behavior on y { enabled: root.glide; Glide {} }
+        Behavior on y { enabled: root.glide; HubGlide {} }
 
         visible: root.statusVisible
         vertical: root.vertical
