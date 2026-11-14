@@ -11,7 +11,7 @@ Un estado solo sube con la evidencia que cita. Lo que no se probó se dice.
 | 1 Biblioteca Premium sobria y marca | IN_PROGRESS |
 | 2 Settings integral y Launcher | IN_PROGRESS |
 | 3 Hub multiposición | DONE_WITH_CONCERNS |
-| 4 Islas, popouts y tray | PARTIAL |
+| 4 Islas, popouts y tray | DONE_WITH_CONCERNS |
 | 5 OSD 3.0 y Ajustes rápidos | PARTIAL |
 | 6 Centros de servicio | NOT_STARTED |
 | 7 Lockscreen, Dashboard y widgets | PARTIAL |
@@ -64,7 +64,7 @@ Un estado solo sube con la evidencia que cita. Lo que no se probó se dice.
 
 #### Fase 4 - Islas, popouts y tray
 
-- Estado: PARTIAL (popouts de servicio, bandeja y tooltips del Hub hechos; morphing de islas y vista previa de ventanas sin empezar)
+- Estado: DONE_WITH_CONCERNS (código y pruebas anidadas completos; falta la certificación física, ver "Bloque 2")
 - Fecha / rama: 2026-11-13, `main`.
 - QML modificados: `bar/popouts/{CortetsuPopoutHeader (nuevo),CortetsuNetworkPopup,CortetsuBluetoothPopup,CortetsuAudioPopup,CortetsuTrayMenu,Wrapper}.qml`, `components/CortetsuTooltip.qml`, `BottomHub.qml`, `CortetsuBottomHubView.qml`, `CortetsuTraySegment.qml`, `drawers/ContentWindow.qml`.
 - Popouts de servicio (nivel 1 de ADR-008): una cabecera común con el estado, el interruptor del servicio y el enlace a su página de Ajustes, que cierra el popout. Red: el interruptor de Wi-Fi espera a NetworkManager, dice "Aplicando…" y muestra el rechazo; "No hay otras redes" si ya hay una conectada. Bluetooth: una línea en lugar de cabecera más tarjeta que la repetía; la batería solo si BlueZ la informa; apagado es un estado, no un error. Audio: la entrada (micrófono) junto a la salida, con nivel, silencio y elección de dispositivo. Plurales correctos ("1 conectado", "1 dispositivo", "1 red").
@@ -79,8 +79,24 @@ Un estado solo sube con la evidencia que cita. Lo que no se probó se dice.
 - Coste: la ventana del Hub crece en su lado interior lo que mide el tooltip más grande (en la prueba, 118 px de alto abajo y 365 px de ancho en lateral, antes 74 y unos 66). Esa franja es transparente y está fuera de la máscara de entrada; no cambia la zona reservada.
 - Fallo previo no causado por esto: `eval-bottom-hub-design.py` ("centro geométrico") falla igual en `a352a342`; no está en ningún gate.
 - No probado: sesión real, `HDMI-A-1`, escala 1.25, aplicaciones reales de bandeja (Steam, Discord, nm-applet) con menús de varios niveles, lector de pantalla.
-- Pendiente de la fase: morphing de islas, vista previa de ventanas en el carril de aplicaciones, modo de edición del Hub con arrastre.
+- Pendiente de la fase (resuelto en el bloque 2): morphing de islas, vista previa de ventanas en el carril de aplicaciones, modo de edición del Hub con arrastre.
 - Rollback: `git revert` del commit; ningún contrato de IPC cambió (se añade `trayButton`, de solo lectura, y `keyboardHeld` en `inspect`).
+
+#### Fase 4, bloque 2 - Cierre intermitente, islas, vista previa y modo de edición (2026-11-13)
+
+- HEAD inicial `91570fb3`; commits `6a83bdb6` (bandeja), `52030618` (cajones), `3b74932b` (modo de edición), `38c5b8f3` (vista previa), `17e750a7` (islas) y los de arnés y documentación que siguen. Sin push, sin instalar, sin recargar la sesión.
+- Evidencia completa: [`docs/evidence/cortetsu-30-phase4-20261113/`](../../evidence/cortetsu-30-phase4-20261113/README.md).
+- **Cierre intermitente: causa confirmada.** Defecto de Qt 6.12 en el backend por software con render en hilo (`QQuickShapeSoftwareRenderNode::render` lee la ventana de un `Shape` destruido en mitad del fotograma), disparado por Cortetsu: cerrar un menú de bandeja por teclado o acción hacía parpadear `hasCurrent` y `Content.qml` reconstruía el menú visible. Dos volcados en `systemd-coredump`, reproductor con 2 caídas en 4 ejecuciones antes y 0 en 6 después. Corregido: el menú reabierto se reinicia en el sitio. Regresión en el gate que falla contra `91570fb3`.
+- Segundo disparador del mismo defecto, previo y sin relación con la bandeja: `test-bottomhub-hover-close-race` caía 2 de 5 veces también en `91570fb3` (un popout destruido justo al terminar su fundido). Antes pasaba sin que se viera porque el gestor de fallos reinicia el shell y el informe se borraba con el HOME temporal. Las pruebas anidadas pasan a renderizar como la sesión (RHI sobre Mesa; `CORTETSU_TEST_QUICK_BACKEND=software` devuelve el modo anterior) y el arnés conserva y señala todo informe de fallo.
+- Islas: estados de reposo, hover, foco y `engaged` (índigo, inclinación de 2 px hacia el popout), elevación según el tema, grupos a 12 px y Sistema a 4 px, deslizamiento al crecer, cambio de borde instantáneo, popouts que nacen de su control, tooltips que se apartan. Sin animaciones en reposo; movimiento reducido instantáneo.
+- Vista previa de ventanas: hover (450 ms) o tecla Menú; miniatura de un fotograma o icono; título, espacio, cerrar, traer aquí, nueva ventana, fijar; teclado completo; una ventana cerrada se lleva su tarjeta. Desactivable en Ajustes (hover y miniaturas).
+- Modo de edición: arrastre con destino iluminado, ajuste al soltar, flechas, Inicio, Intro, Escape; guarda por monitor; termina si el monitor se va; la posición propia vuelve al reconectar, también a escala 1.25.
+- Pruebas nuevas: `tst_HubIslands`, `tst_WindowPreview`, 115 casos más en `tst_HubAnchor` (560), `test-cortetsu-hub-islands-runtime.py` (en `build-regressions.sh`), `scripts/integration/test-hub-previews-edit.py` (gate anidado), regresión de reapertura en `test-popout-cycles.py`.
+- Rendimiento (anidado, antes/después): PSS en reposo 300–303 / 296–299 MiB; CPU en reposo igual; +8 % de CPU en 40 ciclos de popout; apertura de la vista previa ~97 ms; NVIDIA `suspended` antes y después en el arnés (que fuerza Mesa).
+- Fallos previos que siguen y no están en ningún gate: `test-bottom-hub-v3.py` (ya fallaba en `91570fb3`), `eval-bottom-hub-design.py`.
+- Riesgos: el defecto de Qt sigue para cualquier `Shape` con backend por software (la sesión usa RHI); `BottomHub.qml` sigue por encima de mil líneas (deuda previa; el IPC debería salir a su archivo); la franja transparente del Hub lateral (~365 px) se mantiene a propósito.
+- No probado: sesión real, `HDMI-A-1`, aplicaciones reales de bandeja con menús de varios niveles, miniaturas con la RTX 3050 conectada a una salida, lector de pantalla.
+- Rollback: `git revert` de los commits del bloque, en orden inverso. Las claves nuevas `bottomHub.windowPreviews` y `windowThumbnails` se ignoran al volver atrás; la posición por monitor usa el esquema de fase 3. Para devolver el Hub abajo sin tocar código: `qs ipc call bottomHub -- anchor "" bottom-center` y `clearAnchor <monitor>`.
 
 #### Fase 7 - Lockscreen, Dashboard y widgets
 

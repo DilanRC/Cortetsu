@@ -1,0 +1,86 @@
+=== 926941
+           PID: 926941 (QSGSoftwareRend)
+           TID: 926941 (QSGSoftwareRend)
+           UID: 1000 (dilan)
+           GID: 1000 (dilan)
+        Signal: 11 (SEGV) si_code: SI_TKILL
+     Timestamp: Fri 2026-11-13 19:18:53 CST (1h 58min ago)
+  Command Line: qs -p /tmp/cz30-cycles-wmdbn1oj/home/.config/quickshell/cortetsu/current
+    Executable: /usr/bin/quickshell
+ Control Group: /user.slice/user-1000.slice/user@1000.service/session.slice/kitty-3143-0.scope
+          Unit: user@1000.service
+     User Unit: kitty-3143-0.scope
+         Slice: user-1000.slice
+     Owner UID: 1000 (dilan)
+       Boot ID: 323343bfbea84799b4fcd407f48d304b
+    Machine ID: 29f416d81ad74e65878fbd0c5dff6650
+      Hostname: stelar
+       Storage: /var/lib/systemd/coredump/core.QSGSoftwareRend.1000.323343bfbea84799b4fcd407f48d304b.926941.1794619133000000.zst (present)
+  Size on Disk: 21.2M
+       Message: Process 926941 (QSGSoftwareRend) of user 1000 dumped core.
+                
+                Stack trace of thread 926941:
+                Stack trace of thread 926941:
+                #0  0x00007f97ce4af22b pthread_kill (libc.so.6 + 0xaf22b)
+                #0  0x00007f97ce4af22b pthread_kill (libc.so.6 + 0xaf22b)
+                #1  0x00007f97ce444b88 raise (libc.so.6 + 0x44b88)
+                #1  0x00007f97ce444b88 raise (libc.so.6 + 0x44b88)
+                #2  0x00005638451b6528 _ZN2qs5crash12_GLOBAL__N_1L13signalHandlerEiP9siginfo_tPv (quickshell + 0x131528)
+                #2  0x00005638451b6528 _ZN2qs5crash12_GLOBAL__N_1L13signalHandlerEiP9siginfo_tPv (quickshell + 0x131528)
+                #3  0x00007f97ce444cb0 n/a (libc.so.6 + 0x44cb0)
+                #3  0x00007f97ce444cb0 n/a (libc.so.6 + 0x44cb0)
+                #4  0x00007f97d0a80884 _ZNK12QQuickWindow17rendererInterfaceEv (libQt6Quick.so.6 + 0x280884)
+                #5  0x00007f97c84f8269 n/a (libQt6QuickShapes.so.6 + 0x38269)
+                #6  0x00007f97d0aa2971 _ZN25QSGSoftwareRenderableNode10renderNodeEP8QPainterb (libQt6Quick.so.6 + 0x2a2971)
+                #7  0x00007f97d0a8fb08 _ZN27QSGAbstractSoftwareRenderer11renderNodesEP8QPainter (libQt6Quick.so.6 + 0x28fb08)
+                #8  0x00007f97d0aafebf _ZN19QSGSoftwareRenderer6renderEv (libQt6Quick.so.6 + 0x2afebf)
+                #9  0x00007f97d0ae8cc6 n/a (libQt6Quick.so.6 + 0x2e8cc6)
+                #10 0x00007f97d0a746f1 _ZN19QQuickWindowPrivate16renderSceneGraphEv (libQt6Quick.so.6 + 0x2746f1)
+                #11 0x00007f97d0ccee39 n/a (libQt6Quick.so.6 + 0x4cee39)
+                #12 0x00007f97cef78fdb n/a (libQt6Core.so.6 + 0x378fdb)
+                #13 0x00007f97ce4acef1 n/a (libc.so.6 + 0xacef1)
+                #14 0x00007f97ce54c05c n/a (libc.so.6 + 0x14c05c)
+                ELF object binary architecture: AMD x86-64
+=== 929296
+           PID: 929296 (QSGSoftwareRend)
+           TID: 929296 (QSGSoftwareRend)
+           UID: 1000 (dilan)
+           GID: 1000 (dilan)
+        Signal: 11 (SEGV) si_code: SI_TKILL
+     Timestamp: Fri 2026-11-13 19:19:36 CST (1h 57min ago)
+  Command Line: qs -p /tmp/cz30-cycles-elbvqfya/home/.config/quickshell/cortetsu/current
+    Executable: /usr/bin/quickshell
+ Control Group: /user.slice/user-1000.slice/user@1000.service/session.slice/kitty-3143-0.scope
+          Unit: user@1000.service
+     User Unit: kitty-3143-0.scope
+         Slice: user-1000.slice
+     Owner UID: 1000 (dilan)
+       Boot ID: 323343bfbea84799b4fcd407f48d304b
+    Machine ID: 29f416d81ad74e65878fbd0c5dff6650
+      Hostname: stelar
+       Storage: /var/lib/systemd/coredump/core.QSGSoftwareRend.1000.323343bfbea84799b4fcd407f48d304b.929296.1794619176000000.zst (present)
+  Size on Disk: 21.3M
+       Message: Process 929296 (QSGSoftwareRend) of user 1000 dumped core.
+                
+                Stack trace of thread 929296:
+                Stack trace of thread 929296:
+                #0  0x00007f3fc18af22b pthread_kill (libc.so.6 + 0xaf22b)
+                #0  0x00007f3fc18af22b pthread_kill (libc.so.6 + 0xaf22b)
+                #1  0x00007f3fc1844b88 raise (libc.so.6 + 0x44b88)
+                #1  0x00007f3fc1844b88 raise (libc.so.6 + 0x44b88)
+                #2  0x00005628f6125528 _ZN2qs5crash12_GLOBAL__N_1L13signalHandlerEiP9siginfo_tPv (quickshell + 0x131528)
+                #2  0x00005628f6125528 _ZN2qs5crash12_GLOBAL__N_1L13signalHandlerEiP9siginfo_tPv (quickshell + 0x131528)
+                #3  0x00007f3fc1844cb0 n/a (libc.so.6 + 0x44cb0)
+                #3  0x00007f3fc1844cb0 n/a (libc.so.6 + 0x44cb0)
+                #4  0x00007f3fc3e80884 _ZNK12QQuickWindow17rendererInterfaceEv (libQt6Quick.so.6 + 0x280884)
+                #5  0x00007f3fbb73f269 n/a (libQt6QuickShapes.so.6 + 0x38269)
+                #6  0x00007f3fc3ea2971 _ZN25QSGSoftwareRenderableNode10renderNodeEP8QPainterb (libQt6Quick.so.6 + 0x2a2971)
+                #7  0x00007f3fc3e8fb08 _ZN27QSGAbstractSoftwareRenderer11renderNodesEP8QPainter (libQt6Quick.so.6 + 0x28fb08)
+                #8  0x00007f3fc3eafebf _ZN19QSGSoftwareRenderer6renderEv (libQt6Quick.so.6 + 0x2afebf)
+                #9  0x00007f3fc3ee8cc6 n/a (libQt6Quick.so.6 + 0x2e8cc6)
+                #10 0x00007f3fc3e746f1 _ZN19QQuickWindowPrivate16renderSceneGraphEv (libQt6Quick.so.6 + 0x2746f1)
+                #11 0x00007f3fc40cee39 n/a (libQt6Quick.so.6 + 0x4cee39)
+                #12 0x00007f3fc2378fdb n/a (libQt6Core.so.6 + 0x378fdb)
+                #13 0x00007f3fc18acef1 n/a (libc.so.6 + 0xacef1)
+                #14 0x00007f3fc194c05c n/a (libc.so.6 + 0x14c05c)
+                ELF object binary architecture: AMD x86-64

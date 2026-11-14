@@ -1,0 +1,15 @@
+{"cfg":"X=1","run":1,"rc":0,"res":{"cycles": 150, "crashed": false, "secs": 43, "env": {"X": "1"}}}
+{"cfg":"X=1","run":2,"rc":1,"res":AssertionError: timeout esperando: open}
+{"cfg":"X=1","run":3,"rc":3,"res":{"cycles": 58, "crashed": true, "secs": 27, "env": {"X": "1"}}}
+{"cfg":"QSG_RENDER_LOOP=basic","run":1,"rc":0,"res":{"cycles": 150, "crashed": false, "secs": 43, "env": {"QSG_RENDER_LOOP": "basic"}}}
+{"cfg":"QSG_RENDER_LOOP=basic","run":2,"rc":0,"res":{"cycles": 150, "crashed": false, "secs": 44, "env": {"QSG_RENDER_LOOP": "basic"}}}
+{"cfg":"QSG_RENDER_LOOP=basic","run":3,"rc":0,"res":{"cycles": 150, "crashed": false, "secs": 43, "env": {"QSG_RENDER_LOOP": "basic"}}}
+{"cfg":"QT_QUICK_BACKEND=-","run":1,"rc":0,"res":{"cycles": 150, "crashed": false, "secs": 42, "env": {"QT_QUICK_BACKEND": "-"}}}
+{"cfg":"QT_QUICK_BACKEND=-","run":2,"rc":0,"res":{"cycles": 150, "crashed": false, "secs": 43, "env": {"QT_QUICK_BACKEND": "-"}}}
+{"cfg":"QT_QUICK_BACKEND=-","run":3,"rc":0,"res":{"cycles": 150, "crashed": false, "secs": 43, "env": {"QT_QUICK_BACKEND": "-"}}}
+{"cfg":"X=1","run":1,"rc":0,"res":{"cycles": 150, "crashed": false, "secs": 39, "env": {"X": "1"}}}
+{"cfg":"X=1","run":2,"rc":0,"res":{"cycles": 150, "crashed": false, "secs": 41, "env": {"X": "1"}}}
+{"cfg":"X=1","run":3,"rc":0,"res":{"cycles": 150, "crashed": false, "secs": 41, "env": {"X": "1"}}}
+{"cfg":"Y=1","run":1,"rc":0,"res":{"cycles": 150, "crashed": false, "secs": 41, "env": {"Y": "1"}}}
+{"cfg":"Y=1","run":2,"rc":0,"res":{"cycles": 150, "crashed": false, "secs": 43, "env": {"Y": "1"}}}
+{"cfg":"Y=1","run":3,"rc":0,"res":{"cycles": 150, "crashed": false, "secs": 42, "env": {"Y": "1"}}}

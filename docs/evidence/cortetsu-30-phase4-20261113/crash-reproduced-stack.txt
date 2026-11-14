@@ -1,0 +1,13 @@
+===== Stacktrace =====
+#0  0x00007fedd4844caf at /usr/bin/../lib/libc.so.6
+#1  0x00007fedd6e80884 in QQuickWindow::rendererInterface() const at /usr/bin/../lib/libQt6Quick.so.6
+#2  0x00007fedce8b0268 at /usr/lib/qt6/qml/QtQuick/Shapes/../../../../libQt6QuickShapes.so.6
+#3  0x00007fedd6ea2970 in QSGSoftwareRenderableNode::renderNode(QPainter*, bool) at /usr/bin/../lib/libQt6Quick.so.6
+#4  0x00007fedd6e8fb07 in QSGAbstractSoftwareRenderer::renderNodes(QPainter*) at /usr/bin/../lib/libQt6Quick.so.6
+#5  0x00007fedd6eafebe in QSGSoftwareRenderer::render() at /usr/bin/../lib/libQt6Quick.so.6
+#6  0x00007fedd6ee8cc5 at /usr/bin/../lib/libQt6Quick.so.6
+#7  0x00007fedd6e746f0 in QQuickWindowPrivate::renderSceneGraph() at /usr/bin/../lib/libQt6Quick.so.6
+#8  0x00007fedd70cee38 at /usr/bin/../lib/libQt6Quick.so.6
+#9  0x00007fedd5378fda at /usr/bin/../lib/libQt6Core.so.6
+#10 0x00007fedd48acef0 at /usr/bin/../lib/libc.so.6
+#11 0x00007fedd494c05b at /usr/bin/../lib/libc.so.6
