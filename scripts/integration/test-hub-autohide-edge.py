@@ -101,13 +101,27 @@ def main() -> int:
                 session.move(*centre)
                 H.wait_for(lambda: not shown(session), f"{anchor}: el Hub se oculta al salir", 5)
 
+            # The anchor changes while the pointer rests on the strip: the
+            # strip is replaced under it, and leaving must still hide the Hub.
+            assert session.ipc("bottomHub", "anchor", "", "bottom-center").stdout.strip() == "true"
+            H.wait_for(lambda: inspect_anchor(session, name) == "bottom-center", "Hub abajo")
+            session.move(*centre)
+            H.wait_for(lambda: not shown(session), "Hub oculto antes del cambio", 5)
+            session.move(*edge_pixel(monitor(), "bottom"))
+            H.wait_for(lambda: shown(session), "revelado desde abajo", 3)
+            assert session.ipc("bottomHub", "anchor", "", "top-center").stdout.strip() == "true"
+            H.wait_for(lambda: inspect_anchor(session, name) == "top-center", "Hub arriba con el puntero en el borde")
+            time.sleep(0.5)
+            session.move(*centre)
+            H.wait_for(lambda: not shown(session), "el Hub se oculta tras cambiar de borde bajo el puntero", 5)
+
             log = (session.logs / "qs.log").read_text(errors="replace")
             bad = [line for line in log.splitlines() if any(marker in line for marker in FAILURES)]
             assert not bad, "\n".join(bad[:12])
         finally:
             session.stop()
     print("PASS: con auto-hide el Hub vuelve desde el último píxel de cada borde, se queda con el puntero "
-          "en el borde, se oculta al salir y conserva su sitio y su zona reservada")
+          "en el borde, se oculta al salir (también tras cambiar de borde bajo el puntero) y conserva su sitio y su zona reservada")
     return 0
 
 

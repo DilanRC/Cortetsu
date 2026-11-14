@@ -435,27 +435,13 @@ Scope {
         }
     }
 
-    // Auto-hide only: each layer window costs a GL context (Exclusions.qml).
-    // The edge is part of the model, so a new anchor gets a new strip: a
-    // transparent surface never draws again, and its new anchors would never
-    // be committed.
-    Variants {
-        model: visibility.autoHideEnabled
-            ? CortetsuScreens.screens.map(screen => ({ screen,
-                edge: HubAnchor.describe(CortetsuConfig.bottomHub.anchorFor(screen?.name ?? "")).edge }))
-            : []
-
-        HubRevealEdge {
-            required property var modelData
-
-            screen: modelData.screen
-            edge: modelData.edge
-            onPointerEntered: {
-                hideTimer.stop();
-                visibility.pointerEntered();
-            }
-            onPointerExited: visibility.pointerExited()
+    HubRevealEdges {
+        enabled: visibility.autoHideEnabled
+        onPointerEntered: {
+            hideTimer.stop();
+            visibility.pointerEntered();
         }
+        onPointerExited: visibility.pointerExited()
     }
 
     Variants {
