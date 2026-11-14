@@ -154,6 +154,7 @@ Item {
     PopoutState {
         id: popoutState
         screen: root.screen
+        keyboardHeld: root.keyboardHeld
         onDetachRequested: mode => root.detach(mode)
         onCloseRequested: root.close()
     }

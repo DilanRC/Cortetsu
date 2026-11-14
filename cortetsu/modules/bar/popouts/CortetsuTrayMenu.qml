@@ -18,6 +18,12 @@ CortetsuPopupSurface {
     readonly property real menuContentWidth: currentPage?.fittedWidth ?? menuMinWidth
     readonly property real menuContentHeight: currentPage?.naturalHeight ?? 48
     readonly property int menuDepth: stack.depth
+    // Read-only evidence for tests (BottomHub inspect): the row the keys act
+    // on, and the row that draws the keyboard mark.
+    readonly property int focusedRow: currentPage?.focusedIndex ?? -1
+    function markedRow(): int {
+        return currentPage?.markedIndex() ?? -1;
+    }
     // Keep long DBus labels readable without letting one Steam title stretch
     // the popup. The width cap leaves the useful name prefix visible and
     // lets Text.ElideRight handle the rest.
@@ -184,6 +190,13 @@ CortetsuPopupSurface {
                 entries.itemAt(index).forceActiveFocus();
             }
 
+            function markedIndex(): int {
+                for (let index = 0; index < entries.count; index++)
+                    if (entries.itemAt(index)?.outlined)
+                        return index;
+                return -1;
+            }
+
             function focusEdge(direction): void {
                 const start = direction > 0 ? -1 : entries.count;
                 const index = nextSelectable(start, direction);
@@ -289,13 +302,18 @@ CortetsuPopupSurface {
                         : row.implicitHeight + CortetsuDesign.spacingStandard
                     baseColor: (modelData?.isSeparator ?? false) ? CortetsuDesign.colorOutlineVariant : "transparent"
                     disabled: !enabled
-                    focused: activeFocus
+                    // The keys live on the Hub's tray icon and this window
+                    // never takes the keyboard, so activeFocus never shows
+                    // here: the row the keys act on is marked by its index.
+                    readonly property bool keyboardRow: index === menu.focusedIndex
+                        && (root.popouts?.keyboardHeld ?? false)
+                    focused: keyboardRow
                     hovered: stateLayer.containsMouse
                     pressed: stateLayer.pressed
                     radiusValue: 0
                     hoverColor: Qt.alpha(CortetsuDesign.colorSurfaceGlassStrong, 0.9)
-                    outlined: activeFocus
-                    outlineColor: activeFocus ? CortetsuDesign.colorWashi : "transparent"
+                    outlined: keyboardRow
+                    outlineColor: keyboardRow ? CortetsuDesign.colorWashi : "transparent"
 
                     Row {
                         id: row

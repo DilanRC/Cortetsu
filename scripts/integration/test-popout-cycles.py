@@ -126,6 +126,12 @@ def main() -> int:
                     # proves the opening focus and the skip.
                     session.tap(KEY_DOWN)
                     time.sleep(0.15)
+                    # The keys live on the Hub's tray icon, never in the
+                    # menu's window: the row they act on must still be the one
+                    # that shows the keyboard mark.
+                    tray_state = inspect(session)[name]["tray"]
+                    assert tray_state["focusedRow"] >= 0 and tray_state["markedRow"] == tray_state["focusedRow"], \
+                        f"la fila elegida con el teclado no se ve: {tray_state}"
                     session.tap(KEY_RIGHT)
                     H.wait_for(lambda: inspect(session)[name]["tray"]["stackDepth"] == 2,
                                "submenú abierto con la flecha derecha")
