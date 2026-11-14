@@ -26,6 +26,13 @@ Item {
     property string detachedMode
     property string queuedMode
     property bool bottomAttached
+    // A tray menu opened by a click (or the Menu key) behaves like a native
+    // menu: it takes the keys typed on the Hub (arrows, Enter, Escape), the
+    // pointer leaving does not close it and a click outside does (focus grab).
+    // One opened by hover does none of that, so resting the pointer on the
+    // tray never captures typing. Cleared when it closes.
+    property bool keyboardHeld
+    readonly property bool holdsKeyboard: hasCurrent && (keyboardHeld || currentName === "wirelesspassword")
     property bool closing
     // BottomHub is 60 px tall. Keep an intentional 12 px handoff gap above
     // it so the popup window never overlaps the trigger and steals hover.
@@ -46,6 +53,7 @@ Item {
 
     function detach(mode: string): void {
         cancelClose();
+        keyboardHeld = false;
         hasCurrent = true;
         bottomAttached = false;
         bottomAnchorCenter = -1;
@@ -70,6 +78,7 @@ Item {
         detachedMode = "";
         bottomAttached = false;
         bottomAnchorCenter = -1;
+        keyboardHeld = false;
     }
 
     Timer {
@@ -83,6 +92,7 @@ Item {
             root.bottomAttached = false;
             root.bottomAnchorCenter = -1;
             root.closing = false;
+            root.keyboardHeld = false;
         }
     }
 

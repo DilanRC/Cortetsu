@@ -151,6 +151,7 @@ import QtQuick
 QtObject {
     readonly property var wifi: ConnectivityWifi
     readonly property var bluetooth: ConnectivityBluetooth
+    readonly property string internetLabel: wifi.connectivity === "full" ? "Acceso a Internet" : "Internet sin comprobar"
 }
 """
 

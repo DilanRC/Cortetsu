@@ -7,6 +7,7 @@ import "../../../services"
 import "../../../components"
 import "../../../theme"
 import "../.."
+import "../../settings/bluetooth/BluetoothDevices.js" as Devices
 
 CortetsuPopupSurface {
     id: root
@@ -31,82 +32,45 @@ CortetsuPopupSurface {
         anchors.margins: CortetsuDesign.spacingComfortable
         spacing: CortetsuDesign.spacingStandard
 
-        CortetsuSectionHeader {
+        // One line instead of a header plus a card that repeated it.
+        CortetsuPopoutHeader {
             title: qsTr("Bluetooth")
-            detail: root.adapterEnabled
-                ? root.connectedCount > 0
-                    ? qsTr("%1 conectados").arg(root.connectedCount)
-                    : qsTr("Listo")
-                : qsTr("Apagado")
-        }
+            detail: !ConnectivityBluetooth.adapter ? qsTr("Sin adaptador")
+                : !root.adapterEnabled ? qsTr("Apagado")
+                : root.connectedCount === 1 ? qsTr("1 conectado")
+                : root.connectedCount > 1 ? qsTr("%1 conectados").arg(root.connectedCount)
+                : qsTr("Encendido")
+            settingsPage: "bluetooth"
+            popouts: root.popouts
 
-        CortetsuSurface {
-            Layout.fillWidth: true
-            implicitHeight: 64
-            radiusValue: CortetsuDesign.radiusMedium
-            baseColor: root.adapterEnabled
-                ? Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.52)
-                : Qt.alpha(CortetsuDesign.colorSurfaceGlassStrong, 0.74)
-            outlineColor: root.adapterEnabled
-                ? Qt.alpha(CortetsuDesign.colorPrimary, 0.28)
-                : Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.22)
-            outlined: true
-
-            RowLayout {
-                anchors.fill: parent
-                anchors.margins: CortetsuDesign.spacingStandard
-                spacing: CortetsuDesign.spacingStandard
-
-                CortetsuIconBadge {
-                    icon: root.connectedCount > 0 ? "bluetooth_connected" : "bluetooth"
-                    tone: root.adapterEnabled ? CortetsuDesign.colorIndicator : CortetsuDesign.colorOnSurfaceMuted
-                }
-
-                ColumnLayout {
-                    Layout.fillWidth: true
-                    spacing: 1
-
-                    CortetsuText {
-                        Layout.fillWidth: true
-                        text: root.adapterEnabled ? qsTr("Bluetooth activado") : qsTr("Bluetooth desactivado")
-                        textSize: CortetsuDesign.bodySmallPx
-                        color: CortetsuDesign.colorOnSurface
-                    }
-
-                    CortetsuText {
-                        Layout.fillWidth: true
-                        text: root.adapterEnabled
-                            ? qsTr("Elige un dispositivo abajo")
-                            : qsTr("Actívalo para conectar dispositivos")
-                        textSize: CortetsuDesign.labelSmallPx
-                        color: CortetsuDesign.colorOnSurfaceVariant
-                    }
-                }
-
-                CortetsuToggle {
-                    checked: root.adapterEnabled
-                    disabled: !ConnectivityBluetooth.adapter || ConnectivityBluetooth.busy
-                    onToggled: checked => {
-                        ConnectivityBluetooth.setEnabled(checked);
-                    }
-                }
+            CortetsuToggle {
+                objectName: "popoutBluetoothPower"
+                visible: !!ConnectivityBluetooth.adapter
+                accessibleName: qsTr("Bluetooth")
+                checked: root.adapterEnabled
+                disabled: ConnectivityBluetooth.busy
+                onToggled: checked => ConnectivityBluetooth.setEnabled(checked)
             }
         }
 
         CortetsuStateMessage {
             Layout.fillWidth: true
             visible: !root.adapterEnabled || root.devices.length === 0
-            kind: root.adapterEnabled ? "empty" : "error"
-            title: root.adapterEnabled ? qsTr("No hay dispositivos cerca") : qsTr("Bluetooth está apagado")
-            detail: root.adapterEnabled
+            // Off by choice is a state, not an error.
+            kind: !ConnectivityBluetooth.adapter ? "error" : "empty"
+            icon: root.adapterEnabled ? "devices_other" : "bluetooth_disabled"
+            title: !ConnectivityBluetooth.adapter ? qsTr("No hay adaptador Bluetooth")
+                : root.adapterEnabled ? qsTr("No hay dispositivos cerca") : qsTr("Bluetooth está apagado")
+            detail: !ConnectivityBluetooth.adapter ? qsTr("BlueZ no informa de ningún adaptador")
+                : root.adapterEnabled
                 ? qsTr("Los dispositivos vinculados y detectados aparecerán aquí")
-                : qsTr("Activa Bluetooth para conectar dispositivos")
+                : qsTr("Enciéndelo arriba para conectar dispositivos")
         }
 
         CortetsuSectionHeader {
             visible: root.adapterEnabled && root.devices.length > 0
             title: qsTr("Dispositivos")
-            detail: qsTr("%1 disponibles").arg(root.devices.length)
+            detail: root.devices.length === 1 ? qsTr("1 disponible") : qsTr("%1 disponibles").arg(root.devices.length)
         }
 
         CortetsuStateMessage {
@@ -125,15 +89,19 @@ CortetsuPopupSurface {
             spacing: CortetsuDesign.spacingUnit
             model: root.devices
             delegate: CortetsuListRow {
-                required property BluetoothDevice modelData
+                // A BlueZ device, read through its properties only.
+                required property var modelData
                 width: ListView.view.width
-                icon: modelData.connected ? "bluetooth_connected" : "bluetooth"
-                title: modelData.name ?? qsTr("Dispositivo desconocido")
-                subtitle: modelData.connected
-                    ? qsTr("Conectado · activa para desconectar")
+                // Battery only when BlueZ reports it; never guessed.
+                readonly property int battery: Devices.batteryPercent(modelData)
+                icon: Devices.icon(modelData)
+                title: Devices.displayName(modelData)
+                subtitle: (modelData.connected
+                    ? qsTr("Conectado")
                     : modelData.paired
-                        ? qsTr("Vinculado · activa para conectar")
-                        : qsTr("Disponible")
+                        ? qsTr("Vinculado · pulsa para conectar")
+                        : qsTr("Disponible · pulsa para emparejar"))
+                    + (battery >= 0 ? qsTr(" · batería %1 %").arg(battery) : "")
                 selected: modelData.connected
                 enabled: !ConnectivityBluetooth.busy
                 onClicked: {

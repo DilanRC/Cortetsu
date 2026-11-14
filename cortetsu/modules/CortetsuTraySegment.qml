@@ -15,9 +15,15 @@ Item {
     property bool monochromeIcons: false
     property bool vertical: false
     property string tooltipPlacement: "above"
+    // (key, modifiers) => bool: an open tray menu takes the keys typed here.
+    property var menuKeyHandler: null
+    // The popout open on this screen, so an icon's tooltip steps aside for
+    // its own menu instead of covering a row of it.
+    property string openPopoutName: ""
     readonly property real thickness: Math.max(48, CortetsuDesign.rowHeight)
 
     signal hoverRequested(string itemKey, real centerX)
+    signal hoverEnded()
     signal activateRequested(string itemKey)
     signal secondaryRequested(string itemKey, real centerX)
     signal secondaryActivateRequested(string itemKey)
@@ -45,6 +51,11 @@ Item {
                 required property var modelData
                 objectName: `tray-${modelData.key}`
                 enabled: modelData.enabled ?? true
+                readonly property bool menuOpen: root.openPopoutName === BottomHubTray.menuName(modelData.key)
+                // Focus from a click is not a reason to show the tooltip;
+                // focus from Tab is.
+                property bool pointerFocus: false
+                onActiveFocusChanged: if (!activeFocus) pointerFocus = false
 
                 implicitWidth: 34
                 implicitHeight: 40
@@ -117,7 +128,10 @@ Item {
                     hoverEnabled: true
                     acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
                     cursorShape: Qt.PointingHandCursor
-                    onPressed: trayItem.forceActiveFocus()
+                    onPressed: {
+                        trayItem.pointerFocus = true;
+                        trayItem.forceActiveFocus();
+                    }
                     onWheel: wheel => {
                         const delta = wheel.angleDelta.y !== 0
                             ? wheel.angleDelta.y
@@ -134,6 +148,7 @@ Item {
                         trayItem.modelData.key,
                         trayItem.centerX()
                     )
+                    onExited: root.hoverEnded()
                     onClicked: event => {
                         if (event.button === Qt.LeftButton)
                             trayItem.activatePrimary();
@@ -145,9 +160,16 @@ Item {
                     }
                 }
 
-                Keys.onEnterPressed: trayItem.activatePrimary()
-                Keys.onReturnPressed: trayItem.activatePrimary()
-                Keys.onSpacePressed: trayItem.activatePrimary()
+                // An open tray menu takes the keys first. Keys emits the
+                // specific signals (Return, Space) before onPressed and stops
+                // there, so they ask too.
+                function menuTakes(event): bool {
+                    return !!root.menuKeyHandler?.(event.key, event.modifiers);
+                }
+                Keys.onPressed: event => event.accepted = trayItem.menuTakes(event)
+                Keys.onEnterPressed: event => { if (!trayItem.menuTakes(event)) trayItem.activatePrimary(); }
+                Keys.onReturnPressed: event => { if (!trayItem.menuTakes(event)) trayItem.activatePrimary(); }
+                Keys.onSpacePressed: event => { if (!trayItem.menuTakes(event)) trayItem.activatePrimary(); }
                 Keys.onMenuPressed: root.secondaryRequested(
                     trayItem.modelData.key,
                     trayItem.centerX()
@@ -155,8 +177,8 @@ Item {
 
                 CortetsuTooltip {
                     target: trayItem
-                    hovered: trayMouse.containsMouse
-                    focused: trayItem.activeFocus
+                    hovered: trayMouse.containsMouse && !trayItem.menuOpen
+                    focused: trayItem.activeFocus && !trayItem.pointerFocus && !trayItem.menuOpen
                     text: trayItem.modelData.title
                     placement: root.tooltipPlacement
                 }

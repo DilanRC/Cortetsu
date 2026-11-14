@@ -46,17 +46,20 @@ assert(!clip.includes('scale: 1 - root.offsetScale'), 'never collapse text to ze
 assert(clip.includes('content.closing ? CortetsuDesign.motionFastMs'));
 assert(wrapper.includes('interval: CortetsuDesign.motionFastMs'));
 {
-    // A hover close spares a Wi-Fi password being typed; an explicit close does not.
+    // A hover close spares what holds the keyboard (a Wi-Fi password being
+    // typed, a tray menu opened by a click); an explicit close does not.
+    // Wrapper.holdsKeyboard is the rule; the stub states its result.
+    assert(wrapper.includes('readonly property bool holdsKeyboard: hasCurrent && (keyboardHeld || currentName === "wirelesspassword")'));
     const run = hover => {
         const closed = [];
-        const screens = ['a', 'b'];
-        const names = { a: 'wirelesspassword', b: 'network' };
+        const screens = ['a', 'b', 'c'];
+        const held = { a: true, b: false, c: true };
         const ctx = vm.createContext({ hover, CortetsuScreens: { screens },
-            CortetsuShellState: { componentsFor: s => ({ popouts: { currentName: names[s], close() { closed.push(s); } } }) } });
+            CortetsuShellState: { componentsFor: s => ({ popouts: { holdsKeyboard: held[s], close() { closed.push(s); } } }) } });
         vm.runInContext('(function() {' + body(read('BottomHub.qml'), 'closeAllPopouts') + '})()', ctx);
         return closed;
     };
-    assert.deepEqual(run(true), ['b'], 'a hover close dropped the password being typed');
-    assert.deepEqual(run(false), ['a', 'b']);
+    assert.deepEqual(run(true), ['b'], 'a hover close dropped the password being typed or a clicked tray menu');
+    assert.deepEqual(run(false), ['a', 'b', 'c']);
 }
 console.log('PASS: actual opening functions cancel stale close for network, audio and tray; anchors and bounded motion preserved');

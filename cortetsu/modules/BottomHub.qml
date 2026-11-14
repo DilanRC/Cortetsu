@@ -71,7 +71,7 @@ Scope {
     function closeAllPopouts(hover = false): void {
         for (const screen of CortetsuScreens.screens) {
             const popouts = CortetsuShellState.componentsFor(screen)?.popouts;
-            if (popouts && !(hover && popouts.currentName === "wirelesspassword"))
+            if (popouts && !(hover && popouts.holdsKeyboard))
                 popouts.close();
         }
     }
@@ -197,6 +197,10 @@ Scope {
                     && otherPopouts.currentName !== "wirelesspassword")
                 otherPopouts.close();
         }
+        // A hover over the menu a click already opened must not take its
+        // keyboard away; any other popout starts without it.
+        if (!popouts.hasCurrent || popouts.currentName !== mode)
+            popouts.keyboardHeld = false;
         popouts.cancelClose();
         popouts.detachedMode = "";
         popouts.hubAnchor = CortetsuConfig.bottomHub.anchorFor(screen.name);
@@ -232,6 +236,14 @@ Scope {
                 return "";
             return `${state.modelData.x + r.x} ${state.modelData.y + r.y} ${r.width} ${r.height}`;
         }
+        // Read-only: the tray segment of the focused screen, same format.
+        function trayButton(): string {
+            const state = CortetsuShellState.forActive();
+            const r = state?.cortetsuState?.bottomHub?.traySegmentRect();
+            if (!r || r.width <= 0)
+                return "";
+            return `${state.modelData.x + r.x} ${state.modelData.y + r.y} ${r.width} ${r.height}`;
+        }
         // Read-only runtime evidence for focus, lifetime and monitor ownership.
         function inspect(): string {
             return JSON.stringify(CortetsuScreens.screens.map(screen => {
@@ -246,6 +258,7 @@ Scope {
                     popup: popup?.currentName ?? "", open: popup?.hasCurrent ?? false,
                     closing: popup?.closing ?? false, detached: popup?.detachedMode ?? "",
                     anchor: popup?.bottomAnchorCenter ?? -1, focus: popup?.activeFocus ?? false,
+                    keyboardHeld: popup?.keyboardHeld ?? false,
                     hubAnchor: CortetsuConfig.bottomHub.anchorFor(screen.name),
                     popupRect: popupWindow ? [popupWindow.x + (panels?.x ?? 0), popupWindow.y + (panels?.y ?? 0),
                         popupWindow.width, popupWindow.height] : [],
@@ -686,7 +699,7 @@ Scope {
                 const item = trayItemForKey(itemKey);
                 if (!item || BottomHubTray.contextAction(item) !== "menu")
                     return;
-                hubRoot.showAttachedControlFor(
+                hubRoot.enterAttachedControl(
                     modelData,
                     BottomHubTray.menuName(itemKey),
                     alongScreen(centerX)
@@ -702,6 +715,20 @@ Scope {
                     BottomHubTray.menuName(itemKey),
                     alongScreen(centerX)
                 );
+                const popouts = CortetsuShellState.componentsFor(modelData)?.popouts;
+                if (popouts)
+                    popouts.keyboardHeld = true;
+            }
+
+            // A tray menu opened by a click is driven from here: the right
+            // click already gave this window the keyboard (OnDemand), and an
+            // attached popout's window never takes it, so the keys typed on
+            // the tray icon are passed on to the menu.
+            function forwardTrayMenuKey(key, modifiers): bool {
+                const popouts = CortetsuShellState.componentsFor(modelData)?.popouts;
+                if (!popouts?.keyboardHeld || popouts.closing || !popouts.currentName.startsWith("traymenu"))
+                    return false;
+                return popouts.current?.handleKey?.(key, modifiers) ?? false;
             }
 
             function activateTrayItem(itemKey): void {
@@ -731,6 +758,14 @@ Scope {
                     return Qt.rect(0, 0, 0, 0);
                 const p = bell.mapToItem(contentItem, 0, 0);
                 return Qt.rect(originX + p.x, originY + p.y, bell.width, bell.height);
+            }
+
+            function traySegmentRect(): rect {
+                const tray = bottomHubView.traySegmentItem;
+                if (!visible || !hubRoot.shown || !tray?.visible)
+                    return Qt.rect(0, 0, 0, 0);
+                const p = tray.mapToItem(contentItem, 0, 0);
+                return Qt.rect(originX + p.x, originY + p.y, tray.width, tray.height);
             }
 
             function notificationsButtonContains(x: real, y: real): bool {
@@ -879,12 +914,13 @@ Scope {
             // A lateral Hub only widens its window while a toast shows.
             readonly property real toastRoom: 6 + toasts.spacing + (toasts.visibleToasts.length === 0 ? 0
                 : hubVertical ? toasts.implicitWidth : toasts.implicitHeight)
+            readonly property real innerRoom: Math.max(toastRoom, bottomHubView.tooltipRoom)
             implicitWidth: hubVertical
-                ? bottomHubView.thickness + toastRoom
+                ? bottomHubView.thickness + innerRoom
                 : (modelData?.width ?? 0) - hubMargin * 2
             implicitHeight: hubVertical
                 ? (modelData?.height ?? 0) - hubMargin * 2
-                : bottomHubView.thickness + toastRoom
+                : bottomHubView.thickness + innerRoom
 
             CortetsuBottomHubView {
                 id: bottomHubView
@@ -902,6 +938,11 @@ Scope {
                 workspaceShowAppIcons: CortetsuConfig.bar.workspaces.showAppIcons
                 workspaceMonochromeIcons: CortetsuConfig.bar.workspaces.monochromeIcons
                 trayMonochromeIcons: CortetsuConfig.bar.tray.recolour
+                trayMenuKeyHandler: (key, modifiers) => win.forwardTrayMenuKey(key, modifiers)
+                openPopoutName: {
+                    const popouts = CortetsuShellState.componentsFor(win.modelData)?.popouts;
+                    return popouts?.hasCurrent ? popouts.currentName : "";
+                }
                 workspaceAppIconSources: win.workspaceAppIconSources
                 workspaceOffset: win.workspaceOffset
                 activeWsId: win.activeWsId
@@ -943,6 +984,9 @@ Scope {
                 onAppCloseRequested: key => win.closeDockKey(key)
                 onAppCycleRequested: (key, direction) => win.cycleDockKey(key, direction)
                 onTrayHoverRequested: (itemKey, centerX) => win.showTrayMenu(itemKey, centerX)
+                // Without it a tray menu opened by hover stayed open after the
+                // pointer left the icon for anywhere but the menu itself.
+                onTrayHoverEnded: hoverSurfaceController.leaveTrigger()
                 onTrayActivateRequested: itemKey => win.activateTrayItem(itemKey)
                 onTraySecondaryActivateRequested: itemKey => win.activateTraySecondary(itemKey)
                 onTrayScrollRequested: (itemKey, delta, horizontal) =>

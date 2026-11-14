@@ -27,6 +27,12 @@ CortetsuPopupSurface {
     implicitWidth: menuContentWidth + CortetsuDesign.spacingStandard * 2
     implicitHeight: menuContentHeight + CortetsuDesign.spacingStandard * 2
 
+    // Keys typed on the Hub's tray icon after a right click land here: the
+    // keyboard stays on the Hub (OnDemand), the popout window never takes it.
+    function handleKey(key: int, modifiers: int): bool {
+        return currentPage?.handleKey(currentPage.focusedIndex, key, modifiers) ?? false;
+    }
+
     StackView {
         id: stack
         anchors.fill: parent
@@ -173,6 +179,42 @@ CortetsuPopupSurface {
                     focusEntry(index);
             }
 
+            // One key on the row at `index` (-1: none focused yet); true when used.
+            function handleKey(index: int, key: int, modifiers: int): bool {
+                const tab = key === Qt.Key_Tab || key === Qt.Key_Backtab;
+                const entry = index >= 0 ? entries.itemAt(index)?.modelData ?? null : null;
+                if (key === Qt.Key_Down || key === Qt.Key_Up || tab) {
+                    const back = key === Qt.Key_Up || key === Qt.Key_Backtab
+                        || (key === Qt.Key_Tab && (modifiers & Qt.ShiftModifier));
+                    const target = nextSelectable(index >= 0 ? index : back ? entries.count : -1, back ? -1 : 1);
+                    if (target >= 0)
+                        focusEntry(target);
+                    // Tab past the last row leaves the menu; arrows stop there.
+                    return !tab || target >= 0;
+                }
+                if (key === Qt.Key_Home || key === Qt.Key_End) {
+                    focusEdge(key === Qt.Key_Home ? 1 : -1);
+                    return true;
+                }
+                if (key === Qt.Key_Return || key === Qt.Key_Enter || key === Qt.Key_Space) {
+                    root.activateEntry(entry);
+                    return true;
+                }
+                if (key === Qt.Key_Right && (entry?.hasChildren ?? false)) {
+                    root.activateEntry(entry);
+                    return true;
+                }
+                if (key === Qt.Key_Left && subMenu) {
+                    stack.pop();
+                    return true;
+                }
+                if (key === Qt.Key_Left || key === Qt.Key_Escape) {
+                    root.popouts.hasCurrent = false;
+                    return true;
+                }
+                return false;
+            }
+
             function restoreFocus(): void {
                 const currentIndex = focusedEntry
                     ? BottomHubTray.indexOfEntry(entries.count, index => entries.itemAt(index)?.modelData, focusedEntry)
@@ -301,40 +343,7 @@ CortetsuPopupSurface {
                     }
 
                     Keys.onPressed: event => {
-                        const tabForward = event.key === Qt.Key_Tab && !(event.modifiers & Qt.ShiftModifier);
-                        const tabBackward = event.key === Qt.Key_Tab && (event.modifiers & Qt.ShiftModifier);
-                        if (event.key === Qt.Key_Down || tabForward) {
-                            const next = menu.nextSelectable(index, 1);
-                            if (next >= 0)
-                                menu.focusEntry(next);
-                            event.accepted = !tabForward || next >= 0;
-                        } else if (event.key === Qt.Key_Up || tabBackward) {
-                            const previous = menu.nextSelectable(index, -1);
-                            if (previous >= 0)
-                                menu.focusEntry(previous);
-                            event.accepted = !tabBackward || previous >= 0;
-                        } else if (event.key === Qt.Key_Home) {
-                            menu.focusEdge(1);
-                            event.accepted = true;
-                        } else if (event.key === Qt.Key_End) {
-                            menu.focusEdge(-1);
-                            event.accepted = true;
-                        } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) {
-                            root.activateEntry(modelData);
-                            event.accepted = true;
-                        } else if (event.key === Qt.Key_Right && (modelData?.hasChildren ?? false)) {
-                            root.activateEntry(modelData);
-                            event.accepted = true;
-                        } else if (event.key === Qt.Key_Left && menu.subMenu) {
-                            stack.pop();
-                            event.accepted = true;
-                        } else if (event.key === Qt.Key_Left && !menu.subMenu) {
-                            root.popouts.hasCurrent = false;
-                            event.accepted = true;
-                        } else if (event.key === Qt.Key_Escape) {
-                            root.popouts.hasCurrent = false;
-                            event.accepted = true;
-                        }
+                        event.accepted = menu.handleKey(index, event.key, event.modifiers);
                     }
                 }
             }

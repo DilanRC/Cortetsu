@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -17,17 +18,23 @@ for marker in (
 ):
     assert marker in button, marker
 
-surfaces = {
-    "osd": ROOT / "cortetsu/modules/osd/FullContent.qml",
-    "settings": ROOT / "cortetsu/modules/settings/Nexus.qml",
-    "dashboard": ROOT / "cortetsu/modules/dashboard/Dash.qml",
-    "today": ROOT / "cortetsu/modules/dashboard/Today.qml",
-    "calendar": ROOT / "cortetsu/modules/calendar/Content.qml",
-    "wallpaper": ROOT / "cortetsu/modules/wallpaper/Content.qml",
-    "audio popup": ROOT / "cortetsu/modules/bar/popouts/CortetsuAudioPopup.qml",
-}
-for name, path in surfaces.items():
+# Every icon-only CortetsuButton in first-party QML names itself in a tooltip.
+# A fixed list of surfaces went stale when Dash.qml lost its buttons; the
+# invariant is the label, not the file.
+missing = []
+for path in sorted((ROOT / "cortetsu").rglob("*.qml")):
+    if "/base/" in path.as_posix():
+        continue
     text = path.read_text(encoding="utf-8")
-    assert "tooltipText:" in text, f"{name} has no button tooltip contract"
+    for match in re.finditer(r"\bCortetsuButton\s*\{", text):
+        depth, index = 1, match.end()
+        while depth and index < len(text):
+            depth += (text[index] == "{") - (text[index] == "}")
+            index += 1
+        body = text[match.end():index]
+        if re.search(r'^\s*label:\s*""', body, re.M) and "tooltipText:" not in body:
+            missing.append(f"{path.relative_to(ROOT)}:{text.count(chr(10), 0, match.start()) + 1}")
+assert not missing, "icon-only buttons without a tooltip: " + ", ".join(missing)
+assert len(list((ROOT / "cortetsu").rglob("*.qml"))) > 100, "the scan found the QML tree"
 
 print("PASS: shared CortetsuButton owns hover/focus tooltips across first-party icon controls")

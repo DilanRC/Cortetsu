@@ -17,6 +17,12 @@ Item {
     readonly property bool vertical: place.vertical
     readonly property string tooltipPlacement: place.edge === "top" ? "below"
         : place.edge === "left" ? "right" : place.edge === "right" ? "left" : "above"
+    // The largest tooltip any Hub control can show (CortetsuTooltip reports
+    // it; it only grows). The window keeps that much room on its inner side,
+    // outside its input mask, so a tooltip never lands on its own control.
+    property size tooltipExtent: Qt.size(0, 0)
+    readonly property real tooltipRoom: tooltipExtent.height <= 0 ? 0
+        : (vertical ? tooltipExtent.width : tooltipExtent.height) + CortetsuDesign.spacingCompact + 6
 
     required property bool launcherActive
     required property int workspaceCount
@@ -24,6 +30,8 @@ Item {
     required property bool workspaceShowAppIcons
     required property bool workspaceMonochromeIcons
     property bool trayMonochromeIcons: false
+    property var trayMenuKeyHandler: null
+    property string openPopoutName: ""
     required property var workspaceAppIconSources
     required property int workspaceOffset
     required property int activeWsId
@@ -73,6 +81,7 @@ Item {
     signal appCloseRequested(string key)
     signal appCycleRequested(string key, int direction)
     signal trayHoverRequested(string itemKey, real centerX)
+    signal trayHoverEnded()
     signal trayActivateRequested(string itemKey)
     signal traySecondaryActivateRequested(string itemKey)
     signal trayScrollRequested(string itemKey, int delta, bool horizontal)
@@ -92,6 +101,7 @@ Item {
     signal sessionRequested()
 
     readonly property Item notificationsButton: statusSegment.notificationsButton
+    readonly property Item traySegmentItem: traySegment
     readonly property Item launcherButton: leftSegment.launcherButtonItem
 
     // What the Hub takes from its edge.
@@ -188,7 +198,10 @@ Item {
         items: root.trayItems
         delegateModel: root.trayDelegateModel
         monochromeIcons: root.trayMonochromeIcons
+        menuKeyHandler: root.trayMenuKeyHandler
+        openPopoutName: root.openPopoutName
         onHoverRequested: (itemKey, centerX) => root.trayHoverRequested(itemKey, root.trayAt + centerX)
+        onHoverEnded: root.trayHoverEnded()
         onActivateRequested: itemKey => root.trayActivateRequested(itemKey)
         onSecondaryActivateRequested: itemKey => root.traySecondaryActivateRequested(itemKey)
         onScrollRequested: (itemKey, delta, horizontal) =>

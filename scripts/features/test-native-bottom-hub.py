@@ -190,7 +190,10 @@ def assert_view_contract(source: dict[str, str]) -> None:
     assert "height: visible || !vertical ? implicitHeight : 0" in tray
     assert "modelData.title" in tray
     assert "CortetsuTooltip" in tray
-    assert "onPressed: trayItem.forceActiveFocus()" in tray
+    # A click focuses the icon (keys then reach its menu) without showing
+    # the tooltip; Tab focus does show it.
+    assert "trayItem.pointerFocus = true;\n                        trayItem.forceActiveFocus();" in tray
+    assert "focused: trayItem.activeFocus && !trayItem.pointerFocus && !trayItem.menuOpen" in tray
     assert "CortetsuIsland {}" in tray
     assert "CortetsuTooltip" in tray
 

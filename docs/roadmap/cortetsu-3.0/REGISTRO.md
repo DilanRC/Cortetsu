@@ -11,7 +11,7 @@ Un estado solo sube con la evidencia que cita. Lo que no se probó se dice.
 | 1 Biblioteca Premium sobria y marca | IN_PROGRESS |
 | 2 Settings integral y Launcher | IN_PROGRESS |
 | 3 Hub multiposición | DONE_WITH_CONCERNS |
-| 4 Islas, popouts y tray | NOT_STARTED |
+| 4 Islas, popouts y tray | PARTIAL |
 | 5 OSD 3.0 y Ajustes rápidos | PARTIAL |
 | 6 Centros de servicio | NOT_STARTED |
 | 7 Lockscreen, Dashboard y widgets | PARTIAL |
@@ -62,6 +62,26 @@ Un estado solo sube con la evidencia que cita. Lo que no se probó se dice.
 - Rollback: `qs ipc call bottomHub -- anchor "" bottom-center` devuelve el Hub abajo sin tocar código; `git revert` del commit de la fase.
 - Decisión de gate: código y pruebas anidadas en verde; la matriz física queda para la fase 9.
 
+#### Fase 4 - Islas, popouts y tray
+
+- Estado: PARTIAL (popouts de servicio, bandeja y tooltips del Hub hechos; morphing de islas y vista previa de ventanas sin empezar)
+- Fecha / rama: 2026-11-13, `main`.
+- QML modificados: `bar/popouts/{CortetsuPopoutHeader (nuevo),CortetsuNetworkPopup,CortetsuBluetoothPopup,CortetsuAudioPopup,CortetsuTrayMenu,Wrapper}.qml`, `components/CortetsuTooltip.qml`, `BottomHub.qml`, `CortetsuBottomHubView.qml`, `CortetsuTraySegment.qml`, `drawers/ContentWindow.qml`.
+- Popouts de servicio (nivel 1 de ADR-008): una cabecera común con el estado, el interruptor del servicio y el enlace a su página de Ajustes, que cierra el popout. Red: el interruptor de Wi-Fi espera a NetworkManager, dice "Aplicando…" y muestra el rechazo; "No hay otras redes" si ya hay una conectada. Bluetooth: una línea en lugar de cabecera más tarjeta que la repetía; la batería solo si BlueZ la informa; apagado es un estado, no un error. Audio: la entrada (micrófono) junto a la salida, con nivel, silencio y elección de dispositivo. Plurales correctos ("1 conectado", "1 dispositivo", "1 red").
+- Bandeja, tres defectos previos (presentes en `a352a342`):
+  1. **Solo el primer clic derecho llegaba al icono.** El tooltip del Hub es un `Popup` que se mantiene dentro de la ventana del Hub (74 px de alto); sin sitio encima del icono se colocaba sobre él y se quedaba el clic. Un tooltip de dos líneas (título y descripción, lo normal en la bandeja) tapaba el centro del icono. Ahora cada tooltip informa de su tamaño al Hub, que reserva ese espacio en su lado interior de forma permanente y fuera de la máscara de entrada: el tooltip sale encima del icono y el clic pasa. No crece al pasar el puntero, porque redimensionar la ventana bajo un puntero quieto hacía que Hyprland descartara el siguiente clic (medido). El ancho del tooltip queda limitado a 320 px con elipsis.
+  2. **El teclado no llegaba al menú.** Un menú abierto con clic derecho o la tecla Menú recibe ahora las flechas, Inicio/Fin, Intro, Espacio y Escape escritas en el icono: el Hub ya tiene el teclado tras el clic (OnDemand) y se las pasa al menú. La ventana del popout no toma el teclado. Un menú abierto por hover no captura nada. Intro activaba el icono en vez de la fila, porque `Keys` emite `returnPressed` antes que `pressed`.
+  3. **Un menú abierto por hover no se cerraba** si el puntero salía del icono sin pasar por el menú: la bandeja no avisaba de la salida al controlador de hover. El menú abierto con clic se comporta como uno nativo: no se cierra al salir el puntero y sí con un clic fuera (focus grab).
+- Pruebas: `scripts/integration/test-popout-cycles.py` (gate de la fase, Hyprland anidado con dos salidas y un proveedor SNI/DBusMenu real: 40 popouts de servicio en un solo monitor, 10 menús de bandeja con clic derecho real y teclado, cierre por Escape, clic fuera y salida del hover; capas iguales al final, RSS sin crecer, log limpio). `scripts/features/test-cortetsu-service-popouts-runtime.py` (15 comprobaciones, añadida a `build-regressions.sh`). `test-cortetsu-button-tooltip.py` ahora comprueba en todo el árbol que ningún botón solo icono queda sin tooltip; antes miraba una lista fija que había quedado obsoleta (fallaba por `Dash.qml`). Se borró `eval-cortetsu-button-tooltip.py`, que duplicaba esa prueba con cadenas obsoletas y ya fallaba (auditoría del 2026-10-23).
+- Tooltip de la bandeja: no aparece mientras su propio menú está abierto (en el Hub lateral tapaba una fila) ni por el foco que deja un clic; sí con el foco de Tab.
+- Resultados: el gate pasó en 12 de 13 ejecuciones completas (40 popouts y 10 o 20 menús por ejecución; 6 seguidas con 20 menús). La ejecución fallida fue un cierre de Quickshell al abrir un menú de bandeja, con el gestor de fallos reiniciando el shell. No se reprodujo en las 12 siguientes y no hay volcado: queda como riesgo abierto. RSS entre −3 y +8 MiB tras 50 a 60 ciclos. También pasan `test-hub-anchors.py`, `test-bottomhub-hover-close-race.py`, `test-hover-edges.py`, `test-launcher-dismiss.py`, `test-bottomhub-wayland-policy.py`, `cortetsu test` completo y `build-regressions.sh` sobre un runtime preparado en un directorio temporal.
+- Capturas: [`docs/evidence/cortetsu-30-popouts-20261113/`](../../evidence/cortetsu-30-popouts-20261113/): los tres popouts en reposo y en estados (Wi-Fi rechazado, Bluetooth apagado, sin audio) y el menú de bandeja con el Hub abajo, a la derecha y arriba a la izquierda. Solo Ink.
+- Coste: la ventana del Hub crece en su lado interior lo que mide el tooltip más grande (en la prueba, 118 px de alto abajo y 365 px de ancho en lateral, antes 74 y unos 66). Esa franja es transparente y está fuera de la máscara de entrada; no cambia la zona reservada.
+- Fallo previo no causado por esto: `eval-bottom-hub-design.py` ("centro geométrico") falla igual en `a352a342`; no está en ningún gate.
+- No probado: sesión real, `HDMI-A-1`, escala 1.25, aplicaciones reales de bandeja (Steam, Discord, nm-applet) con menús de varios niveles, lector de pantalla.
+- Pendiente de la fase: morphing de islas, vista previa de ventanas en el carril de aplicaciones, modo de edición del Hub con arrastre.
+- Rollback: `git revert` del commit; ningún contrato de IPC cambió (se añade `trayButton`, de solo lectura, y `keyboardHeld` en `inspect`).
+
 #### Fase 7 - Lockscreen, Dashboard y widgets
 
 - Estado: PARTIAL (bloqueo hecho en código; Dashboard y widgets sin empezar)
@@ -83,6 +103,13 @@ Un estado solo sube con la evidencia que cita. Lo que no se probó se dice.
 - Pruebas: `tests/qml/surfaces/tst_MiniSlider.qml` (10), `scripts/features/test-cortetsu-quick-settings-runtime.py` (13 comprobaciones, añadida a `build-regressions.sh`), `test-cortetsu-notice-cards-runtime.py`, gate de Settings.
 - Decisión: Bloq Mayús/Num, distribución, cambio de dispositivo, carga y modo juego siguen siendo toasts (`CortetsuToaster`), con sus interruptores en Ajustes. Pasarlos al OSD crearía un segundo dueño del mismo aviso.
 - Pendiente: OSD de perfil de energía; secciones expandibles en el centro de control; medir latencia; probar el OSD con el Hub lateral y en `HDMI-A-1`; sesión real.
+
+#### Revisión del bloque de la fase 4 (2026-11-13)
+
+- Thermos en línea y en secuencia, sin subagentes; no son independientes del autor.
+  - Corrección: un comentario culpaba al modo Exclusive del clic perdido cuando la traza demostró que era el tooltip; corregido. `detach()` no limpiaba `keyboardHeld`; ahora sí.
+  - Mantenibilidad: las teclas del menú pasan de dos copias (filas y Hub) a una función `handleKey`; el ramal de flechas y Tab se simplificó.
+- Revisión externa: Codex `gpt-6-luna`, solo lectura, estática (no lanzó compositores). Tres hallazgos verificados contra el código: uno real (P2: la prueba de ciclos describía dos pulsaciones de Down donde hay una y no comprobaba `keyboardHeld` tras el clic derecho; corregido y la prueba vuelve a pasar) y dos falsos (la tecla Menú pasa por `secondaryRequested` → `openTrayMenu`, que sí activa `keyboardHeld`; el test de popouts sí falla ante `SETTINGS_FAIL`).
 
 #### Revisión del bloque 2026-11-12/13
 

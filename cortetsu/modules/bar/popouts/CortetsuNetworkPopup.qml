@@ -37,29 +37,45 @@ CortetsuPopupSurface {
         anchors.margins: CortetsuDesign.spacingComfortable
         spacing: CortetsuDesign.spacingStandard
 
-        RowLayout {
-            Layout.fillWidth: true
-
-            CortetsuSectionHeader {
-                Layout.fillWidth: true
-                title: qsTr("Red")
-                detail: CortetsuNetwork.connecting
-                    ? qsTr("Conectando")
-                    : root.device
-                        ? qsTr("Wi‑Fi listo")
-                        : root.wiredActive
-                            ? qsTr("Ethernet")
-                            : qsTr("No disponible")
-            }
+        CortetsuPopoutHeader {
+            title: qsTr("Red")
+            detail: Connectivity.wifi.busy && Connectivity.wifi.operation.kind === "enable" ? qsTr("Aplicando…")
+                : CortetsuNetwork.connecting ? qsTr("Conectando")
+                : root.device && !Connectivity.wifi.hardwareEnabled ? qsTr("Wi-Fi bloqueado por el equipo")
+                : root.device && !Connectivity.wifi.wifiEnabled ? qsTr("Wi-Fi apagado")
+                : root.device ? qsTr("Wi-Fi encendido")
+                : root.wiredActive ? qsTr("Ethernet") : qsTr("No disponible")
+            settingsPage: "wifi"
+            popouts: root.popouts
 
             CortetsuButton {
                 compact: true
+                visible: !!root.device && Connectivity.wifi.wifiEnabled
                 icon: root.refreshing ? "sync" : "refresh"
                 label: ""
                 tooltipText: qsTr("Actualizar redes")
-                disabled: !root.device || root.refreshing
+                disabled: root.refreshing
                 onClicked: CortetsuNetwork.refresh()
             }
+
+            // The radio itself: the switch waits for NetworkManager.
+            CortetsuToggle {
+                objectName: "popoutWifiPower"
+                visible: !!root.device
+                accessibleName: qsTr("Wi-Fi")
+                checked: Connectivity.wifi.wifiEnabled
+                disabled: !Connectivity.wifi.hardwareEnabled || Connectivity.wifi.busy
+                onToggled: checked => Connectivity.wifi.setEnabled(checked)
+            }
+        }
+
+        CortetsuText {
+            Layout.fillWidth: true
+            visible: Connectivity.wifi.operation.kind === "enable" && Connectivity.wifi.operation.state === "failed"
+            text: Connectivity.wifi.operation.lastError
+            textSize: CortetsuDesign.labelSmallPx
+            color: CortetsuDesign.colorVermillion
+            wrapMode: Text.WordWrap
         }
 
         CortetsuSurface {
@@ -110,13 +126,13 @@ CortetsuPopupSurface {
         CortetsuStateMessage {
             Layout.fillWidth: true
             visible: CortetsuNetwork.connecting || (!root.device && !root.wiredActive)
-                || (root.device && root.networks.length === 0)
+                || (root.device && Connectivity.wifi.wifiEnabled && root.availableNetworks.length === 0)
             kind: CortetsuNetwork.connecting ? "loading" : !root.device && !root.wiredActive ? "error" : "empty"
             title: CortetsuNetwork.connecting
                 ? qsTr("Estableciendo conexión…")
                 : !root.device && !root.wiredActive
                     ? qsTr("Red no disponible")
-                    : qsTr("No hay redes disponibles")
+                    : CortetsuNetwork.active ? qsTr("No hay otras redes") : qsTr("No hay redes disponibles")
             detail: !root.device && !root.wiredActive
                 ? qsTr("El dispositivo de red no está listo")
                 : CortetsuNetwork.connecting
@@ -127,7 +143,7 @@ CortetsuPopupSurface {
         CortetsuSectionHeader {
             visible: root.device && root.availableNetworks.length > 0
             title: qsTr("Disponibles")
-            detail: qsTr("%1 redes").arg(root.availableNetworks.length)
+            detail: root.availableNetworks.length === 1 ? qsTr("1 red") : qsTr("%1 redes").arg(root.availableNetworks.length)
         }
 
         ListView {

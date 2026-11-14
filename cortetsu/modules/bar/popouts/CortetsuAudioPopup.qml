@@ -21,9 +21,11 @@ CortetsuPopupSurface {
         anchors.margins: CortetsuDesign.spacingComfortable
         spacing: CortetsuDesign.spacingStandard
 
-        CortetsuSectionHeader {
+        CortetsuPopoutHeader {
             title: qsTr("Audio")
             detail: CortetsuAudio.muted ? qsTr("Silenciado") : qsTr("%1%").arg(root.volumePercent)
+            settingsPage: "sound"
+            popouts: root.popouts
         }
 
         CortetsuSurface {
@@ -95,8 +97,8 @@ CortetsuPopupSurface {
 
         CortetsuSectionHeader {
             title: qsTr("Salida")
-            detail: CortetsuAudio.sinks.length > 0
-                ? qsTr("%1 dispositivos").arg(CortetsuAudio.sinks.length)
+            detail: CortetsuAudio.sinks.length === 1 ? qsTr("1 dispositivo")
+                : CortetsuAudio.sinks.length > 1 ? qsTr("%1 dispositivos").arg(CortetsuAudio.sinks.length)
                 : qsTr("Sin dispositivo")
         }
 
@@ -121,6 +123,58 @@ CortetsuPopupSurface {
             kind: CortetsuAudio.sink ? "empty" : "error"
             title: CortetsuAudio.sink ? qsTr("No hay otras salidas") : qsTr("Audio no disponible")
             detail: CortetsuAudio.sink ? "" : qsTr("No hay una salida lista")
+        }
+
+        // Input: the microphone's level and mute, and the other inputs.
+        CortetsuSectionHeader {
+            title: qsTr("Entrada")
+            detail: !CortetsuAudio.source?.audio ? qsTr("Sin micrófono")
+                : CortetsuAudio.sourceMuted ? qsTr("Silenciado")
+                : qsTr("%1%").arg(Math.round(CortetsuAudio.sourceVolume * 100))
+        }
+
+        RowLayout {
+            objectName: "popoutMicrophone"
+            Layout.fillWidth: true
+            visible: !!CortetsuAudio.source?.audio
+            spacing: CortetsuDesign.spacingStandard
+
+            CortetsuIcon {
+                text: CortetsuAudio.sourceMuted ? "mic_off" : "mic"
+                iconSize: CortetsuDesign.iconMediumPx
+                color: CortetsuAudio.sourceMuted ? CortetsuDesign.colorVermillion : CortetsuDesign.colorIndicator
+            }
+
+            CortetsuSlider {
+                Layout.fillWidth: true
+                accessibleName: qsTr("Volumen del micrófono")
+                value: CortetsuAudio.sourceVolume
+                onMoved: value => CortetsuAudio.setSourceVolume(value)
+            }
+
+            CortetsuButton {
+                compact: true
+                icon: CortetsuAudio.sourceMuted ? "mic_off" : "mic"
+                label: ""
+                tooltipText: CortetsuAudio.sourceMuted ? qsTr("Reactivar el micrófono") : qsTr("Silenciar el micrófono")
+                Accessible.name: tooltipText
+                onClicked: if (CortetsuAudio.source?.audio)
+                    CortetsuAudio.source.audio.muted = !CortetsuAudio.source.audio.muted
+            }
+        }
+
+        Repeater {
+            // Only worth a list when there is a choice to make.
+            model: CortetsuAudio.sources.length > 1 ? CortetsuAudio.sources : []
+            delegate: CortetsuListRow {
+                required property var modelData
+                Layout.fillWidth: true
+                title: modelData.description ?? modelData.name ?? qsTr("Dispositivo desconocido")
+                subtitle: CortetsuAudio.source?.id === modelData.id ? qsTr("Entrada actual") : qsTr("Cambiar entrada")
+                icon: "mic"
+                selected: CortetsuAudio.source?.id === modelData.id
+                onClicked: CortetsuAudio.setAudioSource(modelData)
+            }
         }
     }
 }

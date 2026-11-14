@@ -169,7 +169,7 @@ StyledWindow {
         if (!s)
             return false;
         const conf = root.CortetsuOverlayConfig;
-        if (panels.popouts.isDetached || panels.popouts.currentName === "wirelesspassword")
+        if (panels.popouts.isDetached || panels.popouts.holdsKeyboard)
             return true;
         if (s.cortetsuState?.retainedOverlayOpen)
             return false;
