@@ -96,8 +96,9 @@ activo, porque cada ventana de capa cuesta un contexto GL. Un cambio de anclaje
 con el auto-hide activo desmapea el Hub un ciclo: oculto no pinta, y sin eso el
 compositor no recibía el borde nuevo. Prueba: `scripts/integration/test-hub-autohide-edge.py`.
 
-Pendiente: mover el Hub arrastrándolo en un modo de edición. Hoy se elige en
-Ajustes o por IPC.
+Modo de edición (fase 4): «Mover» en Ajustes → Hub o `qs ipc call bottomHub editMode <salida>`;
+se arrastra el Hub o se usan las flechas, Intro guarda, Escape cancela e Inicio vuelve a la
+posición común. Prueba: `scripts/integration/test-hub-previews-edit.py`.
 
 ## Geometría
 

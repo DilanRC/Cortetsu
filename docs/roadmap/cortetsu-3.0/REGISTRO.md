@@ -64,7 +64,7 @@ Un estado solo sube con la evidencia que cita. Lo que no se probó se dice.
 
 #### Fase 4 - Islas, popouts y tray
 
-- Estado: DONE_WITH_CONCERNS (código y pruebas anidadas completos; falta la certificación física, ver "Bloque 2")
+- Estado: DONE_WITH_CONCERNS (certificación física hecha el 2026-11-14; quedan tres huecos, ver "Certificación física")
 - Fecha / rama: 2026-11-13, `main`.
 - QML modificados: `bar/popouts/{CortetsuPopoutHeader (nuevo),CortetsuNetworkPopup,CortetsuBluetoothPopup,CortetsuAudioPopup,CortetsuTrayMenu,Wrapper}.qml`, `components/CortetsuTooltip.qml`, `BottomHub.qml`, `CortetsuBottomHubView.qml`, `CortetsuTraySegment.qml`, `drawers/ContentWindow.qml`.
 - Popouts de servicio (nivel 1 de ADR-008): una cabecera común con el estado, el interruptor del servicio y el enlace a su página de Ajustes, que cierra el popout. Red: el interruptor de Wi-Fi espera a NetworkManager, dice "Aplicando…" y muestra el rechazo; "No hay otras redes" si ya hay una conectada. Bluetooth: una línea en lugar de cabecera más tarjeta que la repetía; la batería solo si BlueZ la informa; apagado es un estado, no un error. Audio: la entrada (micrófono) junto a la salida, con nivel, silencio y elección de dispositivo. Plurales correctos ("1 conectado", "1 dispositivo", "1 red").
@@ -97,6 +97,25 @@ Un estado solo sube con la evidencia que cita. Lo que no se probó se dice.
 - Riesgos: el defecto de Qt sigue para cualquier `Shape` con backend por software (la sesión usa RHI); `BottomHub.qml` sigue por encima de mil líneas (deuda previa; el IPC debería salir a su archivo); la franja transparente del Hub lateral (~365 px) se mantiene a propósito.
 - No probado: sesión real, `HDMI-A-1`, aplicaciones reales de bandeja con menús de varios niveles, miniaturas con la RTX 3050 conectada a una salida, lector de pantalla.
 - Rollback: `git revert` de los commits del bloque, en orden inverso. Las claves nuevas `bottomHub.windowPreviews` y `windowThumbnails` se ignoran al volver atrás; la posición por monitor usa el esquema de fase 3. Para devolver el Hub abajo sin tocar código: `qs ipc call bottomHub -- anchor "" bottom-center` y `clearAnchor <monitor>`.
+
+#### Fase 4, certificación física (2026-11-14)
+
+- Estado: DONE_WITH_CONCERNS. HEAD inicial `edd6633e`, final `58ec59b2`; sin push. Instalado: generación `20261114-114246-2201182`, adoptada por recarga suave.
+- Evidencia: [`docs/evidence/cortetsu-30-phase4-physical-20261114/`](../../evidence/cortetsu-30-phase4-physical-20261114/README.md) (matriz PASS/FAIL/NOT_TESTED, métricas, capturas sin datos privados, volcados, NVIDIA, rollback).
+- Sesión real, puntero y teclado virtuales con guardas de presencia: tres temas desde Ajustes, ocho anclajes por arrastre en el modo edición, persistencia tras reinicio, bandeja con ZapZap, Claude Desktop, Wallpaper Engine UX, Steam y Legcord (cambio de anclaje y app que se cierra con el menú abierto), vistas previas con ventanas propias, movimiento reducido, escala 1.25, `HDMI-A-1` desactivado y reactivado. 0 volcados de Quickshell.
+- Defectos que solo salían en la sesión real, corregidos con prueba (control rojo y verde) y verificados en vivo:
+  - `7f6b62a9`: `install` abortaba por una edición dentro de la generación sellada.
+  - `4da2b15b`: la recarga suave rechazaba *inline components* nuevos.
+  - `a470cd61`: `shell reload` informaba de éxito en falso.
+  - `3b08a1ed`/`73895399`: auto-hide inalcanzable desde el borde real, Hub en el borde viejo tras cambiar el anclaje oculto, hover colgado.
+  - `61c47e9a`: fila del menú de bandeja invisible al teclado.
+  - `2ac0d34d`: anillo, filo y tooltip de foco fijos tras un clic.
+- Pruebas nuevas: `test-hub-autohide-edge.py` (anidado), `test-hub-button-focus-runtime.py` (en `build-regressions.sh`), aserción de fila marcada en `test-popout-cycles.py`. Pasan `cortetsu test`, `build-regressions.sh`, nueve pruebas anidadas y la recarga suave de la generación viva a la nueva.
+- Rendimiento en vivo: 40 popouts p50 179 ms (antes de los arreglos 181), 5,07 s de CPU (5,13); vista previa p50 530 ms (con 450 de permanencia); reposo 0,19–0,59 % de CPU; el shell solo usa la iGPU AMD; la NVIDIA solo trabaja para Hyprland por el HDMI. Los 20 s de NVIDIA del informe anterior coinciden con el arranque de Legcord, que deja un SIGTRAP propio.
+- Huecos que impiden VERIFIED: ninguna app instalada tiene menús de bandeja de varios niveles; PSS ~500 MiB en un arranque limpio sin línea base comparable (el proceso de horas baja a ~300 MiB con swap); suspensión/reanudación sin ejecutar (requiere aprobación). Bloqueo: NOT_TESTED (Dilan, "ahora no").
+- Riesgos abiertos: con `follow_mouse`, mover el puntero sobre un popout abierto por teclado da el teclado a la ventana de debajo; el perfil de Washi en `scheme.json` se regeneró desde el fondo al visitarlo.
+- Revisión: Thermos en línea y en secuencia, sin subagentes; no es independiente. Encontró y corrigió la tira sustituida bajo el puntero y el contrato textual roto.
+- Rollback: `git revert` en orden inverso; `cortetsu rollback` y después `cortetsu shell restart` (no recarga suave hacia atrás).
 
 #### Fase 7 - Lockscreen, Dashboard y widgets
 
