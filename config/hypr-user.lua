@@ -5,11 +5,11 @@ local fn = require("utils.functions")
 -- HDMI externo a la izquierda, portátil a la derecha
 -- ============================================================
 
--- La TV anuncia 1080p a 119.88 Hz: prioriza fluidez y reduce la carga de GPU.
+-- HDMI a 1080p y 60 Hz.
 -- Salida SDR de 8 bits.
 hl.monitor({
     output = "HDMI-A-1",
-    mode = "1920x1080@119.88",
+    mode = "1920x1080@60",
     position = "0x0",
     scale = 1,
     bitdepth = 8,
