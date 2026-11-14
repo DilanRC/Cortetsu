@@ -216,13 +216,24 @@ Scope {
         setShown(true);
     }
 
+    // The edit mode opens over everything else.
+    HubEditHost {
+        id: editHost
+        onBegun: {
+            hoverSurfaceController.cancelPending();
+            hubRoot.closeAllPopouts();
+            hubRoot.closeAllLaunchers();
+            hubRoot.closeAllPanels();
+        }
+    }
+
     function showAttachedControlFor(screen, mode, anchorCenter = -1): void {
         hoverSurfaceController.request(screen, mode, anchorCenter);
     }
 
-    function enterAttachedControl(screen, mode, anchorCenter = -1): void {
+    function enterAttachedControl(screen, mode, anchorCenter = -1, dwell = -1): void {
         hoverSurfaceController.enterTrigger();
-        hoverSurfaceController.request(screen, mode, anchorCenter);
+        hoverSurfaceController.request(screen, mode, anchorCenter, dwell);
     }
 
     IpcHandler {
@@ -298,6 +309,25 @@ Scope {
         }
         function clearAnchor(monitor: string): void {
             CortetsuConfig.bottomHub.clearAnchor(monitor);
+        }
+        // The edit mode. `monitor` "" edits the focused one.
+        function editMode(monitor: string): bool {
+            return HubEditState.begin(monitor.length > 0 ? monitor : (CortetsuShellState.forActive()?.modelData?.name ?? ""));
+        }
+        function editTarget(id: string): bool {
+            HubEditState.target(id);
+            return HubEditState.active && HubEditState.pending === id;
+        }
+        function editSave(): bool { return HubEditState.save(); }
+        function editCancel(): void { HubEditState.cancel(); }
+        // Read-only: the edit mode's state and the dragged shape in layout
+        // coordinates ("monitor pending x y width height"), "" while closed.
+        function editState(): string {
+            const screen = editHost.screen;
+            const ghost = editHost.window?.ghostRect;
+            if (!HubEditState.active || !screen || !ghost)
+                return "";
+            return `${HubEditState.monitor} ${HubEditState.pending} ${screen.x + ghost.x} ${screen.y + ghost.y} ${ghost.width} ${ghost.height}`;
         }
         function anchors(): string {
             const out = {};

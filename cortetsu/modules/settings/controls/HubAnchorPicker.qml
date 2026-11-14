@@ -18,18 +18,8 @@ Item {
     property bool disabled: false
     signal chosen(string id)
 
-    // The spots as rows of the screen; "" is its centre, where no Hub goes.
-    readonly property var grid: [
-        ["top-left", "top-center", "top-right"],
-        ["middle-left", "", "middle-right"],
-        ["bottom-left", "bottom-center", "bottom-right"]
-    ]
-    readonly property var names: ({
-        "top-left": qsTr("Arriba a la izquierda"), "top-center": qsTr("Arriba, a lo ancho"),
-        "top-right": qsTr("Arriba a la derecha"), "middle-left": qsTr("Lateral izquierdo"),
-        "middle-right": qsTr("Lateral derecho"), "bottom-left": qsTr("Abajo a la izquierda"),
-        "bottom-center": qsTr("Abajo, a lo ancho"), "bottom-right": qsTr("Abajo a la derecha")
-    })
+    readonly property var grid: HubAnchor.grid
+    readonly property var names: HubAnchor.labels
     readonly property string currentName: names[HubAnchor.normalize(current)]
     property string focused: HubAnchor.normalize(current)
 
@@ -48,16 +38,7 @@ Item {
     onActiveFocusChanged: if (activeFocus) root.focused = HubAnchor.normalize(root.current)
 
     function move(dx: int, dy: int): void {
-        let row = root.grid.findIndex(line => line.includes(root.focused));
-        let column = root.grid[row].indexOf(root.focused);
-        for (let step = 0; step < 2; ++step) {
-            row = Math.max(0, Math.min(2, row + dy));
-            column = Math.max(0, Math.min(2, column + dx));
-            if (root.grid[row][column] !== "") {
-                root.focused = root.grid[row][column];
-                return;
-            }
-        }
+        root.focused = HubAnchor.move(root.focused, dx, dy);
     }
 
     Keys.onLeftPressed: root.move(-1, 0)

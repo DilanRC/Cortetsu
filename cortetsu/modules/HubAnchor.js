@@ -26,6 +26,14 @@ var anchors = {
 
 var ids = Object.keys(anchors);
 
+// What each anchor is called on screen (Settings, the edit mode).
+var labels = {
+    "top-left": "Arriba a la izquierda", "top-center": "Arriba, a lo ancho",
+    "top-right": "Arriba a la derecha", "middle-left": "Lateral izquierdo",
+    "middle-right": "Lateral derecho", "bottom-left": "Abajo a la izquierda",
+    "bottom-center": "Abajo, a lo ancho", "bottom-right": "Abajo a la derecha"
+};
+
 function valid(id) {
     return typeof id === "string" && Object.prototype.hasOwnProperty.call(anchors, id);
 }
@@ -105,6 +113,80 @@ function popoutTravel(id) {
     case "right": return { x: 1, y: 0 };
     default: return { x: 0, y: 1 };
     }
+}
+
+// The point of a popout at `x`, `y` (size `w` x `h`) that faces the control
+// at `along` on the Hub's edge, in the popout's own coordinates: it opens
+// out of that point and closes back into it. Without a control, the middle
+// of the side that faces the Hub.
+function popoutOrigin(id, along, x, y, w, h) {
+    const anchor = describe(id);
+    if (anchor.vertical)
+        return { x: anchor.edge === "left" ? 0 : w, y: along >= 0 ? clamp(along - y, 0, h) : h / 2 };
+    return { x: along >= 0 ? clamp(along - x, 0, w) : w / 2, y: anchor.edge === "top" ? 0 : h };
+}
+
+// The anchors as they lie on the screen; "" is its centre, where no Hub goes.
+var grid = [
+    ["top-left", "top-center", "top-right"],
+    ["middle-left", "", "middle-right"],
+    ["bottom-left", "bottom-center", "bottom-right"]
+];
+
+// The anchor next to `id` in the direction (`dx`, `dy`) as they lie on the
+// screen, stepping over the centre, where no Hub goes. At an edge it stays.
+function move(id, dx, dy) {
+    const from = normalize(id);
+    let row = grid.findIndex(line => line.includes(from));
+    let column = grid[row].indexOf(from);
+    for (let step = 0; step < 2; ++step) {
+        row = clamp(row + dy, 0, 2);
+        column = clamp(column + dx, 0, 2);
+        if (grid[row][column] !== "")
+            return grid[row][column];
+    }
+    return from;
+}
+
+// The rectangle the Hub's islands take at `id` on a `screenW` x `screenH`
+// monitor, for the edit mode's previews. `packedLength` is what the islands
+// measure end to end; at a corner the Hub is that long.
+// ponytail: the corner preview reuses the current packed length whatever the
+// orientation; stacked and in a row the islands differ by a few pixels per
+// icon. Measure both orientations if a preview ever needs to be exact.
+// `margin` is the space left at the ends of the edge, `edgeMargin` the gap
+// between the Hub and its own edge (the margin when not given).
+function footprint(id, screenW, screenH, thickness, packedLength, margin, edgeGap, edgeMargin) {
+    const anchor = describe(id);
+    const toEdge = edgeMargin === undefined ? margin : edgeMargin;
+    if (anchor.vertical) {
+        const x = anchor.edge === "left" ? toEdge : screenW - toEdge - thickness;
+        return { x: x, y: margin, width: thickness, height: Math.max(0, screenH - margin * 2) };
+    }
+    const y = anchor.edge === "top" ? toEdge : screenH - toEdge - thickness;
+    if (anchor.pack === "spread")
+        return { x: margin, y: y, width: Math.max(0, screenW - margin * 2), height: thickness };
+    const length = clamp(packedLength, thickness, screenW - (margin + edgeGap) * 2);
+    const x = anchor.pack === "start" ? margin + edgeGap : screenW - margin - edgeGap - length;
+    return { x: x, y: y, width: length, height: thickness };
+}
+
+// The anchor a Hub dropped at (`x`, `y`) snaps to: the screen cut in thirds,
+// as the anchors lie on it. The centre goes to the nearest edge.
+function nearest(x, y, screenW, screenH) {
+    if (!(screenW > 0) || !(screenH > 0) || !isFinite(x) || !isFinite(y))
+        return fallback;
+    const column = clamp(Math.floor(x / (screenW / 3)), 0, 2);
+    const row = clamp(Math.floor(y / (screenH / 3)), 0, 2);
+    if (grid[row][column] !== "")
+        return grid[row][column];
+    // Distance to each edge, relative to the screen, so a wide screen does
+    // not favour the top and bottom.
+    const fx = x / screenW, fy = y / screenH;
+    const toSide = Math.min(fx, 1 - fx), toEnd = Math.min(fy, 1 - fy);
+    if (toSide < toEnd)
+        return fx < 0.5 ? "middle-left" : "middle-right";
+    return fy < 0.5 ? "top-center" : "bottom-center";
 }
 
 // What the Hub takes from each edge of its monitor, for the surfaces that

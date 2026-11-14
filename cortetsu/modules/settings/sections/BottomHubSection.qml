@@ -48,6 +48,17 @@ SettingsColumns {
         }
 
         SettingActionRow {
+            objectName: "hubEditMode"
+            title: qsTr("Mover el Hub")
+            detail: root.anchorMonitor.length > 0
+                ? qsTr("Arrástralo sobre %1; se ajusta a la posición más cercana y queda guardado para esa pantalla").arg(root.anchorMonitor)
+                : qsTr("Arrástralo sobre la pantalla activa; se ajusta a la posición más cercana y queda guardado para esa pantalla")
+            actionLabel: qsTr("Mover")
+            actionIcon: "open_with"
+            onActivated: HubEditState.begin(root.anchorMonitor.length > 0 ? root.anchorMonitor : (CortetsuShellState.forActive()?.modelData?.name ?? ""))
+        }
+
+        SettingActionRow {
             objectName: "hubAnchorCommon"
             visible: root.hasOwnAnchor
             title: qsTr("Usar la posición común")
