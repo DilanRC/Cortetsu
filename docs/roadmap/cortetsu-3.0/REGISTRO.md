@@ -11,7 +11,7 @@ Un estado solo sube con la evidencia que cita. Lo que no se probó se dice.
 | 1 Biblioteca Premium sobria y marca | IN_PROGRESS |
 | 2 Settings integral y Launcher | IN_PROGRESS |
 | 3 Hub multiposición | DONE_WITH_CONCERNS |
-| 4 Islas, popouts y tray | DONE_WITH_CONCERNS |
+| 4 Islas, popouts y tray | VERIFIED |
 | 5 OSD 3.0 y Ajustes rápidos | PARTIAL |
 | 6 Centros de servicio | NOT_STARTED |
 | 7 Lockscreen, Dashboard y widgets | PARTIAL |
@@ -64,7 +64,7 @@ Un estado solo sube con la evidencia que cita. Lo que no se probó se dice.
 
 #### Fase 4 - Islas, popouts y tray
 
-- Estado: DONE_WITH_CONCERNS (certificación física hecha el 2026-11-14; quedan tres huecos, ver "Certificación física")
+- Estado: VERIFIED (certificación física del 2026-11-14, ver "Certificación física")
 - Fecha / rama: 2026-11-13, `main`.
 - QML modificados: `bar/popouts/{CortetsuPopoutHeader (nuevo),CortetsuNetworkPopup,CortetsuBluetoothPopup,CortetsuAudioPopup,CortetsuTrayMenu,Wrapper}.qml`, `components/CortetsuTooltip.qml`, `BottomHub.qml`, `CortetsuBottomHubView.qml`, `CortetsuTraySegment.qml`, `drawers/ContentWindow.qml`.
 - Popouts de servicio (nivel 1 de ADR-008): una cabecera común con el estado, el interruptor del servicio y el enlace a su página de Ajustes, que cierra el popout. Red: el interruptor de Wi-Fi espera a NetworkManager, dice "Aplicando…" y muestra el rechazo; "No hay otras redes" si ya hay una conectada. Bluetooth: una línea en lugar de cabecera más tarjeta que la repetía; la batería solo si BlueZ la informa; apagado es un estado, no un error. Audio: la entrada (micrófono) junto a la salida, con nivel, silencio y elección de dispositivo. Plurales correctos ("1 conectado", "1 dispositivo", "1 red").
@@ -100,7 +100,7 @@ Un estado solo sube con la evidencia que cita. Lo que no se probó se dice.
 
 #### Fase 4, certificación física (2026-11-14)
 
-- Estado: DONE_WITH_CONCERNS. HEAD inicial `edd6633e`, final `58ec59b2`; sin push. Instalado: generación `20261114-114246-2201182`, adoptada por recarga suave.
+- Estado: VERIFIED (DONE_WITH_CONCERNS por la mañana; los tres huecos se cerraron por la noche). HEAD inicial `edd6633e`, final `0b61673a` más la documentación; sin push. Instalado: generación `20261114-222216-44629`, adoptada por recarga suave.
 - Evidencia: [`docs/evidence/cortetsu-30-phase4-physical-20261114/`](../../evidence/cortetsu-30-phase4-physical-20261114/README.md) (matriz PASS/FAIL/NOT_TESTED, métricas, capturas sin datos privados, volcados, NVIDIA, rollback).
 - Sesión real, puntero y teclado virtuales con guardas de presencia: tres temas desde Ajustes, ocho anclajes por arrastre en el modo edición, persistencia tras reinicio, bandeja con ZapZap, Claude Desktop, Wallpaper Engine UX, Steam y Legcord (cambio de anclaje y app que se cierra con el menú abierto), vistas previas con ventanas propias, movimiento reducido, escala 1.25, `HDMI-A-1` desactivado y reactivado. 0 volcados de Quickshell.
 - Defectos que solo salían en la sesión real, corregidos con prueba (control rojo y verde) y verificados en vivo:
@@ -116,6 +116,13 @@ Un estado solo sube con la evidencia que cita. Lo que no se probó se dice.
 - Riesgos abiertos: con `follow_mouse`, mover el puntero sobre un popout abierto por teclado da el teclado a la ventana de debajo; el perfil de Washi en `scheme.json` se regeneró desde el fondo al visitarlo.
 - Revisión: Thermos en línea y en secuencia, sin subagentes; no es independiente. Encontró y corrigió la tira sustituida bajo el puntero y el contrato textual roto.
 - Rollback: `git revert` en orden inverso; `cortetsu rollback` y después `cortetsu shell restart` (no recarga suave hacia atrás).
+- Cierre de los huecos (noche del 2026-11-14), apartado 14 de la evidencia:
+  - Menús de varios niveles: un indicador real `libayatana-appindicator` (la pila de `nm-applet`; `scripts/integration/ayatana-indicator-fixture.py`) en la sesión real, con tres niveles por teclado y ratón, filas que cambian en vivo y la app cerrándose en el nivel 3. Salieron dos defectos, corregidos con prueba: casilla y radio sin estado (`e8165147`) y popout fantasma con el teclado retenido por dos registros de claves de la bandeja (`462a59c2`, `test-tray-relaunch.py`).
+  - Memoria: A/B de arranque limpio contra `a352a342` (antes de la fase 4), tres ejecuciones cada uno; PSS 417–423 frente a 420–422 MiB. La fase 4 no la cambia.
+  - Suspensión: s2idle y reanudación en la sesión real con bloqueo y desbloqueo por PAM (un rechazo y un éxito); mismo PID, sin volcados ni avisos; NVIDIA de vuelta a `suspended`. Sin HDMI conectado.
+- Gates sobre el árbol final: `cortetsu test`, `build-regressions.sh` y diez pruebas anidadas (con `test-tray-relaunch.py`).
+- Riesgos que siguen: `follow_mouse` da el teclado a la ventana bajo un popout abierto por teclado; perfil de Washi en `scheme.json` regenerado; reanudación con HDMI no repetida.
+- Siguiente: fase 5 (OSD 3.0 y Ajustes rápidos), sin empezar en este bloque.
 
 #### Fase 7 - Lockscreen, Dashboard y widgets
 

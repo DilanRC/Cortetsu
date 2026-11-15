@@ -8,7 +8,7 @@ Equipo: CachyOS (kernel 7.3.1), Hyprland 0.57.1 con configuración Lua, Quickshe
 Qt 6.12.0. `eDP-1` 1920×1080 a 144 Hz en la iGPU AMD (06:00.0); `HDMI-A-1` 1920×1080 a
 60 Hz en la RTX 3050 (01:00.0), a la izquierda.
 
-Veredicto: apartado 12.
+Veredicto: VERIFIED (apartado 14; el apartado 12 recoge el de la mañana).
 
 ## 1. Procedimiento y salvaguardas
 
@@ -201,7 +201,7 @@ Corrección: encontró la tira sustituida bajo el puntero (`73895399`) y el cont
 roto por `2ac0d34d` (`58ec59b2`). Mantenibilidad: las tiras salen de `BottomHub.qml` a su
 archivo; `BottomHub.qml` queda en 1185 líneas (22 más que al empezar). Sin revisión externa.
 
-## 12. Veredicto
+## 12. Veredicto de la mañana (cerrado en el apartado 14)
 
 **DONE_WITH_CONCERNS.** La matriz física pasa en los tres temas, los ocho anclajes, la
 bandeja con cinco aplicaciones reales, las vistas previas, la escala 1.25, la pérdida de
@@ -232,3 +232,68 @@ Wallpaper Engine UX en Kurogane y Washi), `preview-kurogane.png` (ventanas de pr
 `anchors-kurogane.png` (seis anclajes con su menú de bandeja), `scale-125.png`,
 `restart-top-right.png` (anclaje tras reinicio), `postfix-live.png` (sin foco residual y fila
 marcada en el menú, tras instalar los arreglos).
+
+## 14. Cierre de los tres huecos (2026-11-14, tarde y noche)
+
+Veredicto final: **VERIFIED**. Los tres huecos del apartado 12 quedan cerrados con
+evidencia y salieron dos defectos más, corregidos con prueba e instalados
+(generación `20261114-222216-44629`). Entre medias el equipo se apagó (16:49) y arrancó
+(22:09); el shell arrancado en limpio también se probó.
+
+### Hueco 1: menús de bandeja de varios niveles
+
+Ninguna app instalada los tiene e instalar `nm-applet` habría tocado paquetes del
+sistema. Se usó un indicador real con `libayatana-appindicator` y `libdbusmenu-gtk`, la
+pila de `nm-applet` y `blueman` (`scripts/integration/ayatana-indicator-fixture.py`): tres
+niveles, fila deshabilitada, separador, radio, casilla, filas que cambian en vivo. No es
+una app de terceros; la biblioteca del lado de la app sí es la misma.
+
+En la sesión real:
+
+| Caso | Resultado |
+| --- | --- |
+| Abajo salta la fila deshabilitada y el separador (fila 3); Derecha abre el nivel 2 y el 3; Izquierda vuelve; Intro en la hoja del nivel 3 llega a la app | PASS |
+| Clic en "Red" abre el nivel 2; clic en "VPN" llega a la app y cierra | PASS |
+| Una fila añadida al nivel abierto y otra renombrada, con el menú abierto | PASS |
+| Casilla y radio: antes sin estado visible | FAIL→FIX (`e8165147`) |
+| Casilla de desactivada a activada y radio de A a B, comprobados en el menú siguiente | PASS |
+| La app se cierra con el nivel 3 abierto: el popout quedaba abierto, vacío y con el teclado | FAIL→FIX (`462a59c2`) |
+| Tras el arreglo, dos veces con el shell recién arrancado: menú cerrado, teclado e isla libres, mismo PID, sin volcados | PASS |
+
+`462a59c2`: el runtime tiene dos copias de `SystemTrayIdentity.js`; la isla de la bandeja
+y los menús importaban cada una la suya, con dos contadores `tray-instance-N`. Como los
+menús se crean con el primer popout, una app que entraba y salía antes desalineaba las
+claves. `test-tray-relaunch.py` lo reproduce (rojo con dos rutas, verde con una).
+`e8165147`: el menú no leía `buttonType`/`checkState`; el proveedor de prueba del gate
+termina ahora con una casilla y un radio.
+
+### Hueco 2: memoria de un arranque limpio
+
+A/B en el mismo entorno (Hyprland anidado, dos salidas, arranque limpio, sin
+interacción), tres ejecuciones alternas de cada uno. A: `a352a342`, último commit antes
+de la fase 4 (sin el IPC `editMode`, comprobado). B: la generación instalada.
+
+| | PSS a 30 s | a 120 s | anónima | hilos |
+| --- | --- | --- | --- | --- |
+| Antes de la fase 4 | 417–423 MiB | 416–422 MiB | 380–385 MiB | 106–107 |
+| Fase 4 | 420–422 MiB | 417–421 MiB | 381–385 MiB | 106–107 |
+
+La fase 4 no cambia la memoria de arranque. Los ~500 MiB del shell real recién arrancado
+son del entorno (fondos, bandeja y monitores reales), y bajan con las horas por swap.
+
+### Hueco 3: suspensión, reanudación y bloqueo
+
+Con aprobación de Dilan y el HDMI desconectado: s2idle de 22:24:48 a 22:25:32. El bloqueo
+antes de suspender funcionó. Hubo un intento de contraseña rechazado y luego el desbloqueo
+correcto con PAM. Tras volver:
+- mismo PID (2641) y 0 reinicios;
+- 0 volcados y ningún aviso en el journal del shell;
+- Hub sin popouts ni teclado retenido;
+- bandeja intacta y un popout abierto y cerrado bien.
+
+La NVIDIA quedó `active` un momento tras reanudar y volvió sola a `suspended`. El shell no
+tiene ningún nodo NVIDIA abierto; solo Hyprland y Legcord.
+
+Riesgos que siguen: `follow_mouse` (apartado 6); el perfil de Washi en `scheme.json`
+(apartado 13); con el HDMI conectado, la reanudación no se probó esta vez (memoria: puede
+quedarse congelado y se recupera con un ciclo DPMS).
