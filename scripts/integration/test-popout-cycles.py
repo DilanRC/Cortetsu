@@ -226,9 +226,59 @@ def main() -> int:
             growth = rss_kib(session.shell.pid) - baseline_rss
             assert growth < RSS_GROWTH_LIMIT_KIB, f"RSS creció {growth // 1024} MiB en {SERVICE_CYCLES + TRAY_CYCLES} ciclos"
 
+            # The provider quits with its menu open at the second level: the
+            # popout must go with it, give the keyboard back and let the tray
+            # island rest (it used to stay open, empty, holding both).
+            # A second app stays in the tray, as on the live session: there
+            # the delegate of the app that left was reused for another one,
+            # so nothing closed the popout. Its menu is the one left open.
+            def right_click(x: int, y: int) -> None:
+                session.move(x, y)
+                time.sleep(0.05)
+                session.send(f"button {BTN_RIGHT} 1")
+                time.sleep(0.03)
+                session.send(f"button {BTN_RIGHT} 0")
+                H.wait_for(lambda: inspect(session)[name]["open"]
+                           and inspect(session)[name]["tray"]["menuContentHeight"] > 0, "menú de bandeja abierto")
+                time.sleep(0.3)
+
+            right_click(tx, ty)
+            leaving_key = inspect(session)[name]["tray"]["itemKey"]
+            session.tap(KEY_ESC)
+            H.wait_for(lambda: not inspect(session)[name]["open"], "menú cerrado antes de la segunda aplicación")
+            second = subprocess.Popen([sys.executable, str(FIXTURE), "--instances", "1", "--id", "cortetsu-second"],
+                                      env=session.env(), stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT,
+                                      start_new_session=True)
+            try:
+                tray = H.settled(lambda: [float(v) for v in session.ipc("bottomHub", "trayButton").stdout.split()] or None,
+                                 "dos iconos en la bandeja")
+                H.wait_for(lambda: [float(v) for v in session.ipc("bottomHub", "trayButton").stdout.split()][2] > tray[2] * 1.5
+                           or tray[2] > 60, "segundo icono en la bandeja")
+                tray = H.settled(lambda: [float(v) for v in session.ipc("bottomHub", "trayButton").stdout.split()] or None,
+                                 "bandeja con dos iconos")
+                for slot in range(2):
+                    right_click(int(tray[0] + tray[2] / 4 * (1 + 2 * slot)), int(tray[1] + tray[3] / 2))
+                    if inspect(session)[name]["tray"]["itemKey"] == leaving_key:
+                        break
+                    session.tap(KEY_ESC)
+                    H.wait_for(lambda: not inspect(session)[name]["open"], "menú de la otra aplicación cerrado")
+                assert inspect(session)[name]["tray"]["itemKey"] == leaving_key, "no se encontró el icono que se va"
+            except Exception:
+                second.terminate()
+                raise
+            session.tap(KEY_DOWN)
+            time.sleep(0.15)
+            session.tap(KEY_RIGHT)
+            H.wait_for(lambda: inspect(session)[name]["tray"]["stackDepth"] == 2, "submenú abierto antes de que se vaya")
             fixture.terminate()
             output = fixture.communicate(timeout=10)[0]
             fixture = None
+            H.wait_for(lambda: not inspect(session)[name]["open"], "el menú se va con su aplicación", 5)
+            state = inspect(session)[name]
+            assert not state["keyboardHeld"] and not any(state["engaged"]), \
+                f"el Hub retiene el teclado o la isla tras irse la aplicación: {state}"
+            second.terminate()
+            second.wait(10)
             assert output.count("action 1 count=") == actions, f"Enter no llegó al proveedor:\n{output}"
 
             log = (session.logs / "qs.log").read_text(errors="replace")
