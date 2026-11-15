@@ -7,7 +7,11 @@ import Quickshell.Services.SystemTray
 import qs.components
 import qs.modules
 import qs.services
-import "../SystemTrayIdentity.js" as TrayIdentity
+// The same file BottomHubTray.js imports (the runtime keeps it under base/):
+// one URL is one library, so the Hub's icons and these menus share one
+// `tray-instance-N` registry. By another URL the two counters drifted
+// apart when an app came and went before the first popout opened.
+import "../../../base/modules/bar/SystemTrayIdentity.js" as TrayIdentity
 import "../../../modules/WindowPreview.js" as WindowPreview
 
 Item {
