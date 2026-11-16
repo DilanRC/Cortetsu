@@ -33,15 +33,11 @@ CortetsuSurface {
     // the root item beneath the pointer.
     scale: 1
 
-    Rectangle {
-        anchors.left: parent.left
-        anchors.leftMargin: 3
-        anchors.verticalCenter: parent.verticalCenter
-        width: 2
-        height: Math.max(24, parent.height - CortetsuDesign.spacingStandard * 2)
-        color: root.urgent ? CortetsuDesign.colorVermillion : CortetsuDesign.colorIndicator
-        opacity: 0.82
-    }
+    // A toast says one thing and goes. Urgency is its tone (wash, outline
+    // and icon), not a fourth mark on the edge.
+    Accessible.role: Accessible.AlertMessage
+    Accessible.name: root.toast.title
+    Accessible.description: root.toast.message ?? ""
 
     Row {
         id: body
@@ -74,7 +70,8 @@ CortetsuSurface {
 
             CortetsuText {
                 width: parent.width
-                text: root.toast.message
+                visible: text.length > 0
+                text: root.toast.message ?? ""
                 textSize: CortetsuDesign.bodySmallPx
                 color: CortetsuDesign.colorOnSurfaceVariant
                 maximumLineCount: 3
