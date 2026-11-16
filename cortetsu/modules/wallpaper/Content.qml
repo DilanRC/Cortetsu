@@ -23,6 +23,7 @@ FocusScope {
     property string selectedCategory: "ALL"
     property string query: ""
     property bool gridMode: false
+    property bool steamLibrary: false
     property int currentIndex: -1
     property int windowIndex: -1
     property int queuedDirection: 0
@@ -286,6 +287,7 @@ FocusScope {
     }
 
     function openManager(): void {
+        steamLibrary = false;
         // The catalog is read on demand; there is no background rescan.
         CortetsuWallpapers.reload();
         presentationReady = false;
@@ -398,6 +400,14 @@ FocusScope {
     }
 
     Keys.onPressed: event => {
+        if (steamLibrary) {
+            if (event.key === Qt.Key_Escape) {
+                steamLibrary = false;
+                keyTarget.forceActiveFocus();
+                event.accepted = true;
+            }
+            return;
+        }
         const count = filteredEntries.length;
         const shift = event.modifiers & Qt.ShiftModifier;
         event.accepted = true;
@@ -460,6 +470,7 @@ FocusScope {
 
     Item {
         id: panel
+        visible: !root.steamLibrary
         z: 2
         anchors.fill: panelSurface
         anchors.margins: CortetsuDesign.spacingComfortable
@@ -533,7 +544,7 @@ FocusScope {
 
             CortetsuButton {
                 id: gridButton
-                anchors.right: settingsButton.left
+                anchors.right: steamButton.left
                 anchors.rightMargin: CortetsuDesign.spacingCompact
                 anchors.verticalCenter: parent.verticalCenter
                 compact: true
@@ -543,6 +554,20 @@ FocusScope {
                 disabled: root.libraryEmpty
                 tooltipText: root.gridMode ? qsTr("Volver a la órbita") : qsTr("Ver la rejilla completa")
                 onClicked: root.toggleGrid()
+            }
+
+            CortetsuButton {
+                id: steamButton
+                anchors.right: settingsButton.left
+                anchors.rightMargin: CortetsuDesign.spacingCompact
+                anchors.verticalCenter: parent.verticalCenter
+                compact: true
+                label: qsTr("Steam")
+                icon: "library_books"
+                onClicked: {
+                    root.cancelPreview();
+                    root.steamLibrary = true;
+                }
             }
 
             CortetsuButton {
@@ -826,6 +851,19 @@ FocusScope {
                     disabled: root.applying || !root.currentPath
                     onClicked: root.apply()
                 }
+            }
+        }
+    }
+
+    Loader {
+        anchors.fill: panelSurface
+        anchors.margins: CortetsuDesign.spacingComfortable
+        z: 3
+        active: root.steamLibrary
+        sourceComponent: SteamLibrary {
+            onBack: {
+                root.steamLibrary = false;
+                keyTarget.forceActiveFocus();
             }
         }
     }

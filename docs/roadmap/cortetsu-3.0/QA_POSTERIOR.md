@@ -1,5 +1,29 @@
 # QA posterior de la ola de construcción 3.0
 
+## Orbital Steam: escenarios añadidos, sin ejecutar
+
+- Compilar el helper y ejecutar sus pruebas unitarias cuando se autorice QA.
+- Steam principal, symlinks, Flatpak, bibliotecas adicionales, VDF antiguo y
+  moderno, escapes y archivo malformado; discos desconectados y duplicados.
+- project.json ausente, corrupto, sobredimensionado, FIFO y archivo no regular;
+  preview fuera del proyecto, symlink, nombre con espacios y caracteres URL.
+- Límites de catálogo: errores visibles y truncado explícito; ningún escaneo
+  recursivo de disco ni ejecución del contenido.
+- Bundle con cortetsu-orbital, helper ausente, salida inválida, error y reintento.
+- QML: apertura/cierre/retorno, Tab, Enter, Escape, foco visible, búsqueda sin
+  resultados, filtros, portadas fallidas, texto largo y catálogo grande.
+- Ink/Washi/Kurogane, escala fraccional, pantalla estrecha y ausencia de overflow.
+- Regresión del apply estático, ACK y pipeline de colores; abrir Steam no aplica
+  fondos ni cambia paletas. La instalación activa debe seguir intacta.
+- Antes de certificar reproducción futura: ownership por salida, conflicto
+  externo, crash, fallback, lock duplicado, reconexión, orientación, reanudación,
+  widgets/input, Scene/Video/Web y propiedades reales del motor.
+- Antes de certificar políticas futuras: batería/AC, juegos fullscreen,
+  maximización, bloqueo, suspensión e inactividad; medir GPU/CPU/VRAM y consumo
+  por backend. No inferir ahorro desde la configuración de FPS.
+- Antes de certificar persistencia futura: migración, corrupción, playlists,
+  perfiles, rutas desaparecidas, importación/exportación y rollback de generación.
+
 Estado: **pendiente de autorización**. Nada de esta lista se ejecutó en las
 dos olas del 2026-11-16 (ola 1: `aefc805b` a `df78aae0`; ola 2: `d574fa85` a
 `35c5bdef`, más su documentación). La ola 2 está en la sección 9.

@@ -17,6 +17,10 @@ reference_repository: "https://github.com/LilaccFlowerr/Nebula"
 
 ## Índice
 
+Construcción adicional del 2026-11-16: [Orbital y Steam](cortetsu-3.0/ORBITAL.md),
+estado **PARTIAL_NO_VERIFICADO**. Catálogo Rust y biblioteca QML añadidos;
+reproducción, políticas y perfiles pendientes. No inicia QA INTEGRAL 3.0.
+
 1. [Visión, alcance y decisiones vinculantes](#1-visión-alcance-y-decisiones-vinculantes)
 2. [Diagnóstico y evidencia](#2-diagnóstico-y-evidencia)
 3. [Sistema visual Premium sobria](#3-sistema-visual-premium-sobria)

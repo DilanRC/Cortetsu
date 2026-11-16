@@ -3,6 +3,7 @@ mod calendar;
 mod common;
 mod connectivity;
 mod lyrics;
+mod orbital;
 mod palette;
 mod pomodoro;
 mod prompter;
@@ -22,6 +23,7 @@ fn main() {
     let helper = args.next().unwrap_or_default();
     let args: Vec<String> = args.collect();
     let result = match helper.as_str() {
+        "cortetsu-orbital" => orbital::main(&args),
         "cortetsu-pomodoro" => pomodoro::main(&args),
         "cortetsu-calendar" => calendar::main(&args),
         "cortetsu-lyrics" => lyrics::main(&args),

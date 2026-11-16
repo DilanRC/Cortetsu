@@ -15,6 +15,7 @@ cortetsu-display-vibrance	cortetsu-hardware-runtime	cortetsu-display-vibrance
 cortetsu-power-auto	cortetsu-hardware-runtime	cortetsu-power-auto
 cortetsu-power-auto-control	cortetsu-hardware-runtime	cortetsu-power-auto-control
 cortetsu-calendar	cortetsu-desktop-runtime	cortetsu-calendar
+cortetsu-orbital	cortetsu-desktop-runtime	cortetsu-orbital
 cortetsu-pomodoro	cortetsu-desktop-runtime	cortetsu-pomodoro
 cortetsu-emoji	cortetsu-desktop-runtime	cortetsu-emoji
 cortetsu-startup	cortetsu-desktop-runtime	cortetsu-startup
