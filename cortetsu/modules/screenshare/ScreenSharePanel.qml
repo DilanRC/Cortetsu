@@ -159,6 +159,11 @@ Item {
                     readonly property var source: isScreen ? modelData : (win.hyprToplevel(modelData.address)?.wayland ?? null)
                     width: grid.cellWidth
                     height: grid.cellHeight
+                    Accessible.role: Accessible.Button
+                    Accessible.name: isScreen ? qsTr("Compartir %1").arg(modelData.name || qsTr("pantalla %1").arg(index + 1))
+                        : qsTr("Compartir %1").arg(modelData.title || modelData.class)
+                    Accessible.selected: win.selected === index
+                    Accessible.onPressAction: win.share(index)
 
                     // Tonal tile, not a nested surface: the card is the one surface.
                     Rectangle {

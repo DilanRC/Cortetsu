@@ -16,6 +16,11 @@ Item {
     property real chamfer: 10
     readonly property alias status: image.status
 
+    Accessible.role: Accessible.ListItem
+    Accessible.name: root.source.split("/").pop()
+    Accessible.description: root.applied ? qsTr("Fondo actual") : ""
+    Accessible.selected: root.selected
+
     OctagonFrame {
         id: mask
         anchors.fill: parent
