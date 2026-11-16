@@ -25,7 +25,7 @@ QtObject {
             themes: themes, colors: colors, background: background, widgets: widgets, bottomhub: bottomhub, panels: panels,
             launcher: launcher, notifications: notifications, indicators: indicators,
             automation: automation, weather: weather, motion: motion,
-            sync: sync, profiles: profiles, diagnostics: diagnostics
+            sync: sync, profiles: profiles, library: library, diagnostics: diagnostics
         };
         return table[id] ?? (root.controller.categories.some(item => item.id === id) ? landing : null);
     }
@@ -166,6 +166,12 @@ QtObject {
         SettingsPage {
             ThemeProfileSection {}
             ThemeResetSection {}
+        }
+    }
+    readonly property Component library: Component {
+        SettingsPage {
+            kind: "wide"
+            ComponentGallerySection {}
         }
     }
     readonly property Component diagnostics: Component {

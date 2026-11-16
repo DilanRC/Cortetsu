@@ -96,6 +96,9 @@ QtObject {
             { id: "profiles", title: qsTr("Perfiles y recuperación"), icon: "settings_backup_restore", summary: "", detail: qsTr("Exportar, importar y restaurar el tema"),
               keywords: qsTr("perfil exportar importar restaurar respaldo"),
               settings: [qsTr("Exportar perfil actual"), qsTr("Importar perfil visual"), qsTr("Restaurar colores, material y geometría del tema")] },
+            { id: "library", title: qsTr("Biblioteca de componentes"), icon: "widgets", summary: "", detail: qsTr("Los controles compartidos en todos sus estados, con el tema activo"),
+              keywords: qsTr("biblioteca componentes galería premium sobria botones filas estados diseño qa"),
+              settings: [qsTr("Botones"), qsTr("Filas"), qsTr("Estados de datos")] },
             { id: "diagnostics", title: qsTr("Diagnóstico"), icon: "monitor_heart", summary: "", detail: qsTr("Estado de Cortetsu y su generación"),
               keywords: qsTr("diagnóstico estado salud generación"), settings: [qsTr("Estado y diagnóstico")] }
         ] },
