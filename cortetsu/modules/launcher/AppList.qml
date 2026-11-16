@@ -39,6 +39,7 @@ GridView {
     readonly property int columns: {
         switch (state) {
         case "actions":
+        case "files":
             return 2;
         case "calc":
             return 1;
@@ -58,7 +59,7 @@ GridView {
         const prefix = CortetsuConfig.actionPrefix;
 
         if (text.startsWith(prefix)) {
-            for (const action of ["calc", "emoji", "scheme", "variant"])
+            for (const action of ["calc", "emoji", "scheme", "variant", "files"])
                 if (text.startsWith(`${prefix}${action} `))
                     return action;
 
@@ -74,6 +75,8 @@ GridView {
             return Actions.query(text);
         case "calc":
             return [0];
+        case "files":
+            return Files.results;
         case "emoji":
             return Emojis.query(text);
         case "scheme":
@@ -156,6 +159,13 @@ GridView {
             CortetsuConfig.setFavouriteApps([...apps, id]);
     }
 
+    // File search runs in its own owner; it hears every edit and acts only
+    // on ">files texto".
+    Connections {
+        target: root.search
+        function onTextChanged(): void { Files.update(root.search.text); }
+    }
+
     // Query the selection was last reset for.
     property string selectionQuery: ""
 
@@ -194,6 +204,7 @@ GridView {
     cellHeight: {
         switch (state) {
         case "actions":
+        case "files":
             return 88;
         case "calc":
             return 118;
@@ -222,7 +233,7 @@ GridView {
     boundsBehavior: Flickable.StopAtBounds
     keyNavigationWraps: true
 
-    delegate: root.state === "actions"
+    delegate: root.state === "actions" || root.state === "files"
         ? actionDelegate
         : root.state === "calc"
             ? calcDelegate

@@ -11,6 +11,7 @@ import "../CortetsuIcon.qml"
 import ".."
 import "../../components"
 import "../../utils"
+import "services"
 
 Item {
     id: root
@@ -126,9 +127,16 @@ Item {
         anchors.verticalCenter: parent.verticalCenter
         width: 360
         icon: root.state === "wallpapers" ? "wallpaper_slideshow" : "manage_search"
-        title: root.state === "wallpapers" ? qsTr("No se encontraron fondos") : qsTr("Sin resultados")
+        readonly property bool files: root.search.text.startsWith(Files.prefixFor())
+        title: root.state === "wallpapers" ? qsTr("No se encontraron fondos")
+            : files && Files.status === "unavailable" ? qsTr("El índice de archivos no está disponible")
+            : files && Files.status === "searching" ? qsTr("Buscando archivos…")
+            : files && Files.status === "idle" ? qsTr("Escribe al menos dos letras del nombre")
+            : qsTr("Sin resultados")
         detail: root.state === "wallpapers" && CortetsuWallpapers.list.length === 0
             ? qsTr("Coloca algunos fondos en %1").arg(Paths.shortenHome(CortetsuWallpapers.wallsdir))
+            : files && Files.status === "unavailable" ? qsTr("plocate no pudo leer su base; la crea el temporizador plocate-updatedb")
+            : files ? qsTr("Busca por nombre en tu carpeta personal, sin carpetas ocultas; el índice se actualiza una vez al día")
             : qsTr("Prueba con otra búsqueda")
 
         Behavior on opacity {
