@@ -16,6 +16,16 @@ Item {
     required property var panels
     required property real maxHeight
     property string pendingWallpaperPath: ""
+    // Browse mode: the empty search shows a category of apps.
+    property string category: "home"
+    readonly property bool browsing: search.text.length === 0
+    readonly property bool showCategories: browsing && Apps.categories.length > 2
+
+    function cycleCategory(step: int): void {
+        const ids = Apps.categories.map(item => item.id);
+        const at = Math.max(0, ids.indexOf(root.category));
+        root.category = ids[(at + step + ids.length) % ids.length];
+    }
 
     readonly property int padding: CortetsuDesign.spacingStandard
     readonly property int rounding: CortetsuDesign.radiusLarge
@@ -48,6 +58,7 @@ Item {
         padding +
         search.implicitHeight +
         CortetsuDesign.spacingStandard +
+        (root.showCategories ? categoryRow.implicitHeight + CortetsuDesign.spacingCompact : 0) +
         listWrapper.implicitHeight +
         padding
 
@@ -104,6 +115,11 @@ Item {
         }
 
         Keys.onLeftPressed: event => {
+            if (root.showCategories && (event.modifiers & Qt.ControlModifier)) {
+                root.cycleCategory(-1);
+                event.accepted = true;
+                return;
+            }
             if (list.showWallpapers)
                 list.currentList?.decrementCurrentIndex();
             else
@@ -112,6 +128,11 @@ Item {
         }
 
         Keys.onRightPressed: event => {
+            if (root.showCategories && (event.modifiers & Qt.ControlModifier)) {
+                root.cycleCategory(1);
+                event.accepted = true;
+                return;
+            }
             if (list.showWallpapers)
                 list.currentList?.incrementCurrentIndex();
             else
@@ -150,8 +171,10 @@ Item {
             function onLauncherChanged(): void {
                 if (root.screenState.launcher)
                     Qt.callLater(root.focusSearch);
-                else
+                else {
                     search.text = "";
+                    root.category = "home";
+                }
             }
 
             function onSessionChanged(): void {
@@ -177,12 +200,43 @@ Item {
         }
     }
 
+    // Categories, only while browsing and only those with an installed
+    // app. Not Tab stops: Tab moves through the results, Ctrl+Left and
+    // Ctrl+Right move through these.
+    Flow {
+        id: categoryRow
+        objectName: "launcherCategories"
+        visible: root.showCategories
+        anchors.top: search.bottom
+        anchors.topMargin: CortetsuDesign.spacingStandard
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.leftMargin: root.padding
+        anchors.rightMargin: root.padding
+        spacing: CortetsuDesign.spacingUnit
+
+        Repeater {
+            model: root.showCategories ? Apps.categories : []
+            delegate: CortetsuButton {
+                required property var modelData
+                compact: true
+                activeFocusOnTab: false
+                active: root.category === modelData.id
+                label: modelData.label
+                onClicked: {
+                    root.category = modelData.id;
+                    search.forceActiveFocus();
+                }
+            }
+        }
+    }
+
     Item {
         id: listWrapper
         implicitWidth: list.width
         implicitHeight: list.height
-        anchors.top: search.bottom
-        anchors.topMargin: CortetsuDesign.spacingStandard
+        anchors.top: root.showCategories ? categoryRow.bottom : search.bottom
+        anchors.topMargin: root.showCategories ? CortetsuDesign.spacingCompact : CortetsuDesign.spacingStandard
         anchors.horizontalCenter: parent.horizontalCenter
 
         ContentList {
@@ -193,8 +247,10 @@ Item {
             maxHeight:
                 root.maxHeight -
                 search.implicitHeight -
-                root.padding * 3
+                root.padding * 3 -
+                (root.showCategories ? categoryRow.implicitHeight + CortetsuDesign.spacingCompact : 0)
             search: search
+            category: root.category
             padding: root.padding
             rounding: root.rounding
         }

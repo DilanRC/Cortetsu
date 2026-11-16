@@ -22,6 +22,7 @@ Item {
     required property TextField search
     required property int padding
     required property int rounding
+    property string category: "home"
 
     readonly property bool showWallpapers: search.text.startsWith(`${CortetsuConfig.actionPrefix}wallpaper `)
     readonly property bool listLoading: showWallpapers && wallpaperList.status === Loader.Loading
@@ -90,6 +91,7 @@ Item {
         sourceComponent: AppList {
             objectName: "launcherAppList"
 
+            category: root.category
             search: root.search
             screenState: root.screenState
         }

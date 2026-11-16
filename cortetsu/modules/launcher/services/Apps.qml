@@ -1,6 +1,7 @@
 pragma Singleton
 
 import Quickshell
+import Quickshell.Io
 import QtQml
 import "../.."
 import "../../../services"
@@ -34,6 +35,80 @@ QtObject {
     }
 
     Component.onCompleted: settle()
+
+    // Browse mode (empty search): favourites, then what was launched
+    // recently, then everything else by name. Categories narrow it to a
+    // freedesktop main category; only those with an installed app are
+    // offered.
+    readonly property var categoryDefinitions: [
+        { id: "Development", label: qsTr("Desarrollo"), match: ["Development"] },
+        { id: "Network", label: qsTr("Internet"), match: ["Network"] },
+        { id: "AudioVideo", label: qsTr("Multimedia"), match: ["AudioVideo", "Audio", "Video"] },
+        { id: "Game", label: qsTr("Juegos"), match: ["Game"] },
+        { id: "Office", label: qsTr("Oficina"), match: ["Office"] },
+        { id: "Graphics", label: qsTr("Gráficos"), match: ["Graphics"] },
+        { id: "System", label: qsTr("Sistema"), match: ["System", "Settings"] },
+        { id: "Utility", label: qsTr("Utilidades"), match: ["Utility"] }
+    ]
+    readonly property var categories: {
+        const present = categoryDefinitions.filter(definition =>
+            entries().some(entry => inCategory(entry, definition)));
+        return [{ id: "home", label: qsTr("Inicio") }].concat(present);
+    }
+
+    function inCategory(entry, definition): bool {
+        const own = Array.from(entry?.categories ?? []);
+        return definition.match.some(name => own.includes(name));
+    }
+
+    function browse(category: string): var {
+        const all = entries();
+        if (category && category !== "home") {
+            const definition = categoryDefinitions.find(item => item.id === category);
+            return definition ? all.filter(entry => inCategory(entry, definition)) : all;
+        }
+        const favourite = entry => Strings.testRegexList(CortetsuConfig.favouriteApps, entry.id);
+        const recentRank = id => {
+            const index = recentIds.indexOf(id);
+            return index < 0 ? Number.MAX_SAFE_INTEGER : index;
+        };
+        const favourites = all.filter(favourite);
+        const recent = all.filter(entry => !favourite(entry) && recentIds.includes(entry.id))
+            .sort((a, b) => recentRank(a.id) - recentRank(b.id));
+        const rest = all.filter(entry => !favourite(entry) && !recentIds.includes(entry.id));
+        return favourites.concat(recent, rest);
+    }
+
+    // Launch history: runtime state, not a preference, so it lives in the
+    // state directory next to the notification history. Ids only, newest
+    // first, at most twelve. A missing or damaged file is an empty history.
+    property var recentIds: []
+    readonly property int recentLimit: 12
+    readonly property FileView recentStore: FileView {
+        path: `${Quickshell.env("XDG_STATE_HOME") || `${Quickshell.env("HOME")}/.local/state`}/cortetsu/launcher-recent.json`
+        blockLoading: false
+        printErrors: false
+        onLoaded: {
+            try {
+                const parsed = JSON.parse(text());
+                root.recentIds = Array.isArray(parsed)
+                    ? parsed.filter(id => typeof id === "string" && id.length > 0 && id.length < 512)
+                        .slice(0, root.recentLimit)
+                    : [];
+            } catch (_) {
+                root.recentIds = [];
+            }
+        }
+        onLoadFailed: root.recentIds = []
+    }
+
+    function remember(entry): void {
+        const id = entry?.id;
+        if (!id)
+            return;
+        recentIds = [id].concat(recentIds.filter(item => item !== id)).slice(0, recentLimit);
+        recentStore.setText(JSON.stringify(recentIds));
+    }
 
     function settle(): void {
         applications = [...DesktopEntries.applications.values].sort((a, b) =>
@@ -69,6 +144,7 @@ QtObject {
             entry.workingDirectory ?? "",
             entry.id ?? entry.name ?? "app"
         );
+        remember(entry);
     }
 
     function search(text: string): var {

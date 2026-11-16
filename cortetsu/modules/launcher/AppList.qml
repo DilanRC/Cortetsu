@@ -20,6 +20,9 @@ GridView {
 
     required property TextField search
     required property var screenState
+    // Browse mode narrows the empty search to one category ("home" is
+    // favourites, recent, then everything).
+    property string category: "home"
 
     /*
      * IMPORTANT:
@@ -80,7 +83,7 @@ GridView {
                 return [];
             return M3Variants.query(text);
         default:
-            return Apps.search(text);
+            return text.length === 0 ? Apps.browse(root.category) : Apps.search(text);
         }
     }
 
@@ -292,6 +295,19 @@ GridView {
                     app.modelData?.icon,
                     "image-missing"
                 )
+            }
+
+            // A pinned app says so in its corner; right click toggles it.
+            CortetsuIcon {
+                visible: app.favourite
+                anchors.top: parent.top
+                anchors.right: parent.right
+                anchors.topMargin: 10
+                anchors.rightMargin: 12
+                text: "keep"
+                iconSize: CortetsuTypography.labelMediumPx
+                color: app.selected ? CortetsuDesign.colorOnSurface : CortetsuDesign.colorOnSurfaceVariant
+                Accessible.ignored: true
             }
 
             CortetsuText {
