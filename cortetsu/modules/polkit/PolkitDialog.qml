@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
 import "../../components"
+import ".."
 import "../../theme"
 import "../CortetsuTypography.js" as CortetsuTypography
 
@@ -13,6 +14,9 @@ CortetsuPopupSurface {
     readonly property var identities: flow?.identities ?? []
     readonly property bool canRespond: !!flow && flow.isResponseRequired && !flow.isCompleted
     property bool submitted: false
+    // An answer is with PAM: the field is closed and nothing is decided yet.
+    readonly property bool checking: root.submitted && !!root.flow && !root.flow.isCompleted
+        && !root.flow.isResponseRequired && !root.flow.failed
 
     implicitWidth: 440
     implicitHeight: body.implicitHeight + CortetsuDesign.spacingComfortable * 2
@@ -147,9 +151,42 @@ CortetsuPopupSurface {
                 radiusValue: CortetsuDesign.radiusSmall
                 baseColor: CortetsuDesign.colorSurfaceGlassStrong
                 outlined: true
+                outlineColor: password.activeFocus
+                    ? Qt.alpha(CortetsuDesign.colorPrimary, 0.72)
+                    : Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.24)
             }
             Keys.onReturnPressed: root.submit()
             Keys.onEnterPressed: root.submit()
+        }
+
+        // Caps Lock is the usual reason a right password fails; say it before
+        // the attempt, not after. The state comes from the compositor's
+        // keyboard reading the shell already keeps.
+        RowLayout {
+            objectName: "capsLock"
+            Layout.fillWidth: true
+            visible: CortetsuHypr.capsLock && root.canRespond
+            spacing: CortetsuDesign.spacingCompact
+            CortetsuIcon {
+                text: "keyboard_capslock"
+                iconSize: CortetsuTypography.iconSmallPx
+                color: CortetsuDesign.colorWarning
+            }
+            CortetsuText {
+                Layout.fillWidth: true
+                text: qsTr("Bloq Mayús está activado")
+                textSize: CortetsuDesign.labelSmallPx
+                color: CortetsuDesign.colorOnSurface
+            }
+        }
+
+        CortetsuText {
+            objectName: "checking"
+            Layout.fillWidth: true
+            visible: root.checking
+            text: qsTr("Comprobando…")
+            textSize: CortetsuDesign.labelSmallPx
+            color: CortetsuDesign.colorOnSurfaceVariant
         }
 
         CortetsuText {
