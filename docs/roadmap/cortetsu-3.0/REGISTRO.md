@@ -16,10 +16,14 @@ Un estado solo sube con la evidencia que cita. Lo que no se probó se dice.
 | 6 Centros de servicio | PARTIAL (ola 2026-11-16: código sin verificar) |
 | 7 Lockscreen, Dashboard y widgets | PARTIAL |
 | 8 Audio avanzado y superficies restantes | PARTIAL (ola 2026-11-16: código sin verificar) |
-
-La ola de construcción continua del 2026-11-16 (plan V2, sin pruebas) está
-al final: [Ola de construcción continua](#ola-de-construcción-continua-2026-11-16).
 | 9 Certificación | NOT_STARTED |
+
+Las dos olas de construcción continua del 2026-11-16 (sin pruebas) están al
+final: [primera ola](#ola-de-construcción-continua-2026-11-16) y
+[segunda ola](#segunda-ola-de-construcción-2026-11-16). Tras la segunda, el
+código de las fases 5 a 8 está escrito en todas las superficies activas
+(`COBERTURA_FINAL_QML_3_0.md`: ninguna en `PENDIENTE`) y **nada está
+verificado en ejecución**.
 
 #### Fase 0 - Línea base y mapa de propiedad
 
@@ -198,5 +202,89 @@ al final: [Ola de construcción continua](#ola-de-construcción-continua-2026-11
 - Riesgos sin descartar: QML sin compilar (tipos, imports, `uniformCellWidths` en `GridLayout`, `PowerProfiles.hasPerformanceProfile`), pruebas de cadenas que fallarán (lista en QA), `bq_highshelf` a 0 Hz como preamp, `pw-cli set-param` sobre un filter-chain estéreo, foco con `follow_mouse` en el centro de control, Hub lateral con el centro de control, HDMI y escala 1.25.
 - Revisión: Thermos en línea y en secuencia, sin subagentes (preferencia de Dilan); no independiente. Hallazgo corregido: el deslizador de volumen del centro de control usaba un rango distinto del de Ajustes.
 - Rollback: `git revert` de los commits de la ola en orden inverso. Nada instalado.
+- Siguiente misión: `QA INTEGRAL 3.0`, **pendiente de autorización**.
+
+#### Segunda ola de construcción (2026-11-16)
+
+- Estado: **IMPLEMENTADO_SIN_VERIFICAR**. Misión «Cortetsu 3.0 — misión
+  maestra, segunda ola» (entregada por Dilan): investigar end-4, Caelestia y
+  Nebula en su código, completar todas las superficies activas y documentar,
+  sin pruebas, builds, lints, instalaciones, recargas ni push.
+- Rama `main`, HEAD inicial `3b4e7c2f`. Commits locales `d574fa85` a
+  `35c5bdef` más esta documentación. Sin push.
+- Ejecutado: **0 pruebas, 0 builds, 0 lints, 0 instalaciones, 0 recargas,
+  0 push.** Solo lectura de código, `git`, clones de solo lectura de las
+  referencias y de PipeWire 1.6.11 en `../cortetsu-references/`, lecturas del
+  sistema (`quickshell --version`, `hyprctl version`, `systemctl --user cat
+  hyprsunset.service`, `cortetsu-keybinds list`, existencia de `plocate`,
+  `cava`, `xdg-open`) y los generadores de documentación
+  `scripts/verification/qml-inventory.py` y `qml-coverage.py` (generan texto;
+  no comprueban el shell).
+- Versiones leídas: Quickshell 0.3.2 (`4f508be5`, la misma revisión que fija
+  end-4), Qt 6.12.0, Hyprland 0.57.2, PipeWire 1.6.11, hyprsunset 0.4.0.
+- Archivos ajenos: `.codebase-memory/` sigue modificado por otro proceso; no
+  se tocó ni se incluyó.
+- Entregables: [`REFERENCIAS_END4_CAELESTIA_NEBULA.md`](REFERENCIAS_END4_CAELESTIA_NEBULA.md),
+  [`MEJORAS_CREATIVAS_3_0.md`](MEJORAS_CREATIVAS_3_0.md),
+  [`COBERTURA_FINAL_QML_3_0.md`](COBERTURA_FINAL_QML_3_0.md) (generada) y
+  actualizados el inventario, la comparativa, las decisiones y el QA.
+
+| Commit | Módulo | Estado |
+| --- | --- | --- |
+| `d574fa85` | Ecualizador: preamp sobre la curva real, `mixer` lineal, curva en Ajustes | IMPLEMENTADO_SIN_VERIFICAR |
+| `65db6bf5` | Visualizador: configuración propia de cava, barras estables | IMPLEMENTADO_SIN_VERIFICAR |
+| `2dd6c60b` | Luz nocturna programada; mosaicos de luz nocturna y captura | IMPLEMENTADO_SIN_VERIFICAR |
+| `48e87e30` | Hoja de atajos (SUPER+F1) | IMPLEMENTADO_SIN_VERIFICAR |
+| `33ed5a57` | Widgets de escritorio, editor y página de Ajustes | IMPLEMENTADO_SIN_VERIFICAR |
+| `91b34b14` | Divisores por token, portapapeles en Washi, siete QML muertos borrados | IMPLEMENTADO_SIN_VERIFICAR |
+| `4559b844` | Grabaciones recientes; avisos del grabador en español | IMPLEMENTADO_SIN_VERIFICAR |
+| `d3b6aff6` | Silenciar notificaciones por aplicación | IMPLEMENTADO_SIN_VERIFICAR |
+| `1e1ff69d` | Vista general: filtro de ventanas | IMPLEMENTADO_SIN_VERIFICAR |
+| `2c06d320` | Portapapeles: controles reales, limpiar con confirmación | IMPLEMENTADO_SIN_VERIFICAR |
+| `7dd2fcf7` | Fichas de fondos y de compartir pantalla accesibles | IMPLEMENTADO_SIN_VERIFICAR |
+| `96eeaad5` | Centro de control: lo que suena y mezclador por app | IMPLEMENTADO_SIN_VERIFICAR |
+| `31eed0a8` | Dashboard: medidor de nivel sin cava | IMPLEMENTADO_SIN_VERIFICAR |
+| `c5235016` | Lanzador: búsqueda de archivos con `plocate` | IMPLEMENTADO_SIN_VERIFICAR |
+| `5d26c43a` | Ajustes: biblioteca de componentes | IMPLEMENTADO_SIN_VERIFICAR |
+| `b1794f43` | Popouts de teclado y Bloq Mayús en la familia | IMPLEMENTADO_SIN_VERIFICAR |
+| `af2b2a0c` | Correcciones de la revisión Thermos (widgets) | IMPLEMENTADO_SIN_VERIFICAR |
+| `35c5bdef` | Ajustes → Diagnóstico con `cortetsu doctor` a demanda | IMPLEMENTADO_SIN_VERIFICAR |
+
+- Cobertura: 415 archivos activos (QML y JS del shell): 80
+  `IMPLEMENTADO_SIN_VERIFICAR` entre las dos olas, 335
+  `CONSERVADO_JUSTIFICADO` con motivo por familia, 0 `BLOQUEADO_DOCUMENTADO`,
+  0 `PENDIENTE`. Ocho QML borrados (siete sin referencias desde la fase 0 y
+  el reloj de escritorio sustituido por los widgets).
+- Dependencias nuevas: ninguna. Se usan `plocate`, `xdg-open`,
+  `hyprsunset.service`, `PwNodePeakMonitor`, `FolderListModel` y `cava`
+  opcional, todos ya presentes o ya opcionales.
+- Preferencias nuevas: `desktopWidgets` (con migración del reloj 2.x),
+  `displayCalibration.schedule`, `mutedNotificationApps`. Versiones
+  anteriores las ignoran. Atajo nuevo en `config/hypr-user.lua`:
+  `SUPER + F1` → `cortetsu:cheatsheet` (requiere `hyprctl reload`).
+- Contratos: superficies retenidas nuevas `cheatsheet` y `desktopWidgets`
+  (registro, `ScreenState`, `CortetsuScreenState`, IPC homónimos); ningún
+  destino IPC existente cambió. El grafo del ecualizador pasa a la versión 2;
+  la 1 sigue funcionando.
+- Bloqueado o pendiente de decisión (no de código): ninguno de los
+  elementos de la misión quedó sin implementar por un bloqueo técnico. Se
+  conservan sin tocar, con motivo, el bloqueo (PAM), Polkit y Secretos
+  (lógica sensible), y el Hub de la fase 4.
+- Revisión: Thermos en línea y en secuencia, sin subagentes (preferencia de
+  Dilan); no es independiente del autor. Hallazgos corregidos en `af2b2a0c`:
+  el editor movía un widget de otro monitor; las filas de Sistema y Red se
+  recreaban en cada muestra. Antes, durante la construcción: `cx = 0` leído
+  como 0,5, un clic sin arrastre colocaba el widget en (0, 0), el `Binding`
+  de posición devolvía x a 0 al empezar a arrastrar, búsquedas de archivos
+  que no se relanzaban y respuestas viejas que pisaban la consulta nueva.
+- Riesgos sin descartar: todo lo de `QA_POSTERIOR.md` §9; en particular, QML
+  sin compilar (importación cualificada de `settings` desde el centro de
+  control, `Binding` con `restoreMode`, `ScriptModel` de ids), pruebas de
+  cadenas que fallarán por archivos borrados y textos movidos, el `mixer` con
+  `inputs`/`outputs` en un grafo estéreo, el coste de los widgets a la vista,
+  `follow_mouse` con el centro de control.
+- Rollback: `git revert` de `d574fa85..35c5bdef` en orden inverso. Nada
+  instalado. Las preferencias nuevas se ignoran al volver atrás; el reloj
+  2.x vuelve con su preferencia `desktopClockEnabled`, que no se tocó.
 - Siguiente misión: `QA INTEGRAL 3.0`, **pendiente de autorización**.
 

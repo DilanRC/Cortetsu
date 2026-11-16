@@ -1,7 +1,8 @@
 # QA posterior de la ola de construcción 3.0
 
-Estado: **pendiente de autorización**. Nada de esta lista se ejecutó en la ola
-del 2026-11-16 (commits `aefc805b` a `df78aae0` y la documentación que sigue).
+Estado: **pendiente de autorización**. Nada de esta lista se ejecutó en las
+dos olas del 2026-11-16 (ola 1: `aefc805b` a `df78aae0`; ola 2: `d574fa85` a
+`35c5bdef`, más su documentación). La ola 2 está en la sección 9.
 Este archivo no contiene resultados: es el orden y el alcance de la misión
 `QA INTEGRAL 3.0`.
 
@@ -132,3 +133,115 @@ cortetsu rollback && cortetsu shell restart    # ensayo de vuelta atrás
 `modules/overview/Content.qml`, `modules/dashboard/{Dash,DashGauge}.qml`,
 `modules/utilities/toasts/ToastItem.qml`, `modules/ServiceLoader.qml`,
 `modules/CortetsuConfig.qml`, `services/CortetsuEqualizer.qml`.
+
+## 9. Segunda ola (`d574fa85` a `35c5bdef`)
+
+### 9.1 Estático
+
+- `qmllint` sobre todo lo que lista `git diff --name-only 3b4e7c2f..HEAD -- '*.qml'`.
+  Puntos con más riesgo de no compilar: importación cualificada
+  `import "../settings" as SettingsModule` en `osd/FullContent.qml` (singleton
+  por directorio con calificador); `Binding { restoreMode: Binding.RestoreNone }`
+  en `desktop/Editor.qml`; `ScriptModel` de cadenas en
+  `desktop/{DesktopWidgetLayer,Editor}.qml`; `QtObject` (`ServiceUse`) como
+  hijo de `ColumnLayout`; `font.features` en `DesktopWidget.qml`;
+  `property string state` en `cheatsheet/Content.qml` (mismo patrón que
+  `ShortcutsSection.qml`); `Keys.onShortcutOverride` en campos de búsqueda.
+- `python3 scripts/verification/qml-inventory.py --check docs/roadmap/cortetsu-3.0/qml-inventory.md`
+  y `python3 scripts/verification/qml-coverage.py` (sale 1 si queda un archivo sin familia).
+- `cargo check` del runtime de escritorio por el cambio de textos de `recorder.rs`.
+
+### 9.2 Pruebas existentes que fallarán y deben sustituirse por pruebas de comportamiento
+
+| Prueba | Por qué falla |
+| --- | --- |
+| `scripts/features/test-cortetsu-config.py` | Lee `background/DesktopClock.qml`, `bar/components/{Clock,StatusIcons}.qml`, `utils/{SysInfo,CortetsuUtils}.qml`, `services/UsageFmt.qml`, borrados |
+| `cortetsu/tests/test-regional.py` | Lee `background/DesktopClock.qml` |
+| `cortetsu/tests/test-runtime-contract.py` | Nombra `utils/NetworkConnection.qml` |
+| `scripts/features/test-cortetsu-settings-runtime.py` | Monta `DesktopClock` y busca las filas del reloj en Fondo, que pasan a Ajustes → Widgets |
+| `scripts/features/test-cortetsu-screen-state.py` | Su lista fija de siete banderas retenidas; ahora son nueve (`cheatsheet`, `desktopWidgets`) |
+| `scripts/features/test-cortetsu-power.py`, `test-bottom-hub-v3.py` | Nombran `StatusIcons` o el reloj de escritorio |
+| Pruebas de equivalencia del grabador | El runtime de Rust y el de referencia en Python cambiaron igual sus textos; comprobar que la equivalencia compara lo mismo |
+| Inventario de procesos de arranque de `build-regressions.sh` | Procesos nuevos solo a demanda: `cortetsu:cheatsheet-keybind-list`, `cortetsu:launcher-file-search`, `cortetsu:settings-doctor`; `cortetsu:spectrum` ahora con `-p` |
+
+### 9.3 Pruebas nuevas que faltan (escribirlas en QA)
+
+| Pieza | Comportamiento |
+| --- | --- |
+| `desktop/DesktopLayout.js` | `rectFor` con `cx = 0` y `1`; área con el Hub en cada borde; `snap` a borde, centro y otro widget, y a rejilla sin guía; `sanitiseList` con basura, duplicados y más de 24; `legacyClock` por posición |
+| `services/DesktopWidgets.qml` | `add` respeta `available` y el máximo; `placeAt` guarda el centro y el monitor; deshacer/rehacer; `ownerScreen` con monitor ausente; `beginSession` conserva una selección válida |
+| `desktop/Editor.qml` | Clic sin arrastre no mueve; arrastre con guías; flechas, + y −, Supr; selección de otro monitor ignorada; Escape guarda y sale |
+| `desktop/DesktopWidget.qml` | «Leyendo…» antes de la primera muestra; GPU en reposo; batería ausente; sin reproductor; nota vacía; filas de Sistema y Red **no** recreadas tras una muestra (contador en `Component.onCompleted`) |
+| `desktop/DesktopWidgetLayer.qml` + `ServiceUse` | Consumidores 0 con una ventana en mosaico; 1 por servicio con el escritorio vacío; liberados al destruir |
+| `CortetsuConfig` | Migración: `desktopClockEnabled: true` sin `desktopWidgets` crea un reloj en su posición; con lista vacía, no |
+| `services/NightLight.js` | `inRange` con rango que cruza medianoche y rango vacío; `nextBoundary` el mismo día y el siguiente |
+| `services/DisplayCalibration.qml` | Horario enciende y apaga; un cambio manual se mantiene hasta el siguiente límite y luego sigue el horario |
+| `services/EqResponse.js` | Plano = 0 dB; una banda +6 → pico ≈ 6 dB; 64 y 125 Hz a +6 → pico > 6 dB; preamp nunca positivo; `linear(-6) ≈ 0.501` |
+| `services/CortetsuEqualizer.qml` | Payload `"eq_preamp:Gain 1"` lineal con grafo 2; `"eq_preamp:Gain"` en dB sin la propiedad; nada antes de `node.ready` |
+| `services/CortetsuSpectrum.qml` | Sin `visualiserEnabled` no escribe ni lanza; con él escribe el archivo y lanza `cava -p`; cambiar las barras relanza |
+| `cheatsheet/Content.qml` + `Columns.js` | Agrupa, filtra, reparte en columnas; Escape con texto vacía sin cerrar; error del ayudante |
+| `launcher/services/Files.qml` | Menos de dos letras no busca; espera 180 ms; consulta cambiada en curso relanza; respuesta vieja descartada; código ≠ 0/1 = «no disponible»; filtra ocultos y fuera de HOME |
+| `services/Notifs.qml` | App silenciada: sin emergente y en historial; crítica de app silenciada: con emergente |
+| `clipboard/Content.qml` | Limpiar arma, se desarma a los 4 s, borra al segundo clic y conserva los fijados |
+| `overview/Content.qml` | `/` y Ctrl+F abren el filtro; F sola sigue alternando flotante |
+| `settings/sections/DiagnosticsSection.qml` | Informe con avisos y errores; salida vacía con código; repetir |
+
+### 9.4 Anidado
+
+| Escenario | Prueba |
+| --- | --- |
+| Editor del escritorio | Abrir por IPC `desktopWidgets open`; añadir los nueve tipos; arrastrar; Hub en los ocho anclajes (el área y el panel cambian de lado); dos salidas con «Llevar a» |
+| Hoja de atajos | `hyprctl reload`; SUPER+F1 abre y cierra; con pantalla completa |
+| Centro de control | Pliegue con flujos reales (`pw-play` en el `XDG_RUNTIME_DIR` aislado); lo que suena con un reproductor MPRIS de prueba; mosaico de captura abre el selector tras cerrar |
+| Luz nocturna | Con `hyprsunset` en la sesión anidada: horario con el reloj desplazado (`faketime` o cambio de las horas) |
+| Lanzador | `>files` con un doble de `plocate` delante en `PATH=<doble>:/usr/bin:/bin` (patrón de los arneses; memoria: no conservar el `PATH` del usuario) que imprime rutas fijas, tarda y sale con 0, 1 y 2 |
+| Notificaciones | `notify-send -a App` silenciada y crítica |
+
+### 9.5 Sesión física (con Dilan presente)
+
+- Widgets sobre los tres temas, `eDP-1` y `HDMI-A-1` a escala 1.25;
+  desconectar el HDMI con widgets en él y reconectarlo.
+- Medidor de nivel del dashboard con música real.
+- Ecualizador: **volver a copiar** `cortetsu-eq.conf` (grafo 2), reiniciar
+  PipeWire, `pw-dump` del nodo `cortetsu_eq` (dos entradas y dos salidas, no
+  dieciséis), escuchar la curva «Graves» sin saturación.
+- Biblioteca de componentes en Ink, Washi y Kurogane.
+- `cortetsu shell logs 200` limpio tras abrir cada superficie nueva.
+
+### 9.6 Rendimiento (medir, no se afirma nada)
+
+- PSS y CPU en reposo con 0, 3 y 9 widgets a la vista y tapados.
+- Frecuencia de `PwNodePeakMonitor.peaks` y CPU del dashboard con música.
+- Latencia de `>files` con la base real (`plocate.db` de ~1,4 GB en este equipo).
+- Primer fotograma de la hoja de atajos con 119 atajos.
+
+### 9.7 Instalación
+
+- `config/hypr-user.lua` gana `SUPER + F1`: tras `cortetsu install`, hace
+  falta `hyprctl reload` (memoria: install no recarga Hyprland).
+- Preferencias nuevas: `desktopWidgets`, `displayCalibration.schedule`,
+  `mutedNotificationApps`. Probar la migración del reloj con una copia de
+  `preferences.json` real, no la viva.
+
+### QML y JS tocados en la ola 2
+
+`components/ScreenState.qml`, `base/modules/bar/popouts/Content.qml`,
+`modules/{CheatsheetController,CortetsuConfig,CortetsuRecorder,CortetsuRegional,CortetsuScreenState,DesktopWidgetsController,RetainedSurfacesHost}.qml`,
+`modules/SurfaceRegistry.js`, `modules/background/{Background,Visualiser}.qml`,
+`modules/bar/popouts/Cortetsu{Keyboard,LockStatus}Popup.qml`,
+`modules/cheatsheet/{Columns.js,Content.qml,Wrapper.qml}`,
+`modules/clipboard/{ClipboardItem,Content}.qml`,
+`modules/dashboard/{DashLevelMeter,DashMediaPlayer}.qml`,
+`modules/desktop/{DesktopLayout.js,DesktopWidget,DesktopWidgetLayer,Editor,EditorWrapper,ServiceUse}.qml`,
+`modules/keyboards/{KeyCap,KeyCaps}.qml`,
+`modules/launcher/{AppList,ContentList}.qml`, `modules/launcher/services/{Actions,Files}.qml`,
+`modules/osd/FullContent.qml`, `modules/overview/Content.qml`,
+`modules/screenshare/ScreenSharePanel.qml`,
+`modules/settings/{PageRegistry,SettingsController}.qml`,
+`modules/settings/bluetooth/DeviceDetailPanel.qml`, `modules/settings/controls/EqCurve.qml`,
+`modules/settings/display/DisplayColour.qml`,
+`modules/settings/sections/{AudioSection,ComponentGallerySection,DiagnosticsSection,NotificationsSection,RecordingsSection,ShortcutsSection,WallpaperSection,WidgetsSection}.qml`,
+`modules/sidebar/Content.qml`, `modules/wallpaper/WallpaperTile.qml`,
+`services/{CortetsuEqualizer,CortetsuSpectrum,DesktopWidgets,DisplayCalibration,Notifs,Weather}.qml`,
+`services/{EqResponse,NightLight}.js`, `shell.qml`.
+

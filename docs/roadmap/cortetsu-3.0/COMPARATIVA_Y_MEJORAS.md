@@ -1,7 +1,9 @@
 # Comparativa con end-4, Caelestia y Nebula, y mejoras decididas
 
-Ola de construcción 3.0, 2026-11-16. Estado de todo lo implementado:
-`IMPLEMENTADO_SIN_VERIFICAR`.
+Olas de construcción 3.0, 2026-11-16. Estado de todo lo implementado:
+`IMPLEMENTADO_SIN_VERIFICAR`. La segunda ola clonó los tres proyectos y
+leyó su código: el detalle por archivo y commit está en
+[`REFERENCIAS_END4_CAELESTIA_NEBULA.md`](REFERENCIAS_END4_CAELESTIA_NEBULA.md).
 
 ## Qué se leyó y qué no
 
@@ -34,13 +36,30 @@ solo toma principios.
 | 10 | Nebula, animación de bloqueo de 3,4 s | — | Descartar | El desbloqueo depende de PAM, no de una escena; el plan lo excluye | — | No aplica |
 | 11 | Nebula `WavyProgress`, `MorphButton`, `FloatingShapes` | — | Descartar | Movimiento decorativo en reposo; choca con ENERGY 1 / MOTION 1 de la dirección vigente | — | No aplica |
 | 12 | end-4 `aiChat` | — | Descartar | AGENTS.md prohíbe APIs externas de LLM sin instrucción expresa | — | No aplica |
-| 13 | end-4 `AndroidNightLightToggle`, `GammaIndicator` | Sin luz nocturna | Propuesta | Necesita un dueño de gamma (hyprsunset o `DisplayCalibration`) y su ciclo de vida; no se dibuja un interruptor sin él | — | Pendiente de backend |
-| 14 | end-4 `cheatsheet` | Los atajos solo se ven en Ajustes → Atajos | Propuesta | Superposición SUPER+/ con la tabla de `Shortcuts`; sin implementar en esta ola | — | No implementado |
-| 15 | Nebula `WidgetSnap`, `EditToolbar` | Widgets de escritorio sin edición ni ajuste a rejilla | Propuesta | Requiere modelo de posición por monitor y colisión con el Hub; ver bloque H en `REGISTRO.md` | — | No implementado |
-| 16 | end-4 `AndroidScreenSnipToggle`, `ColorPicker` | La captura no está en el centro de control | Propuesta | `areapicker` existe; falta decidir si va al centro de control o se queda en atajos | — | No implementado |
+| 13 | end-4 `services/Hyprsunset.qml`, `AndroidNightLightToggle` | Sin luz nocturna programada | Adaptar (ola 2) | El dueño ya existía (`DisplayCalibration` sobre `hyprsunset.service`; la ola 1 lo pasó por alto). Horario con retención manual hasta el siguiente cambio; mosaico en el centro de control | `services/{DisplayCalibration.qml,NightLight.js}`, `settings/display/DisplayColour.qml`, `osd/FullContent.qml` | Implementado |
+| 14 | end-4 `cheatsheet/` | Los atajos solo se ven en Ajustes → Atajos | Adaptar (ola 2) | Superficie retenida en SUPER+F1 (SUPER+/ es del centro de control en latam) con el ayudante `cortetsu-keybinds`, búsqueda y conflictos | `cheatsheet/`, `CheatsheetController.qml`, `config/hypr-user.lua` | Implementado |
+| 15 | Nebula `services/{Widgets,WidgetSnap}.qml` | Widgets de escritorio sin edición | Adaptar (ola 2) | Nueve tipos, editor con guías, centro relativo por monitor, borde del Hub reservado | `desktop/`, `services/DesktopWidgets.qml`, `settings/sections/WidgetsSection.qml` | Implementado |
+| 16 | end-4 `AndroidScreenSnipToggle` | La captura no está en el centro de control | Adoptar (ola 2) | Mosaico que abre el selector existente tras cerrar el panel | `osd/FullContent.qml`, `shell.qml` | Implementado |
 | 17 | Propia | La sesión decía «Pulsa otra vez en 4 segundos» fijo | Corregir | Cuenta atrás viva; Escape desarma antes de cerrar | `session/Content.qml`, `SessionHost.qml` | Implementado |
 | 18 | Propia | El centro de control cambiaba la marca a Monster al pulsar | Corregir | Monster significa fallo de autenticación (ADR-008); la marca queda en Ascended quieta | `osd/FullContent.qml` | Implementado |
 | 19 | Propia | El historial de notificaciones se pintaba deshabilitado (opacidad 0,46) | Corregir | Filas legibles con botón de quitar | `sidebar/Content.qml` | Implementado |
 | 20 | Propia | El dashboard dibujaba 0 % para una GPU sin lectura | Corregir | «Sin lectura» | `dashboard/DashGauge.qml`, `dashboard/Dash.qml` | Implementado |
 | 21 | Propia | La búsqueda de Ajustes no abría el grupo plegado que contenía la fila buscada | Corregir | Abre todos los grupos plegados de la cadena | `settings/Content.qml` | Implementado |
 | 22 | Propia | El popout de energía decía «Calculando…» cuando UPower no daba estimación | Corregir | Sin estimación no hay texto; «Conectado, sin cargar» como estado propio | `bar/popouts/CortetsuBatteryPopup.qml` | Implementado |
+| 23 | PipeWire 1.6.11 `biquad.c`, `plugin_builtin.c` | El preamp solo cubría la banda más alta y dependía de un caso especial (`highshelf` a 0 Hz) | Corregir | Margen sobre la curva real de la cascada; preamp con el `mixer` lineal; grafo versionado y compatible | `services/{CortetsuEqualizer.qml,EqResponse.js}`, `data/pipewire/cortetsu-eq.conf`, `settings/controls/EqCurve.qml` | Implementado |
+| 24 | Nebula `services/Cava.qml` | cava dependía del archivo de configuración del usuario; las barras se recreaban por muestra | Adaptar | Configuración propia en `XDG_RUNTIME_DIR`; modelo por número de barras | `services/CortetsuSpectrum.qml`, `background/Visualiser.qml` | Implementado |
+| 25 | Caelestia `utilities/cards/RecordingList.qml` | No se veían las grabaciones hechas | Adaptar sin plugin | `FolderListModel` en Ajustes → Capturas; reproducir y abrir carpeta, sin borrar | `settings/sections/RecordingsSection.qml`, `CortetsuRecorder.qml` | Implementado |
+| 26 | end-4 `NotificationGroup` | Una app ruidosa solo se callaba con No molestar | Propia | Silenciar por app desde su grupo; críticas siempre visibles; lista en Ajustes | `services/Notifs.qml`, `sidebar/Content.qml`, `settings/sections/NotificationsSection.qml` | Implementado |
+| 27 | end-4 `overview/SearchWidget.qml` | La vista general no se podía filtrar | Adaptar | Filtro de ventanas con `/` o Ctrl+F; la F sigue siendo flotar | `overview/Content.qml` | Implementado |
+| 28 | Propia | Limpiar el portapapeles borraba todo de un clic; controles sin teclado | Corregir | Pestañas y botón armado en dos pasos | `clipboard/*.qml` | Implementado |
+| 29 | end-4 `volumeMixer` | El mezclador por app solo estaba en Ajustes | Adaptar | Hasta cuatro apps en el pliegue de audio del centro de control | `osd/FullContent.qml` | Implementado |
+| 30 | Nebula `MediaIsland` | Sin reproductor en el centro de control | Adaptar | Fila de lo que suena solo con un reproductor | `osd/FullContent.qml` | Implementado |
+| 31 | Nebula `Visualizer`, `MirroredCava` | Sin visualizador sin cava | Propia | Medidor de picos con `PwNodePeakMonitor` en el dashboard | `dashboard/DashLevelMeter.qml` | Implementado |
+| 32 | Caelestia launcher | Sin búsqueda de archivos | Propia | `>files` sobre el índice de `plocate` ya instalado | `launcher/services/Files.qml` | Implementado |
+| 33 | Propia (fase 1 pendiente) | Sin galería de la biblioteca | Propia | Ajustes → Avanzado → Biblioteca de componentes | `settings/sections/ComponentGallerySection.qml` | Implementado |
+| 34 | Propia | Diagnóstico mandaba a una terminal | Propia | `cortetsu doctor --json` a demanda | `settings/sections/DiagnosticsSection.qml` | Implementado |
+| 35 | Caelestia popouts | Teclado y Bloq Mayús fuera de la familia; lecturas pulsables | Corregir | Cabecera común; `CortetsuFact` | `bar/popouts/Cortetsu{Keyboard,LockStatus}Popup.qml` | Implementado |
+| 36 | Propia | Fichas de fondos y de compartir pantalla anónimas | Corregir | Rol, nombre, selección | `wallpaper/WallpaperTile.qml`, `screenshare/ScreenSharePanel.qml` | Implementado |
+| 37 | Propia | Avisos del grabador en inglés | Corregir | Español en Rust y en el runtime de referencia | `desktop-runtime-rs/src/recorder.rs` | Implementado |
+| 38 | Nebula `WidgetsWindow` (imagen), `TerminalWidget` | — | Descartar | Imagen exige `zenity`; fetch es decorativo | — | No aplica |
+

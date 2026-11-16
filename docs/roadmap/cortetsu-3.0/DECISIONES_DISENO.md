@@ -69,3 +69,54 @@ oscureció ni se recoloreó. Kurogane conserva radios 2/4/6/8.
 - UPower sin estimación no se muestra como «Calculando…».
 - Recientes del launcher: estado de ejecución en
   `~/.local/state/cortetsu/launcher-recent.json`, solo ids.
+
+## Segunda ola (2026-11-16)
+
+Estado de todo lo descrito: `IMPLEMENTADO_SIN_VERIFICAR`.
+
+### Composición
+
+| Superficie | Decisión | Motivo |
+| --- | --- | --- |
+| Widgets de escritorio | Un `CortetsuSurface` por widget con `colorSurfaceGlass` al 82 % y `radiusLarge`; sin lavado de acento | Sobre el fondo, cada widget es su propio marco; el lavado es del protagonista de una vista y aquí no hay vista |
+| Editor del escritorio | Velo del host (0,34), widgets dibujados encima, panel lateral en el lado opuesto al Hub, área útil marcada con una línea fina | Se ve lo que se edita sin las ventanas, y el panel no tapa el borde ocupado |
+| Hoja de atajos | Un panel; grupos sin tarjeta, encabezados en el acento, filas con divisor; teclas con `KeyCap` | Datos, no controles: filas abiertas (ADR-008 §2.3) |
+| Centro de control | Lo que suena y el mezclador entran solo cuando tienen con qué trabajar (reproductor, flujos) y el mezclador vive en el pliegue de audio | Progresión: compacto primero, detalle a demanda |
+| Portapapeles | Filtros como `CortetsuTabBar`; limpiar armado en dos pasos | ADR-008 §2.6: lo destructivo se confirma |
+| Popouts de teclado y Bloq Mayús | `CortetsuPopoutHeader`; Bloq Mayús/Num como `CortetsuFact` | Una familia; una lectura no reacciona al puntero (H-22) |
+
+### Identidad
+
+Sin cambios en los SVG del Evolving Mark. Ninguna superficie nueva usa
+Monster ni Cosmic: siguen reservados al fallo y al éxito de PAM.
+
+### Tokens
+
+Ningún token nuevo ni edición de `CortetsuDesign.qml`. `EqCurve.qml` usa
+`materialSeparatorAlpha` para su rejilla. El portapapeles deja de aclarar
+sus tarjetas en Washi: oscurece sobre fondo claro como `CortetsuSurface`.
+
+### Interacción
+
+| Superficie | Teclado | Ratón |
+| --- | --- | --- |
+| Editor del escritorio | Tab/Mayús+Tab eligen; flechas mueven 8 px (Mayús, 32); + y − cambian el tamaño; Supr quita; Ctrl+Z / Ctrl+Mayús+Z / Ctrl+Y; Intro o Escape salen | Arrastre con guías y fantasma de destino; clic en el vacío deselecciona |
+| Hoja de atajos | Se abre en la búsqueda; RePág/AvPág desplazan; Escape vacía y luego cierra | Editar abre Atajos y teclados |
+| Vista general | `/` o Ctrl+F filtran; Intro enfoca la primera; Abajo vuelve a la rejilla; Escape vacía y luego cierra el filtro | — |
+| Portapapeles | P fija, Intro copia, Supr borra (las acciones por fila no son paradas de Tab) | Botones con su tecla en el texto emergente |
+| Lanzador | `>files texto` | Clic abre con `xdg-open` |
+
+### Datos y honestidad
+
+- Widgets: «Leyendo…» hasta la primera muestra; la batería no se ofrece sin
+  batería; la galería de Ajustes dice por qué un tipo no está disponible.
+- Luz nocturna: el estado del mosaico es el de `DisplayCalibration`
+  (aplicando, falló, temperatura real).
+- Ecualizador: la curva dibujada es la misma que dimensiona el preamp.
+- Archivos: el estado vacío dice que el índice es de `plocate` y su edad.
+
+### Movimiento
+
+Sin animaciones en reposo nuevas. El medidor de nivel solo existe mientras
+suena algo con el dashboard abierto. Los fundidos de la hoja y del editor
+usan `motionFastMs`, que vale 0 con movimiento reducido.
