@@ -17,50 +17,6 @@ ColumnLayout {
     spacing: CortetsuDesign.spacingSection
 
     SettingsGroup {
-        title: qsTr("Límites de audio")
-        icon: "shield"
-        detail: qsTr("El límite se aplica al próximo ajuste desde Cortetsu; los niveles actuales se conservan")
-        SettingToggleRow {
-            objectName: "audioProtection"
-            title: qsTr("Limitar aumentos bruscos")
-            detail: qsTr("Limita cada aumento solicitado desde Cortetsu; no controla otras aplicaciones")
-            checked: CortetsuConfig.audioProtectionEnabled
-            onToggled: enabled => { CortetsuConfig.audioProtectionEnabled = enabled; }
-        }
-        SettingSliderRow {
-            objectName: "audioMaxIncrease"
-            title: qsTr("Aumento máximo por ajuste")
-            from: 1
-            to: 100
-            step: 1
-            value: Math.round(CortetsuConfig.audioMaxIncrease * 100)
-            valueText: qsTr("%1 %").arg(Math.round(value))
-            disabled: !CortetsuConfig.audioProtectionEnabled
-            onMoved: next => { CortetsuConfig.audioMaxIncrease = next / 100; }
-        }
-        SettingSliderRow {
-            objectName: "audioLimit"
-            title: qsTr("Límite al ajustar el volumen")
-            from: 0
-            to: 200
-            step: 5
-            value: Math.round(CortetsuConfig.maxVolume * 100)
-            valueText: qsTr("%1 %").arg(Math.round(value))
-            onMoved: next => { CortetsuConfig.maxVolume = next / 100; CortetsuConfig.save(); }
-        }
-        SettingSliderRow {
-            objectName: "audioStep"
-            title: qsTr("Incremento por paso")
-            from: 1
-            to: 100
-            step: 1
-            value: Math.round(CortetsuConfig.audioIncrement * 100)
-            valueText: qsTr("%1 %").arg(Math.round(value))
-            onMoved: next => { CortetsuConfig.audioIncrement = next / 100; CortetsuConfig.save(); }
-        }
-    }
-
-    SettingsGroup {
         title: qsTr("Salida")
         icon: "speaker"
         detail: root.context.outputName
@@ -195,9 +151,57 @@ ColumnLayout {
                     : qsTr("%1 %").arg(Math.round(CortetsuAudio.getStreamVolume(modelData) * 100))
                 value: CortetsuAudio.getStreamVolume(modelData)
                 to: CortetsuConfig.maxVolume
-                disabled: CortetsuAudio.getStreamMuted(modelData)
+                mutable: true
+                muted: CortetsuAudio.getStreamMuted(modelData)
+                disabled: muted
                 onMoved: next => CortetsuAudio.setStreamVolume(modelData, next)
+                onMuteToggled: CortetsuAudio.setStreamMuted(modelData, !CortetsuAudio.getStreamMuted(modelData))
             }
+        }
+    }
+
+    SettingsGroup {
+        title: qsTr("Límites de audio")
+        icon: "shield"
+        collapsible: true
+        detail: qsTr("El límite se aplica al próximo ajuste desde Cortetsu; los niveles actuales se conservan")
+        SettingToggleRow {
+            objectName: "audioProtection"
+            title: qsTr("Limitar aumentos bruscos")
+            detail: qsTr("Limita cada aumento solicitado desde Cortetsu; no controla otras aplicaciones")
+            checked: CortetsuConfig.audioProtectionEnabled
+            onToggled: enabled => { CortetsuConfig.audioProtectionEnabled = enabled; }
+        }
+        SettingSliderRow {
+            objectName: "audioMaxIncrease"
+            title: qsTr("Aumento máximo por ajuste")
+            from: 1
+            to: 100
+            step: 1
+            value: Math.round(CortetsuConfig.audioMaxIncrease * 100)
+            valueText: qsTr("%1 %").arg(Math.round(value))
+            disabled: !CortetsuConfig.audioProtectionEnabled
+            onMoved: next => { CortetsuConfig.audioMaxIncrease = next / 100; }
+        }
+        SettingSliderRow {
+            objectName: "audioLimit"
+            title: qsTr("Límite al ajustar el volumen")
+            from: 0
+            to: 200
+            step: 5
+            value: Math.round(CortetsuConfig.maxVolume * 100)
+            valueText: qsTr("%1 %").arg(Math.round(value))
+            onMoved: next => { CortetsuConfig.maxVolume = next / 100; CortetsuConfig.save(); }
+        }
+        SettingSliderRow {
+            objectName: "audioStep"
+            title: qsTr("Incremento por paso")
+            from: 1
+            to: 100
+            step: 1
+            value: Math.round(CortetsuConfig.audioIncrement * 100)
+            valueText: qsTr("%1 %").arg(Math.round(value))
+            onMoved: next => { CortetsuConfig.audioIncrement = next / 100; CortetsuConfig.save(); }
         }
     }
 }

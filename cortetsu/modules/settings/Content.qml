@@ -110,8 +110,11 @@ FocusScope {
         const target = root.findTitled(pageLoader.item, title);
         if (!target)
             return;
-        if (target.collapsible === true)
-            target.expanded = true;
+        // The target, or a row inside a folded group: every folded group
+        // on the way up opens, or the row would be found but not shown.
+        for (let item = target; item && item !== pageLoader.item; item = item.parent)
+            if (item.collapsible === true)
+                item.expanded = true;
         scroller.contentY = Math.max(0, Math.min(scroller.contentHeight - scroller.height,
             target.mapToItem(scroller.contentItem, 0, 0).y - scroller.height / 3));
         // A group or a grid is not a stop itself: its first control is.

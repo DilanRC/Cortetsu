@@ -20,7 +20,12 @@ Item {
     property bool disabled: false
     property string status: ""
     property string statusText: ""
+    // A level that can be silenced (an app's stream) carries its own mute
+    // button, so silencing it never leaves the row with no way back.
+    property bool mutable: false
+    property bool muted: false
     signal moved(real value)
+    signal muteToggled()
 
     Layout.fillWidth: true
     implicitHeight: CortetsuDesign.rowHeight + CortetsuDesign.spacingSpacious
@@ -44,13 +49,25 @@ Item {
         RowLayout {
             Layout.fillWidth: true
             spacing: CortetsuDesign.spacingStandard
-            opacity: root.disabled ? 0.52 : 1
+            opacity: root.disabled && !root.mutable ? 0.52 : 1
 
             CortetsuText {
                 Layout.fillWidth: true
                 text: root.title
                 textSize: CortetsuTypography.bodyLargePx
                 elide: Text.ElideRight
+            }
+
+            CortetsuButton {
+                objectName: "sliderMute"
+                visible: root.mutable
+                compact: true
+                active: root.muted
+                icon: root.muted ? "volume_off" : "volume_up"
+                label: ""
+                tooltipText: root.muted ? qsTr("Activar el sonido de %1").arg(root.title)
+                    : qsTr("Silenciar %1").arg(root.title)
+                onClicked: root.muteToggled()
             }
 
             CortetsuText {
