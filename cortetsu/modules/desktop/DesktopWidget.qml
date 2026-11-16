@@ -263,16 +263,25 @@ Item {
             ServiceUse { target: Memory; active: root.live }
             ServiceUse { target: Gpu; active: root.live }
 
+            // One row per metric; the model is the count, so a new sample
+            // updates the rows in place instead of rebuilding them.
+            function metric(index: int): var {
+                if (index === 0)
+                    return { label: qsTr("CPU"), seen: system.cpuSeen, value: Cpu.percentage, extra: Cpu.temperature > 0 ? qsTr("%1 °C").arg(Math.round(Cpu.temperature)) : "" };
+                if (index === 1)
+                    return { label: qsTr("Memoria"), seen: system.memorySeen, value: Memory.percentage, extra: "" };
+                return Gpu.type !== Gpu.noneType
+                    ? { label: qsTr("GPU"), seen: true, value: Gpu.percentage, extra: Gpu.temperature > 0 ? qsTr("%1 °C").arg(Math.round(Gpu.temperature)) : "" }
+                    : { label: qsTr("GPU"), seen: false, value: -1, extra: qsTr("En reposo") };
+            }
+
             Repeater {
-                model: [
-                    { label: qsTr("CPU"), seen: system.cpuSeen, value: Cpu.percentage, extra: Cpu.temperature > 0 ? qsTr("%1 °C").arg(Math.round(Cpu.temperature)) : "" },
-                    { label: qsTr("Memoria"), seen: system.memorySeen, value: Memory.percentage, extra: "" }
-                ].concat(Gpu.type !== Gpu.noneType ? [{ label: qsTr("GPU"), seen: true, value: Gpu.percentage, extra: Gpu.temperature > 0 ? qsTr("%1 °C").arg(Math.round(Gpu.temperature)) : "" }]
-                    : Gpu.dgpuAsleep ? [{ label: qsTr("GPU"), seen: false, value: -1, extra: qsTr("En reposo") }] : [])
+                model: Gpu.type !== Gpu.noneType || Gpu.dgpuAsleep ? 3 : 2
 
                 delegate: ColumnLayout {
                     id: metric
-                    required property var modelData
+                    required property int index
+                    readonly property var modelData: system.metric(index)
                     Layout.fillWidth: true
                     spacing: root.px(3)
                     RowLayout {
@@ -366,14 +375,16 @@ Item {
                 return qsTr("%1 %2/s").arg(formatted.value.toFixed(formatted.value < 10 ? 1 : 0)).arg(formatted.unit);
             }
 
+            // Two fixed rows; each reads its rate, so samples do not
+            // rebuild them.
             Repeater {
-                model: [
-                    { icon: "south", label: qsTr("Descarga"), value: NetworkUsage.downloadSpeed },
-                    { icon: "north", label: qsTr("Subida"), value: NetworkUsage.uploadSpeed }
-                ]
+                model: 2
                 delegate: RowLayout {
                     id: rateRow
-                    required property var modelData
+                    required property int index
+                    readonly property var modelData: index === 0
+                        ? { icon: "south", label: qsTr("Descarga"), value: NetworkUsage.downloadSpeed }
+                        : { icon: "north", label: qsTr("Subida"), value: NetworkUsage.uploadSpeed }
                     Layout.fillWidth: true
                     spacing: root.px(CortetsuDesign.spacingCompact)
                     CortetsuIcon { text: rateRow.modelData.icon; iconSize: root.px(CortetsuTypography.iconSmallPx); color: CortetsuDesign.colorPrimary }

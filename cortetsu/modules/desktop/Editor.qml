@@ -25,7 +25,8 @@ FocusScope {
 
     readonly property string screenName: screen?.name ?? ""
     readonly property var ids: DesktopWidgets.idsFor(screenName)
-    readonly property var selectedItem: DesktopWidgets.entry(DesktopWidgets.selected)
+    // Only a widget of this monitor can be edited here.
+    readonly property var selectedItem: ids.includes(DesktopWidgets.selected) ? DesktopWidgets.entry(DesktopWidgets.selected) : null
     readonly property var reserved: DesktopWidgets.reservedFor(screenName)
     // The panel sits on the side the Hub does not use.
     readonly property bool panelOnLeft: HubAnchor.describe(CortetsuConfig.bottomHub.anchorFor(screenName)).edge === "right"
@@ -38,6 +39,8 @@ FocusScope {
 
     function openSurface(): void {
         DesktopWidgets.beginSession();
+        if (!root.ids.includes(DesktopWidgets.selected))
+            DesktopWidgets.selected = "";
         root.forceActiveFocus();
     }
 
@@ -87,11 +90,11 @@ FocusScope {
             root.nudge(0, -step);
         } else if (event.key === Qt.Key_Down) {
             root.nudge(0, step);
-        } else if (event.key === Qt.Key_Plus || event.key === Qt.Key_Equal) {
+        } else if ((event.key === Qt.Key_Plus || event.key === Qt.Key_Equal) && root.selectedItem) {
             DesktopWidgets.resize(DesktopWidgets.selected, 1);
-        } else if (event.key === Qt.Key_Minus) {
+        } else if (event.key === Qt.Key_Minus && root.selectedItem) {
             DesktopWidgets.resize(DesktopWidgets.selected, -1);
-        } else if (event.key === Qt.Key_Delete || event.key === Qt.Key_Backspace) {
+        } else if ((event.key === Qt.Key_Delete || event.key === Qt.Key_Backspace) && root.selectedItem) {
             DesktopWidgets.remove(DesktopWidgets.selected);
         } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
             root.close();

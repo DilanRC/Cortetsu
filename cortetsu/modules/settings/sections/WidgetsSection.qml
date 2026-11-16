@@ -8,6 +8,7 @@ import "../../../theme"
 import "../.."
 import ".."
 import "../controls"
+import "../../CortetsuOverlayPolicy.js" as OverlayPolicy
 
 // Ajustes → Personalización → Widgets. The editor on the desktop is where
 // widgets are placed; this page says what each monitor has, opens the
@@ -20,9 +21,18 @@ ColumnLayout {
 
     readonly property var sizeNames: ({ s: qsTr("pequeño"), m: qsTr("mediano"), l: qsTr("grande") })
 
+    // The editor opens on the monitor the widget lives on (or on this one
+    // for a new session), so the keys move it where it is.
     function edit(id: string): void {
         DesktopWidgets.selected = id;
-        root.context.openSurface("desktopWidgets");
+        const item = DesktopWidgets.entry(id);
+        const screen = item ? Quickshell.screens.find(s => s.name === DesktopWidgets.ownerScreen(item)) : null;
+        if (!screen) {
+            root.context.openSurface("desktopWidgets");
+            return;
+        }
+        root.context.screenState.settings = false;
+        Qt.callLater(() => OverlayPolicy.open(CortetsuShellState.allStates(), CortetsuShellState.forScreen(screen), "desktopWidgets"));
     }
 
     spacing: CortetsuDesign.spacingSection
