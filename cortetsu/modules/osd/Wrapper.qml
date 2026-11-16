@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell.Services.UPower
 import ".."
 import "../../theme"
 import "../../services"
@@ -18,8 +19,11 @@ Item {
     readonly property bool volumeAvailable: !!CortetsuAudio.sink?.ready && !!CortetsuAudio.sink?.audio
     property real brightness: monitor?.supported ? monitor.brightness : -1
     property bool compactVisible: false
-    // "volume" | "brightness" | "microphone"
+    // "volume" | "brightness" | "microphone" | "profile"
     property string compactKind: "volume"
+    // power-profiles-daemon reports its first value after start-up; that
+    // reading is not a change the user made and is not announced.
+    property bool profileSettled: false
     // The microphone whose mute state has been seen settled. A mute change
     // that arrives with a new default source is that source's own state,
     // not something the user just did, and is not announced.
@@ -77,6 +81,20 @@ Item {
                     && CortetsuShellState.forActive() === root.screenState)
                 root.showMini("microphone");
         }
+    }
+
+    Connections {
+        target: PowerProfiles
+        function onProfileChanged(): void {
+            if (root.profileSettled && CortetsuShellState.forActive() === root.screenState)
+                root.showMini("profile");
+        }
+    }
+
+    Timer {
+        running: true
+        interval: 3000
+        onTriggered: root.profileSettled = true
     }
 
     Connections {
@@ -150,11 +168,14 @@ Item {
         visible: root.compactVisible && !root.fullVisible
         kind: root.compactKind
         value: root.compactKind === "volume" ? root.volume
-            : root.compactKind === "microphone" ? CortetsuAudio.sourceVolume : root.brightness
+            : root.compactKind === "microphone" ? CortetsuAudio.sourceVolume
+            : root.compactKind === "profile" ? PowerProfiles.profile : root.brightness
         maximum: root.compactKind === "brightness" ? 1 : CortetsuConfig.maxVolume
         available: root.compactKind === "volume" ? root.volumeAvailable
-            : root.compactKind === "microphone" ? !!CortetsuAudio.source?.audio : root.brightness >= 0
-        muted: root.compactKind === "microphone" ? CortetsuAudio.sourceMuted : root.muted
+            : root.compactKind === "microphone" ? !!CortetsuAudio.source?.audio
+            : root.compactKind === "profile" ? true : root.brightness >= 0
+        muted: root.compactKind === "microphone" ? CortetsuAudio.sourceMuted
+            : root.compactKind === "profile" ? false : root.muted
         // The output's own name, so a change of device is told apart.
         name: root.compactKind === "volume" ? (CortetsuAudio.sink?.description ?? "") : ""
     }

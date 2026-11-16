@@ -10,11 +10,12 @@ import "../CortetsuTypography.js" as CortetsuTypography
 // not a control: it takes no pointer and no focus, and goes away on its own.
 // A level (volume, brightness) shows its bar; a state (the microphone) shows
 // its name and nothing to drag. Silence and a muted microphone read
-// differently from a plain percentage.
+// differently from a plain percentage. A power profile is a state too: its
+// name, as power-profiles-daemon reports it after the change.
 Item {
     id: root
 
-    // "volume" | "brightness" | "microphone"
+    // "volume" | "brightness" | "microphone" | "profile"
     required property string kind
     required property real value
     required property real maximum
@@ -22,7 +23,9 @@ Item {
     required property bool muted
     // The device the reading belongs to, when the system names it.
     property string name: ""
-    readonly property bool level: kind !== "microphone"
+    readonly property bool level: kind !== "microphone" && kind !== "profile"
+    // PowerProfile: 0 power saver, 1 balanced, 2 performance.
+    readonly property int profile: kind === "profile" ? Math.round(value) : -1
     // A muted microphone is the one reading here that asks for attention.
     readonly property bool attention: kind === "microphone" && muted && available
     readonly property color tone: attention ? CortetsuDesign.colorVermillion
@@ -39,11 +42,15 @@ Item {
     }
     readonly property string icon: kind === "volume"
         ? muted || value <= 0 ? "volume_off" : "volume_up"
-        : kind === "microphone" ? (muted || !available ? "mic_off" : "mic") : "light_mode"
+        : kind === "microphone" ? (muted || !available ? "mic_off" : "mic")
+        : kind === "profile" ? (profile === 0 ? "energy_savings_leaf" : profile === 2 ? "rocket_launch" : "balance")
+        : "light_mode"
     readonly property string label: name.length > 0 ? name
-        : kind === "volume" ? qsTr("Volumen") : kind === "microphone" ? qsTr("Micrófono") : qsTr("Brillo")
+        : kind === "volume" ? qsTr("Volumen") : kind === "microphone" ? qsTr("Micrófono")
+        : kind === "profile" ? qsTr("Perfil de energía") : qsTr("Brillo")
     readonly property string amount: !available ? qsTr("No disponible")
         : kind === "microphone" ? (muted ? qsTr("Silenciado") : qsTr("Activo"))
+        : kind === "profile" ? (profile === 0 ? qsTr("Ahorro") : profile === 2 ? qsTr("Rendimiento") : qsTr("Equilibrado"))
         : muted ? qsTr("Silenciado") : `${Math.round(value * 100)}%`
 
     Accessible.role: Accessible.AlertMessage

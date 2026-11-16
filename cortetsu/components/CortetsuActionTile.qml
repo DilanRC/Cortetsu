@@ -26,13 +26,15 @@ Item {
     property bool disabled: false
     // A kanji pressed as a seal in the corner while the tile is on.
     property string seal: ""
+    // A switch among several in a dense group: shorter, one line of detail.
+    property bool compact: false
     readonly property bool hovered: root.clickable && mouse.containsMouse
     readonly property bool pressed: root.clickable && mouse.pressed
     signal activated()
 
     onHighlightedChanged: if (highlighted && seal !== "") hanko.stamp()
 
-    implicitHeight: 76
+    implicitHeight: root.compact ? 56 : 76
     opacity: root.disabled ? 0.46 : 1
 
     // Press feedback scales the painted content only; the hitbox stays put.
@@ -82,12 +84,12 @@ Item {
     RowLayout {
         scale: root.visualScale
         anchors.fill: parent
-        anchors.margins: CortetsuDesign.spacingStandard
-        spacing: CortetsuDesign.spacingStandard
+        anchors.margins: root.compact ? CortetsuDesign.spacingCompact + 2 : CortetsuDesign.spacingStandard
+        spacing: root.compact ? CortetsuDesign.spacingCompact + 2 : CortetsuDesign.spacingStandard
 
         CortetsuIcon {
             text: root.icon
-            iconSize: CortetsuTypography.iconMediumPx
+            iconSize: root.compact ? CortetsuTypography.iconSmallPx : CortetsuTypography.iconMediumPx
             color: root.warning
                 ? CortetsuDesign.colorWarning
                 : root.highlighted
@@ -122,7 +124,7 @@ Item {
         CortetsuHanko {
             id: hanko
             Layout.alignment: Qt.AlignTop
-            size: 28
+            size: root.compact ? 22 : 28
             glyph: root.seal
             visible: root.seal !== "" && root.highlighted && !root.warning
         }

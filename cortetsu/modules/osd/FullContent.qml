@@ -3,8 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import Quickshell.Wayland
-import Quickshell.Bluetooth
+import Quickshell.Services.UPower
 import "../../components"
 import ".."
 import "../../services"
@@ -12,6 +11,12 @@ import "../../theme"
 import "../CortetsuTypography.js" as CortetsuTypography
 import "../CortetsuOverlayPolicy.js" as OverlayPolicy
 
+// The control center (level 2 of ADR-008): several domains at once, each
+// with its frequent operation in reach and its detail on demand. Levels
+// come first because they are what is touched most; the connection pair is
+// next; the switches are compact; energy is one line with its profile.
+// Every control here calls the owner the Hub popouts and Settings call, so
+// a result or a refusal reads the same in all three.
 Item {
     id: root
 
@@ -26,8 +31,7 @@ Item {
     readonly property bool bluetoothEnabled: Connectivity.bluetooth.enabled
     readonly property int connectedBluetoothCount: Connectivity.bluetooth.connectedCount
     readonly property int volumePercent: Math.round(CortetsuAudio.volume * 100)
-    readonly property real batteryValue: CortetsuPower.value
-    readonly property bool batteryAvailable: CortetsuPower.available
+    readonly property bool volumeAvailable: !!CortetsuAudio.sink?.ready && !!CortetsuAudio.sink?.audio
     readonly property bool laptopBatteryAvailable: CortetsuPower.hasBattery
     readonly property int batteryPercent: CortetsuPower.percent
     readonly property string networkDetail: CortetsuNetwork.connecting
@@ -40,16 +44,38 @@ Item {
     readonly property var wifi: Connectivity.wifi
     readonly property bool wifiOperable: !!wifi.wifiDevice && wifi.hardwareEnabled
     readonly property bool microphonePresent: !!CortetsuAudio.source?.audio
-    readonly property bool markPressed: soundTile.pressed || dndTile.pressed || bluetoothTile.pressed
-    readonly property bool markIntent: markPressed
-        || soundTile.hovered || soundTile.activeFocus
-        || dndTile.hovered || dndTile.activeFocus
-        || bluetoothTile.hovered || bluetoothTile.activeFocus
-    readonly property string markPhase: markPressed
-        ? "Monster"
-        : markIntent
-            ? "Awakening"
-            : "Human"
+    // The device lists open on demand; the panel opens compact every time.
+    property bool audioExpanded: false
+    readonly property var profiles: [
+        { profile: PowerProfile.PowerSaver, label: qsTr("Ahorro"), icon: "energy_savings_leaf" },
+        { profile: PowerProfile.Balanced, label: qsTr("Equilibrado"), icon: "balance" }
+    ].concat(PowerProfiles.hasPerformanceProfile
+        ? [{ profile: PowerProfile.Performance, label: qsTr("Rendimiento"), icon: "rocket_launch" }]
+        : [])
+    readonly property int profileIndex: {
+        for (let i = 0; i < profiles.length; ++i)
+            if (profiles[i].profile === PowerProfiles.profile)
+                return i;
+        return -1;
+    }
+    readonly property string energyLine: root.laptopBatteryAvailable
+        ? (CortetsuPower.charging
+            ? qsTr("Batería %1% · cargando").arg(root.batteryPercent)
+            : qsTr("Batería %1%").arg(root.batteryPercent))
+        : CortetsuPower.laptopBattery
+            ? qsTr("Batería no disponible")
+            : CortetsuPower.devicePresent
+                ? qsTr("Alimentación externa")
+                : qsTr("Energía no disponible")
+
+    onScreenStateChanged: root.audioExpanded = false
+    Connections {
+        target: root.screenState
+        function onOsdChanged(): void {
+            if (!root.screenState?.osd)
+                root.audioExpanded = false;
+        }
+    }
 
     function closeQsd(): void {
         const state = root.screenState;
@@ -63,6 +89,10 @@ Item {
         OverlayPolicy.open(CortetsuShellState.allStates(), root.screenState, "settings");
     }
 
+    function nodeName(node): string {
+        return node?.description || node?.nickname || node?.name || qsTr("Dispositivo sin nombre");
+    }
+
     ColumnLayout {
         id: body
         anchors.left: parent.left
@@ -70,25 +100,27 @@ Item {
         anchors.top: parent.top
         spacing: CortetsuDesign.spacingStandard
 
+        // Identity once, small and still: the mark is the product's
+        // signature here, not a reaction to the pointer.
         RowLayout {
             Layout.fillWidth: true
             spacing: CortetsuDesign.spacingStandard
 
             CortetsuEvolvingMark {
-                id: signatureMark
-                phase: root.markPhase
+                phase: "Ascended"
+                animated: false
                 monochrome: true
-                monochromeColor: CortetsuDesign.colorWashi
-                Layout.preferredWidth: 32
-                Layout.preferredHeight: 32
+                monochromeColor: CortetsuDesign.colorOnSurface
+                Layout.preferredWidth: 28
+                Layout.preferredHeight: 28
             }
 
             CortetsuText {
                 Layout.fillWidth: true
                 text: qsTr("Ajustes rápidos")
-                font.family: CortetsuDesign.fontInk
-                font.weight: Font.Light
-                textSize: CortetsuTypography.inkLinePx
+                textSize: CortetsuTypography.titleSmallPx
+                font.weight: Font.DemiBold
+                elide: Text.ElideRight
             }
 
             CortetsuButton {
@@ -108,61 +140,131 @@ Item {
             }
         }
 
-        CortetsuInkLabel {
-            Layout.topMargin: CortetsuDesign.spacingCompact
-            mark: "制"
-            title: qsTr("Controles")
+        // --- Levels -------------------------------------------------------
+
+        LevelRow {
+            id: volumeRow
+            Layout.fillWidth: true
+            icon: CortetsuAudio.muted || !root.volumeAvailable ? "volume_off" : "volume_up"
+            title: qsTr("Volumen")
+            detail: root.volumeAvailable ? root.nodeName(CortetsuAudio.sink) : ""
+            amount: !root.volumeAvailable ? qsTr("No disponible")
+                : CortetsuAudio.muted ? qsTr("Silenciado") : `${root.volumePercent}%`
+            muted: CortetsuAudio.muted
+            available: root.volumeAvailable
+            muteText: CortetsuAudio.muted ? qsTr("Activar el sonido") : qsTr("Silenciar")
+            expandable: CortetsuAudio.sinks.length + CortetsuAudio.sources.length > 1
+            expanded: root.audioExpanded
+            onMuteRequested: if (CortetsuAudio.sink?.audio)
+                CortetsuAudio.sink.audio.muted = !CortetsuAudio.sink.audio.muted
+            onExpandRequested: root.audioExpanded = !root.audioExpanded
         }
 
-        GridLayout {
+        CortetsuSlider {
             Layout.fillWidth: true
-            columns: 2
-            rowSpacing: CortetsuDesign.spacingCompact
-            columnSpacing: CortetsuDesign.spacingCompact
+            accessibleName: qsTr("Volumen")
+            value: CortetsuAudio.volume
+            to: Math.max(1, CortetsuConfig.maxVolume)
+            disabled: !root.volumeAvailable
+            onMoved: nextValue => CortetsuAudio.setVolume(nextValue)
+        }
 
-            CortetsuActionTile {
-                id: soundTile
-                seal: "音"
-                focus: true
+        // Output and input devices, on demand. A row is the device; the
+        // selected one is the default PipeWire reports back.
+        ColumnLayout {
+            objectName: "quickAudioDevices"
+            Layout.fillWidth: true
+            visible: root.audioExpanded
+            spacing: 2
+
+            CortetsuSectionHeader {
                 Layout.fillWidth: true
-                label: CortetsuAudio.muted ? qsTr("Sonido silenciado") : qsTr("Sonido")
-                detail: CortetsuAudio.muted ? qsTr("Pulsa para activar el sonido") : qsTr("Volumen %1%").arg(root.volumePercent)
-                icon: CortetsuAudio.muted ? "volume_off" : "volume_up"
-                highlighted: !CortetsuAudio.muted
-                // Mute is a user-selected state, not a fault or danger.
-                warning: false
-                onActivated: if (CortetsuAudio.sink?.audio)
-                    CortetsuAudio.sink.audio.muted = !CortetsuAudio.sink.audio.muted
+                visible: CortetsuAudio.sinks.length > 0
+                title: qsTr("Salida")
+            }
+            Repeater {
+                model: root.audioExpanded ? CortetsuAudio.sinks : []
+                delegate: CortetsuListRow {
+                    required property var modelData
+                    Layout.fillWidth: true
+                    compact: true
+                    icon: modelData === CortetsuAudio.sink ? "radio_button_checked" : "radio_button_unchecked"
+                    title: root.nodeName(modelData)
+                    selected: modelData === CortetsuAudio.sink
+                    onClicked: CortetsuAudio.setAudioSink(modelData)
+                }
             }
 
-            CortetsuActionTile {
-                id: dndTile
-                seal: "静"
+            CortetsuSectionHeader {
                 Layout.fillWidth: true
-                label: CortetsuNotifications.dnd ? qsTr("No molestar") : qsTr("Notificaciones")
-                detail: CortetsuNotifications.dnd ? qsTr("Silenciadas") : qsTr("Permitidas")
-                icon: CortetsuNotifications.dnd ? "notifications_off" : "notifications_active"
-                highlighted: CortetsuNotifications.dnd
-                // DND is an explicit user preference, not a danger state.
-                warning: false
-                onActivated: CortetsuNotifications.toggleDnd()
+                Layout.topMargin: CortetsuDesign.spacingCompact
+                visible: CortetsuAudio.sources.length > 0
+                title: qsTr("Entrada")
+            }
+            Repeater {
+                model: root.audioExpanded ? CortetsuAudio.sources : []
+                delegate: CortetsuListRow {
+                    required property var modelData
+                    Layout.fillWidth: true
+                    compact: true
+                    icon: modelData === CortetsuAudio.source ? "radio_button_checked" : "radio_button_unchecked"
+                    title: root.nodeName(modelData)
+                    selected: modelData === CortetsuAudio.source
+                    onClicked: CortetsuAudio.setAudioSource(modelData)
+                }
             }
 
-            CortetsuActionTile {
-                id: bluetoothTile
-                seal: "青"
+            LevelRow {
                 Layout.fillWidth: true
-                label: qsTr("Bluetooth")
-                detail: root.bluetoothEnabled
-                    ? root.connectedBluetoothCount > 0
-                        ? qsTr("%1 conectados").arg(root.connectedBluetoothCount)
-                        : qsTr("Listo")
-                    : qsTr("Apagado")
-                icon: root.connectedBluetoothCount > 0 ? "bluetooth_connected" : "bluetooth"
-                highlighted: root.bluetoothEnabled
-                clickable: !!Connectivity.bluetooth.adapter
-                onActivated: Connectivity.bluetooth.setEnabled(!Connectivity.bluetooth.enabled)
+                Layout.topMargin: CortetsuDesign.spacingCompact
+                visible: root.microphonePresent
+                icon: CortetsuAudio.sourceMuted ? "mic_off" : "mic"
+                title: qsTr("Nivel del micrófono")
+                amount: CortetsuAudio.sourceMuted ? qsTr("Silenciado")
+                    : `${Math.round(CortetsuAudio.sourceVolume * 100)}%`
+                muted: CortetsuAudio.sourceMuted
+                available: root.microphonePresent
+                attention: CortetsuAudio.sourceMuted
+                muteText: CortetsuAudio.sourceMuted ? qsTr("Reactivar el micrófono") : qsTr("Silenciar el micrófono")
+                onMuteRequested: if (CortetsuAudio.source?.audio)
+                    CortetsuAudio.source.audio.muted = !CortetsuAudio.source.audio.muted
             }
+            CortetsuSlider {
+                Layout.fillWidth: true
+                visible: root.microphonePresent
+                accessibleName: qsTr("Nivel del micrófono")
+                value: CortetsuAudio.sourceVolume
+                onMoved: nextValue => CortetsuAudio.setSourceVolume(nextValue)
+            }
+        }
+
+        LevelRow {
+            Layout.fillWidth: true
+            Layout.topMargin: CortetsuDesign.spacingCompact
+            icon: "light_mode"
+            title: qsTr("Brillo")
+            detail: root.brightnessValue < 0 ? qsTr("Esta pantalla no lo permite") : ""
+            amount: root.brightnessValue < 0 ? qsTr("No disponible")
+                : `${Math.round(root.brightnessValue * 100)}%`
+            available: root.brightnessValue >= 0
+            showMute: false
+        }
+
+        CortetsuSlider {
+            Layout.fillWidth: true
+            visible: root.brightnessValue >= 0
+            accessibleName: qsTr("Brillo")
+            value: Math.max(0, root.brightnessValue)
+            onMoved: nextValue => root.brightnessMonitor?.setBrightness(nextValue)
+        }
+
+        CortetsuDivider { Layout.fillWidth: true; Layout.topMargin: CortetsuDesign.spacingUnit }
+
+        // --- Connections: the two radios carry their link as detail -------
+
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: CortetsuDesign.spacingCompact
 
             // The radio is the action; the link it holds is the detail. A
             // machine without a Wi-Fi device, or with it blocked by its
@@ -170,7 +272,9 @@ Item {
             CortetsuActionTile {
                 id: networkTile
                 objectName: "quickWifi"
+                focus: true
                 Layout.fillWidth: true
+                Layout.preferredWidth: 1
                 label: CortetsuNetwork.activeEthernet && !CortetsuNetwork.active ? qsTr("Ethernet")
                     : root.wifi.wifiEnabled ? (CortetsuNetwork.active?.ssid ?? qsTr("Wi-Fi")) : qsTr("Wi-Fi apagado")
                 detail: root.wifi.busy && root.wifi.operation.kind === "enable" ? qsTr("Aplicando…")
@@ -194,14 +298,45 @@ Item {
             }
 
             CortetsuActionTile {
+                id: bluetoothTile
+                objectName: "quickBluetooth"
+                Layout.fillWidth: true
+                Layout.preferredWidth: 1
+                label: qsTr("Bluetooth")
+                detail: !Connectivity.bluetooth.adapter ? qsTr("Sin adaptador")
+                    : root.bluetoothEnabled
+                        ? root.connectedBluetoothCount === 1 ? qsTr("1 conectado")
+                        : root.connectedBluetoothCount > 1 ? qsTr("%1 conectados").arg(root.connectedBluetoothCount)
+                        : qsTr("Encendido")
+                    : qsTr("Apagado")
+                icon: root.connectedBluetoothCount > 0 ? "bluetooth_connected"
+                    : root.bluetoothEnabled ? "bluetooth" : "bluetooth_disabled"
+                highlighted: root.bluetoothEnabled
+                warning: false
+                clickable: !!Connectivity.bluetooth.adapter
+                onActivated: Connectivity.bluetooth.setEnabled(!Connectivity.bluetooth.enabled)
+            }
+        }
+
+        // --- Switches: compact, two per row --------------------------------
+
+        GridLayout {
+            Layout.fillWidth: true
+            columns: 2
+            rowSpacing: CortetsuDesign.spacingCompact
+            columnSpacing: CortetsuDesign.spacingCompact
+            uniformCellWidths: true
+
+            CortetsuActionTile {
                 id: microphoneTile
                 objectName: "quickMicrophone"
+                compact: true
                 Layout.fillWidth: true
                 label: !root.microphonePresent ? qsTr("Sin micrófono")
                     : CortetsuAudio.sourceMuted ? qsTr("Micrófono silenciado") : qsTr("Micrófono")
                 detail: !root.microphonePresent ? qsTr("No hay una entrada de audio")
                     : CortetsuAudio.sourceMuted ? qsTr("Pulsa para reactivarlo")
-                    : (CortetsuAudio.source?.description ?? qsTr("Entrada activa"))
+                    : root.nodeName(CortetsuAudio.source)
                 icon: root.microphonePresent && !CortetsuAudio.sourceMuted ? "mic" : "mic_off"
                 highlighted: root.microphonePresent && !CortetsuAudio.sourceMuted
                 warning: false
@@ -211,35 +346,43 @@ Item {
             }
 
             CortetsuActionTile {
+                id: dndTile
+                objectName: "quickDnd"
+                compact: true
+                seal: "静"
                 Layout.fillWidth: true
-                seal: "録"
-                label: CortetsuRecorder.running ? qsTr("Detener grabación") : qsTr("Grabar pantalla")
-                detail: CortetsuRecorder.running ? qsTr("Grabando") : qsTr("Iniciar captura")
-                icon: CortetsuRecorder.running ? "stop_circle" : "radio_button_checked"
-                highlighted: CortetsuRecorder.running
+                label: qsTr("No molestar")
+                detail: CortetsuNotifications.dnd ? qsTr("Avisos en silencio") : qsTr("Apagado")
+                icon: CortetsuNotifications.dnd ? "notifications_off" : "notifications"
+                highlighted: CortetsuNotifications.dnd
+                // DND is an explicit user preference, not a danger state.
                 warning: false
-                onActivated: CortetsuRecorder.running ? CortetsuRecorder.stop() : CortetsuRecorder.start()
+                onActivated: CortetsuNotifications.toggleDnd()
             }
 
             CortetsuActionTile {
-                Layout.fillWidth: true
+                objectName: "quickIdle"
+                compact: true
                 seal: "醒"
-                label: CortetsuIdleInhibitor.enabled ? qsTr("Permitir reposo") : qsTr("Mantener activo")
-                detail: CortetsuIdleInhibitor.enabled ? qsTr("Desactivado") : qsTr("Activo mientras trabajas")
-                icon: CortetsuIdleInhibitor.enabled ? "bedtime" : "bedtime_off"
+                Layout.fillWidth: true
+                label: qsTr("Mantener activo")
+                detail: CortetsuIdleInhibitor.enabled ? qsTr("Sin reposo ni bloqueo") : qsTr("Apagado")
+                icon: CortetsuIdleInhibitor.enabled ? "coffee" : "bedtime"
                 highlighted: CortetsuIdleInhibitor.enabled
                 warning: false
                 onActivated: CortetsuIdleInhibitor.enabled = !CortetsuIdleInhibitor.enabled
             }
 
             CortetsuActionTile {
-                Layout.fillWidth: true
+                objectName: "quickGameMode"
+                compact: true
                 seal: "遊"
-                label: GameMode.enabled ? qsTr("Desactivar modo juego") : qsTr("Activar modo juego")
+                Layout.fillWidth: true
+                label: qsTr("Modo juego")
                 detail: GameMode.busy ? qsTr("Un momento…")
                     : GameMode.needsRecovery ? qsTr("Error al aplicar: pulsa para restaurar")
-                    : GameMode.status === "UNKNOWN" ? qsTr("Estado desconocido: ver docs/GAME_MODE.md")
-                    : GameMode.enabled ? qsTr("Efectos reducidos") : qsTr("Menos animaciones y efectos")
+                    : GameMode.status === "UNKNOWN" ? qsTr("Estado desconocido")
+                    : GameMode.enabled ? qsTr("Efectos reducidos") : qsTr("Apagado")
                 icon: GameMode.enabled ? "sports_esports" : "videogame_asset"
                 highlighted: GameMode.enabled
                 warning: GameMode.needsRecovery
@@ -247,96 +390,64 @@ Item {
             }
         }
 
-        CortetsuInkLabel {
-            Layout.topMargin: CortetsuDesign.spacingCompact
-            mark: "量"
-            title: qsTr("Niveles")
-        }
+        CortetsuDivider { Layout.fillWidth: true; Layout.topMargin: CortetsuDesign.spacingUnit }
+
+        // --- Energy and capture: one line each, with their one control ----
 
         RowLayout {
             Layout.fillWidth: true
+            spacing: CortetsuDesign.spacingStandard
+
             CortetsuIcon {
-                text: "brightness_6"
+                text: !root.laptopBatteryAvailable ? "power"
+                    : CortetsuPower.charging ? "battery_charging_full"
+                    : CortetsuPower.critical ? "battery_alert" : "battery_full"
                 iconSize: CortetsuTypography.iconSmallPx
-                color: root.brightnessValue < 0 ? CortetsuDesign.colorOnSurfaceVariant : CortetsuDesign.colorPrimary
+                color: CortetsuPower.critical ? CortetsuDesign.colorVermillion : CortetsuDesign.colorOnSurfaceVariant
             }
-            CortetsuText {
-                Layout.fillWidth: true
-                text: qsTr("Brillo")
-                textSize: CortetsuTypography.bodyPx
-                font.weight: Font.DemiBold
-            }
-            CortetsuText {
-                text: root.brightnessValue < 0 ? qsTr("No disponible") : qsTr("%1%").arg(Math.round(root.brightnessValue * 100))
-                textSize: CortetsuTypography.labelSmallPx
-                color: CortetsuDesign.colorOnSurfaceVariant
-            }
-        }
 
-        CortetsuSlider {
-            Layout.fillWidth: true
-            accessibleName: qsTr("Brillo")
-            value: root.brightnessValue
-            disabled: value < 0
-            onMoved: nextValue => root.brightnessMonitor?.setBrightness(nextValue)
-        }
-
-        RowLayout {
-            Layout.fillWidth: true
-            CortetsuIcon {
-                text: CortetsuAudio.muted ? "volume_off" : "volume_up"
-                iconSize: CortetsuTypography.iconSmallPx
-                // Mute is a selected audio state, not a warning condition.
-                color: CortetsuAudio.muted ? CortetsuDesign.colorOnSurfaceVariant : CortetsuDesign.colorPrimary
-            }
-            CortetsuText {
-                Layout.fillWidth: true
-                text: qsTr("Volumen")
-                textSize: CortetsuTypography.bodyPx
-                font.weight: Font.DemiBold
-            }
-            CortetsuText {
-                text: qsTr("%1%").arg(root.volumePercent)
-                textSize: CortetsuTypography.labelSmallPx
-                color: CortetsuDesign.colorOnSurfaceVariant
-            }
-        }
-
-        CortetsuSlider {
-            Layout.fillWidth: true
-            accessibleName: qsTr("Volumen")
-            value: CortetsuAudio.volume
-            onMoved: nextValue => CortetsuAudio.setVolume(nextValue)
-        }
-
-        // Energy as a margin note under a brush rule.
-        CortetsuBrushStroke {
-            Layout.fillWidth: true
-            Layout.topMargin: CortetsuDesign.spacingCompact
-            Layout.preferredHeight: 3
-            ink: CortetsuDesign.colorWashi
-            inkAlpha: 0.1
-        }
-
-        // Energy as one margin note; the connection is already its tile.
-        ColumnLayout {
-            Layout.fillWidth: true
-            spacing: 2
-            CortetsuInkLabel { mark: "電"; title: qsTr("Energía") }
             CortetsuText {
                 objectName: "quickEnergy"
                 Layout.fillWidth: true
-                text: root.laptopBatteryAvailable
-                    ? qsTr("Batería %1%").arg(root.batteryPercent)
-                    : CortetsuPower.laptopBattery
-                        ? qsTr("Batería no disponible")
-                        : CortetsuPower.devicePresent
-                            ? qsTr("Alimentación externa")
-                            : qsTr("Energía no disponible")
+                text: root.energyLine
                 textSize: CortetsuTypography.bodyPx
                 font.weight: Font.DemiBold
+                color: CortetsuPower.critical ? CortetsuDesign.colorVermillion : CortetsuDesign.colorOnSurface
                 elide: Text.ElideRight
             }
+
+            CortetsuButton {
+                objectName: "quickRecord"
+                compact: true
+                active: CortetsuRecorder.running
+                danger: CortetsuRecorder.running
+                icon: CortetsuRecorder.running ? "stop_circle" : "screen_record"
+                label: CortetsuRecorder.running ? qsTr("Detener") : qsTr("Grabar")
+                tooltipText: CortetsuRecorder.running ? qsTr("Detener la grabación de pantalla")
+                    : qsTr("Grabar la pantalla")
+                onClicked: CortetsuRecorder.running ? CortetsuRecorder.stop() : CortetsuRecorder.start()
+            }
+        }
+
+        // The selection is what power-profiles-daemon reports, not what was
+        // pressed: a refused change keeps the old tab selected.
+        CortetsuTabBar {
+            objectName: "quickProfiles"
+            Layout.fillWidth: true
+            accessibleName: qsTr("Perfil de energía")
+            model: root.profiles
+            currentIndex: root.profileIndex
+            onSelected: index => PowerProfiles.profile = root.profiles[index].profile
+        }
+
+        CortetsuText {
+            Layout.fillWidth: true
+            visible: PowerProfiles.degradationReason !== PerformanceDegradationReason.None
+            text: qsTr("Rendimiento limitado: %1").arg(
+                PerformanceDegradationReason.toString(PowerProfiles.degradationReason))
+            textSize: CortetsuTypography.labelSmallPx
+            color: CortetsuDesign.colorVermillion
+            wrapMode: Text.WordWrap
         }
     }
 }
