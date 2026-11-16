@@ -4,6 +4,7 @@ import QtQml
 import Quickshell
 import Quickshell.Services.Pipewire
 import "../modules"
+import "EqResponse.js" as EqResponse
 
 // The optional 10-band equalizer. Cortetsu does not create the audio
 // graph: the user installs `cortetsu/data/pipewire/cortetsu-eq.conf` (a
@@ -14,6 +15,13 @@ import "../modules"
 //
 // Bypass is a flat curve (every gain and the preamp at 0 dB): the node
 // stays in the path, so switching it never moves audio between devices.
+//
+// Graph versions, read from the node property `cortetsu.eq.graph`:
+//   2  preamp is PipeWire's builtin `mixer`; "Gain 1" is a linear factor.
+//   -  (absent) the first graph, a `bq_highshelf` at 0 Hz. PipeWire 1.6.11
+//      turns that into a flat gain of 10^(dB/20), so it still works; the
+//      group in Ajustes asks to copy the new file because the mixer is the
+//      documented way to scale a signal and does not rest on that corner.
 QtObject {
     id: root
 
@@ -39,6 +47,12 @@ QtObject {
         return null;
     }
     readonly property bool available: !!node
+    // Properties arrive once the node is bound; until then the version is
+    // unknown and nothing is applied.
+    readonly property bool graphKnown: !!node && node.ready
+    readonly property bool legacyGraph: graphKnown && String(node.properties?.["cortetsu.eq.graph"] ?? "") !== "2"
+
+    property PwObjectTracker tracker: PwObjectTracker { objects: root.node ? [root.node] : [] }
     readonly property bool enabled: CortetsuConfig.eqEnabled
     readonly property var gains: CortetsuConfig.eqGains
     // The name of the preset the curve matches, or "custom".
@@ -48,9 +62,10 @@ QtObject {
                 return id;
         return "custom";
     }
-    // Headroom: the loudest boost is taken off the whole signal first, so a
-    // boosted band cannot push a full-scale signal past 0 dBFS.
-    readonly property real preamp: enabled ? -Math.max(0, ...gains) : 0
+    // Headroom: the top of the whole curve (bands overlap, so it can sit
+    // above the largest single gain) is taken off the signal first, so a
+    // full-scale signal cannot pass 0 dBFS.
+    readonly property real preamp: enabled ? EqResponse.preampDb(frequencies, gains) : 0
     property string lastError: ""
 
     function clamp(db: real): real {
@@ -81,11 +96,14 @@ QtObject {
     }
 
     function apply(): void {
-        if (!node)
+        if (!graphKnown)
             return;
         const effective = enabled ? gains : gains.map(() => 0);
+        const preampParam = legacyGraph
+            ? `"eq_preamp:Gain" ${preamp.toFixed(1)}`
+            : `"eq_preamp:Gain 1" ${EqResponse.linear(preamp).toFixed(4)}`;
         const params = effective.map((db, i) => `"eq_band_${i + 1}:Gain" ${Number(db).toFixed(1)}`)
-            .concat([`"eq_preamp:Gain" ${preamp.toFixed(1)}`])
+            .concat([preampParam])
             .join(" ");
         // An argument vector, never a shell: the payload is built from
         // numbers clamped above.
@@ -97,4 +115,5 @@ QtObject {
     onGainsChanged: Qt.callLater(apply)
     onEnabledChanged: Qt.callLater(apply)
     onNodeChanged: Qt.callLater(apply)
+    onGraphKnownChanged: Qt.callLater(apply)
 }

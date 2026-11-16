@@ -182,6 +182,14 @@ ColumnLayout {
             value: qsTr("No disponible")
         }
 
+        SettingValueRow {
+            objectName: "equalizerLegacyGraph"
+            visible: CortetsuEqualizer.legacyGraph
+            title: qsTr("Grafo anterior instalado")
+            detail: qsTr("Funciona, pero el margen se aplica con un filtro en 0 Hz. Copia de nuevo cortetsu-eq.conf y reinicia PipeWire para usar el preamplificador lineal")
+            value: qsTr("Actualizable")
+        }
+
         SettingToggleRow {
             objectName: "equalizerEnabled"
             visible: CortetsuEqualizer.available
@@ -200,6 +208,14 @@ ColumnLayout {
             detail: CortetsuEqualizer.preset === "custom" ? qsTr("Curva propia") : ""
             disabled: !CortetsuEqualizer.enabled
             onChosen: value => CortetsuEqualizer.usePreset(value)
+        }
+
+        EqCurve {
+            visible: CortetsuEqualizer.available
+            Layout.fillWidth: true
+            frequencies: CortetsuEqualizer.frequencies
+            gains: CortetsuEqualizer.enabled ? CortetsuEqualizer.gains : CortetsuEqualizer.gains.map(() => 0)
+            preamp: CortetsuEqualizer.preamp
         }
 
         Repeater {
@@ -222,8 +238,8 @@ ColumnLayout {
         SettingValueRow {
             visible: CortetsuEqualizer.available && CortetsuEqualizer.enabled && CortetsuEqualizer.preamp < 0
             title: qsTr("Margen contra la saturación")
-            detail: qsTr("La señal baja lo que sube la banda más alta")
-            value: qsTr("%1 dB").arg(CortetsuEqualizer.preamp)
+            detail: qsTr("La señal baja lo que sube el punto más alto de la curva, contando el solape entre bandas")
+            value: qsTr("%1 dB").arg(CortetsuEqualizer.preamp.toFixed(1))
         }
     }
 
