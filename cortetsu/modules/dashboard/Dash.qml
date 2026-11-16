@@ -111,6 +111,10 @@ FocusScope {
                 readonly property bool selected: index === root.current
                 width: tabContent.implicitWidth + 24
                 height: 40
+                Accessible.role: Accessible.PageTab
+                Accessible.name: tab.modelData.label
+                Accessible.selected: tab.selected
+                Accessible.onPressAction: root.select(tab.index)
 
                 Row {
                     id: tabContent
@@ -305,6 +309,7 @@ FocusScope {
                         Layout.fillWidth: true
                         visible: CortetsuConfig.dashboard.performance.showGpu
                         mark: "画"; label: qsTr("GPU")
+                        available: Gpu.type !== Gpu.noneType
                         value: Gpu.type === Gpu.noneType ? 0 : Gpu.percentage
                         detail: Gpu.type === Gpu.noneType
                             ? (Gpu.dgpuAsleep ? qsTr("En reposo") : qsTr("No disponible"))
