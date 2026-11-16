@@ -5,6 +5,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import "../modules"
+import "NightLight.js" as NightLight
 
 // Colour filter of the display (hyprsunset). It lives with the shell, not
 // with a Settings page: a saved filter is restored at start whether or not
@@ -20,9 +21,59 @@ Singleton {
     readonly property bool busy: service.running || temperatureProcess.running || gammaProcess.running
 
     function setEnabled(enabled: bool): void {
+        if (CortetsuConfig.nightLightSchedule)
+            root.holdUntil = NightLight.nextBoundary(new Date(), CortetsuConfig.nightLightFrom, CortetsuConfig.nightLightTo)?.getTime() ?? 0;
+        root.switchTo(enabled);
+    }
+
+    function switchTo(enabled: bool): void {
         CortetsuConfig.colorCalibrationEnabled = enabled;
         root.change();
     }
+
+    // --- Night light schedule ------------------------------------------
+    // A manual switch made while the schedule runs holds until this time
+    // (ms since the epoch); 0 means the clock decides.
+    property real holdUntil: 0
+    readonly property bool scheduled: CortetsuConfig.nightLightSchedule
+    readonly property bool scheduleWantsOn: scheduled
+        && NightLight.inRange(Time.hours * 60 + Time.minutes, CortetsuConfig.nightLightFrom, CortetsuConfig.nightLightTo)
+    readonly property bool held: holdUntil > 0
+
+    function setSchedule(enabled: bool): void {
+        CortetsuConfig.nightLightSchedule = enabled;
+        root.holdUntil = 0;
+        CortetsuConfig.save();
+        root.followSchedule();
+    }
+
+    function setScheduleTimes(from: string, to: string): void {
+        if (CortetsuConfig.validClock(from))
+            CortetsuConfig.nightLightFrom = from;
+        if (CortetsuConfig.validClock(to))
+            CortetsuConfig.nightLightTo = to;
+        root.holdUntil = 0;
+        CortetsuConfig.save();
+        root.followSchedule();
+    }
+
+    function followSchedule(): void {
+        if (!CortetsuConfig.loaded || !root.scheduled)
+            return;
+        if (root.holdUntil > 0) {
+            if (Date.now() < root.holdUntil)
+                return;
+            root.holdUntil = 0;
+        }
+        if (CortetsuConfig.colorCalibrationEnabled !== root.scheduleWantsOn)
+            root.switchTo(root.scheduleWantsOn);
+    }
+
+    onScheduleWantsOnChanged: followSchedule()
+    // The hold also expires inside a range (a manual "off" at 22:00 with a
+    // 20:00-07:00 schedule returns to "on" at 07:00's turn, not before).
+    readonly property int clockMinute: Time.minutes
+    onClockMinuteChanged: if (root.held) followSchedule()
 
     function setTemperature(kelvin: real): void {
         CortetsuConfig.colorTemperature = Math.max(2500, Math.min(6500, Math.round(kelvin / 100) * 100));
@@ -63,6 +114,7 @@ Singleton {
     function restore(): void {
         if (CortetsuConfig.loaded && CortetsuConfig.colorCalibrationEnabled)
             root.apply();
+        root.followSchedule();
     }
 
     Component.onCompleted: root.restore()

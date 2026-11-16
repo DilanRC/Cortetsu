@@ -19,6 +19,26 @@ import "../controls"
     readonly property int saturationValue: DisplayVibrance.valueFor(selected?.name ?? "")
     readonly property bool vibrance: Nvibrant.available && Nvibrant.connector === (selected?.name ?? "")
     readonly property bool calibrating: DisplayCalibration.state === "applying"
+    property string scheduleError: ""
+
+    function holdText(): string {
+        if (!DisplayCalibration.held)
+            return "";
+        return qsTr(" · cambio manual hasta las %1").arg(Qt.formatTime(new Date(DisplayCalibration.holdUntil), "HH:mm"));
+    }
+
+    function commitTime(which: string, value: string): void {
+        const clock = value.trim();
+        if (!CortetsuConfig.validClock(clock)) {
+            root.scheduleError = qsTr("Usa el formato 24 h, por ejemplo 20:00");
+            return;
+        }
+        root.scheduleError = "";
+        if (which === "from")
+            DisplayCalibration.setScheduleTimes(clock, CortetsuConfig.nightLightTo);
+        else
+            DisplayCalibration.setScheduleTimes(CortetsuConfig.nightLightFrom, clock);
+    }
 
     title: qsTr("Brillo y color")
     icon: "brightness_6"
@@ -86,9 +106,9 @@ import "../controls"
     SettingToggleRow {
         objectName: "colourFilter"
         title: qsTr("Filtro de color")
-        detail: CortetsuConfig.colorCalibrationEnabled
+        detail: (CortetsuConfig.colorCalibrationEnabled
             ? qsTr("Activo en todas las pantallas: %1 K, gamma %2 %").arg(CortetsuConfig.colorTemperature).arg(CortetsuConfig.colorGamma)
-            : qsTr("Apagado: colores nativos (hyprsunset, todas las pantallas)")
+            : qsTr("Apagado: colores nativos (hyprsunset, todas las pantallas)")) + root.holdText()
         checked: CortetsuConfig.colorCalibrationEnabled
         status: root.calibrating ? "busy" : DisplayCalibration.state === "failed" ? "error" : ""
         statusText: root.calibrating ? qsTr("Aplicando…") : DisplayCalibration.error
@@ -115,5 +135,36 @@ import "../controls"
         step: 1
         value: CortetsuConfig.colorGamma
         onMoved: next => DisplayCalibration.setGamma(next)
+    }
+
+    // Night light: the same filter, switched by the clock.
+    SettingToggleRow {
+        objectName: "nightLightSchedule"
+        title: qsTr("Luz nocturna programada")
+        detail: CortetsuConfig.nightLightSchedule
+            ? qsTr("El filtro se enciende de %1 a %2").arg(CortetsuConfig.nightLightFrom).arg(CortetsuConfig.nightLightTo)
+            : qsTr("Enciende y apaga el filtro de color a una hora fija")
+        checked: CortetsuConfig.nightLightSchedule
+        onToggled: value => DisplayCalibration.setSchedule(value)
+    }
+
+    SettingTextRow {
+        objectName: "nightLightFrom"
+        visible: CortetsuConfig.nightLightSchedule
+        title: qsTr("Encender a las")
+        value: CortetsuConfig.nightLightFrom
+        placeholderText: "20:00"
+        status: root.scheduleError ? "error" : ""
+        statusText: root.scheduleError
+        onCommitted: value => root.commitTime("from", value)
+    }
+
+    SettingTextRow {
+        objectName: "nightLightTo"
+        visible: CortetsuConfig.nightLightSchedule
+        title: qsTr("Apagar a las")
+        value: CortetsuConfig.nightLightTo
+        placeholderText: "07:00"
+        onCommitted: value => root.commitTime("to", value)
     }
 }

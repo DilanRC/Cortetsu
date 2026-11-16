@@ -29,6 +29,8 @@ ShellRoot {
     readonly property var lyrics: Lyrics
     // Restores a saved display colour filter at start.
     readonly property var displayCalibration: DisplayCalibration
+    // The area picker, for surfaces that offer a capture (control center).
+    readonly property var screenshotPicker: areaPicker
     Binding { target: ShellState; property: "shellRoot"; value: root }
     ShellLifecycle {}
     // One coordinator belongs to this shell session. All automation domains

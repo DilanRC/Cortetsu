@@ -23,8 +23,8 @@ QtObject {
         { id: "home", title: qsTr("Inicio"), icon: "home", pages: [], keywords: qsTr("inicio resumen estado accesos rápidos frecuentes") },
         { id: "system", title: qsTr("Sistema"), icon: "computer", keywords: qsTr("sistema"), pages: [
             { id: "display", title: qsTr("Pantalla"), icon: "monitor", summary: "display", detail: qsTr("Disposición, resolución, escala, brillo y color"),
-              keywords: qsTr("pantallas brillo gamma filtro temperatura color vibrance saturación nvidia monitor resolución escala frecuencia hz rotación orientación vrr disposición gestor"),
-              settings: [qsTr("Brillo de esta pantalla"), qsTr("Filtro de color"), qsTr("Temperatura de color"), qsTr("Gamma"), qsTr("Vibrance NVIDIA"), qsTr("Resolución, posición y escala")] },
+              keywords: qsTr("pantallas brillo gamma filtro temperatura color vibrance saturación nvidia monitor resolución escala frecuencia hz rotación orientación vrr disposición gestor luz nocturna noche horario hyprsunset"),
+              settings: [qsTr("Brillo de esta pantalla"), qsTr("Filtro de color"), qsTr("Luz nocturna programada"), qsTr("Temperatura de color"), qsTr("Gamma"), qsTr("Vibrance NVIDIA"), qsTr("Resolución, posición y escala")] },
             { id: "sound", title: qsTr("Sonido"), icon: "volume_up", summary: "audio", detail: qsTr("Salida, entrada, volumen por aplicación y protección"),
               keywords: qsTr("audio volumen altavoz micrófono pipewire salida entrada"),
               settings: [qsTr("Volumen de salida"), qsTr("Silenciar la salida"), qsTr("Volumen de entrada"), qsTr("Silenciar el micrófono"), qsTr("Limitar aumentos bruscos"), qsTr("Aumento máximo por ajuste"), qsTr("Límite al ajustar el volumen"), qsTr("Incremento por paso")] },

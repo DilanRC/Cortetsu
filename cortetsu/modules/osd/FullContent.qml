@@ -89,6 +89,20 @@ Item {
         OverlayPolicy.open(CortetsuShellState.allStates(), root.screenState, "settings");
     }
 
+    // The picker opens once the panel has gone, so the panel is never in
+    // the frame. A constant, not a motion token: with reduced motion the
+    // tokens are 0 and the close still takes a compositor frame or two.
+    function captureArea(): void {
+        root.closeQsd();
+        captureDelay.restart();
+    }
+
+    Timer {
+        id: captureDelay
+        interval: 220
+        onTriggered: ShellState.shellRoot?.screenshotPicker?.open(false, false)
+    }
+
     function nodeName(node): string {
         return node?.description || node?.nickname || node?.name || qsTr("Dispositivo sin nombre");
     }
@@ -389,6 +403,41 @@ Item {
                 highlighted: GameMode.enabled
                 warning: GameMode.needsRecovery
                 onActivated: GameMode.toggle()
+            }
+
+            // The colour filter of Ajustes → Pantalla (hyprsunset). With a
+            // schedule, a press here holds until the schedule's next turn.
+            CortetsuActionTile {
+                objectName: "quickNightLight"
+                compact: true
+                seal: "夜"
+                Layout.fillWidth: true
+                label: qsTr("Luz nocturna")
+                detail: DisplayCalibration.state === "applying" ? qsTr("Aplicando…")
+                    : DisplayCalibration.state === "failed" ? qsTr("No se pudo aplicar")
+                    : CortetsuConfig.colorCalibrationEnabled ? qsTr("%1 K").arg(CortetsuConfig.colorTemperature)
+                    : CortetsuConfig.nightLightSchedule ? qsTr("Desde las %1").arg(CortetsuConfig.nightLightFrom)
+                    : qsTr("Apagado")
+                icon: CortetsuConfig.colorCalibrationEnabled ? "nightlight" : "light_mode"
+                highlighted: CortetsuConfig.colorCalibrationEnabled
+                warning: DisplayCalibration.state === "failed"
+                clickable: !DisplayCalibration.busy
+                onActivated: DisplayCalibration.setEnabled(!CortetsuConfig.colorCalibrationEnabled)
+            }
+
+            // An area capture with the existing picker; the panel closes
+            // first so it is not in the picture.
+            CortetsuActionTile {
+                objectName: "quickScreenshot"
+                compact: true
+                seal: "写"
+                Layout.fillWidth: true
+                label: qsTr("Captura")
+                detail: qsTr("Elegir un área")
+                icon: "screenshot_region"
+                highlighted: false
+                warning: false
+                onActivated: root.captureArea()
             }
         }
 

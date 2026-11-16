@@ -204,6 +204,14 @@ QtObject {
     property bool colorCalibrationEnabled: false
     property int colorTemperature: 6000
     property int colorGamma: 100
+    // Night light: the colour filter above, switched on and off by the
+    // clock. "HH:mm"; a range that crosses midnight is allowed.
+    property bool nightLightSchedule: false
+    property string nightLightFrom: "20:00"
+    property string nightLightTo: "07:00"
+    function validClock(value: var): bool {
+        return typeof value === "string" && /^([01]\d|2[0-3]):[0-5]\d$/.test(value);
+    }
     property int visualiserBars: 60
     property bool visualiserEnabled: false
     property bool visualiserAutoHide: true
@@ -655,6 +663,12 @@ QtObject {
                     colorTemperature = Math.max(2500, Math.min(6500, data.displayCalibration.temperature));
                 if (Number.isInteger(data.displayCalibration.gamma))
                     colorGamma = Math.max(50, Math.min(150, data.displayCalibration.gamma));
+                const schedule = data.displayCalibration.schedule;
+                if (schedule && typeof schedule === "object") {
+                    if (typeof schedule.enabled === "boolean") nightLightSchedule = schedule.enabled;
+                    if (validClock(schedule.from)) nightLightFrom = schedule.from;
+                    if (validClock(schedule.to)) nightLightTo = schedule.to;
+                }
             }
             if (Number.isInteger(data.visualiserBars))
                 visualiserBars = Math.max(1, Math.min(256, data.visualiserBars));
@@ -786,7 +800,8 @@ QtObject {
                 segments: { mode: bottomHub.segments.mode, apps: bottomHub.segments.apps, tray: bottomHub.segments.tray, status: bottomHub.segments.status },
                 statusCluster: { audio: bottomHub.statusCluster.audio, network: bottomHub.statusCluster.network, bluetooth: bottomHub.statusCluster.bluetooth, battery: bottomHub.statusCluster.battery, showNotificationCount: bottomHub.statusCluster.showNotificationCount }
             },
-            displayCalibration: { enabled: colorCalibrationEnabled, temperature: colorTemperature, gamma: colorGamma } });
+            displayCalibration: { enabled: colorCalibrationEnabled, temperature: colorTemperature, gamma: colorGamma,
+                schedule: { enabled: nightLightSchedule, from: nightLightFrom, to: nightLightTo } } });
     }
 
     property Timer saveDelay: Timer {
