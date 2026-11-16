@@ -9,8 +9,8 @@ prueba que lo nombran. `dead` es un QML propio que nada referencia.
 | compat/upstream | 7 |
 | dead | 7 |
 | generated | 1 |
-| harness/test | 64 |
-| owned-first-party | 331 |
+| harness/test | 66 |
+| owned-first-party | 340 |
 
 | Archivo | Clase | Superficie | Líneas | Usos | Servicios | Interacción | Estados | Pruebas |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -20,69 +20,68 @@ prueba que lo nombran. `dead` es un QML propio que nada referencia.
 | `SecretPromptFixture.qml` | harness/test | (raíz) | 148 | 0 | - | - | - | 0 |
 | `StartupPageFixture.qml` | harness/test | (raíz) | 54 | 0 | - | - | deshabilitado | 0 |
 | `WallpaperFirstSelectFixture.qml` | harness/test | (raíz) | 100 | 0 | - | - | - | 1 |
-| `base/modules/bar/popouts/Content.qml` | compat/upstream | base | 235 | 20 | CortetsuTokens | - | movimiento | 74 |
-| `base/modules/bar/popouts/PopoutState.qml` | compat/upstream | base | 14 | 4 | - | - | - | 2 |
+| `base/modules/bar/popouts/Content.qml` | compat/upstream | base | 248 | 22 | CortetsuTokens | - | movimiento | 72 |
+| `base/modules/bar/popouts/PopoutState.qml` | compat/upstream | base | 20 | 5 | - | - | - | 4 |
 | `base/modules/bar/popouts/kblayout/KbLayoutModel.qml` | compat/upstream | base | 221 | 1 | - | - | - | 0 |
 | `base/modules/lock/Pam.qml` | compat/upstream | base | 308 | 3 | - | - | deshabilitado | 5 |
-| `base/services/VPN.qml` | compat/upstream | base | 961 | 1 | CortetsuToaster | - | - | 5 |
+| `base/services/VPN.qml` | compat/upstream | base | 961 | 1 | CortetsuToaster | - | - | 8 |
 | `base/utils/Searcher.qml` | compat/upstream | base | 56 | 3 | - | - | - | 1 |
 | `base/utils/Strings.qml` | compat/upstream | base | 27 | 3 | - | - | - | 2 |
 | `components/Anim.qml` | owned-first-party | components | 14 | 1 | - | - | movimiento | 2 |
 | `components/CAnim.qml` | dead | components | 9 | 0 | - | - | movimiento | 1 |
 | `components/CortetsuActionRow.qml` | owned-first-party | components | 159 | 1 | - | teclado, ratón | deshabilitado, movimiento | 5 |
-| `components/CortetsuActionTile.qml` | owned-first-party | components | 145 | 1 | - | teclado, ratón | deshabilitado, movimiento | 10 |
-| `components/CortetsuBrushStroke.qml` | owned-first-party | components | 30 | 6 | - | - | - | 1 |
-| `components/CortetsuButton.qml` | owned-first-party | components | 132 | 48 | - | teclado, ratón | deshabilitado, movimiento | 21 |
+| `components/CortetsuActionTile.qml` | owned-first-party | components | 147 | 1 | - | teclado, ratón | deshabilitado, movimiento | 10 |
+| `components/CortetsuBrushStroke.qml` | owned-first-party | components | 30 | 5 | - | - | - | 1 |
+| `components/CortetsuButton.qml` | owned-first-party | components | 132 | 54 | - | teclado, ratón | deshabilitado, movimiento | 20 |
 | `components/CortetsuChoiceCard.qml` | owned-first-party | components | 152 | 1 | - | teclado, ratón | deshabilitado, movimiento | 4 |
-| `components/CortetsuDivider.qml` | owned-first-party | components | 15 | 3 | - | - | - | 1 |
+| `components/CortetsuDivider.qml` | owned-first-party | components | 15 | 10 | - | - | - | 1 |
 | `components/CortetsuEnso.qml` | owned-first-party | components | 75 | 1 | - | - | movimiento | 0 |
-| `components/CortetsuEvolvingMark.qml` | owned-first-party | components | 131 | 7 | - | - | deshabilitado, movimiento | 13 |
+| `components/CortetsuEvolvingMark.qml` | owned-first-party | components | 131 | 8 | - | - | deshabilitado, movimiento | 13 |
 | `components/CortetsuFact.qml` | owned-first-party | components | 58 | 1 | - | - | - | 1 |
 | `components/CortetsuGrain.qml` | owned-first-party | components | 39 | 3 | - | - | deshabilitado | 2 |
 | `components/CortetsuHanko.qml` | owned-first-party | components | 58 | 3 | - | - | movimiento | 1 |
-| `components/CortetsuHero.qml` | owned-first-party | components | 53 | 1 | - | - | - | 1 |
-| `components/CortetsuIcon.qml` | owned-first-party | components | 34 | 69 | - | - | deshabilitado, movimiento | 8 |
-| `components/CortetsuIconBadge.qml` | owned-first-party | components | 26 | 9 | - | - | - | 3 |
-| `components/CortetsuInkLabel.qml` | owned-first-party | components | 31 | 1 | - | - | - | 2 |
+| `components/CortetsuHero.qml` | owned-first-party | components | 53 | 2 | - | - | - | 1 |
+| `components/CortetsuIcon.qml` | owned-first-party | components | 34 | 73 | - | - | deshabilitado, movimiento | 8 |
+| `components/CortetsuIconBadge.qml` | owned-first-party | components | 26 | 6 | - | - | - | 3 |
 | `components/CortetsuInkPanel.qml` | owned-first-party | components | 196 | 12 | - | - | - | 5 |
 | `components/CortetsuInkWell.qml` | owned-first-party | components | 13 | 2 | - | - | - | 1 |
 | `components/CortetsuListRow.qml` | owned-first-party | components | 162 | 11 | - | teclado, ratón | deshabilitado, movimiento | 12 |
-| `components/CortetsuPopupSurface.qml` | owned-first-party | components | 30 | 13 | - | - | - | 7 |
+| `components/CortetsuPopupSurface.qml` | owned-first-party | components | 30 | 15 | - | - | - | 8 |
 | `components/CortetsuProgressBar.qml` | owned-first-party | components | 46 | 7 | - | - | movimiento | 7 |
 | `components/CortetsuRoundedImage.qml` | owned-first-party | components | 38 | 2 | - | - | deshabilitado | 0 |
-| `components/CortetsuSectionHeader.qml` | owned-first-party | components | 30 | 9 | - | - | - | 2 |
+| `components/CortetsuSectionHeader.qml` | owned-first-party | components | 30 | 11 | - | - | - | 2 |
 | `components/CortetsuSlider.qml` | owned-first-party | components | 190 | 3 | - | teclado, ratón | deshabilitado, movimiento | 12 |
-| `components/CortetsuStateLayer.qml` | owned-first-party | components | 46 | 6 | - | ratón | deshabilitado, movimiento | 4 |
-| `components/CortetsuStateMessage.qml` | owned-first-party | components | 60 | 24 | - | - | movimiento | 5 |
-| `components/CortetsuSurface.qml` | owned-first-party | components | 50 | 54 | - | - | deshabilitado, movimiento | 16 |
+| `components/CortetsuStateLayer.qml` | owned-first-party | components | 46 | 5 | - | ratón | deshabilitado, movimiento | 4 |
+| `components/CortetsuStateMessage.qml` | owned-first-party | components | 60 | 23 | - | - | movimiento | 5 |
+| `components/CortetsuSurface.qml` | owned-first-party | components | 50 | 51 | - | - | deshabilitado, movimiento | 16 |
 | `components/CortetsuTab.qml` | owned-first-party | components | 114 | 4 | - | teclado, ratón | deshabilitado, movimiento | 5 |
-| `components/CortetsuTabBar.qml` | owned-first-party | components | 73 | 1 | - | teclado | - | 1 |
-| `components/CortetsuText.qml` | owned-first-party | components | 38 | 109 | - | - | deshabilitado, movimiento | 8 |
-| `components/CortetsuToggle.qml` | owned-first-party | components | 110 | 8 | - | teclado, ratón | deshabilitado, movimiento | 8 |
-| `components/CortetsuTooltip.qml` | owned-first-party | components | 114 | 11 | - | - | movimiento | 7 |
+| `components/CortetsuTabBar.qml` | owned-first-party | components | 73 | 3 | - | teclado | - | 1 |
+| `components/CortetsuText.qml` | owned-first-party | components | 38 | 110 | - | - | deshabilitado, movimiento | 8 |
+| `components/CortetsuToggle.qml` | owned-first-party | components | 110 | 9 | - | teclado, ratón | deshabilitado, movimiento | 8 |
+| `components/CortetsuTooltip.qml` | owned-first-party | components | 151 | 12 | - | - | movimiento | 6 |
 | `components/ScreenState.qml` | owned-first-party | components | 49 | 5 | - | - | - | 18 |
 | `components/containers/CortetsuPopupHost.qml` | owned-first-party | components | 73 | 1 | - | teclado, ratón | deshabilitado, movimiento | 2 |
-| `components/containers/StyledWindow.qml` | owned-first-party | components | 9 | 9 | - | - | - | 8 |
+| `components/containers/StyledWindow.qml` | owned-first-party | components | 9 | 10 | - | - | - | 8 |
 | `components/controls/CustomMouseArea.qml` | owned-first-party | components | 16 | 1 | - | ratón | - | 0 |
 | `components/misc/CustomShortcut.qml` | owned-first-party | components | 8 | 3 | - | - | - | 5 |
 | `modules/BatteryMonitor.qml` | owned-first-party | modules | 65 | 1 | CortetsuPower, CortetsuSession | - | - | 8 |
-| `modules/BottomHub.qml` | owned-first-party | modules | 1021 | 10 | Apps, Connectivity, CortetsuPower, Time | - | deshabilitado | 56 |
+| `modules/BottomHub.qml` | owned-first-party | modules | 1187 | 10 | Apps, Connectivity, CortetsuPower, Time | - | deshabilitado | 57 |
 | `modules/CalendarController.qml` | owned-first-party | modules | 10 | 1 | - | - | - | 2 |
 | `modules/ClipboardController.qml` | owned-first-party | modules | 10 | 1 | - | - | - | 2 |
 | `modules/CortetsuAnim.qml` | owned-first-party | modules | 23 | 2 | - | - | movimiento | 1 |
-| `modules/CortetsuAppRail.qml` | owned-first-party | modules | 215 | 1 | - | teclado, ratón | deshabilitado, movimiento | 13 |
-| `modules/CortetsuAudio.qml` | owned-first-party | modules | 71 | 9 | - | - | - | 9 |
-| `modules/CortetsuBottomHubHoverTarget.qml` | owned-first-party | modules | 21 | 1 | - | ratón | deshabilitado | 1 |
-| `modules/CortetsuBottomHubView.qml` | owned-first-party | modules | 244 | 1 | - | - | - | 8 |
+| `modules/CortetsuAppRail.qml` | owned-first-party | modules | 256 | 1 | - | teclado, ratón | deshabilitado, movimiento | 14 |
+| `modules/CortetsuAudio.qml` | owned-first-party | modules | 71 | 9 | - | - | - | 11 |
+| `modules/CortetsuBottomHubHoverTarget.qml` | owned-first-party | modules | 21 | 2 | - | ratón | deshabilitado | 1 |
+| `modules/CortetsuBottomHubView.qml` | owned-first-party | modules | 338 | 2 | - | - | deshabilitado, movimiento | 10 |
 | `modules/CortetsuBottomHubVisibility.qml` | owned-first-party | modules | 73 | 1 | - | - | - | 1 |
-| `modules/CortetsuConfig.qml` | owned-first-party | modules | 880 | 78 | - | - | deshabilitado | 53 |
-| `modules/CortetsuHoverSurfaceController.qml` | owned-first-party | modules | 129 | 1 | - | - | - | 5 |
-| `modules/CortetsuHypr.qml` | owned-first-party | modules | 376 | 25 | CortetsuToaster | - | - | 16 |
-| `modules/CortetsuIcon.qml` | owned-first-party | modules | 7 | 68 | - | - | - | 8 |
+| `modules/CortetsuConfig.qml` | owned-first-party | modules | 901 | 83 | CortetsuEqualizer | - | deshabilitado | 56 |
+| `modules/CortetsuHoverSurfaceController.qml` | owned-first-party | modules | 132 | 1 | - | - | - | 5 |
+| `modules/CortetsuHypr.qml` | owned-first-party | modules | 376 | 27 | CortetsuToaster | - | - | 16 |
+| `modules/CortetsuIcon.qml` | owned-first-party | modules | 7 | 72 | - | - | - | 8 |
 | `modules/CortetsuIdleInhibitor.qml` | owned-first-party | modules | 42 | 5 | - | - | deshabilitado | 10 |
-| `modules/CortetsuIsland.qml` | owned-first-party | modules | 26 | 4 | - | - | - | 5 |
+| `modules/CortetsuIsland.qml` | owned-first-party | modules | 118 | 4 | - | ratón | movimiento | 6 |
 | `modules/CortetsuMask.qml` | owned-first-party | modules | 8 | 3 | - | - | - | 2 |
-| `modules/CortetsuModeSegment.qml` | owned-first-party | modules | 74 | 1 | - | ratón | - | 10 |
+| `modules/CortetsuModeSegment.qml` | owned-first-party | modules | 77 | 1 | - | ratón | - | 10 |
 | `modules/CortetsuNetwork.qml` | owned-first-party | modules | 16 | 7 | ConnectivityWifi | - | - | 11 |
 | `modules/CortetsuNotifications.qml` | owned-first-party | modules | 148 | 8 | - | - | deshabilitado | 11 |
 | `modules/CortetsuOverlayConfig.qml` | owned-first-party | modules | 38 | 3 | - | - | deshabilitado | 2 |
@@ -90,22 +89,28 @@ prueba que lo nombran. `dead` es un QML propio que nada referencia.
 | `modules/CortetsuRecorder.qml` | owned-first-party | modules | 97 | 5 | - | - | - | 5 |
 | `modules/CortetsuRegional.qml` | owned-first-party | modules | 88 | 10 | Weather | - | - | 5 |
 | `modules/CortetsuScreenState.qml` | owned-first-party | modules | 106 | 1 | - | - | - | 9 |
-| `modules/CortetsuScreens.qml` | owned-first-party | modules | 15 | 19 | - | - | - | 12 |
-| `modules/CortetsuSearchBar.qml` | owned-first-party | modules | 99 | 11 | - | teclado, ratón | movimiento | 5 |
-| `modules/CortetsuShellState.qml` | owned-first-party | modules | 80 | 31 | - | - | - | 34 |
+| `modules/CortetsuScreens.qml` | owned-first-party | modules | 15 | 21 | - | - | - | 12 |
+| `modules/CortetsuSearchBar.qml` | owned-first-party | modules | 99 | 12 | - | teclado, ratón | movimiento | 5 |
+| `modules/CortetsuShellState.qml` | owned-first-party | modules | 80 | 35 | - | - | - | 35 |
 | `modules/CortetsuShortcut.qml` | owned-first-party | modules | 8 | 7 | - | - | - | 8 |
-| `modules/CortetsuStateLayer.qml` | owned-first-party | modules | 11 | 5 | - | ratón | deshabilitado | 4 |
-| `modules/CortetsuStatusSegment.qml` | owned-first-party | modules | 320 | 1 | Time | teclado, ratón | deshabilitado | 17 |
-| `modules/CortetsuSurface.qml` | owned-first-party | modules | 51 | 54 | - | - | deshabilitado, movimiento | 16 |
-| `modules/CortetsuText.qml` | owned-first-party | modules | 28 | 109 | - | - | deshabilitado, movimiento | 8 |
-| `modules/CortetsuTraySegment.qml` | owned-first-party | modules | 167 | 1 | - | teclado, ratón | deshabilitado | 14 |
+| `modules/CortetsuStateLayer.qml` | owned-first-party | modules | 11 | 4 | - | ratón | deshabilitado | 4 |
+| `modules/CortetsuStatusSegment.qml` | owned-first-party | modules | 323 | 1 | Time | teclado, ratón | deshabilitado | 17 |
+| `modules/CortetsuSurface.qml` | owned-first-party | modules | 51 | 51 | - | - | deshabilitado, movimiento | 16 |
+| `modules/CortetsuText.qml` | owned-first-party | modules | 28 | 110 | - | - | deshabilitado, movimiento | 8 |
+| `modules/CortetsuTraySegment.qml` | owned-first-party | modules | 192 | 1 | - | teclado, ratón | deshabilitado | 14 |
 | `modules/CortetsuWallpapers.qml` | owned-first-party | modules | 321 | 11 | CortetsuColours | - | - | 20 |
 | `modules/CortetsuWorkspaceDots.qml` | owned-first-party | modules | 158 | 1 | - | teclado, ratón | deshabilitado, movimiento | 9 |
 | `modules/DashboardHost.qml` | owned-first-party | modules | 65 | 4 | - | - | deshabilitado | 9 |
 | `modules/DisplayController.qml` | owned-first-party | modules | 10 | 1 | - | - | - | 8 |
 | `modules/HardwareController.qml` | owned-first-party | modules | 76 | 1 | - | - | - | 7 |
-| `modules/HubButton.qml` | owned-first-party | modules | 196 | 2 | - | teclado, ratón | deshabilitado, movimiento | 12 |
-| `modules/HubFlow.qml` | owned-first-party | modules | 13 | 6 | - | - | - | 0 |
+| `modules/HubButton.qml` | owned-first-party | modules | 212 | 3 | - | teclado, ratón | deshabilitado, movimiento | 13 |
+| `modules/HubEditHost.qml` | owned-first-party | modules | 48 | 1 | CortetsuToaster | - | - | 0 |
+| `modules/HubEditMode.qml` | owned-first-party | modules | 264 | 2 | - | teclado, ratón | deshabilitado, movimiento | 0 |
+| `modules/HubEditState.qml` | owned-first-party | modules | 57 | 4 | - | - | - | 0 |
+| `modules/HubFlow.qml` | owned-first-party | modules | 27 | 6 | - | - | - | 0 |
+| `modules/HubGlide.qml` | owned-first-party | modules | 11 | 1 | - | - | movimiento | 0 |
+| `modules/HubLean.qml` | owned-first-party | modules | 17 | 2 | - | - | movimiento | 0 |
+| `modules/HubRevealEdges.qml` | owned-first-party | modules | 70 | 1 | - | - | deshabilitado | 0 |
 | `modules/IdleMonitors.qml` | owned-first-party | modules | 141 | 2 | CortetsuPower, CortetsuSession, Players | - | deshabilitado | 5 |
 | `modules/KeyboardsController.qml` | owned-first-party | modules | 10 | 1 | - | - | - | 0 |
 | `modules/LauncherHost.qml` | owned-first-party | modules | 141 | 2 | - | ratón | deshabilitado, movimiento | 8 |
@@ -114,8 +119,8 @@ prueba que lo nombran. `dead` es un QML propio que nada referencia.
 | `modules/RetainedSurfaceController.qml` | owned-first-party | modules | 59 | 6 | - | - | - | 10 |
 | `modules/RetainedSurfacesHost.qml` | owned-first-party | modules | 146 | 2 | - | ratón | deshabilitado | 12 |
 | `modules/SecretPromptHost.qml` | owned-first-party | modules | 194 | 1 | - | - | - | 0 |
-| `modules/ServiceLoader.qml` | owned-first-party | modules | 17 | 1 | - | - | - | 3 |
-| `modules/SessionHost.qml` | owned-first-party | modules | 125 | 1 | - | - | deshabilitado | 12 |
+| `modules/ServiceLoader.qml` | owned-first-party | modules | 20 | 1 | - | - | - | 3 |
+| `modules/SessionHost.qml` | owned-first-party | modules | 129 | 1 | - | - | deshabilitado | 12 |
 | `modules/SettingsHost.qml` | owned-first-party | modules | 100 | 1 | - | - | - | 5 |
 | `modules/ShellLifecycle.qml` | owned-first-party | modules | 172 | 1 | - | - | - | 3 |
 | `modules/Shortcuts.qml` | owned-first-party | modules | 112 | 1 | CortetsuToaster | - | - | 20 |
@@ -131,53 +136,55 @@ prueba que lo nombran. `dead` es un QML propio que nada referencia.
 | `modules/bar/BarWrapper.qml` | owned-first-party | modules/bar | 23 | 4 | - | - | deshabilitado | 7 |
 | `modules/bar/components/Clock.qml` | dead | modules/bar/components | 42 | 0 | Time | - | - | 4 |
 | `modules/bar/components/StatusIcons.qml` | dead | modules/bar/components | 63 | 0 | Connectivity, CortetsuPower | - | - | 2 |
-| `modules/bar/popouts/ClipWrapper.qml` | owned-first-party | modules/bar/popouts | 78 | 2 | - | ratón | movimiento | 8 |
+| `modules/bar/popouts/ClipWrapper.qml` | owned-first-party | modules/bar/popouts | 89 | 2 | - | ratón | movimiento | 8 |
 | `modules/bar/popouts/CortetsuActiveWindowPopup.qml` | owned-first-party | modules/bar/popouts | 53 | 1 | - | ratón | - | 1 |
-| `modules/bar/popouts/CortetsuAudioPopup.qml` | owned-first-party | modules/bar/popouts | 127 | 2 | - | ratón | vacío/error, deshabilitado | 7 |
-| `modules/bar/popouts/CortetsuBatteryPopup.qml` | owned-first-party | modules/bar/popouts | 234 | 2 | CortetsuPower | teclado, ratón | vacío/error | 10 |
-| `modules/bar/popouts/CortetsuBluetoothPopup.qml` | owned-first-party | modules/bar/popouts | 149 | 2 | ConnectivityBluetooth | ratón | vacío/error, deshabilitado | 4 |
+| `modules/bar/popouts/CortetsuAudioPopup.qml` | owned-first-party | modules/bar/popouts | 181 | 2 | - | ratón | vacío/error, deshabilitado | 6 |
+| `modules/bar/popouts/CortetsuBatteryPopup.qml` | owned-first-party | modules/bar/popouts | 174 | 2 | CortetsuPower | - | - | 10 |
+| `modules/bar/popouts/CortetsuBluetoothPopup.qml` | owned-first-party | modules/bar/popouts | 117 | 2 | ConnectivityBluetooth | ratón | vacío/error, deshabilitado | 5 |
 | `modules/bar/popouts/CortetsuDetachedPopup.qml` | owned-first-party | modules/bar/popouts | 49 | 1 | - | ratón | - | 2 |
 | `modules/bar/popouts/CortetsuKeyboardPopup.qml` | owned-first-party | modules/bar/popouts | 44 | 2 | - | ratón | vacío/error, deshabilitado | 2 |
 | `modules/bar/popouts/CortetsuLockStatusPopup.qml` | owned-first-party | modules/bar/popouts | 27 | 2 | Hypr | - | - | 1 |
-| `modules/bar/popouts/CortetsuNetworkPopup.qml` | owned-first-party | modules/bar/popouts | 167 | 2 | Connectivity | ratón | vacío/error, deshabilitado | 4 |
-| `modules/bar/popouts/CortetsuTrayMenu.qml` | owned-first-party | modules/bar/popouts | 353 | 1 | - | teclado, ratón | deshabilitado, movimiento | 6 |
+| `modules/bar/popouts/CortetsuNetworkPopup.qml` | owned-first-party | modules/bar/popouts | 183 | 2 | Connectivity | ratón | vacío/error, deshabilitado | 5 |
+| `modules/bar/popouts/CortetsuPopoutHeader.qml` | owned-first-party | modules/bar/popouts | 59 | 5 | - | ratón | - | 0 |
+| `modules/bar/popouts/CortetsuTrayMenu.qml` | owned-first-party | modules/bar/popouts | 427 | 1 | - | teclado, ratón | deshabilitado, movimiento | 6 |
 | `modules/bar/popouts/CortetsuWifiPasswordPopup.qml` | owned-first-party | modules/bar/popouts | 141 | 1 | Connectivity | teclado, ratón | deshabilitado | 3 |
-| `modules/bar/popouts/CortetsuWindowInfoPopup.qml` | owned-first-party | modules/bar/popouts | 184 | 1 | - | teclado, ratón | deshabilitado | 2 |
-| `modules/bar/popouts/Wrapper.qml` | owned-first-party | modules/bar/popouts | 208 | 4 | - | teclado, ratón | deshabilitado, movimiento | 53 |
+| `modules/bar/popouts/CortetsuWindowInfoPopup.qml` | owned-first-party | modules/bar/popouts | 182 | 1 | - | teclado, ratón | deshabilitado | 2 |
+| `modules/bar/popouts/CortetsuWindowPreview.qml` | owned-first-party | modules/bar/popouts | 291 | 1 | - | ratón | - | 1 |
+| `modules/bar/popouts/Wrapper.qml` | owned-first-party | modules/bar/popouts | 220 | 6 | - | teclado, ratón | deshabilitado, movimiento | 53 |
 | `modules/calendar/CalendarService.qml` | owned-first-party | modules/calendar | 101 | 3 | - | - | deshabilitado | 8 |
-| `modules/calendar/Content.qml` | owned-first-party | modules/calendar | 215 | 20 | - | teclado, ratón | deshabilitado | 74 |
+| `modules/calendar/Content.qml` | owned-first-party | modules/calendar | 215 | 22 | - | teclado, ratón | deshabilitado | 72 |
 | `modules/calendar/PomodoroCard.qml` | owned-first-party | modules/calendar | 95 | 1 | - | ratón | deshabilitado | 6 |
-| `modules/calendar/Wrapper.qml` | owned-first-party | modules/calendar | 30 | 4 | - | teclado | movimiento | 53 |
+| `modules/calendar/Wrapper.qml` | owned-first-party | modules/calendar | 30 | 6 | - | teclado | movimiento | 53 |
 | `modules/clipboard/ClipboardItem.qml` | owned-first-party | modules/clipboard | 422 | 1 | - | ratón | movimiento | 1 |
-| `modules/clipboard/Content.qml` | owned-first-party | modules/clipboard | 859 | 20 | - | teclado, ratón | movimiento | 74 |
-| `modules/clipboard/Wrapper.qml` | owned-first-party | modules/clipboard | 75 | 4 | - | - | movimiento | 53 |
-| `modules/dashboard/Dash.qml` | owned-first-party | modules/dashboard | 473 | 2 | CortetsuPower, Cpu, Gpu, Lyrics, Memory, NetworkUsage, Storage, Time, Weather | teclado, ratón | deshabilitado, movimiento | 16 |
+| `modules/clipboard/Content.qml` | owned-first-party | modules/clipboard | 859 | 22 | - | teclado, ratón | movimiento | 72 |
+| `modules/clipboard/Wrapper.qml` | owned-first-party | modules/clipboard | 75 | 6 | - | - | movimiento | 53 |
+| `modules/dashboard/Dash.qml` | owned-first-party | modules/dashboard | 478 | 2 | CortetsuPower, Cpu, Gpu, Lyrics, Memory, NetworkUsage, Storage, Time, Weather | teclado, ratón | deshabilitado, movimiento | 15 |
 | `modules/dashboard/DashCover.qml` | owned-first-party | modules/dashboard | 46 | 1 | - | - | - | 0 |
-| `modules/dashboard/DashGauge.qml` | owned-first-party | modules/dashboard | 52 | 1 | - | - | - | 1 |
+| `modules/dashboard/DashGauge.qml` | owned-first-party | modules/dashboard | 67 | 1 | - | - | - | 1 |
 | `modules/dashboard/DashHourChart.qml` | owned-first-party | modules/dashboard | 79 | 1 | - | - | - | 0 |
 | `modules/dashboard/DashInk.qml` | owned-first-party | modules/dashboard | 19 | 9 | - | - | - | 2 |
 | `modules/dashboard/DashLabel.qml` | owned-first-party | modules/dashboard | 21 | 5 | - | - | - | 1 |
 | `modules/dashboard/DashLyricLines.qml` | owned-first-party | modules/dashboard | 44 | 1 | Lyrics | - | - | 1 |
 | `modules/dashboard/DashLyrics.qml` | owned-first-party | modules/dashboard | 105 | 1 | Lyrics, Players | ratón | deshabilitado, movimiento | 1 |
-| `modules/dashboard/DashMediaPlayer.qml` | owned-first-party | modules/dashboard | 178 | 1 | Players | ratón | - | 1 |
+| `modules/dashboard/DashMediaPlayer.qml` | owned-first-party | modules/dashboard | 178 | 1 | Players | ratón | - | 0 |
 | `modules/dashboard/DashNote.qml` | owned-first-party | modules/dashboard | 42 | 3 | - | - | - | 0 |
 | `modules/dashboard/DashRate.qml` | owned-first-party | modules/dashboard | 27 | 1 | NetworkUsage | - | - | 0 |
 | `modules/dashboard/DashRule.qml` | owned-first-party | modules/dashboard | 20 | 2 | - | - | - | 0 |
 | `modules/dashboard/DashTransport.qml` | owned-first-party | modules/dashboard | 23 | 1 | - | ratón | deshabilitado | 0 |
 | `modules/dashboard/DashWeatherSummary.qml` | owned-first-party | modules/dashboard | 42 | 1 | Weather | - | - | 1 |
 | `modules/dashboard/DashboardLayer.qml` | owned-first-party | modules/dashboard | 77 | 1 | - | teclado, ratón | deshabilitado, movimiento | 2 |
-| `modules/dashboard/Focus.qml` | owned-first-party | modules/dashboard | 141 | 5 | - | ratón | deshabilitado | 8 |
-| `modules/dashboard/Today.qml` | owned-first-party | modules/dashboard | 162 | 2 | - | ratón | - | 8 |
-| `modules/dashboard/Wrapper.qml` | owned-first-party | modules/dashboard | 37 | 4 | - | - | movimiento | 53 |
-| `modules/display/Wrapper.qml` | owned-first-party | modules/display | 30 | 4 | - | - | - | 53 |
+| `modules/dashboard/Focus.qml` | owned-first-party | modules/dashboard | 141 | 6 | - | ratón | deshabilitado | 9 |
+| `modules/dashboard/Today.qml` | owned-first-party | modules/dashboard | 162 | 2 | - | ratón | - | 6 |
+| `modules/dashboard/Wrapper.qml` | owned-first-party | modules/dashboard | 37 | 6 | - | - | movimiento | 53 |
+| `modules/display/Wrapper.qml` | owned-first-party | modules/display | 30 | 6 | - | - | - | 53 |
 | `modules/drawers/ContentWindow.qml` | owned-first-party | modules/drawers | 349 | 3 | Hypr, ShellState | - | deshabilitado, movimiento | 27 |
 | `modules/drawers/Drawers.qml` | owned-first-party | modules/drawers | 25 | 1 | - | - | - | 1 |
-| `modules/drawers/Exclusions.qml` | owned-first-party | modules/drawers | 32 | 1 | - | - | - | 0 |
+| `modules/drawers/Exclusions.qml` | owned-first-party | modules/drawers | 32 | 2 | - | - | - | 0 |
 | `modules/drawers/HoverPreviewTracker.qml` | owned-first-party | modules/drawers | 74 | 2 | - | ratón | deshabilitado | 0 |
 | `modules/drawers/Interactions.qml` | owned-first-party | modules/drawers | 318 | 2 | - | ratón | deshabilitado | 10 |
 | `modules/drawers/Panels.qml` | owned-first-party | modules/drawers | 145 | 7 | - | - | - | 23 |
 | `modules/drawers/Regions.qml` | owned-first-party | modules/drawers | 86 | 1 | - | - | - | 4 |
-| `modules/hardware/Content.qml` | owned-first-party | modules/hardware | 349 | 20 | - | teclado, ratón | - | 74 |
+| `modules/hardware/Content.qml` | owned-first-party | modules/hardware | 349 | 22 | - | teclado, ratón | - | 72 |
 | `modules/hardware/EnergyPage.qml` | owned-first-party | modules/hardware | 269 | 1 | - | - | - | 1 |
 | `modules/hardware/FactRow.qml` | owned-first-party | modules/hardware | 54 | 6 | - | ratón | deshabilitado | 0 |
 | `modules/hardware/HardwareTelemetry.qml` | owned-first-party | modules/hardware | 197 | 1 | - | - | - | 2 |
@@ -193,7 +200,7 @@ prueba que lo nombran. `dead` es un QML propio que nada referencia.
 | `modules/hardware/SensorsPage.qml` | owned-first-party | modules/hardware | 319 | 1 | - | - | - | 0 |
 | `modules/hardware/StartupPage.qml` | owned-first-party | modules/hardware | 490 | 1 | - | teclado, ratón | vacío/error, deshabilitado | 3 |
 | `modules/hardware/SystemPage.qml` | owned-first-party | modules/hardware | 189 | 1 | - | ratón | - | 0 |
-| `modules/hardware/Wrapper.qml` | owned-first-party | modules/hardware | 53 | 4 | - | - | movimiento | 53 |
+| `modules/hardware/Wrapper.qml` | owned-first-party | modules/hardware | 53 | 6 | - | - | movimiento | 53 |
 | `modules/hardware/summary/CapacityBlock.qml` | owned-first-party | modules/hardware | 80 | 1 | - | - | - | 2 |
 | `modules/hardware/summary/ContextLink.qml` | owned-first-party | modules/hardware | 53 | 1 | - | - | - | 0 |
 | `modules/hardware/summary/CpuBlock.qml` | owned-first-party | modules/hardware | 89 | 1 | - | - | - | 0 |
@@ -205,66 +212,67 @@ prueba que lo nombran. `dead` es un QML propio que nada referencia.
 | `modules/hardware/summary/Sparkline.qml` | owned-first-party | modules/hardware | 55 | 1 | - | - | - | 0 |
 | `modules/hardware/summary/SummaryFacts.qml` | owned-first-party | modules/hardware | 42 | 3 | - | - | - | 0 |
 | `modules/hardware/summary/SummaryLabel.qml` | owned-first-party | modules/hardware | 47 | 10 | - | - | - | 0 |
-| `modules/keyboards/Content.qml` | owned-first-party | modules/keyboards | 542 | 20 | - | teclado, ratón | vacío/error, deshabilitado, movimiento | 74 |
+| `modules/keyboards/Content.qml` | owned-first-party | modules/keyboards | 542 | 22 | - | teclado, ratón | vacío/error, deshabilitado, movimiento | 72 |
 | `modules/keyboards/DeviceList.qml` | owned-first-party | modules/keyboards | 116 | 1 | - | ratón | - | 0 |
 | `modules/keyboards/EditorPanel.qml` | owned-first-party | modules/keyboards | 486 | 1 | - | ratón | vacío/error, deshabilitado, movimiento | 0 |
 | `modules/keyboards/KeyCaps.qml` | owned-first-party | modules/keyboards | 66 | 2 | - | - | - | 0 |
 | `modules/keyboards/KeyboardsBackend.qml` | owned-first-party | modules/keyboards | 284 | 1 | - | - | - | 1 |
 | `modules/keyboards/ProbeBar.qml` | owned-first-party | modules/keyboards | 78 | 1 | - | ratón | deshabilitado | 0 |
 | `modules/keyboards/SelectableRow.qml` | owned-first-party | modules/keyboards | 117 | 1 | - | teclado, ratón | - | 0 |
-| `modules/keyboards/Wrapper.qml` | owned-first-party | modules/keyboards | 46 | 4 | - | - | movimiento | 53 |
-| `modules/launcher/AppList.qml` | owned-first-party | modules/launcher | 822 | 4 | Actions, Apps, CortetsuProcessLauncher, Emojis, M3Variants, Schemes | ratón | - | 11 |
-| `modules/launcher/Content.qml` | owned-first-party | modules/launcher | 203 | 20 | Apps | teclado, ratón | - | 74 |
-| `modules/launcher/ContentList.qml` | owned-first-party | modules/launcher | 153 | 1 | - | - | vacío/error, movimiento | 10 |
+| `modules/keyboards/Wrapper.qml` | owned-first-party | modules/keyboards | 46 | 6 | - | - | movimiento | 53 |
+| `modules/launcher/AppList.qml` | owned-first-party | modules/launcher | 852 | 4 | Actions, Apps, CortetsuProcessLauncher, Emojis, M3Variants, Schemes | ratón | - | 11 |
+| `modules/launcher/Content.qml` | owned-first-party | modules/launcher | 259 | 22 | Apps | teclado, ratón | - | 72 |
+| `modules/launcher/ContentList.qml` | owned-first-party | modules/launcher | 155 | 1 | - | - | vacío/error, movimiento | 10 |
 | `modules/launcher/WallpaperItem.qml` | owned-first-party | modules/launcher | 90 | 1 | - | ratón | deshabilitado, movimiento | 3 |
 | `modules/launcher/WallpaperList.qml` | owned-first-party | modules/launcher | 90 | 1 | - | - | - | 5 |
-| `modules/launcher/Wrapper.qml` | owned-first-party | modules/launcher | 64 | 4 | - | - | movimiento | 53 |
+| `modules/launcher/Wrapper.qml` | owned-first-party | modules/launcher | 64 | 6 | - | - | movimiento | 53 |
 | `modules/launcher/services/Actions.qml` | owned-first-party | modules/launcher | 103 | 1 | CortetsuProcessLauncher, CortetsuSession | ratón | deshabilitado | 6 |
-| `modules/launcher/services/Apps.qml` | owned-first-party | modules/launcher | 94 | 4 | CortetsuProcessLauncher | - | - | 5 |
+| `modules/launcher/services/Apps.qml` | owned-first-party | modules/launcher | 170 | 4 | CortetsuProcessLauncher | - | - | 5 |
 | `modules/launcher/services/Emojis.qml` | owned-first-party | modules/launcher | 55 | 1 | CortetsuToaster | ratón | - | 0 |
 | `modules/launcher/services/M3Variants.qml` | owned-first-party | modules/launcher | 93 | 3 | CortetsuColours | ratón | - | 5 |
 | `modules/launcher/services/Schemes.qml` | owned-first-party | modules/launcher | 240 | 3 | CortetsuColours, CortetsuThemes, M3Variants | ratón | - | 5 |
-| `modules/lock/Lock.qml` | owned-first-party | modules/lock | 76 | 6 | - | - | - | 10 |
+| `modules/lock/Lock.qml` | owned-first-party | modules/lock | 76 | 7 | - | - | - | 10 |
 | `modules/lock/LockCard.qml` | owned-first-party | modules/lock | 201 | 1 | CortetsuPower, Time | ratón | movimiento | 7 |
-| `modules/lock/LockSurface.qml` | owned-first-party | modules/lock | 119 | 2 | CortetsuPower | teclado | - | 6 |
+| `modules/lock/LockSurface.qml` | owned-first-party | modules/lock | 120 | 2 | CortetsuPower | teclado | - | 6 |
 | `modules/lock/weather/Forecast.qml` | owned-first-party | modules/lock | 41 | 1 | Weather | - | - | 1 |
 | `modules/notifications/Notification.qml` | owned-first-party | modules/notifications | 238 | 3 | - | teclado, ratón | movimiento | 9 |
-| `modules/notifications/Wrapper.qml` | owned-first-party | modules/notifications | 58 | 4 | Notifs | - | movimiento | 53 |
-| `modules/osd/Content.qml` | owned-first-party | modules/osd | 37 | 20 | - | ratón | - | 74 |
-| `modules/osd/FullContent.qml` | owned-first-party | modules/osd | 331 | 1 | Brightness, Connectivity, CortetsuPower, GameMode | ratón | deshabilitado | 16 |
-| `modules/osd/MiniSlider.qml` | owned-first-party | modules/osd | 92 | 1 | - | - | movimiento | 3 |
-| `modules/osd/Wrapper.qml` | owned-first-party | modules/osd | 145 | 4 | Brightness | - | movimiento | 53 |
-| `modules/overview/Content.qml` | owned-first-party | modules/overview | 1060 | 20 | - | teclado, ratón | vacío/error | 74 |
+| `modules/notifications/Wrapper.qml` | owned-first-party | modules/notifications | 58 | 6 | Notifs | - | movimiento | 53 |
+| `modules/osd/Content.qml` | owned-first-party | modules/osd | 37 | 22 | - | ratón | - | 72 |
+| `modules/osd/FullContent.qml` | owned-first-party | modules/osd | 454 | 1 | Brightness, Connectivity, CortetsuPower, GameMode | ratón | deshabilitado | 15 |
+| `modules/osd/LevelRow.qml` | owned-first-party | modules/osd | 87 | 1 | - | ratón | deshabilitado | 0 |
+| `modules/osd/MiniSlider.qml` | owned-first-party | modules/osd | 121 | 1 | - | - | movimiento | 3 |
+| `modules/osd/Wrapper.qml` | owned-first-party | modules/osd | 183 | 6 | Brightness | - | movimiento | 53 |
+| `modules/overview/Content.qml` | owned-first-party | modules/overview | 1048 | 22 | - | teclado, ratón | vacío/error | 72 |
 | `modules/overview/WindowCard.qml` | owned-first-party | modules/overview | 588 | 1 | - | teclado, ratón | movimiento | 5 |
-| `modules/overview/Wrapper.qml` | owned-first-party | modules/overview | 48 | 4 | - | - | movimiento | 53 |
-| `modules/polkit/PolkitDialog.qml` | owned-first-party | modules/polkit | 188 | 1 | - | teclado, ratón | deshabilitado | 3 |
+| `modules/overview/Wrapper.qml` | owned-first-party | modules/overview | 48 | 6 | - | - | movimiento | 53 |
+| `modules/polkit/PolkitDialog.qml` | owned-first-party | modules/polkit | 225 | 1 | - | teclado, ratón | deshabilitado | 3 |
 | `modules/pomodoro/Pomodoro.qml` | owned-first-party | modules/pomodoro | 92 | 4 | CortetsuToaster | - | - | 14 |
 | `modules/prompt/SecretPrompt.qml` | owned-first-party | modules/prompt | 295 | 1 | - | teclado, ratón | deshabilitado | 3 |
 | `modules/screenshare/ScreenShare.qml` | owned-first-party | modules/screenshare | 139 | 1 | - | - | - | 0 |
 | `modules/screenshare/ScreenSharePanel.qml` | owned-first-party | modules/screenshare | 344 | 1 | - | teclado, ratón | vacío/error, deshabilitado, movimiento | 2 |
 | `modules/screenshare/ScreenSharePicker.qml` | owned-first-party | modules/screenshare | 52 | 1 | - | - | - | 1 |
-| `modules/session/Content.qml` | owned-first-party | modules/session | 238 | 20 | CortetsuSession | ratón | deshabilitado | 74 |
-| `modules/session/Wrapper.qml` | owned-first-party | modules/session | 33 | 4 | - | - | movimiento | 53 |
-| `modules/settings/Content.qml` | owned-first-party | modules/settings | 369 | 20 | - | teclado, ratón | deshabilitado, movimiento | 74 |
+| `modules/session/Content.qml` | owned-first-party | modules/session | 282 | 22 | CortetsuSession | ratón | deshabilitado | 72 |
+| `modules/session/Wrapper.qml` | owned-first-party | modules/session | 33 | 6 | - | - | movimiento | 53 |
+| `modules/settings/Content.qml` | owned-first-party | modules/settings | 372 | 22 | - | teclado, ratón | deshabilitado, movimiento | 72 |
 | `modules/settings/NetworkPage.qml` | owned-first-party | modules/settings | 246 | 1 | Connectivity, CortetsuSettingsNetwork | ratón | deshabilitado | 3 |
-| `modules/settings/Nexus.qml` | owned-first-party | modules/settings | 271 | 2 | - | teclado, ratón | vacío/error, movimiento | 5 |
+| `modules/settings/Nexus.qml` | owned-first-party | modules/settings | 271 | 2 | - | teclado, ratón | vacío/error, movimiento | 4 |
 | `modules/settings/NexusResult.qml` | owned-first-party | modules/settings | 83 | 1 | - | teclado, ratón | - | 0 |
 | `modules/settings/NexusRow.qml` | owned-first-party | modules/settings | 128 | 1 | - | teclado, ratón | - | 0 |
-| `modules/settings/PageRegistry.qml` | owned-first-party | modules/settings | 171 | 1 | - | - | - | 1 |
+| `modules/settings/PageRegistry.qml` | owned-first-party | modules/settings | 171 | 2 | - | - | - | 1 |
 | `modules/settings/SettingsContext.qml` | owned-first-party | modules/settings | 175 | 1 | Brightness, Connectivity, CortetsuPower, CortetsuThemes, Hypr, Schemes, ShellState | - | - | 6 |
-| `modules/settings/SettingsController.qml` | owned-first-party | modules/settings | 178 | 6 | - | - | - | 6 |
+| `modules/settings/SettingsController.qml` | owned-first-party | modules/settings | 178 | 7 | - | - | - | 7 |
 | `modules/settings/SettingsHeader.qml` | owned-first-party | modules/settings | 111 | 1 | - | teclado, ratón | - | 0 |
 | `modules/settings/bluetooth/BluetoothPage.qml` | owned-first-party | modules/settings/bluetooth | 188 | 1 | - | - | vacío/error, deshabilitado | 2 |
 | `modules/settings/bluetooth/DeviceDetailPanel.qml` | owned-first-party | modules/settings/bluetooth | 339 | 1 | - | ratón | vacío/error, deshabilitado | 0 |
 | `modules/settings/bluetooth/DeviceListPanel.qml` | owned-first-party | modules/settings/bluetooth | 260 | 1 | - | teclado, ratón | vacío/error | 0 |
 | `modules/settings/controls/ChoiceChip.qml` | owned-first-party | modules/settings/controls | 84 | 1 | - | teclado, ratón | deshabilitado | 0 |
-| `modules/settings/controls/HubAnchorPicker.qml` | owned-first-party | modules/settings/controls | 153 | 1 | - | teclado, ratón | deshabilitado | 0 |
+| `modules/settings/controls/HubAnchorPicker.qml` | owned-first-party | modules/settings/controls | 134 | 1 | - | teclado, ratón | deshabilitado | 0 |
 | `modules/settings/controls/SaveIndicator.qml` | owned-first-party | modules/settings/controls | 56 | 1 | - | - | movimiento | 0 |
 | `modules/settings/controls/SettingActionRow.qml` | owned-first-party | modules/settings/controls | 63 | 13 | - | ratón | deshabilitado | 1 |
-| `modules/settings/controls/SettingChoiceChips.qml` | owned-first-party | modules/settings/controls | 81 | 5 | - | teclado, ratón | deshabilitado | 0 |
+| `modules/settings/controls/SettingChoiceChips.qml` | owned-first-party | modules/settings/controls | 81 | 7 | - | teclado, ratón | deshabilitado | 0 |
 | `modules/settings/controls/SettingNavRow.qml` | owned-first-party | modules/settings/controls | 49 | 5 | - | teclado, ratón | - | 0 |
-| `modules/settings/controls/SettingRow.qml` | owned-first-party | modules/settings/controls | 139 | 6 | - | ratón | deshabilitado, movimiento | 0 |
-| `modules/settings/controls/SettingSliderRow.qml` | owned-first-party | modules/settings/controls | 82 | 11 | - | - | deshabilitado | 1 |
+| `modules/settings/controls/SettingRow.qml` | owned-first-party | modules/settings/controls | 137 | 6 | - | ratón | deshabilitado, movimiento | 0 |
+| `modules/settings/controls/SettingSliderRow.qml` | owned-first-party | modules/settings/controls | 97 | 11 | - | ratón | deshabilitado | 1 |
 | `modules/settings/controls/SettingTextRow.qml` | owned-first-party | modules/settings/controls | 57 | 7 | - | teclado | deshabilitado | 0 |
 | `modules/settings/controls/SettingToggleRow.qml` | owned-first-party | modules/settings/controls | 56 | 21 | - | teclado, ratón | deshabilitado | 2 |
 | `modules/settings/controls/SettingValueRow.qml` | owned-first-party | modules/settings/controls | 27 | 13 | - | - | - | 0 |
@@ -282,11 +290,11 @@ prueba que lo nombran. `dead` es un QML propio que nada referencia.
 | `modules/settings/network/SignalBars.qml` | owned-first-party | modules/settings/network | 29 | 2 | - | - | - | 0 |
 | `modules/settings/pages/AboutPage.qml` | owned-first-party | modules/settings/pages | 184 | 1 | - | - | - | 0 |
 | `modules/settings/pages/CategoryPage.qml` | owned-first-party | modules/settings/pages | 35 | 1 | - | - | - | 0 |
-| `modules/settings/pages/HomePage.qml` | owned-first-party | modules/settings/pages | 268 | 1 | - | teclado, ratón | - | 0 |
+| `modules/settings/pages/HomePage.qml` | owned-first-party | modules/settings/pages | 202 | 1 | - | ratón | - | 0 |
 | `modules/settings/sections/AccessibilitySection.qml` | owned-first-party | modules/settings/sections | 53 | 1 | - | - | - | 0 |
-| `modules/settings/sections/AudioSection.qml` | owned-first-party | modules/settings/sections | 204 | 1 | - | ratón | vacío/error, deshabilitado | 0 |
+| `modules/settings/sections/AudioSection.qml` | owned-first-party | modules/settings/sections | 275 | 1 | CortetsuEqualizer | ratón | vacío/error, deshabilitado | 0 |
 | `modules/settings/sections/AutomationSection.qml` | owned-first-party | modules/settings/sections | 166 | 1 | - | - | deshabilitado | 2 |
-| `modules/settings/sections/BottomHubSection.qml` | owned-first-party | modules/settings/sections | 217 | 1 | - | - | - | 0 |
+| `modules/settings/sections/BottomHubSection.qml` | owned-first-party | modules/settings/sections | 244 | 1 | - | - | - | 0 |
 | `modules/settings/sections/ClockUnitsSection.qml` | owned-first-party | modules/settings/sections | 35 | 1 | - | - | - | 0 |
 | `modules/settings/sections/DashboardSection.qml` | owned-first-party | modules/settings/sections | 150 | 1 | - | - | deshabilitado | 0 |
 | `modules/settings/sections/DiagnosticsSection.qml` | owned-first-party | modules/settings/sections | 61 | 1 | - | - | - | 0 |
@@ -295,7 +303,7 @@ prueba que lo nombran. `dead` es un QML propio que nada referencia.
 | `modules/settings/sections/LauncherSection.qml` | owned-first-party | modules/settings/sections | 111 | 1 | - | - | deshabilitado | 1 |
 | `modules/settings/sections/NotificationsSection.qml` | owned-first-party | modules/settings/sections | 138 | 1 | - | - | deshabilitado | 0 |
 | `modules/settings/sections/OsdSection.qml` | owned-first-party | modules/settings/sections | 23 | 1 | - | - | - | 0 |
-| `modules/settings/sections/PowerSection.qml` | owned-first-party | modules/settings/sections | 167 | 1 | CortetsuPower, CortetsuSession | - | deshabilitado | 0 |
+| `modules/settings/sections/PowerSection.qml` | owned-first-party | modules/settings/sections | 183 | 1 | CortetsuPower, CortetsuSession | - | deshabilitado | 0 |
 | `modules/settings/sections/RecorderSection.qml` | owned-first-party | modules/settings/sections | 35 | 1 | - | - | - | 0 |
 | `modules/settings/sections/RelatedSection.qml` | owned-first-party | modules/settings/sections | 31 | 1 | - | - | - | 0 |
 | `modules/settings/sections/SchemeSection.qml` | owned-first-party | modules/settings/sections | 223 | 1 | CortetsuColours, CortetsuThemes, M3Variants, Schemes | ratón | vacío/error, deshabilitado | 1 |
@@ -309,32 +317,33 @@ prueba que lo nombran. `dead` es un QML propio que nada referencia.
 | `modules/settings/sections/VisualiserSection.qml` | owned-first-party | modules/settings/sections | 38 | 1 | - | - | deshabilitado | 0 |
 | `modules/settings/sections/WallpaperSection.qml` | owned-first-party | modules/settings/sections | 276 | 1 | - | teclado, ratón | deshabilitado | 0 |
 | `modules/settings/sections/WeatherSection.qml` | owned-first-party | modules/settings/sections | 65 | 1 | - | - | - | 0 |
-| `modules/sidebar/Content.qml` | owned-first-party | modules/sidebar | 202 | 20 | Notifs | ratón | vacío/error, deshabilitado | 74 |
-| `modules/sidebar/Wrapper.qml` | owned-first-party | modules/sidebar | 41 | 4 | - | - | movimiento | 53 |
-| `modules/utilities/Content.qml` | owned-first-party | modules/utilities | 247 | 20 | - | teclado, ratón | - | 74 |
-| `modules/utilities/Wrapper.qml` | owned-first-party | modules/utilities | 58 | 4 | - | - | movimiento | 53 |
-| `modules/utilities/toasts/ToastItem.qml` | owned-first-party | modules/utilities | 110 | 1 | - | teclado, ratón | - | 4 |
+| `modules/sidebar/Content.qml` | owned-first-party | modules/sidebar | 316 | 22 | Notifs | teclado, ratón | vacío/error | 72 |
+| `modules/sidebar/Wrapper.qml` | owned-first-party | modules/sidebar | 41 | 6 | - | - | movimiento | 53 |
+| `modules/utilities/Content.qml` | owned-first-party | modules/utilities | 247 | 22 | - | teclado, ratón | - | 72 |
+| `modules/utilities/Wrapper.qml` | owned-first-party | modules/utilities | 58 | 6 | - | - | movimiento | 53 |
+| `modules/utilities/toasts/ToastItem.qml` | owned-first-party | modules/utilities | 107 | 1 | - | teclado, ratón | - | 4 |
 | `modules/utilities/toasts/Toasts.qml` | owned-first-party | modules/utilities | 74 | 2 | CortetsuToaster | teclado | movimiento | 5 |
-| `modules/wallpaper/Content.qml` | owned-first-party | modules/wallpaper | 833 | 20 | CortetsuColours, CortetsuToaster | teclado, ratón | deshabilitado, movimiento | 74 |
+| `modules/wallpaper/Content.qml` | owned-first-party | modules/wallpaper | 833 | 22 | CortetsuColours, CortetsuToaster | teclado, ratón | deshabilitado, movimiento | 72 |
 | `modules/wallpaper/OctagonFrame.qml` | owned-first-party | modules/wallpaper | 29 | 2 | - | - | - | 1 |
 | `modules/wallpaper/WallpaperStage.qml` | owned-first-party | modules/wallpaper | 175 | 1 | - | - | deshabilitado | 2 |
 | `modules/wallpaper/WallpaperTile.qml` | owned-first-party | modules/wallpaper | 81 | 2 | - | - | deshabilitado | 1 |
-| `modules/wallpaper/Wrapper.qml` | owned-first-party | modules/wallpaper | 71 | 4 | - | - | movimiento | 53 |
+| `modules/wallpaper/Wrapper.qml` | owned-first-party | modules/wallpaper | 71 | 6 | - | - | movimiento | 53 |
 | `modules/wallpaper/tests/tst_Orbit.qml` | harness/test | modules/wallpaper | 155 | 0 | - | - | - | 1 |
-| `services/Audio.qml` | owned-first-party | services | 33 | 5 | - | - | - | 6 |
+| `services/Audio.qml` | owned-first-party | services | 33 | 6 | - | - | - | 7 |
 | `services/Brightness.qml` | owned-first-party | services | 270 | 5 | - | - | - | 6 |
-| `services/Connectivity.qml` | owned-first-party | services | 32 | 8 | CortetsuToaster | - | - | 10 |
-| `services/ConnectivityBluetooth.qml` | owned-first-party | services | 327 | 3 | - | - | deshabilitado | 3 |
+| `services/Connectivity.qml` | owned-first-party | services | 32 | 8 | CortetsuToaster | - | - | 11 |
+| `services/ConnectivityBluetooth.qml` | owned-first-party | services | 327 | 3 | - | - | deshabilitado | 4 |
 | `services/ConnectivityNmAdapter.qml` | owned-first-party | services | 275 | 1 | - | - | - | 4 |
-| `services/ConnectivityWifi.qml` | owned-first-party | services | 268 | 4 | - | - | deshabilitado | 8 |
-| `services/CortetsuColours.qml` | owned-first-party | services | 189 | 9 | CortetsuThemes | - | - | 19 |
+| `services/ConnectivityWifi.qml` | owned-first-party | services | 268 | 4 | - | - | deshabilitado | 10 |
+| `services/CortetsuColours.qml` | owned-first-party | services | 189 | 9 | CortetsuThemes | - | - | 22 |
+| `services/CortetsuEqualizer.qml` | owned-first-party | services | 101 | 3 | - | - | deshabilitado | 0 |
 | `services/CortetsuPower.qml` | owned-first-party | services | 33 | 12 | - | - | - | 23 |
 | `services/CortetsuProcessLauncher.qml` | owned-first-party | services | 20 | 3 | - | - | - | 1 |
 | `services/CortetsuSession.qml` | owned-first-party | services | 115 | 6 | - | - | - | 8 |
 | `services/CortetsuSettingsNetwork.qml` | owned-first-party | services | 168 | 4 | ConnectivityWifi | - | - | 2 |
 | `services/CortetsuSpectrum.qml` | owned-first-party | services | 50 | 3 | - | - | deshabilitado | 3 |
 | `services/CortetsuThemes.qml` | owned-first-party | services | 262 | 10 | CortetsuColours | - | deshabilitado | 2 |
-| `services/CortetsuToaster.qml` | owned-first-party | services | 29 | 12 | - | - | - | 8 |
+| `services/CortetsuToaster.qml` | owned-first-party | services | 29 | 13 | - | - | - | 8 |
 | `services/CortetsuTokens.qml` | owned-first-party | services | 182 | 1 | - | - | - | 3 |
 | `services/Cpu.qml` | owned-first-party | services | 78 | 1 | - | - | - | 3 |
 | `services/DisplayCalibration.qml` | owned-first-party | services | 122 | 2 | - | - | deshabilitado | 1 |
@@ -360,18 +369,20 @@ prueba que lo nombran. `dead` es un QML propio que nada referencia.
 | `services/Time.qml` | owned-first-party | services | 27 | 7 | - | - | deshabilitado | 7 |
 | `services/UsageFmt.qml` | dead | services | 19 | 0 | - | - | - | 1 |
 | `services/Weather.qml` | owned-first-party | services | 109 | 4 | Requests | - | - | 10 |
-| `shell.qml` | owned-first-party | (raíz) | 69 | 32 | - | - | deshabilitado | 140 |
+| `shell.qml` | owned-first-party | (raíz) | 69 | 34 | - | - | deshabilitado | 146 |
 | `tests/qml/areapicker/tst_ScreenshotPreview.qml` | harness/test | tests | 80 | 0 | - | - | - | 0 |
 | `tests/qml/bottomhub/fixture_ScriptModelIdentity.qml` | harness/test | tests | 51 | 0 | - | - | - | 0 |
 | `tests/qml/bottomhub/tst_BottomHubDelegateChurn.qml` | harness/test | tests | 54 | 0 | - | - | - | 0 |
 | `tests/qml/bottomhub/tst_BottomHubDelegates.qml` | harness/test | tests | 234 | 0 | - | teclado | deshabilitado | 0 |
 | `tests/qml/bottomhub/tst_BottomHubResolver.qml` | harness/test | tests | 323 | 0 | - | - | - | 0 |
 | `tests/qml/bottomhub/tst_BottomHubTrayPolicy.qml` | harness/test | tests | 64 | 0 | - | - | - | 0 |
-| `tests/qml/bottomhub/tst_HubAnchor.qml` | harness/test | tests | 80 | 0 | - | - | - | 0 |
+| `tests/qml/bottomhub/tst_HubAnchor.qml` | harness/test | tests | 164 | 0 | - | - | - | 0 |
 | `tests/qml/bottomhub/tst_HubControls.qml` | harness/test | tests | 129 | 0 | - | - | - | 0 |
+| `tests/qml/bottomhub/tst_HubIslands.qml` | harness/test | tests | 166 | 0 | - | teclado | - | 0 |
 | `tests/qml/bottomhub/tst_TrayNavigation.qml` | harness/test | tests | 77 | 0 | - | - | deshabilitado | 0 |
 | `tests/qml/bottomhub/tst_TraySegment.qml` | harness/test | tests | 79 | 0 | - | - | - | 0 |
 | `tests/qml/bottomhub/tst_TrayStackOwnership.qml` | harness/test | tests | 77 | 0 | - | - | - | 0 |
+| `tests/qml/bottomhub/tst_WindowPreview.qml` | harness/test | tests | 84 | 0 | - | - | - | 0 |
 | `tests/qml/calendar/tst_CalendarModel.qml` | harness/test | tests | 123 | 0 | - | - | - | 0 |
 | `tests/qml/components/tst_AccessibleControls.qml` | harness/test | tests | 159 | 0 | - | teclado, ratón | deshabilitado | 0 |
 | `tests/qml/components/tst_IconParity.qml` | harness/test | tests | 50 | 0 | - | - | - | 0 |
@@ -411,14 +422,14 @@ prueba que lo nombran. `dead` es un QML propio que nada referencia.
 | `tests/qml/surfaces/tst_CortetsuShellInspect.qml` | harness/test | tests | 225 | 0 | - | - | - | 0 |
 | `tests/qml/surfaces/tst_HoverEdges.qml` | harness/test | tests | 26 | 0 | - | - | - | 0 |
 | `tests/qml/surfaces/tst_HoverPreview.qml` | harness/test | tests | 41 | 0 | - | - | - | 0 |
-| `tests/qml/surfaces/tst_MiniSlider.qml` | harness/test | tests | 64 | 0 | - | - | - | 0 |
+| `tests/qml/surfaces/tst_MiniSlider.qml` | harness/test | tests | 98 | 0 | - | - | - | 0 |
 | `tests/qml/surfaces/tst_OsdEscape.qml` | harness/test | tests | 36 | 0 | - | teclado | deshabilitado | 0 |
 | `tests/qml/surfaces/tst_OverlayTransitions.qml` | harness/test | tests | 197 | 0 | - | - | - | 1 |
 | `tests/qml/surfaces/tst_ScrimHit.qml` | harness/test | tests | 86 | 0 | - | ratón | - | 0 |
 | `tests/qml/surfaces/tst_SurfaceRegistry.qml` | harness/test | tests | 308 | 0 | - | - | - | 0 |
 | `tests/qml/themes/tst_ThemeProfiles.qml` | harness/test | tests | 102 | 0 | - | - | - | 0 |
 | `tests/realm/polkit-preview.qml` | harness/test | tests | 46 | 0 | - | - | - | 2 |
-| `theme/CortetsuDesign.qml` | generated | theme | 174 | 210 | - | - | - | 62 |
+| `theme/CortetsuDesign.qml` | generated | theme | 174 | 215 | - | - | - | 66 |
 | `utils/CortetsuUtils.qml` | dead | utils | 18 | 0 | - | - | - | 2 |
 | `utils/Icons.qml` | owned-first-party | utils | 85 | 7 | - | - | - | 8 |
 | `utils/NetworkConnection.qml` | dead | utils | 23 | 0 | Connectivity | - | - | 4 |

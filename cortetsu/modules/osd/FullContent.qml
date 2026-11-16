@@ -164,7 +164,9 @@ Item {
             Layout.fillWidth: true
             accessibleName: qsTr("Volumen")
             value: CortetsuAudio.volume
-            to: Math.max(1, CortetsuConfig.maxVolume)
+            // As in Ajustes → Sonido: the limit, or the current level if
+            // something outside Cortetsu set it higher.
+            to: Math.max(CortetsuConfig.maxVolume, CortetsuAudio.volume)
             disabled: !root.volumeAvailable
             onMoved: nextValue => CortetsuAudio.setVolume(nextValue)
         }
