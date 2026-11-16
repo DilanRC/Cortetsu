@@ -33,8 +33,8 @@ QtObject {
               settings: [qsTr("Nivel de aviso"), qsTr("Mantener despierto"), qsTr("Bloquear tras inactividad"), qsTr("Apagar la pantalla tras inactividad"), qsTr("Suspender tras inactividad"), qsTr("Suspender por inactividad solo con batería"), qsTr("Evitar reposo en pantalla completa"), qsTr("Evitar reposo durante el audio"), qsTr("Evitar reposo mientras carga"), qsTr("Bloquear antes de suspender"), qsTr("Perfil, límites y automatización")] },
             { id: "shortcuts", title: qsTr("Atajos de teclado"), icon: "keyboard_command_key", summary: "shortcuts", detail: qsTr("Atajos del shell y su edición"),
               keywords: qsTr("atajos teclas combinaciones keybinds"), settings: [qsTr("Cambiar o añadir atajos")] },
-            { id: "capture", title: qsTr("Capturas y grabación"), icon: "screenshot_monitor", summary: "", detail: qsTr("Dónde se guardan capturas y vídeos"),
-              keywords: qsTr("grabador pantalla grabaciones capturas destino carpeta"), settings: [qsTr("Carpeta de destino")] }
+            { id: "capture", title: qsTr("Capturas y grabación"), icon: "screenshot_monitor", summary: "", detail: qsTr("Destino de capturas y vídeos, y las últimas grabaciones"),
+              keywords: qsTr("grabador pantalla grabaciones capturas destino carpeta vídeo recientes reproducir"), settings: [qsTr("Carpeta de destino"), qsTr("Grabaciones recientes")] }
         ] },
         { id: "devices", title: qsTr("Bluetooth y dispositivos"), icon: "devices", keywords: qsTr("dispositivos"), pages: [
             { id: "bluetooth", title: qsTr("Bluetooth"), icon: "bluetooth", summary: "bluetooth", detail: qsTr("Adaptador y dispositivos emparejados"),

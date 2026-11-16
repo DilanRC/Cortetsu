@@ -58,6 +58,7 @@ QtObject {
     readonly property Component capture: Component {
         SettingsPage {
             RecorderSection {}
+            RecordingsSection {}
             ScreenshotSection {}
         }
     }

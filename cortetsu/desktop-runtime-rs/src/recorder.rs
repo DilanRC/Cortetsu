@@ -280,8 +280,8 @@ fn start(o: &Options) -> Result<i32> {
             let code = status.code().unwrap_or(1);
             notify(
                 &[
-                    "Recording failed",
-                    &format!("Command failed with exit code {code}"),
+                    "No se pudo grabar",
+                    &format!("El grabador terminó con el código {code}"),
                 ],
                 false,
             );
@@ -293,14 +293,14 @@ fn start(o: &Options) -> Result<i32> {
         signal(&json!({"pid":process.id()}), Signal::SIGINT);
         notify(
             &[
-                "Recording failed",
-                "Could not establish recorder process ownership",
+                "No se pudo grabar",
+                "No se pudo confirmar el proceso del grabador",
             ],
             false,
         );
         return Ok(1);
     };
-    let s = json!({"pid":process.id(),"starttime":starttime,"mode":if o.region.is_some(){"region"}else{"fullscreen"},"sound":o.sound,"region":o.region.as_deref().unwrap_or(""),"paused":false,"startedAt":Local::now().to_rfc3339(),"outputTempPath":output,"notificationId":notify(&["-p","Recording started","Recording..."],true)});
+    let s = json!({"pid":process.id(),"starttime":starttime,"mode":if o.region.is_some(){"region"}else{"fullscreen"},"sound":o.sound,"region":o.region.as_deref().unwrap_or(""),"paused":false,"startedAt":Local::now().to_rfc3339(),"outputTempPath":output,"notificationId":notify(&["-p","Grabando la pantalla","Detén la grabación desde el centro de control o el lanzador"],true)});
     if let Err(e) = json_save(&state_path(), &s) {
         signal(&s, Signal::SIGINT);
         return Err(e);
@@ -335,8 +335,8 @@ fn stop(o: &Options) -> Result<i32> {
         let _ = fs::remove_file(state_path());
         notify(
             &[
-                "Recording failed",
-                &format!("No temporary recording was written at {}", path.display()),
+                "No se pudo grabar",
+                &format!("No se escribió la grabación temporal en {}", path.display()),
             ],
             false,
         );
@@ -366,14 +366,14 @@ fn stop(o: &Options) -> Result<i32> {
         Err(e) => return Err(e.into()),
     }
     let id = text(&s["notificationId"]);
-    let message = format!("Recording saved in {}", target.display());
+    let message = format!("Grabación guardada en {}", target.display());
     if !id.is_empty() {
         notify(
-            &["-r", id, "-t", "5000", "Recording stopped", &message],
+            &["-r", id, "-t", "5000", "Grabación terminada", &message],
             false,
         );
     } else {
-        notify(&["Recording stopped", &message], false);
+        notify(&["Grabación terminada", &message], false);
     }
     fs::remove_file(state_path())?;
     if o.clipboard {

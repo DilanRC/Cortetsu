@@ -4,6 +4,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import "../utils"
+import "."
 
 Singleton {
     id: root
@@ -12,6 +13,17 @@ Singleton {
     readonly property bool paused: state.paused
     readonly property real elapsed: state.elapsed
     property list<string> startArgs: []
+    // Where finished recordings land: the same rule as the native owner
+    // (desktop-runtime-rs/src/recorder.rs, recordings_directory).
+    readonly property string recordingsDir: {
+        const home = Quickshell.env("HOME") || "";
+        const saved = CortetsuConfig.screenRecordSavePath.trim();
+        const expanded = saved === "~" ? home : saved.startsWith("~/") ? `${home}/${saved.slice(2)}` : saved;
+        if (expanded.startsWith("/"))
+            return expanded;
+        const videos = Quickshell.env("XDG_VIDEOS_DIR") || `${home}/Vídeos`;
+        return `${videos}/Recordings`;
+    }
 
     function loadState(): void {
         try {
