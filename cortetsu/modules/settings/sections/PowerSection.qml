@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
+import Quickshell.Services.UPower
 import "../../../components"
 import "../../../services"
 import "../../../theme"
@@ -15,15 +16,42 @@ ColumnLayout {
 
     spacing: CortetsuDesign.spacingSection
 
+    // What the machine runs on comes first; the warning level belongs to
+    // the battery and only exists with one.
     SettingsGroup {
-        title: qsTr("Aviso de batería baja")
-        icon: "battery_alert"
-        detail: qsTr("En equipos con batería, notifica al cruzar este nivel")
+        title: CortetsuPower.hasBattery ? qsTr("Batería") : qsTr("Alimentación")
+        icon: CortetsuPower.hasBattery ? "battery_horiz_075" : "power"
+
+        SettingValueRow {
+            objectName: "batteryLevel"
+            visible: CortetsuPower.hasBattery
+            title: qsTr("Carga")
+            value: qsTr("%1 %").arg(CortetsuPower.percent)
+            attention: CortetsuPower.critical
+        }
+
+        SettingValueRow {
+            objectName: CortetsuPower.hasBattery ? "" : "noBattery"
+            title: qsTr("Fuente")
+            detail: CortetsuPower.hasBattery ? ""
+                : CortetsuPower.laptopBattery ? qsTr("UPower no da una lectura de la batería")
+                : qsTr("Este equipo no informa de una batería")
+            value: CortetsuPower.onBattery ? qsTr("Batería")
+                : CortetsuPower.charging ? qsTr("Corriente, cargando") : qsTr("Corriente")
+        }
+
+        SettingValueRow {
+            visible: CortetsuPower.hasBattery
+            title: CortetsuPower.charging ? qsTr("Carga completa en") : qsTr("Autonomía estimada")
+            value: root.context.formatDuration(CortetsuPower.charging ? CortetsuPower.timeToFull : CortetsuPower.timeToEmpty)
+        }
 
         SettingSliderRow {
             objectName: "batteryLowWarning"
-            title: qsTr("Nivel de aviso")
-            valueText: qsTr("%1 %").arg(CortetsuConfig.batteryLowWarningPercent)
+            visible: CortetsuPower.hasBattery
+            title: qsTr("Avisar con la batería al")
+            valueText: CortetsuConfig.batteryLowWarningPercent > 0
+                ? qsTr("%1 %").arg(CortetsuConfig.batteryLowWarningPercent) : qsTr("Nunca")
             from: 0
             to: 100
             step: 5
@@ -35,39 +63,33 @@ ColumnLayout {
         }
     }
 
+    // The same choice as the Hub popout and Ajustes rápidos, read back from
+    // power-profiles-daemon. Limits and automation stay in Hardware.
     SettingsGroup {
-        title: qsTr("Batería")
-        icon: "battery_horiz_075"
-        visible: CortetsuPower.hasBattery
+        title: qsTr("Perfil de energía")
+        icon: "bolt"
 
-        SettingValueRow {
-            objectName: "batteryLevel"
-            title: qsTr("Carga")
-            value: qsTr("%1 %").arg(CortetsuPower.percent)
-            attention: CortetsuPower.critical
+        SettingChoiceChips {
+            objectName: "powerProfile"
+            options: [
+                { value: PowerProfile.PowerSaver, label: qsTr("Ahorro"), icon: "energy_savings_leaf", name: "profile-saver" },
+                { value: PowerProfile.Balanced, label: qsTr("Equilibrado"), icon: "balance", name: "profile-balanced" }
+            ].concat(PowerProfiles.hasPerformanceProfile
+                ? [{ value: PowerProfile.Performance, label: qsTr("Rendimiento"), icon: "rocket_launch", name: "profile-performance" }]
+                : [])
+            current: PowerProfiles.profile
+            status: PowerProfiles.degradationReason !== PerformanceDegradationReason.None ? "error" : ""
+            statusText: qsTr("Rendimiento limitado: %1").arg(
+                PerformanceDegradationReason.toString(PowerProfiles.degradationReason))
+            onChosen: value => PowerProfiles.profile = value
         }
 
-        SettingValueRow {
-            title: qsTr("Fuente")
-            value: CortetsuPower.onBattery ? qsTr("Batería") : qsTr("Corriente")
-        }
-
-        SettingValueRow {
-            title: CortetsuPower.charging ? qsTr("Carga completa en") : qsTr("Autonomía estimada")
-            value: root.context.formatDuration(CortetsuPower.charging ? CortetsuPower.timeToFull : CortetsuPower.timeToEmpty)
-        }
-    }
-
-    SettingsGroup {
-        title: qsTr("Alimentación")
-        icon: "power"
-        visible: !CortetsuPower.hasBattery
-
-        SettingValueRow {
-            objectName: "noBattery"
-            title: qsTr("Fuente")
-            detail: qsTr("Este equipo no informa de una batería")
-            value: qsTr("Corriente")
+        SettingActionRow {
+            title: qsTr("Límites y automatización")
+            detail: qsTr("Límites de potencia y cambio de perfil automático, en Hardware → Energía")
+            actionLabel: qsTr("Abrir Hardware")
+            actionIcon: "memory"
+            onActivated: root.context.openSurface("hardware")
         }
     }
 
@@ -123,6 +145,20 @@ ColumnLayout {
         }
 
         SettingToggleRow {
+            title: qsTr("Bloquear antes de suspender")
+            detail: qsTr("Pedir la contraseña al volver de la suspensión")
+            checked: CortetsuConfig.idleLockBeforeSleep
+            onToggled: value => { CortetsuConfig.idleLockBeforeSleep = value; CortetsuConfig.save(); }
+        }
+    }
+
+    SettingsGroup {
+        title: qsTr("Excepciones al reposo")
+        icon: "do_not_disturb_on"
+        detail: qsTr("Cuándo no se apaga la pantalla ni se suspende; el bloqueo sigue")
+        collapsible: true
+
+        SettingToggleRow {
             title: qsTr("Evitar reposo en pantalla completa")
             detail: qsTr("No apaga la pantalla ni suspende; el bloqueo sigue activo")
             checked: CortetsuConfig.idleInhibitWhenFullscreen
@@ -141,26 +177,6 @@ ColumnLayout {
             detail: qsTr("No apaga la pantalla ni suspende enchufado; el bloqueo sigue activo")
             checked: CortetsuConfig.idleInhibitWhenCharging
             onToggled: value => { CortetsuConfig.idleInhibitWhenCharging = value; CortetsuConfig.save(); }
-        }
-
-        SettingToggleRow {
-            title: qsTr("Bloquear antes de suspender")
-            detail: qsTr("Pedir la contraseña al volver de la suspensión")
-            checked: CortetsuConfig.idleLockBeforeSleep
-            onToggled: value => { CortetsuConfig.idleLockBeforeSleep = value; CortetsuConfig.save(); }
-        }
-    }
-
-    SettingsGroup {
-        title: qsTr("Perfiles de energía")
-        icon: "bolt"
-
-        SettingActionRow {
-            title: qsTr("Perfil, límites y automatización")
-            detail: qsTr("Se ajustan en Hardware, página Energía")
-            actionLabel: qsTr("Abrir Hardware")
-            actionIcon: "memory"
-            onActivated: root.context.openSurface("hardware")
         }
     }
 }
