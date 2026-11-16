@@ -72,8 +72,8 @@ QtObject {
               keywords: qsTr("launcher lanzador búsqueda aproximada prefijo acciones"),
               settings: [qsTr("Lanzador"), qsTr("Prefijo de acciones"), qsTr("Búsqueda aproximada"), qsTr("Probar el lanzador")] },
             { id: "notifications", title: qsTr("Notificaciones"), icon: "notifications", summary: "notifications", detail: qsTr("No molestar, duración, avisos e historial"),
-              keywords: qsTr("notificaciones avisos no molestar historial pantalla completa"),
-              settings: [qsTr("No molestar"), qsTr("Ocultar en pantalla completa"), qsTr("Cerrar después de"), qsTr("Avisar del modo de juego"), qsTr("Avisar de Bloq Mayús"), qsTr("Abrir avisos expandidos"), qsTr("Vaciar historial")] },
+              keywords: qsTr("notificaciones avisos no molestar historial pantalla completa silenciar aplicación app"),
+              settings: [qsTr("No molestar"), qsTr("Aplicaciones silenciadas"), qsTr("Ocultar en pantalla completa"), qsTr("Cerrar después de"), qsTr("Avisar del modo de juego"), qsTr("Avisar de Bloq Mayús"), qsTr("Abrir avisos expandidos"), qsTr("Vaciar historial")] },
             { id: "indicators", title: qsTr("Indicadores y formatos"), icon: "schedule", summary: "", detail: qsTr("OSD, reloj y unidades"),
               keywords: qsTr("osd indicadores reloj hora segundos 12 horas fahrenheit unidades"),
               settings: [qsTr("Duración del OSD"), qsTr("Reloj de 12 horas"), qsTr("Mostrar segundos"), qsTr("Temperatura en Fahrenheit")] }

@@ -166,16 +166,36 @@ Item {
 
                 // The app once per group, with its count when it sent more
                 // than one: the cards under it do not repeat it.
-                CortetsuText {
+                // An app can be muted from its group: its next notifications
+                // go straight to the history (Ajustes → Notificaciones lists
+                // the muted apps).
+                RowLayout {
+                    readonly property bool muted: CortetsuConfig.mutedNotificationApps.includes(entry.app)
                     visible: entry.firstOfGroup
                     width: parent.width
-                    topPadding: entry.index === 0 ? 0 : CortetsuDesign.spacingCompact
-                    text: (entry.app.length > 0 ? entry.app : qsTr("Sistema"))
-                        + ((root.groupCounts[entry.app] ?? 0) > 1 ? ` · ${root.groupCounts[entry.app]}` : "")
-                    textSize: CortetsuTypography.labelMediumPx
-                    font.weight: Font.DemiBold
-                    color: CortetsuDesign.colorOnSurfaceVariant
-                    elide: Text.ElideRight
+                    spacing: CortetsuDesign.spacingCompact
+
+                    CortetsuText {
+                        Layout.fillWidth: true
+                        Layout.topMargin: entry.index === 0 ? 0 : CortetsuDesign.spacingCompact
+                        text: (entry.app.length > 0 ? entry.app : qsTr("Sistema"))
+                            + ((root.groupCounts[entry.app] ?? 0) > 1 ? ` · ${root.groupCounts[entry.app]}` : "")
+                            + (parent.muted ? qsTr(" · silenciada") : "")
+                        textSize: CortetsuTypography.labelMediumPx
+                        font.weight: Font.DemiBold
+                        color: CortetsuDesign.colorOnSurfaceVariant
+                        elide: Text.ElideRight
+                    }
+
+                    CortetsuButton {
+                        visible: entry.app.length > 0
+                        compact: true
+                        icon: parent.muted ? "notifications_active" : "notifications_off"
+                        label: ""
+                        tooltipText: parent.muted ? qsTr("Volver a mostrar los avisos de %1").arg(entry.app)
+                            : qsTr("Silenciar %1: sus avisos irán al historial sin aparecer").arg(entry.app)
+                        onClicked: CortetsuConfig.setNotificationAppMuted(entry.app, !parent.muted)
+                    }
                 }
 
                 NotificationComponents.Notification {

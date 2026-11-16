@@ -115,6 +115,29 @@ ColumnLayout {
         }
     }
 
+    // Muted from a group in the notification center: these apps reach the
+    // history without a popup, unless a notification is critical.
+    SettingsGroup {
+        objectName: "mutedApps"
+        title: qsTr("Aplicaciones silenciadas")
+        icon: "notifications_off"
+        detail: CortetsuConfig.mutedNotificationApps.length === 0
+            ? qsTr("Ninguna. Se silencia una desde su grupo en el centro de notificaciones")
+            : qsTr("Sus avisos van al historial sin aparecer; los críticos sí aparecen")
+
+        Repeater {
+            model: CortetsuConfig.mutedNotificationApps
+            delegate: SettingActionRow {
+                required property string modelData
+                leadingIcon: "apps"
+                title: modelData
+                actionLabel: qsTr("Reactivar")
+                actionIcon: "notifications_active"
+                onActivated: CortetsuConfig.setNotificationAppMuted(modelData, false)
+            }
+        }
+    }
+
     SettingsGroup {
         title: qsTr("Historial")
         icon: "history"

@@ -271,8 +271,12 @@ Singleton {
             notification.tracked = true;
             // The server restarts its ids at 1, so the snapshot key also
             // carries the arrival time to stay unique against restored items.
+            // A muted app still reaches the history; only a critical
+            // notification from it pops up.
+            const muted = CortetsuConfig.mutedNotificationApps.includes(notification.appName)
+                && notification.urgency !== NotificationUrgency.Critical;
             const item = notifComponent.createObject(root, {
-                notification, key: `${Date.now()}-${notification.id}`, popup: root.shouldShowPopup()
+                notification, key: `${Date.now()}-${notification.id}`, popup: root.shouldShowPopup() && !muted
             });
             root.list = [item, ...root.list];
             root.refreshCollections();
