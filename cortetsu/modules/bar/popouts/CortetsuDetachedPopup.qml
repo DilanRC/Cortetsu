@@ -41,7 +41,7 @@ Item {
     Component { id: audio; CortetsuAudioPopup { popouts: root.popouts } }
     Component { id: network; CortetsuNetworkPopup { popouts: root.popouts } }
     Component { id: bluetooth; CortetsuBluetoothPopup { popouts: root.popouts } }
-    Component { id: battery; CortetsuBatteryPopup {} }
+    Component { id: battery; CortetsuBatteryPopup { popouts: root.popouts } }
     Component { id: keyboard; CortetsuKeyboardPopup {} }
     Component { id: lockstatus; CortetsuLockStatusPopup {} }
     Component { id: empty; CortetsuText { text: qsTr("Ventana no disponible"); textSize: CortetsuDesign.bodyPx } }

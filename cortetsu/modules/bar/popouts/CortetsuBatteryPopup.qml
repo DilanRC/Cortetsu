@@ -1,16 +1,25 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Layouts
 import Quickshell.Services.UPower
 import "../../../components"
 import "../../../services"
 import "../../../theme"
 import "../../../utils"
+import "../../CortetsuTypography.js" as CortetsuTypography
 
+// Energy at level 1: the charge and what it is doing, the time UPower
+// estimates (only when it gives one), and the power profile. Everything
+// else (inhibitors, suspend, automation) is in Settings → Energía.
 CortetsuPopupSurface {
     id: root
 
-    implicitWidth: 332
+    // The popout state, closed when Settings opens. Optional: the detached
+    // window has none.
+    property var popouts: null
+
+    implicitWidth: 336
     implicitHeight: body.implicitHeight + CortetsuDesign.spacingComfortable * 2
 
     readonly property bool hasBattery: CortetsuPower.hasBattery
@@ -18,216 +27,147 @@ CortetsuPopupSurface {
     readonly property bool batteryCharging: CortetsuPower.charging
     readonly property bool critical: CortetsuPower.hasBattery && root.percentage <= 15 && CortetsuPower.onBattery
     readonly property string batteryStatus: !root.hasBattery
-            ? qsTr("Alimentación externa")
+            ? (CortetsuPower.laptopBattery ? qsTr("Batería no disponible") : qsTr("Alimentación externa"))
         : root.batteryCharging && root.percentage >= 100
             ? qsTr("Carga completa")
-            : root.batteryCharging
+        : root.batteryCharging
             ? qsTr("Cargando")
-                : CortetsuPower.onBattery
+        : CortetsuPower.onBattery
             ? qsTr("Con batería")
-            : qsTr("Alimentación externa")
+            : qsTr("Conectado, sin cargar")
+    // UPower reports 0 while it has no estimate yet; that is no estimate,
+    // not "0 minutes".
+    readonly property int estimateSeconds: root.batteryCharging && root.percentage < 100
+        ? CortetsuPower.timeToFull
+        : CortetsuPower.onBattery ? CortetsuPower.timeToEmpty : 0
+    readonly property string estimate: root.estimateSeconds <= 0 ? ""
+        : root.batteryCharging
+            ? qsTr("%1 para la carga completa").arg(root.formatSeconds(root.estimateSeconds))
+            : qsTr("%1 restantes").arg(root.formatSeconds(root.estimateSeconds))
+    readonly property var profiles: [
+        { profile: PowerProfile.PowerSaver, label: qsTr("Ahorro"), icon: "energy_savings_leaf" },
+        { profile: PowerProfile.Balanced, label: qsTr("Equilibrado"), icon: "balance" }
+    ].concat(PowerProfiles.hasPerformanceProfile
+        ? [{ profile: PowerProfile.Performance, label: qsTr("Rendimiento"), icon: "rocket_launch" }]
+        : [])
+    readonly property int profileIndex: {
+        for (let i = 0; i < profiles.length; ++i)
+            if (profiles[i].profile === PowerProfiles.profile)
+                return i;
+        return -1;
+    }
 
-    Column {
+    function formatSeconds(seconds: int): string {
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor(seconds / 60) % 60;
+        return hours > 0
+            ? qsTr("%1 h %2 min").arg(hours).arg(minutes)
+            : qsTr("%1 min").arg(minutes);
+    }
+
+    ColumnLayout {
         id: body
 
         anchors.fill: parent
         anchors.margins: CortetsuDesign.spacingComfortable
         spacing: CortetsuDesign.spacingStandard
 
-        function formatSeconds(seconds: int): string {
-            if (seconds <= 0)
-                return qsTr("Calculando…");
-            const hours = Math.floor(seconds / 3600);
-            const minutes = Math.floor(seconds / 60) % 60;
-            return hours > 0
-                ? qsTr("%1h %2m").arg(hours).arg(minutes)
-                : qsTr("%1m").arg(minutes);
-        }
-
-        CortetsuSectionHeader {
+        CortetsuPopoutHeader {
             title: qsTr("Energía")
-            detail: root.hasBattery ? root.batteryStatus : qsTr("Energía de escritorio")
+            detail: root.batteryStatus
+            settingsPage: "power"
+            popouts: root.popouts
         }
 
-        CortetsuSurface {
-            width: parent.width
+        // The charge is the protagonist: a figure, what it is doing, and the
+        // bar. No card around it; a critical level turns the figure and the
+        // bar vermilion.
+        ColumnLayout {
+            objectName: "batteryCharge"
+            Layout.fillWidth: true
             visible: root.hasBattery
-            implicitHeight: 112
-            radiusValue: CortetsuDesign.radiusLarge
-            baseColor: root.critical
-                ? Qt.alpha(CortetsuDesign.colorVermillion, 0.12)
-                : Qt.alpha(CortetsuDesign.colorSurfaceGlassStrong, 0.78)
-            outlineColor: root.critical
-                ? Qt.alpha(CortetsuDesign.colorVermillion, 0.42)
-                : Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.24)
-            outlined: true
+            spacing: CortetsuDesign.spacingCompact
 
-            Column {
-                anchors.fill: parent
-                anchors.margins: CortetsuDesign.spacingStandard
-                spacing: CortetsuDesign.spacingCompact
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: CortetsuDesign.spacingStandard
 
-                Row {
-                    width: parent.width
-                    spacing: CortetsuDesign.spacingStandard
-
-                    CortetsuIconBadge {
-                        icon: root.hasBattery
-                            ? Icons.getBatteryIcon(CortetsuPower.value, root.batteryCharging)
-                            : "balance"
-                        tone: root.critical ? CortetsuDesign.colorVermillion : CortetsuDesign.colorIndicator
-                    }
-
-                    Column {
-                        anchors.verticalCenter: parent.verticalCenter
-                        spacing: 1
-
-                        CortetsuText {
-                            text: qsTr("%1%").arg(root.percentage)
-                            textSize: CortetsuDesign.bodyLargePx + 4
-                            font.weight: Font.DemiBold
-                            color: root.critical
-                                ? CortetsuDesign.colorVermillion
-                                : CortetsuDesign.colorOnSurface
-                        }
-
-                        CortetsuText {
-                            text: root.batteryCharging && root.percentage < 100
-                                ? qsTr("%1 para carga completa").arg(body.formatSeconds(CortetsuPower.timeToFull))
-                                : CortetsuPower.onBattery
-                                    ? qsTr("%1 restantes").arg(body.formatSeconds(CortetsuPower.timeToEmpty))
-                                    : root.batteryStatus
-                            textSize: CortetsuDesign.labelSmallPx
-                            color: CortetsuDesign.colorOnSurfaceVariant
-                        }
-                    }
+                CortetsuIcon {
+                    text: Icons.getBatteryIcon(CortetsuPower.value, root.batteryCharging)
+                    iconSize: CortetsuTypography.iconLargePx
+                    color: root.critical ? CortetsuDesign.colorVermillion : CortetsuDesign.colorIndicator
                 }
 
-                CortetsuProgressBar {
-                    width: parent.width
-                    value: CortetsuPower.value
-                    barHeight: 5
-                    barRadius: 3
-                    trackColor: Qt.alpha(CortetsuDesign.colorSurfaceGlassStrong, 0.9)
-                    fillColor: root.critical
-                        ? CortetsuDesign.colorVermillion
-                        : CortetsuDesign.colorIndicator
-                    motionDuration: CortetsuDesign.motionStandardMs
+                CortetsuText {
+                    text: qsTr("%1%").arg(root.percentage)
+                    textSize: CortetsuTypography.displaySmallPx
+                    font.weight: Font.DemiBold
+                    color: root.critical ? CortetsuDesign.colorVermillion : CortetsuDesign.colorOnSurface
                 }
+
+                CortetsuText {
+                    Layout.fillWidth: true
+                    Layout.alignment: Qt.AlignBottom
+                    Layout.bottomMargin: 3
+                    text: root.estimate
+                    textSize: CortetsuTypography.labelMediumPx
+                    color: CortetsuDesign.colorOnSurfaceVariant
+                    horizontalAlignment: Text.AlignRight
+                    elide: Text.ElideRight
+                }
+            }
+
+            CortetsuProgressBar {
+                Layout.fillWidth: true
+                value: CortetsuPower.value
+                barHeight: 5
+                barRadius: 3
+                trackColor: Qt.alpha(CortetsuDesign.colorSurfaceGlassStrong, 0.9)
+                fillColor: root.critical
+                    ? CortetsuDesign.colorVermillion
+                    : CortetsuDesign.colorIndicator
+                motionDuration: CortetsuDesign.motionStandardMs
             }
         }
 
         CortetsuText {
-            visible: PowerProfiles.degradationReason !== PerformanceDegradationReason.None
-            width: parent.width
-            text: qsTr("Rendimiento limitado: %1").arg(
-                PerformanceDegradationReason.toString(PowerProfiles.degradationReason))
-            textSize: CortetsuDesign.labelSmallPx
-            color: CortetsuDesign.colorVermillion
+            Layout.fillWidth: true
+            visible: !root.hasBattery
+            text: CortetsuPower.laptopBattery
+                ? qsTr("UPower no da una lectura de la batería ahora mismo.")
+                : qsTr("Este equipo funciona con alimentación externa.")
+            textSize: CortetsuTypography.bodySmallPx
+            color: CortetsuDesign.colorOnSurfaceVariant
             wrapMode: Text.WordWrap
         }
 
-        CortetsuStateMessage {
-            width: parent.width
-            visible: !root.hasBattery
-            kind: "empty"
-            title: qsTr("No se detectó batería")
-            detail: qsTr("Los perfiles de energía siguen disponibles")
+        CortetsuDivider { Layout.fillWidth: true }
+
+        CortetsuText {
+            text: qsTr("Perfil de energía")
+            textSize: CortetsuTypography.labelMediumPx
+            font.weight: Font.DemiBold
+            color: CortetsuDesign.colorOnSurfaceVariant
         }
 
-        CortetsuSectionHeader {
-            // The selected button already names the profile.
-            title: qsTr("Perfil de energía")
+        // The selection is what power-profiles-daemon reports back.
+        CortetsuTabBar {
+            objectName: "batteryProfiles"
+            Layout.fillWidth: true
+            accessibleName: qsTr("Perfil de energía")
+            model: root.profiles
+            currentIndex: root.profileIndex
+            onSelected: index => PowerProfiles.profile = root.profiles[index].profile
         }
 
-        Row {
-            spacing: CortetsuDesign.spacingCompact
-            anchors.horizontalCenter: parent.horizontalCenter
-
-            ProfileButton {
-                profile: PowerProfile.PowerSaver
-                icon: "energy_savings_leaf"
-                label: qsTr("Ahorro")
-            }
-            ProfileButton {
-                profile: PowerProfile.Balanced
-                icon: "balance"
-                label: qsTr("Equilibrado")
-            }
-            ProfileButton {
-                profile: PowerProfile.Performance
-                icon: "rocket_launch"
-                label: qsTr("Rendimiento")
-            }
+        CortetsuText {
+            Layout.fillWidth: true
+            visible: PowerProfiles.degradationReason !== PerformanceDegradationReason.None
+            text: qsTr("Rendimiento limitado: %1").arg(
+                PerformanceDegradationReason.toString(PowerProfiles.degradationReason))
+            textSize: CortetsuTypography.labelSmallPx
+            color: CortetsuDesign.colorVermillion
+            wrapMode: Text.WordWrap
         }
-    }
-
-    component ProfileButton: Item {
-        id: profileButton
-
-        required property int profile
-        required property string icon
-        required property string label
-        readonly property bool selected: PowerProfiles.profile === profile
-
-        implicitWidth: 86
-        implicitHeight: 68
-        focus: true
-        activeFocusOnTab: true
-        // Keep the profile target fixed while the shared surface paints the
-        // pressed state. This prevents profile selection from moving under
-        // the pointer during a press.
-        scale: 1
-
-        CortetsuSurface {
-            anchors.fill: parent
-            radiusValue: CortetsuDesign.radiusMedium
-            baseColor: profileButton.selected
-                ? Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.66)
-                : Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.72)
-            outlineColor: profileButton.activeFocus
-                ? Qt.alpha(CortetsuDesign.colorWashi, 0.82)
-                : profileButton.selected
-                    ? Qt.alpha(CortetsuDesign.colorPrimary, 0.34)
-                    : Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.18)
-            outlined: true
-            focused: profileButton.activeFocus
-            hovered: stateLayer.containsMouse
-            pressed: stateLayer.pressed
-        }
-
-        CortetsuStateLayer {
-            id: stateLayer
-            anchors.fill: parent
-            radius: CortetsuDesign.radiusMedium
-            onPressed: profileButton.forceActiveFocus()
-            onClicked: PowerProfiles.profile = profileButton.profile
-        }
-
-        Column {
-            anchors.centerIn: parent
-            spacing: 3
-
-            CortetsuIcon {
-                anchors.horizontalCenter: parent.horizontalCenter
-                text: profileButton.icon
-                color: profileButton.selected
-                    ? CortetsuDesign.colorWashi
-                    : CortetsuDesign.colorIndicator
-            }
-
-            CortetsuText {
-                anchors.horizontalCenter: parent.horizontalCenter
-                text: profileButton.label
-                textSize: CortetsuDesign.labelSmallPx
-                color: profileButton.selected
-                    ? CortetsuDesign.colorOnPrimaryContainer
-                    : CortetsuDesign.colorOnSurfaceVariant
-            }
-        }
-
-        Keys.onEnterPressed: PowerProfiles.profile = profileButton.profile
-        Keys.onReturnPressed: PowerProfiles.profile = profileButton.profile
-        Keys.onSpacePressed: PowerProfiles.profile = profileButton.profile
     }
 }

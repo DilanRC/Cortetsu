@@ -106,7 +106,9 @@ Item {
 
         Popout {
             name: "battery"
-            sourceComponent: CortetsuBatteryPopup {}
+            sourceComponent: CortetsuBatteryPopup {
+                popouts: root.popouts
+            }
         }
 
         Popout {
