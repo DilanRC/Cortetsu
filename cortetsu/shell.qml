@@ -65,6 +65,7 @@ ShellRoot {
     ClipboardController {}
     HardwareController {}
     KeyboardsController {}
+    CheatsheetController {}
     DisplayController {}
     IdleMonitors { lock: lock }
 }

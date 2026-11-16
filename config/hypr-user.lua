@@ -120,6 +120,13 @@ hl.bind(
     hl.dsp.global("cortetsu:calendar")
 )
 
+-- Hoja de atajos (búsqueda de combinaciones). SUPER+/ es del centro de
+-- control en la distribución latam, así que la ayuda va en F1.
+hl.bind(
+    "SUPER + F1",
+    hl.dsp.global("cortetsu:cheatsheet")
+)
+
 -- Display Manager QML nativo
 hl.bind(
     "SUPER + SHIFT + O",

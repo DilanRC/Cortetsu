@@ -94,6 +94,15 @@ ColumnLayout {
             actionIcon: "keyboard_command_key"
             onActivated: root.context.openSurface("keyboards")
         }
+
+        SettingActionRow {
+            objectName: "openCheatsheet"
+            title: qsTr("Hoja de atajos")
+            detail: qsTr("Todas las combinaciones en una vista con búsqueda; también con SUPER+F1")
+            actionLabel: qsTr("Abrir")
+            actionIcon: "keyboard_command_key"
+            onActivated: root.context.openSurface("cheatsheet")
+        }
     }
 
     CortetsuStateMessage {

@@ -29,37 +29,11 @@ Flow {
     Repeater {
         model: root.parts
 
-        delegate: Rectangle {
-            id: cap
+        delegate: KeyCap {
             required property string modelData
-            width: Math.max(30, capText.implicitWidth + 16)
-            height: 30
-            radius: CortetsuDesign.radiusSmall
-            color: root.live ? CortetsuDesign.colorPrimary : Qt.alpha(CortetsuDesign.colorSumi, 0.6)
-            border.width: 1
-            border.color: root.live ? CortetsuDesign.colorPrimary : Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.6)
-            opacity: root.dim ? 0.55 : 1
-
-            // The key's lower edge, so a cap reads as a key and not a chip.
-            Rectangle {
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.bottom: parent.bottom
-                anchors.margins: 1
-                height: 3
-                radius: CortetsuDesign.radiusSmall
-                color: Qt.alpha(CortetsuDesign.colorSumi, root.live ? 0.25 : 0.55)
-            }
-
-            CortetsuText {
-                id: capText
-                anchors.centerIn: parent
-                anchors.verticalCenterOffset: -1
-                text: cap.modelData
-                textSize: CortetsuTypography.labelMediumPx
-                font.weight: Font.DemiBold
-                color: root.live ? CortetsuDesign.colorOnPrimary : CortetsuDesign.colorOnSurface
-            }
+            text: modelData
+            live: root.live
+            dim: root.dim
         }
     }
 }

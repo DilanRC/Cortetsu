@@ -13,6 +13,7 @@ import "display" as Display
 import "wallpaper" as Wallpaper
 import "calendar" as Calendar
 import "keyboards" as Keyboards
+import "cheatsheet" as Cheatsheet
 import "../theme"
 import "ScrimHit.js" as ScrimHit
 import "CortetsuOverlayPolicy.js" as OverlayPolicy
@@ -106,6 +107,11 @@ Scope {
                 }
                 Keyboards.Wrapper {
                     id: keyboards
+                    screen: window.modelData
+                    screenState: window.screenState
+                    anchors.fill: parent
+                }
+                Cheatsheet.Wrapper {
                     screen: window.modelData
                     screenState: window.screenState
                     anchors.fill: parent
