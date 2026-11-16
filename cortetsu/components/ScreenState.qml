@@ -33,6 +33,7 @@ PersistentProperties {
     property bool wallpaperManager
     property bool keyboards
     property bool cheatsheet
+    property bool desktopWidgets
 
     // Derived input/layer flags live only in cortetsuState.
     function resetTransientState(): void {

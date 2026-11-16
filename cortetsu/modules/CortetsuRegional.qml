@@ -10,7 +10,7 @@ import "CortetsuRegional.js" as RegionalLogic
 // CortetsuConfig (~/.config/cortetsu/preferences.json) stays the single
 // source of truth; this singleton only re-exposes them under a
 // regional-specific name and centralizes the pure formatting/URL/parsing
-// logic that Weather.qml, DesktopClock.qml and Forecast.qml need, so that
+// logic that Weather.qml, the desktop widgets and Forecast.qml need, so that
 // logic lives in one first-party, unit-testable place instead of being
 // duplicated inline across three patched upstream files.
 QtObject {

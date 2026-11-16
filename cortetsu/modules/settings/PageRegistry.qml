@@ -22,7 +22,7 @@ QtObject {
             home: home, about: about,
             display: display, sound: sound, power: power, shortcuts: shortcuts, capture: capture,
             bluetooth: bluetooth, input: input, wifi: wifi,
-            themes: themes, colors: colors, background: background, bottomhub: bottomhub, panels: panels,
+            themes: themes, colors: colors, background: background, widgets: widgets, bottomhub: bottomhub, panels: panels,
             launcher: launcher, notifications: notifications, indicators: indicators,
             automation: automation, weather: weather, motion: motion,
             sync: sync, profiles: profiles, diagnostics: diagnostics
@@ -103,6 +103,11 @@ QtObject {
         SettingsPage {
             WallpaperSection { context: root.context }
             VisualiserSection {}
+        }
+    }
+    readonly property Component widgets: Component {
+        SettingsPage {
+            WidgetsSection { context: root.context }
         }
     }
     readonly property Component bottomhub: Component {

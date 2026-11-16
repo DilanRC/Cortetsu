@@ -18,6 +18,7 @@ QtObject {
     readonly property bool wallpaperManager: !!legacyState.wallpaperManager
     readonly property bool keyboards: !!legacyState.keyboards
     readonly property bool cheatsheet: !!legacyState.cheatsheet
+    readonly property bool desktopWidgets: !!legacyState.desktopWidgets
 
     readonly property bool retainedOverlayOpen: Surfaces.anyOpen(legacyState, Surfaces.retained)
     readonly property bool requiresOverlayLayer: Surfaces.keyboardOwners.some(flag =>

@@ -7,27 +7,17 @@ import "../../../services"
 import "../../../theme"
 import "../.."
 import "../../CortetsuTypography.js" as CortetsuTypography
+import ".."
 import "../controls"
 
 // The desktop behind the windows: the wallpaper as it is now, the way to
-// change it, and the clock that sits on it.
+// change it, and a link to the widgets that sit on it.
 ColumnLayout {
     id: root
 
     required property var context
 
     readonly property string status: CortetsuWallpapers.applyStatus
-    readonly property var positions: [
-        {id: "top-left", name: qsTr("Arriba izquierda")},
-        {id: "top-center", name: qsTr("Arriba centro")},
-        {id: "top-right", name: qsTr("Arriba derecha")},
-        {id: "middle-left", name: qsTr("Centro izquierda")},
-        {id: "middle-center", name: qsTr("Centro")},
-        {id: "middle-right", name: qsTr("Centro derecha")},
-        {id: "bottom-left", name: qsTr("Abajo izquierda")},
-        {id: "bottom-center", name: qsTr("Abajo centro")},
-        {id: "bottom-right", name: qsTr("Abajo derecha")}
-    ]
 
     spacing: CortetsuDesign.spacingSection
 
@@ -144,132 +134,19 @@ ColumnLayout {
         }
     }
 
+    // The 2.x desktop clock is now a widget among others.
     SettingsGroup {
-        title: qsTr("Reloj del escritorio")
-        icon: "schedule"
+        title: qsTr("Sobre el fondo")
+        icon: "widgets"
 
-        SettingToggleRow {
-            objectName: "desktopClockEnabled"
-            title: qsTr("Reloj del escritorio")
-            detail: qsTr("Un reloj sobre el fondo, detrás de las ventanas")
-            checked: CortetsuConfig.desktopClockEnabled
-            onToggled: value => { CortetsuConfig.desktopClockEnabled = value; CortetsuConfig.save(); }
-        }
-
-        SettingToggleRow {
-            objectName: "clockShowDate"
-            title: qsTr("Mostrar fecha")
-            detail: qsTr("Muestra el mes, día y nombre del día junto a la hora")
-            checked: CortetsuConfig.desktopClockShowDate
-            onToggled: value => { CortetsuConfig.desktopClockShowDate = value; CortetsuConfig.save(); }
-        }
-
-        // A small screen: each cell is a place the clock can sit.
-        RowLayout {
-            readonly property string title: qsTr("Posición del reloj")
-            Layout.fillWidth: true
-            Layout.margins: CortetsuDesign.spacingStandard
-            spacing: CortetsuDesign.spacingComfortable
-
-            ColumnLayout {
-                Layout.fillWidth: true
-                spacing: 2
-
-                CortetsuText {
-                    text: qsTr("Posición del reloj")
-                    textSize: CortetsuTypography.bodyLargePx
-                }
-
-                CortetsuText {
-                    Layout.fillWidth: true
-                    text: root.positions.find(item => item.id === CortetsuConfig.desktopClockPosition)?.name ?? ""
-                    textSize: CortetsuTypography.bodySmallPx
-                    color: CortetsuDesign.colorOnSurfaceVariant
-                }
-            }
-
-            Rectangle {
-                implicitWidth: 192
-                implicitHeight: 112
-                radius: CortetsuDesign.radiusMedium
-                color: Qt.alpha(CortetsuDesign.colorSurfaceHigh, 0.9)
-                border.width: 1
-                border.color: Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.7)
-
-                Grid {
-                    anchors.fill: parent
-                    anchors.margins: 6
-                    columns: 3
-                    spacing: 4
-
-                    Repeater {
-                        id: cells
-                        model: root.positions
-
-                        Item {
-                            id: cell
-                            required property var modelData
-                            required property int index
-                            readonly property bool selected: CortetsuConfig.desktopClockPosition === modelData.id
-
-                            function request(): void {
-                                CortetsuConfig.desktopClockPosition = modelData.id;
-                                CortetsuConfig.save();
-                            }
-
-                            objectName: "clock-" + modelData.id
-                            width: (parent.width - 8) / 3
-                            height: (parent.height - 8) / 3
-                            activeFocusOnTab: selected || activeFocus
-                            Accessible.role: Accessible.RadioButton
-                            Accessible.name: modelData.name
-                            Accessible.checked: selected
-                            Accessible.onPressAction: request()
-                            Keys.onSpacePressed: request()
-                            Keys.onReturnPressed: request()
-                            Keys.onLeftPressed: cells.itemAt(Math.max(0, index - 1)).forceActiveFocus()
-                            Keys.onRightPressed: cells.itemAt(Math.min(8, index + 1)).forceActiveFocus()
-                            Keys.onUpPressed: cells.itemAt(Math.max(0, index - 3)).forceActiveFocus()
-                            Keys.onDownPressed: cells.itemAt(Math.min(8, index + 3)).forceActiveFocus()
-
-                            CortetsuSurface {
-                                anchors.fill: parent
-                                radiusValue: CortetsuDesign.radiusSmall
-                                active: cell.selected
-                                focused: cell.activeFocus
-                                hovered: cellMouse.containsMouse
-                                baseColor: "transparent"
-                                hoverColor: Qt.alpha(CortetsuDesign.colorOnSurface, 0.08)
-                                activeColor: CortetsuDesign.colorPrimaryContainer
-                                outlined: cell.selected || cell.activeFocus
-                            }
-
-                            CortetsuText {
-                                anchors.centerIn: parent
-                                visible: cell.selected
-                                text: "12:30"
-                                textSize: CortetsuTypography.labelSmallPx
-                                font.weight: Font.DemiBold
-                                color: CortetsuDesign.colorOnPrimaryContainer
-                            }
-
-                            MouseArea {
-                                id: cellMouse
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: { cell.forceActiveFocus(); cell.request(); }
-                            }
-
-                            CortetsuTooltip {
-                                target: cell
-                                hovered: cellMouse.containsMouse
-                                text: cell.modelData.name
-                            }
-                        }
-                    }
-                }
-            }
+        SettingNavRow {
+            objectName: "desktopWidgetsLink"
+            title: qsTr("Widgets del escritorio")
+            detail: qsTr("Reloj, calendario, clima, sistema, notas y más, por monitor")
+            icon: "widgets"
+            value: DesktopWidgets.items.length === 0 ? qsTr("Ninguno")
+                : DesktopWidgets.items.length === 1 ? qsTr("1 widget") : qsTr("%1 widgets").arg(DesktopWidgets.items.length)
+            onActivated: SettingsController.select("widgets")
         }
     }
 }

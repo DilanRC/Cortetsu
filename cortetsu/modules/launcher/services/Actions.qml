@@ -31,6 +31,7 @@ Searcher {
             { name: qsTr("Hardware"), icon: "memory", description: qsTr("Rendimiento, sensores, energía y procesos"), command: surface("hardware") },
             { name: qsTr("Pantallas"), icon: "monitor", description: qsTr("Resolución, escala y posición de los monitores"), command: surface("displayManager") },
             { name: qsTr("Teclados"), icon: "keyboard", description: qsTr("Distribuciones y atajos"), command: surface("keyboards") },
+            { name: qsTr("Editar el escritorio"), icon: "widgets", description: qsTr("Añadir, mover y quitar widgets"), command: surface("desktopWidgets") },
             { name: qsTr("Hoja de atajos"), icon: "keyboard_command_key", description: qsTr("Todas las combinaciones, con búsqueda (SUPER+F1)"), command: surface("cheatsheet") },
             { name: qsTr("Portapapeles"), icon: "content_paste", description: qsTr("Historial del portapapeles"), command: surface("clipboard") },
             { name: qsTr("Calendario"), icon: "calendar_month", description: qsTr("Calendario y pomodoro"), command: surface("calendar") },

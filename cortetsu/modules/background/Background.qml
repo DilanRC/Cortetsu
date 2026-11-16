@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Wayland
 import ".."
 import "../../services"
+import "../desktop"
 
 Variants {
     model: CortetsuScreens.screens
@@ -31,7 +32,7 @@ Variants {
         }
 
         Item {
-            id: behindClock
+            id: behindWidgets
             anchors.fill: parent
 
             Loader {
@@ -49,31 +50,11 @@ Variants {
             }
         }
 
-        Loader {
-            id: clockLoader
-            anchors.margins: 28
-            anchors.leftMargin: 88
-            asynchronous: true
-            active: CortetsuConfig.desktopClockEnabled
-            state: CortetsuConfig.desktopClockPosition
-
-            states: [
-                State { name: "top-left"; AnchorChanges { target: clockLoader; anchors.top: parent.top; anchors.left: parent.left } },
-                State { name: "top-center"; AnchorChanges { target: clockLoader; anchors.top: parent.top; anchors.horizontalCenter: parent.horizontalCenter } },
-                State { name: "top-right"; AnchorChanges { target: clockLoader; anchors.top: parent.top; anchors.right: parent.right } },
-                State { name: "middle-left"; AnchorChanges { target: clockLoader; anchors.verticalCenter: parent.verticalCenter; anchors.left: parent.left } },
-                State { name: "middle-center"; AnchorChanges { target: clockLoader; anchors.verticalCenter: parent.verticalCenter; anchors.horizontalCenter: parent.horizontalCenter } },
-                State { name: "middle-right"; AnchorChanges { target: clockLoader; anchors.verticalCenter: parent.verticalCenter; anchors.right: parent.right } },
-                State { name: "bottom-left"; AnchorChanges { target: clockLoader; anchors.bottom: parent.bottom; anchors.left: parent.left } },
-                State { name: "bottom-center"; AnchorChanges { target: clockLoader; anchors.bottom: parent.bottom; anchors.horizontalCenter: parent.horizontalCenter } },
-                State { name: "bottom-right"; AnchorChanges { target: clockLoader; anchors.bottom: parent.bottom; anchors.right: parent.right } }
-            ]
-
-            sourceComponent: DesktopClock {
-                wallpaper: behindClock
-                absX: clockLoader.x
-                absY: clockLoader.y
-            }
+        // Desktop widgets (clock, calendar, weather, system...), placed in
+        // the editor. The 2.x desktop clock became the first of them.
+        DesktopWidgetLayer {
+            anchors.fill: parent
+            screen: win.modelData
         }
     }
 }
