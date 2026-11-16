@@ -195,6 +195,11 @@ QtObject {
     property bool audioProtectionEnabled: false
     onAudioProtectionEnabledChanged: if (loaded) save()
     property real audioMaxIncrease: 0.15
+    // Opt-in equalizer (services/CortetsuEqualizer.qml): ten gains in dB,
+    // -12..12, and the switch. Without the filter-chain node they are kept
+    // and nothing is applied.
+    property bool eqEnabled: false
+    property var eqGains: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     onAudioMaxIncreaseChanged: if (loaded) save()
     property bool colorCalibrationEnabled: false
     property int colorTemperature: 6000
@@ -640,6 +645,9 @@ QtObject {
             if (Number.isInteger(data.osdTimeoutMs)) osdTimeoutMs = Math.max(500, Math.min(5000, data.osdTimeoutMs));
             if (typeof data.audioProtectionEnabled === "boolean") audioProtectionEnabled = data.audioProtectionEnabled;
             if (Number.isFinite(data.audioMaxIncrease)) audioMaxIncrease = Math.max(0.01, Math.min(1, data.audioMaxIncrease));
+            if (typeof data.eqEnabled === "boolean") eqEnabled = data.eqEnabled;
+            if (Array.isArray(data.eqGains) && data.eqGains.length === 10 && data.eqGains.every(Number.isFinite))
+                eqGains = data.eqGains.map(value => Math.round(Math.max(-12, Math.min(12, value))));
             if (data.displayCalibration && typeof data.displayCalibration === "object") {
                 if (typeof data.displayCalibration.enabled === "boolean")
                     colorCalibrationEnabled = data.displayCalibration.enabled;
@@ -768,7 +776,7 @@ QtObject {
     function snapshot(): var {
         return ({ schema: 1, favouriteApps, hiddenApps, hiddenTrayIcons, terminalCommand, audioCommand, playbackCommand, explorerCommand, gpuType, lyricsBackend, statusIcons, quickToggles, vpn: { providers: vpn.providers, selectedProvider: vpn.selectedProvider, enabled: vpn.enabled }, actions, actionPrefix, specialPrefix, enableDangerousActions, useFuzzyApps, useFuzzyWallpapers, useFuzzyActions, useFuzzySchemes, useFuzzyVariants, smartScheme, wallpaperDirectory, wallpaperEnabled, transparencyEnabled, themeId, themePreferences, reducedMotion, desktopClockEnabled, desktopClockPosition, desktopClockShowDate, borderThickness, borderSmoothing, useTwelveHourClock, useSecondPrecision, useFahrenheit, useFahrenheitPerformance, batteryLowWarningPercent, weatherLocation, screenRecordSavePath, screenSnipSavePath, weatherRefreshInterval, audioIncrement, brightnessIncrement, maxVolume, visualiserBars, visualiserEnabled, visualiserAutoHide, visualiserBlur, visualiserSpacing, visualiserRounding, defaultPlayer, playerAliases, toastAudioOutputChanged, toastAudioInputChanged, toastNowPlaying, toastFullscreen, maxToasts, toastChargingChanged, toastCapsLockChanged, toastNumLockChanged, toastKbLayoutChanged, toastKbLimit, toastVpnChanged, notificationExpire, suppressNotificationsInFullscreen, notificationDefaultExpireTimeout, notificationFullscreenExpireTimeout, notificationActionOnClick, notificationFullscreenMode, notificationClearThreshold, notificationExpandThreshold, notificationGroupPreviewNum, notificationOpenExpanded, toastDndChanged, toastGameModeChanged, lockRecolourLogo, lockHideNotifs, lockEnableFprint, lockMaxFprintTries, lockEnableHowdy, lockMaxHowdyTries, lockTriggerHowdyOnWake, vimKeybinds, workspacesShown, dashboardMediaUpdateInterval, dashboardResourceUpdateInterval, nexusWallpapersPerRow, nexusMaxNetworksShown, nexusNetworkRescanInterval, dashboard: { enabled: dashboard.enabled, showOnHover: dashboard.showOnHover, showDashboard: dashboard.showDashboard, showMedia: dashboard.showMedia, showPerformance: dashboard.showPerformance, showWeather: dashboard.showWeather, dragThreshold: dashboard.dragThreshold, performance: { showCpu: dashboard.performance.showCpu, showGpu: dashboard.performance.showGpu, showMemory: dashboard.performance.showMemory, showStorage: dashboard.performance.showStorage, showNetwork: dashboard.performance.showNetwork, showBattery: dashboard.performance.showBattery } }, launcher: { enabled: launcher.enabled, showOnHover: launcher.showOnHover, maxShown: launcher.maxShown, maxWallpapers: launcher.maxWallpapers, dragThreshold: launcher.dragThreshold }, sidebar: { enabled: sidebar.enabled, showOnHover: sidebar.showOnHover, dragThreshold: sidebar.dragThreshold, minHoverThreshold: sidebar.minHoverThreshold }, utilities: { enabled: utilities.enabled, cards: { keepAwake: utilities.cards.keepAwake, recorder: utilities.cards.recorder, quickToggles: utilities.cards.quickToggles } }, bar: { showOnHover: bar.showOnHover, dragThreshold: bar.dragThreshold, entries: bar.entries, scrollActions: { volume: bar.scrollActions.volume }, tray: { background: bar.tray.background, recolour: bar.tray.recolour }, activeWindow: { inverted: bar.activeWindow.inverted, showOnHover: bar.activeWindow.showOnHover }, popouts: { activeWindow: bar.popouts.activeWindow, statusIcons: bar.popouts.statusIcons, tray: bar.popouts.tray }, clock: { background: bar.clock.background, showIcon: bar.clock.showIcon }, workspaces: { activeIndicator: bar.workspaces.activeIndicator, activeTrail: bar.workspaces.activeTrail, occupiedBg: bar.workspaces.occupiedBg, showWindows: bar.workspaces.showWindows, showAppIcons: bar.workspaces.showAppIcons, monochromeIcons: bar.workspaces.monochromeIcons, maxWindowIcons: bar.workspaces.maxWindowIcons, showWindowsOnSpecialWorkspaces: bar.workspaces.showWindowsOnSpecialWorkspaces, perMonitorWorkspaces: bar.workspaces.perMonitorWorkspaces, displayType: bar.workspaces.displayType, label: bar.workspaces.label, occupiedLabel: bar.workspaces.occupiedLabel, activeLabel: bar.workspaces.activeLabel, capitalisation: bar.workspaces.capitalisation } }, idleInhibitWhenAudio, idleInhibitWhenCharging, idleLockBeforeSleep, idleTimeouts, idleSuspendOnBatteryOnly, idleInhibitWhenFullscreen,
             themeIntegrations,
-            audioProtectionEnabled, audioMaxIncrease,
+            audioProtectionEnabled, audioMaxIncrease, eqEnabled, eqGains,
             osdTimeoutMs,
             bottomHub: {
                 anchor: bottomHub.anchor,

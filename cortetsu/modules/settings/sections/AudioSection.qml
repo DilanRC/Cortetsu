@@ -160,6 +160,73 @@ ColumnLayout {
         }
     }
 
+    // The opt-in equalizer. Its controls exist only when the filter-chain
+    // node does; otherwise the group says how to add it and draws no
+    // slider that would move nothing.
+    SettingsGroup {
+        objectName: "equalizerGroup"
+        title: qsTr("Ecualizador")
+        icon: "equalizer"
+        detail: !CortetsuEqualizer.available
+            ? qsTr("Opcional: requiere el nodo de PipeWire de Cortetsu")
+            : CortetsuAudio.sink?.name === CortetsuEqualizer.nodeName
+                ? qsTr("Activo en la salida actual")
+                : qsTr("Elige «Ecualizador de Cortetsu» como salida para oírlo")
+        collapsible: true
+
+        SettingValueRow {
+            objectName: "equalizerMissing"
+            visible: !CortetsuEqualizer.available
+            title: qsTr("No instalado")
+            detail: qsTr("Copia cortetsu/data/pipewire/cortetsu-eq.conf a ~/.config/pipewire/pipewire.conf.d/ y reinicia PipeWire (docs/AUDIO_EQ.md)")
+            value: qsTr("No disponible")
+        }
+
+        SettingToggleRow {
+            objectName: "equalizerEnabled"
+            visible: CortetsuEqualizer.available
+            title: qsTr("Aplicar la curva")
+            detail: qsTr("Apagado deja la señal plana sin cambiar de dispositivo")
+            checked: CortetsuEqualizer.enabled
+            onToggled: value => CortetsuEqualizer.setEnabled(value)
+        }
+
+        SettingChoiceChips {
+            objectName: "equalizerPreset"
+            visible: CortetsuEqualizer.available
+            title: qsTr("Curva")
+            options: CortetsuEqualizer.presetIds.map(id => ({ value: id, label: CortetsuEqualizer.presets[id].label, name: `eq-${id}` }))
+            current: CortetsuEqualizer.preset
+            detail: CortetsuEqualizer.preset === "custom" ? qsTr("Curva propia") : ""
+            disabled: !CortetsuEqualizer.enabled
+            onChosen: value => CortetsuEqualizer.usePreset(value)
+        }
+
+        Repeater {
+            model: CortetsuEqualizer.available ? CortetsuEqualizer.frequencies.length : 0
+
+            delegate: SettingSliderRow {
+                required property int index
+                readonly property real gain: CortetsuEqualizer.gains[index] ?? 0
+                title: qsTr("%1 Hz").arg(CortetsuEqualizer.labels[index])
+                valueText: gain > 0 ? qsTr("+%1 dB").arg(gain) : qsTr("%1 dB").arg(gain)
+                from: -CortetsuEqualizer.maxDb
+                to: CortetsuEqualizer.maxDb
+                step: 1
+                value: gain
+                disabled: !CortetsuEqualizer.enabled
+                onMoved: next => CortetsuEqualizer.setGain(index, next)
+            }
+        }
+
+        SettingValueRow {
+            visible: CortetsuEqualizer.available && CortetsuEqualizer.enabled && CortetsuEqualizer.preamp < 0
+            title: qsTr("Margen contra la saturación")
+            detail: qsTr("La señal baja lo que sube la banda más alta")
+            value: qsTr("%1 dB").arg(CortetsuEqualizer.preamp)
+        }
+    }
+
     SettingsGroup {
         title: qsTr("Límites de audio")
         icon: "shield"
