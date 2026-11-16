@@ -19,6 +19,30 @@ FocusScope {
     property bool tracking: true
 
     property int selectedIndex: -1
+    // Filter typed after / or Ctrl+F: matches title, class and app id. The F
+    // key alone keeps toggling floating, so the filter opens on its own key.
+    property string filter: ""
+    property bool filtering: false
+
+    function matchesFilter(client): bool {
+        const needle = root.filter.trim().toLowerCase();
+        if (!needle)
+            return true;
+        const ipc = client.lastIpcObject ?? {};
+        return `${client.title ?? ""} ${ipc.class ?? ""} ${ipc.initialClass ?? ""} ${ipc.initialTitle ?? ""}`
+            .toLowerCase().includes(needle);
+    }
+
+    function startFilter(): void {
+        root.filtering = true;
+        Qt.callLater(() => filterField.forceActiveFocus());
+    }
+
+    function endFilter(): void {
+        filterField.text = "";
+        root.filtering = false;
+        root.forceActiveFocus();
+    }
 
     readonly property var clients: {
         if (!root.tracking)
@@ -41,7 +65,7 @@ FocusScope {
                  * orphan/helper surface during state transitions and should
                  * not become a real overview card.
                  */
-                return special || ws.id > 0;
+                return (special || ws.id > 0) && root.matchesFilter(c);
             });
 
         return [...values].sort((a, b) => {
@@ -65,16 +89,6 @@ FocusScope {
 
     readonly property int monitorCount:
         CortetsuScreens.screens.length
-
-    readonly property string windowCountText:
-        clients.length === 1
-            ? qsTr("1 ventana")
-            : qsTr("%1 ventanas").arg(clients.length)
-
-    readonly property string monitorCountText:
-        monitorCount === 1
-            ? qsTr("1 pantalla")
-            : qsTr("%1 pantallas").arg(monitorCount)
 
     /*
      * Adaptive overview grid:
@@ -349,6 +363,8 @@ FocusScope {
     }
 
     function openOverview(): void {
+        filterField.text = "";
+        root.filtering = false;
         selectInitialClient();
         forceActiveFocus();
 
@@ -431,6 +447,15 @@ FocusScope {
         }
 
         if (
+            event.key === Qt.Key_Slash ||
+            (event.key === Qt.Key_F && (event.modifiers & Qt.ControlModifier))
+        ) {
+            startFilter();
+            event.accepted = true;
+            return;
+        }
+
+        if (
             event.key === Qt.Key_F &&
             !(event.modifiers & Qt.ControlModifier)
         ) {
@@ -463,133 +488,41 @@ FocusScope {
 
         spacing: 0
 
-        Rectangle {
+        // The window filter. It takes no room until / or Ctrl+F opens it.
+        Item {
             id: header
-
-            // Super+Tab is a window switcher. The old title bar duplicated
-            // information and consumed the most valuable vertical space.
-            visible: false
-            height: 0
-
             width: parent.width
-            implicitHeight: 0
+            height: root.filtering ? filterField.implicitHeight + 16 : 0
+            visible: root.filtering
 
-            radius:
-                CortetsuDesign.radiusLarge
-
-            /*
-             * Local header scrim only: keeps the title legible over a busy
-             * wallpaper without bringing back the giant opaque overview panel.
-             */
-            color:
-                Qt.alpha(
-                    CortetsuDesign.colorSurfaceHigh,
-                    0.78
-                )
-
-            border.width: 1
-
-            border.color:
-                Qt.alpha(
-                    CortetsuDesign.colorOutlineVariant,
-                    0.70
-                )
-
-            Row {
-                id: headerRow
-
-                anchors.fill: parent
-                anchors.leftMargin: 14
-                anchors.rightMargin: 14
-
-                spacing: 12
-
-                CortetsuIcon {
-                    anchors.verticalCenter:
-                        parent.verticalCenter
-
-                    text: "view_cozy"
-
-                    color:
-                        CortetsuDesign.colorPrimary
-
-                    iconSize: CortetsuTypography.iconExtraLargePx
+            CortetsuSearchBar {
+                id: filterField
+                objectName: "overviewFilter"
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.top: parent.top
+                width: Math.min(440, parent.width)
+                compact: true
+                placeholderText: qsTr("Filtrar ventanas por título o aplicación")
+                Accessible.name: placeholderText
+                onTextChanged: root.filter = text
+                // Escape belongs to the field while it is open: the first
+                // empties it, the second hands the keys back to the grid.
+                Keys.onShortcutOverride: event => event.accepted = event.key === Qt.Key_Escape
+                Keys.onEscapePressed: event => {
+                    if (text.length > 0)
+                        text = "";
+                    else
+                        root.endFilter();
+                    event.accepted = true;
                 }
-
-                Column {
-                    anchors.verticalCenter:
-                        parent.verticalCenter
-
-                    spacing: -1
-
-                    CortetsuText {
-                        text: qsTr("Vista general")
-
-                        textSize: CortetsuTypography.titleLargePx
-                    }
-
-                    CortetsuText {
-                        text:
-                            `${root.windowCountText} · ${root.monitorCountText}`
-
-                        color:
-                            CortetsuDesign.colorOutline
-
-                        textSize: CortetsuTypography.labelMediumPx
-                    }
+                Keys.onDownPressed: root.forceActiveFocus()
+                Keys.onReturnPressed: {
+                    root.selectInitialClient();
+                    root.activateClient(root.currentClient);
                 }
-
-                Item {
-                    width:
-                        Math.max(
-                            20,
-                            parent.width - 710
-                        )
-
-                    height: 1
-                }
-
-                Rectangle {
-                    anchors.verticalCenter:
-                        parent.verticalCenter
-
-                    implicitWidth:
-                        hints.implicitWidth + 22
-
-                    implicitHeight: 34
-
-                    radius:
-                        height / 2
-
-                    color:
-                        Qt.alpha(
-                            CortetsuDesign.colorSurface,
-                            0.90
-                        )
-
-                    border.width: 1
-
-                    border.color:
-                        Qt.alpha(
-                            CortetsuDesign.colorOutlineVariant,
-                            0.78
-                        )
-
-                    CortetsuText {
-                        id: hints
-
-                        anchors.centerIn: parent
-
-                        text:
-                            qsTr(
-                                "Flechas mover · Enter/Espacio enfocar · Supr cerrar · F flotar"
-                            )
-
-                        color:
-                            CortetsuDesign.colorOnSurfaceVariant
-
-                        textSize: CortetsuTypography.labelMediumPx
-                    }
+                Keys.onEnterPressed: {
+                    root.selectInitialClient();
+                    root.activateClient(root.currentClient);
                 }
             }
         }
@@ -1038,9 +971,11 @@ FocusScope {
                 width: 300
                 visible:
                     root.clients.length === 0
-                icon: "web_asset_off"
-                title: qsTr("No hay ventanas para mostrar")
-                detail: qsTr("Abre una aplicación para verla aquí")
+                icon: root.filter.length > 0 ? "search_off" : "web_asset_off"
+                title: root.filter.length > 0 ? qsTr("Ninguna ventana coincide con «%1»").arg(root.filter)
+                    : qsTr("No hay ventanas para mostrar")
+                detail: root.filter.length > 0 ? qsTr("Escape vacía el filtro")
+                    : qsTr("Abre una aplicación para verla aquí")
             }
         }
     }
