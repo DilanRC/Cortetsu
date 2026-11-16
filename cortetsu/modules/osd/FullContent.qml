@@ -10,6 +10,7 @@ import "../../services"
 import "../../theme"
 import "../CortetsuTypography.js" as CortetsuTypography
 import "../CortetsuOverlayPolicy.js" as OverlayPolicy
+import "../settings" as SettingsModule
 
 // The control center (level 2 of ADR-008): several domains at once, each
 // with its frequent operation in reach and its detail on demand. Levels
@@ -89,6 +90,16 @@ Item {
         OverlayPolicy.open(CortetsuShellState.allStates(), root.screenState, "settings");
     }
 
+    // Settings opened on one page: the control center's detail lives there.
+    function openSettingsPage(page: string): void {
+        SettingsModule.SettingsController.select(page);
+        root.openSettings();
+    }
+
+    readonly property var player: Players.active
+    // A few app streams fit here; the rest stay in Ajustes → Sonido.
+    readonly property int streamsShown: 4
+
     // The picker opens once the panel has gone, so the panel is never in
     // the frame. A constant, not a motion token: with reduced motion the
     // tokens are 0 and the close still takes a compositor frame or two.
@@ -167,7 +178,7 @@ Item {
             muted: CortetsuAudio.muted
             available: root.volumeAvailable
             muteText: CortetsuAudio.muted ? qsTr("Activar el sonido") : qsTr("Silenciar")
-            expandable: CortetsuAudio.sinks.length + CortetsuAudio.sources.length > 1
+            expandable: CortetsuAudio.sinks.length + CortetsuAudio.sources.length > 1 || CortetsuAudio.streams.length > 0
             expanded: root.audioExpanded
             onMuteRequested: if (CortetsuAudio.sink?.audio)
                 CortetsuAudio.sink.audio.muted = !CortetsuAudio.sink.audio.muted
@@ -185,8 +196,8 @@ Item {
             onMoved: nextValue => CortetsuAudio.setVolume(nextValue)
         }
 
-        // Output and input devices, on demand. A row is the device; the
-        // selected one is the default PipeWire reports back.
+        // Output and input devices and app volumes, on demand. A row is the
+        // device; the selected one is the default PipeWire reports back.
         ColumnLayout {
             objectName: "quickAudioDevices"
             Layout.fillWidth: true
@@ -228,6 +239,58 @@ Item {
                     selected: modelData === CortetsuAudio.source
                     onClicked: CortetsuAudio.setAudioSource(modelData)
                 }
+            }
+
+            // Per-app volume, the busiest streams first in PipeWire order.
+            CortetsuSectionHeader {
+                Layout.fillWidth: true
+                Layout.topMargin: CortetsuDesign.spacingCompact
+                visible: CortetsuAudio.streams.length > 0
+                title: CortetsuAudio.streams.length > root.streamsShown
+                    ? qsTr("Aplicaciones · %1 de %2").arg(root.streamsShown).arg(CortetsuAudio.streams.length)
+                    : qsTr("Aplicaciones")
+            }
+            Repeater {
+                model: root.audioExpanded ? CortetsuAudio.streams.slice(0, root.streamsShown) : []
+                delegate: RowLayout {
+                    id: stream
+                    required property var modelData
+                    readonly property bool streamMuted: CortetsuAudio.getStreamMuted(modelData)
+                    Layout.fillWidth: true
+                    spacing: CortetsuDesign.spacingCompact
+
+                    CortetsuButton {
+                        compact: true
+                        icon: stream.streamMuted ? "volume_off" : "volume_up"
+                        label: ""
+                        danger: stream.streamMuted
+                        tooltipText: stream.streamMuted ? qsTr("Activar %1").arg(CortetsuAudio.getStreamName(stream.modelData))
+                            : qsTr("Silenciar %1").arg(CortetsuAudio.getStreamName(stream.modelData))
+                        onClicked: CortetsuAudio.setStreamMuted(stream.modelData, !stream.streamMuted)
+                    }
+                    CortetsuText {
+                        Layout.preferredWidth: 140
+                        text: CortetsuAudio.getStreamName(stream.modelData)
+                        textSize: CortetsuTypography.bodySmallPx
+                        elide: Text.ElideRight
+                    }
+                    CortetsuSlider {
+                        Layout.fillWidth: true
+                        accessibleName: qsTr("Volumen de %1").arg(CortetsuAudio.getStreamName(stream.modelData))
+                        value: CortetsuAudio.getStreamVolume(stream.modelData)
+                        to: Math.max(CortetsuConfig.maxVolume, value)
+                        disabled: stream.streamMuted
+                        onMoved: nextValue => CortetsuAudio.setStreamVolume(stream.modelData, nextValue)
+                    }
+                }
+            }
+            CortetsuButton {
+                Layout.alignment: Qt.AlignRight
+                compact: true
+                icon: "tune"
+                label: qsTr("Sonido en Ajustes")
+                tooltipText: qsTr("Dispositivos, aplicaciones, ecualizador y límites")
+                onClicked: root.openSettingsPage("sound")
             }
 
             LevelRow {
@@ -272,6 +335,60 @@ Item {
             accessibleName: qsTr("Brillo")
             value: Math.max(0, root.brightnessValue)
             onMoved: nextValue => root.brightnessMonitor?.setBrightness(nextValue)
+        }
+
+        // --- Now playing: only while a player exists -----------------------
+
+        RowLayout {
+            objectName: "quickMedia"
+            Layout.fillWidth: true
+            Layout.topMargin: CortetsuDesign.spacingCompact
+            visible: !!root.player
+            spacing: CortetsuDesign.spacingStandard
+
+            CortetsuIcon {
+                text: root.player?.isPlaying ? "graphic_eq" : "music_note"
+                iconSize: CortetsuTypography.iconSmallPx
+                color: CortetsuDesign.colorPrimary
+            }
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 0
+                CortetsuText {
+                    Layout.fillWidth: true
+                    text: root.player?.trackTitle || qsTr("Sin título")
+                    textSize: CortetsuTypography.bodyPx
+                    font.weight: Font.DemiBold
+                    elide: Text.ElideRight
+                }
+                CortetsuText {
+                    Layout.fillWidth: true
+                    text: root.player ? (root.player.trackArtist || Players.getIdentity(root.player)) : ""
+                    textSize: CortetsuTypography.labelSmallPx
+                    color: CortetsuDesign.colorOnSurfaceVariant
+                    elide: Text.ElideRight
+                }
+            }
+            CortetsuButton {
+                compact: true; icon: "skip_previous"; label: ""
+                tooltipText: qsTr("Anterior")
+                disabled: !root.player?.canGoPrevious
+                onClicked: root.player?.previous()
+            }
+            CortetsuButton {
+                compact: true
+                icon: root.player?.isPlaying ? "pause" : "play_arrow"
+                label: ""
+                tooltipText: root.player?.isPlaying ? qsTr("Pausar") : qsTr("Reproducir")
+                disabled: !root.player?.canTogglePlaying
+                onClicked: root.player?.togglePlaying()
+            }
+            CortetsuButton {
+                compact: true; icon: "skip_next"; label: ""
+                tooltipText: qsTr("Siguiente")
+                disabled: !root.player?.canGoNext
+                onClicked: root.player?.next()
+            }
         }
 
         CortetsuDivider { Layout.fillWidth: true; Layout.topMargin: CortetsuDesign.spacingUnit }
