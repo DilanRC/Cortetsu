@@ -120,12 +120,16 @@ Item {
 
         Popout {
             name: "kblayout"
-            sourceComponent: CortetsuKeyboardPopup {}
+            sourceComponent: CortetsuKeyboardPopup {
+                popouts: root.popouts
+            }
         }
 
         Popout {
             name: "lockstatus"
-            sourceComponent: CortetsuLockStatusPopup {}
+            sourceComponent: CortetsuLockStatusPopup {
+                popouts: root.popouts
+            }
         }
 
         // One loader for every app of the rail: moving from one icon to the

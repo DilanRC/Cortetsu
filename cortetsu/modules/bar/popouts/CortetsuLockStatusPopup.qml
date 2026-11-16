@@ -6,9 +6,13 @@ import "../../../components"
 import "../../../services"
 import "../../../theme"
 
+// Caps Lock and Num Lock as they are now. A reading, not a control: the
+// keys change them, so the rows take no hover or focus (H-22).
 ColumnLayout {
     id: root
-    spacing: CortetsuDesign.spacingCompact
+    property var popouts: null
+    width: 240
+    spacing: CortetsuDesign.spacingStandard
 
     function label(active: bool): string {
         if (!Hypr.keyboardKnown)
@@ -20,7 +24,25 @@ ColumnLayout {
     Component.onCompleted: CortetsuHypr.watchKeyboard()
     Component.onDestruction: CortetsuHypr.unwatchKeyboard()
 
-    CortetsuSectionHeader { title: qsTr("Estado de bloqueo"); detail: qsTr("Indicadores del teclado") }
-    CortetsuListRow { icon: "keyboard_capslock"; title: qsTr("Bloq Mayús"); subtitle: root.label(Hypr.capsLock); selected: Hypr.keyboardKnown && Hypr.capsLock }
-    CortetsuListRow { icon: "pin"; title: qsTr("Bloq Num"); subtitle: root.label(Hypr.numLock); selected: Hypr.keyboardKnown && Hypr.numLock }
+    CortetsuPopoutHeader {
+        Layout.fillWidth: true
+        title: qsTr("Bloqueo de teclas")
+        detail: Hypr.keyboardKnown ? qsTr("Teclado principal") : qsTr("Teclado no disponible")
+        settingsPage: "input"
+        popouts: root.popouts
+    }
+    CortetsuFact {
+        Layout.fillWidth: true
+        icon: "keyboard_capslock"
+        label: qsTr("Bloq Mayús")
+        value: root.label(Hypr.capsLock)
+        valueColor: Hypr.keyboardKnown && Hypr.capsLock ? CortetsuDesign.colorPrimary : CortetsuDesign.colorOnSurface
+    }
+    CortetsuFact {
+        Layout.fillWidth: true
+        icon: "pin"
+        label: qsTr("Bloq Num")
+        value: root.label(Hypr.numLock)
+        valueColor: Hypr.keyboardKnown && Hypr.numLock ? CortetsuDesign.colorPrimary : CortetsuDesign.colorOnSurface
+    }
 }

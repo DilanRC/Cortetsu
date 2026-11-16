@@ -6,15 +6,24 @@ import "kblayout"
 import "../../../components"
 import "../../../theme"
 
+// The keyboard layouts the compositor has, the active one checked. Same
+// header as the other service popouts, leading to Ajustes → Teclado.
 ColumnLayout {
     id: root
-    width: 240
+    property var popouts: null
+    width: 260
     spacing: CortetsuDesign.spacingCompact
 
     KbLayoutModel { id: layouts }
     Component.onCompleted: layouts.start()
 
-    CortetsuSectionHeader { title: qsTr("Distribución del teclado"); detail: layouts.activeLabel }
+    CortetsuPopoutHeader {
+        Layout.fillWidth: true
+        title: qsTr("Teclado")
+        detail: layouts.activeLabel
+        settingsPage: "input"
+        popouts: root.popouts
+    }
 
     ListView {
         Layout.fillWidth: true
