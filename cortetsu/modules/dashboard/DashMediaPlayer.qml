@@ -141,6 +141,10 @@ Item {
                     width: Math.max(height * 3, parent.width * (player.active && player.active.length > 0 ? player.active.position / player.active.length : 0))
                 }
             }
+            DashLevelMeter {
+                Layout.fillWidth: true
+                running: !!player.active && player.active.isPlaying && player.dashboardOpen
+            }
             RowLayout {
                 Layout.fillWidth: true
                 visible: (player.active?.length ?? 0) > 0
@@ -155,15 +159,15 @@ Item {
                 // Other players, by name; the one in control is in ink.
                 Repeater {
                     model: Players.list.length > 1 ? Players.list : []
-                    CortetsuText {
+                    CortetsuButton {
                         id: chip
                         required property MprisPlayer modelData
-                        readonly property bool selected: chip.modelData === player.active
-                        text: Players.getIdentity(chip.modelData)
-                        color: selected ? CortetsuDesign.colorPrimary : CortetsuDesign.colorOnSurfaceVariant
-                        font.weight: selected ? Font.DemiBold : Font.Normal
-                        textSize: CortetsuTypography.bodySmallPx
-                        MouseArea { anchors.fill: parent; anchors.margins: -12; cursorShape: Qt.PointingHandCursor; onClicked: Players.manualActive = chip.modelData }
+                        compact: true
+                        active: chip.modelData === player.active
+                        icon: ""
+                        label: Players.getIdentity(chip.modelData)
+                        tooltipText: qsTr("Controlar %1").arg(Players.getIdentity(chip.modelData))
+                        onClicked: Players.manualActive = chip.modelData
                     }
                 }
             }
