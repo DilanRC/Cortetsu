@@ -240,6 +240,16 @@ FocusScope {
         statusText = copy.pinned ? qsTr("Fijado") : qsTr("Ya no está fijado");
     }
 
+    // Clearing is armed by the first press and disarmed after 4 s.
+    property bool clearArmed: false
+    readonly property int unpinnedCount: history.filter(item => !item.pinned).length
+
+    Timer {
+        id: clearDisarm
+        interval: 4000
+        onTriggered: root.clearArmed = false
+    }
+
     function clearNonPinned(): void {
         history = history.filter(item => Boolean(item.pinned));
         saveHistory();
@@ -431,159 +441,48 @@ FocusScope {
 
                     CortetsuText {
                         text:
-                            qsTr("%1 elementos · Clipse")
-                                .arg(root.filteredEntries.length)
+                            root.filteredEntries.length === 1 ? qsTr("1 elemento · Clipse")
+                                : qsTr("%1 elementos · Clipse").arg(root.filteredEntries.length)
                         color: root.textMuted
                         textSize: CortetsuTypography.labelMediumPx
                     }
                 }
 
-                Rectangle {
+                // Filter and clear, as controls with keys and roles. Clearing
+                // asks twice: it removes every item that is not pinned.
+                Row {
                     id: filterBar
 
                     anchors.verticalCenter: parent.verticalCenter
-                    width: filterRow.implicitWidth + 12
-                    height: 42
-                    radius: 999
-                    color: root.cardSurface
-                    border.width: 1
-                    border.color: Qt.alpha(root.textMuted, 0.18)
+                    spacing: CortetsuDesign.spacingCompact
 
-                    Row {
-                        id: filterRow
+                    CortetsuTabBar {
+                        objectName: "clipboardFilter"
+                        width: 220
+                        fill: true
+                        accessibleName: qsTr("Mostrar")
+                        model: [{ label: qsTr("Todo"), icon: "" }, { label: qsTr("Fijados"), icon: "keep" }]
+                        currentIndex: root.pinnedOnly ? 1 : 0
+                        onSelected: index => root.pinnedOnly = index === 1
+                    }
 
-                        anchors.centerIn: parent
-                        spacing: 4
-
-                        Rectangle {
-                            width: 66
-                            height: 32
-                            radius: 999
-                            color:
-                                !root.pinnedOnly
-                                    ? root.accentSoft
-                                    : "transparent"
-                            border.width:
-                                !root.pinnedOnly ? 1 : 0
-                            border.color:
-                                Qt.alpha(root.accent, 0.62)
-
-                            CortetsuText {
-                                anchors.centerIn: parent
-                                text: qsTr("Todo")
-                                color:
-                                    !root.pinnedOnly
-                                        ? root.accent
-                                        : root.textMuted
-                                textSize: CortetsuTypography.labelMediumPx
-                            }
-
-                            MouseArea {
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-
-                                onClicked:
-                                    root.pinnedOnly = false
-                            }
-                        }
-
-                        Rectangle {
-                            width: 100
-                            height: 32
-                            radius: 999
-                            color:
-                                root.pinnedOnly
-                                    ? root.accentSoft
-                                    : "transparent"
-                            border.width:
-                                root.pinnedOnly ? 1 : 0
-                            border.color:
-                                Qt.alpha(root.accent, 0.62)
-
-                            Row {
-                                anchors.centerIn: parent
-                                spacing: 6
-
-                                CortetsuIcon {
-                                    text: "keep"
-                                    color:
-                                        root.pinnedOnly
-                                            ? root.accent
-                                            : root.textMuted
-                                    iconSize: CortetsuTypography.iconSmallPx
-                                }
-
-                                CortetsuText {
-                                    text: qsTr("Fijados")
-                                    color:
-                                        root.pinnedOnly
-                                            ? root.accent
-                                            : root.textMuted
-                                    textSize: CortetsuTypography.labelMediumPx
-                                }
-                            }
-
-                            MouseArea {
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-
-                                onClicked:
-                                    root.pinnedOnly = true
-                            }
-                        }
-
-                        CortetsuDivider {
-                            anchors.verticalCenter: parent.verticalCenter
-                            vertical: true
-                            height: 20
-                        }
-
-                        Rectangle {
-                            width: 86
-                            height: 32
-                            radius: 999
-                            color:
-                                clearMouse.containsMouse
-                                    ? Qt.alpha(
-                                        CortetsuDesign.colorVermillion,
-                                        0.12
-                                    )
-                                    : "transparent"
-
-                            Row {
-                                anchors.centerIn: parent
-                                spacing: 6
-
-                                CortetsuIcon {
-                                    text: "delete_sweep"
-                                    color:
-                                        clearMouse.containsMouse
-                                            ? CortetsuDesign.colorVermillion
-                                            : root.textMuted
-                                    iconSize: CortetsuTypography.iconSmallPx
-                                }
-
-                                CortetsuText {
-                                    text: qsTr("Limpiar")
-                                    color:
-                                        clearMouse.containsMouse
-                                            ? CortetsuDesign.colorVermillion
-                                            : root.textMuted
-                                    textSize: CortetsuTypography.labelMediumPx
-                                }
-                            }
-
-                            MouseArea {
-                                id: clearMouse
-
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-
-                                onClicked:
-                                    root.clearNonPinned()
+                    CortetsuButton {
+                        objectName: "clipboardClear"
+                        anchors.verticalCenter: parent.verticalCenter
+                        compact: true
+                        danger: root.clearArmed
+                        icon: "delete_sweep"
+                        disabled: root.unpinnedCount === 0
+                        label: root.clearArmed ? qsTr("Borrar %1").arg(root.unpinnedCount) : qsTr("Limpiar")
+                        tooltipText: root.clearArmed ? qsTr("Pulsa otra vez para borrar; los fijados se quedan")
+                            : qsTr("Borrar todo lo que no está fijado")
+                        onClicked: {
+                            if (root.clearArmed) {
+                                root.clearArmed = false;
+                                root.clearNonPinned();
+                            } else {
+                                root.clearArmed = true;
+                                clearDisarm.restart();
                             }
                         }
                     }

@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import ".."
+import "../../components"
 import "../../theme"
 import "../CortetsuTypography.js" as CortetsuTypography
 
@@ -15,6 +16,11 @@ Rectangle {
     signal deleteRequested()
     signal pinRequested()
     signal selectRequested()
+
+    Accessible.role: Accessible.ListItem
+    Accessible.name: root.isImage ? qsTr("Imagen %1").arg(root.fileName) : root.trimmedValue.slice(0, 120)
+    Accessible.description: root.pinned ? qsTr("Fijado · %1").arg(root.recordedDisplay) : root.recordedDisplay
+    Accessible.selected: root.selected
 
     readonly property string value:
         String(entry?.value ?? "")
@@ -284,136 +290,49 @@ Rectangle {
             }
         }
 
+        // Mouse shortcuts for what the keys already do on the selected item
+        // (P pins, Enter copies, Supr deletes), so they stay out of the Tab
+        // order instead of adding three stops per row.
         Row {
             id: actions
 
             anchors.verticalCenter: parent.verticalCenter
             spacing: 4
 
-            Item {
-                width: 36
-                height: 36
-
-                Rectangle {
-                    anchors.fill: parent
-                    radius: CortetsuDesign.radiusMedium
-
-                    color:
-                        pinMouse.containsMouse
-                            ? Qt.alpha(root.accent, 0.13)
-                            : "transparent"
-                }
-
-                CortetsuIcon {
-                    anchors.centerIn: parent
-
-                    text:
-                        root.pinned
-                            ? "keep"
-                            : "keep_off"
-
-                    color:
-                        root.pinned || pinMouse.containsMouse
-                            ? root.accent
-                            : root.textMuted
-
-                    iconSize: CortetsuTypography.iconMediumPx
-                }
-
-                MouseArea {
-                    id: pinMouse
-
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-
-                    onClicked: {
-                        root.selectRequested();
-                        root.pinRequested();
-                    }
+            CortetsuButton {
+                compact: true
+                activeFocusOnTab: false
+                icon: root.pinned ? "keep" : "keep_off"
+                label: ""
+                active: root.pinned
+                tooltipText: root.pinned ? qsTr("Soltar (P)") : qsTr("Fijar (P)")
+                onClicked: {
+                    root.selectRequested();
+                    root.pinRequested();
                 }
             }
 
-            Item {
-                width: 36
-                height: 36
-
-                Rectangle {
-                    anchors.fill: parent
-                    radius: CortetsuDesign.radiusMedium
-
-                    color:
-                        copyMouse.containsMouse
-                            ? Qt.alpha(root.accent, 0.13)
-                            : "transparent"
-                }
-
-                CortetsuIcon {
-                    anchors.centerIn: parent
-                    text: "content_copy"
-
-                    color:
-                        copyMouse.containsMouse
-                            ? root.accent
-                            : root.textMuted
-
-                    iconSize: CortetsuTypography.iconMediumPx
-                }
-
-                MouseArea {
-                    id: copyMouse
-
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-
-                    onClicked: {
-                        root.selectRequested();
-                        root.activateRequested();
-                    }
+            CortetsuButton {
+                compact: true
+                activeFocusOnTab: false
+                icon: "content_copy"
+                label: ""
+                tooltipText: qsTr("Copiar (Intro)")
+                onClicked: {
+                    root.selectRequested();
+                    root.activateRequested();
                 }
             }
 
-            Item {
-                width: 36
-                height: 36
-
-                Rectangle {
-                    anchors.fill: parent
-                    radius: CortetsuDesign.radiusMedium
-
-                    color:
-                        deleteMouse.containsMouse
-                            ? Qt.alpha(
-                                CortetsuDesign.colorVermillion,
-                                0.12
-                            )
-                            : "transparent"
-                }
-
-                CortetsuIcon {
-                    anchors.centerIn: parent
-                    text: "delete"
-
-                    color:
-                        deleteMouse.containsMouse
-                            ? CortetsuDesign.colorVermillion
-                            : root.textMuted
-
-                    iconSize: CortetsuTypography.iconMediumPx
-                }
-
-                MouseArea {
-                    id: deleteMouse
-
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-
-                    onClicked: {
-                        root.selectRequested();
-                        root.deleteRequested();
-                    }
+            CortetsuButton {
+                compact: true
+                activeFocusOnTab: false
+                icon: "delete"
+                label: ""
+                tooltipText: qsTr("Borrar (Supr)")
+                onClicked: {
+                    root.selectRequested();
+                    root.deleteRequested();
                 }
             }
         }
