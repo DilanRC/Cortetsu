@@ -227,11 +227,9 @@ Item {
             }
         }
 
-        Rectangle {
+        CortetsuDivider {
             Layout.fillWidth: true
-            Layout.preferredHeight: 1
             visible: root.paired
-            color: CortetsuDesign.colorOutlineVariant
         }
 
         RowLayout {
@@ -265,11 +263,9 @@ Item {
             }
         }
 
-        Rectangle {
+        CortetsuDivider {
             Layout.fillWidth: true
-            Layout.preferredHeight: 1
             visible: root.paired || root.blocked
-            color: CortetsuDesign.colorOutlineVariant
         }
 
         // Removing or blocking the device: both need a second press.

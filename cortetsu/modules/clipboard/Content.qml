@@ -28,9 +28,12 @@ FocusScope {
 
     // The panel sits on the ink material; these are the cards inside it.
     readonly property color panelSurface: CortetsuDesign.colorSurfaceHigh
-    readonly property color elevatedSurface: Qt.lighter(panelSurface, 1.08)
+    // On Washi's paper a raised or hovered card darkens; on dark grounds it
+    // lightens, as CortetsuSurface does.
+    readonly property bool lightGround: CortetsuDesign.luminance(CortetsuDesign.colorTetsu) > 0.5
+    readonly property color elevatedSurface: lightGround ? Qt.darker(panelSurface, 1.04) : Qt.lighter(panelSurface, 1.08)
     readonly property color cardSurface: CortetsuDesign.colorSurface
-    readonly property color hoverSurface: Qt.lighter(cardSurface, 1.12)
+    readonly property color hoverSurface: lightGround ? Qt.darker(cardSurface, 1.06) : Qt.lighter(cardSurface, 1.12)
     readonly property color textPrimary: CortetsuDesign.colorOnSurface
     readonly property color textMuted: CortetsuDesign.colorOnSurfaceVariant
     readonly property color accent: CortetsuDesign.colorPrimary
@@ -531,11 +534,10 @@ FocusScope {
                             }
                         }
 
-                        Rectangle {
+                        CortetsuDivider {
                             anchors.verticalCenter: parent.verticalCenter
-                            width: 1
+                            vertical: true
                             height: 20
-                            color: Qt.alpha(root.textMuted, 0.20)
                         }
 
                         Rectangle {

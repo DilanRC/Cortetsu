@@ -18,7 +18,7 @@ Singleton {
     readonly property int refreshInterval: refreshTimer.interval
 
     readonly property string icon: cc ? weatherIcon(cc.weatherCode) : "󰖐"
-    readonly property string description: cc?.weatherDesc ?? qsTr("No weather")
+    readonly property string description: cc?.weatherDesc ?? qsTr("Sin pronóstico")
     readonly property string temp: formatTemp(cc?.tempC)
     readonly property string feelsLike: formatTemp(cc?.feelsLikeC)
     readonly property int humidity: cc?.humidity ?? 0
