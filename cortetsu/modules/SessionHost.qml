@@ -91,6 +91,7 @@ Scope {
                     CortetsuBrushStroke { width: parent.width; height: 3; ink: CortetsuDesign.colorWashi; inkAlpha: 0.1 }
 
                     Session.Content {
+                        id: sessionContent
                         width: parent.width
                         anchors.horizontalCenter: parent.horizontalCenter
                         screenState: window.screenState
@@ -117,7 +118,10 @@ Scope {
             Shortcut {
                 sequence: "Escape"
                 enabled: window.open
-                onActivated: SurfacePolicy.closeOn(window.screenState, "session")
+                // A first Escape disarms an armed confirmation; the next one
+                // closes the menu.
+                onActivated: if (!sessionContent.cancelPending())
+                    SurfacePolicy.closeOn(window.screenState, "session")
             }
         }
     }

@@ -17,6 +17,9 @@ Column {
     // The action waiting for the lock before it runs.
     property var deferredCommand: null
     property string deferredState: "idle"
+    // Seconds left on an armed confirmation, shown on the row.
+    property int confirmRemaining: 0
+    readonly property int confirmSeconds: 4
 
     padding: CortetsuDesign.spacingStandard
     spacing: CortetsuDesign.spacingCompact
@@ -93,6 +96,7 @@ Column {
     function close(): void {
         pendingAction = "";
         confirmTimer.stop();
+        countdown.stop();
         root.screenState.session = false;
     }
 
@@ -112,6 +116,7 @@ Column {
         pendingAction = "";
         failedAction = "";
         confirmTimer.stop();
+        countdown.stop();
 
         if (action.lockOnly) {
             // The lock is owned by this shell; a compositor round trip can
@@ -173,17 +178,40 @@ Column {
 
         if (action.confirm && pendingAction !== action.id) {
             pendingAction = action.id;
+            confirmRemaining = confirmSeconds;
             confirmTimer.restart();
+            countdown.restart();
             return;
         }
 
         execute(action);
     }
 
+    // Escape disarms a confirmation before it closes the menu.
+    function cancelPending(): bool {
+        if (pendingAction.length === 0)
+            return false;
+        pendingAction = "";
+        confirmTimer.stop();
+        countdown.stop();
+        return true;
+    }
+
     Timer {
         id: confirmTimer
-        interval: 4000
-        onTriggered: root.pendingAction = ""
+        interval: root.confirmSeconds * 1000
+        onTriggered: {
+            root.pendingAction = "";
+            countdown.stop();
+        }
+    }
+
+    // Runs only while a confirmation is armed.
+    Timer {
+        id: countdown
+        interval: 1000
+        repeat: true
+        onTriggered: root.confirmRemaining = Math.max(0, root.confirmRemaining - 1)
     }
 
     Timer {
@@ -206,32 +234,48 @@ Column {
         }
     }
 
+    // Two groups: what keeps this session (lock, sleep) and what ends it
+    // (log out, restart, power off). The second asks twice, with the time
+    // left to confirm on the row itself.
     Repeater {
         model: root.actions
 
-        delegate: CortetsuActionRow {
-            id: actionRow
+        delegate: Column {
+            id: entry
             required property var modelData
-
-            // The column's padding sits on both sides of every row.
+            required property int index
+            readonly property bool startsEndGroup: entry.modelData.id === "logout"
             width: root.width - root.leftPadding - root.rightPadding
-            icon: actionRow.modelData.icon
-            seal: actionRow.modelData.seal
-            title: root.pendingAction === actionRow.modelData.id
-                ? qsTr("Confirmar %1").arg(actionRow.modelData.label)
-                : actionRow.modelData.label
-            disabled: !root.available(actionRow.modelData)
-            subtitle: actionRow.disabled
-                ? CortetsuSession.reason(actionRow.modelData.sleepMode)
-                : root.failedAction === actionRow.modelData.id
-                ? qsTr("No disponible: el bloqueo de sesión no está listo")
-                : root.pendingAction === actionRow.modelData.id
-                    ? qsTr("Pulsa otra vez en 4 segundos")
-                    : actionRow.modelData.detail
-            danger: actionRow.modelData.danger
-            selected: root.pendingAction === actionRow.modelData.id
-            trailingIcon: actionRow.selected ? "warning" : "chevron_right"
-            onClicked: root.run(actionRow.modelData)
+            spacing: CortetsuDesign.spacingCompact
+
+            CortetsuDivider {
+                visible: entry.startsEndGroup
+                width: parent.width
+            }
+
+            CortetsuActionRow {
+                id: actionRow
+                width: parent.width
+                icon: entry.modelData.icon
+                seal: entry.modelData.seal
+                title: root.pendingAction === entry.modelData.id
+                    ? qsTr("Confirmar: %1").arg(entry.modelData.label)
+                    : entry.modelData.label
+                disabled: !root.available(entry.modelData)
+                subtitle: actionRow.disabled
+                    ? CortetsuSession.reason(entry.modelData.sleepMode)
+                    : root.failedAction === entry.modelData.id
+                    ? qsTr("No disponible: el bloqueo de sesión no está listo")
+                    : root.pendingAction === entry.modelData.id
+                        ? (root.confirmRemaining === 1
+                            ? qsTr("Pulsa otra vez para confirmar · 1 segundo")
+                            : qsTr("Pulsa otra vez para confirmar · %1 segundos").arg(root.confirmRemaining))
+                        : entry.modelData.detail
+                danger: entry.modelData.danger
+                selected: root.pendingAction === entry.modelData.id
+                trailingIcon: actionRow.selected ? "warning" : "chevron_right"
+                onClicked: root.run(entry.modelData)
+            }
         }
     }
 }
