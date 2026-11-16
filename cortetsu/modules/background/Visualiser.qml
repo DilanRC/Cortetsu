@@ -32,14 +32,16 @@ Item {
         anchors.bottomMargin: -root.offset
         spacing: Math.max(1, 2 * CortetsuConfig.visualiserSpacing)
 
+        // The model is the bar count, not the sample list: a new sample
+        // updates heights without recreating the bars.
         Repeater {
-            model: CortetsuSpectrum.values
+            model: CortetsuSpectrum.barCount
 
             Rectangle {
-                required property real modelData
                 required property int index
-                width: Math.max(1, (bars.width - (bars.spacing * (bars.children.length - 1))) / Math.max(1, CortetsuSpectrum.values.length))
-                height: Math.max(1, bars.height * modelData)
+                readonly property real level: CortetsuSpectrum.values[index] ?? 0
+                width: Math.max(1, (bars.width - bars.spacing * (CortetsuSpectrum.barCount - 1)) / Math.max(1, CortetsuSpectrum.barCount))
+                height: Math.max(1, bars.height * level)
                 anchors.bottom: parent.bottom
                 radius: Math.max(0, 4 * CortetsuConfig.visualiserRounding)
                 color: index % 2 ? CortetsuDesign.colorSecondary : CortetsuDesign.colorPrimary
