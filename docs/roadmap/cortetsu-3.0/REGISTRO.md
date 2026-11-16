@@ -12,10 +12,13 @@ Un estado solo sube con la evidencia que cita. Lo que no se probó se dice.
 | 2 Settings integral y Launcher | IN_PROGRESS |
 | 3 Hub multiposición | DONE_WITH_CONCERNS |
 | 4 Islas, popouts y tray | VERIFIED |
-| 5 OSD 3.0 y Ajustes rápidos | PARTIAL |
-| 6 Centros de servicio | NOT_STARTED |
+| 5 OSD 3.0 y Ajustes rápidos | PARTIAL (ola 2026-11-16: código sin verificar) |
+| 6 Centros de servicio | PARTIAL (ola 2026-11-16: código sin verificar) |
 | 7 Lockscreen, Dashboard y widgets | PARTIAL |
-| 8 Audio avanzado y superficies restantes | NOT_STARTED |
+| 8 Audio avanzado y superficies restantes | PARTIAL (ola 2026-11-16: código sin verificar) |
+
+La ola de construcción continua del 2026-11-16 (plan V2, sin pruebas) está
+al final: [Ola de construcción continua](#ola-de-construcción-continua-2026-11-16).
 | 9 Certificación | NOT_STARTED |
 
 #### Fase 0 - Línea base y mapa de propiedad
@@ -161,3 +164,39 @@ Un estado solo sube con la evidencia que cita. Lo que no se probó se dice.
 - Revisión externa: Codex `gpt-6-luna`, solo lectura, sobre `36dea6db..HEAD`: sin defectos confirmados en Hub, bloqueo, Ajustes rápidos, Settings ni mantenibilidad. Estática: no ejecutó pruebas.
 - Gate de instalación (`build-regressions.sh` sobre un runtime preparado en un directorio temporal, sin instalar) encontró tres regresiones de este trabajo, ya corregidas: el inventario de procesos de arranque apuntaba a la sonda de teclado en `LockSurface.qml` (ahora en `Lock.qml`); dos fixtures copiaban `CortetsuConfig.qml` sin `HubAnchor.js`; una aserción exigía el Hub anclado abajo. Pasa completo.
 - Fallos previos, ajenos a 3.0 (fallan igual en `36dea6db`): `test-cortetsu-idle-runtime.py`, `test-gamemode-runtime.py`, `test-cortetsu-brightness.py`.
+
+#### Ola de construcción continua (2026-11-16)
+
+- Estado: **PARTIAL_NO_VERIFICADO**. Plan: `CORTETSU_3_0_PLAN_MAESTRO_CONSTRUCCION_CONTINUA.md` (versión `3.0-construction-first-2`, entregado por Dilan; prevalece sobre el plan anterior en el proceso, no en las decisiones de ADR-008).
+- Rama `main`, HEAD inicial `6299f21f`. Commits locales `aefc805b` a `df78aae0` más la documentación. Sin push.
+- Ejecutado: **0 pruebas, 0 builds de QA, 0 lints, 0 instalaciones, 0 recargas, 0 push.** Solo lectura de código, `git`, `gh api` de lectura sobre los tres proyectos de referencia, y `scripts/verification/qml-inventory.py` para regenerar el inventario (genera documentación; no comprueba nada).
+- Archivos ajenos: `.codebase-memory/` tenía cambios previos; no se tocaron ni se incluyeron.
+- Entregables: [`INVENTARIO_QML_3_0.md`](INVENTARIO_QML_3_0.md), [`COMPARATIVA_Y_MEJORAS.md`](COMPARATIVA_Y_MEJORAS.md), [`DECISIONES_DISENO.md`](DECISIONES_DISENO.md), [`QA_POSTERIOR.md`](QA_POSTERIOR.md), [`../../AUDIO_EQ.md`](../../AUDIO_EQ.md).
+
+| Commit | Módulo | Estado |
+| --- | --- | --- |
+| `aefc805b` | Centro de control por frecuencia, dispositivos a demanda, OSD de perfil | IMPLEMENTADO_SIN_VERIFICAR |
+| `a2a49b7b` | Notificaciones: grupos, búsqueda, quitar del historial | IMPLEMENTADO_SIN_VERIFICAR |
+| `56ea7e9e` | Launcher: modo explorar | IMPLEMENTADO_SIN_VERIFICAR |
+| `ca549d14` | Popout de energía | IMPLEMENTADO_SIN_VERIFICAR |
+| `919f8bab` | Sesión: grupos, cuenta atrás, Escape | IMPLEMENTADO_SIN_VERIFICAR |
+| `d8acfb41` | Polkit: Bloq Mayús, «Comprobando…» | IMPLEMENTADO_SIN_VERIFICAR |
+| `6cd2d6f0` | Divisores con token | IMPLEMENTADO_SIN_VERIFICAR |
+| `2447be32` | Ajustes → Sonido; búsqueda abre grupos plegados | IMPLEMENTADO_SIN_VERIFICAR |
+| `9f04ba43` | Ajustes → Energía | IMPLEMENTADO_SIN_VERIFICAR |
+| `48383261` | Dashboard: GPU sin lectura, pestañas accesibles | IMPLEMENTADO_SIN_VERIFICAR |
+| `0269d7ac` | Toasts | IMPLEMENTADO_SIN_VERIFICAR |
+| `9aa1341a` | Ecualizador opcional de 10 bandas | IMPLEMENTADO_SIN_VERIFICAR |
+| `df78aae0` | Limpieza y rango del volumen | IMPLEMENTADO_SIN_VERIFICAR |
+
+
+- Dependencias nuevas: ninguna. El ecualizador usa `pw-cli` (PipeWire, ya instalado) y un archivo de configuración que el usuario copia a mano.
+- Preferencias nuevas: `eqEnabled`, `eqGains` (versiones anteriores las ignoran). Estado nuevo: `~/.local/state/cortetsu/launcher-recent.json`.
+- Compatibilidad: `objectName` de las pruebas del centro de control conservados (`quickWifi`, `quickMicrophone`, `quickEnergy`); ningún destino IPC cambió.
+- Bloqueo: no se tocó. Sin prueba manual inmediata, la ruta PAM no se edita.
+- No implementado (por eso PARTIAL): páginas de Ajustes no revisadas (lista en el inventario), widgets de escritorio con edición, Overview, Wallpaper, Display, Portapapeles, Calendario, Grabación, Compartir pantalla, Teclados, Secretos; galería de la biblioteca; luz nocturna y cheatsheet (pendientes de backend o decisión).
+- Riesgos sin descartar: QML sin compilar (tipos, imports, `uniformCellWidths` en `GridLayout`, `PowerProfiles.hasPerformanceProfile`), pruebas de cadenas que fallarán (lista en QA), `bq_highshelf` a 0 Hz como preamp, `pw-cli set-param` sobre un filter-chain estéreo, foco con `follow_mouse` en el centro de control, Hub lateral con el centro de control, HDMI y escala 1.25.
+- Revisión: Thermos en línea y en secuencia, sin subagentes (preferencia de Dilan); no independiente. Hallazgo corregido: el deslizador de volumen del centro de control usaba un rango distinto del de Ajustes.
+- Rollback: `git revert` de los commits de la ola en orden inverso. Nada instalado.
+- Siguiente misión: `QA INTEGRAL 3.0`, **pendiente de autorización**.
+
