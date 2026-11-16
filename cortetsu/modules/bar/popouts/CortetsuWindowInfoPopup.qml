@@ -62,10 +62,8 @@ CortetsuSurface {
                     elide: Text.ElideRight
                 }
 
-                Rectangle {
+                CortetsuDivider {
                     width: parent.width
-                    height: 1
-                    color: CortetsuDesign.colorOutlineVariant
                 }
 
                 Detail { icon: "location_on"; text: qsTr("Dirección: 0x%1").arg(root.client?.address ?? "desconocida") }

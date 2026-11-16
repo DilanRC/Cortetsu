@@ -890,18 +890,6 @@ FocusScope {
             }
         }
 
-        Rectangle {
-            visible: false
-            width: parent.width
-            height: 1
-
-            color:
-                Qt.alpha(
-                    CortetsuDesign.colorOutlineVariant,
-                    0.62
-                )
-        }
-
         /*
          * One adaptive grid for ALL windows.
          * Workspace identity stays on each card and in the workspace rail.

@@ -55,14 +55,12 @@ Item {
     }
 
     // The first row of a group sits at y 0 and needs no line above it.
-    Rectangle {
+    CortetsuDivider {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.leftMargin: CortetsuDesign.spacingStandard
         anchors.rightMargin: CortetsuDesign.spacingStandard
         visible: root.y > 0
-        height: 1
-        color: Qt.alpha(CortetsuDesign.colorOutlineVariant, 0.36)
     }
 
     Rectangle {
