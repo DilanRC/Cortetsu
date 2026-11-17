@@ -78,7 +78,7 @@ fn local_resource(root: &Path, value: Option<&str>) -> Option<PathBuf> {
     if path.starts_with(root) && path.is_file() { Some(path) } else { None }
 }
 
-fn item(root: &Path, source: &str) -> Value {
+pub(super) fn item(root: &Path, source: &str) -> Value {
     let modified = fs::metadata(root).ok().and_then(|m| m.modified().ok()).and_then(|m| m.duration_since(UNIX_EPOCH).ok()).map(|m| m.as_secs());
     let workshop_id = if source == "steam" { root.file_name().and_then(|n| n.to_str()).filter(|s| !s.is_empty() && s.chars().all(|c| c.is_ascii_digit())) } else { None };
     let mut entry = json!({"id": root, "location": root, "source": source, "workshopId": workshop_id, "modified": modified, "title": null, "author": null, "preview": null, "type": "unknown", "properties": {}, "compatibility": "undetermined", "errors": []});
@@ -98,6 +98,9 @@ fn item(root: &Path, source: &str) -> Value {
             entry["type"] = json!(metadata.get("type").and_then(Value::as_str).unwrap_or("unknown").to_lowercase());
             entry["preview"] = json!(local_resource(root, metadata.get("preview").and_then(Value::as_str)));
             entry["entrypoint"] = json!(local_resource(root, metadata.get("file").and_then(Value::as_str)));
+            let declared = metadata.get("file").and_then(Value::as_str).filter(|s| !s.is_empty() && Path::new(s).components().all(|c| matches!(c, Component::Normal(_) | Component::CurDir)));
+            entry["entryFile"] = json!(declared);
+            entry["packedScene"] = json!(local_resource(root, Some("scene.pkg")).or_else(||local_resource(root, Some("gifscene.pkg"))));
             entry["properties"] = metadata.pointer("/general/properties").filter(|v| v.is_object()).cloned().unwrap_or(json!({}));
             entry["reason"] = json!("Renderer compatibility has not been verified for this wallpaper");
         }
@@ -106,7 +109,9 @@ fn item(root: &Path, source: &str) -> Value {
 }
 
 pub fn main(args: &[String]) -> Result<i32> {
-    if args.first().map(String::as_str) != Some("catalog") { return Err("usage: cortetsu-orbital catalog [absolute-wallpaper-root ...]".into()); }
+    if args.first().map(String::as_str) == Some("session") { return crate::orbital_session::main(); }
+    if args.first().map(String::as_str) == Some("renderer-child") { return crate::orbital_session::renderer_child(&args[1..]); }
+    if args.first().map(String::as_str) != Some("catalog") { return Err("usage: cortetsu-orbital catalog [absolute-wallpaper-root ...] | session".into()); }
     let home = common::home();
     let mut libraries = BTreeSet::new();
     let mut roots = Vec::new();

@@ -99,3 +99,28 @@ físico GPU-conector en esta investigación.
 QA posterior deberá comprobar loader, escenas representativas, CEF, audio,
 elección de GPU, superficies/widgets, hotplug y recuperación antes de habilitar
 reproducción. No se afirma mejora de consumo o rendimiento.
+
+## Decisiones tomadas para la reproducción (17 de noviembre de 2026)
+
+Revisión estática adicional del checkout instalado. Tampoco se ejecutó nada.
+
+- **Presentación**: Almamu tiene driver Wayland propio
+  (`Render/Drivers/WaylandOpenGLDriver.cpp`, layer-shell por `wl_output`) y lo
+  elige cuando `XDG_SESSION_TYPE=wayland` (`WallpaperApplication.cpp:667`). No
+  hace falta un adaptador. we-layerd queda como referencia para un backend futuro
+  con DMA-BUF.
+- **Argumentos**: `--volume` y `--silent` forman un grupo mutuamente excluyente
+  (`ApplicationContext.cpp:523-534`). `--scaling` y `--bg` se aplican a la
+  última `--screen-root`. `--set-property` acepta `true/1` para bool, `stof`
+  para slider y valores listados para combo (`Data/Model/Property.h`).
+- **Biblioteca**: el wrapper `/usr/bin/linux-wallpaperengine` exporta
+  `LD_LIBRARY_PATH=/opt/linux-wallpaperengine/lib` y entra en ese directorio. El
+  supervisor reproduce ambas cosas sin pasar por un shell.
+- **GPU**: en este equipo hay RTX 3050 (01:00.0) y Radeon HawkPoint2 (06:00.0).
+  glvnd carga `10_nvidia.json` antes que `50_mesa.json`, así que fijar el vendor
+  EGL a Mesa es la forma explícita de mantener el render en la integrada.
+  `--hwdec auto` puede elegir NVDEC; la política integrada usa `no`.
+- **Pantalla completa**: `WaylandFullScreenDetector.cpp` usa
+  `zwlr_foreign_toplevel_management_v1`, disponible en Hyprland.
+- **Web**: `WebBrowser/WebBrowserContext.cpp:87` fija `settings.no_sandbox = true`.
+  Queda bloqueado hasta disponer de un backend aislado.

@@ -15,5 +15,6 @@ Scope {
         // Applies the saved curve when the opt-in filter-chain node exists;
         // starts no process otherwise.
         CortetsuEqualizer;
+        Orbital;
     }
 }

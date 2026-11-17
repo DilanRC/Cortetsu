@@ -6,34 +6,51 @@ import Quickshell.Io
 import ".."
 import "../../components"
 import "../../theme"
+import "../../services"
 
 FocusScope {
     id: root
     signal back()
     property var entries: []
+    property var assets: []
+    property bool favoritesOnly: false
+    property string collection: ""
     property string errorText: ""
+    property var scannedRoots: []
     property string query: ""
     property string kind: "all"
     property var selected: null
     readonly property var filtered: entries.filter(entry =>
+        (!favoritesOnly || (Orbital.preferences.favorites || []).includes(entry.location)) &&
+        (!collection || (Orbital.preferences.collections?.[collection] || []).includes(entry.location)) &&
         (kind === "all" || entry.type === kind) &&
         String(entry.title || entry.location || "").toLocaleLowerCase().includes(query.toLocaleLowerCase()))
 
     function reload(): void {
         if (scan.running) return;
         errorText = "";
+        scannedRoots = (Orbital.preferences.libraryRoots || []).slice();
         scan.running = true;
     }
 
-    Component.onCompleted: { reload(); search.forceActiveFocus(); }
+    Component.onCompleted: { Orbital.ensure(); reload(); search.forceActiveFocus(); }
+    // Library folders saved by the supervisor may arrive after the first scan.
+    Connections {
+        target: Orbital
+        function onPreferencesChanged(): void {
+            if (JSON.stringify(Orbital.preferences.libraryRoots || []) !== JSON.stringify(root.scannedRoots)) root.reload();
+        }
+    }
     Keys.onEscapePressed: back()
 
     Process {
         id: scan
-        command: [Quickshell.env("HOME") + "/.local/bin/cortetsu-orbital", "catalog"]
+        command: [Quickshell.env("HOME") + "/.local/bin/cortetsu-orbital", "catalog"].concat(root.scannedRoots)
         stdout: StdioCollector { id: output }
         stderr: StdioCollector { id: errors }
         onExited: code => {
+            // Folders changed while this scan ran: read the catalog again.
+            if (JSON.stringify(Orbital.preferences.libraryRoots || []) !== JSON.stringify(root.scannedRoots)) Qt.callLater(root.reload);
             if (code !== 0) {
                 root.errorText = errors.text.trim() || qsTr("No se pudo leer el catálogo Steam. Comprueba que el runtime de Orbital esté instalado.");
                 return;
@@ -42,6 +59,7 @@ FocusScope {
                 const result = JSON.parse(output.text);
                 if (!Array.isArray(result.entries)) throw new Error("entries");
                 root.entries = result.entries;
+                root.assets = result.assets || [];
                 root.selected = null;
                 root.errorText = (result.errors || []).map(item => item.path + ": " + item.error).join("\n");
             } catch (_) {
@@ -64,6 +82,26 @@ FocusScope {
         CortetsuButton { compact: true; label: qsTr("Actualizar"); icon: "refresh"; disabled: scan.running; onClicked: root.reload() }
     }
 
+    Flow {
+        id: libraryTools
+        anchors.top: filters.bottom
+        anchors.topMargin: CortetsuDesign.spacingCompact
+        width: parent.width
+        spacing: CortetsuDesign.spacingCompact
+        CortetsuButton { compact: true; icon: "star"; label: qsTr("Favoritos"); active: root.favoritesOnly; onClicked: root.favoritesOnly = !root.favoritesOnly }
+        CortetsuButton { compact: true; icon: "collections_bookmark"; label: root.collection || qsTr("Colecciones"); tooltipText: qsTr("Cambia de colección; la última vuelve a mostrar todo"); onClicked: { const names = [""].concat(Object.keys(Orbital.preferences.collections || {})); root.collection = names[(names.indexOf(root.collection) + 1) % names.length]; } }
+        OrbitalField { id: libraryPath; width: Math.max(120, Math.min(280, root.width - 220)); placeholderText: qsTr("Directorio adicional de fondos"); maximumLength: 4096 }
+        CortetsuButton { compact: true; icon: "create_new_folder"; label: qsTr("Añadir carpeta"); disabled: !libraryPath.text.startsWith("/") || !Orbital.available; onClicked: { Orbital.send({op: "library", roots: [...new Set((Orbital.preferences.libraryRoots || []).concat([libraryPath.text]))]}); libraryPath.text = ""; } }
+        Repeater {
+            model: Orbital.preferences.libraryRoots || []
+            delegate: CortetsuButton {
+                required property string modelData
+                compact: true; label: qsTr("Quitar %1").arg(modelData.split("/").pop()); tooltipText: modelData
+                onClicked: Orbital.send({op: "library", roots: Orbital.preferences.libraryRoots.filter(p => p !== modelData)})
+            }
+        }
+    }
+
     Row {
         id: filters
         anchors.top: toolbar.bottom
@@ -83,13 +121,13 @@ FocusScope {
 
     CortetsuText {
         id: status
-        anchors.top: filters.bottom
+        anchors.top: libraryTools.bottom
         anchors.topMargin: CortetsuDesign.spacingStandard
         width: parent.width
         wrapMode: Text.Wrap
         maximumLineCount: 3
         elide: Text.ElideRight
-        text: scan.running ? qsTr("Leyendo bibliotecas de Steam…") : root.errorText || (root.entries.length ? qsTr("%1 fondos descargados · La reproducción animada todavía no está integrada").arg(root.entries.length) : qsTr("No se encontraron fondos descargados de Wallpaper Engine."))
+        text: scan.running ? qsTr("Leyendo bibliotecas de Steam…") : root.errorText || (root.entries.length ? qsTr("%1 fondos descargados · Selecciona un fondo para reproducirlo").arg(root.entries.length) : qsTr("No se encontraron fondos descargados de Wallpaper Engine."))
         color: CortetsuDesign.colorOnSurfaceVariant
     }
 
@@ -161,10 +199,12 @@ FocusScope {
             width: parent.width
             spacing: CortetsuDesign.spacingStandard
             CortetsuText { width: parent.width; wrapMode: Text.Wrap; text: root.selected?.title || qsTr("Sin título"); font.bold: true }
-            CortetsuText { width: parent.width; wrapMode: Text.Wrap; text: root.selected ? qsTr("Tipo: %1\nFuente: %2\nCompatibilidad: %3").arg(root.selected.type || qsTr("Desconocido")).arg(root.selected.source === "steam" ? "Steam Workshop" : qsTr("Carpeta personalizada")).arg(root.selected.compatibility === "read-error" ? qsTr("Error de lectura") : qsTr("No determinada")) : "" }
+            CortetsuText { width: parent.width; wrapMode: Text.Wrap; text: root.selected ? qsTr("Tipo: %1\nFuente: %2\nCompatibilidad: %3").arg(root.selected.type || qsTr("Desconocido")).arg(root.selected.source === "steam" ? "Steam Workshop" : qsTr("Carpeta personalizada")).arg(root.selected.compatibility === "read-error" ? qsTr("Error de lectura")
+                : Orbital.inspections[root.selected.location]?.supported === true ? qsTr("Reproducible con Almamu Wayland")
+                : Orbital.inspections[root.selected.location] ? qsTr("No reproducible") : qsTr("Comprobando…")) : "" }
             CortetsuText { width: parent.width; wrapMode: Text.WrapAnywhere; text: root.selected?.location || ""; color: CortetsuDesign.colorOnSurfaceVariant }
             CortetsuText { width: parent.width; wrapMode: Text.Wrap; text: (root.selected?.errors || []).join("\n") }
-            CortetsuText { width: parent.width; wrapMode: Text.Wrap; text: qsTr("Esta vista consulta los archivos descargados. Para aplicar un fondo estático, vuelve a la biblioteca de imágenes de Orbital."); color: CortetsuDesign.colorOnSurfaceVariant }
+            SteamPlayback { width: parent.width; entry: root.selected; assets: root.assets }
         }
     }
 }

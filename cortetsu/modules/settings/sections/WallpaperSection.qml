@@ -116,6 +116,13 @@ ColumnLayout {
                     }
 
                     CortetsuButton {
+                        objectName: "openOrbitalSteam"
+                        icon: "animation"
+                        label: qsTr("Fondos animados de Steam")
+                        onClicked: { Orbital.requestSteam(); root.context.openSurface("wallpaperManager"); }
+                    }
+
+                    CortetsuButton {
                         objectName: "randomWallpaper"
                         icon: "shuffle"
                         label: qsTr("Aleatorio")

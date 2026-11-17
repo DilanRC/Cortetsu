@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Window
 import Quickshell
 import Quickshell.Wayland
 import ".."
@@ -12,13 +13,43 @@ Variants {
         id: win
 
         required property ShellScreen modelData
+        // Orbital ownership handshake: this surface is the static cover. It
+        // confirms each frame where the cover is opaque ("covered") or lifted
+        // ("revealed") so the supervisor never leaves the monitor uncovered.
+        readonly property var orbital: Orbital.output(modelData.name)
+        readonly property bool animated: Orbital.available && orbital.reveal === true
+        readonly property bool participating: (orbital.generation ?? 0) > 0 && (orbital.state !== "stopped" || orbital.covered !== true)
+        property string acknowledged: ""
+        property string pendingKey: ""
+        property int pendingFrames: 0
 
         screen: modelData
         WlrLayershell.namespace: "cortetsu-background"
         WlrLayershell.exclusionMode: ExclusionMode.Ignore
-        WlrLayershell.layer: CortetsuConfig.wallpaperEnabled ? WlrLayer.Background : WlrLayer.Bottom
-        color: CortetsuConfig.wallpaperEnabled ? "black" : "transparent"
+        // Bottom keeps the static cover and widgets above an Orbital renderer,
+        // which maps on the background layer of the same monitor.
+        WlrLayershell.layer: WlrLayer.Bottom
+        color: (CortetsuConfig.wallpaperEnabled || participating) && !animated ? "black" : "transparent"
         surfaceFormat.opaque: false
+        onOrbitalChanged: {
+            const key = orbital.generation + ":" + animated + ":" + orbital.state;
+            if (acknowledged !== key && contentItem.Window.window) contentItem.Window.window.update();
+        }
+        function acknowledgeFrame(): void {
+            if (!Orbital.available || !(orbital.generation > 0)) return;
+            const key = orbital.generation + ":" + animated + ":" + orbital.state;
+            if (acknowledged === key) return;
+            // The first swap after a change may still carry the frame rendered
+            // before it; the second one is certain to show the new state.
+            if (pendingKey !== key) { pendingKey = key; pendingFrames = 0; }
+            if (++pendingFrames < 2) { contentItem.Window.window?.update(); return; }
+            acknowledged = key;
+            Orbital.send({op: animated ? "revealed" : "covered", monitor: modelData.name, generation: orbital.generation});
+        }
+        Connections {
+            target: win.contentItem.Window.window
+            function onFrameSwapped(): void { win.acknowledgeFrame(); }
+        }
 
         anchors.top: true
         anchors.bottom: true
@@ -39,7 +70,8 @@ Variants {
                 id: wallpaper
                 anchors.fill: parent
                 asynchronous: true
-                active: CortetsuConfig.wallpaperEnabled
+                active: CortetsuConfig.wallpaperEnabled || win.participating
+                visible: !win.animated
                 sourceComponent: Wallpaper {}
             }
 

@@ -1,6 +1,6 @@
 # Orbital: contrato del catálogo Rust
 
-Estado: implementación sin verificar del catálogo; integración completa de reproducción pendiente.
+Estado: implementación sin verificar del catálogo y del supervisor de reproducción.
 
 Invocación: `cortetsu-desktop-runtime cortetsu-orbital catalog [ruta-absoluta ...]`.
 Las rutas opcionales son contenedores cuyos hijos inmediatos son wallpapers con
@@ -15,7 +15,8 @@ Salida JSON única, schemaVersion 1:
 Cada entrada contiene `id`, `location`, `source` (`steam` o `custom`),
 `workshopId` (solo carpetas Steam numéricas), `modified` (segundos Unix del
   directorio), `title`, `author`, `preview`, `type`, `properties`, `compatibility`
-y `errors`. Los campos ausentes son null, no metadatos inventados. `entrypoint`
+y `errors`. Con `project.json` legible añade `entryFile` (ruta relativa declarada)
+y `packedScene` (`scene.pkg` o `gifscene.pkg` dentro del proyecto). Los campos ausentes son null, no metadatos inventados. `entrypoint`
 aparece cuando se pudo leer el proyecto. Preview y entrypoint solo se exponen
 si resuelven a archivos dentro del directorio del wallpaper; se rechazan rutas
 absolutas, `..` y enlaces que escapen. `properties` conserva el objeto del autor,
@@ -52,3 +53,56 @@ Instalación y rollback: no se instala este código durante construcción. En la
 futura instalación autorizada, incluir este módulo en el binario de una generación
 nueva, conservando la generación anterior. Revertir la generación restaura el
 helper anterior; el catálogo no migra ni modifica datos del usuario.
+
+## Supervisor de reproducción
+
+Invocación: `cortetsu-orbital session`, solo como hijo de Quickshell. Requiere
+`WAYLAND_DISPLAY` y `XDG_RUNTIME_DIR`. Toma un lock no bloqueante en
+`$XDG_RUNTIME_DIR/cortetsu/orbital.lock`; si otro supervisor lo tiene, sale con
+error. Termina con EOF en stdin, SIGTERM/SIGINT/SIGHUP o 30 s sin `heartbeat`;
+al terminar mata todos sus renderizadores.
+
+Entrada: una petición JSON por línea (máximo 64 KiB). Salida: un evento por línea.
+
+| `op` | Campos | Efecto |
+| --- | --- | --- |
+| `heartbeat` | `battery` | Mantiene vivo el supervisor y actualiza la batería |
+| `inspect` | `location`, `backend?` | Emite `inspection` con el veredicto del backend |
+| `apply` | `monitor`, `selection` | Inicia la transacción de ownership de ese monitor |
+| `stop` | `monitor` | Vuelve al fondo estático y desactiva restauración y rotación |
+| `restore` | `monitor` | Aplica `previous[monitor]` |
+| `covered`, `revealed` | `monitor`, `generation` | Acuses de `Background.qml`; se ignoran si la generación no coincide |
+| `library` | `roots` | Carpetas absolutas adicionales (32 como máximo) |
+| `favorite` | `location` | Alterna favorito |
+| `collection` | `name`, `location` | Alterna pertenencia; una colección vacía se borra |
+| `playlist` | `monitor`, `playlist` | Valida cada entrada con el backend y la guarda |
+| `profile-save`, `profile-apply`, `profile-delete` | `monitor`, `name` | Perfiles por monitor |
+
+`selection`: `location`, `backend` (`almamu-wayland`), `assets`, `fps` (1–144),
+`volume` (0–100), `muted`, `scaling` (`fill|fit|stretch|default`), `gpu`
+(`integrated|system`), `properties` (nombre → valor), `pauseOnBattery`,
+`pauseFullscreen`, `restoreOnStart`. Los campos desconocidos se rechazan.
+
+Eventos:
+
+- `snapshot`: `outputs` por conector con `state`, `generation`, `pid`, `owner`,
+  `reveal`, `covered`, `error {code,message}`, `pauseReason`
+  (`battery|monitor-off|resume`), `selection` y `restarts`; además
+  `preferences` y `backends [{id, available}]`. Solo se emite si cambió.
+- `inspection`: `location`, `backend`, `available` y `verdict`
+  (`{supported:true, capabilities}` o `{supported:false, code, message}`).
+- `error`: `code` y `message` de una petición rechazada.
+
+Contrato con QML: `reveal` indica si la cubierta debe ser transparente. QML
+responde `covered` o `revealed` con la generación vigente después de dos
+fotogramas presentados con ese estado. El supervisor no mata el motor saliente
+antes de `covered` (o 3 s sin acuse) y no declara `active` antes de `revealed`.
+
+Renderizador: el shim `cortetsu-orbital renderer-child PID PROGRAMA ARGS…` es
+interno. Solo ejecuta `/opt/linux-wallpaperengine/linux-wallpaperengine`,
+fija `PR_SET_PDEATHSIG=SIGKILL` y comprueba que su padre sigue vivo antes de `exec`.
+
+Pruebas escritas en `orbital_session.rs` (sin ejecutar): exclusión
+volumen/silencio, orden de argumentos por pantalla, validación de propiedades
+bool/slider/combo, rangos, inspección conservadora y preferencias versionadas y
+estrictas.

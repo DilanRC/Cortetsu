@@ -24,6 +24,7 @@ FocusScope {
     property string query: ""
     property bool gridMode: false
     property bool steamLibrary: false
+    property bool pendingStaticOwnership: false
     property int currentIndex: -1
     property int windowIndex: -1
     property int queuedDirection: 0
@@ -243,11 +244,14 @@ FocusScope {
                 CortetsuWallpapers.stopPreview();
             previewActive = false;
             const accepted = CortetsuWallpapers.apply(currentPath);
+            pendingStaticOwnership = accepted;
             if (accepted && CortetsuConfig.smartScheme)
                 CortetsuWallpapers.previewColourLock = true;
             else if (!accepted)
                 CortetsuWallpapers.previewColourLock = false;
         } else {
+            // Choosing the static wallpaper already applied hands this monitor back to it.
+            if (Orbital.activeOn(screen.name) || Orbital.output(screen.name).state === "paused") Orbital.send({op: "stop", monitor: screen.name});
             cancelPreview();
             screenState.cortetsuState?.setRetained("wallpaperManager", false);
         }
@@ -287,7 +291,7 @@ FocusScope {
     }
 
     function openManager(): void {
-        steamLibrary = false;
+        steamLibrary = Orbital.takeSteamRequest();
         // The catalog is read on demand; there is no background rescan.
         CortetsuWallpapers.reload();
         presentationReady = false;
@@ -386,10 +390,27 @@ FocusScope {
     }
 
     Connections {
+        target: Orbital
+        // The launcher or quick settings asked for the Steam library while this
+        // monitor's Orbital was already open.
+        function onSteamRequestedChanged(): void {
+            if (Orbital.steamRequested && root.visible) {
+                root.cancelPreview();
+                root.steamLibrary = Orbital.takeSteamRequest();
+            }
+        }
+    }
+
+    Connections {
         target: CortetsuWallpapers
         // The applied wallpaper changed: follow it.
         function onActualCurrentChanged(): void { root.resync(CortetsuWallpapers.actualCurrent); }
         function onWallpaperApplySucceeded(path: string, generation: int): void {
+            // A static wallpaper applied from this monitor replaces its animated one.
+            const orbitalState = Orbital.output(root.screen.name).state;
+            if (root.pendingStaticOwnership && Orbital.available && orbitalState && orbitalState !== "stopped")
+                Orbital.send({op: "stop", monitor: root.screen.name});
+            root.pendingStaticOwnership = false;
             root.cosmicPulse = true;
             cosmicPulseTimer.restart();
             root.resync(CortetsuWallpapers.actualCurrent);

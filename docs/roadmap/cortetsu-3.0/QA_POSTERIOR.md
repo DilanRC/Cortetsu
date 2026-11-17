@@ -24,6 +24,84 @@
 - Antes de certificar persistencia futura: migración, corrupción, playlists,
   perfiles, rutas desaparecidas, importación/exportación y rollback de generación.
 
+## Orbital reproducción: escenarios sin ejecutar
+
+Construcción del 2026-11-17 sobre `17021636`. Nada de esto se compiló ni se
+ejecutó. Hacerlo **en una sesión anidada o en un WS libre** (ver memoria del
+proyecto) salvo la sección física.
+
+Estático y unidades:
+
+- `cargo build` y `cargo test` del runtime: las 6 pruebas de
+  `orbital_session.rs` y las del catálogo. Clippy sin avisos nuevos.
+- qmllint de `services/Orbital.qml`, `SteamPlayback.qml`, `SteamLibrary.qml`,
+  `Background.qml`, `Content.qml`, `Actions.qml`, `FullContent.qml`,
+  `WallpaperSection.qml` y `OrbitalField.qml`.
+- `cortetsu-orbital session` con stdin manual en un Hyprland anidado: snapshot
+  inicial, `inspect` de Scene/Video/Web/Image/roto, `apply` con monitor
+  inexistente, JSON inválido, línea > 64 KiB y EOF (debe salir y matar hijos).
+- Segundo supervisor con el lock tomado: error claro, sin tocar el primero.
+
+Ownership y transición (anidado, dos salidas virtuales):
+
+- Aplicar Scene en una salida: `preparing` → acuse `covered` → proceso →
+  superficie mapeada → `applying` → `revealed` → `active`. Ningún «Activo»
+  antes de la superficie; la otra salida no cambia.
+- Cambiar de Scene a Video en la misma salida: nunca dos PIDs propios mapeados a
+  la vez (`hyprctl layers -j` en bucle durante la transición).
+- Propietario externo: lanzar `linux-wallpaperengine` o `swww` a mano en la
+  capa `background`; Aplicar debe dar `foreign-owner` sin tocar ese proceso.
+- Motor que no mapea (monitor mal escrito o assets ausentes): `transition-timeout`
+  a los 15 s, cubierta estática y stderr visible.
+- `kill -9` del motor activo: dos reinicios en 120 s, al tercero error y fondo
+  estático. Con `unshare` o PID propio; **nunca** `pkill` global.
+- `kill -9` del supervisor: el motor muere por `PDEATHSIG`; Quickshell
+  reintenta dos veces y luego muestra el error.
+- Recarga del shell: el motor muere con stdin, y al volver se restaura si
+  `restoreOnStart`.
+- Desconectar y reconectar una salida; desactivarla con `hyprctl keyword monitor`;
+  cambiar escala y orientación.
+- Detener: cubierta, motor fuera y, con el fondo estático desactivado en
+  Ajustes, la cubierta desaparece tras el acuse.
+- Restaurar anterior tras dos aplicaciones distintas.
+- Aplicar un fondo estático desde Orbital con un animado activo: solo se detiene
+  el animado de ese monitor.
+
+Energía y GPU (sesión física, con Dilan presente):
+
+- Política integrada: `nvidia-smi` y `/sys/bus/pci/devices/0000:01:00.0/power/runtime_status`
+  deben seguir en `suspended` durante Scene y Video. Comparar con «GPU del sistema».
+- Batería/AC con `pauseOnBattery`, DPMS apagado/encendido, pantalla completa de un
+  juego, suspensión y reanudación (una vez; ver memoria NVIDIA).
+- Medir CPU, GPU, VRAM y consumo a 15/30/60 FPS por tipo. No se afirma ahorro.
+
+Interfaz:
+
+- Estados visibles: Preparando, Aplicando, Activo, Detenido, En pausa (con
+  motivo), Error (con código y stderr) e Incompatible (Web, Image, roto).
+- Teclado y foco en todos los controles nuevos; texto largo de propiedades con
+  HTML del autor; combos con 32+ opciones; lista de rotación con 100 entradas.
+- Ink, Washi y Kurogane; escala fraccional; panel estrecho sin desbordes.
+- Launcher «Fondos animados de Steam», Ajustes → Fondo y Ajustes rápidos
+  abren la biblioteca Steam, también con Orbital ya abierto.
+- Bloqueo de pantalla con fondo animado: imagen estática, sin parpadeo.
+- Widgets del escritorio y visualizador visibles sobre el fondo animado, con
+  `cortetsu-background` en la capa `bottom` también sin Orbital.
+
+Persistencia:
+
+- `orbital.json` ausente, corrupto, versión 2 y campo desconocido: el supervisor
+  se detiene con el error y el archivo queda intacto.
+- Ruta de Workshop borrada con restauración pendiente: error `restore`, fondo
+  estático.
+- Playlists, perfiles, colecciones y carpetas adicionales sobreviven a la recarga.
+- Rollback de generación con `orbital.json` presente: la generación anterior lo
+  ignora y conserva su fondo estático.
+
+Revisión estática de esta entrega: ver el informe final de la misión. Las
+dos pasadas Thermos se hicieron en línea, en secuencia y sin subagentes, por
+preferencia registrada de Dilan; no son revisiones independientes.
+
 Estado: **pendiente de autorización**. Nada de esta lista se ejecutó en las
 dos olas del 2026-11-16 (ola 1: `aefc805b` a `df78aae0`; ola 2: `d574fa85` a
 `35c5bdef`, más su documentación). La ola 2 está en la sección 9.

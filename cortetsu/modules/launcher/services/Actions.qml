@@ -27,6 +27,7 @@ Searcher {
             { name: qsTr("Selector de color"), icon: "colorize", description: qsTr("Elige un color de la pantalla y lo copia"), command: ["hyprpicker", "--autocopy"] },
             { name: qsTr("Fondo aleatorio"), icon: "shuffle", description: qsTr("Aplica un fondo al azar de tu carpeta"), command: ipc("cortetsu-wallpaper", "random") },
             { name: qsTr("Fondos de pantalla"), icon: "wallpaper", description: qsTr("Abre el selector de fondos"), command: surface("wallpaperManager") },
+            { name: qsTr("Fondos animados de Steam"), icon: "animation", description: qsTr("Wallpaper Engine en Orbital: aplicar, detener y perfiles por monitor"), command: ["orbital-steam"] },
             { name: qsTr("Ajustes"), icon: "settings", description: qsTr("Abre los ajustes de Cortetsu"), command: surface("settings") },
             { name: qsTr("Hardware"), icon: "memory", description: qsTr("Rendimiento, sensores, energía y procesos"), command: surface("hardware") },
             { name: qsTr("Pantallas"), icon: "monitor", description: qsTr("Resolución, escala y posición de los monitores"), command: surface("displayManager") },
@@ -93,6 +94,10 @@ Searcher {
 
             if (command[0] === "autocomplete" && command.length > 1) {
                 list.search.text = `${CortetsuConfig.actionPrefix}${command[1]} `;
+            } else if (command[0] === "orbital-steam") {
+                list.screenState.launcher = false;
+                Orbital.requestSteam();
+                WallpaperController.openActive();
             } else if (sleepMode) {
                 list.screenState.launcher = false;
                 CortetsuSession.request(sleepMode);

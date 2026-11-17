@@ -4,6 +4,7 @@ mod common;
 mod connectivity;
 mod lyrics;
 mod orbital;
+mod orbital_session;
 mod palette;
 mod pomodoro;
 mod prompter;

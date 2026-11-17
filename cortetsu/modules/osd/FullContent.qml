@@ -393,6 +393,17 @@ Item {
 
         CortetsuDivider { Layout.fillWidth: true; Layout.topMargin: CortetsuDesign.spacingUnit }
 
+        CortetsuActionTile {
+            Layout.fillWidth: true
+            label: qsTr("Orbital")
+            detail: Orbital.activeOn(root.screen.name) ? qsTr("Fondo animado activo en %1").arg(root.screen.name)
+                : Orbital.output(root.screen.name).state === "error" ? qsTr("Error en %1 · fondo estático").arg(root.screen.name)
+                : qsTr("Fondos de Steam y perfiles de este monitor")
+            warning: Orbital.output(root.screen.name).state === "error"
+            icon: "animation"
+            onActivated: { root.closeQsd(); Orbital.requestSteam(); WallpaperController.open(root.screen); }
+        }
+
         // --- Connections: the two radios carry their link as detail -------
 
         RowLayout {
