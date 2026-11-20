@@ -46,12 +46,18 @@ Item {
                     radius: height / 2
                     color: Qt.alpha(CortetsuDesign.colorWashi, 0.08)
                 }
+                // The level scales a full-width bar from its left end: the
+                // meter moves every frame of a song and must not relayout.
                 Rectangle {
-                    width: parent.width * bar.level
+                    width: parent.width
                     height: parent.height
                     radius: height / 2
                     color: bar.level > 0.95 ? CortetsuDesign.colorVermillion : CortetsuDesign.colorIndicator
-                    Behavior on width { NumberAnimation { duration: CortetsuDesign.motionFastMs } }
+                    transform: Scale {
+                        origin.x: 0
+                        xScale: bar.level
+                        Behavior on xScale { NumberAnimation { duration: CortetsuDesign.motionFastMs } }
+                    }
                 }
             }
         }

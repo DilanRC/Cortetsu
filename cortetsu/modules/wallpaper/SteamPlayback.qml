@@ -151,7 +151,7 @@ Column {
                 spacing: CortetsuDesign.spacingCompact
                 Rectangle {
                     anchors.verticalCenter: parent.verticalCenter
-                    width: 8; height: 8; radius: 4
+                    width: 8; height: 8; radius: height / 2
                     color: root.phase === "active" ? CortetsuDesign.colorSuccess
                         : root.phase === "error" ? CortetsuDesign.colorVermillion
                         : root.busy ? CortetsuDesign.colorPrimary : CortetsuDesign.colorOutline

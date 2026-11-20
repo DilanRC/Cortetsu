@@ -5,6 +5,7 @@ import "../../theme"
 TextField {
     id: root
     color: CortetsuDesign.colorOnSurface
+    font.family: CortetsuDesign.fontUi
     placeholderTextColor: CortetsuDesign.colorOnSurfaceVariant
     selectionColor: CortetsuDesign.colorPrimary
     selectedTextColor: CortetsuDesign.colorOnPrimary
