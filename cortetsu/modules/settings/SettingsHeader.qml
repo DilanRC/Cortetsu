@@ -25,12 +25,14 @@ ColumnLayout {
     spacing: 2
 
     RowLayout {
+        id: headerRow
         Layout.fillWidth: true
         // Room on the right for the window's close button.
         Layout.rightMargin: 44
         spacing: CortetsuDesign.spacingCompact
 
         CortetsuButton {
+            id: backButton
             objectName: "settingsBack"
             visible: root.canGoBack
             compact: true
@@ -100,7 +102,8 @@ ColumnLayout {
     CortetsuText {
         objectName: "pageSummary"
         Layout.fillWidth: true
-        Layout.leftMargin: root.canGoBack ? 40 : 0
+        // Under the title, whatever the back button measures in this theme.
+        Layout.leftMargin: root.canGoBack ? backButton.width + headerRow.spacing : 0
         visible: text.length > 0
         text: root.summary
         textSize: CortetsuTypography.bodyPx

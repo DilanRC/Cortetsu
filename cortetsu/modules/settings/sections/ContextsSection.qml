@@ -37,6 +37,16 @@ ColumnLayout {
         return keep.concat([1000, 1500, 3000, 5000, 10000].map(ms => ({ value: ms, label: qsTr("%1 s").arg(ms / 1000) })));
     }
 
+    // How a setting's value reads in a built-in context.
+    function valueLabel(key: string, value): string {
+        if (value === undefined)
+            return "";
+        const option = root.options(key).find(item => item.value === value);
+        if (typeof value === "boolean")
+            return value ? qsTr("Activado") : qsTr("Desactivado");
+        return option ? option.label : String(value);
+    }
+
     spacing: CortetsuDesign.spacingSection
 
     SettingsGroup {
@@ -48,6 +58,7 @@ ColumnLayout {
             objectName: "activeContext"
             title: CortetsuContexts.active ? CortetsuContexts.active.name : qsTr("Ninguno")
             detail: CortetsuContexts.error || CortetsuContexts.notice
+                || (CortetsuContexts.active ? "" : qsTr("Elige uno abajo para ver qué cambia y actívalo"))
             attention: CortetsuContexts.error.length > 0
             value: CortetsuContexts.active ? qsTr("Activo") : ""
         }
@@ -96,22 +107,37 @@ ColumnLayout {
             onCommitted: value => CortetsuContexts.update(root.selected.id, { name: value })
         }
 
+        // A built-in context is read only: what it changes reads as plain
+        // values. A context of one's own offers every setting to edit.
         Repeater {
             model: Object.keys(CortetsuContexts.keys)
-            delegate: SettingChoiceChips {
-                id: row
+            delegate: ColumnLayout {
+                id: settingRow
                 required property string modelData
                 readonly property var setting: root.selected?.settings[modelData]
-                Layout.fillWidth: true
-                // A built-in context lists only what it changes.
-                visible: root.editable || setting !== undefined
-                title: CortetsuContexts.describe(modelData)
-                detail: CortetsuContexts.skipped.includes(modelData) && root.selectedActive
+                readonly property string skippedNote: CortetsuContexts.skipped.includes(modelData) && root.selectedActive
                     ? qsTr("Lo gestiona la automatización; el contexto no lo tocó") : ""
-                disabled: !root.editable
-                options: root.options(modelData)
-                current: setting === undefined ? "keep" : setting
-                onChosen: value => CortetsuContexts.setSetting(root.selected.id, modelData, value === "keep" ? undefined : value)
+                Layout.fillWidth: true
+                spacing: 0
+                visible: root.editable || setting !== undefined
+
+                SettingChoiceChips {
+                    Layout.fillWidth: true
+                    visible: root.editable
+                    title: CortetsuContexts.describe(settingRow.modelData)
+                    detail: settingRow.skippedNote
+                    options: root.options(settingRow.modelData)
+                    current: settingRow.setting === undefined ? "keep" : settingRow.setting
+                    onChosen: value => CortetsuContexts.setSetting(root.selected.id, settingRow.modelData, value === "keep" ? undefined : value)
+                }
+
+                SettingValueRow {
+                    Layout.fillWidth: true
+                    visible: !root.editable
+                    title: CortetsuContexts.describe(settingRow.modelData)
+                    detail: settingRow.skippedNote
+                    value: root.valueLabel(settingRow.modelData, settingRow.setting)
+                }
             }
         }
 
