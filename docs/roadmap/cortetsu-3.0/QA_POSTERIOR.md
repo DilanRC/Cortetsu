@@ -24,6 +24,22 @@
 - Antes de certificar persistencia futura: migración, corrupción, playlists,
   perfiles, rutas desaparecidas, importación/exportación y rollback de generación.
 
+## Fase 2 (2026-11-19): escenarios sin ejecutar
+
+- qmllint de `modules/overview/Content.qml`, `modules/dashboard/Dash.qml` y
+  `DashQuickControls.qml` (claves calculadas `[PowerProfile.X]` en un objeto
+  JS, importación de `Quickshell.Services.UPower`).
+- Vista general: 1–9/0 abren el espacio de la pantalla correcta en eDP-1 y
+  HDMI-A-1; Alt+dígito mueve la ventana seleccionada sin cerrar la vista y la
+  tarjeta cambia de espacio; con el filtro abierto los dígitos se escriben en
+  él; Ctrl/Mayús/Super+dígito no hacen nada. Comprobar que Hyprland no se
+  queda Alt+dígito antes que la capa (foco exclusivo).
+- Dashboard → Inicio: No molestar, modo juego (Aplicando…, recuperación),
+  perfil de energía en ciclo (sin «Rendimiento» si el daemon no lo ofrece) y
+  «Salir de X» solo con un contexto activo. Que la fila no empuje la hora ni
+  las letras sincronizadas fuera del marco de 580 px; Ink, Washi y Kurogane;
+  foco con Tab sin romper el ciclo de pestañas del dashboard.
+
 ## Contextos: escenarios sin ejecutar
 
 Construcción del 2026-11-19 sobre `09980b73`. Nada se compiló ni se ejecutó.

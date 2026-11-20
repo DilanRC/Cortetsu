@@ -127,3 +127,21 @@ y ejecutar `hyprctl reload` vuelve a los atajos de la generación.
   ya cerró y la superficie no recibió un fotograma nuevo (compositor); si la
   salida no está vacía, el fallo es de estado.
 - Regresión: `scripts/integration/test-launcher-dismiss.py`.
+
+## Dentro de la vista general
+
+Con la vista general abierta (sin escribir en el filtro):
+
+| Tecla | Acción |
+| --- | --- |
+| Flechas, Tab, Mayús+Tab | Mover la selección |
+| Intro, Espacio | Ir a la ventana |
+| Supr | Cerrar la ventana |
+| F | Alternar flotante |
+| `/`, Ctrl+F | Filtrar por título o aplicación |
+| 1–9, 0 | Ir al espacio 1–10 de esta pantalla (eDP-1: 1–10; HDMI-A-1: 11–20) |
+| Alt+1–9, Alt+0 | Enviar la ventana seleccionada a ese espacio sin cerrar la vista |
+| Escape | Cerrar |
+
+Estas teclas son del QML de la vista general, no de Hyprland, y la hoja de
+atajos (SUPER+F1) no las lista.

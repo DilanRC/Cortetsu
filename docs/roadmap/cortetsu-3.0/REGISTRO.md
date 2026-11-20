@@ -310,3 +310,9 @@ verificado en ejecución**.
 - Dependencias nuevas: ninguna. Estado nuevo: `contexts.json`. Campo nuevo
   `hold` en el `heartbeat` de Orbital (un supervisor anterior lo ignora).
 - Rollback: `git revert` de los commits de la misión en orden inverso.
+
+- Fase 2 (misma fecha): vista general con dígitos y Alt+dígito para mover
+  ventanas por teclado; Dashboard con controles rápidos (No molestar, modo
+  juego, perfil de energía, salir del contexto). Revisados sin cambios por
+  estar completos: Launcher (favoritos, historial, archivos, explorar),
+  portapapeles, notificaciones, capturas y calendario. IMPLEMENTADO_SIN_VERIFICAR.
