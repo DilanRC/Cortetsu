@@ -43,6 +43,7 @@ FocusScope {
     }
     Keys.onEscapePressed: back()
 
+    // startup inventory: cortetsu:orbital-steam-catalog (on open only)
     Process {
         id: scan
         command: [Quickshell.env("HOME") + "/.local/bin/cortetsu-orbital", "catalog"].concat(root.scannedRoots)

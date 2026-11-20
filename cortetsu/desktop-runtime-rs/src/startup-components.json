@@ -664,5 +664,68 @@
       "lookup"
     ],
     "manageable": false
+  },
+  {
+    "id": "cortetsu:cheatsheet-keybind-list",
+    "name": "Keybind list for the cheatsheet",
+    "source": "modules/cheatsheet/Content.qml",
+    "qmlId": "listProcess",
+    "startupPhase": "on-demand",
+    "condition": "Únicamente al abrir la hoja de atajos (SUPER+F1)",
+    "command": [
+      "cortetsu-keybinds",
+      "list"
+    ],
+    "manageable": false
+  },
+  {
+    "id": "cortetsu:settings-doctor",
+    "name": "Diagnostics in Settings",
+    "source": "modules/settings/sections/DiagnosticsSection.qml",
+    "qmlId": "doctor",
+    "startupPhase": "on-demand",
+    "condition": "Únicamente al pulsar comprobar en Ajustes → Diagnóstico",
+    "command": [
+      "cortetsu",
+      "doctor",
+      "--json"
+    ],
+    "manageable": false
+  },
+  {
+    "id": "cortetsu:launcher-file-search",
+    "name": "Launcher file search",
+    "source": "modules/launcher/services/Files.qml",
+    "qmlId": "search",
+    "startupPhase": "on-demand",
+    "condition": "Únicamente al escribir una búsqueda de archivos de dos o más letras",
+    "command": [
+      "plocate"
+    ],
+    "manageable": false
+  },
+  {
+    "id": "cortetsu:orbital-steam-catalog",
+    "name": "Orbital Steam catalog",
+    "source": "modules/wallpaper/SteamLibrary.qml",
+    "qmlId": "scan",
+    "startupPhase": "on-demand",
+    "condition": "Únicamente al abrir la biblioteca de Steam en Orbital o pulsar Actualizar",
+    "command": [
+      "cortetsu-orbital"
+    ],
+    "manageable": false
+  },
+  {
+    "id": "cortetsu:orbital-supervisor",
+    "name": "Orbital playback supervisor",
+    "source": "services/Orbital.qml",
+    "qmlId": "worker",
+    "startupPhase": "conditional",
+    "condition": "Al abrir la biblioteca de Steam o al iniciar sesión si orbital.json pide restaurar un fondo animado",
+    "command": [
+      "cortetsu-orbital"
+    ],
+    "manageable": false
   }
 ]

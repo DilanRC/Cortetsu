@@ -101,6 +101,7 @@ Singleton {
         }
     }
 
+    // startup inventory: cortetsu:orbital-supervisor (Steam library or saved restore)
     Process {
         id: worker
         command: [Quickshell.env("HOME") + "/.local/bin/cortetsu-orbital", "session"]
