@@ -340,3 +340,32 @@ verificado en ejecución**.
   sobrescribía con los valores por defecto al primer cambio sin dejar copia;
   ahora se guarda en `preferences.json.damaged` y se avisa.
   IMPLEMENTADO_SIN_VERIFICAR.
+
+#### Instalación de las olas 3.0 (2026-11-20)
+
+- Por orden de Dilan («perfecciona, instala y recarga»). Primera vez que se
+  compilan y prueban las olas 1, 2, Orbital y esta misión.
+- Antes de instalar, en una generación de prueba (sin tocar la sesión):
+  `cargo test` del runtime, `build-runtime.sh`, `build-regressions.sh` y
+  `cortetsu test`, todo en verde tras las correcciones. `prompter.rs`
+  falló una vez de nueve por tiempo (pasa al repetir; no se tocó).
+- Fallos que las olas sin verificar habían dejado, corregidos: dobles de
+  pruebas sin `cheatsheet`/`desktopWidgets`, sin `DesktopLayout.js` ni
+  `mutedNotificationApps`; tres QML borrados aún exigidos por el build;
+  hash de la referencia congelada del grabador; cinco procesos sin entrada
+  en el inventario de arranque; centro de control a 798 px (límite 700);
+  tres hallazgos del lint de diseño; `execDetached` en una vista de Ajustes.
+- Fallo real encontrado en el journal tras instalar y corregido: el menú
+  de sesión no creaba ninguna fila (`index` requerido sin asignar desde
+  `919f8bab`). Sus pruebas no estaban en ninguna suite; ahora sí.
+- Instalado `dba936ca` con `cortetsu install`, `cortetsu shell reload` con
+  «Configuration Loaded» y el journal limpio. SUPER+F1 ya estaba cargado en
+  Hyprland. IPC `contexts` responde.
+- Sin ejecutar (requieren Hyprland anidado o la sesión con Dilan
+  presente): `test-cortetsu-lock-runtime`, `-idle-runtime`,
+  `test-gamemode-runtime`, `test-keybind-editor-runtime` y
+  `-launcher-mode-actions-runtime` (lleva un `loginctl lock-session` real).
+  `test-cortetsu-settings-runtime.py` está desfasado desde que los widgets
+  sustituyeron al reloj de escritorio (`33ed5a57`): hay que reescribir sus
+  escenarios del reloj sobre los widgets.
+- Rollback: `cortetsu rollback` vuelve a la generación anterior.
