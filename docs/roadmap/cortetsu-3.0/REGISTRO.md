@@ -369,3 +369,30 @@ verificado en ejecución**.
   sustituyeron al reloj de escritorio (`33ed5a57`): hay que reescribir sus
   escenarios del reloj sobre los widgets.
 - Rollback: `cortetsu rollback` vuelve a la generación anterior.
+
+#### Perfeccionamiento continuo (2026-11-20, instalado en `6d45a1f6`)
+
+Cada tanda pasó compilación, `build-regressions.sh` y `cortetsu test` en una
+generación de prueba antes de instalarse; tras cada `cortetsu shell reload`
+el journal quedó sin avisos.
+
+- Funciones: orden libre de las islas del Hub (6 órdenes, migra
+  `mirrored`); «Usar sus colores» en Orbital (paleta de la portada, primer
+  fotograma); en Ajustes, un resultado sobre un control deshabilitado enfoca
+  el control que lo habilita.
+- Pasada visual sobre capturas reales (33 páginas × Ink/Washi/Kurogane,
+  centro de control, popouts, Hub): contextos incluidos como valores,
+  resumen de cabecera alineado, Orbital y Contextos al final de la rejilla.
+- Diseño: 0 hallazgos del lint en los 376 archivos, ahora exigido en el
+  gate; objetivos de 36 px para interruptor, deslizador y bandeja.
+- Pruebas: `test-cortetsu-settings-runtime.py` reescrita sobre los widgets y
+  en el gate; 7 pruebas de ejecución más en el gate; prueba unitaria de
+  `ContextModel.js` y de la pausa de Orbital; `nested-regressions.py` para
+  lock, idle, modo juego y editor de atajos (las cuatro pasan). La de modo
+  juego tenía un bucle de carrera que pasaba sin ejecutarse.
+- Limpieza: rama `modeSwitch` inalcanzable del Launcher, dos curvas sin uso,
+  clippy limpio en todos los crates y `go vet` limpio.
+- No tocado a propósito: 54 contratos `scripts/features/` en rojo que solo
+  citan las evidencias de las migraciones F0/F9; el oráculo histórico los
+  ejecuta desde `ce9523ea`, no desde HEAD. Ascended, Monster y Cosmic
+  comprobados en código y en la prueba de la tarjeta de bloqueo.
