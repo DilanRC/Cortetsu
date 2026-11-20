@@ -43,6 +43,7 @@ ShellRoot {
     id: root
     property int checks: 0
     property int step: 0
+    property string exportPath: ""
     readonly property string scenario: Quickshell.env("CONTEXTS_SCENARIO")
     function verify(value, reason) { if (!value) console.log("CONTEXTS_FAIL", reason); else checks++; }
 
@@ -81,6 +82,20 @@ ShellRoot {
             verify(Notifs.calls.join() === "dnd:true,dnd:false,dnd:true", `the second context re-applies do not disturb (${Notifs.calls})`);
             verify(CortetsuContexts.activeId === copy, "the own context is active");
             CortetsuContexts.deactivate();
+            root.exportPath = Quickshell.env("HOME") + "/exported-context.json";
+            CortetsuContexts.exportTo(copy, root.exportPath);
+            return true;
+        },
+        () => CortetsuContexts.notice.includes("exportado"),
+        () => { CortetsuContexts.importFrom(root.exportPath); return true; },
+        () => CortetsuContexts.custom.length === 2,
+        () => {
+            const [original, imported] = CortetsuContexts.custom;
+            verify(imported.id !== original.id && imported.name === original.name, "the import is a new context with the same name");
+            verify(JSON.stringify(imported.settings) === JSON.stringify(original.settings), "and the same settings");
+            verify(CortetsuContexts.activeId === "", "importing does not activate it");
+            CortetsuContexts.remove(imported.id);
+            verify(CortetsuContexts.custom.length === 1, "an own context can be removed");
             return true;
         },
         () => {
