@@ -255,6 +255,9 @@ Column {
 
             CortetsuActionRow {
                 id: actionRow
+                // Not the delegate itself (the Column is), so the index the
+                // row needs for its first-row focus is passed on by hand.
+                index: entry.index
                 width: parent.width
                 icon: entry.modelData.icon
                 seal: entry.modelData.seal
