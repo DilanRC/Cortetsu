@@ -432,7 +432,7 @@ Item {
                 }
                 CortetsuText {
                     Layout.fillWidth: true
-                    text: media.player ? (media.player.trackArtist || Players.getIdentity(media.player)) : qsTr("Abre un reproductor compatible con MPRIS")
+                    text: media.player ? (media.player.trackArtist || Players.getIdentity(media.player)) : qsTr("Reproduce algo en una aplicación de música o vídeo")
                     textSize: root.px(CortetsuTypography.bodySmallPx)
                     color: CortetsuDesign.colorOnSurfaceVariant
                     elide: Text.ElideRight

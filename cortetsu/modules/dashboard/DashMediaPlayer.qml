@@ -58,10 +58,13 @@ Item {
         CortetsuText {
             Layout.alignment: player.compact ? Qt.AlignLeft : Qt.AlignHCenter
             Layout.fillWidth: player.compact
-            text: qsTr("Los controles aparecen al reproducir en una app con MPRIS")
+            text: qsTr("Aparece cuando una aplicación reproduce algo")
             color: CortetsuDesign.colorOnSurfaceVariant
             textSize: CortetsuTypography.bodySmallPx
-            wrapMode: Text.Wrap
+            // The compact note under the margin notes has room for one line.
+            wrapMode: player.compact ? Text.NoWrap : Text.Wrap
+            maximumLineCount: player.compact ? 1 : 3
+            elide: Text.ElideRight
         }
     }
 
