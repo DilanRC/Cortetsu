@@ -114,6 +114,25 @@ La ventana ocupa el largo útil de su borde menos 8 px por extremo.
 Las islas usan tamaño explícito derivado de su tamaño implícito; el riel de
 aplicaciones usa `Flickable` únicamente cuando el contenido excede el espacio.
 
+### Separación y orden (3.0)
+
+Ajustes → Hub → «Disposición» (`bottomHub.spacing`, `bottomHub.order`):
+
+- **Separación**: Compacta (8 px entre grupos, 3 entre bandeja y estado),
+  Normal (12 / 4) o Amplia (20 / 6).
+- **Orden**: cualquier permutación de Núcleo (modo), Aplicaciones y Sistema
+  (bandeja + estado), desde el inicio del borde (izquierda o arriba).
+  Repartido: el primer grupo empieza en el borde, el segundo se centra y el
+  tercero termina en el borde opuesto; el central se acota entre sus
+  vecinos para no solaparse con un grupo largo (Sistema en lateral). En una
+  esquina, los grupos se encadenan desde ella.
+- Todas las posiciones salen solo de longitudes de islas, nunca de la
+  posición de otra isla: cambiar orden, anclaje o pack no forma bucles.
+- `bottomHub.mirrored` (de una versión previa) se lee como Sistema · Apps ·
+  Núcleo y se sigue escribiendo para versiones anteriores.
+- Prueba: `scripts/features/test-cortetsu-hub-islands-runtime.py` recorre las
+  6 órdenes en repartido, ambas esquinas y ambos laterales.
+
 ## Contrato de comportamiento
 
 El controlador conserva las capacidades del Hub anterior:
