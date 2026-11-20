@@ -162,9 +162,9 @@ El supervisor arranca al abrir la biblioteca Steam o al iniciar sesión si
   Sustituirlo exige un backend aislado (bubblewrap o similar) y su auditoría.
 - **Cambios en vivo**: Almamu no tiene IPC. FPS, volumen y propiedades
   reinician el motor del monitor.
-- **Perfiles de energía de Cortetsu**: la pausa se basa en batería, DPMS y
-  pantalla completa. No se enlaza todavía con perfiles de energía ni con modo
-  juego.
+- **Contextos**: los contextos Gaming y Batería (y los propios que lo
+  pidan) envían `hold` en el `heartbeat`; el supervisor pausa con el motivo
+  `context` y reanuda al quitarlo. Ver [CONTEXTS](../../CONTEXTS.md).
 - **Color desde el fondo animado**: no se extrae paleta del preview; requiere
   elección explícita.
 - **`cortetsu-background` en `bottom`**: cambia la capa del fondo estático para

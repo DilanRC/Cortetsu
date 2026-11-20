@@ -288,3 +288,25 @@ verificado en ejecución**.
   2.x vuelve con su preferencia `desktopClockEnabled`, que no se tocó.
 - Siguiente misión: `QA INTEGRAL 3.0`, **pendiente de autorización**.
 
+
+#### Misión maestra «implementación integral sin QA» (2026-11-19)
+
+- Estado: **PARCIAL_SIN_VERIFICAR**. Rama `main`, HEAD inicial `09980b73`.
+  Sin push. **0 pruebas, 0 builds, 0 lints, 0 instalaciones, 0 recargas.**
+- Archivos ajenos: `.codebase-memory/` seguía modificado; no se tocó.
+- Implementado: Contextos (fase 5) con servicio, página de Ajustes, acciones
+  del Launcher, IPC y pausa de Orbital por contexto (fase 1). Ver
+  [CONTEXTS](../../CONTEXTS.md).
+- Conservado sin cambios por estar ya implementado en olas anteriores
+  (`IMPLEMENTADO_SIN_VERIFICAR`): Orbital completo salvo la pausa por
+  contexto, Overview, Launcher, Dashboard, utilidades, centro de control,
+  OSD, Hub con anclaje por monitor y Ajustes (ver las olas 1 y 2 arriba y
+  `COBERTURA_FINAL_QML_3_0.md`).
+- No hecho en esta misión (por eso PARCIAL): pasada visual transversal de la
+  fase 7, edición del Hub por arrastre más allá del anclaje existente,
+  consolidación de código obsoleto de la fase 6 y extracción de paleta desde
+  un fondo animado. Ninguno tiene un bloqueo técnico; quedan para la
+  siguiente ola.
+- Dependencias nuevas: ninguna. Estado nuevo: `contexts.json`. Campo nuevo
+  `hold` en el `heartbeat` de Orbital (un supervisor anterior lo ignora).
+- Rollback: `git revert` de los commits de la misión en orden inverso.

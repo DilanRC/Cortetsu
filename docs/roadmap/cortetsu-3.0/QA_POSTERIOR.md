@@ -24,6 +24,57 @@
 - Antes de certificar persistencia futura: migración, corrupción, playlists,
   perfiles, rutas desaparecidas, importación/exportación y rollback de generación.
 
+## Contextos: escenarios sin ejecutar
+
+Construcción del 2026-11-19 sobre `09980b73`. Nada se compiló ni se ejecutó.
+Ver [CONTEXTS](../../CONTEXTS.md).
+
+Estático:
+
+- qmllint de `services/CortetsuContexts.qml`, `ContextsSection.qml`,
+  `PageRegistry.qml`, `SettingsController.qml`, `Actions.qml`, `Orbital.qml`,
+  `SteamPlayback.qml`. Comprobar en particular: `ShellState.shellRoot` desde
+  `services/`, `PowerProfiles`/`PowerProfile` importados de
+  `Quickshell.Services.UPower`, `FileView` sin `path` inicial (exportar e
+  importar), `IpcHandler` con funciones `list`/`active`, y
+  `SettingChoiceChips` con valores `true`/`false`/`"keep"` en `ScriptModel`
+  con `objectProp: "value"`.
+- `cargo build`/`cargo test` del runtime con el campo `hold`; añadir una
+  prueba de `tick` que pause con `context` y reanude al quitarlo.
+- Prueba unitaria JS de `ContextModel.js` (escribirla en QA): `plan` omite
+  claves iguales y dominios ocupados, `undo` respeta cambios del usuario,
+  `parseState` descarta claves desconocidas, ids repetidos y versión 2,
+  `importText` rechaza `kind` ajeno.
+- Las pruebas de cadenas que cuentan páginas de Ajustes o acciones del
+  Launcher fallarán por la página y las acciones nuevas: sustituirlas por
+  pruebas de comportamiento, no reescribirlas para que pasen.
+
+Anidado (primer WS libre de eDP-1):
+
+- Activar cada contexto incluido y comprobar `preferences.json`, DND,
+  `cortetsu-gamemode status`, `powerprofilesctl get` y `contexts.json`.
+- Desactivar: vuelven solo los valores cambiados; un ajuste cambiado a mano
+  durante el contexto se conserva.
+- Gaming → Batería directamente: DND y modo juego vuelven a su valor previo
+  aunque los helpers tarden; Batería no hereda nada de Gaming.
+- Con el dominio `gamemode` o `power` del coordinador activo: el ajuste queda
+  omitido y lo dice la fila y el aviso.
+- Recarga del shell con un contexto activo: sigue activo, `Orbital.hold` se
+  recupera y Desactivar restaura.
+- `contexts.json` roto o `version: 2`: error visible, archivo intacto hasta
+  el primer cambio.
+- Duplicar, renombrar, editar valores, eliminar activo, exportar sobre un
+  archivo existente (pide confirmación), importar un archivo con claves
+  extra (se descartan) y uno que no es un contexto.
+- Launcher: «Contexto: X» y «Salir de X»; IPC `contexts list|activate|deactivate`.
+- Orbital con fondo animado y Gaming: pausa con «El contexto activo mantiene
+  el fondo estático», reanuda al desactivar; con varios monitores, todos.
+
+Física (con Dilan presente):
+
+- Batería con el perfil de ahorro real; medir, no afirmar ahorro.
+- Gaming con un juego en pantalla completa junto al modo juego automático.
+
 ## Orbital reproducción: escenarios sin ejecutar
 
 Construcción del 2026-11-17 sobre `17021636`. Nada de esto se compiló ni se
