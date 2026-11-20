@@ -1,7 +1,12 @@
 # Contextos
 
-Estado: **IMPLEMENTADO_SIN_VERIFICAR** (2026-11-19). Nada se compiló ni se
-ejecutó; la QA está en
+Estado: instalado el 2026-11-20 y cubierto por pruebas automáticas:
+`cortetsu/tests/test-context-model.node.js` (planes, deshacer, validación,
+estado, importación) y `scripts/features/test-cortetsu-contexts-runtime.py`
+(el servicio contra el `CortetsuConfig` real, con dobles para No molestar,
+modo juego, Orbital y el coordinador). Queda la comprobación en la sesión
+real de lo asíncrono y del perfil de energía, que las pruebas no tocan a
+propósito: ver
 [QA_POSTERIOR.md](roadmap/cortetsu-3.0/QA_POSTERIOR.md#contextos-escenarios-sin-ejecutar).
 
 Un contexto es un conjunto con nombre de ajustes que ya existen. Se activa y
@@ -10,7 +15,7 @@ través de su dueño actual.
 
 | Ajuste | Dueño | Notas |
 | --- | --- | --- |
-| Tema, movimiento, transparencia, visualizador, avisos, Hub, dashboard | `CortetsuConfig` (`preferences.json`) | El tema se aplica primero, porque `selectTheme` carga el movimiento y la transparencia propios de ese tema |
+| Tema, movimiento, transparencia, visualizador, avisos, Hub (vistas previas, miniaturas, separación entre islas), dashboard | `CortetsuConfig` (`preferences.json`) | El tema se aplica primero, porque `selectTheme` carga el movimiento y la transparencia propios de ese tema |
 | No molestar | `Notifs.setDnd` → `cortetsu-notifications dnd` | Asíncrono |
 | Modo juego | `GameMode.setEnabled` → `cortetsu-gamemode` | Asíncrono; sus fallos los avisa GameMode |
 | Perfil de energía | `PowerProfiles.profile` (power-profiles-daemon) | «Rendimiento» se ignora si el daemon no lo ofrece. No toca frecuencias ni otro hardware |
@@ -33,11 +38,12 @@ través de su dueño actual.
 | --- | --- |
 | `university` | Sin visualizador, sin aviso de lo que suena, avisos ocultos en pantalla completa, dashboard con clima y sin multimedia |
 | `development` | Vistas previas y miniaturas de ventanas, métricas en el dashboard, sin aviso de lo que suena |
-| `gaming` | Modo juego, No molestar, fondos animados en pausa, sin visualizador ni miniaturas |
+| `gaming` | Modo juego, No molestar, fondos animados en pausa, sin visualizador ni miniaturas, Hub compacto |
 | `battery` | Perfil de ahorro, fondos animados en pausa, sin visualizador ni miniaturas, dashboard cada 5 s. El tema no cambia |
 
-Los incluidos no se editan; «Duplicar» crea uno propio editable (32 como
-máximo). Un contexto propio puede renombrarse, ajustar cada valor o dejarlo
+Los incluidos no se editan y Ajustes los muestra como una lista de valores;
+«Duplicar» crea uno propio editable (32 como máximo), que sí ofrece cada
+ajuste con «Sin cambio» y sus valores. Un contexto propio puede renombrarse, ajustar cada valor o dejarlo
 «Sin cambio», eliminarse (con confirmación; si está activo se desactiva
 antes), exportarse e importarse.
 
