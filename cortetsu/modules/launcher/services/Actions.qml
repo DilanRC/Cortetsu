@@ -60,7 +60,11 @@ Searcher {
                 && (CortetsuConfig.enableDangerousActions || !(a.dangerous ?? false))
                 && !["caelestia", "setMode"].includes(a.command?.[0])
                 && !builtinNames.includes(a.name));
-            return [...root.builtins, ...user];
+            // One entry per context; the active one reads as its way back.
+            const contexts = CortetsuContexts.contexts.map(c => CortetsuContexts.activeId === c.id
+                ? { name: qsTr("Salir de %1").arg(c.name), icon: c.icon, description: qsTr("Desactiva el contexto y restaura los ajustes anteriores"), command: ["context", c.id] }
+                : { name: qsTr("Contexto: %1").arg(c.name), icon: c.icon, description: c.summary || qsTr("Activa este contexto"), command: ["context", c.id] });
+            return [...root.builtins, ...contexts, ...user];
         }
 
         Action {}
@@ -98,6 +102,9 @@ Searcher {
                 list.screenState.launcher = false;
                 Orbital.requestSteam();
                 WallpaperController.openActive();
+            } else if (command[0] === "context" && command.length > 1) {
+                list.screenState.launcher = false;
+                CortetsuContexts.toggle(command[1]);
             } else if (sleepMode) {
                 list.screenState.launcher = false;
                 CortetsuSession.request(sleepMode);

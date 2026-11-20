@@ -79,6 +79,9 @@ QtObject {
               settings: [qsTr("Duración del OSD"), qsTr("Reloj de 12 horas"), qsTr("Mostrar segundos"), qsTr("Temperatura en Fahrenheit")] }
         ] },
         { id: "apps", title: qsTr("Aplicaciones y servicios"), icon: "widgets", keywords: qsTr("servicios aplicaciones"), pages: [
+            { id: "contexts", title: qsTr("Contextos"), icon: "tune", summary: "", detail: qsTr("Universidad, Desarrollo, Gaming, Batería y los tuyos"),
+              keywords: qsTr("contexto perfil universidad desarrollo gaming juego batería ahorro modo concentración distracciones exportar importar duplicar"),
+              settings: [qsTr("Contexto activo"), qsTr("Desactivar el contexto"), qsTr("Duplicar"), qsTr("Exportar e importar")] },
             { id: "automation", title: qsTr("Automatización"), icon: "smart_toy", summary: "automation", detail: qsTr("Coordinador, reglas y muestreo de hardware"),
               keywords: qsTr("automatización coordinador reglas modo de juego energía automática muestreo hardware"),
               settings: [qsTr("Intervalo de actualización"), qsTr("Notificaciones automáticas"), qsTr("Modo de juego automático"), qsTr("Energía automática"), qsTr("Reglas de pantalla"), qsTr("Decisiones recientes")] },
