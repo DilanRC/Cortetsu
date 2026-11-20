@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 import "../../../components"
 import "../../../services"
 import "../../../theme"
@@ -142,6 +143,51 @@ ColumnLayout {
     }
 
     // The 2.x desktop clock is now a widget among others.
+    // Orbital per monitor: what the supervisor reports, with Stop and
+    // Restore. The supervisor starts on demand only, so this group asks for
+    // it with a button instead of starting it whenever the page opens.
+    SettingsGroup {
+        objectName: "orbitalMonitors"
+        title: qsTr("Fondos animados")
+        icon: "animation"
+        detail: Orbital.available ? qsTr("Estado de Orbital en cada pantalla")
+            : qsTr("El supervisor de Orbital no está en marcha; se inicia al abrir la biblioteca de Steam")
+
+        SettingActionRow {
+            visible: !Orbital.available
+            title: qsTr("Consultar el estado")
+            detail: Orbital.error
+            status: Orbital.error.length > 0 ? "error" : ""
+            statusText: Orbital.error
+            actionLabel: qsTr("Consultar")
+            onActivated: Orbital.ensure()
+        }
+
+        Repeater {
+            model: Orbital.available ? Quickshell.screens : []
+            delegate: SettingActionRow {
+                id: monitorRow
+                required property var modelData
+                readonly property string name: modelData.name
+                readonly property var output: Orbital.output(name)
+                readonly property string phase: output.state ?? "stopped"
+                readonly property bool running: ["preparing", "applying", "active", "paused"].includes(phase)
+                readonly property var previous: Orbital.preferences.previous?.[name]
+                readonly property string wallpaper: (output.selection?.location ?? "").split("/").pop()
+                title: name
+                detail: phase === "active" ? qsTr("Activo · %1").arg(wallpaper)
+                    : phase === "paused" ? qsTr("En pausa · fondo estático")
+                    : phase === "error" ? qsTr("Error: %1").arg(output.error?.message ?? output.error?.code ?? "")
+                    : ["preparing", "applying"].includes(phase) ? qsTr("Cambiando de fondo…")
+                    : qsTr("Fondo estático")
+                status: phase === "error" ? "error" : ""
+                actionLabel: running ? qsTr("Detener") : qsTr("Restaurar anterior")
+                actionDisabled: !running && !previous
+                onActivated: Orbital.send({ op: running ? "stop" : "restore", monitor: name })
+            }
+        }
+    }
+
     SettingsGroup {
         title: qsTr("Sobre el fondo")
         icon: "widgets"
