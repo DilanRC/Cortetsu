@@ -22,7 +22,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2] / "cortetsu"
 RENDER_DIR = os.environ.get("CORTETSU_RENDER_DIR", "")
-CHECKS = 38
+CHECKS = 122
 
 SHELL = """import QtQuick
 import QtQuick.Window
@@ -181,6 +181,33 @@ ShellRoot {
         () => { CortetsuDesign.reducedMotion = true;
                 root.dockItems = root.dockItems.slice(0, 2);
                 verify(view.islands[0].x === view.modeAt, "reduced motion: no glide");
+                // Every order of the three groups, spread and packed at both
+                // corners: the groups read in the order asked, never overlap,
+                // and stay inside the edge.
+                const orders = [["core", "apps", "system"], ["core", "system", "apps"], ["apps", "core", "system"],
+                                ["apps", "system", "core"], ["system", "core", "apps"], ["system", "apps", "core"]];
+                for (const anchor of ["bottom-center", "bottom-left", "bottom-right"]) {
+                    view.anchor = anchor;
+                    for (const order of orders) {
+                        view.order = order;
+                        const [mode, apps, tray, status] = view.islands;
+                        const span = { core: [mode.x, mode.x + mode.width], apps: [apps.x, apps.x + apps.width],
+                                       system: [tray.x, status.x + status.width] };
+                        const label = `${anchor} ${order.join(">")}`;
+                        verify(mode.x === view.modeAt && apps.x === view.appsAt && tray.x === view.trayAt && status.x === view.statusAt,
+                            `${label}: each island sits where the view says`);
+                        for (let i = 0; i < 2; ++i)
+                            verify(span[order[i]][1] + view.gap - 0.5 <= span[order[i + 1]][0],
+                                `${label}: ${order[i]} ends before ${order[i + 1]} starts (${span[order[i]]} / ${span[order[i + 1]]})`);
+                        verify(span[order[0]][0] >= view.edgeGap - 0.5 && span[order[2]][1] <= view.length - view.edgeGap + 0.5,
+                            `${label}: inside the edge (${span[order[0]][0]}..${span[order[2]][1]} of ${view.length})`);
+                        if (anchor === "bottom-left")
+                            verify(Math.abs(span[order[0]][0] - view.edgeGap) < 0.5, `${label}: packed from the left corner`);
+                        if (anchor === "bottom-right")
+                            verify(Math.abs(span[order[2]][1] - (view.length - view.edgeGap)) < 0.5, `${label}: packed into the right corner`);
+                    }
+                }
+                view.order = ["core", "apps", "system"];
                 CortetsuDesign.reducedMotion = false;
                 view.anchor = "bottom-center";
                 return true; },

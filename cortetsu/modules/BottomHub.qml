@@ -1073,7 +1073,7 @@ Scope {
                 trayVisible: CortetsuConfig.bottomHub.segments.tray
                 statusVisible: CortetsuConfig.bottomHub.segments.status
                 spacing: CortetsuConfig.bottomHub.spacing
-                mirrored: CortetsuConfig.bottomHub.mirrored
+                order: CortetsuConfig.bottomHub.order
 
                 volumeIcon: win.volumeIcon
                 volumeMuted: CortetsuAudio.muted

@@ -51,10 +51,12 @@
 - Hub, separación Compacta/Normal/Amplia en los 8 anclajes y en lateral: la
   máscara de entrada sigue a las islas, sin solapes y con el carril de apps
   dentro de su máximo. Sin bucles de bindings en el journal al cambiar.
-- Hub, orden invertido en los 8 anclajes: Sistema al principio y Núcleo al
-  final; un Hub en esquina (`*-left`/`*-right`) se queda en su esquina; los
-  popouts se anclan a su isla; la inclinación hacia el popout sigue bien; el
-  modo «Mover el Hub» sigue funcionando. Persistencia tras recargar.
+- Hub, orden de las islas (sustituye al «orden invertido», 2026-11-20): las
+  6 permutaciones en repartido y en ambas esquinas están cubiertas por
+  `test-cortetsu-hub-islands-runtime.py` (posición, orden, sin solapes,
+  dentro del borde) y la migración de `mirrored` por la prueba de Ajustes.
+  Pendiente en sesión: popouts anclados a su isla en cada orden, la
+  inclinación hacia el popout y «Mover el Hub» con un orden no clásico.
 - OSD multimedia: pausar y reanudar con las teclas multimedia y desde otra
   app muestran «En pausa»/«Reproduciendo» con el título; cambiar de
   reproductor activo no lo muestra; con el OSD completo abierto, no aparece;

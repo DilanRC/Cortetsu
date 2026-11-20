@@ -76,9 +76,16 @@ QtObject {
         // Space between the islands: "compact" | "standard" | "airy".
         property string spacing: "standard"
         onSpacingChanged: if (root.loaded) root.save()
-        // Mirrored: Sistema at the start of the edge and Núcleo at the end.
-        property bool mirrored: false
-        onMirroredChanged: if (root.loaded) root.save()
+        // The three groups from the start of the edge: a permutation of
+        // "core", "apps" and "system". `mirrored` is kept for older
+        // versions and derived from it.
+        property list<string> order: ["core", "apps", "system"]
+        onOrderChanged: if (root.loaded) root.save()
+        readonly property bool mirrored: order[0] === "system" && order[2] === "core"
+        function setOrder(next: var): void {
+            if (Array.isArray(next) && next.length === 3 && ["core", "apps", "system"].every(group => next.includes(group)))
+                order = next;
+        }
         readonly property QtObject segments: QtObject {
             property bool mode: true
             onModeChanged: if (root.loaded) root.save()
@@ -519,8 +526,10 @@ QtObject {
                     bottomHub.windowThumbnails = data.bottomHub.windowThumbnails;
                 if (["compact", "standard", "airy"].includes(data.bottomHub.spacing))
                     bottomHub.spacing = data.bottomHub.spacing;
-                if (typeof data.bottomHub.mirrored === "boolean")
-                    bottomHub.mirrored = data.bottomHub.mirrored;
+                if (Array.isArray(data.bottomHub.order))
+                    bottomHub.setOrder(data.bottomHub.order);
+                else if (data.bottomHub.mirrored === true)
+                    bottomHub.setOrder(["system", "apps", "core"]);
                 if (data.bottomHub.segments && typeof data.bottomHub.segments === "object")
                     for (const key of ["mode", "apps", "tray", "status"])
                         if (typeof data.bottomHub.segments[key] === "boolean")
@@ -849,6 +858,7 @@ QtObject {
                 windowPreviews: bottomHub.windowPreviews,
                 windowThumbnails: bottomHub.windowThumbnails,
                 spacing: bottomHub.spacing,
+                order: bottomHub.order,
                 mirrored: bottomHub.mirrored,
                 segments: { mode: bottomHub.segments.mode, apps: bottomHub.segments.apps, tray: bottomHub.segments.tray, status: bottomHub.segments.status },
                 statusCluster: { audio: bottomHub.statusCluster.audio, network: bottomHub.statusCluster.network, bluetooth: bottomHub.statusCluster.bluetooth, battery: bottomHub.statusCluster.battery, showNotificationCount: bottomHub.statusCluster.showNotificationCount }

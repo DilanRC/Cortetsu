@@ -87,14 +87,19 @@ SettingsColumns {
             onChosen: value => CortetsuConfig.bottomHub.spacing = value
         }
 
-        SettingToggleRow {
-            objectName: "hubMirrored"
-            title: qsTr("Orden invertido")
-            detail: CortetsuConfig.bottomHub.mirrored
-                ? qsTr("Sistema al principio del borde y Núcleo al final")
-                : qsTr("Núcleo al principio del borde y Sistema al final")
-            checked: CortetsuConfig.bottomHub.mirrored
-            onToggled: value => CortetsuConfig.bottomHub.mirrored = value
+        // Six orders of the three groups. The value is the order joined, so
+        // a chip compares by string while the preference keeps the list.
+        SettingChoiceChips {
+            objectName: "hubOrder"
+            Layout.fillWidth: true
+            title: qsTr("Orden de las islas")
+            detail: qsTr("Desde el inicio del borde: izquierda en horizontal, arriba en lateral")
+            readonly property var names: ({ core: qsTr("Núcleo"), apps: qsTr("Apps"), system: qsTr("Sistema") })
+            options: [["core", "apps", "system"], ["core", "system", "apps"], ["apps", "core", "system"],
+                      ["apps", "system", "core"], ["system", "core", "apps"], ["system", "apps", "core"]]
+                .map(order => ({ value: order.join(","), label: order.map(group => names[group]).join(" · ") }))
+            current: CortetsuConfig.bottomHub.order.join(",")
+            onChosen: value => CortetsuConfig.bottomHub.setOrder(value.split(","))
         }
     }
 

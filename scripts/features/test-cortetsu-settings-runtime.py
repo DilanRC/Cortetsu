@@ -1430,6 +1430,19 @@ ShellRoot {
         }],
         [() => CortetsuConfig.saveState === "saved", () => {}]
     ]
+    // The 3.0 "orden invertido" switch became a free order of the groups:
+    // a saved mirrored Hub reads as Sistema · Apps · Núcleo and is written
+    // with both keys, so an older version still mirrors it.
+    readonly property var hubOrderMigration: [
+        [() => CortetsuConfig.loaded, () => {
+            verify(JSON.stringify(CortetsuConfig.bottomHub.order) === JSON.stringify(["system", "apps", "core"]),
+                `a mirrored Hub migrates to the reversed order (${CortetsuConfig.bottomHub.order})`);
+            CortetsuConfig.bottomHub.setOrder(["apps", "nope", "core"]);
+            verify(CortetsuConfig.bottomHub.order[0] === "system", "an order that is not a permutation is refused");
+            CortetsuConfig.save();
+        }],
+        [() => CortetsuConfig.saveState === "saved", () => {}]
+    ]
     readonly property var clockRestore: [
         [() => CortetsuConfig.loaded, () => {
             verify(CortetsuConfig.desktopWidgets.length === 1 && CortetsuConfig.desktopWidgets[0].type === "clock",
@@ -2323,6 +2336,13 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     assert [w["type"] for w in clock_saved["desktopWidgets"]] == ["clock"], clock_saved
     restored, _ = run(folder, "shell.qml", "clockRestore", preferences=clock_saved)
     assert passed(restored) == 1, restored
+
+    output, order_home = run(folder, "shell.qml", "hubOrderMigration",
+                             preferences={"schema": 1, "bottomHub": {"mirrored": True}})
+    assert passed(output) == 2, output
+    order_saved = json.loads((order_home / ".config/cortetsu/preferences.json").read_text())
+    assert order_saved["bottomHub"]["order"] == ["system", "apps", "core"], order_saved["bottomHub"]
+    assert order_saved["bottomHub"]["mirrored"] is True, order_saved["bottomHub"]
 
     output, migrated_home = run(folder, "shell.qml", "migratedControls",
         preferences={"schema": 1, "visualiserEnabled": False, "bottomHub": {"segments": {"apps": True}},

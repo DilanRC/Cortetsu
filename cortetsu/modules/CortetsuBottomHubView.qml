@@ -156,14 +156,12 @@ Item {
     property string spacing: "standard"
     readonly property real gap: spacing === "compact" ? 8 : spacing === "airy" ? 20 : 12
     readonly property real pairGap: spacing === "compact" ? 3 : spacing === "airy" ? 6 : 4
-    // Mirrored: every island is placed as its mirror image along the edge,
-    // Sistema first and Núcleo last. The positions below stay as they were
-    // and are reflected at the end, so no new dependency between islands
-    // appears. A packed Hub swaps its pack first so it stays in its corner.
-    property bool mirrored: false
-    function at(item: Item, position: real): real {
-        return mirrored ? Math.round(length - position - along(item)) : position;
-    }
+    // The order of the three groups along the edge, from its start:
+    // a permutation of "core" (Núcleo), "apps" and "system" (tray + status).
+    // Optional so older callers and tests keep the classic order.
+    property var order: ["core", "apps", "system"]
+    readonly property var groups: ["core", "apps", "system"].every(g => (order ?? []).includes(g)) && (order ?? []).length === 3
+        ? order : ["core", "apps", "system"]
 
     implicitWidth: thickness
     implicitHeight: thickness
@@ -184,28 +182,56 @@ Item {
     readonly property real trayLength: along(traySegment)
     readonly property real statusLength: along(statusSegment)
     readonly property real systemLength: trayLength + statusLength + (trayLength > 0 && statusLength > 0 ? pairGap : 0)
-    readonly property real packedLength: Math.max(0, step(leftSegment) + step(appSegment) + systemLength - (systemLength > 0 ? 0 : gap))
+    // The visible groups end to end, without a gap after the last one.
+    readonly property real packedLength: {
+        const steps = groupStep("core") + groupStep("apps") + groupStep("system");
+        return Math.max(0, steps > 0 ? steps - gap : 0);
+    }
     readonly property bool spread: place.pack === "spread"
-    readonly property string pack: mirrored && place.pack !== "spread" ? (place.pack === "end" ? "start" : "end") : place.pack
-    readonly property real packedStart: pack === "end" ? length - edgeGap - packedLength : edgeGap
+    readonly property real packedStart: place.pack === "end" ? length - edgeGap - packedLength : edgeGap
 
-    readonly property real modeAt: spread ? edgeGap : packedStart
-    readonly property real appsAt: spread ? Math.round((length - appsLength) / 2) : modeAt + step(leftSegment)
-    // Spread and packed are worked out apart: read from one another, the
-    // tray and the status island form a binding loop when the pack changes.
-    readonly property real statusAtSpread: length - edgeGap - statusLength
-    readonly property real trayAtSpread: statusAtSpread - (statusLength > 0 ? pairGap : 0) - trayLength
-    readonly property real trayAtPacked: appsAt + step(appSegment)
-    readonly property real statusAtPacked: trayAtPacked + (trayLength > 0 ? trayLength + pairGap : 0)
-    readonly property real statusAt: spread ? statusAtSpread : statusAtPacked
-    readonly property real trayAt: spread ? trayAtSpread : trayAtPacked
+    // Every position below is read from lengths only, never from another
+    // island's position: a pack, edge or order change cannot form a loop.
+    function groupLength(group: string): real {
+        return group === "core" ? modeLength : group === "apps" ? appsLength : systemLength;
+    }
+    function groupStep(group: string): real {
+        const size = groupLength(group);
+        return size > 0 ? size + gap : 0;
+    }
+    // Spread: the first slot starts at the edge, the second is centred and
+    // the third ends at the far edge, whatever group holds each. Packed: the
+    // groups follow one another from packedStart.
+    function groupAt(group: string): real {
+        const slot = groups.indexOf(group);
+        if (spread)
+            return slot === 0 ? edgeGap
+                : slot === 1 ? Math.round((length - groupLength(group)) / 2)
+                : length - edgeGap - groupLength(group);
+        let at = packedStart;
+        for (let i = 0; i < slot; ++i)
+            at += groupStep(groups[i]);
+        return at;
+    }
 
-    // Spread: the rail stays centred, so it may only grow as far as the
-    // longer of its two neighbours allows on both sides. Packed: whatever
-    // the other islands leave.
-    readonly property real appRailMaxWidth: Math.max(180, spread
-        ? length - Math.max(modeLength, systemLength) * 2 - 64
-        : length - edgeGap * 2 - step(leftSegment) - (systemLength > 0 ? systemLength + gap : 0))
+    readonly property real modeAt: groupAt("core")
+    readonly property real appsAt: groupAt("apps")
+    // Inside Sistema the tray comes first, then the status island.
+    readonly property real trayAt: groupAt("system")
+    readonly property real statusAt: trayAt + (trayLength > 0 ? trayLength + pairGap : 0)
+
+    // The rail grows as far as its slot allows. Centred (spread, middle
+    // slot): the longer neighbour bounds it on both sides. At a spread end:
+    // up to the centred group. Packed: whatever the other groups leave.
+    readonly property real appRailMaxWidth: {
+        const others = groups.filter(group => group !== "apps");
+        const slot = groups.indexOf("apps");
+        if (spread && slot === 1)
+            return Math.max(180, length - Math.max(groupLength(others[0]), groupLength(others[1])) * 2 - 64);
+        if (spread)
+            return Math.max(180, (length - groupLength(groups[1])) / 2 - edgeGap - gap * 2);
+        return Math.max(180, length - edgeGap * 2 - groupStep(others[0]) - groupStep(others[1]));
+    }
 
     // An engaged island leans 2 px towards its popout; islands that grow
     // or appear glide to their new place (layoutAnchor keeps an edge change
@@ -223,8 +249,8 @@ Item {
         visible: root.modeVisible
         vertical: root.vertical
         tooltipPlacement: root.tooltipPlacement
-        x: root.vertical ? root.across(leftSegment) : root.at(leftSegment, root.modeAt)
-        y: root.vertical ? root.at(leftSegment, root.modeAt) : root.across(leftSegment)
+        x: root.vertical ? root.across(leftSegment) : root.modeAt
+        y: root.vertical ? root.modeAt : root.across(leftSegment)
         launcherActive: root.launcherActive
         workspaceCount: root.workspaceCount
         workspaceDisplayType: root.workspaceDisplayType
@@ -251,8 +277,8 @@ Item {
         visible: root.appsVisible && root.dockItems.length > 0
         vertical: root.vertical
         tooltipPlacement: root.tooltipPlacement
-        x: root.vertical ? root.across(appSegment) : root.at(appSegment, root.appsAt)
-        y: root.vertical ? root.at(appSegment, root.appsAt) : root.across(appSegment)
+        x: root.vertical ? root.across(appSegment) : root.appsAt
+        y: root.vertical ? root.appsAt : root.across(appSegment)
         items: root.dockItems
         delegateModel: root.dockDelegateModel
         maxWidth: root.appRailMaxWidth
@@ -279,8 +305,8 @@ Item {
         visible: root.trayVisible && root.trayItems.length > 0
         vertical: root.vertical
         tooltipPlacement: root.tooltipPlacement
-        x: root.vertical ? root.across(traySegment) : root.at(traySegment, root.trayAt)
-        y: root.vertical ? root.at(traySegment, root.trayAt) : root.across(traySegment)
+        x: root.vertical ? root.across(traySegment) : root.trayAt
+        y: root.vertical ? root.trayAt : root.across(traySegment)
         items: root.trayItems
         delegateModel: root.trayDelegateModel
         monochromeIcons: root.trayMonochromeIcons
@@ -308,8 +334,8 @@ Item {
         visible: root.statusVisible
         vertical: root.vertical
         tooltipPlacement: root.tooltipPlacement
-        x: root.vertical ? root.across(statusSegment) : root.at(statusSegment, root.statusAt)
-        y: root.vertical ? root.at(statusSegment, root.statusAt) : root.across(statusSegment)
+        x: root.vertical ? root.across(statusSegment) : root.statusAt
+        y: root.vertical ? root.statusAt : root.across(statusSegment)
         volumeIcon: root.volumeIcon
         volumeMuted: root.volumeMuted
         networkIcon: root.networkIcon
