@@ -316,3 +316,12 @@ verificado en ejecución**.
   juego, perfil de energía, salir del contexto). Revisados sin cambios por
   estar completos: Launcher (favoritos, historial, archivos, explorar),
   portapapeles, notificaciones, capturas y calendario. IMPLEMENTADO_SIN_VERIFICAR.
+- Fase 3 (misma fecha): Hub con separación entre islas configurable y orden
+  invertido (preferencias `bottomHub.spacing` y `bottomHub.mirrored`); OSD
+  mini de multimedia para pausar y reanudar; mosaico «Contextos» en el centro
+  de control. Ya existían y se conservaron: 8 anclajes por monitor, modo
+  «Mover el Hub», Wi-Fi, Bluetooth, audio por app, micrófono, brillo, No
+  molestar, modo juego, luz nocturna, perfiles de energía y Orbital en el
+  centro de control; OSD de volumen, brillo, micrófono y perfil. No hecho:
+  reordenar islas libremente (el cálculo de posiciones tuvo bucles de
+  bindings; sin pruebas, el reflejo es el cambio seguro). IMPLEMENTADO_SIN_VERIFICAR.

@@ -24,6 +24,28 @@
 - Antes de certificar persistencia futura: migración, corrupción, playlists,
   perfiles, rutas desaparecidas, importación/exportación y rollback de generación.
 
+## Fase 3 (2026-11-19): escenarios sin ejecutar
+
+- qmllint de `CortetsuBottomHubView.qml`, `BottomHub.qml`,
+  `CortetsuConfig.qml`, `BottomHubSection.qml`, `osd/Wrapper.qml`,
+  `osd/MiniSlider.qml` y `osd/FullContent.qml`.
+- Hub, separación Compacta/Normal/Amplia en los 8 anclajes y en lateral: la
+  máscara de entrada sigue a las islas, sin solapes y con el carril de apps
+  dentro de su máximo. Sin bucles de bindings en el journal al cambiar.
+- Hub, orden invertido en los 8 anclajes: Sistema al principio y Núcleo al
+  final; un Hub en esquina (`*-left`/`*-right`) se queda en su esquina; los
+  popouts se anclan a su isla; la inclinación hacia el popout sigue bien; el
+  modo «Mover el Hub» sigue funcionando. Persistencia tras recargar.
+- OSD multimedia: pausar y reanudar con las teclas multimedia y desde otra
+  app muestran «En pausa»/«Reproduciendo» con el título; cambiar de
+  reproductor activo no lo muestra; con el OSD completo abierto, no aparece;
+  pista nueva: aparece el aviso y también el OSD si el estado cambió (aceptado).
+- Centro de control: mosaico «Contextos» abre Ajustes → Contextos; con un
+  contexto activo muestra su nombre y al pulsar lo desactiva; con error en
+  `contexts.json`, aviso.
+- Ascended (bloqueo), Monster (fallo) y Cosmic (ingreso) sin cambios: ver
+  que siguen igual tras esta ola.
+
 ## Fase 2 (2026-11-19): escenarios sin ejecutar
 
 - qmllint de `modules/overview/Content.qml`, `modules/dashboard/Dash.qml` y
