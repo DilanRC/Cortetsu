@@ -325,6 +325,8 @@ QtObject {
     // preferences shows this instead of assuming every write lands.
     property string saveState: "idle"
     property string saveError: ""
+    // Set when preferences.json could not be parsed at start-up.
+    property string loadError: ""
 
     readonly property QtObject dashboard: QtObject {
         property bool enabled: true
@@ -469,8 +471,22 @@ QtObject {
 
     function load(raw: string): void {
         loaded = false;
+        let data;
         try {
-            const data = JSON.parse(raw);
+            data = JSON.parse(raw);
+            if (!data || typeof data !== "object" || Array.isArray(data))
+                throw new Error("not an object");
+        } catch (parseError) {
+            // A damaged file is copied aside before anything can overwrite
+            // it: the defaults stand and the next change writes a fresh
+            // file, but what the user had is kept to recover by hand.
+            recovery.setText(raw);
+            loadError = qsTranslate("CortetsuConfig", "preferences.json estaba dañado; se guardó una copia en %1").arg(recovery.path);
+            Quickshell.execDetached(["notify-send", "--app-name=Cortetsu", qsTranslate("CortetsuConfig", "Preferencias dañadas"), loadError]);
+            loaded = true;
+            return;
+        }
+        try {
             if (data.themeIntegrations && typeof data.themeIntegrations === "object") {
                 const integrations = Object.assign({}, themeIntegrations);
                 for (const key of ["hyprland", "kitty", "gtk", "qt"])
@@ -916,6 +932,14 @@ QtObject {
     function setWorkspacesShown(value: int): void {
         workspacesShown = Math.max(1, Math.min(20, value));
         save();
+    }
+
+    property var recovery: FileView {
+        path: root.path + ".damaged"
+        watchChanges: false
+        printErrors: false
+        blockLoading: false
+        onSaveFailed: error => root.loadError += " (" + FileViewError.toString(error) + ")"
     }
 
     property var storage: FileView {
