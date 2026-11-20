@@ -165,6 +165,10 @@ Singleton {
         const custom = record.custom.slice();
         custom[index] = next;
         commit(Object.assign({}, record, { custom }));
+        // Editing the active context applies the edit now: it is undone and
+        // applied again, so what it changed stays exactly what it holds.
+        if (record.active === id && JSON.stringify(changes.settings ?? null) !== "null")
+            activate(id);
         return true;
     }
 

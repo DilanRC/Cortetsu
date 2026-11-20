@@ -81,6 +81,11 @@ ShellRoot {
             CortetsuContexts.activate(copy);
             verify(Notifs.calls.join() === "dnd:true,dnd:false,dnd:true", `the second context re-applies do not disturb (${Notifs.calls})`);
             verify(CortetsuContexts.activeId === copy, "the own context is active");
+            // An edit to the active context applies at once and is undone with it.
+            CortetsuContexts.setSetting(copy, "reducedMotion", true);
+            verify(CortetsuConfig.reducedMotion === true, "editing the active context applies the edit");
+            CortetsuContexts.setSetting(copy, "reducedMotion", undefined);
+            verify(CortetsuConfig.reducedMotion === false, "dropping a setting from it gives the value back");
             CortetsuContexts.deactivate();
             root.exportPath = Quickshell.env("HOME") + "/exported-context.json";
             CortetsuContexts.exportTo(copy, root.exportPath);
