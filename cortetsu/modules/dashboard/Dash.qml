@@ -238,7 +238,7 @@ FocusScope {
                     // previews what is coming), so the hour never jumps.
                     visible: CortetsuConfig.dashboard.showMedia && Lyrics.synced && Lyrics.lines.length > 0
                 }
-                DashQuickControls { Layout.alignment: Qt.AlignHCenter }
+                DashQuickControls { Layout.alignment: Qt.AlignHCenter; screenState: root.screenState }
                 Item { Layout.fillHeight: true }
             }
 

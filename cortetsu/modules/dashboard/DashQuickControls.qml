@@ -7,6 +7,8 @@ import "../../components"
 import "../../services"
 import ".."
 import "../../theme"
+import "../CortetsuOverlayPolicy.js" as OverlayPolicy
+import "../settings" as SettingsModule
 
 // Quick controls under the hour. Each button reads and writes the service
 // that owns the state (Notifs, GameMode, PowerProfiles, CortetsuContexts);
@@ -15,6 +17,9 @@ import "../../theme"
 // Settings.
 RowLayout {
     id: root
+
+    // The dashboard's screen, to open Ajustes → Contextos from it.
+    property var screenState: null
 
     readonly property var profiles: [PowerProfile.PowerSaver, PowerProfile.Balanced]
         .concat(PowerProfiles.hasPerformanceProfile ? [PowerProfile.Performance] : [])
@@ -67,14 +72,23 @@ RowLayout {
         onClicked: root.nextProfile()
     }
 
+    // As in the control centre: with a context active, its way out; with
+    // none, the page where one is chosen.
     CortetsuButton {
         objectName: "dashContext"
-        visible: CortetsuContexts.active !== null
         compact: true
         icon: CortetsuContexts.active?.icon ?? "tune"
-        label: qsTr("Salir de %1").arg(CortetsuContexts.active?.name ?? "")
-        active: true
-        tooltipText: qsTr("Desactiva el contexto y restaura los ajustes anteriores")
-        onClicked: CortetsuContexts.deactivate()
+        label: CortetsuContexts.active ? qsTr("Salir de %1").arg(CortetsuContexts.active.name) : qsTr("Contextos")
+        active: CortetsuContexts.active !== null
+        tooltipText: CortetsuContexts.active ? qsTr("Desactiva el contexto y restaura los ajustes anteriores")
+            : qsTr("Elegir un contexto en Ajustes")
+        onClicked: {
+            if (CortetsuContexts.active) {
+                CortetsuContexts.deactivate();
+            } else if (root.screenState) {
+                SettingsModule.SettingsController.select("contexts");
+                OverlayPolicy.open(CortetsuShellState.allStates(), root.screenState, "settings");
+            }
+        }
     }
 }
