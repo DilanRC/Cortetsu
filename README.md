@@ -74,8 +74,10 @@ La base actual de Caelestia se reconstruye desde `v2.4.0` commit `24aa15eefdb146
 
 ## Módulos
 
-- Bottom Hub: dock/taskbar contextual por monitor;
-- Overview: ventanas y workspaces con previews;
+- Bottom Hub: dock/taskbar contextual por monitor, en 8 anclajes, con separación y orden de islas configurables;
+- Overview: ventanas y workspaces con previews; dígitos para ir a un espacio y Alt+dígito para mover la ventana;
+- Contextos: Universidad, Desarrollo, Gaming, Batería y los propios, reversibles ([`docs/CONTEXTS.md`](docs/CONTEXTS.md));
+- Orbital: fondos animados de Steam con un supervisor Rust por monitor, y sus colores para el tema ([`ORBITAL.md`](docs/roadmap/cortetsu-3.0/ORBITAL.md));
 - Clipboard: historial Clipse en QML;
 - Hardware: rendimiento, procesos, sensores, energía e I/O;
 - Display: topologías, preview, persistencia y rollback;
@@ -111,6 +113,8 @@ cortetsu realm qa .
 ## Calidad
 
 CI valida los ocho crates Rust con rustfmt/Clippy/tests, el coordinador Go con detector de carreras y vet, contratos y paridad, QML real y la instalación de dos generaciones con rollback completo. El instalador se ejecuta en un HOME temporal cuyo PATH no contiene Python. Python permanece en herramientas de desarrollo (entre ellas Agent Realms, también en CI) y referencias congeladas, nunca en los launchers instalados del runtime nuevo. Las pruebas físicas de AMD/NVIDIA, HDMI y suspensión se registran aparte, en [`docs/PHYSICAL_QA.md`](docs/PHYSICAL_QA.md).
+
+Las pruebas que necesitan un Hyprland anidado se lanzan con `scripts/verification/nested-regressions.py`, que usa el primer espacio libre de eDP-1; el índice de qué comprobación ejecuta cada suite está en [`scripts/features/INDEX.md`](scripts/features/INDEX.md) y la referencia IPC en [`docs/IPC.md`](docs/IPC.md).
 
 Los objetivos de rendimiento están en [`docs/PERFORMANCE.md`](docs/PERFORMANCE.md), el lenguaje visual en [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md) y la plataforma de configuración en [`docs/DOTFILES_PLATFORM.md`](docs/DOTFILES_PLATFORM.md).
 

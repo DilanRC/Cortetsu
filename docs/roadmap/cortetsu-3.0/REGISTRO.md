@@ -396,3 +396,9 @@ el journal quedó sin avisos.
   citan las evidencias de las migraciones F0/F9; el oráculo histórico los
   ejecuta desde `ce9523ea`, no desde HEAD. Ascended, Monster y Cosmic
   comprobados en código y en la prueba de la tarjeta de bloqueo.
+- Revisión externa (`ai-review deep`, 2026-11-20) del diff de código de la
+  3.0 en un bloque: OpenCode sin cuota (INCOMPLETE); AGY, 4 hallazgos, los
+  4 falsos positivos tras comprobarlos (`let` chains estables en la edición
+  2024, secuencias QML con métodos de Array, singleton `ShellState` en la
+  misma carpeta, pruebas excluidas del diff a propósito). Instalado
+  después `d65419b6` (editar el contexto activo lo aplica al momento).
