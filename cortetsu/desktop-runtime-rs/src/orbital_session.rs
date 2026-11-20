@@ -512,9 +512,8 @@ impl Session {
         if out.phase != Phase::Applying { return Ok(()); }
         let selection = out.selection.clone().ok_or("missing selection")?;
         let mut next = self.prefs.clone();
-        if next.monitors.get(monitor) != Some(&selection) {
-            if let Some(old) = next.monitors.insert(monitor.into(), selection) { next.previous.insert(monitor.into(), old); }
-        }
+        if next.monitors.get(monitor) != Some(&selection)
+            && let Some(old) = next.monitors.insert(monitor.into(), selection) { next.previous.insert(monitor.into(), old); }
         let saved = self.save(next);
         let out = self.outputs.get_mut(monitor).ok_or("monitor disconnected")?;
         out.phase = Phase::Active;
@@ -544,10 +543,7 @@ impl Session {
         let mut generation = self.generation;
         for (name, out) in &mut self.outputs {
             let powered = monitors.iter().find(|m| m["name"] == name.as_str()).is_some_and(|m| m["dpmsStatus"] != false);
-            let reason = if !powered { Some("monitor-off") }
-                else if self.battery && out.selection.as_ref().is_some_and(|s| s.pause_on_battery) { Some("battery") }
-                else if self.hold { Some("context") }
-                else if resumed { Some("resume") } else { None };
+            let reason = pause_reason(powered, self.battery && out.selection.as_ref().is_some_and(|s| s.pause_on_battery), self.hold, resumed);
             let running = matches!(out.phase, Phase::Preparing | Phase::Applying | Phase::Active);
             if let (Some(reason), true) = (reason, running) {
                 generation += 1;
@@ -555,9 +551,8 @@ impl Session {
                 out.pause_reason = Some(reason);
                 continue;
             }
-            if out.phase == Phase::Paused && (reason.is_none() || reason == Some("resume")) && out.covered && out.child.is_none() {
-                if let Some(s) = &out.selection { starts.push((name.clone(), s.clone())); }
-            }
+            if out.phase == Phase::Paused && (reason.is_none() || reason == Some("resume")) && out.covered && out.child.is_none()
+                && let Some(s) = &out.selection { starts.push((name.clone(), s.clone())); }
             if let Some(child) = &out.child {
                 use nix::sys::wait::{waitid, Id, WaitPidFlag, WaitStatus};
                 // WNOWAIT leaves the zombie in place so Owned::drop never signals a reused PID.
@@ -595,12 +590,11 @@ impl Session {
                 out.fail(generation, "transition-timeout", format!("no renderer surface on this monitor after 15 seconds\n{diagnostic}"));
                 continue;
             }
-            if out.phase == Phase::Active {
-                if let Some(list) = self.prefs.playlists.get(name).filter(|p| p.enabled && p.entries.len() > 1 && out.since.elapsed().as_secs() >= p.interval.max(60)) {
-                    let current = list.entries.iter().position(|s| Some(s) == out.selection.as_ref()).unwrap_or(0);
-                    let step = if list.shuffle { 1 + RandomState::new().hash_one(Instant::now()) as usize % (list.entries.len() - 1) } else { 1 };
-                    starts.push((name.clone(), list.entries[(current + step) % list.entries.len()].clone()));
-                }
+            if out.phase == Phase::Active
+                && let Some(list) = self.prefs.playlists.get(name).filter(|p| p.enabled && p.entries.len() > 1 && out.since.elapsed().as_secs() >= p.interval.max(60)) {
+                let current = list.entries.iter().position(|s| Some(s) == out.selection.as_ref()).unwrap_or(0);
+                let step = if list.shuffle { 1 + RandomState::new().hash_one(Instant::now()) as usize % (list.entries.len() - 1) } else { 1 };
+                starts.push((name.clone(), list.entries[(current + step) % list.entries.len()].clone()));
             }
         }
         self.generation = generation;
@@ -630,6 +624,16 @@ impl Session {
         else if self.outputs.values().any(|o| o.child.is_some() || o.phase == Phase::Paused) { Duration::from_secs(3) }
         else { Duration::from_secs(10) }
     }
+}
+
+/// Why a monitor's renderer must stop now, most important first. `None`
+/// keeps it playing. "resume" is the only reason that restarts by itself on
+/// the next tick: the others hold until their cause goes away.
+fn pause_reason(powered: bool, battery_pause: bool, hold: bool, resumed: bool) -> Option<&'static str> {
+    if !powered { Some("monitor-off") }
+    else if battery_pause { Some("battery") }
+    else if hold { Some("context") }
+    else if resumed { Some("resume") } else { None }
 }
 
 fn load_preferences(path: &Path) -> Result<Preferences> {
@@ -778,5 +782,16 @@ mod tests {
         let prefs = load_preferences(&path).unwrap();
         let s = &prefs.monitors["HDMI-A-1"];
         assert_eq!((s.fps, s.restore_on_start, s.gpu.as_str()), (24, true, "integrated"));
+    }
+
+    #[test]
+    fn pause_reasons_rank_and_release() {
+        assert_eq!(pause_reason(true, false, false, false), None);
+        assert_eq!(pause_reason(false, true, true, true), Some("monitor-off"));
+        assert_eq!(pause_reason(true, true, true, true), Some("battery"));
+        // A context (Gaming, Batería) holds every monitor until it is lifted.
+        assert_eq!(pause_reason(true, false, true, true), Some("context"));
+        assert_eq!(pause_reason(true, false, true, false), Some("context"));
+        assert_eq!(pause_reason(true, false, false, true), Some("resume"));
     }
 }
