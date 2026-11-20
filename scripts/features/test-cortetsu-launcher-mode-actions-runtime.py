@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Launcher actions that cannot run are offered disabled, with the reason.
+"""Launcher actions that cannot run are never offered as dead rows.
 
 The upstream defaults that many configs still carry include "Light" and
 "Dark" (command ["setMode", ...]). Cortetsu has no command that switches the
@@ -61,11 +61,13 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-launcher-actions-") as tempora
     output = result.stdout + result.stderr
     actions = {entry["name"]: entry for entry in (json.loads(line.split("ACTION ", 1)[1])
                                                  for line in output.splitlines() if "ACTION {" in line)}
-    assert set(actions) == {"Dark", "Lock"}, output
-    assert not actions["Dark"]["available"], actions
-    assert actions["Dark"]["desc"].startswith("No disponible"), actions
-    assert actions["Lock"]["available"] and actions["Lock"]["desc"] == "Lock the current session", actions
+    # Since 54391510 the inherited mode switch is dropped instead of listed
+    # disabled; the user's runnable action stays, after the built-ins.
+    names = list(actions)
+    assert "Dark" not in actions, names
+    assert "Lock" in actions and actions["Lock"]["available"] and actions["Lock"]["desc"] == "Lock the current session", actions
+    assert "Ajustes" in actions and names.index("Ajustes") < names.index("Lock"), names
     for marker in ("TypeError", "ReferenceError", "is not a type", "Binding loop"):
         assert marker not in output, output
 
-print("PASS: a mode action the shell cannot run is listed disabled with its reason; ordinary actions stay available")
+print("PASS: a mode action the shell cannot run is not offered; ordinary actions stay available after the built-ins")

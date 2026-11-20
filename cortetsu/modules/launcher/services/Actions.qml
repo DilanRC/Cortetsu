@@ -77,16 +77,13 @@ Searcher {
         // whether they can run here.
         readonly property string sleepMode: ["suspend", "hibernate", "suspendThenHibernate"].includes(command[0] ?? "")
             ? command[0] : ""
-        // Light/dark actions inherited from the upstream defaults: no Cortetsu
-        // command switches the mode of the current scheme, so they would run
-        // nothing. Shown disabled with the reason instead of failing silently.
-        readonly property bool modeSwitch: command[0] === "setMode"
-        readonly property bool available: !modeSwitch && (!sleepMode || CortetsuSession.available(sleepMode))
+        // Light/dark actions inherited from the upstream defaults never get
+        // here: the model above drops every "setMode" entry (no Cortetsu
+        // command switches the mode of the current scheme).
+        readonly property bool available: !sleepMode || CortetsuSession.available(sleepMode)
         readonly property string desc: available
             ? (modelData.description ?? qsTr("Sin descripción"))
-            : modeSwitch
-                ? qsTr("No disponible: Cortetsu no tiene una orden para cambiar el modo del esquema actual")
-                : CortetsuSession.reason(sleepMode)
+            : CortetsuSession.reason(sleepMode)
         readonly property string icon: modelData.icon ?? "help_outline"
         readonly property list<string> command: modelData.command ?? []
         readonly property bool enabled: modelData.enabled ?? true
