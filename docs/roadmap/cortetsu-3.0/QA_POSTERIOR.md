@@ -1,5 +1,26 @@
 # QA posterior de la ola de construcción 3.0
 
+## Estado a 2026-11-20 (instalado `640a7086`)
+
+Las olas 3.0 están compiladas, probadas en una generación de prueba e
+instaladas. Lo que sigue en este documento es la lista original; esta tabla
+dice qué parte ya cubren pruebas automáticas y qué queda para la sesión
+real.
+
+| Área | Cubierto por pruebas automáticas | Queda para la sesión real |
+| --- | --- | --- |
+| Contextos | `test-context-model.node.js`, `test-cortetsu-contexts-runtime.py` (activar, deshacer, cambio con DND asíncrono, coordinador, reinicio, exportar/importar) | Perfil de energía real; DND y modo juego con sus helpers reales |
+| Orbital | `cargo test` (pausa por contexto), `test-orbital-playback-colours-runtime.py`, `test-cortetsu-wallpaper-orbital-runtime.py` | Reproducción, ownership, GPU, energía y suspensión (sección Orbital) |
+| Hub | `test-cortetsu-hub-islands-runtime.py` (6 órdenes × repartido/esquinas, separación), migración de `mirrored` en la prueba de Ajustes | Popouts anclados a su isla y «Mover el Hub» con un orden no clásico |
+| Vista general | `test-overview-keys.node.js` (dígitos y modificadores) | Que Hyprland no se quede Alt+dígito antes que la capa |
+| Dashboard | `test-cortetsu-dashboard-dismiss-runtime.py` (marco fijo; captura revisada con la fila de controles) | — |
+| OSD | `tst_MiniSlider.qml` (multimedia), `test-cortetsu-osd-focus.sh` | Pausar y reanudar con las teclas multimedia reales |
+| Centro de control | `test-cortetsu-quick-settings-runtime.py` (alto < 700 px, mosaicos) | — |
+| Ajustes | `test-cortetsu-settings-runtime.py` (en el gate; búsqueda que enfoca el control que habilita, fuentes no instaladas, widgets que sustituyen al reloj), contraste WCAG en 3 temas × 6 condiciones | — |
+| Sesión, bloqueo, inactividad, modo juego, editor de atajos | `test-cortetsu-session-runtime.py` en el gate; `nested-regressions.py` (Hyprland anidado) | Física: suspensión real, PAM con contraseña real |
+| `preferences.json` dañado | — | Arrancar con JSON roto y comprobar `preferences.json.damaged` |
+| Diseño | `qml-design-lint.py --strict` en todo el shell (0 hallazgos) | Revisión visual en 1920×1080 a 144 Hz y en HDMI |
+
 ## Orbital Steam: escenarios añadidos, sin ejecutar
 
 - Compilar el helper y ejecutar sus pruebas unitarias cuando se autorice QA.
