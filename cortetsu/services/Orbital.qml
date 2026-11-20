@@ -31,9 +31,13 @@ Singleton {
     // renderer runs and returns to the static wallpaper's when it stops.
     property string colourState: ""
     property string colourError: ""
+    // The preview the state above belongs to: another wallpaper's panel
+    // must not show this one's result.
+    property string colourPreview: ""
     function adoptColours(preview: string): bool {
         if (colourProcess.running || !preview)
             return false;
+        colourPreview = preview;
         colourState = "busy";
         colourError = "";
         colourProcess.command = ["cortetsu-apply-wallpaper-colors", preview];

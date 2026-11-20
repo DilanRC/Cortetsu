@@ -30,6 +30,7 @@ Singleton {
     property string errorCode: ""
     property string colourState: ""
     property string colourError: ""
+    property string colourPreview: ""
     property var adopted: []
     function output(monitor: string): var { return outputs[monitor] || {}; }
     function ensure(): void {}
@@ -104,6 +105,14 @@ ShellRoot {
             shell.check(button.disabled && button.tooltipText.includes("portada"), "no preview image: not offered, and says why");
 
             panel.entry = ({ location: "/w/1", title: "Uno", type: "scene", preview: "/w/1/preview.gif", properties: {} });
+            // A result belongs to the wallpaper it was asked for.
+            Orbital.colourState = "applied"; Orbital.colourPreview = "/w/1/preview.gif";
+            shell.check(button.icon === "check", "this wallpaper's colours applied: marked");
+            Orbital.colourPreview = "/w/other/preview.gif";
+            shell.check(button.icon === "palette", "another wallpaper's result is not shown here");
+            Orbital.colourState = "refused";
+            shell.check(!button.tooltipText.includes("a mano"), "nor its refusal");
+
             Orbital.colourState = "busy";
             shell.check(button.disabled && button.label.includes("Aplicando"), "a request in flight blocks a second one");
 
