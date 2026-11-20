@@ -393,43 +393,6 @@ Item {
 
         CortetsuDivider { Layout.fillWidth: true; Layout.topMargin: CortetsuDesign.spacingUnit }
 
-        // Orbital and the active context share one row of compact tiles,
-        // like the toggles below: the panel has to fit a 1080 px screen.
-        RowLayout {
-            Layout.fillWidth: true
-            spacing: CortetsuDesign.spacingCompact
-
-            CortetsuActionTile {
-                objectName: "quickOrbital"
-                compact: true
-                Layout.fillWidth: true
-                Layout.preferredWidth: 1
-                label: qsTr("Orbital")
-                detail: Orbital.activeOn(root.screen.name) ? qsTr("Animado en %1").arg(root.screen.name)
-                    : Orbital.output(root.screen.name).state === "error" ? qsTr("Error · fondo estático")
-                    : qsTr("Fondos de Steam")
-                highlighted: Orbital.activeOn(root.screen.name)
-                warning: Orbital.output(root.screen.name).state === "error"
-                icon: "animation"
-                onActivated: { root.closeQsd(); Orbital.requestSteam(); WallpaperController.open(root.screen); }
-            }
-
-            // The active context, if any: pressing ends it and brings back
-            // the settings it changed; with none, it opens Ajustes → Contextos.
-            CortetsuActionTile {
-                objectName: "quickContext"
-                compact: true
-                Layout.fillWidth: true
-                Layout.preferredWidth: 1
-                label: CortetsuContexts.active ? CortetsuContexts.active.name : qsTr("Contextos")
-                detail: CortetsuContexts.active ? qsTr("Activo · pulsa para salir") : qsTr("Ninguno activo")
-                icon: CortetsuContexts.active?.icon ?? "tune"
-                highlighted: CortetsuContexts.active !== null
-                warning: CortetsuContexts.error.length > 0
-                onActivated: CortetsuContexts.active ? CortetsuContexts.deactivate() : root.openSettingsPage("contexts")
-            }
-        }
-
         // --- Connections: the two radios carry their link as detail -------
 
         RowLayout {
@@ -592,6 +555,43 @@ Item {
                 highlighted: false
                 warning: false
                 onActivated: root.captureArea()
+            }
+        }
+
+        // Orbital and the active context share one row of compact tiles,
+        // like the toggles below: the panel has to fit a 1080 px screen.
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: CortetsuDesign.spacingCompact
+
+            CortetsuActionTile {
+                objectName: "quickOrbital"
+                compact: true
+                Layout.fillWidth: true
+                Layout.preferredWidth: 1
+                label: qsTr("Orbital")
+                detail: Orbital.activeOn(root.screen.name) ? qsTr("Animado en %1").arg(root.screen.name)
+                    : Orbital.output(root.screen.name).state === "error" ? qsTr("Error · fondo estático")
+                    : qsTr("Fondos de Steam")
+                highlighted: Orbital.activeOn(root.screen.name)
+                warning: Orbital.output(root.screen.name).state === "error"
+                icon: "animation"
+                onActivated: { root.closeQsd(); Orbital.requestSteam(); WallpaperController.open(root.screen); }
+            }
+
+            // The active context, if any: pressing ends it and brings back
+            // the settings it changed; with none, it opens Ajustes → Contextos.
+            CortetsuActionTile {
+                objectName: "quickContext"
+                compact: true
+                Layout.fillWidth: true
+                Layout.preferredWidth: 1
+                label: CortetsuContexts.active ? CortetsuContexts.active.name : qsTr("Contextos")
+                detail: CortetsuContexts.active ? qsTr("Activo · pulsa para salir") : qsTr("Ninguno activo")
+                icon: CortetsuContexts.active?.icon ?? "tune"
+                highlighted: CortetsuContexts.active !== null
+                warning: CortetsuContexts.error.length > 0
+                onActivated: CortetsuContexts.active ? CortetsuContexts.deactivate() : root.openSettingsPage("contexts")
             }
         }
 
