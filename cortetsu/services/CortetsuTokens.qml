@@ -168,10 +168,8 @@ QtObject {
             readonly property int expressiveSlowSpatial: CortetsuDesign.motionPanelMs
         }
         readonly property var standard: Easing.OutCubic
-        readonly property var standardAccel: Easing.InCubic
         readonly property var standardDecel: Easing.OutCubic
         readonly property var emphasized: Easing.InOutCubic
-        readonly property var emphasizedAccel: Easing.InCubic
         readonly property var emphasizedDecel: Easing.OutCubic
         readonly property var expressiveDefaultEffects: Easing.OutCubic
         readonly property var expressiveDefaultSpatial: Easing.OutCubic

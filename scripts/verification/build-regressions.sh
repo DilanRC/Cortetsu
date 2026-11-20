@@ -34,7 +34,8 @@ python3 "$REPO/scripts/features/test-cortetsu-surface-registry.py"
 python3 "$REPO/scripts/features/test-hypr-actions.py"
 python3 "$REPO/scripts/features/test-hypr-event-policy.py"
 python3 "$REPO/scripts/features/test-qml-design-lint.py"
-python3 "$REPO/scripts/verification/qml-design-lint.py" --summary
+# The whole shell holds at zero findings too; an exception names its reason inline.
+python3 "$REPO/scripts/verification/qml-design-lint.py" --strict
 python3 "$REPO/scripts/features/test-cortetsu-quality.py"
 python3 "$REPO/scripts/features/test-cortetsu-settings.py"
 python3 "$REPO/cortetsu/tests/test-weather-refresh.py"

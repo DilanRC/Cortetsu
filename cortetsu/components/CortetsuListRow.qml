@@ -70,7 +70,7 @@ Item {
         visible: root.selected
         width: 2
         height: 24
-        radius: 1
+        radius: width / 2
         color: CortetsuDesign.colorWashi
         opacity: 0.88
         scale: root.visualScale

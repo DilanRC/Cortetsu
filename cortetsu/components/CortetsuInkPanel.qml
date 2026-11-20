@@ -132,7 +132,7 @@ Item {
         width: root.width - root.radius * 2
         y: 1
         height: 1
-        color: Qt.rgba(1, 1, 1, 0.7 * root.transparencyFactor)
+        color: Qt.alpha(CortetsuDesign.colorWashi, 0.7 * root.transparencyFactor)
     }
 
     // Kurogane: a precise outline, a bevel highlight just inside it, and
@@ -153,7 +153,7 @@ Item {
         radius: Math.max(0, root.radius - 1)
         color: "transparent"
         border.width: 1
-        border.color: Qt.rgba(1, 1, 1, 0.05)
+        border.color: Qt.alpha(CortetsuDesign.colorWashi, 0.05)
     }
 
     Rectangle {
@@ -162,7 +162,7 @@ Item {
         width: root.width - root.radius * 2 - 2
         y: 1
         height: 1
-        color: Qt.rgba(1, 1, 1, 0.14)
+        color: Qt.alpha(CortetsuDesign.colorWashi, 0.14)
     }
 
     Repeater {

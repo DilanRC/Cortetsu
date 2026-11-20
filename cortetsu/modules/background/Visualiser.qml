@@ -47,7 +47,10 @@ Item {
                 color: index % 2 ? CortetsuDesign.colorSecondary : CortetsuDesign.colorPrimary
                 opacity: 0.7
 
-                Behavior on height { NumberAnimation { duration: 100 } }
+                // Each bar is anchored on its own; nothing lays out from its
+                // height, and scaling would squash its rounded ends.
+                // design-lint: allow motion-layout-property: an anchored bar with no dependants
+                Behavior on height { NumberAnimation { duration: CortetsuDesign.motionInstantMs } }
             }
         }
     }

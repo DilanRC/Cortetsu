@@ -49,6 +49,7 @@ Item {
         Repeater {
             model: root.delegateModel
 
+            // design-lint: allow layout-small-target: trayMouse reaches 36 px into the 2 px gaps
             Item {
                 id: trayItem
                 required property var modelData
@@ -125,9 +126,13 @@ Item {
                     color: CortetsuDesign.colorVermillion
                 }
 
+                // One pixel into the 2 px gap on each side: a 36 px target
+                // with no overlap between neighbours.
                 MouseArea {
                     id: trayMouse
                     anchors.fill: parent
+                    anchors.leftMargin: -1
+                    anchors.rightMargin: -1
                     hoverEnabled: true
                     acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
                     cursorShape: Qt.PointingHandCursor

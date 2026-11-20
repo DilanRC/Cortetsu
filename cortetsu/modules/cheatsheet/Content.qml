@@ -249,7 +249,8 @@ FocusScope {
                                     font.family: CortetsuDesign.fontHeading
                                     font.weight: CortetsuDesign.headingWeight
                                     font.letterSpacing: CortetsuDesign.labelTracking
-                                    color: CortetsuDesign.colorPrimary
+                                    // The accent, made readable as text (4.5:1) on the sheet.
+                                    color: CortetsuDesign.readable(CortetsuDesign.colorPrimary, [CortetsuDesign.colorTetsu, CortetsuDesign.colorSurfaceHigh])
                                     Accessible.role: Accessible.Heading
                                 }
 

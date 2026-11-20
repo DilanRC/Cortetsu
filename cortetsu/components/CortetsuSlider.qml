@@ -1,6 +1,6 @@
 import QtQuick
 import "../theme"
-
+// design-lint: allow layout-small-target: the MouseArea below extends 3 px above and below (36 px)
 Item {
     id: root
 
@@ -50,6 +50,7 @@ Item {
         // and the track vanished.
         color: Qt.alpha(CortetsuDesign.colorWashi, CortetsuDesign.materialHairlineAlpha * 3)
 
+        // design-lint: allow motion-layout-property: the track's thickness on hover; nothing is laid out from it
         Behavior on height {
             NumberAnimation {
                 duration: CortetsuDesign.motionFastMs
@@ -65,6 +66,7 @@ Item {
             // The filled part carries the value: indicator contrast (3:1).
             color: CortetsuDesign.colorIndicator
 
+            // design-lint: allow motion-layout-property: the filled part of the track; nothing is laid out from it
             Behavior on width {
                 enabled: !mouse.pressed
                 NumberAnimation {
@@ -114,6 +116,7 @@ Item {
             }
         }
 
+        // design-lint: allow motion-layout-property: the filled part of the track; nothing is laid out from it
         Behavior on width {
             NumberAnimation {
                 duration: CortetsuDesign.motionFastMs
@@ -137,9 +140,13 @@ Item {
         ? 0
         : Math.max(0, Math.min(1, (root.shownValue - root.from) / (root.to - root.from)))
 
+    // 30 px tall, the pointer target 36: three more above and below. x is
+    // unchanged, so the value under the pointer stays exact.
     MouseArea {
         id: mouse
         anchors.fill: parent
+        anchors.topMargin: -3
+        anchors.bottomMargin: -3
         enabled: !root.disabled
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor

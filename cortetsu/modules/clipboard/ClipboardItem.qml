@@ -146,7 +146,7 @@ Rectangle {
         anchors.verticalCenter: parent.verticalCenter
         width: 3
         height: parent.height - 24
-        radius: 2
+        radius: width / 2
         color: root.accent
     }
 

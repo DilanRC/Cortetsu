@@ -29,7 +29,11 @@ Variants {
         // Bottom keeps the static cover and widgets above an Orbital renderer,
         // which maps on the background layer of the same monitor.
         WlrLayershell.layer: WlrLayer.Bottom
-        color: (CortetsuConfig.wallpaperEnabled || participating) && !animated ? "black" : "transparent"
+        // The opaque ground under the image and the Orbital cover is the same
+        // in every theme: a light theme must not flash its paper before the
+        // first frame of the wallpaper.
+        // design-lint: allow color-untinted-neutral: theme-independent ground, seen only before the wallpaper's first frame
+        color: (CortetsuConfig.wallpaperEnabled || participating) && !animated ? "black" : "transparent" // design-lint: allow token-literal-color: theme-independent ground
         surfaceFormat.opaque: false
         onOrbitalChanged: {
             const key = orbital.generation + ":" + animated + ":" + orbital.state;

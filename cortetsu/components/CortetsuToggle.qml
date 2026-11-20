@@ -1,6 +1,6 @@
 import QtQuick
 import "../theme"
-
+// design-lint: allow layout-small-target: the MouseArea below extends 5 px past each edge (56 × 36)
 Item {
     id: root
 
@@ -93,9 +93,13 @@ Item {
         }
     }
 
+    // The knob is drawn 46 × 26; the pointer target reaches 56 × 36 so a
+    // standalone switch meets the shell's minimum target without moving
+    // anything around it.
     MouseArea {
         id: mouse
         anchors.fill: parent
+        anchors.margins: -5
         enabled: !root.disabled
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
