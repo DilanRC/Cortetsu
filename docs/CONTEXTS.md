@@ -19,7 +19,7 @@ través de su dueño actual.
 | No molestar | `Notifs.setDnd` → `cortetsu-notifications dnd` | Asíncrono |
 | Modo juego | `GameMode.setEnabled` → `cortetsu-gamemode` | Asíncrono; sus fallos los avisa GameMode |
 | Perfil de energía | `PowerProfiles.profile` (power-profiles-daemon) | «Rendimiento» se ignora si el daemon no lo ofrece. No toca frecuencias ni otro hardware |
-| Pausar fondos animados | `Orbital.hold` → `heartbeat` del supervisor | El supervisor pausa con el motivo `context` y reanuda al quitarlo |
+| Pausar fondos animados | `CortetsuContexts.orbitalHold`, al que se enlaza `Orbital.hold` → `heartbeat` del supervisor | El supervisor pausa con el motivo `context` y reanuda al quitarlo. Orbital se crea al arrancar, así que la pausa vuelve con la sesión |
 
 ## Una sola autoridad
 
