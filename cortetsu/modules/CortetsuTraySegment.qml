@@ -65,7 +65,8 @@ Item {
                 implicitHeight: 40
                 width: implicitWidth
                 height: implicitHeight
-                activeFocusOnTab: enabled
+                // Qt will not drop the flag from the item that holds the focus.
+                activeFocusOnTab: enabled || activeFocus
 
                 // Along the Hub, in segment coordinates: the icons are
                 // centred inside the pill.

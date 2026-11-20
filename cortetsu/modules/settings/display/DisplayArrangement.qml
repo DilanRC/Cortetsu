@@ -24,7 +24,8 @@ Item {
     readonly property real originY: (height - area.height * factor) / 2
 
     implicitHeight: 240
-    activeFocusOnTab: outputs.length > 0
+    // Qt will not drop the flag from the item that holds the focus.
+    activeFocusOnTab: (outputs.length > 0) || activeFocus
     Accessible.role: Accessible.List
     Accessible.name: qsTr("Disposición de pantallas")
 

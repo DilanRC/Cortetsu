@@ -94,7 +94,8 @@ Item {
                     }
                     width: implicitWidth
                     height: implicitHeight
-                    activeFocusOnTab: enabled
+                    // Qt will not drop the flag from the item that holds the focus.
+                    activeFocusOnTab: enabled || activeFocus
 
                     CortetsuSurface {
                         anchors.fill: parent

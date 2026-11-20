@@ -95,7 +95,8 @@ ColumnLayout {
         currentIndex: root.page.selectedIndex
         onCurrentIndexChanged: if (currentIndex >= 0) root.page.selectedIndex = currentIndex
         // One Tab stop; Up and Down move the selection inside it.
-        activeFocusOnTab: count > 0
+        // Qt will not drop the flag from the item that holds the focus.
+        activeFocusOnTab: (count > 0) || activeFocus
         Accessible.role: Accessible.List
         Accessible.name: root.page.showingProfiles ? qsTr("Redes guardadas") : qsTr("Redes cercanas")
 

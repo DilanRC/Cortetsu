@@ -319,7 +319,8 @@ CortetsuPopupSurface {
                             + (submenuIcon.visible ? submenuIcon.width + row.spacing : 0)
                             + CortetsuDesign.spacingCompact * 2
                     enabled: (modelData?.enabled ?? false) && !separator
-                    activeFocusOnTab: enabled
+                    // Qt will not drop the flag from the item that holds the focus.
+                    activeFocusOnTab: enabled || activeFocus
                     width: Math.max(0, menu.width - menu.padding * 2)
                     implicitHeight: (modelData?.isSeparator ?? false)
                         ? 1

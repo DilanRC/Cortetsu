@@ -26,7 +26,8 @@ Item {
     Layout.fillWidth: true
     Layout.margins: CortetsuDesign.spacingStandard
     implicitHeight: screen.height
-    activeFocusOnTab: !disabled
+    // Qt will not drop the flag from the item that holds the focus.
+    activeFocusOnTab: !disabled || activeFocus
     enabled: !disabled
     opacity: disabled ? 0.52 : 1
 

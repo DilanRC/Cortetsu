@@ -62,7 +62,8 @@ Item {
                 icon: modelData.icon ?? ""
                 selected: root.currentIndex === index
                 // Only the selected tab is a Tab stop.
-                activeFocusOnTab: selected
+                // Qt will not drop the flag from the item that holds the focus.
+                activeFocusOnTab: selected || activeFocus
                 onActivated: root.select(index)
                 onPreviousRequested: root.select(index - 1)
                 onNextRequested: root.select(index + 1)

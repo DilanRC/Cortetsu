@@ -31,7 +31,8 @@ ColumnLayout {
         Layout.fillWidth: true
         visible: root.title.length > 0
         implicitHeight: headerColumn.implicitHeight
-        activeFocusOnTab: root.collapsible
+        // Qt will not drop the flag from the item that holds the focus.
+        activeFocusOnTab: root.collapsible || activeFocus
         Accessible.role: root.collapsible ? Accessible.Button : Accessible.Heading
         Accessible.name: root.title
         Accessible.description: root.detail
