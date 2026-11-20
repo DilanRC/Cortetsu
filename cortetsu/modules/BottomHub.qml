@@ -1072,6 +1072,8 @@ Scope {
                 appsVisible: CortetsuConfig.bottomHub.segments.apps
                 trayVisible: CortetsuConfig.bottomHub.segments.tray
                 statusVisible: CortetsuConfig.bottomHub.segments.status
+                spacing: CortetsuConfig.bottomHub.spacing
+                mirrored: CortetsuConfig.bottomHub.mirrored
 
                 volumeIcon: win.volumeIcon
                 volumeMuted: CortetsuAudio.muted

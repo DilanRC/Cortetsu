@@ -151,8 +151,19 @@ Item {
     readonly property real edgeGap: 8
     // Between the three groups (Núcleo, Aplicaciones, Sistema), and between
     // the two islands of Sistema (tray and status), which belong together.
-    readonly property real gap: 12
-    readonly property real pairGap: 4
+    // Settings → Hub: "compact" | "standard" | "airy". Optional so older
+    // callers and tests keep the standard rhythm.
+    property string spacing: "standard"
+    readonly property real gap: spacing === "compact" ? 8 : spacing === "airy" ? 20 : 12
+    readonly property real pairGap: spacing === "compact" ? 3 : spacing === "airy" ? 6 : 4
+    // Mirrored: every island is placed as its mirror image along the edge,
+    // Sistema first and Núcleo last. The positions below stay as they were
+    // and are reflected at the end, so no new dependency between islands
+    // appears. A packed Hub swaps its pack first so it stays in its corner.
+    property bool mirrored: false
+    function at(item: Item, position: real): real {
+        return mirrored ? Math.round(length - position - along(item)) : position;
+    }
 
     implicitWidth: thickness
     implicitHeight: thickness
@@ -175,7 +186,8 @@ Item {
     readonly property real systemLength: trayLength + statusLength + (trayLength > 0 && statusLength > 0 ? pairGap : 0)
     readonly property real packedLength: Math.max(0, step(leftSegment) + step(appSegment) + systemLength - (systemLength > 0 ? 0 : gap))
     readonly property bool spread: place.pack === "spread"
-    readonly property real packedStart: place.pack === "end" ? length - edgeGap - packedLength : edgeGap
+    readonly property string pack: mirrored && place.pack !== "spread" ? (place.pack === "end" ? "start" : "end") : place.pack
+    readonly property real packedStart: pack === "end" ? length - edgeGap - packedLength : edgeGap
 
     readonly property real modeAt: spread ? edgeGap : packedStart
     readonly property real appsAt: spread ? Math.round((length - appsLength) / 2) : modeAt + step(leftSegment)
@@ -211,8 +223,8 @@ Item {
         visible: root.modeVisible
         vertical: root.vertical
         tooltipPlacement: root.tooltipPlacement
-        x: root.vertical ? root.across(leftSegment) : root.modeAt
-        y: root.vertical ? root.modeAt : root.across(leftSegment)
+        x: root.vertical ? root.across(leftSegment) : root.at(leftSegment, root.modeAt)
+        y: root.vertical ? root.at(leftSegment, root.modeAt) : root.across(leftSegment)
         launcherActive: root.launcherActive
         workspaceCount: root.workspaceCount
         workspaceDisplayType: root.workspaceDisplayType
@@ -239,8 +251,8 @@ Item {
         visible: root.appsVisible && root.dockItems.length > 0
         vertical: root.vertical
         tooltipPlacement: root.tooltipPlacement
-        x: root.vertical ? root.across(appSegment) : root.appsAt
-        y: root.vertical ? root.appsAt : root.across(appSegment)
+        x: root.vertical ? root.across(appSegment) : root.at(appSegment, root.appsAt)
+        y: root.vertical ? root.at(appSegment, root.appsAt) : root.across(appSegment)
         items: root.dockItems
         delegateModel: root.dockDelegateModel
         maxWidth: root.appRailMaxWidth
@@ -267,8 +279,8 @@ Item {
         visible: root.trayVisible && root.trayItems.length > 0
         vertical: root.vertical
         tooltipPlacement: root.tooltipPlacement
-        x: root.vertical ? root.across(traySegment) : root.trayAt
-        y: root.vertical ? root.trayAt : root.across(traySegment)
+        x: root.vertical ? root.across(traySegment) : root.at(traySegment, root.trayAt)
+        y: root.vertical ? root.at(traySegment, root.trayAt) : root.across(traySegment)
         items: root.trayItems
         delegateModel: root.trayDelegateModel
         monochromeIcons: root.trayMonochromeIcons
@@ -296,8 +308,8 @@ Item {
         visible: root.statusVisible
         vertical: root.vertical
         tooltipPlacement: root.tooltipPlacement
-        x: root.vertical ? root.across(statusSegment) : root.statusAt
-        y: root.vertical ? root.statusAt : root.across(statusSegment)
+        x: root.vertical ? root.across(statusSegment) : root.at(statusSegment, root.statusAt)
+        y: root.vertical ? root.at(statusSegment, root.statusAt) : root.across(statusSegment)
         volumeIcon: root.volumeIcon
         volumeMuted: root.volumeMuted
         networkIcon: root.networkIcon

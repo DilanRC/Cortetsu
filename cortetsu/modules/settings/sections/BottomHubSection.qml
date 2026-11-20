@@ -70,6 +70,35 @@ SettingsColumns {
     }
 
     SettingsGroup {
+        title: qsTr("Disposición")
+        icon: "space_dashboard"
+        detail: qsTr("Separación y orden de las islas a lo largo del borde")
+
+        SettingChoiceChips {
+            objectName: "hubSpacing"
+            Layout.fillWidth: true
+            title: qsTr("Separación entre islas")
+            options: [
+                { value: "compact", label: qsTr("Compacta") },
+                { value: "standard", label: qsTr("Normal") },
+                { value: "airy", label: qsTr("Amplia") }
+            ]
+            current: CortetsuConfig.bottomHub.spacing
+            onChosen: value => CortetsuConfig.bottomHub.spacing = value
+        }
+
+        SettingToggleRow {
+            objectName: "hubMirrored"
+            title: qsTr("Orden invertido")
+            detail: CortetsuConfig.bottomHub.mirrored
+                ? qsTr("Sistema al principio del borde y Núcleo al final")
+                : qsTr("Núcleo al principio del borde y Sistema al final")
+            checked: CortetsuConfig.bottomHub.mirrored
+            onToggled: value => CortetsuConfig.bottomHub.mirrored = value
+        }
+    }
+
+    SettingsGroup {
         title: qsTr("Segmentos")
         icon: "view_column"
         detail: qsTr("Qué grupos ocupan la barra")
