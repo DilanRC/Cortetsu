@@ -9,3 +9,5 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 for test in test-shell-lifecycle.py test-shell-reload-result.py test-display-vibrance-service.py; do
     python3 "$ROOT/scripts/features/$test"
 done
+# The explicit OSD owns the keyboard and Escape closes it (cited by the 3.0 QA).
+bash "$ROOT/scripts/features/test-cortetsu-osd-focus.sh"
