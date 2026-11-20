@@ -329,6 +329,8 @@ struct Session {
     prefs: Preferences,
     path: PathBuf,
     battery: bool,
+    /// A Cortetsu context (Gaming, Battery) asked to hold animated wallpapers.
+    hold: bool,
     last_heartbeat: Instant,
     generation: u64,
     last_tick: f64,
@@ -407,7 +409,7 @@ impl Session {
         let text = |key: &str, max: usize| v[key].as_str().filter(|s| !s.is_empty() && s.len() <= max)
             .ok_or_else(|| refuse("invalid", format!("invalid {key}")));
         match op {
-            "heartbeat" => { self.last_heartbeat = Instant::now(); self.battery = v["battery"].as_bool().unwrap_or(false); return Ok(()); },
+            "heartbeat" => { self.last_heartbeat = Instant::now(); self.battery = v["battery"].as_bool().unwrap_or(false); self.hold = v["hold"].as_bool().unwrap_or(false); return Ok(()); },
             "inspect" => {
                 let location = text("location", 4096)?;
                 let engine = backend(v["backend"].as_str().unwrap_or("almamu-wayland")).ok_or_else(|| refuse("incompatible", "unknown backend"))?;
@@ -544,6 +546,7 @@ impl Session {
             let powered = monitors.iter().find(|m| m["name"] == name.as_str()).is_some_and(|m| m["dpmsStatus"] != false);
             let reason = if !powered { Some("monitor-off") }
                 else if self.battery && out.selection.as_ref().is_some_and(|s| s.pause_on_battery) { Some("battery") }
+                else if self.hold { Some("context") }
                 else if resumed { Some("resume") } else { None };
             let running = matches!(out.phase, Phase::Preparing | Phase::Applying | Phase::Active);
             if let (Some(reason), true) = (reason, running) {
@@ -661,7 +664,7 @@ pub fn main() -> Result<i32> {
             }
         }
     });
-    let mut session = Session { outputs: BTreeMap::new(), prefs, path, battery: false, last_heartbeat: Instant::now(),
+    let mut session = Session { outputs: BTreeMap::new(), prefs, path, battery: false, hold: false, last_heartbeat: Instant::now(),
         generation: 0, last_tick: common::now(), last_snapshot: String::new() };
     session.tick()?;
     session.emit()?;

@@ -47,6 +47,7 @@ Column {
     readonly property var pauseLabels: ({
         battery: qsTr("Con batería se mantiene el fondo estático."),
         "monitor-off": qsTr("El monitor está apagado."),
+        context: qsTr("El contexto activo mantiene el fondo estático."),
         resume: qsTr("Volviendo de la suspensión; se reanuda en unos segundos.")
     })
     readonly property var errorLabels: ({

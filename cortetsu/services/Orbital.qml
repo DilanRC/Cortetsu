@@ -22,6 +22,11 @@ Singleton {
     property bool available: false
     property bool steamRequested: false
     property int failures: 0
+    // Set by CortetsuContexts: a context that holds animated wallpapers keeps
+    // the static cover on every monitor until it is deactivated.
+    property bool hold: false
+    onHoldChanged: if (available) heartbeat()
+    function heartbeat(): void { send({ op: "heartbeat", battery: CortetsuPower.onBattery, hold }); }
     readonly property string statePath: `${Quickshell.env("XDG_STATE_HOME") || `${Quickshell.env("HOME")}/.local/state`}/cortetsu/orbital.json`
 
     function output(monitor: string): var { return outputs[monitor] || {}; }
@@ -126,6 +131,6 @@ Singleton {
         repeat: true
         running: root.available
         triggeredOnStart: true
-        onTriggered: root.send({ op: "heartbeat", battery: CortetsuPower.onBattery })
+        onTriggered: root.heartbeat()
     }
 }
