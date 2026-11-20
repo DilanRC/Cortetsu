@@ -8,20 +8,36 @@ import "../../ThemePreferences.js" as Preferences
 import "../controls"
 
 SettingsGroup {
+    id: root
     title: qsTr("Material, tipografía y geometría")
     icon: "architecture"
     detail: qsTr("Cada tema conserva sus ajustes. Restaurar recupera sus valores originales.")
+    readonly property var families: Qt.fontFamilies()
     Repeater {
         model: [{token: "fontUi", title: qsTr("Fuente de interfaz")}, {token: "fontHeading", title: qsTr("Fuente de títulos")},
             {token: "fontInk", title: qsTr("Fuente de tinta")}, {token: "fontKanji", title: qsTr("Fuente de sellos y kanji")}]
         SettingTextRow {
+            id: fontRow
             required property var modelData
+            // A family that is not installed would fall back silently; it is
+            // refused here and the row says why. Read once per open page.
+            property string refused: ""
             objectName: "themeToken-" + modelData.token
             title: modelData.title
             detail: qsTr("Nombre de una familia instalada en el sistema")
+            status: refused.length > 0 ? "error" : ""
+            statusText: refused.length > 0 ? qsTr("«%1» no está instalada").arg(refused) : ""
             value: CortetsuDesign[modelData.token]
             disabled: CortetsuThemes.previewId.length > 0 || CortetsuThemes.busy
-            onCommitted: next => CortetsuConfig.setThemeToken(modelData.token, next)
+            onCommitted: next => {
+                const family = next.trim();
+                if (family.length > 0 && !root.families.includes(family)) {
+                    fontRow.refused = family;
+                    return;
+                }
+                fontRow.refused = "";
+                CortetsuConfig.setThemeToken(modelData.token, family);
+            }
         }
     }
     Repeater {
