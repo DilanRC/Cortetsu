@@ -56,6 +56,16 @@ Singleton {
             : profile === PowerProfile.Performance ? "performance" : "balanced";
     }
 
+    // A CortetsuConfig setting by its dotted key: the object that holds it
+    // and the property's name ("bottomHub.spacing" → bottomHub, "spacing").
+    function configSlot(key: string): var {
+        const path = key.split(".");
+        let target = CortetsuConfig;
+        for (let i = 0; i < path.length - 1; i++)
+            target = target[path[i]];
+        return [target, path[path.length - 1]];
+    }
+
     function read(key: string): var {
         switch (key) {
         case "dnd": return Notifs.dnd;
@@ -63,11 +73,8 @@ Singleton {
         case "powerProfile": return profileName(PowerProfiles.profile);
         case "orbitalHold": return Orbital.hold;
         }
-        let target = CortetsuConfig;
-        const path = key.split(".");
-        for (let i = 0; i < path.length - 1; i++)
-            target = target[path[i]];
-        return target[path[path.length - 1]];
+        const [target, name] = configSlot(key);
+        return target[name];
     }
 
     function write(key: string, value): void {
@@ -83,11 +90,8 @@ Singleton {
                 : value === "performance" ? PowerProfile.Performance : PowerProfile.Balanced;
             return;
         }
-        let target = CortetsuConfig;
-        const path = key.split(".");
-        for (let i = 0; i < path.length - 1; i++)
-            target = target[path[i]];
-        target[path[path.length - 1]] = value;
+        const [target, name] = configSlot(key);
+        target[name] = value;
     }
 
     function currentValues(keys: var): var {
