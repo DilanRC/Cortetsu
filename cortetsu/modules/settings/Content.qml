@@ -117,10 +117,21 @@ FocusScope {
                 item.expanded = true;
         scroller.contentY = Math.max(0, Math.min(scroller.contentHeight - scroller.height,
             target.mapToItem(scroller.contentItem, 0, 0).y - scroller.height / 3));
-        // A group or a grid is not a stop itself: its first control is.
+        // A group or a grid is not a stop itself: its first control is. A
+        // disabled control takes no focus; its group's first live control
+        // does instead (usually the switch that enables it), so the keyboard
+        // never stays on whatever the page had focused before.
         const stop = target.activeFocusOnTab ? target : target.nextItemInFocusChain(true);
-        if (stop && root.within(stop, target))
+        if (stop && root.within(stop, target)) {
             stop.forceActiveFocus(Qt.OtherFocusReason);
+        } else {
+            let group = target.parent;
+            while (group && group !== pageLoader.item && group.rows === undefined)
+                group = group.parent;
+            const first = group && group !== pageLoader.item ? group.nextItemInFocusChain(true) : null;
+            if (first && root.within(first, group))
+                first.forceActiveFocus(Qt.OtherFocusReason);
+        }
         highlight.show(target);
     }
 

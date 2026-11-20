@@ -25,6 +25,7 @@ SettingsGroup {
     }
 
     SettingSliderRow {
+        objectName: "visualiserBars"
         title: qsTr("Número de barras")
         valueText: String(CortetsuConfig.visualiserBars)
         from: 8
