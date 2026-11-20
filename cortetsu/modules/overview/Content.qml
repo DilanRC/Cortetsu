@@ -313,6 +313,18 @@ FocusScope {
         CortetsuHypr.moveWindow(address, workspaceId, false);
     }
 
+    // Digits address this screen's ten workspaces: 1..9 and 0 for the tenth,
+    // the same order as the rail. A plain digit opens the workspace;
+    // Alt+digit sends the selected window there and keeps the overview open,
+    // the keyboard counterpart of dropping a card on a workspace.
+    function workspaceForDigit(key): int {
+        const slot = key === Qt.Key_0 ? 9 : key - Qt.Key_1;
+        if (slot < 0 || slot > 9)
+            return -1;
+        const ids = workspaceIdsForScreen(root.screen, Math.max(0, Quickshell.screens.indexOf(root.screen)));
+        return ids[slot] ?? -1;
+    }
+
     function ensureSelectedVisible(): void {
         if (
             selectedIndex < 0 ||
@@ -451,6 +463,18 @@ FocusScope {
             (event.key === Qt.Key_F && (event.modifiers & Qt.ControlModifier))
         ) {
             startFilter();
+            event.accepted = true;
+            return;
+        }
+
+        const workspace = workspaceForDigit(event.key);
+        if (workspace > 0 && !(event.modifiers & (Qt.ControlModifier | Qt.ShiftModifier | Qt.MetaModifier))) {
+            if (event.modifiers & Qt.AltModifier) {
+                if (currentClient)
+                    moveClientToWorkspace(currentClient, workspace);
+            } else {
+                activateWorkspace(workspace);
+            }
             event.accepted = true;
             return;
         }
