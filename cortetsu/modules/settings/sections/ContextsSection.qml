@@ -30,6 +30,8 @@ ColumnLayout {
             return keep.concat([{ value: true, label: qsTr("Activar") }, { value: false, label: qsTr("Desactivar") }]);
         if (key === "themeId")
             return keep.concat([{ value: "ink", label: "Ink" }, { value: "washi", label: "Washi" }, { value: "kurogane", label: "Kurogane" }]);
+        if (key === "bottomHub.spacing")
+            return keep.concat([{ value: "compact", label: qsTr("Compacta") }, { value: "standard", label: qsTr("Normal") }, { value: "airy", label: qsTr("Amplia") }]);
         if (key === "powerProfile")
             return keep.concat([{ value: "power-saver", label: qsTr("Ahorro") }, { value: "balanced", label: qsTr("Equilibrado") }, { value: "performance", label: qsTr("Rendimiento") }]);
         return keep.concat([1000, 1500, 3000, 5000, 10000].map(ms => ({ value: ms, label: qsTr("%1 s").arg(ms / 1000) })));
