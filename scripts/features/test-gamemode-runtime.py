@@ -11,8 +11,8 @@ on after the helper confirms ACTIVE.
 from __future__ import annotations
 
 import json
+import re
 import os
-import runpy
 import shutil
 import subprocess
 import sys
@@ -22,7 +22,12 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
 HELPER = REPO / "cortetsu/bin/cortetsu-gamemode"
-GAME = runpy.run_path(str(HELPER))["GAME"]
+# The keywords game mode owns live in the native owner (c372e671); the bash
+# helper only forwards to it. Read them from there, the one source of truth.
+_OWNER = (REPO / "cortetsu/hardware-runtime-rs/src/gamemode.rs").read_text(encoding="utf-8")
+_GAME_JSON = re.search(r'json!\((\{"animations:enabled".*?\})\)', _OWNER).group(1)
+GAME = json.loads(_GAME_JSON)
+assert "animations:enabled" in GAME and len(GAME) == 8, GAME
 sys.path.insert(0, str(REPO / "scripts/integration"))
 from nested_gpu import compositor_env  # keeps a suspended dGPU asleep  # noqa: E402
 
@@ -56,9 +61,11 @@ if not os.environ.get("WAYLAND_DISPLAY"):
     print("SKIP: requiere una sesión Wayland para anidar Hyprland")
     raise SystemExit(0)
 
-with tempfile.TemporaryDirectory(prefix="cortetsu-gamemode-") as tmp:
+# A short root: Hyprland truncates its socket path past 107 bytes, and the
+# signature alone is 64 (see the idle test, which does the same).
+with tempfile.TemporaryDirectory(prefix="czg", dir="/tmp") as tmp:
     base = Path(tmp)
-    runtime = base / "run"
+    runtime = base / "r"
     runtime.mkdir(mode=0o700)
     (base / "cfg/hypr").mkdir(parents=True)
     (base / "cfg/hypr/hyprland.lua").write_text(CONFIG)
@@ -117,7 +124,7 @@ exec hyprctl "$@"
         faulty = dict(env, CORTETSU_HYPRCTL=str(wrapper))
 
         def gamemode(action: str, ok: bool = True) -> dict:
-            done = subprocess.run(["python3", str(HELPER), action], env=faulty, text=True, capture_output=True,
+            done = subprocess.run([str(HELPER), action], env=faulty, text=True, capture_output=True,
                                   timeout=20)
             reply = json.loads(done.stdout)
             assert (done.returncode == 0) == ok == reply["ok"], (action, done)
@@ -210,10 +217,13 @@ exec hyprctl "$@"
         # A quick on/off starts two helpers at once. Whatever order they run
         # in, ACTIVE holds exactly when the game values are live.
         for _ in range(6):
-            racers = [subprocess.Popen(["python3", str(HELPER), action], env=env, stdout=subprocess.PIPE, text=True)
+            racers = [subprocess.Popen([str(HELPER), action], env=env, stdout=subprocess.PIPE, text=True)
                       for action in ("enable", "disable")]
             for racer in racers:
-                racer.communicate(timeout=30)
+                # Each racer answers in JSON, success or a clean refusal: a
+                # crash here once passed this loop without racing anything.
+                out, _ = racer.communicate(timeout=30)
+                assert "state" in json.loads(out), out
             if gamemode("status")["enabled"]:
                 assert option("decoration:rounding") == 0, "ACTIVE reported but game values missing"
                 gamemode("disable")
@@ -243,7 +253,7 @@ exec hyprctl "$@"
         (fake / "cortetsu-gamemode").write_text(f"""#!/bin/sh
 echo "start $1" >> {calls}
 sleep 0.3
-python3 {HELPER} "$@"
+{HELPER} "$@"
 code=$?
 echo "end $1" >> {calls}
 exit $code

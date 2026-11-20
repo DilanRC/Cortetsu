@@ -89,7 +89,14 @@ Singleton {
         { name: "eDP-1", focused: true, activeWorkspace: { toplevels: { values: [{ lastIpcObject: { fullscreen: fullscreen } }] } } },
         ...(external ? [{ name: "HDMI-A-1", focused: false, activeWorkspace: { toplevels: { values: [] } } }] : [])
     ] })
+    // IdleMonitors reads the focused screen's fullscreen state and turns the
+    // outputs off through setDpms, as the real CortetsuHypr offers them.
+    readonly property bool focusedFullscreen: fullscreen > 0
     function dispatch(request: string): void { dispatched = [...dispatched, request]; }
+    function setDpms(on: bool, monitor: var): bool {
+        dispatch(`hl.dsp.dpms({ action = "${on ? "on" : "off"}" })`);
+        return true;
+    }
 }
 """
 
