@@ -72,6 +72,10 @@ ShellRoot {
             const tile = find(panel, "quickWifi");
             verify(tile.clickable && tile.label === "Casa", `the Wi-Fi tile names the network and can be pressed (${tile.label})`);
             verify(panel.height < 700, `the panel is as tall as its content (${panel.height})`);
+            const context = find(panel, "quickContext");
+            verify(!!find(panel, "quickOrbital") && !!context, "the Orbital and context tiles are there");
+            verify(context.label === "Contextos" && context.detail === "Ninguno activo" && !context.highlighted,
+                `with no context active the tile says so (${context.label} · ${context.detail})`);
             grab("default");
             tile.forceActiveFocus();
             events.keyClick(Qt.Key_Return, Qt.NoModifier, -1);
@@ -157,7 +161,7 @@ def main():
         (folder / "quick.qml").write_text(SHELL, encoding="utf-8")
         output, _ = run(folder, "quick.qml", "quick", preferences={"schema": 1})
         failures = [line for line in output.splitlines() if "SETTINGS_FAIL" in line]
-        assert not failures and "SETTINGS_RUNTIME_PASS 14" in output, failures or output[-3000:]
+        assert not failures and "SETTINGS_RUNTIME_PASS 16" in output, failures or output[-3000:]
     print("PASS: Quick Settings toggles Wi-Fi through its service, waits for the radio, reports a refusal, "
           "mutes the microphone, and turns into readings when there is nothing to operate")
 
