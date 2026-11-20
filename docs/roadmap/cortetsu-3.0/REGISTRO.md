@@ -402,3 +402,31 @@ el journal quedó sin avisos.
   2024, secuencias QML con métodos de Array, singleton `ShellState` en la
   misma carpeta, pruebas excluidas del diff a propósito). Instalado
   después `d65419b6` (editar el contexto activo lo aplica al momento).
+
+#### Perfeccionamiento continuo, segundo tramo (2026-11-20, instalado `8c70e256`)
+
+Mismo procedimiento: gate completo en una generación de prueba antes de
+cada instalación; journal limpio tras cada recarga.
+
+- Fallos corregidos al revisar código propio: la pausa de Orbital por
+  contexto no volvía tras reiniciar la sesión hasta abrir una superficie
+  (ahora `Orbital.hold` se enlaza a `CortetsuContexts.orbitalHold`); editar
+  el contexto activo no se aplicaba; el resultado de «Usar sus colores» se
+  mostraba en el panel de otro fondo; en el Hub lateral repartido, el grupo
+  central se solapaba con un Sistema largo (acotado entre vecinos).
+- Mejoras: Contextos avisa antes de activar qué ajustes conserva la
+  automatización; el botón de contextos del Dashboard abre Ajustes →
+  Contextos sin ninguno activo; paradas de Tab condicionales que conservan
+  la bandera mientras tienen el foco.
+- Pruebas nuevas o ampliadas: dígitos de la vista general
+  (`OverviewKeys.js`), Hub en laterales (170 comprobaciones), contextos
+  (editar activo, exportar/importar, arranque solo con Orbital),
+  `preferences.json` dañado, fuentes no instaladas, mosaicos del centro de
+  control, mini-OSD multimedia, contrato de foco del OSD. El arnés de
+  Ajustes ya no puede mostrar notificaciones reales (`notify-send` falso).
+- `scripts/features/INDEX.md`: qué comprobaciones ejecuta cada suite (50) y
+  cuáles son contratos archivados (200).
+- Pendiente de la sesión física: lo listado en la tabla de estado de
+  `QA_POSTERIOR.md`. Los controles rápidos del Dashboard no son alcanzables
+  con el teclado (Tab y flechas recorren las zonas); queda como decisión de
+  diseño.
