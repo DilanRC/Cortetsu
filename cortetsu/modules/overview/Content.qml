@@ -6,6 +6,7 @@ import Quickshell
 import QtQuick.Controls
 import "../../theme"
 import "../CortetsuTypography.js" as CortetsuTypography
+import "OverviewKeys.js" as OverviewKeys
 import "../../components"
 
 FocusScope {
@@ -313,16 +314,12 @@ FocusScope {
         CortetsuHypr.moveWindow(address, workspaceId, false);
     }
 
-    // Digits address this screen's ten workspaces: 1..9 and 0 for the tenth,
-    // the same order as the rail. A plain digit opens the workspace;
-    // Alt+digit sends the selected window there and keeps the overview open,
-    // the keyboard counterpart of dropping a card on a workspace.
-    function workspaceForDigit(key): int {
-        const slot = key === Qt.Key_0 ? 9 : key - Qt.Key_1;
-        if (slot < 0 || slot > 9)
-            return -1;
-        const ids = workspaceIdsForScreen(root.screen, Math.max(0, Quickshell.screens.indexOf(root.screen)));
-        return ids[slot] ?? -1;
+    // Digits address this screen's ten workspaces in rail order
+    // (OverviewKeys.js): a plain digit opens the workspace, Alt+digit sends
+    // the selected window there and keeps the overview open, the keyboard
+    // counterpart of dropping a card on a workspace.
+    function screenWorkspaceIds(): var {
+        return workspaceIdsForScreen(root.screen, Math.max(0, Quickshell.screens.indexOf(root.screen)));
     }
 
     function ensureSelectedVisible(): void {
@@ -467,14 +464,15 @@ FocusScope {
             return;
         }
 
-        const workspace = workspaceForDigit(event.key);
-        if (workspace > 0 && !(event.modifiers & (Qt.ControlModifier | Qt.ShiftModifier | Qt.MetaModifier))) {
-            if (event.modifiers & Qt.AltModifier) {
-                if (currentClient)
-                    moveClientToWorkspace(currentClient, workspace);
-            } else {
-                activateWorkspace(workspace);
-            }
+        const digit = OverviewKeys.digitAction(event.key, event.modifiers, screenWorkspaceIds());
+        if (digit.action === "move") {
+            if (currentClient)
+                moveClientToWorkspace(currentClient, digit.workspace);
+            event.accepted = true;
+            return;
+        }
+        if (digit.action === "open") {
+            activateWorkspace(digit.workspace);
             event.accepted = true;
             return;
         }
