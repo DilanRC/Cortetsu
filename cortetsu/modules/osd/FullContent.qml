@@ -404,6 +404,20 @@ Item {
             onActivated: { root.closeQsd(); Orbital.requestSteam(); WallpaperController.open(root.screen); }
         }
 
+        // The active context, if any: pressing ends it and brings back the
+        // settings it changed; with none, it opens Ajustes → Contextos.
+        CortetsuActionTile {
+            objectName: "quickContext"
+            Layout.fillWidth: true
+            label: CortetsuContexts.active ? CortetsuContexts.active.name : qsTr("Contextos")
+            detail: CortetsuContexts.active ? qsTr("Activo · pulsa para salir y restaurar")
+                : qsTr("Universidad, Desarrollo, Gaming, Batería…")
+            icon: CortetsuContexts.active?.icon ?? "tune"
+            highlighted: CortetsuContexts.active !== null
+            warning: CortetsuContexts.error.length > 0
+            onActivated: CortetsuContexts.active ? CortetsuContexts.deactivate() : root.openSettingsPage("contexts")
+        }
+
         // --- Connections: the two radios carry their link as detail -------
 
         RowLayout {
