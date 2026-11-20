@@ -213,8 +213,6 @@ ShellRoot {
         return !!notificationBadgeProbe && notificationBadgeProbe.notificationCountBadge.visible;
     }
     function text(name) { return find(get(name), "rowDetail")?.text ?? ""; }
-    function clockDateExists(): bool { return find(clockArea, "desktopClockDate") !== null; }
-    function clockDateVisible(): bool { return find(clockArea, "desktopClockDate")?.visible ?? false; }
     function value(name) { return find(get(name), "value")?.text ?? ""; }
     // Every item under the surface. Comparing two of these by identity tells
     // whether anything was destroyed or created in between.
@@ -290,19 +288,6 @@ ShellRoot {
         height: Number(Quickshell.env("SETTINGS_HEIGHT") || 900)
         visible: true
         color: "#0B0D10"
-
-        Item {
-            id: clockArea
-            anchors.fill: parent
-            // Keep the subtree active so the test can observe the date's own visibility.
-            opacity: 0
-            DesktopClock {
-                wallpaper: clockArea
-                absX: 0
-                absY: 0
-                anchors.centerIn: parent
-            }
-        }
 
         // The same frame SettingsHost draws, so a render shows the real surface.
         CortetsuInkPanel {
@@ -588,20 +573,22 @@ ShellRoot {
             select("display");
             key(Qt.Key_F, Qt.ControlModifier);
             verify(focusName() === "nexusSearch", `Ctrl+F reaches the search (${focusName()})`);
-            get("nexusSearch").text = "reloj";
+            get("nexusSearch").text = "barras";
         }],
         [() => SettingsController.results.length > 0 && get("nexusResult-0")?.visible, () => {
             verify(!get("nexus-system").visible && get("nexus-system") !== null, "categories step aside for the results without being rebuilt");
             memo.result = SettingsController.results[0];
-            verify(memo.result.title === "Posición del reloj" && memo.result.path === "Personalización › Fondo",
+            verify(memo.result.title === "Número de barras" && memo.result.path === "Personalización › Fondo",
                 `results name the setting and its place (${memo.result.title}, ${memo.result.path})`);
-            verify(SettingsController.results.some(result => result.title === "Reloj de 12 horas" && result.page === "indicators"),
-                "every matching setting is offered");
+            verify(SettingsController.results.every(result => result.title.toLowerCase().includes("barras") || result.page === "background"),
+                `only matching settings are offered (${SettingsController.results.map(result => result.title)})`);
             key(Qt.Key_Return);
         }],
-        [() => content.pageId === "background" && !!page("desktopClockEnabled") && waitedMs >= 300, () => {
+        [() => content.pageId === "background" && !!page("visualiserBars") && waitedMs >= 300, () => {
             verify(get("nexusSearch").text === "" && SettingsController.reveal === "", "opening a result clears the search");
-            verify(focusName().startsWith("clock-"), `the result opens on the setting itself (${focusName()})`);
+            // The bars are disabled while the visualiser is off: the keyboard
+            // lands on the switch that enables them, and the row is marked.
+            verify(focusName() === "visualiserEnabled", `a disabled result opens on the control that enables it (${focusName()})`);
             verify(get("revealHighlight").visible, "and marks it");
             key(Qt.Key_F, Qt.ControlModifier);
             get("nexusSearch").text = "energia";
@@ -1431,29 +1418,22 @@ ShellRoot {
         }]
     ]
 
+    // The single desktop clock of 2.x became the first desktop widget
+    // (33ed5a57): it keeps its place and its date, and is migrated once.
     readonly property var clockPreferences: [
         [() => CortetsuConfig.loaded, () => {
-            verify(CortetsuConfig.desktopClockPosition === "top-left", "the old camel-case clock position migrates to an actual runtime state");
-            select("wallpaper"); screenDouble.settings = true;
-        }],
-        [() => !!content && !!page("clock-middle-center") && !!page("clockShowDate"), () => {
-            verify(CortetsuConfig.desktopClockShowDate && root.clockDateExists() && root.clockDateVisible(),
-                "the existing clock shows its date by default");
-            page("clock-middle-center").request();
-            verify(CortetsuConfig.desktopClockPosition === "middle-center", "the position control updates the background owner");
-            verify(page("clock-middle-center").selected, "the selected position is confirmed");
-            const toggle = page("clockShowDate");
-            toggle.forceActiveFocus(); key(Qt.Key_Space);
-            verify(!CortetsuConfig.desktopClockShowDate && root.clockDateExists() && !root.clockDateVisible(),
-                "the desktop clock date control changes the rendered background clock");
+            const widgets = CortetsuConfig.desktopWidgets;
+            verify(widgets.length === 1 && widgets[0].type === "clock", `an enabled 2.x clock becomes one clock widget (${JSON.stringify(widgets)})`);
+            verify(widgets[0].cx === 0.5 && widgets[0].cy === 0.5, "the camel-case position keeps the clock where it was");
+            verify(widgets[0].showDate === false, "a hidden date stays hidden");
+            CortetsuConfig.save();
         }],
         [() => CortetsuConfig.saveState === "saved", () => {}]
     ]
     readonly property var clockRestore: [
         [() => CortetsuConfig.loaded, () => {
-            verify(CortetsuConfig.desktopClockPosition === "middle-center", "a new process restores the selected clock position");
-            verify(!CortetsuConfig.desktopClockShowDate && root.clockDateExists() && !root.clockDateVisible(),
-                "the hidden desktop clock date survives process restart");
+            verify(CortetsuConfig.desktopWidgets.length === 1 && CortetsuConfig.desktopWidgets[0].type === "clock",
+                "a saved widget list is not migrated a second time");
         }]
     ]
 
@@ -1718,11 +1698,11 @@ ShellRoot {
             root.writes = 0;
             select("background"); screenDouble.settings = true; window.requestActivate();
         }],
-        [() => window.active && !!page("desktopClockEnabled"), () => {
-            const toggle = page("desktopClockEnabled");
-            verify(CortetsuConfig.desktopClockEnabled && toggle.checked, "the desktop clock control starts from the active owner state");
+        [() => window.active && !!page("visualiserEnabled"), () => {
+            const toggle = page("visualiserEnabled");
+            verify(!CortetsuConfig.visualiserEnabled && !toggle.checked, "the visualiser control starts from the owner state");
             toggle.forceActiveFocus(); key(Qt.Key_Space);
-            verify(!CortetsuConfig.desktopClockEnabled && !toggle.checked, "the desktop clock control updates the rendered clock owner");
+            verify(CortetsuConfig.visualiserEnabled && toggle.checked, "the visualiser control updates its owner");
             select("bar");
         }],
         [() => !!page("appsSegment"), () => {
@@ -1746,16 +1726,16 @@ ShellRoot {
             verify(CortetsuConfig.useFuzzyApps && toggle.checked, "the fuzzy-search control updates the application search service");
         }],
         [() => CortetsuConfig.saveState === "saved", () => {
-            verify(CortetsuConfig.desktopClockEnabled === false && CortetsuConfig.bottomHub.segments.apps === false
+            verify(CortetsuConfig.visualiserEnabled === true && CortetsuConfig.bottomHub.segments.apps === false
                 && CortetsuConfig.useFahrenheit === true && CortetsuConfig.useFuzzyApps === true,
                 "all migrated controls reach their real preference owners before persistence");
         }]
     ]
     readonly property var migratedControlsRestore: [
         [() => CortetsuConfig.loaded, () => {
-            verify(CortetsuConfig.desktopClockEnabled === false && CortetsuConfig.bottomHub.segments.apps === false
+            verify(CortetsuConfig.visualiserEnabled === true && CortetsuConfig.bottomHub.segments.apps === false
                 && CortetsuConfig.useFahrenheit === true && CortetsuConfig.useFuzzyApps === true,
-                "a fresh process restores the clock, Bottom Hub, temperature and fuzzy-search preferences");
+                "a fresh process restores the visualiser, Bottom Hub, temperature and fuzzy-search preferences");
         }]
     ]
 
@@ -2166,7 +2146,9 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     assert saved["transparencyEnabled"] is True and saved["borderThickness"] == 4, saved
     # One write holds every section, and what Settings does not show survives it.
     assert saved["bottomHub"]["segments"] == {"mode": True, "apps": True, "tray": False, "status": True}, saved["bottomHub"]
-    assert saved["displayCalibration"] == {"enabled": False, "temperature": 4500, "gamma": 90}, saved["displayCalibration"]
+    # The night-light schedule (2dd6c60b) is saved with its defaults, off.
+    assert saved["displayCalibration"] == {"enabled": False, "temperature": 4500, "gamma": 90,
+                                           "schedule": {"enabled": False, "from": "20:00", "to": "07:00"}}, saved["displayCalibration"]
     assert saved["favouriteApps"] == ["kitty"] and saved["launcher"]["maxShown"] == 11, saved
 
     navigation = passed(run(folder, "shell.qml", "navigation")[0])
@@ -2334,20 +2316,20 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     assert passed(restored) == 1, restored
 
     output, clock_home = run(folder, "shell.qml", "clockPreferences",
-                             preferences={"schema": 1, "desktopClockPosition": "topLeft"})
-    assert passed(output) == 5, output
+                             preferences={"schema": 1, "desktopClockEnabled": True,
+                                          "desktopClockPosition": "middleCenter", "desktopClockShowDate": False})
+    assert passed(output) == 3, output
     clock_saved = json.loads((clock_home / ".config/cortetsu/preferences.json").read_text())
-    assert clock_saved["desktopClockPosition"] == "middle-center", clock_saved
-    assert clock_saved["desktopClockShowDate"] is False, clock_saved
+    assert [w["type"] for w in clock_saved["desktopWidgets"]] == ["clock"], clock_saved
     restored, _ = run(folder, "shell.qml", "clockRestore", preferences=clock_saved)
-    assert passed(restored) == 2, restored
+    assert passed(restored) == 1, restored
 
     output, migrated_home = run(folder, "shell.qml", "migratedControls",
-        preferences={"schema": 1, "desktopClockEnabled": True, "bottomHub": {"segments": {"apps": True}},
+        preferences={"schema": 1, "visualiserEnabled": False, "bottomHub": {"segments": {"apps": True}},
                      "useFahrenheit": False, "useFuzzyApps": False})
     assert passed(output) == 9, output
     migrated_saved = json.loads((migrated_home / ".config/cortetsu/preferences.json").read_text())
-    assert migrated_saved["desktopClockEnabled"] is False, migrated_saved
+    assert migrated_saved["visualiserEnabled"] is True, migrated_saved
     assert migrated_saved["bottomHub"]["segments"]["apps"] is False, migrated_saved
     assert migrated_saved["useFahrenheit"] is True and migrated_saved["useFuzzyApps"] is True, migrated_saved
     restored, _ = run(folder, "shell.qml", "migratedControlsRestore", preferences=migrated_saved)
@@ -2457,7 +2439,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     host = run_host(folder)
     assert not host or "SETTINGS_HOST_PASS 1" in host, host
 
-    assert (reactivity, navigation, states, unwritable, pages) == (48, 58, 74, 3, 181), (reactivity, navigation, states, unwritable, pages)
+    assert (reactivity, navigation, states, unwritable, pages) == (48, 58, 74, 3, 199), (reactivity, navigation, states, unwritable, pages)
 assert policies == 16, policies
 print(f"Settings builds in {opened.split()[0]} ms ({opened.split()[1]} items); "
       f"20 cycles of open, every destination and close take {cycles} ms")

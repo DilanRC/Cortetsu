@@ -22,6 +22,10 @@ python3 "$REPO/scripts/features/test-cortetsu-button-tooltip.py"
 python3 "$REPO/scripts/features/test-cortetsu-dashboard-dismiss-runtime.py"
 python3 "$REPO/scripts/features/test-cortetsu-lock-card-runtime.py"
 python3 "$REPO/scripts/features/test-cortetsu-session-runtime.py"
+python3 "$REPO/scripts/features/test-cortetsu-settings-runtime.py"
+python3 "$REPO/scripts/features/test-cortetsu-theme-reactive-runtime.py"
+python3 "$REPO/scripts/features/test-cortetsu-launcher-apps-runtime.py"
+python3 "$REPO/scripts/features/test-connectivity-wifi-runtime.py"
 python3 "$REPO/scripts/features/test-session-host.py"
 # Redesigned surfaces stay at zero design-lint findings (phase 3).
 mapfile -t redesigned < <(grep -Ev '^(#|$)' "$REPO/scripts/verification/redesigned-surfaces.txt" | sed "s|^|$REPO/|")
