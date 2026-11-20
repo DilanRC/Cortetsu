@@ -416,6 +416,8 @@ BINDINGS = {"ok": True, "bindings": [
 # Each double command does what its mode file says, so a test can make the
 # next call fail without restarting the shell.
 COMMANDS = {
+    # Notifications go to the call log, never to the desktop running the test.
+    "notify-send": '#!/bin/sh\nprintf "notify-send %s\\n" "$*" >> "$SETTINGS_FIXTURES/calls.log"\n',
     "systemctl": '#!/bin/sh\nprintf "systemctl %s\\n" "$*" >> "$SETTINGS_FIXTURES/calls.log"\n'
                  'mode="$(cat "$SETTINGS_FIXTURES/systemctl-mode")"\n'
                  '[ "$mode" = ok ] || { sleep 0.25; echo "hyprsunset.service no existe" >&2; exit 5; }\n',
@@ -598,7 +600,7 @@ def run_host(folder: Path) -> str:
     return output
 
 
-def run(folder: Path, shell: str, scenario: str, *, preferences: dict | None = None,
+def run(folder: Path, shell: str, scenario: str, *, preferences: dict | str | None = None,
         scheme: dict | None = None, env: dict | None = None, timeout: int = 120, label: str = "") -> tuple[str, Path]:
     """Runs one scenario in its own home and returns the log and that home."""
     home = folder / f"home-{label or scenario}"
@@ -630,7 +632,9 @@ def run(folder: Path, shell: str, scenario: str, *, preferences: dict | None = N
     (home / "state/cortetsu/scheme.json").write_text(
         json.dumps(scheme or {"name": "dynamic", "flavour": "default", "colours": {}}), encoding="utf-8")
     if preferences is not None:
-        (home / ".config/cortetsu/preferences.json").write_text(json.dumps(preferences), encoding="utf-8")
+        # A string is written as it is: a damaged file, for instance.
+        text = preferences if isinstance(preferences, str) else json.dumps(preferences)
+        (home / ".config/cortetsu/preferences.json").write_text(text, encoding="utf-8")
     runtime = home / "runtime"
     if scenario == "themeProjectionFailure":
         # A real per-destination I/O failure; partial palettes now resolve safely

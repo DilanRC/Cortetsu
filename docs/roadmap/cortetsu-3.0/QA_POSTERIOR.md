@@ -18,7 +18,7 @@ real.
 | Centro de control | `test-cortetsu-quick-settings-runtime.py` (alto < 700 px, mosaicos) | — |
 | Ajustes | `test-cortetsu-settings-runtime.py` (en el gate; búsqueda que enfoca el control que habilita, fuentes no instaladas, widgets que sustituyen al reloj), contraste WCAG en 3 temas × 6 condiciones | — |
 | Sesión, bloqueo, inactividad, modo juego, editor de atajos | `test-cortetsu-session-runtime.py` en el gate; `nested-regressions.py` (Hyprland anidado) | Física: suspensión real, PAM con contraseña real |
-| `preferences.json` dañado | — | Arrancar con JSON roto y comprobar `preferences.json.damaged` |
+| `preferences.json` dañado | Escenario `damagedPreferences` de la prueba de Ajustes (copia exacta, valores por defecto, aviso, archivo nuevo al cambiar) | — |
 | Diseño | `qml-design-lint.py --strict` en todo el shell (0 hallazgos) | Revisión visual en 1920×1080 a 144 Hz y en HDMI |
 
 ## Orbital Steam: escenarios añadidos, sin ejecutar

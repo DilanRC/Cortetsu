@@ -1435,6 +1435,18 @@ ShellRoot {
     // with both keys, so an older version still mirrors it.
     // A font family that is not installed would fall back silently; the
     // row refuses it and names it. An installed one becomes the token.
+    // A preferences.json that is not JSON: the defaults stand, the damaged
+    // text is kept aside and the user is told; the next change writes a
+    // fresh file.
+    readonly property var damagedPreferences: [
+        [() => CortetsuConfig.loaded, () => {
+            verify(CortetsuConfig.loadError.includes("preferences.json.damaged"), `the damage is reported (${CortetsuConfig.loadError})`);
+            verify(CortetsuConfig.themeId === "ink" && !CortetsuConfig.reducedMotion, "the defaults stand");
+            CortetsuConfig.reducedMotion = true;
+            CortetsuConfig.save();
+        }],
+        [() => CortetsuConfig.saveState === "saved", () => {}]
+    ]
     readonly property var fontRefusal: [
         [() => CortetsuConfig.loaded, () => { select("themes"); screenDouble.settings = true; }],
         [() => !!content && !!page("themeToken-fontUi"), () => {
@@ -2353,6 +2365,15 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     assert [w["type"] for w in clock_saved["desktopWidgets"]] == ["clock"], clock_saved
     restored, _ = run(folder, "shell.qml", "clockRestore", preferences=clock_saved)
     assert passed(restored) == 1, restored
+
+    damaged = '{"schema": 1, "themeId": "washi", '
+    output, damaged_home = run(folder, "shell.qml", "damagedPreferences", preferences=damaged)
+    assert passed(output) == 2, output
+    config = damaged_home / ".config/cortetsu"
+    assert (config / "preferences.json.damaged").read_text(encoding="utf-8") == damaged, "the damaged text is kept as it was"
+    fresh = json.loads((config / "preferences.json").read_text(encoding="utf-8"))
+    assert fresh["reducedMotion"] is True and fresh["themeId"] == "ink", fresh
+    assert "notify-send" in (damaged_home / "fixtures/calls.log").read_text(), "the user is told"
 
     output, _ = run(folder, "shell.qml", "fontRefusal")
     assert passed(output) == 3, output
