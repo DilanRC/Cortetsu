@@ -105,8 +105,12 @@ ShellRoot {
             return true;
         },
         () => {
-            // The coordinator owns game mode: Gaming leaves it and says so.
+            // The coordinator owns game mode: Gaming leaves it and says so,
+            // before activating too.
             ShellState.owned = ["gamemode"];
+            ShellState.shellRoot = ({ policyBridge: { activation: domain => ({ enabled: ShellState.owned.includes(domain) }) } });
+            verify(CortetsuContexts.ownedByAutomation("gameMode") && !CortetsuContexts.ownedByAutomation("dnd"),
+                "the page can tell beforehand what the coordinator keeps");
             GameMode.calls = [];
             CortetsuContexts.activate("gaming");
             verify(GameMode.calls.length === 0, "game mode is the coordinator's");

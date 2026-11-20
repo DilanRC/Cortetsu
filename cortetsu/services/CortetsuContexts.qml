@@ -56,6 +56,12 @@ Singleton {
         return ["notifications", "gamemode", "power"].filter(d => policies.activation(d)?.enabled === true);
     }
 
+    // Whether activating now would leave `key` to the coordinator.
+    function ownedByAutomation(key: string): bool {
+        const domain = keys[key]?.domain;
+        return !!domain && ownedDomains().includes(domain);
+    }
+
     function profileName(profile): string {
         return profile === PowerProfile.PowerSaver ? "power-saver"
             : profile === PowerProfile.Performance ? "performance" : "balanced";

@@ -115,8 +115,10 @@ ColumnLayout {
                 id: settingRow
                 required property string modelData
                 readonly property var setting: root.selected?.settings[modelData]
-                readonly property string skippedNote: CortetsuContexts.skipped.includes(modelData) && root.selectedActive
-                    ? qsTr("Lo gestiona la automatización; el contexto no lo tocó") : ""
+                // Said before activating too, with the rule the service applies.
+                readonly property string skippedNote: root.selectedActive
+                    ? (CortetsuContexts.skipped.includes(modelData) ? qsTr("Lo gestiona la automatización; el contexto no lo tocó") : "")
+                    : (setting !== undefined && CortetsuContexts.ownedByAutomation(modelData) ? qsTr("Lo gestiona la automatización; el contexto no lo tocará") : "")
                 Layout.fillWidth: true
                 spacing: 0
                 visible: root.editable || setting !== undefined
