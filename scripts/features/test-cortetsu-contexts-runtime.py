@@ -27,7 +27,8 @@ DOUBLES = {
                   '    function setDnd(on: bool): void { calls = calls.concat(["dnd:" + on]); } }\n',
     "GameMode.qml": 'pragma Singleton\nimport Quickshell\nSingleton { property var desired: null; property bool enabled: false; property var calls: []\n'
                     '    function setEnabled(on: bool): void { desired = on; calls = calls.concat(["game:" + on]); } }\n',
-    "Orbital.qml": 'pragma Singleton\nimport Quickshell\nSingleton { property bool hold: false }\n',
+    # Bound as the real Orbital binds it: the context owns the hold.
+    "Orbital.qml": 'pragma Singleton\nimport Quickshell\nSingleton { readonly property bool hold: CortetsuContexts.orbitalHold }\n',
     "CortetsuToaster.qml": 'pragma Singleton\nimport Quickshell\nSingleton { property var toasts: []\n'
                            '    function toast(title, message, icon, type = 0) { toasts = toasts.concat([message]); } }\n',
     "ShellState.qml": 'pragma Singleton\nimport Quickshell\nSingleton { property var owned: []\n'
@@ -118,6 +119,13 @@ ShellRoot {
         () => { console.log("CONTEXTS_PASS", root.checks); Qt.quit(); return true; }
     ]
 
+    // Only Orbital is touched, as the wallpaper touches it at start-up: the
+    // hold must come back without any surface creating CortetsuContexts.
+    readonly property var startup: [
+        () => Orbital.hold === true,
+        () => { console.log("CONTEXTS_PASS", root.checks); Qt.quit(); return true; }
+    ]
+
     readonly property var restart: [
         () => CortetsuConfig.loaded && CortetsuContexts.loaded,
         () => {
@@ -133,7 +141,7 @@ ShellRoot {
     Timer {
         interval: 50; repeat: true; running: true
         onTriggered: {
-            const steps = root.scenario === "restart" ? root.restart : root.first;
+            const steps = root.scenario === "restart" ? root.restart : root.scenario === "startup" ? root.startup : root.first;
             try { if (steps[root.step]()) root.step++; }
             catch (error) { console.log("CONTEXTS_FAIL", error); Qt.quit(); }
         }
@@ -174,6 +182,9 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-contexts-") as temporary:
     state = json.loads((home / ".local/state/cortetsu/contexts.json").read_text())
     assert state["active"] == "gaming" and state["applied"].get("orbitalHold") is True, state
     assert "gameMode" in state["skipped"], state
+
+    started = run(folder, home, "startup")
+    assert "CONTEXTS_PASS" in started and "CONTEXTS_FAIL" not in started, started
 
     restarted = run(folder, home, "restart")
     assert "CONTEXTS_PASS" in restarted and "CONTEXTS_FAIL" not in restarted, restarted

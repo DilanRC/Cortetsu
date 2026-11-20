@@ -18,7 +18,7 @@ import "ContextModel.js" as Model
 //   restore   the values those settings had before
 //   skipped   settings left to the automation coordinator
 // A shell restart reads the file and keeps the context active; preferences
-// already hold the applied values, and Orbital's hold is set again.
+// already hold the applied values, and Orbital's hold follows `orbitalHold`.
 Singleton {
     id: root
 
@@ -38,6 +38,11 @@ Singleton {
     readonly property var active: contexts.find(c => c.id === record.active) ?? null
     readonly property var skipped: record.skipped
     readonly property var custom: record.custom
+    // The one source of Orbital's hold. Orbital binds to it and is created
+    // at start-up (the wallpaper uses it), so this singleton and its state
+    // file load with the shell: a session restarted with Gaming active holds
+    // animated wallpapers from its first frame, not when a surface opens.
+    readonly property bool orbitalHold: record.active.length > 0 && record.applied.orbitalHold === true
 
     function describe(key: string): string { return Model.describe(key); }
 
@@ -71,7 +76,7 @@ Singleton {
         case "dnd": return Notifs.dnd;
         case "gameMode": return GameMode.desired ?? GameMode.enabled;
         case "powerProfile": return profileName(PowerProfiles.profile);
-        case "orbitalHold": return Orbital.hold;
+        case "orbitalHold": return root.orbitalHold;
         }
         const [target, name] = configSlot(key);
         return target[name];
@@ -82,7 +87,9 @@ Singleton {
         case "themeId": CortetsuConfig.selectTheme(value); return;
         case "dnd": Notifs.setDnd(value); return;
         case "gameMode": GameMode.setEnabled(value); return;
-        case "orbitalHold": Orbital.hold = value; return;
+        // Orbital.hold follows `orbitalHold`, which the commit after
+        // writeAll sets: there is nothing to write here.
+        case "orbitalHold": return;
         case "powerProfile":
             if (value === "performance" && !PowerProfiles.hasPerformanceProfile)
                 return;
@@ -238,9 +245,6 @@ Singleton {
             }
             root.record = parsed;
             root.loaded = true;
-            // Hold is runtime-only in Orbital; it comes back from here.
-            if (parsed.active.length > 0 && "orbitalHold" in parsed.applied)
-                Orbital.hold = parsed.applied.orbitalHold;
         }
         onLoadFailed: err => {
             if (err === FileViewError.FileNotFound)

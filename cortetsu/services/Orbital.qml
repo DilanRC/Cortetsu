@@ -22,9 +22,9 @@ Singleton {
     property bool available: false
     property bool steamRequested: false
     property int failures: 0
-    // Set by CortetsuContexts: a context that holds animated wallpapers keeps
-    // the static cover on every monitor until it is deactivated.
-    property bool hold: false
+    // A context that holds animated wallpapers keeps the static cover on
+    // every monitor until it is deactivated (CortetsuContexts owns it).
+    readonly property bool hold: CortetsuContexts.orbitalHold
     // The theme colours taken from an animated wallpaper's preview.
     // "" | "busy" | "applied" | "refused" (Smart scheme off or a manual
     // scheme chosen) | "error". The colour daemon keeps them while the
