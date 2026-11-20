@@ -11,11 +11,12 @@ import "../CortetsuTypography.js" as CortetsuTypography
 // A level (volume, brightness) shows its bar; a state (the microphone) shows
 // its name and nothing to drag. Silence and a muted microphone read
 // differently from a plain percentage. A power profile is a state too: its
-// name, as power-profiles-daemon reports it after the change.
+// name, as power-profiles-daemon reports it after the change. Media is a
+// state as well: the track and whether it now plays or is paused.
 Item {
     id: root
 
-    // "volume" | "brightness" | "microphone" | "profile"
+    // "volume" | "brightness" | "microphone" | "profile" | "media"
     required property string kind
     required property real value
     required property real maximum
@@ -23,7 +24,9 @@ Item {
     required property bool muted
     // The device the reading belongs to, when the system names it.
     property string name: ""
-    readonly property bool level: kind !== "microphone" && kind !== "profile"
+    readonly property bool level: kind !== "microphone" && kind !== "profile" && kind !== "media"
+    // For media, `value` is 1 while playing and 0 while paused.
+    readonly property bool playing: kind === "media" && value > 0.5
     // PowerProfile: 0 power saver, 1 balanced, 2 performance.
     readonly property int profile: kind === "profile" ? Math.round(value) : -1
     // A muted microphone is the one reading here that asks for attention.
@@ -44,13 +47,15 @@ Item {
         ? muted || value <= 0 ? "volume_off" : "volume_up"
         : kind === "microphone" ? (muted || !available ? "mic_off" : "mic")
         : kind === "profile" ? (profile === 0 ? "energy_savings_leaf" : profile === 2 ? "rocket_launch" : "balance")
+        : kind === "media" ? (playing ? "play_arrow" : "pause")
         : "light_mode"
     readonly property string label: name.length > 0 ? name
         : kind === "volume" ? qsTr("Volumen") : kind === "microphone" ? qsTr("Micrófono")
-        : kind === "profile" ? qsTr("Perfil de energía") : qsTr("Brillo")
+        : kind === "profile" ? qsTr("Perfil de energía") : kind === "media" ? qsTr("Multimedia") : qsTr("Brillo")
     readonly property string amount: !available ? qsTr("No disponible")
         : kind === "microphone" ? (muted ? qsTr("Silenciado") : qsTr("Activo"))
         : kind === "profile" ? (profile === 0 ? qsTr("Ahorro") : profile === 2 ? qsTr("Rendimiento") : qsTr("Equilibrado"))
+        : kind === "media" ? (playing ? qsTr("Reproduciendo") : qsTr("En pausa"))
         : muted ? qsTr("Silenciado") : `${Math.round(value * 100)}%`
 
     Accessible.role: Accessible.AlertMessage

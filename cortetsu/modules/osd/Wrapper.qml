@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell.Services.Mpris
 import Quickshell.Services.UPower
 import ".."
 import "../../theme"
@@ -19,7 +20,7 @@ Item {
     readonly property bool volumeAvailable: !!CortetsuAudio.sink?.ready && !!CortetsuAudio.sink?.audio
     property real brightness: monitor?.supported ? monitor.brightness : -1
     property bool compactVisible: false
-    // "volume" | "brightness" | "microphone" | "profile"
+    // "volume" | "brightness" | "microphone" | "profile" | "media"
     property string compactKind: "volume"
     // power-profiles-daemon reports its first value after start-up; that
     // reading is not a change the user made and is not announced.
@@ -88,6 +89,18 @@ Item {
         function onProfileChanged(): void {
             if (root.profileSettled && CortetsuShellState.forActive() === root.screenState)
                 root.showMini("profile");
+        }
+    }
+
+    // Play and pause of the active player (media keys, a headset button).
+    // A new track is the "Reproduciendo ahora" toast's to announce; a
+    // player that just became the active one is not a change the user made.
+    Connections {
+        target: Players.active
+        function onPlaybackStateChanged(): void {
+            if (CortetsuShellState.forActive() === root.screenState
+                    && [MprisPlaybackState.Playing, MprisPlaybackState.Paused].includes(Players.active?.playbackState))
+                root.showMini("media");
         }
     }
 
@@ -169,14 +182,18 @@ Item {
         kind: root.compactKind
         value: root.compactKind === "volume" ? root.volume
             : root.compactKind === "microphone" ? CortetsuAudio.sourceVolume
-            : root.compactKind === "profile" ? PowerProfiles.profile : root.brightness
+            : root.compactKind === "profile" ? PowerProfiles.profile
+            : root.compactKind === "media" ? (Players.active?.playbackState === MprisPlaybackState.Playing ? 1 : 0)
+            : root.brightness
         maximum: root.compactKind === "brightness" ? 1 : CortetsuConfig.maxVolume
         available: root.compactKind === "volume" ? root.volumeAvailable
             : root.compactKind === "microphone" ? !!CortetsuAudio.source?.audio
-            : root.compactKind === "profile" ? true : root.brightness >= 0
+            : root.compactKind === "profile" ? true
+            : root.compactKind === "media" ? !!Players.active : root.brightness >= 0
         muted: root.compactKind === "microphone" ? CortetsuAudio.sourceMuted
-            : root.compactKind === "profile" ? false : root.muted
+            : root.compactKind === "profile" || root.compactKind === "media" ? false : root.muted
         // The output's own name, so a change of device is told apart.
-        name: root.compactKind === "volume" ? (CortetsuAudio.sink?.description ?? "") : ""
+        name: root.compactKind === "volume" ? (CortetsuAudio.sink?.description ?? "")
+            : root.compactKind === "media" ? (Players.active?.trackTitle?.trim() ?? "") : ""
     }
 }
