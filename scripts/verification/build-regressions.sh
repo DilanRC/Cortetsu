@@ -21,6 +21,8 @@ python3 "$REPO/scripts/features/test-hub-button-focus-runtime.py"
 python3 "$REPO/scripts/features/test-cortetsu-button-tooltip.py"
 python3 "$REPO/scripts/features/test-cortetsu-dashboard-dismiss-runtime.py"
 python3 "$REPO/scripts/features/test-cortetsu-lock-card-runtime.py"
+python3 "$REPO/scripts/features/test-cortetsu-session-runtime.py"
+python3 "$REPO/scripts/features/test-session-host.py"
 # Redesigned surfaces stay at zero design-lint findings (phase 3).
 mapfile -t redesigned < <(grep -Ev '^(#|$)' "$REPO/scripts/verification/redesigned-surfaces.txt" | sed "s|^|$REPO/|")
 python3 "$REPO/scripts/verification/qml-design-lint.py" --strict "${redesigned[@]}"

@@ -28,7 +28,7 @@ assert '"hyprctl"' not in content
 assert "property string pendingAction" in content
 assert "action.confirm && pendingAction !== action.id" in content
 assert "Quickshell.execDetached(action.command)" in content
-assert "onClicked: root.run(actionRow.modelData)" in content
+assert "onClicked: root.run(entry.modelData)" in content
 assert "CortetsuActionRow" in content
 assert "CortetsuEvolvingMark" in host
 assert 'phase: window.open ? "Awakening" : "Human"' in host
@@ -55,7 +55,10 @@ assert "Keys.onEnterPressed" in action_row and "Keys.onSpacePressed" in action_r
 assert "onEntered: actionRow.hovered = true" not in content
 assert "onExited: actionRow.hovered = false" not in content
 assert "root.run(modelData.command)" not in content
-assert "Confirmar %1" in content and "Pulsa otra vez en 4 segundos" in content
+# The confirmation names the action and counts the seconds left (919f8bab).
+assert 'qsTr("Confirmar: %1")' in content
+assert 'qsTr("Pulsa otra vez para confirmar · %1 segundos").arg(root.confirmRemaining)' in content
+assert 'qsTr("Pulsa otra vez para confirmar · 1 segundo")' in content
 
 # Suspend locks the shell first and only then hands off to systemd.
 assert "action.lockBefore" in content
@@ -67,6 +70,6 @@ print("PASS: session actions dispatch full first-party action records with safe 
 # Ink: each action carries a kanji seal; confirming presses it in vermillion.
 for glyph in ("錠", "眠", "出", "冬", "再", "止"):
     assert f'seal: "{glyph}"' in content, glyph
-assert "seal: actionRow.modelData.seal" in content
+assert "seal: entry.modelData.seal" in content
 assert "onSelectedChanged: if (selected && seal !== \"\") hanko.stamp()" in action_row
 assert "CortetsuInkPanel" in host

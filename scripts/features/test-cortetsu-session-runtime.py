@@ -108,10 +108,16 @@ ShellRoot {
 
         // Every row keeps the column's padding on both sides; before 2.1 the
         // rows were as wide as the column and overflowed its right padding.
-        const rows = locked.children.filter(child => child.title !== undefined);
-        verify(rows.length > 0 && rows.every(row => row.x === locked.leftPadding
-            && Math.abs(locked.width - (row.x + row.width) - locked.rightPadding) < 0.5),
-            `rows keep the padding on both sides: ${rows.map(row => `${row.x}+${row.width}`).join(" ")}`);
+        // Since the two groups (3.0) each row sits in its entry's Column, so
+        // it is measured in the panel's own coordinates.
+        const rows = locked.children
+            .filter(child => child.modelData !== undefined)
+            .map(entry => entry.children.find(child => child.title !== undefined))
+            .filter(row => !!row);
+        const placed = rows.map(row => row.mapToItem(locked, 0, 0).x);
+        verify(rows.length === locked.actions.length && rows.every((row, i) => Math.abs(placed[i] - locked.leftPadding) < 0.5
+            && Math.abs(locked.width - (placed[i] + row.width) - locked.rightPadding) < 0.5),
+            `rows keep the padding on both sides: ${rows.map((row, i) => `${placed[i]}+${row.width}`).join(" ")}`);
 
         console.log("SESSION_RUNTIME_PASS", checks);
         Qt.quit();
