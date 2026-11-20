@@ -94,4 +94,29 @@ TestCase {
         compare(slider.amount, "No disponible");
         compare(slider.progress, 0);
     }
+
+    // Media is a state, like the microphone: the track and whether it now
+    // plays or is paused, with no bar to read as a level.
+    function test_media_play_and_pause_read_as_a_state() {
+        slider.kind = "media";
+        slider.name = "Canción larga";
+        slider.maximum = 1;
+        slider.value = 1;
+        verify(!slider.level, "media draws no level bar");
+        compare(slider.icon, "play_arrow");
+        compare(slider.amount, "Reproduciendo");
+        compare(slider.label, "Canción larga");
+        verify(!slider.attention, "playing is not an alarm");
+        slider.value = 0;
+        compare(slider.icon, "pause");
+        compare(slider.amount, "En pausa");
+    }
+
+    function test_media_without_a_title_names_the_kind() {
+        slider.kind = "media";
+        slider.value = 1;
+        compare(slider.label, "Multimedia");
+        slider.available = false;
+        compare(slider.amount, "No disponible");
+    }
 }
