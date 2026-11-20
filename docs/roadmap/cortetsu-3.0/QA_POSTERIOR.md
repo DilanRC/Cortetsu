@@ -24,6 +24,25 @@
 - Antes de certificar persistencia futura: migración, corrupción, playlists,
   perfiles, rutas desaparecidas, importación/exportación y rollback de generación.
 
+## Fases 4, 5 y 6 (2026-11-19): escenarios sin ejecutar
+
+- qmllint de `WallpaperSection.qml`, `ThemeGeometrySection.qml`,
+  `ContextsSection.qml` y `CortetsuConfig.qml` (`qsTranslate` y la
+  `FileView` `recovery` en un `QtObject` singleton).
+- Ajustes → Fondo → Fondos animados: sin supervisor, «Consultar» lo arranca;
+  con él, una fila por pantalla con Activo/En pausa/Error/Fondo estático;
+  Detener y Restaurar anterior actúan solo sobre esa pantalla.
+- Fuentes: una familia inexistente se rechaza con el aviso y no cambia el
+  token; una instalada se aplica; vacío vuelve al valor del tema.
+- Contextos: «Separación del Hub» en un contexto propio; Gaming deja el Hub
+  compacto y al salir vuelve la separación anterior.
+- `preferences.json` con JSON roto, con `[]` y con `null`: arranca con los
+  valores por defecto, avisa, deja `preferences.json.damaged` con el contenido
+  exacto y el siguiente cambio escribe un archivo nuevo. Un archivo válido no
+  crea `.damaged`. Un segundo arranque roto reemplaza la copia anterior.
+- `scripts/verification/ipc-inventory.py --check` en la QA estática: falla si
+  `docs/IPC.md` no coincide con el código.
+
 ## Fase 3 (2026-11-19): escenarios sin ejecutar
 
 - qmllint de `CortetsuBottomHubView.qml`, `BottomHub.qml`,

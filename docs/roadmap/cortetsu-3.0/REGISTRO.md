@@ -325,3 +325,18 @@ verificado en ejecución**.
   centro de control; OSD de volumen, brillo, micrófono y perfil. No hecho:
   reordenar islas libremente (el cálculo de posiciones tuvo bucles de
   bindings; sin pruebas, el reflejo es el cambio seguro). IMPLEMENTADO_SIN_VERIFICAR.
+- Fase 4 (misma fecha): Ajustes → Fondo con el estado de Orbital por
+  pantalla (Detener, Restaurar anterior); las fuentes del tema rechazan
+  familias no instaladas. Ya existían: temas, esquemas, transparencia,
+  movimiento, geometría, Hub, perfiles visuales, pantallas con
+  confirmación, sonido, Wi-Fi, Bluetooth, energía, diagnóstico, búsqueda con
+  revelado del control y migas.
+- Fase 5: completada al inicio de la misión; se añade «Separación del Hub»
+  como ajuste de contexto (Gaming la pone compacta).
+- Fase 6: `docs/IPC.md` generado por `scripts/verification/ipc-inventory.py`
+  (29 destinos, incluidos los de `RetainedSurfaceController`); todos los
+  destinos llamados desde Hyprland, la CLI y el Launcher existen. Barrido de
+  QML sin referencias: ninguno. Corregido: un `preferences.json` dañado se
+  sobrescribía con los valores por defecto al primer cambio sin dejar copia;
+  ahora se guarda en `preferences.json.damaged` y se avisa.
+  IMPLEMENTADO_SIN_VERIFICAR.

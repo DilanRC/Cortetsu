@@ -61,3 +61,9 @@ cortetsu verify
 `main` representa el estado estable probado. Cada módulo nuevo debe desarrollarse en una rama `feature/*` y fusionarse solo cuando funcione en el shell real.
 
 El desarrollo de la interfaz inferior vive en `feature/bottom-hub` hasta completar las pruebas descritas en `docs/BOTTOM-HUB.md`.
+
+## IPC
+
+La referencia de destinos y funciones IPC del shell está en [IPC.md](IPC.md),
+generada desde el código con `scripts/verification/ipc-inventory.py`.
+Los contextos (perfiles integrados) están en [CONTEXTS.md](CONTEXTS.md).
