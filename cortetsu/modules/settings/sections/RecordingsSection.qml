@@ -4,6 +4,7 @@ import QtQuick
 import QtQuick.Layouts
 import Qt.labs.folderlistmodel
 import Quickshell
+import "../../../services"
 import "../../../theme"
 import "../.."
 import "../controls"
@@ -54,7 +55,7 @@ SettingsGroup {
             detail: `${fileName} · ${root.megabytes(fileSize)}`
             actionLabel: qsTr("Ver")
             actionIcon: "play_arrow"
-            onActivated: Quickshell.execDetached([...CortetsuConfig.playbackCommand, filePath])
+            onActivated: CortetsuProcessLauncher.launchPersistent([...CortetsuConfig.playbackCommand, filePath], "", qsTr("Reproductor"))
         }
     }
 
@@ -63,6 +64,6 @@ SettingsGroup {
         detail: folder.count > root.shown ? qsTr("Las %1 más recientes arriba; el resto está en la carpeta").arg(root.shown) : ""
         actionLabel: qsTr("Abrir carpeta")
         actionIcon: "folder_open"
-        onActivated: Quickshell.execDetached([...CortetsuConfig.explorerCommand, CortetsuRecorder.recordingsDir])
+        onActivated: CortetsuProcessLauncher.launchPersistent([...CortetsuConfig.explorerCommand, CortetsuRecorder.recordingsDir], "", qsTr("Explorador"))
     }
 }
