@@ -22,7 +22,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2] / "cortetsu"
 RENDER_DIR = os.environ.get("CORTETSU_RENDER_DIR", "")
-CHECKS = 122
+CHECKS = 170
 
 SHELL = """import QtQuick
 import QtQuick.Window
@@ -186,15 +186,22 @@ ShellRoot {
                 // and stay inside the edge.
                 const orders = [["core", "apps", "system"], ["core", "system", "apps"], ["apps", "core", "system"],
                                 ["apps", "system", "core"], ["system", "core", "apps"], ["system", "apps", "core"]];
-                for (const anchor of ["bottom-center", "bottom-left", "bottom-right"]) {
+                for (const anchor of ["bottom-center", "bottom-left", "bottom-right", "middle-left", "middle-right"]) {
                     view.anchor = anchor;
+                    // A lateral Hub stacks its islands: the edge runs along y,
+                    // and the view is as tall as the screen, as BottomHub sizes it.
+                    const lateral = anchor.startsWith("middle");
+                    view.width = lateral ? view.thickness : 1280;
+                    view.height = lateral ? 1080 : view.thickness;
+                    const at = item => lateral ? item.y : item.x;
+                    const size = item => lateral ? item.height : item.width;
                     for (const order of orders) {
                         view.order = order;
                         const [mode, apps, tray, status] = view.islands;
-                        const span = { core: [mode.x, mode.x + mode.width], apps: [apps.x, apps.x + apps.width],
-                                       system: [tray.x, status.x + status.width] };
+                        const span = { core: [at(mode), at(mode) + size(mode)], apps: [at(apps), at(apps) + size(apps)],
+                                       system: [at(tray), at(status) + size(status)] };
                         const label = `${anchor} ${order.join(">")}`;
-                        verify(mode.x === view.modeAt && apps.x === view.appsAt && tray.x === view.trayAt && status.x === view.statusAt,
+                        verify(at(mode) === view.modeAt && at(apps) === view.appsAt && at(tray) === view.trayAt && at(status) === view.statusAt,
                             `${label}: each island sits where the view says`);
                         for (let i = 0; i < 2; ++i)
                             verify(span[order[i]][1] + view.gap - 0.5 <= span[order[i + 1]][0],
@@ -208,6 +215,8 @@ ShellRoot {
                     }
                 }
                 view.order = ["core", "apps", "system"];
+                view.width = 1280;
+                view.height = view.thickness;
                 CortetsuDesign.reducedMotion = false;
                 view.anchor = "bottom-center";
                 return true; },

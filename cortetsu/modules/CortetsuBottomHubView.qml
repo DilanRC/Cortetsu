@@ -204,10 +204,19 @@ Item {
     // groups follow one another from packedStart.
     function groupAt(group: string): real {
         const slot = groups.indexOf(group);
-        if (spread)
-            return slot === 0 ? edgeGap
-                : slot === 1 ? Math.round((length - groupLength(group)) / 2)
-                : length - edgeGap - groupLength(group);
+        if (spread) {
+            if (slot === 0)
+                return edgeGap;
+            if (slot === 2)
+                return length - edgeGap - groupLength(group);
+            // Centred, but never over its neighbours: a long Sistema on a
+            // lateral Hub would otherwise run into the middle group. When the
+            // three do not fit at all, the middle one follows the first.
+            const centred = Math.round((length - groupLength(group)) / 2);
+            const low = edgeGap + groupStep(groups[0]);
+            const high = length - edgeGap - groupStep(groups[2]) - groupLength(group);
+            return low > high ? low : Math.max(low, Math.min(high, centred));
+        }
         let at = packedStart;
         for (let i = 0; i < slot; ++i)
             at += groupStep(groups[i]);
