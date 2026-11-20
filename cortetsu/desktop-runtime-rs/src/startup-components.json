@@ -727,5 +727,17 @@
       "cortetsu-orbital"
     ],
     "manageable": false
+  },
+  {
+    "id": "cortetsu:orbital-colours",
+    "name": "Orbital wallpaper colours",
+    "source": "services/Orbital.qml",
+    "qmlId": "colourProcess",
+    "startupPhase": "on-demand",
+    "condition": "Únicamente al pulsar «Usar sus colores» con un fondo animado activo",
+    "command": [
+      "cortetsu-apply-wallpaper-colors"
+    ],
+    "manageable": false
   }
 ]

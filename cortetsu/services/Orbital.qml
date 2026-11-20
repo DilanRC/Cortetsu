@@ -25,6 +25,21 @@ Singleton {
     // Set by CortetsuContexts: a context that holds animated wallpapers keeps
     // the static cover on every monitor until it is deactivated.
     property bool hold: false
+    // The theme colours taken from an animated wallpaper's preview.
+    // "" | "busy" | "applied" | "refused" (Smart scheme off or a manual
+    // scheme chosen) | "error". The colour daemon keeps them while the
+    // renderer runs and returns to the static wallpaper's when it stops.
+    property string colourState: ""
+    property string colourError: ""
+    function adoptColours(preview: string): bool {
+        if (colourProcess.running || !preview)
+            return false;
+        colourState = "busy";
+        colourError = "";
+        colourProcess.command = ["cortetsu-apply-wallpaper-colors", preview];
+        colourProcess.running = true;
+        return true;
+    }
     onHoldChanged: if (available) heartbeat()
     function heartbeat(): void { send({ op: "heartbeat", battery: CortetsuPower.onBattery, hold }); }
     readonly property string statePath: `${Quickshell.env("XDG_STATE_HOME") || `${Quickshell.env("HOME")}/.local/state`}/cortetsu/orbital.json`
@@ -98,6 +113,16 @@ Singleton {
             if (!root.available) root.preferences = Object.assign({}, root.preferences, saved);
             const monitors = Object.values(saved.monitors || {});
             if (monitors.some(s => s.restoreOnStart !== false)) root.ensure();
+        }
+    }
+
+    // startup inventory: cortetsu:orbital-colours (on request only)
+    Process {
+        id: colourProcess
+        stderr: StdioCollector { id: colourDiagnostics }
+        onExited: code => {
+            root.colourState = code === 0 ? "applied" : code === 3 ? "refused" : "error";
+            root.colourError = code === 0 || code === 3 ? "" : colourDiagnostics.text.trim().slice(-400);
         }
     }
 

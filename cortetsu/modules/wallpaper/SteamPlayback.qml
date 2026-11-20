@@ -243,6 +243,25 @@ Column {
             tooltipText: Orbital.preferences.previous?.[root.monitor]?.location.split("/").pop() || ""
             onClicked: Orbital.send({ op: "restore", monitor: root.monitor })
         }
+        // The scheme follows the animated wallpaper while it plays here. Off
+        // the screen it would be overwritten by the static one, so only the
+        // wallpaper active on this monitor offers it.
+        CortetsuButton {
+            objectName: "orbitalColours"
+            icon: Orbital.colourState === "applied" ? "check" : "palette"
+            label: Orbital.colourState === "busy" ? qsTr("Aplicando colores…") : qsTr("Usar sus colores")
+            // Same condition as Ajustes → Colores → «Esquema según el fondo».
+            readonly property bool followsWallpaper: CortetsuConfig.smartScheme && CortetsuColours.origin !== "manual"
+            disabled: !root.showsThis || root.phase !== "active" || !root.entry?.preview
+                || !followsWallpaper || Orbital.colourState === "busy"
+            tooltipText: !followsWallpaper ? qsTr("Activa «Esquema según el fondo» en Ajustes → Colores")
+                : !root.entry?.preview ? qsTr("Este fondo no trae imagen de portada")
+                : root.phase !== "active" || !root.showsThis ? qsTr("Disponible con este fondo activo en el monitor")
+                : Orbital.colourState === "refused" ? qsTr("Hay un esquema elegido a mano; vuelve al del fondo para usar este")
+                : Orbital.colourState === "error" ? qsTr("No se pudieron extraer los colores: %1").arg(Orbital.colourError)
+                : qsTr("Toma la paleta de su portada; al detenerlo vuelven los colores del fondo estático")
+            onClicked: Orbital.adoptColours(root.entry.preview)
+        }
         CortetsuButton {
             icon: "star"
             label: qsTr("Favorito")

@@ -149,7 +149,8 @@ en Steam Workshop ni se copian assets.
 - **Fondo estático**: aplicar uno desde Orbital detiene el animado de ese monitor.
 - **Bloqueo de pantalla**: sigue usando la imagen estática aplicada.
 - **Colores**: Ink, Washi y Kurogane no cambian al aplicar un fondo animado; la
-  paleta sigue el pipeline oficial del fondo estático.
+  paleta sigue el pipeline oficial del fondo estático salvo que se pulse
+  «Usar sus colores» (ver Bloqueos y riesgos).
 - **Biblioteca**: favoritos, colecciones, carpetas adicionales, rotación por
   monitor con intervalo y aleatorio, perfiles por monitor.
 
@@ -165,8 +166,13 @@ El supervisor arranca al abrir la biblioteca Steam o al iniciar sesión si
 - **Contextos**: los contextos Gaming y Batería (y los propios que lo
   pidan) envían `hold` en el `heartbeat`; el supervisor pausa con el motivo
   `context` y reanuda al quitarlo. Ver [CONTEXTS](../../CONTEXTS.md).
-- **Color desde el fondo animado**: no se extrae paleta del preview; requiere
-  elección explícita.
+- **Color desde el fondo animado**: «Usar sus colores» en el panel de
+  reproducción toma la paleta del primer fotograma de la portada del
+  proyecto (`cortetsu-apply-wallpaper-colors`). Solo con ese fondo activo en
+  el monitor y con «Esquema según el fondo» encendido; el escritor del
+  esquema lo rechaza (código 3) si hay un esquema elegido a mano. Mientras
+  el motor corre, el demonio de color no lo toca; al detener el fondo
+  animado vuelven los colores del estático.
 - **`cortetsu-background` en `bottom`**: cambia la capa del fondo estático para
   todos. Verificar en QA que nada queda tapado.
 - **Licencia**: el motor GPL se ejecuta como proceso aparte. No se enlaza ni se

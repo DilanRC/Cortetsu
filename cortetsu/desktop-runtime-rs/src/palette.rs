@@ -646,10 +646,13 @@ pub fn wallpaper_colours(args: &[String]) -> Result<i32> {
     if !matches!(mode, "dark" | "light") || image.is_none() {
         return Ok(2);
     }
+    // The first frame only: an animated preview (GIF, WebP) would otherwise
+    // stream every frame and skew the palette. A still image has one.
+    let first_frame = format!("{}[0]", image.unwrap_or(""));
     let output = call(
         "/usr/bin/magick",
         &[
-            image.unwrap_or(""),
+            first_frame.as_str(),
             "-resize",
             "64x64^",
             "-gravity",
