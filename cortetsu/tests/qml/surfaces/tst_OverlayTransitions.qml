@@ -29,6 +29,8 @@ TestCase {
         property bool displayManager
         property bool wallpaperManager
         property bool keyboards
+        property bool cheatsheet
+        property bool desktopWidgets
         readonly property CortetsuScreenState cortetsuState: CortetsuScreenState { legacyState: legacy }
     }
 

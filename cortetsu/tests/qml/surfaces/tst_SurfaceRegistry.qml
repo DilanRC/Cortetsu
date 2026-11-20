@@ -27,6 +27,8 @@ TestCase {
         property bool displayManager
         property bool wallpaperManager
         property bool keyboards
+        property bool cheatsheet
+        property bool desktopWidgets
         readonly property CortetsuScreenState cortetsuState: CortetsuScreenState { legacyState: legacy }
     }
 
@@ -43,7 +45,7 @@ TestCase {
     }
 
     readonly property var transientPanels: ["launcher", "session", "dashboard", "utilities", "settings", "sidebar"]
-    readonly property var retainedSurfaces: ["overview", "calendar", "clipboard", "hardware", "displayManager", "wallpaperManager", "keyboards"]
+    readonly property var retainedSurfaces: ["overview", "calendar", "clipboard", "hardware", "displayManager", "wallpaperManager", "keyboards", "cheatsheet", "desktopWidgets"]
 
     function init() {
         for (const state of [screenA, screenB])
@@ -57,7 +59,7 @@ TestCase {
     }
 
     function test_inventory_is_complete_and_unique() {
-        compare(Surfaces.names.length, 15);
+        compare(Surfaces.names.length, 17);
         compare(new Set(Surfaces.names).size, Surfaces.names.length);
         compare(Surfaces.retained.slice().sort(), retainedSurfaces.slice().sort());
         compare(Surfaces.transient.slice().sort(), transientPanels.concat(["osd"]).sort());

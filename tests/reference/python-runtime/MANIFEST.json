@@ -129,7 +129,7 @@
     },
     {
       "path": "cortetsu/bin/cortetsu-record",
-      "sha256": "148b7a99effe88e4a424d3e4a6276783c4aadc52681c5384dca0e36af6056fc5"
+      "sha256": "611c67763ae965c88572793f9eef0864d1d9e040a1990d154594a1f3e774fe82"
     },
     {
       "path": "cortetsu/bin/cortetsu-scheme",

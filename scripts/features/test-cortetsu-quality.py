@@ -70,7 +70,12 @@ assert "if (false &&" not in interactions, "dead interaction branch remains"
 
 sidebar = (modules / "sidebar/Content.qml").read_text(encoding="utf-8")
 assert "onClicked: {}" not in sidebar, "interactive-looking no-op remains"
-assert "disabled: true" in sidebar, "read-only notification history lacks a disabled row contract"
+# History rows are not a read-only list any more (a2a49b7b): each row is
+# legible and its one control removes it through the notification owner.
+# No row may look pressable without doing something.
+history = sidebar[sidebar.index("id: historyList"):]
+assert "onClicked: CortetsuNotifications.dismiss(row.modelData.id)" in history, "history row lacks its remove action"
+assert "MouseArea" not in history[:history.index("CortetsuStateMessage")], "history row has a pointer target without an action"
 
 for consumer in (hub, status, surface):
     assert 'import "../theme"' in consumer and "CortetsuDesign.js" not in consumer

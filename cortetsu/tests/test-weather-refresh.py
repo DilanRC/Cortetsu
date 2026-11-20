@@ -18,6 +18,7 @@ RUNTIME_FILES = (
     "modules/CortetsuConfig.qml",
     "modules/ThemePreferences.js",
     "modules/HubAnchor.js",
+    "modules/desktop/DesktopLayout.js",
     "theme/ThemeProfiles.js",
     "modules/CortetsuRegional.qml",
     "modules/CortetsuRegional.js",

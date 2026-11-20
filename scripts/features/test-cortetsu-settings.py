@@ -79,10 +79,15 @@ assert "active: false" in host and "sourceComponent: Content {" in host
 assert "sourceComponent: registry.component(pageId)" in content
 assert not re.search(r"visible: root\.(section|controller\.selectedId) ===", "\n".join(sources.values()))
 
-# Views bind and draw. Processes belong to services, except the one read-only
-# listing a page runs when it is opened.
+# Views bind and draw. Processes belong to services, except read-only reports
+# a page runs for itself: the keybind listing when Atajos opens, and
+# `cortetsu doctor --json` when Diagnóstico's button is pressed (35c5bdef).
+# Both die with the page and change nothing.
 with_process = sorted(path.name for path, text in sources.items() if re.search(r"\bProcess \{", text))
-assert with_process == ["ShortcutsSection.qml"], with_process
+assert with_process == ["DiagnosticsSection.qml", "ShortcutsSection.qml"], with_process
+diagnostics = (SHELL / "modules/settings/sections/DiagnosticsSection.qml").read_text(encoding="utf-8")
+assert 'command: ["cortetsu", "doctor", "--json"]' in diagnostics
+assert "running: true" not in diagnostics, "the doctor runs on request, not when the page opens"
 for path, text in sources.items():
     assert '"sh", "-c"' not in text and "execDetached" not in text, path.name
     assert not re.search(r'"#[0-9a-fA-F]{6}"', text), f"{path.name} holds a literal colour"

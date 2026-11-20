@@ -27,7 +27,7 @@ names = registry.group("names")
 retained = registry.group("retained")
 
 # 1. The table itself: unique names, known kinds, groups derived from it.
-assert len(names) == len(set(names)) == len(surfaces) == 15, names
+assert len(names) == len(set(names)) == len(surfaces) == 17, names
 assert {entry["kind"] for entry in surfaces} == {"retained", "transient", "chrome"}
 base_fields = {"name", "kind", "exclusive", "ownsKeyboard", "fullscreenGuard"}
 for entry in surfaces:

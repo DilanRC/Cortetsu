@@ -106,11 +106,8 @@ for required in \
     modules/CortetsuBottomHubView.qml \
     components/ScreenState.qml \
     components/misc/CustomShortcut.qml \
-    utils/NetworkConnection.qml \
     utils/Paths.qml \
     utils/Icons.qml \
-    utils/CortetsuUtils.qml \
-    utils/SysInfo.qml \
     modules/CortetsuModeSegment.qml \
     components/CortetsuEvolvingMark.qml \
     modules/CortetsuWorkspaceDots.qml \

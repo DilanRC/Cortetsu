@@ -116,15 +116,17 @@ assert '"cortetsu-wallpaper-select", "--random", wallsdir' in wallpaper_service
 assert '"cortetsu-apply-wallpaper-colors", next' in wallpaper_service
 assert 'cortetsu/wallpaper/path.txt' in wallpaper_service
 assert "caelestia" not in wallpaper_service.lower()
-# The base Nmcli.qml and Nexus StackPage were deleted unused in e2c4dde; Wi-Fi
-# joins go through utils/NetworkConnection.qml over the native Connectivity.
-network_connection = (repo / "cortetsu/utils/NetworkConnection.qml").read_text(encoding="utf-8")
-assert "Connectivity.wifi.connectNetwork" in network_connection
-assert "Process" not in network_connection
-assert "connectionParamPassword" not in network_connection
+# The base Nmcli.qml and Nexus StackPage were deleted unused in e2c4dde, and
+# the unused utils/NetworkConnection.qml wrapper in 91b34b14. Wi-Fi joins go
+# through the native Connectivity service; no QML passes a password as a
+# connection parameter or reaches the old nmcli service.
+assert not (repo / "cortetsu/utils/NetworkConnection.qml").exists()
+wifi_service = (repo / "cortetsu/services/ConnectivityWifi.qml").read_text(encoding="utf-8")
+assert "function connectNetwork(" in wifi_service
 for qml in (repo / "cortetsu").rglob("*.qml"):
     text = qml.read_text(encoding="utf-8")
     assert "caelestia.qml.services.nmcli" not in text and 'name: "caelestia.nexus"' not in text, qml
+    assert "connectionParamPassword" not in text, qml
 
 # rollback-runtime.sh forwards to `cortetsu-platform system rollback`, which
 # verifies before and after and moves the pointers transactionally.

@@ -49,7 +49,7 @@ ShellRoot {
 '''
 
 STUBS = {
-    "modules/CortetsuConfig.qml": "pragma Singleton\nimport Quickshell\nSingleton { property bool suppressNotificationsInFullscreen: false; property int notificationDefaultExpireTimeout: 2500; property bool notificationExpire: true }\n",
+    "modules/CortetsuConfig.qml": "pragma Singleton\nimport Quickshell\nSingleton { property bool suppressNotificationsInFullscreen: false; property int notificationDefaultExpireTimeout: 2500; property bool notificationExpire: true; property list<string> mutedNotificationApps: [] }\n",
     "modules/CortetsuHypr.qml": "pragma Singleton\nimport Quickshell\nSingleton { readonly property var monitors: ({ values: [] }) }\n",
     "modules/CortetsuShellState.qml": "pragma Singleton\nimport Quickshell\nSingleton { function anySidebarOpen(): bool { return false } }\n",
     # Global compositor shortcuts are unrelated to the private D-Bus server.
