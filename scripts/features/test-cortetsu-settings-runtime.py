@@ -1433,6 +1433,23 @@ ShellRoot {
     // The 3.0 "orden invertido" switch became a free order of the groups:
     // a saved mirrored Hub reads as Sistema · Apps · Núcleo and is written
     // with both keys, so an older version still mirrors it.
+    // A font family that is not installed would fall back silently; the
+    // row refuses it and names it. An installed one becomes the token.
+    readonly property var fontRefusal: [
+        [() => CortetsuConfig.loaded, () => { select("themes"); screenDouble.settings = true; }],
+        [() => !!content && !!page("themeToken-fontUi"), () => {
+            const row = page("themeToken-fontUi");
+            const before = CortetsuDesign.fontUi;
+            row.committed("Familia Que No Existe 404");
+            verify(row.status === "error" && row.statusText.includes("Familia Que No Existe 404"),
+                `a missing family is refused and named (${row.status}: ${row.statusText})`);
+            verify(CortetsuDesign.fontUi === before, "the token keeps its family");
+            const installed = Qt.fontFamilies().find(family => family !== before) ?? before;
+            row.committed(installed);
+            verify(row.status === "" && CortetsuDesign.fontUi === installed,
+                `an installed family is applied (${CortetsuDesign.fontUi} / ${installed})`);
+        }]
+    ]
     readonly property var hubOrderMigration: [
         [() => CortetsuConfig.loaded, () => {
             verify(JSON.stringify(CortetsuConfig.bottomHub.order) === JSON.stringify(["system", "apps", "core"]),
@@ -2336,6 +2353,9 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-settings-") as temporary:
     assert [w["type"] for w in clock_saved["desktopWidgets"]] == ["clock"], clock_saved
     restored, _ = run(folder, "shell.qml", "clockRestore", preferences=clock_saved)
     assert passed(restored) == 1, restored
+
+    output, _ = run(folder, "shell.qml", "fontRefusal")
+    assert passed(output) == 3, output
 
     output, order_home = run(folder, "shell.qml", "hubOrderMigration",
                              preferences={"schema": 1, "bottomHub": {"mirrored": True}})
