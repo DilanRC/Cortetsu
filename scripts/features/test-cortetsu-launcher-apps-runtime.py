@@ -157,10 +157,15 @@ ShellRoot {
                 root.check(list.currentItem?.modelData?.id === "steam", "the query did not find Steam");
                 search.text = CortetsuConfig.actionPrefix;
                 root.step = 4;
-            } else if (root.step === 4 && list.state === "actions" && list.count === 2 && list.itemAtIndex(1)) {
+            } else if (root.step === 4 && list.state === "actions" && list.count > 2
+                    && list.count === Actions.query(search.text).length && list.itemAtIndex(0)) {
                 // Actions have no id: the model compares them by identity, as before.
-                root.check(list.count === Actions.query(search.text).length, `shows ${list.count} actions`);
-                root.check(root.shown().every(action => action?.name), "an action cell has no action");
+                // Built-ins (since 54391510) and contexts come first; the
+                // user's own two follow and are all still there. The grid
+                // only builds the cells on screen, so those are the ones checked.
+                root.check(root.shown().filter(action => action !== null).every(action => action?.name), "an action cell has no action");
+                const names = Actions.query(search.text).map(action => action.name);
+                root.check(names.includes("Apagar") && names.includes("Bloquear"), `the user's actions are missing: ${names}`);
                 search.text = `${CortetsuConfig.actionPrefix}calc `;
                 root.step = 5;
             } else if (root.step === 5 && list.state === "calc" && list.count === 1 && list.itemAtIndex(0)) {

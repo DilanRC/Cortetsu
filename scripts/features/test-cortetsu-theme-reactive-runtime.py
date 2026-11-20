@@ -19,7 +19,14 @@ ROOT = REPO / "cortetsu"
 
 CONFIG = """pragma Singleton
 import QtQuick
-QtObject { property bool transparencyEnabled: false }
+QtObject {
+    property bool transparencyEnabled: false
+    // The theme fields CortetsuColours binds (product themes, 3.0): Ink with
+    // no user overrides, as on a fresh install.
+    property string themeId: "ink"
+    property var themePreferences: ({})
+    readonly property var activeThemeOverrides: ({})
+}
 """
 
 SHELL = """import QtQuick
@@ -54,7 +61,11 @@ ShellRoot {
                 root.verify(!root.same(CortetsuDesign.colorSurface, "#171B21"), "the token follows the scheme");
                 root.verify(root.same(surface.color, CortetsuDesign.colorSurface), "a live surface repaints");
                 root.verify(root.same(tinted.color, Qt.alpha(CortetsuDesign.colorPrimary, 0.5)), "derived colours repaint");
-                root.verify(root.same(CortetsuDesign.colorVermillion, "#D64B32"), "semantic danger keeps its ui.toml value");
+                // Since 4186ef10 the danger tone is the ui.toml value made
+                // readable (4.5:1) on the scheme's surfaces, never a scheme colour.
+                root.verify(root.same(CortetsuDesign.colorVermillion,
+                    CortetsuDesign.readable("#D64B32", [CortetsuDesign.colorTetsu, CortetsuDesign.colorSurfaceHigh])),
+                    "semantic danger keeps its ui.toml value, made readable");
                 root.verify(root.created === 1, "nothing was recreated");
                 CortetsuColours.load(JSON.stringify({ colours: { surface: "112233" }, mode: "dark" }), true);
                 root.verify(root.same(CortetsuDesign.colorSurface, "#112233"), "a preview palette reaches the tokens");
@@ -89,6 +100,10 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-theme-reactive-") as temporary
     (folder / "modules").mkdir()
     shutil.copy(ROOT / "services/CortetsuColours.qml", folder / "services/CortetsuColours.qml")
     shutil.copy(ROOT / "modules/CortetsuTypography.js", folder / "modules/CortetsuTypography.js")
+    shutil.copy(ROOT / "modules/ThemePreferences.js", folder / "modules/ThemePreferences.js")
+    # Theme previews (CortetsuThemes) are not under test here: no preview runs.
+    (folder / "services/CortetsuThemes.qml").write_text(
+        "pragma Singleton\nimport Quickshell\nSingleton { property string previewId: \"\" }\n")
     (folder / "modules/CortetsuConfig.qml").write_text(CONFIG)
     (folder / "shell.qml").write_text(SHELL)
     runtime = folder / "runtime-root"
