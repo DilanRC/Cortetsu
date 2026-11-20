@@ -51,6 +51,9 @@ FocusScope {
     onCurrentChanged: seal.stamp()
     onOpenChanged: if (open) seal.stamp()
 
+    // The quick controls of Inicio while that zone is loaded; Down enters them.
+    property var quickControls: null
+    Keys.onDownPressed: if (root.currentKey === "home" && root.quickControls) root.quickControls.focusFirst()
     Keys.onLeftPressed: root.cycle(-1)
     Keys.onRightPressed: root.cycle(1)
     Keys.onTabPressed: root.cycle(1)
@@ -238,7 +241,14 @@ FocusScope {
                     // previews what is coming), so the hour never jumps.
                     visible: CortetsuConfig.dashboard.showMedia && Lyrics.synced && Lyrics.lines.length > 0
                 }
-                DashQuickControls { Layout.alignment: Qt.AlignHCenter; screenState: root.screenState }
+                DashQuickControls {
+                    id: quickControls
+                    Layout.alignment: Qt.AlignHCenter
+                    screenState: root.screenState
+                    onLeaveRequested: root.forceActiveFocus()
+                    Component.onCompleted: root.quickControls = quickControls
+                    Component.onDestruction: if (root.quickControls === quickControls) root.quickControls = null
+                }
                 Item { Layout.fillHeight: true }
             }
 

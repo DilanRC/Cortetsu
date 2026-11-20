@@ -20,6 +20,22 @@ RowLayout {
 
     // The dashboard's screen, to open Ajustes → Contextos from it.
     property var screenState: null
+    // Up from a control: back to the dashboard's zones.
+    signal leaveRequested()
+
+    // Keyboard: the dashboard's Down enters here; Left and Right move
+    // between the visible controls, Up leaves. Tab keeps cycling zones.
+    readonly property var controls: [dnd, game, profile, context].filter(item => item.visible)
+    function focusFirst(): void {
+        if (controls.length > 0)
+            controls[0].forceActiveFocus(Qt.TabFocusReason);
+    }
+    function step(item: Item, delta: int): void {
+        const at = controls.indexOf(item);
+        const next = controls[Math.max(0, Math.min(controls.length - 1, at + delta))];
+        if (next)
+            next.forceActiveFocus(Qt.TabFocusReason);
+    }
 
     readonly property var profiles: [PowerProfile.PowerSaver, PowerProfile.Balanced]
         .concat(PowerProfiles.hasPerformanceProfile ? [PowerProfile.Performance] : [])
@@ -42,7 +58,11 @@ RowLayout {
     spacing: CortetsuDesign.spacingCompact
 
     CortetsuButton {
+        id: dnd
         objectName: "dashDnd"
+        Keys.onLeftPressed: root.step(dnd, -1)
+        Keys.onRightPressed: root.step(dnd, 1)
+        Keys.onUpPressed: root.leaveRequested()
         compact: true
         icon: Notifs.dnd ? "do_not_disturb_on" : "notifications"
         label: qsTr("No molestar")
@@ -52,7 +72,11 @@ RowLayout {
     }
 
     CortetsuButton {
+        id: game
         objectName: "dashGameMode"
+        Keys.onLeftPressed: root.step(game, -1)
+        Keys.onRightPressed: root.step(game, 1)
+        Keys.onUpPressed: root.leaveRequested()
         compact: true
         icon: "sports_esports"
         label: GameMode.busy ? qsTr("Aplicando…") : qsTr("Modo juego")
@@ -64,7 +88,11 @@ RowLayout {
     }
 
     CortetsuButton {
+        id: profile
         objectName: "dashPowerProfile"
+        Keys.onLeftPressed: root.step(profile, -1)
+        Keys.onRightPressed: root.step(profile, 1)
+        Keys.onUpPressed: root.leaveRequested()
         compact: true
         icon: root.profileIcons[PowerProfiles.profile] ?? "balance"
         label: root.profileLabels[PowerProfiles.profile] ?? qsTr("Energía")
@@ -75,7 +103,11 @@ RowLayout {
     // As in the control centre: with a context active, its way out; with
     // none, the page where one is chosen.
     CortetsuButton {
+        id: context
         objectName: "dashContext"
+        Keys.onLeftPressed: root.step(context, -1)
+        Keys.onRightPressed: root.step(context, 1)
+        Keys.onUpPressed: root.leaveRequested()
         compact: true
         icon: CortetsuContexts.active?.icon ?? "tune"
         label: CortetsuContexts.active ? qsTr("Salir de %1").arg(CortetsuContexts.active.name) : qsTr("Contextos")
