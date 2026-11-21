@@ -23,6 +23,7 @@ import Quickshell
 import "modules"
 import "modules/bar/popouts" as Pop
 import "theme"
+import "services"
 
 ShellRoot {
     id: root
@@ -80,6 +81,22 @@ ShellRoot {
                 verify(t && t.parent.width >= t.implicitWidth + 4, `9+ fits: badge ${t?.parent.width}, text ${t?.implicitWidth}`);
                 verify(!find(segment, c => c.activeFocus === true && c.label !== undefined), "no status item takes focus by loading");
                 grab(segment, "segment-9plus"); return true; },
+        // Signal and charge beside their glyphs, from the real services;
+        // none on a lateral Hub or with the setting off.
+        () => { const value = find(segment, c => c.objectName === "hubBatteryValue");
+                verify(value && value.visible === CortetsuPower.hasBattery && (!value.visible || value.text === `${CortetsuPower.percent}%`),
+                    `the battery reading follows UPower (${value?.visible} ${value?.text})`);
+                const net = find(segment, c => c.objectName === "hubNetworkValue");
+                verify(net && net.visible === !!CortetsuNetwork.active, `the signal reading follows the active network (${net?.visible})`);
+                grab(segment, "segment-values"); return true; },
+        () => true,
+        () => true,
+        () => { segment.vertical = true; return true; },
+        () => { verify(!find(segment, c => c.objectName === "hubBatteryValue").visible, "a lateral Hub has no readings");
+                segment.vertical = false;
+                CortetsuConfig.bottomHub.statusCluster.showValues = false; return true; },
+        () => { verify(!find(segment, c => c.objectName === "hubBatteryValue").visible, "the setting turns them off");
+                CortetsuConfig.bottomHub.statusCluster.showValues = true; return true; },
         () => { const field = find(wifi, c => c.echoMode === TextInput.Password);
                 verify(field !== null, "password field found");
                 field.forceActiveFocus(); return field.activeFocus; },
@@ -122,7 +139,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-hub-") as temporary:
     result = subprocess.run(["quickshell", "-p", str(folder / "shell.qml")], env=env,
                             capture_output=True, text=True, timeout=90)
     output = result.stdout + result.stderr
-    assert "HUB_RUNTIME_PASS 9" in output, output
+    assert "HUB_RUNTIME_PASS 13" in output, output
     for marker in ("HUB_FAIL", "TypeError", "ReferenceError", "Binding loop", "is not a type"):
         assert marker not in output, output
 

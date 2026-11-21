@@ -107,6 +107,10 @@ QtObject {
             onBatteryChanged: if (root.loaded) root.save()
             property bool showNotificationCount: true
             onShowNotificationCountChanged: if (root.loaded) root.save()
+            // The reading beside the network and battery glyphs (signal and
+            // charge, in percent) on a horizontal Hub.
+            property bool showValues: true
+            onShowValuesChanged: if (root.loaded) root.save()
         }
     }
     property list<var> quickToggles: [
@@ -540,6 +544,8 @@ QtObject {
                             bottomHub.statusCluster[key] = data.bottomHub.statusCluster[key];
                 if (typeof data.bottomHub.statusCluster?.showNotificationCount === "boolean")
                     bottomHub.statusCluster.showNotificationCount = data.bottomHub.statusCluster.showNotificationCount;
+                if (typeof data.bottomHub.statusCluster?.showValues === "boolean")
+                    bottomHub.statusCluster.showValues = data.bottomHub.statusCluster.showValues;
             }
             if (Array.isArray(data.quickToggles))
                 quickToggles = data.quickToggles.filter(value => value && typeof value === "object" && typeof value.id === "string").map(value => ({ id: value.id, enabled: value.enabled !== false }));
@@ -861,7 +867,7 @@ QtObject {
                 order: bottomHub.order,
                 mirrored: bottomHub.mirrored,
                 segments: { mode: bottomHub.segments.mode, apps: bottomHub.segments.apps, tray: bottomHub.segments.tray, status: bottomHub.segments.status },
-                statusCluster: { audio: bottomHub.statusCluster.audio, network: bottomHub.statusCluster.network, bluetooth: bottomHub.statusCluster.bluetooth, battery: bottomHub.statusCluster.battery, showNotificationCount: bottomHub.statusCluster.showNotificationCount }
+                statusCluster: { audio: bottomHub.statusCluster.audio, network: bottomHub.statusCluster.network, bluetooth: bottomHub.statusCluster.bluetooth, battery: bottomHub.statusCluster.battery, showNotificationCount: bottomHub.statusCluster.showNotificationCount, showValues: bottomHub.statusCluster.showValues }
             },
             displayCalibration: { enabled: colorCalibrationEnabled, temperature: colorTemperature, gamma: colorGamma,
                 schedule: { enabled: nightLightSchedule, from: nightLightFrom, to: nightLightTo } } });

@@ -198,6 +198,14 @@ SettingsColumns {
             }
 
             SettingToggleRow {
+                objectName: "statusValues"
+                title: qsTr("Mostrar señal y batería")
+                detail: qsTr("El porcentaje junto a los iconos de red y batería, con el Hub arriba o abajo")
+                checked: CortetsuConfig.bottomHub.statusCluster.showValues
+                onToggled: value => { CortetsuConfig.bottomHub.statusCluster.showValues = value; CortetsuConfig.save(); }
+            }
+
+            SettingToggleRow {
                 title: qsTr("Audio")
                 checked: CortetsuConfig.bottomHub.statusCluster.audio
                 onToggled: value => { CortetsuConfig.bottomHub.statusCluster.audio = value; CortetsuConfig.save(); }

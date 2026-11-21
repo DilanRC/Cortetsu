@@ -52,6 +52,11 @@ Item {
     property alias notificationCountBadge: countBadge
 
     property bool vertical: false
+    // Signal and charge beside their glyphs, where the Hub has the width.
+    readonly property bool showValues: !vertical && CortetsuConfig.bottomHub.statusCluster.showValues
+    readonly property string networkValue: CortetsuNetwork.active ? `${Math.round(CortetsuNetwork.active.strength ?? 0)}%` : ""
+    readonly property string batteryValue: CortetsuPower.hasBattery ? `${CortetsuPower.percent}%` : ""
+
     property string tooltipPlacement: "above"
     readonly property real thickness: Math.max(46, CortetsuDesign.rowHeight - 2)
 
@@ -147,6 +152,26 @@ Item {
                     root.attachedControlRequested("network", root.centerFor(networkButton))
             }
 
+            // The reading, part of the button's hit area: a press opens the
+            // same popout.
+            CortetsuText {
+                objectName: "hubNetworkValue"
+                visible: root.showValues && root.networkValue.length > 0 && networkButton.visible
+                height: 40
+                verticalAlignment: Text.AlignVCenter
+                rightPadding: 6
+                text: root.networkValue
+                color: CortetsuDesign.colorMuted
+                textSize: CortetsuTypography.labelMediumPx
+                font.features: { "tnum": 1 }
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: if (root.statusPopoutsEnabled)
+                        root.attachedControlRequested("network", root.centerFor(networkButton))
+                }
+            }
+
             HubButton {
                 id: bluetoothButton
                 visible: root.bluetoothVisible
@@ -183,6 +208,26 @@ Item {
                 }
                 onClicked: if (root.statusPopoutsEnabled)
                     root.attachedControlRequested("battery", root.centerFor(batteryButton))
+            }
+
+            // The reading, part of the button's hit area: a press opens the
+            // same popout.
+            CortetsuText {
+                objectName: "hubBatteryValue"
+                visible: root.showValues && root.batteryValue.length > 0 && batteryButton.visible
+                height: 40
+                verticalAlignment: Text.AlignVCenter
+                rightPadding: 6
+                text: root.batteryValue
+                color: CortetsuDesign.colorMuted
+                textSize: CortetsuTypography.labelMediumPx
+                font.features: { "tnum": 1 }
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: if (root.statusPopoutsEnabled)
+                        root.attachedControlRequested("battery", root.centerFor(batteryButton))
+                }
             }
         }
 
