@@ -40,7 +40,6 @@ Item {
         compactTimer.stop();
         compactVisible = false;
         OverlayPolicy.open(CortetsuShellState.allStates(), screenState, "osd");
-        hideTimer.restart();
     }
 
     function showMini(kind: string): void {
@@ -121,12 +120,12 @@ Item {
     Connections {
         target: root.screenState
         function onOsdChanged(): void {
+            // The control center stays until it is dismissed (Escape, its
+            // close button, a click outside, or the pointer leaving after a
+            // hover open); only the transient OSD times out.
             if (root.screenState?.osd) {
                 compactTimer.stop();
                 root.compactVisible = false;
-                hideTimer.restart();
-            } else {
-                hideTimer.stop();
             }
         }
     }
@@ -137,21 +136,6 @@ Item {
                 ? CortetsuDesign.motionStandardMs
                 : CortetsuDesign.motionFastMs
             easing.type: Easing.OutCubic
-        }
-    }
-
-    Timer {
-        id: hideTimer
-        interval: CortetsuConfig.osdTimeoutMs
-        onTriggered: {
-            if (CortetsuShellState.screenshotActive) {
-                restart();
-                return;
-            }
-            if (root.screenState && !content.hovered)
-                root.screenState.osd = false;
-            else
-                restart();
         }
     }
 

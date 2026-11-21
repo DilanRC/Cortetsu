@@ -488,6 +488,7 @@ Item {
                 }
                 ColumnLayout {
                     Layout.preferredWidth: 112
+                    Layout.maximumWidth: 112
                     spacing: 0
                     CortetsuText {
                         Layout.fillWidth: true
@@ -510,6 +511,7 @@ Item {
                 CortetsuTabBar {
                     objectName: "quickProfiles"
                     Layout.fillWidth: true
+                    Layout.minimumWidth: 260
                     accessibleName: qsTr("Perfil de energía")
                     model: root.profiles
                     currentIndex: root.profileIndex
