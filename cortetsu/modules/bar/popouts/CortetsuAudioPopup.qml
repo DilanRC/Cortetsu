@@ -22,6 +22,7 @@ CortetsuPopupSurface {
         spacing: CortetsuDesign.spacingStandard
 
         CortetsuPopoutHeader {
+            icon: "graphic_eq"
             title: qsTr("Audio")
             detail: CortetsuAudio.muted ? qsTr("Silenciado") : qsTr("%1%").arg(root.volumePercent)
             settingsPage: "sound"

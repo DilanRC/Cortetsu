@@ -73,6 +73,7 @@ CortetsuPopupSurface {
         spacing: CortetsuDesign.spacingStandard
 
         CortetsuPopoutHeader {
+            icon: "bolt"
             title: qsTr("Energía")
             detail: root.batteryStatus
             settingsPage: "power"

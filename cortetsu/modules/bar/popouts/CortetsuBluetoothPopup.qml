@@ -34,6 +34,7 @@ CortetsuPopupSurface {
 
         // One line instead of a header plus a card that repeated it.
         CortetsuPopoutHeader {
+            icon: "bluetooth"
             title: qsTr("Bluetooth")
             detail: !ConnectivityBluetooth.adapter ? qsTr("Sin adaptador")
                 : !root.adapterEnabled ? qsTr("Apagado")

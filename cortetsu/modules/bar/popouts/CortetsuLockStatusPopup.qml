@@ -26,6 +26,7 @@ ColumnLayout {
 
     CortetsuPopoutHeader {
         Layout.fillWidth: true
+        icon: "keyboard_capslock"
         title: qsTr("Bloqueo de teclas")
         detail: Hypr.keyboardKnown ? qsTr("Teclado principal") : qsTr("Teclado no disponible")
         settingsPage: "input"

@@ -15,6 +15,8 @@ import "../../CortetsuOverlayPolicy.js" as OverlayPolicy
 RowLayout {
     id: root
 
+    // The service's glyph, in the accent, before the title.
+    property string icon: ""
     property string title: ""
     property string detail: ""
     // Settings page id (PageRegistry); empty hides the link.
@@ -32,6 +34,22 @@ RowLayout {
         root.popouts?.close();
         if (state)
             Qt.callLater(() => OverlayPolicy.open(CortetsuShellState.allStates(), state, "settings"));
+    }
+
+    Rectangle {
+        visible: root.icon.length > 0
+        Layout.preferredWidth: 32
+        Layout.preferredHeight: 32
+        radius: CortetsuDesign.radiusSmall
+        color: Qt.alpha(CortetsuDesign.colorIndicator, 0.16)
+        border.width: 1
+        border.color: Qt.alpha(CortetsuDesign.colorIndicator, 0.30)
+        CortetsuIcon {
+            anchors.centerIn: parent
+            text: root.icon
+            iconSize: CortetsuDesign.iconMediumPx
+            color: CortetsuDesign.colorPrimary
+        }
     }
 
     CortetsuSectionHeader {

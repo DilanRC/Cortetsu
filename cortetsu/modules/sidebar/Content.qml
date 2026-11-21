@@ -76,12 +76,34 @@ Item {
             Layout.fillWidth: true
             spacing: CortetsuDesign.spacingStandard
 
-            CortetsuSectionHeader {
+            CortetsuEvolvingMark {
+                phase: "Ascended"
+                animated: false
+                monochrome: true
+                monochromeColor: CortetsuDesign.colorPrimary
+                Layout.preferredWidth: 30
+                Layout.preferredHeight: 30
+            }
+
+            ColumnLayout {
                 Layout.fillWidth: true
-                title: qsTr("Notificaciones")
-                detail: root.activeNotifications.length === 1 ? qsTr("1 en pantalla")
-                    : root.activeNotifications.length > 1 ? qsTr("%1 en pantalla").arg(root.activeNotifications.length)
-                    : qsTr("Nada en pantalla")
+                spacing: 0
+                CortetsuText {
+                    Layout.fillWidth: true
+                    text: qsTr("Notificaciones")
+                    textSize: CortetsuTypography.titleSmallPx
+                    font.weight: Font.DemiBold
+                    elide: Text.ElideRight
+                }
+                CortetsuText {
+                    Layout.fillWidth: true
+                    text: root.activeNotifications.length === 1 ? qsTr("1 en pantalla")
+                        : root.activeNotifications.length > 1 ? qsTr("%1 en pantalla").arg(root.activeNotifications.length)
+                        : qsTr("Nada en pantalla")
+                    textSize: CortetsuTypography.labelSmallPx
+                    color: CortetsuDesign.colorOnSurfaceVariant
+                    elide: Text.ElideRight
+                }
             }
 
             CortetsuButton {
@@ -98,9 +120,22 @@ Item {
 
         // Do not disturb: a state the user chose, so it is a row with its
         // switch, and the line under it says what it changes.
-        RowLayout {
-            objectName: "notificationsDnd"
+        Item {
             Layout.fillWidth: true
+            implicitHeight: dndRow.implicitHeight + CortetsuDesign.spacingStandard * 2
+
+            CortetsuSurface {
+                anchors.fill: parent
+                radiusValue: CortetsuDesign.radiusMedium
+                baseColor: CortetsuNotifications.dnd ? Qt.alpha(CortetsuDesign.colorIndicator, 0.16) : Qt.alpha(CortetsuDesign.colorWashi, 0.035)
+                outlineColor: CortetsuNotifications.dnd ? Qt.alpha(CortetsuDesign.colorIndicator, 0.34) : Qt.alpha(CortetsuDesign.colorWashi, 0.10)
+            }
+
+        RowLayout {
+            id: dndRow
+            objectName: "notificationsDnd"
+            anchors.fill: parent
+            anchors.margins: CortetsuDesign.spacingStandard
             spacing: CortetsuDesign.spacingStandard
 
             CortetsuIcon {
@@ -134,6 +169,7 @@ Item {
                 checked: CortetsuNotifications.dnd
                 onToggled: checked => CortetsuNotifications.setDnd(checked)
             }
+        }
         }
 
         CortetsuDivider { Layout.fillWidth: true }

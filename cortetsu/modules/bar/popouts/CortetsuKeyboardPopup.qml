@@ -19,6 +19,7 @@ ColumnLayout {
 
     CortetsuPopoutHeader {
         Layout.fillWidth: true
+        icon: "keyboard"
         title: qsTr("Teclado")
         detail: layouts.activeLabel
         settingsPage: "input"

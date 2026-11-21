@@ -6,6 +6,7 @@ import "../services"
 import "."
 import "CortetsuOverlayPolicy.js" as OverlayPolicy
 import "SurfaceRegistry.js" as Surfaces
+import "settings" as SettingsModule
 
 Scope {
     id: root
@@ -98,6 +99,13 @@ Scope {
         function list(): string { const state = CortetsuShellState.forActive(); return state ? Object.keys(state).filter(k => Surfaces.isKnown(k)).join("\n") : ""; }
         // Screens whose launcher is open; the single-state contract keeps it to one line at most.
         function launcherScreens(): string { return CortetsuShellState.states.filter(entry => !!entry.state?.launcher).map(entry => entry.screen?.name ?? "").join("\n"); }
+        // Ajustes on one page (a PageRegistry id), for scripted QA.
+        function settingsPage(page: string): void {
+            const state = CortetsuShellState.forActive();
+            if (!state) return;
+            SettingsModule.SettingsController.select(page);
+            if (!state.settings) OverlayPolicy.open(CortetsuShellState.allStates(), state, "settings");
+        }
         function isOpen(drawer: string): string { const state = CortetsuShellState.forActive(); return !state || !Surfaces.isKnown(drawer) ? "unknown" : state[drawer] ? "1" : "0"; }
     }
 

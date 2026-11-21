@@ -141,6 +141,7 @@ vez por archivo; si dos están activos a la vez, la llamada llega a uno solo.
   - `toggle(drawer: string): void`
   - `list(): string`
   - `launcherScreens(): string`
+  - `settingsPage(page: string): void`
   - `isOpen(drawer: string): string`
 
 ## `gameMode`

@@ -38,6 +38,7 @@ CortetsuPopupSurface {
         spacing: CortetsuDesign.spacingStandard
 
         CortetsuPopoutHeader {
+            icon: "wifi"
             title: qsTr("Red")
             detail: Connectivity.wifi.busy && Connectivity.wifi.operation.kind === "enable" ? qsTr("Aplicando…")
                 : CortetsuNetwork.connecting ? qsTr("Conectando")
