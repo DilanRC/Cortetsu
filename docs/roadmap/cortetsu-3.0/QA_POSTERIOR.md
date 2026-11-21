@@ -13,7 +13,7 @@ real.
 | Orbital | `cargo test` (pausa por contexto), `test-orbital-playback-colours-runtime.py`, `test-cortetsu-wallpaper-orbital-runtime.py` | Reproducción, ownership, GPU, energía y suspensión (sección Orbital) |
 | Hub | `test-cortetsu-hub-islands-runtime.py` (6 órdenes × repartido/esquinas, separación), migración de `mirrored` en la prueba de Ajustes | Popouts anclados a su isla y «Mover el Hub» con un orden no clásico |
 | Vista general | `test-overview-keys.node.js` (dígitos y modificadores); `hyprctl binds -j` del 2026-11-20: Alt+dígito solo (máscara 8) no está asignado, solo Super+Alt (72) y Super+Ctrl+Alt (76) | Probar Alt+dígito con la vista abierta |
-| Dashboard | `test-cortetsu-dashboard-dismiss-runtime.py` (marco fijo; captura revisada con la fila de controles) | — |
+| Dashboard | `test-cortetsu-dashboard-dismiss-runtime.py` (marco fijo; captura revisada con la fila de controles; flechas dentro de los controles rápidos, Tab y Escape desde ellos) | — |
 | OSD | `tst_MiniSlider.qml` (multimedia), `test-cortetsu-osd-focus.sh` | Pausar y reanudar con las teclas multimedia reales |
 | Centro de control | `test-cortetsu-quick-settings-runtime.py` (alto < 700 px, mosaicos) | — |
 | Ajustes | `test-cortetsu-settings-runtime.py` (en el gate; búsqueda que enfoca el control que habilita, fuentes no instaladas, widgets que sustituyen al reloj), contraste WCAG en 3 temas × 6 condiciones | — |

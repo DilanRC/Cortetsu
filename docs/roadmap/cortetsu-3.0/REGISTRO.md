@@ -427,6 +427,22 @@ cada instalación; journal limpio tras cada recarga.
 - `scripts/features/INDEX.md`: qué comprobaciones ejecuta cada suite (50) y
   cuáles son contratos archivados (200).
 - Pendiente de la sesión física: lo listado en la tabla de estado de
-  `QA_POSTERIOR.md`. Los controles rápidos del Dashboard no son alcanzables
-  con el teclado (Tab y flechas recorren las zonas); queda como decisión de
-  diseño.
+  `QA_POSTERIOR.md`.
+
+#### Teclado en los controles rápidos del Dashboard (2026-11-20)
+
+- En Inicio, Abajo entra en los controles rápidos; Izquierda y Derecha se
+  mueven entre ellos y paran en los extremos; Arriba vuelve a las zonas.
+  Tab, un dígito o Escape desde un control salen y siguen llegando al
+  Dashboard.
+- Fallos encontrados al escribir la prueba de `513cad9f`: Arriba no hacía
+  nada (`forceActiveFocus` sobre el `FocusScope` devolvía el foco al botón
+  que lo conservaba) y Tab lo tragaba la cadena de tabulación de Qt, que
+  saltaba al botón siguiente y dejaba las flechas muertas. Corregidos en
+  `9361c6a4` y `9e1d4c62`: el control suelta el foco antes de salir y los
+  cuatro botones salen de la cadena de Tab.
+- Prueba: `test-cortetsu-dashboard-dismiss-runtime.py` pasa de 13 a 27
+  comprobaciones; 3 fallan sin el primer arreglo y 2 sin el segundo.
+- Gate: compilación en scratch, `build-regressions.sh` y `cortetsu test`.
+  Revisión: `ai-review fast` INCOMPLETE (OpenCode sin cuota); Codex
+  `gpt-6-luna` sin hallazgos.
