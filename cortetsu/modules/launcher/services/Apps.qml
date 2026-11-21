@@ -61,8 +61,25 @@ QtObject {
         return definition.match.some(name => own.includes(name));
     }
 
+    // Views of the expanded launcher's navigation: "all" by name,
+    // "favourites", "recent" (newest first) and "homeRest" (the home order
+    // without the favourites, which have their own row above it).
+    function favourites(): var {
+        return entries().filter(entry => Strings.testRegexList(CortetsuConfig.favouriteApps, entry.id));
+    }
+
     function browse(category: string): var {
         const all = entries();
+        if (category === "all")
+            return all.slice().sort((a, b) => String(a.name).localeCompare(String(b.name)));
+        if (category === "favourites")
+            return favourites();
+        if (category === "recent")
+            return recentIds.map(id => all.find(entry => entry.id === id)).filter(entry => !!entry);
+        if (category === "homeRest") {
+            const favourite = entry => Strings.testRegexList(CortetsuConfig.favouriteApps, entry.id);
+            return browse("home").filter(entry => !favourite(entry));
+        }
         if (category && category !== "home") {
             const definition = categoryDefinitions.find(item => item.id === category);
             return definition ? all.filter(entry => inCategory(entry, definition)) : all;

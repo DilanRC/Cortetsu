@@ -27,6 +27,12 @@ Item {
     // lead the browse grid, so Tab keeps moving through the results.
     readonly property bool showSide: browsing && !list.showWallpapers && (QsWindow.window?.width ?? 0) >= 1360
     readonly property int sideWidth: 280
+    // Expanded launcher (03-launcher): a navigation column on the left and,
+    // on the home view, the favourites as a row of their own above the grid.
+    readonly property int navWidth: 212
+    readonly property real navInset: showSide ? navWidth + CortetsuDesign.spacingStandard : 0
+    readonly property var favouriteApps: Apps.favourites()
+    readonly property bool showFavourites: showSide && category === "home" && favouriteApps.length > 0
 
     function cycleCategory(step: int): void {
         const ids = Apps.categories.map(item => item.id);
@@ -60,12 +66,13 @@ Item {
             pendingWallpaperPath = target;
     }
 
-    implicitWidth: listWrapper.width + padding * 2 + (showSide ? sideWidth + CortetsuDesign.spacingStandard : 0)
+    implicitWidth: listWrapper.width + padding * 2 + navInset + (showSide ? sideWidth + CortetsuDesign.spacingStandard : 0)
     implicitHeight: Math.max(showSide ? side.implicitHeight + padding * 2 : 0,
         padding +
         search.implicitHeight +
         CortetsuDesign.spacingStandard +
         (root.showCategories ? categoryRow.implicitHeight + CortetsuDesign.spacingCompact : 0) +
+        (root.showFavourites ? favourites.implicitHeight + CortetsuDesign.spacingStandard : 0) +
         listWrapper.implicitHeight +
         padding)
 
@@ -86,7 +93,7 @@ Item {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.topMargin: root.padding
-        anchors.leftMargin: root.padding
+        anchors.leftMargin: root.padding + root.navInset
         anchors.rightMargin: root.padding + (root.showSide ? root.sideWidth + CortetsuDesign.spacingStandard : 0)
         placeholderText: qsTr("Buscar aplicaciones o comandos…")
 
@@ -218,7 +225,7 @@ Item {
         anchors.topMargin: CortetsuDesign.spacingStandard
         anchors.left: parent.left
         anchors.right: parent.right
-        anchors.leftMargin: root.padding
+        anchors.leftMargin: root.padding + root.navInset
         anchors.rightMargin: root.padding + (root.showSide ? root.sideWidth + CortetsuDesign.spacingStandard : 0)
         spacing: CortetsuDesign.spacingUnit
 
@@ -239,14 +246,53 @@ Item {
         }
     }
 
+    LauncherNav {
+        id: nav
+        objectName: "launcherNav"
+        visible: root.showSide
+        width: root.navWidth
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        anchors.left: parent.left
+        anchors.margins: root.padding
+        view: root.category
+        onViewRequested: view => {
+            root.category = view;
+            search.forceActiveFocus();
+        }
+        onSettingsRequested: {
+            SurfacePolicy.closeOn(root.screenState, "launcher");
+            SurfacePolicy.open(CortetsuShellState.allStates(), root.screenState, "settings");
+        }
+    }
+
+    LauncherFavourites {
+        id: favourites
+        objectName: "launcherFavourites"
+        visible: root.showFavourites
+        apps: root.favouriteApps
+        anchors.top: root.showCategories ? categoryRow.bottom : search.bottom
+        anchors.topMargin: CortetsuDesign.spacingStandard
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.leftMargin: root.padding + root.navInset
+        anchors.rightMargin: root.padding + (root.showSide ? root.sideWidth + CortetsuDesign.spacingStandard : 0)
+        onLaunched: entry => {
+            Apps.launch(entry);
+            SurfacePolicy.closeOn(root.screenState, "launcher");
+        }
+        onManageRequested: root.category = "favourites"
+    }
+
     Item {
         id: listWrapper
         implicitWidth: list.width
         implicitHeight: list.height
-        anchors.top: root.showCategories ? categoryRow.bottom : search.bottom
-        anchors.topMargin: root.showCategories ? CortetsuDesign.spacingCompact : CortetsuDesign.spacingStandard
+        anchors.top: root.showFavourites ? favourites.bottom : root.showCategories ? categoryRow.bottom : search.bottom
+        anchors.topMargin: root.showFavourites ? CortetsuDesign.spacingStandard
+            : root.showCategories ? CortetsuDesign.spacingCompact : CortetsuDesign.spacingStandard
         anchors.left: parent.left
-        anchors.leftMargin: root.padding
+        anchors.leftMargin: root.padding + root.navInset
 
         ContentList {
             id: list
@@ -257,9 +303,10 @@ Item {
                 root.maxHeight -
                 search.implicitHeight -
                 root.padding * 3 -
-                (root.showCategories ? categoryRow.implicitHeight + CortetsuDesign.spacingCompact : 0)
+                (root.showCategories ? categoryRow.implicitHeight + CortetsuDesign.spacingCompact : 0) -
+                (root.showFavourites ? favourites.implicitHeight + CortetsuDesign.spacingStandard : 0)
             search: search
-            category: root.category
+            category: root.showFavourites ? "homeRest" : root.category
             padding: root.padding
             rounding: root.rounding
         }
