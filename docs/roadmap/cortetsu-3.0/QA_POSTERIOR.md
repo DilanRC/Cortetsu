@@ -1,6 +1,6 @@
 # QA posterior de la ola de construcción 3.0
 
-## Estado a 2026-11-20 (instalado `640a7086`)
+## Estado a 2026-11-20 (instalado `78f79170`)
 
 Las olas 3.0 están compiladas, probadas en una generación de prueba e
 instaladas. Lo que sigue en este documento es la lista original; esta tabla
@@ -9,7 +9,7 @@ real.
 
 | Área | Cubierto por pruebas automáticas | Queda para la sesión real |
 | --- | --- | --- |
-| Contextos | `test-context-model.node.js`, `test-cortetsu-contexts-runtime.py` (activar, deshacer, cambio con DND asíncrono, coordinador, reinicio, exportar/importar) | Perfil de energía real; DND y modo juego con sus helpers reales |
+| Contextos | `test-context-model.node.js`, `test-cortetsu-contexts-runtime.py` (activar, deshacer, cambio con DND asíncrono, coordinador, reinicio, exportar/importar) | DND y modo juego con sus helpers reales. Perfil de energía real hecho el 2026-11-20 en `78f79170`: Batería pasó balanced → power-saver con power-profiles-daemon y al salir restauró balanced; `cortetsu-power-auto` (solo actúa en transiciones AC↔batería) no intervino. El coordinador de políticas no reclamaba `power`, así que no hubo ajuste conservado |
 | Orbital | `cargo test` (pausa por contexto), `test-orbital-playback-colours-runtime.py`, `test-cortetsu-wallpaper-orbital-runtime.py` | Reproducción, ownership, GPU, energía y suspensión (sección Orbital) |
 | Hub | `test-cortetsu-hub-islands-runtime.py` (6 órdenes × repartido/esquinas, separación), migración de `mirrored` en la prueba de Ajustes | Popouts anclados a su isla y «Mover el Hub» con un orden no clásico |
 | Vista general | `test-overview-keys.node.js` (dígitos y modificadores); `hyprctl binds -j` del 2026-11-20: Alt+dígito solo (máscara 8) no está asignado, solo Super+Alt (72) y Super+Ctrl+Alt (76) | Probar Alt+dígito con la vista abierta |
