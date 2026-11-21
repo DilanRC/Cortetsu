@@ -61,37 +61,49 @@ Item {
     Accessible.role: Accessible.AlertMessage
     Accessible.name: `${root.label}: ${root.amount}`
 
-    implicitWidth: 236
-    implicitHeight: level ? 64 : 52
+    implicitWidth: 300
+    implicitHeight: level ? 72 : 60
 
     CortetsuPopupSurface {
         anchors.fill: parent
-        popupRadius: CortetsuDesign.radiusMedium
+        popupRadius: CortetsuDesign.radiusLarge
 
         RowLayout {
             anchors.fill: parent
-            anchors.margins: CortetsuDesign.spacingStandard
+            anchors.leftMargin: CortetsuDesign.spacingStandard
+            anchors.rightMargin: CortetsuDesign.spacingStandard + 4
             spacing: CortetsuDesign.spacingStandard
 
-            CortetsuIcon {
-                Layout.preferredWidth: 24
-                Layout.preferredHeight: 24
-                iconSize: 20
-                text: root.icon
-                color: root.tone
+            // The icon in a disc of its own tone: the kind reads before the
+            // words do.
+            Rectangle {
+                Layout.preferredWidth: 40
+                Layout.preferredHeight: 40
+                radius: width / 2
+                color: Qt.alpha(root.tone, root.attention ? 0.20 : 0.16)
+                border.width: 1
+                border.color: Qt.alpha(root.tone, 0.34)
+
+                CortetsuIcon {
+                    anchors.centerIn: parent
+                    iconSize: 20
+                    text: root.icon
+                    color: root.attention ? CortetsuDesign.colorVermillion
+                        : root.muted || !root.available ? CortetsuDesign.colorOnSurfaceVariant : CortetsuDesign.colorOnSurface
+                }
             }
 
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: CortetsuDesign.spacingUnit
+                spacing: 6
 
                 RowLayout {
                     Layout.fillWidth: true
                     CortetsuText {
                         Layout.fillWidth: true
                         text: root.label
-                        textSize: CortetsuTypography.bodySmallPx
-                        color: CortetsuDesign.colorOnSurfaceVariant
+                        textSize: CortetsuTypography.bodyPx
+                        font.weight: Font.DemiBold
                         elide: Text.ElideRight
                     }
                     CortetsuText {
@@ -99,24 +111,43 @@ Item {
                         text: root.amount
                         textSize: CortetsuTypography.bodySmallPx
                         font.weight: root.level ? Font.Normal : Font.DemiBold
-                        color: root.attention ? CortetsuDesign.colorVermillion : CortetsuDesign.colorOnSurface
+                        font.features: { "tnum": 1 }
+                        color: root.attention ? CortetsuDesign.colorVermillion : CortetsuDesign.colorOnSurfaceVariant
                     }
                 }
 
-                Rectangle {
-                    id: track
-                    objectName: "osdTrack"
+                Item {
                     visible: root.level
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 5
-                    radius: height / 2
-                    color: CortetsuDesign.colorSurfaceHigh
+                    Layout.preferredHeight: 12
 
                     Rectangle {
-                        width: track.width * root.presentedProgress
-                        height: parent.height
+                        id: track
+                        objectName: "osdTrack"
+                        anchors.verticalCenter: parent.verticalCenter
+                        width: parent.width
+                        height: 6
                         radius: height / 2
-                        color: root.tone
+                        color: CortetsuDesign.colorSurfaceHigh
+
+                        Rectangle {
+                            width: track.width * root.presentedProgress
+                            height: parent.height
+                            radius: height / 2
+                            color: root.tone
+                        }
+                    }
+                    // Where the level stands; a reading, not a handle.
+                    Rectangle {
+                        visible: root.available && !root.muted
+                        width: 12
+                        height: 12
+                        radius: width / 2
+                        x: Math.max(0, Math.min(parent.width - width, track.width * root.presentedProgress - width / 2))
+                        anchors.verticalCenter: parent.verticalCenter
+                        color: CortetsuDesign.colorWashi
+                        border.width: 2
+                        border.color: root.tone
                     }
                 }
             }

@@ -28,13 +28,16 @@ Item {
     property string seal: ""
     // A switch among several in a dense group: shorter, one line of detail.
     property bool compact: false
+    // Icon over a short label, for a row of actions. The detail only shows
+    // when it is a warning; otherwise it is the accessible description.
+    property bool stacked: false
     readonly property bool hovered: root.clickable && mouse.containsMouse
     readonly property bool pressed: root.clickable && mouse.pressed
     signal activated()
 
     onHighlightedChanged: if (highlighted && seal !== "") hanko.stamp()
 
-    implicitHeight: root.compact ? 56 : 76
+    implicitHeight: root.stacked ? (root.warning ? 78 : 60) : root.compact ? 56 : 76
     opacity: root.disabled ? 0.46 : 1
 
     // Press feedback scales the painted content only; the hitbox stays put.
@@ -81,7 +84,50 @@ Item {
         outlined: true
     }
 
+    ColumnLayout {
+        visible: root.stacked
+        scale: root.visualScale
+        anchors.centerIn: parent
+        width: parent.width - CortetsuDesign.spacingCompact * 2
+        spacing: 4
+
+        CortetsuIcon {
+            Layout.alignment: Qt.AlignHCenter
+            text: root.icon
+            iconSize: CortetsuTypography.iconMediumPx
+            color: root.warning ? CortetsuDesign.colorWarning
+                : root.highlighted ? CortetsuDesign.colorPrimary : CortetsuDesign.colorOnSurface
+        }
+        CortetsuText {
+            Layout.fillWidth: true
+            horizontalAlignment: Text.AlignHCenter
+            text: root.label
+            textSize: CortetsuTypography.labelSmallPx
+            font.weight: root.highlighted ? Font.DemiBold : Font.Medium
+            elide: Text.ElideRight
+        }
+        CortetsuText {
+            Layout.fillWidth: true
+            visible: root.warning && root.detail.length > 0
+            horizontalAlignment: Text.AlignHCenter
+            text: root.detail
+            textSize: CortetsuTypography.labelSmallPx
+            color: CortetsuDesign.colorOnSurface
+            elide: Text.ElideRight
+        }
+    }
+
+    CortetsuHanko {
+        visible: root.stacked && root.seal !== "" && root.highlighted && !root.warning
+        anchors.top: parent.top
+        anchors.right: parent.right
+        anchors.margins: 4
+        size: 18
+        glyph: root.seal
+    }
+
     RowLayout {
+        visible: !root.stacked
         scale: root.visualScale
         anchors.fill: parent
         anchors.margins: root.compact ? CortetsuDesign.spacingCompact + 2 : CortetsuDesign.spacingStandard

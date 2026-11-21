@@ -52,7 +52,7 @@ ShellRoot {
 
     Window {
         id: window
-        width: 600; height: 760; visible: true
+        width: 600; height: 1060; visible: true
         color: CortetsuDesign.colorSumi
 
         CortetsuPopupSurface {
@@ -71,7 +71,7 @@ ShellRoot {
         () => {
             const tile = find(panel, "quickWifi");
             verify(tile.clickable && tile.label === "Casa", `the Wi-Fi tile names the network and can be pressed (${tile.label})`);
-            verify(panel.height < 700, `the panel is as tall as its content (${panel.height})`);
+            verify(panel.height < 860, `the panel is as tall as its content and fits 1080 px with the Hub (${panel.height})`);
             const context = find(panel, "quickContext");
             verify(!!find(panel, "quickOrbital") && !!context, "the Orbital and context tiles are there");
             verify(context.label === "Contextos" && context.detail === "Ninguno activo" && !context.highlighted,
