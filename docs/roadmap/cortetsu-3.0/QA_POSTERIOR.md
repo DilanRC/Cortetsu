@@ -478,3 +478,17 @@ cortetsu rollback && cortetsu shell restart    # ensayo de vuelta atrás
 `services/{CortetsuEqualizer,CortetsuSpectrum,DesktopWidgets,DisplayCalibration,Notifs,Weather}.qml`,
 `services/{EqResponse,NightLight}.js`, `shell.qml`.
 
+
+## Cierre Premium sobria: comprobaciones de sesión física
+
+- Mini OSD: subir/bajar volumen y brillo con las teclas en cada monitor; la
+  cápsula aparece arriba al centro del monitor activo (brillo: el de su
+  salida), una ráfaga renueva la misma cápsula, sin robar el foco.
+- OSD de medios: pausar, reanudar y cambiar de pista en un reproductor con
+  carátula; un solo aviso por cambio.
+- Bandeja: Spotify (icono en `/opt/spotify/icons`) y las apps de Chrome se
+  ven sin damero.
+- Bloqueo: `loginctl lock-session`, escribir al instante, fallo (Monster),
+  éxito (Cosmic) con la contraseña real; música y avisos en las alas.
+- Centro de notificaciones con `showOnHover` activo: abrirlo desde el borde
+  derecho a media altura; el cierre por puntero sigue la ventana, no el panel.

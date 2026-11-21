@@ -446,3 +446,19 @@ cada instalación; journal limpio tras cada recarga.
 - Gate: compilación en scratch, `build-regressions.sh` y `cortetsu test`.
   Revisión: `ai-review fast` INCOMPLETE (OpenCode sin cuota); Codex
   `gpt-6-luna` sin hallazgos.
+
+#### Cierre Premium sobria (2026-11-21)
+
+Detalle, requisitos y evidencias en
+[CIERRE_PREMIUM_SOBRIA.md](CIERRE_PREMIUM_SOBRIA.md).
+
+- Pills en cápsula en los tres temas; mini OSD arriba al centro del monitor;
+  bandeja sin el damero de icono no encontrado; centro de notificaciones del
+  alto de su contenido, con variantes por tipo y modo privado; Launcher con
+  navegación y favoritos; bloqueo como escena completa.
+- Corrección de semántica: `notifs.json` guarda lo no descartado; el centro
+  ya no lo lista dos veces ni dice que lo descartado se guarda.
+- Orbital: `desktop-runtime-rs` compila y pasa sus pruebas (incluido
+  `orbital_session.rs`); `cortetsu-background` en `bottom` sin otros clientes
+  en esa capa en la sesión real.
+- Gate: `cortetsu test` en verde.
