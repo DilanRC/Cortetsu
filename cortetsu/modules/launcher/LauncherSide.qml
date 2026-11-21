@@ -105,6 +105,13 @@ ColumnLayout {
                 required property var modelData
                 Layout.fillWidth: true
                 implicitHeight: 40
+                Accessible.role: Accessible.Button
+                Accessible.name: qsTr("Abrir %1").arg(row.modelData?.name ?? "")
+                Accessible.onPressAction: row.launch()
+                function launch(): void {
+                    Apps.launch(row.modelData);
+                    root.screenState.launcher = false;
+                }
 
                 CortetsuSurface {
                     anchors.fill: parent
@@ -136,10 +143,7 @@ ColumnLayout {
                     anchors.fill: parent
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: {
-                        Apps.launch(row.modelData);
-                        root.screenState.launcher = false;
-                    }
+                    onClicked: row.launch()
                 }
             }
         }

@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Controls
+import Quickshell
 import ".."
 import "../../components"
 import "../../theme"
@@ -20,8 +21,11 @@ Item {
     property string category: "home"
     readonly property bool browsing: search.text.length === 0
     readonly property bool showCategories: browsing && Apps.categories.length > 2
-    // The side column (commands, recent apps) while browsing.
-    readonly property bool showSide: browsing && !list.showWallpapers
+    // The side column (commands, recent apps) while browsing, and only where
+    // the grid and the column fit side by side. Its rows are shortcuts with
+    // keyboard equivalents: the prefix for commands, and the recent apps
+    // lead the browse grid, so Tab keeps moving through the results.
+    readonly property bool showSide: browsing && !list.showWallpapers && (QsWindow.window?.width ?? 0) >= 1360
     readonly property int sideWidth: 280
 
     function cycleCategory(step: int): void {

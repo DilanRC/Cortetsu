@@ -50,7 +50,46 @@ Item {
         }
     }
 
+    // Wide screens carry what is playing and who wrote on either side of
+    // the clock; a narrow one keeps only the centre.
+    readonly property bool wings: width >= 1240
+
+    // A halo of the accent behind the mark: the light the scene is lit by.
+    CortetsuInkPanel {
+        x: center.x + center.width / 2 - width / 2
+        y: center.y + mark.y + mark.height / 2 - height / 2
+        width: 560
+        height: 560
+        radius: width / 2
+        groundAlpha: 0
+        grain: 0
+        hairline: false
+        marks: false
+        wash: root.rejected ? CortetsuDesign.colorVermillion : CortetsuDesign.colorPrimary
+        washAlpha: CortetsuDesign.materialHeroWashAlpha
+        washX: 0.5
+        washY: 0.5
+    }
+
+    LockMedia {
+        objectName: "lockMedia"
+        visible: root.wings && !!player
+        anchors.right: center.left
+        anchors.rightMargin: CortetsuDesign.spacingSection * 1.5
+        y: center.y + clock.y + clock.height / 2 - height / 2
+        onHandBackFocus: root.focusRequested()
+    }
+
+    LockMissed {
+        objectName: "lockMissed"
+        visible: root.wings && !CortetsuConfig.lockHideNotifs && apps.length > 0
+        anchors.left: center.right
+        anchors.leftMargin: CortetsuDesign.spacingSection * 1.5
+        y: center.y + clock.y + clock.height / 2 - height / 2
+    }
+
     ColumnLayout {
+        id: center
         anchors.centerIn: parent
         width: Math.min(parent.width - CortetsuDesign.spacingSection * 2, 480)
         spacing: CortetsuDesign.spacingStandard
@@ -58,6 +97,7 @@ Item {
         // The mark is the lock's emblem: large, and the one place where
         // the state of the authentication is drawn rather than written.
         CortetsuEvolvingMark {
+            id: mark
             objectName: "lockMark"
             phase: root.markPhase
             animated: !CortetsuDesign.reducedMotion
@@ -71,6 +111,7 @@ Item {
 
         // The clock is the focal point; the date and the user follow it.
         CortetsuText {
+            id: clock
             Layout.alignment: Qt.AlignHCenter
             text: Time.timeStr
             textSize: CortetsuTypography.displayHeroPx * 2

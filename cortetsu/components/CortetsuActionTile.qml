@@ -35,7 +35,7 @@ Item {
     readonly property bool pressed: root.clickable && mouse.pressed
     signal activated()
 
-    onHighlightedChanged: if (highlighted && seal !== "") hanko.stamp()
+    onHighlightedChanged: if (highlighted && seal !== "") (stacked ? stackedHanko : hanko).stamp()
 
     implicitHeight: root.stacked ? (root.warning ? 78 : 60) : root.compact ? 56 : 76
     opacity: root.disabled ? 0.46 : 1
@@ -118,6 +118,7 @@ Item {
     }
 
     CortetsuHanko {
+        id: stackedHanko
         visible: root.stacked && root.seal !== "" && root.highlighted && !root.warning
         anchors.top: parent.top
         anchors.right: parent.right
