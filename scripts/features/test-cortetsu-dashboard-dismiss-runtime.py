@@ -12,7 +12,8 @@ closes it instead:
 - a click outside closes it, a click on an empty part of the panel does not;
 - Escape closes it;
 - on Inicio, Down enters the quick controls, Left/Right move between them
-  and stop at the ends, Up returns the arrows to the zones;
+  and stop at the ends, Up returns the arrows to the zones, and Tab or Escape from a control
+  still reach the dashboard;
 - on a narrow screen with no weather and no player it fits and says so,
   without filler text or "--" readings.
 
@@ -106,7 +107,18 @@ ShellRoot {
         () => { verify(root.named("dashPowerProfile")?.activeFocus, "Left moves back to the power profile"); return key(Qt.Key_Up); },
         () => { verify(!root.named("dashPowerProfile")?.activeFocus, "Up leaves the controls"); return key(Qt.Key_Right); },
         () => { verify(state.dashboardTab === 1, `after Up, Right moves zones again: ${state.dashboardTab}`); return key(Qt.Key_Down); },
-        () => { verify(!root.named("dashDnd")?.activeFocus, "Down outside Inicio does nothing"); state.dashboard = false; state.dashboardTab = 0; return true; },
+        () => { verify(!root.named("dashDnd")?.activeFocus, "Down outside Inicio does nothing"); state.dashboardTab = 0; return true; },
+        // Tab from a control changes zone and unloads that control: the
+        // arrows must still reach the zones afterwards.
+        () => root.named("dashDnd") !== null,
+        () => key(Qt.Key_Down),
+        () => { verify(root.named("dashDnd")?.activeFocus, "Down enters again"); return key(Qt.Key_Tab); },
+        () => { verify(state.dashboardTab === 1, `Tab from a control moves zones: ${state.dashboardTab}`); return key(Qt.Key_Right); },
+        () => { verify(state.dashboardTab === 2, `the arrows still move zones after Tab: ${state.dashboardTab}`); state.dashboardTab = 0; return true; },
+        () => root.named("dashDnd") !== null,
+        () => key(Qt.Key_Down),
+        () => key(Qt.Key_Escape),
+        () => { verify(!state.dashboard, "Escape from a control closes the dashboard"); state.dashboardTab = 0; return true; },
         // Shortcut open.
         () => { state.dashboardOpenedBy = ""; state.dashboard = true; const p = onPanel(); move(p.x, p.y); return true; },
         () => { move(4, 990); return true; },
@@ -191,7 +203,7 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-dashboard-") as temporary:
     result = subprocess.run(["quickshell", "-p", str(folder / "shell.qml")], env=env,
                             capture_output=True, text=True, timeout=90)
     output = result.stdout + result.stderr
-    assert "DASH_RUNTIME_PASS 23" in output, output
+    assert "DASH_RUNTIME_PASS 27" in output, output
     for marker in ("DASH_FAIL", "TypeError", "ReferenceError", "Binding loop", "is not a type"):
         assert marker not in output, output
 

@@ -24,24 +24,34 @@ RowLayout {
     signal leaveRequested()
 
     // Keyboard: the dashboard's Down enters here; Left and Right move
-    // between the visible controls, Up leaves. Tab keeps cycling zones.
+    // between the visible controls and stop at the ends, Up leaves. Any
+    // other key (Tab, a zone digit, Escape) leaves too and still reaches the
+    // dashboard. A control drops its focus before leaving: the dashboard is a
+    // FocusScope, and forceActiveFocus on it would hand the keys straight
+    // back to the control that still holds the scope's focus. The controls
+    // leave Qt's Tab chain, which would otherwise swallow Tab here.
     readonly property var controls: [dnd, game, profile, context].filter(item => item.visible)
     function focusFirst(): void {
         if (controls.length > 0)
             controls[0].forceActiveFocus(Qt.TabFocusReason);
     }
-    function step(item: Item, delta: int): void {
-        const at = controls.indexOf(item);
-        const next = controls[Math.max(0, Math.min(controls.length - 1, at + delta))];
-        if (next)
-            next.forceActiveFocus(Qt.TabFocusReason);
-    }
-    // The control drops its focus first: the dashboard is a FocusScope, and
-    // forceActiveFocus on it would hand the keys straight back to the
-    // control that still holds the scope's focus.
-    function leave(item: Item): void {
-        item.focus = false;
-        leaveRequested();
+    Keys.onPressed: event => {
+        const at = controls.findIndex(item => item.activeFocus);
+        if (at < 0 || [Qt.Key_Shift, Qt.Key_Control, Qt.Key_Alt, Qt.Key_Meta].includes(event.key))
+            return;
+        if (event.key === Qt.Key_Left || event.key === Qt.Key_Right) {
+            const delta = event.key === Qt.Key_Right ? 1 : -1;
+            controls[Math.max(0, Math.min(controls.length - 1, at + delta))].forceActiveFocus(Qt.TabFocusReason);
+            event.accepted = true;
+            return;
+        }
+        if (event.key === Qt.Key_Down) {
+            event.accepted = true;
+            return;
+        }
+        controls[at].focus = false;
+        root.leaveRequested();
+        event.accepted = event.key === Qt.Key_Up;
     }
 
     readonly property var profiles: [PowerProfile.PowerSaver, PowerProfile.Balanced]
@@ -66,10 +76,8 @@ RowLayout {
 
     CortetsuButton {
         id: dnd
+        activeFocusOnTab: false
         objectName: "dashDnd"
-        Keys.onLeftPressed: root.step(dnd, -1)
-        Keys.onRightPressed: root.step(dnd, 1)
-        Keys.onUpPressed: root.leave(dnd)
         compact: true
         icon: Notifs.dnd ? "do_not_disturb_on" : "notifications"
         label: qsTr("No molestar")
@@ -80,10 +88,8 @@ RowLayout {
 
     CortetsuButton {
         id: game
+        activeFocusOnTab: false
         objectName: "dashGameMode"
-        Keys.onLeftPressed: root.step(game, -1)
-        Keys.onRightPressed: root.step(game, 1)
-        Keys.onUpPressed: root.leave(game)
         compact: true
         icon: "sports_esports"
         label: GameMode.busy ? qsTr("Aplicando…") : qsTr("Modo juego")
@@ -96,10 +102,8 @@ RowLayout {
 
     CortetsuButton {
         id: profile
+        activeFocusOnTab: false
         objectName: "dashPowerProfile"
-        Keys.onLeftPressed: root.step(profile, -1)
-        Keys.onRightPressed: root.step(profile, 1)
-        Keys.onUpPressed: root.leave(profile)
         compact: true
         icon: root.profileIcons[PowerProfiles.profile] ?? "balance"
         label: root.profileLabels[PowerProfiles.profile] ?? qsTr("Energía")
@@ -111,10 +115,8 @@ RowLayout {
     // none, the page where one is chosen.
     CortetsuButton {
         id: context
+        activeFocusOnTab: false
         objectName: "dashContext"
-        Keys.onLeftPressed: root.step(context, -1)
-        Keys.onRightPressed: root.step(context, 1)
-        Keys.onUpPressed: root.leave(context)
         compact: true
         icon: CortetsuContexts.active?.icon ?? "tune"
         label: CortetsuContexts.active ? qsTr("Salir de %1").arg(CortetsuContexts.active.name) : qsTr("Contextos")
