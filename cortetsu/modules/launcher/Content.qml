@@ -227,6 +227,7 @@ Item {
             delegate: CortetsuButton {
                 required property var modelData
                 compact: true
+                pill: true
                 activeFocusOnTab: false
                 active: root.category === modelData.id
                 label: modelData.label

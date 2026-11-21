@@ -18,7 +18,10 @@ Item {
     property string accessibleName: ""
     signal selected(int index)
 
-    implicitWidth: track.implicitWidth
+    // With fill the tabs take their width from the bar, so the bar cannot
+    // take its implicit width from them (the Row and the layout would resize
+    // each other forever); a fixed share per tab stands in.
+    implicitWidth: root.fill ? root.model.length * 112 + root.inset * (root.model.length + 1) : track.implicitWidth
     implicitHeight: 40 + inset * 2
     readonly property real inset: 3
 
@@ -38,7 +41,7 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        radius: CortetsuDesign.radiusMedium + root.inset
+        radius: height / 2
         color: Qt.alpha(CortetsuDesign.colorSurfaceGlassStrong, 0.6)
     }
 

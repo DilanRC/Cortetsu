@@ -6,6 +6,7 @@ import "../../services"
 import "../../utils"
 import "../../theme"
 import "../CortetsuTypography.js" as CortetsuTypography
+import "NotificationKind.js" as NotificationKind
 
 CortetsuSurface {
     id: root
@@ -25,6 +26,21 @@ CortetsuSurface {
     readonly property string bodyText: hasModelData ? modelData.body : ""
     readonly property var notificationActions: hasModelData && modelData.actions ? modelData.actions : []
     readonly property bool urgent: urgency >= 2
+    // The card's shape follows what the sender declares (NotificationKind.js).
+    readonly property var players: Players.list
+    readonly property string kind: hasModelData
+        ? NotificationKind.classify(modelData, players.map(player => player.desktopEntry)) : "general"
+    readonly property int progress: hasModelData ? NotificationKind.progress(modelData) : -1
+    // The player that sent a media notification, for its real controls.
+    readonly property var player: kind === "media"
+        ? players.find(player => String(player.desktopEntry).toLowerCase()
+            === String(modelData?.hints?.["desktop-entry"] ?? "").toLowerCase()) ?? null
+        : null
+    // Private mode shows who sent it, never what it says: no body, no
+    // picture and no title, here, in the history and on the lock screen.
+    readonly property bool hidden: CortetsuConfig.notificationPrivate
+    readonly property string shownSummary: hidden ? qsTr("Contenido oculto") : summary
+    readonly property bool showPicture: !hidden && imagePath.length > 0
     readonly property real nonAnimHeight: contentLayout.implicitHeight + CortetsuDesign.spacingComfortable * 2
 
     function syncInteraction(): void {
@@ -133,7 +149,7 @@ CortetsuSurface {
             CortetsuIconBadge {
                 Layout.preferredWidth: implicitWidth
                 Layout.preferredHeight: implicitHeight
-                icon: Icons.getNotifIcon(root.summary, root.urgency)
+                icon: NotificationKind.icon(root.kind, root.modelData)
                 iconSize: CortetsuTypography.iconMediumPx
                 tone: root.urgent ? CortetsuDesign.colorVermillion : CortetsuDesign.colorIndicator
             }
@@ -144,7 +160,7 @@ CortetsuSurface {
 
                 CortetsuText {
                     Layout.fillWidth: true
-                    text: root.summary
+                    text: root.shownSummary
                     textSize: CortetsuTypography.bodyLargePx
                     wrapMode: Text.Wrap
                     maximumLineCount: 2
@@ -175,20 +191,25 @@ CortetsuSurface {
             Layout.fillWidth: true
             spacing: CortetsuDesign.spacingStandard
 
+            // A message's picture is its sender: a round avatar. A capture
+            // or a cover is the content: a larger tile.
             Rectangle {
-                visible: image.source.length > 0
-                Layout.preferredWidth: visible ? 58 : 0
-                Layout.preferredHeight: visible ? 58 : 0
-                radius: CortetsuDesign.radiusSmall
+                objectName: "notificationPicture"
+                visible: root.showPicture && image.status !== Image.Error
+                readonly property int side: root.kind === "image" ? 96 : root.kind === "message" ? 40 : 58
+                Layout.preferredWidth: visible ? side : 0
+                Layout.preferredHeight: visible ? (root.kind === "image" ? 64 : side) : 0
+                Layout.alignment: Qt.AlignTop
+                radius: root.kind === "message" ? width / 2 : CortetsuDesign.radiusSmall
                 color: CortetsuDesign.colorSurfaceGlass
                 clip: true
 
                 Image {
                     id: image
                     anchors.fill: parent
-                    source: root.imagePath
-                    sourceSize.width: 116
-                    sourceSize.height: 116
+                    source: root.showPicture ? root.imagePath : ""
+                    sourceSize.width: 192
+                    sourceSize.height: 192
                     fillMode: Image.PreserveAspectCrop
                     smooth: true
                     mipmap: true
@@ -198,13 +219,63 @@ CortetsuSurface {
             CortetsuText {
                 id: body
                 Layout.fillWidth: true
-                text: root.bodyText
+                text: root.hidden ? "" : root.bodyText
                 textSize: CortetsuTypography.bodyPx
-                maximumLineCount: root.expanded ? 8 : 2
+                maximumLineCount: root.expanded ? 8 : root.kind === "message" ? 3 : 2
                 elide: Text.ElideRight
                 wrapMode: Text.WordWrap
                 visible: text.length > 0
                 color: CortetsuDesign.colorOnSurfaceVariant
+            }
+        }
+
+        // Progress the sender reports, updated in place when it replaces
+        // this notification with a new value.
+        RowLayout {
+            objectName: "notificationProgress"
+            Layout.fillWidth: true
+            visible: root.kind === "progress" && root.progress >= 0
+            spacing: CortetsuDesign.spacingStandard
+            CortetsuProgressBar {
+                Layout.fillWidth: true
+                value: Math.max(0, root.progress) / 100
+            }
+            CortetsuText {
+                text: `${Math.max(0, root.progress)} %`
+                textSize: CortetsuTypography.labelSmallPx
+                font.features: { "tnum": 1 }
+                color: CortetsuDesign.colorOnSurfaceVariant
+            }
+        }
+
+        // A player's notification: its controls, through MPRIS, only for
+        // what the player says it can do.
+        RowLayout {
+            objectName: "notificationMediaControls"
+            Layout.fillWidth: true
+            visible: !!root.player
+            spacing: CortetsuDesign.spacingCompact
+            CortetsuButton {
+                compact: true
+                icon: "skip_previous"
+                tooltipText: qsTr("Anterior")
+                disabled: !root.player?.canGoPrevious
+                onClicked: root.player?.previous()
+            }
+            CortetsuButton {
+                compact: true
+                active: true
+                icon: root.player?.isPlaying ? "pause" : "play_arrow"
+                tooltipText: root.player?.isPlaying ? qsTr("Pausar") : qsTr("Reproducir")
+                disabled: !root.player?.canTogglePlaying
+                onClicked: root.player?.togglePlaying()
+            }
+            CortetsuButton {
+                compact: true
+                icon: "skip_next"
+                tooltipText: qsTr("Siguiente")
+                disabled: !root.player?.canGoNext
+                onClicked: root.player?.next()
             }
         }
 

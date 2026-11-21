@@ -3,6 +3,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Services.Notifications
+import "../modules/BottomHubTray.js" as BottomHubTray
 
 Singleton {
     readonly property var categoryIcons: ({WebBrowser:"web", Printing:"print", Security:"security", Network:"chat", Development:"code", IDE:"code", Audio:"music_note", Music:"music_note", Player:"music_note", Recorder:"mic", Game:"sports_esports", FileManager:"files", Settings:"settings", TerminalEmulator:"terminal", Utility:"build", Monitor:"monitor_heart", Video:"videocam", Graphics:"photo_library", TV:"tv", System:"host", Office:"content_paste"})
@@ -70,10 +71,22 @@ Singleton {
         const value = name.toLowerCase().slice("special:".length);
         return ({special:"star", communication:"forum", music:"music_cast", todo:"checklist", sysmon:"monitor_heart"})[value] ?? (value ? value[0].toUpperCase() : "star");
     }
+    // A tray item's icon as Qt can draw it. Quickshell hands a named icon
+    // as image://icon/NAME, with ?path=DIR when the app ships its own theme
+    // folder (IconThemePath). The icon provider paints a magenta checker
+    // for a name it cannot find, so a name is looked up first: the theme,
+    // then the app's folder (where SNI apps keep PNGs), then the app's
+    // desktop entry. Pixmaps and files pass through untouched.
     function getTrayIcon(id: string, icon: string): string {
-        if (!icon.includes("?path=")) return icon;
-        const parts = icon.split("?path="), file = parts[0].slice(parts[0].lastIndexOf("/") + 1);
-        return Quickshell.iconPath(file, true) || Qt.resolvedUrl(`${parts[1]}/${file}`);
+        const named = BottomHubTray.namedIcon(icon);
+        if (!named)
+            return String(icon ?? "").length > 0 ? String(icon) : getAppIcon(id, "application-x-executable");
+        const themed = named.name ? Quickshell.iconPath(named.name, true) : "";
+        if (themed)
+            return themed;
+        if (named.name && named.dir)
+            return `file://${named.dir}/${named.name}.png`;
+        return getAppIcon(id, "application-x-executable");
     }
     function getBatteryIcon(percentage: real, charging = false): string {
         if (percentage === 1) return charging ? "battery_charging_full" : "battery_full";

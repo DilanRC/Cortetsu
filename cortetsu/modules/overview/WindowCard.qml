@@ -59,7 +59,7 @@ Item {
     }
 
     readonly property url iconSource:
-        Icons.getAppIcon(className, "image-missing")
+        Icons.getAppIcon(className, "application-x-executable")
 
     /*
      * The preview follows the actual window aspect ratio instead of forcing

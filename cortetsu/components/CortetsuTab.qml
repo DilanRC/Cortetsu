@@ -47,7 +47,8 @@ Item {
     CortetsuSurface {
         scale: root.visualScale
         anchors.fill: parent
-        radiusValue: CortetsuDesign.radiusMedium
+        // A pill in every theme and state: half its height, Kurogane included.
+        radiusValue: CortetsuDesign.radiusPill
         active: root.selected
         disabled: root.disabled
         focused: root.activeFocus

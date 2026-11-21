@@ -304,7 +304,7 @@ GridView {
 
                 source: Quickshell.iconPath(
                     app.modelData?.icon,
-                    "image-missing"
+                    "application-x-executable"
                 )
             }
 

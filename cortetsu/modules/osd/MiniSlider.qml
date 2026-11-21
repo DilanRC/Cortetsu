@@ -24,6 +24,9 @@ Item {
     required property bool muted
     // The device the reading belongs to, when the system names it.
     property string name: ""
+    // Media: the artist under the title, and the cover in place of the icon.
+    property string detail: ""
+    property string art: ""
     readonly property bool level: kind !== "microphone" && kind !== "profile" && kind !== "media"
     // For media, `value` is 1 while playing and 0 while paused.
     readonly property bool playing: kind === "media" && value > 0.5
@@ -61,22 +64,24 @@ Item {
     Accessible.role: Accessible.AlertMessage
     Accessible.name: `${root.label}: ${root.amount}`
 
-    implicitWidth: 300
-    implicitHeight: level ? 72 : 60
+    implicitWidth: kind === "media" ? 360 : 320
+    implicitHeight: level ? 64 : 60
 
+    // A capsule: ends fully round in every theme.
     CortetsuPopupSurface {
         anchors.fill: parent
-        popupRadius: CortetsuDesign.radiusLarge
+        popupRadius: height / 2
 
         RowLayout {
             anchors.fill: parent
-            anchors.leftMargin: CortetsuDesign.spacingStandard
-            anchors.rightMargin: CortetsuDesign.spacingStandard + 4
+            anchors.leftMargin: 12
+            anchors.rightMargin: 22
             spacing: CortetsuDesign.spacingStandard
 
             // The icon in a disc of its own tone: the kind reads before the
             // words do.
             Rectangle {
+                visible: !cover.visible
                 Layout.preferredWidth: 40
                 Layout.preferredHeight: 40
                 radius: width / 2
@@ -93,9 +98,21 @@ Item {
                 }
             }
 
+            // The cover of the track, when the player gives one; a missing
+            // or broken image falls back to the icon disc.
+            CortetsuRoundedImage {
+                id: cover
+                objectName: "osdCover"
+                visible: root.kind === "media" && root.art.length > 0 && status === Image.Ready
+                Layout.preferredWidth: 40
+                Layout.preferredHeight: 40
+                source: root.kind === "media" ? root.art : ""
+                radius: width / 2
+            }
+
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: 6
+                spacing: root.level ? 6 : 1
 
                 RowLayout {
                     Layout.fillWidth: true
@@ -114,6 +131,16 @@ Item {
                         font.features: { "tnum": 1 }
                         color: root.attention ? CortetsuDesign.colorVermillion : CortetsuDesign.colorOnSurfaceVariant
                     }
+                }
+
+                CortetsuText {
+                    objectName: "osdDetail"
+                    Layout.fillWidth: true
+                    visible: root.kind === "media" && root.detail.length > 0
+                    text: root.detail
+                    textSize: CortetsuTypography.labelSmallPx
+                    color: CortetsuDesign.colorOnSurfaceVariant
+                    elide: Text.ElideRight
                 }
 
                 Item {

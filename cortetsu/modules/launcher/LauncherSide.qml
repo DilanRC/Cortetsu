@@ -129,7 +129,7 @@ ColumnLayout {
                     spacing: CortetsuDesign.spacingCompact
                     IconImage {
                         implicitSize: 24
-                        source: Quickshell.iconPath(row.modelData?.icon, "image-missing")
+                        source: Quickshell.iconPath(row.modelData?.icon, "application-x-executable")
                     }
                     CortetsuText {
                         Layout.fillWidth: true

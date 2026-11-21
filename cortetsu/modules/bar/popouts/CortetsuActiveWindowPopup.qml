@@ -30,7 +30,7 @@ Item {
                 anchors.fill: parent
                 anchors.margins: CortetsuDesign.spacingStandard
                 spacing: CortetsuDesign.spacingStandard
-                IconImage { Layout.preferredWidth: 32; Layout.preferredHeight: 32; source: Icons.getAppIcon(CortetsuHypr.activeToplevel?.lastIpcObject.class ?? "", "image-missing") }
+                IconImage { Layout.preferredWidth: 32; Layout.preferredHeight: 32; source: Icons.getAppIcon(CortetsuHypr.activeToplevel?.lastIpcObject.class ?? "", "application-x-executable") }
                 ColumnLayout {
                     Layout.fillWidth: true
                     CortetsuText { Layout.fillWidth: true; text: CortetsuHypr.activeToplevel?.title ?? qsTr("No hay ventana activa"); elide: Text.ElideRight }

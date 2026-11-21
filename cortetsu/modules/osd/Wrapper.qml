@@ -13,7 +13,7 @@ Item {
     required property var screenState
     required property bool sidebarOrSessionVisible
     readonly property var monitor: Brightness.getMonitorForScreen(screen)
-    property real offsetScale: screenState?.osd || compactVisible ? 0 : 1
+    property real offsetScale: screenState?.osd ? 0 : 1
     property real sidebarOffset: sidebarOrSessionVisible ? CortetsuDesign.spacingStandard : 0
     property real volume: CortetsuAudio.volume
     property bool muted: CortetsuAudio.muted
@@ -25,6 +25,9 @@ Item {
     // power-profiles-daemon reports its first value after start-up; that
     // reading is not a change the user made and is not announced.
     property bool profileSettled: false
+    // The last media state announced (player, track, playing): a repeated
+    // metadata signal or a seek is not a new event.
+    property string lastMediaKey: ""
     // The microphone whose mute state has been seen settled. A mute change
     // that arrives with a new default source is that source's own state,
     // not something the user just did, and is not announced.
@@ -54,8 +57,8 @@ Item {
     visible: offsetScale < 1
     anchors.rightMargin:
         (-implicitWidth - CortetsuDesign.spacingStandard - sidebarOffset) * offsetScale
-    implicitWidth: fullVisible ? content.implicitWidth : mini.implicitWidth
-    implicitHeight: fullVisible ? content.implicitHeight : mini.implicitHeight
+    implicitWidth: content.implicitWidth
+    implicitHeight: content.implicitHeight
     opacity: 1 - offsetScale
     // design-lint: allow motion-scale-from-zero: 0.98 to 1, slides in with the fade
     scale: 1 - 0.015 * offsetScale
@@ -91,15 +94,29 @@ Item {
         }
     }
 
-    // Play and pause of the active player (media keys, a headset button).
-    // A new track is the "Reproduciendo ahora" toast's to announce; a
-    // player that just became the active one is not a change the user made.
+    // Play, pause and a new track of the active player, on the active
+    // monitor. A player that just became the active one is not a change the
+    // user made; the same player, track and state again is not news.
+    function announceMedia(): void {
+        const player = Players.active;
+        if (!player || CortetsuShellState.forActive() !== root.screenState)
+            return;
+        const playing = player.playbackState === MprisPlaybackState.Playing;
+        if (!playing && player.playbackState !== MprisPlaybackState.Paused)
+            return;
+        const key = `${player.identity}\u001f${player.trackTitle ?? ""}\u001f${playing}`;
+        if (key === root.lastMediaKey)
+            return;
+        root.lastMediaKey = key;
+        root.showMini("media");
+    }
+
     Connections {
         target: Players.active
-        function onPlaybackStateChanged(): void {
-            if (CortetsuShellState.forActive() === root.screenState
-                    && [MprisPlaybackState.Playing, MprisPlaybackState.Paused].includes(Players.active?.playbackState))
-                root.showMini("media");
+        function onPlaybackStateChanged(): void { root.announceMedia(); }
+        function onTrackTitleChanged(): void {
+            if (Players.active?.playbackState === MprisPlaybackState.Playing)
+                root.announceMedia();
         }
     }
 
@@ -158,26 +175,24 @@ Item {
         brightness: root.brightness
     }
 
-    MiniSlider {
-        id: mini
-        anchors.verticalCenter: parent.verticalCenter
-        anchors.left: parent.left
-        visible: root.compactVisible && !root.fullVisible
-        kind: root.compactKind
-        value: root.compactKind === "volume" ? root.volume
-            : root.compactKind === "microphone" ? CortetsuAudio.sourceVolume
-            : root.compactKind === "profile" ? PowerProfiles.profile
-            : root.compactKind === "media" ? (Players.active?.playbackState === MprisPlaybackState.Playing ? 1 : 0)
-            : root.brightness
-        maximum: root.compactKind === "brightness" ? 1 : CortetsuConfig.maxVolume
-        available: root.compactKind === "volume" ? root.volumeAvailable
-            : root.compactKind === "microphone" ? !!CortetsuAudio.source?.audio
-            : root.compactKind === "profile" ? true
-            : root.compactKind === "media" ? !!Players.active : root.brightness >= 0
-        muted: root.compactKind === "microphone" ? CortetsuAudio.sourceMuted
-            : root.compactKind === "profile" || root.compactKind === "media" ? false : root.muted
-        // The output's own name, so a change of device is told apart.
-        name: root.compactKind === "volume" ? (CortetsuAudio.sink?.description ?? "")
-            : root.compactKind === "media" ? (Players.active?.trackTitle?.trim() ?? "") : ""
-    }
+    // What the mini OSD shows. The capsule itself sits at the top centre of
+    // this monitor (drawers/Panels.qml), apart from the control center.
+    readonly property bool miniShown: root.compactVisible && !root.fullVisible
+    readonly property real miniValue: root.compactKind === "volume" ? root.volume
+        : root.compactKind === "microphone" ? CortetsuAudio.sourceVolume
+        : root.compactKind === "profile" ? PowerProfiles.profile
+        : root.compactKind === "media" ? (Players.active?.playbackState === MprisPlaybackState.Playing ? 1 : 0)
+        : root.brightness
+    readonly property real miniMaximum: root.compactKind === "brightness" ? 1 : CortetsuConfig.maxVolume
+    readonly property bool miniAvailable: root.compactKind === "volume" ? root.volumeAvailable
+        : root.compactKind === "microphone" ? !!CortetsuAudio.source?.audio
+        : root.compactKind === "profile" ? true
+        : root.compactKind === "media" ? !!Players.active : root.brightness >= 0
+    readonly property bool miniMuted: root.compactKind === "microphone" ? CortetsuAudio.sourceMuted
+        : root.compactKind === "profile" || root.compactKind === "media" ? false : root.muted
+    // The output's own name, so a change of device is told apart.
+    readonly property string miniName: root.compactKind === "volume" ? (CortetsuAudio.sink?.description ?? "")
+        : root.compactKind === "media" ? (Players.active?.trackTitle?.trim() ?? "") : ""
+    readonly property string miniDetail: root.compactKind === "media" ? (Players.active?.trackArtist?.trim() ?? "") : ""
+    readonly property string miniArt: root.compactKind === "media" ? Players.getArtUrl(Players.active) : ""
 }

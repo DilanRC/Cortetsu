@@ -40,7 +40,7 @@ Item {
 
     CortetsuSurface {
         anchors.fill: parent
-        radiusValue: CortetsuDesign.materialStyle === 2 ? CortetsuDesign.radiusSmall : height / 2
+        radiusValue: height / 2
         active: root.selected
         focused: root.activeFocus
         hovered: mouse.containsMouse && !root.disabled

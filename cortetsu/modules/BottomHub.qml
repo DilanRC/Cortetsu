@@ -530,7 +530,7 @@ Scope {
                 client => {
                     const window = client.lastIpcObject ?? {};
                     const entry = desktopEntryForClient(client);
-                    return Icons.getAppIcon(entry?.icon || window.class || window.initialClass, "image-missing");
+                    return Icons.getAppIcon(entry?.icon || window.class || window.initialClass, "application-x-executable");
                 }
             ) : ({})
 
@@ -622,7 +622,7 @@ Scope {
                     client => client.lastIpcObject?.address === activeAddress
                 ),
                 title: item.entry?.name ?? item.className,
-                iconSource: Icons.getAppIcon(item.entry?.icon || item.className, "image-missing"),
+                iconSource: Icons.getAppIcon(item.entry?.icon || item.className, "application-x-executable"),
                 windowCount: item.windows.length
             }))
 
@@ -636,7 +636,7 @@ Scope {
                     id: item.id,
                     needsAttention: item.status === Status.NeedsAttention,
                     title: BottomHubTray.tooltipFor(item),
-                    iconSource: item.icon || Icons.getTrayIcon(item.id, item.icon),
+                    iconSource: Icons.getTrayIcon(item.id, item.icon),
                     onlyMenu: item.onlyMenu,
                     hasMenu: item.hasMenu
                 }))

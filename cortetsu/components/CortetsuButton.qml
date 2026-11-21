@@ -24,6 +24,9 @@ Item {
     property bool danger: false
     property bool disabled: false
     property bool compact: false
+    // Chips, filters and categories are pills in every theme; plain
+    // actions keep Kurogane's machined corners.
+    property bool pill: false
     property string tooltipText: ""
     signal clicked()
 
@@ -51,7 +54,7 @@ Item {
     CortetsuSurface {
         anchors.fill: parent
         // Kurogane's buttons are machined, not rounded.
-        radiusValue: CortetsuDesign.materialStyle === 2 ? CortetsuDesign.radiusSmall : CortetsuDesign.radiusPill
+        radiusValue: CortetsuDesign.materialStyle === 2 && !root.pill ? CortetsuDesign.radiusSmall : CortetsuDesign.radiusPill
         active: root.active
         danger: root.danger
         disabled: root.disabled

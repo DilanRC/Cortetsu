@@ -65,6 +65,36 @@ Item {
         }
     }
 
+    // The mini OSD: top centre of this monitor, under the Hub when the Hub
+    // takes the top edge. It takes no pointer and no focus (no region in the
+    // input mask), and is independent of where the control center opens.
+    Osd.MiniSlider {
+        id: miniOsd
+        objectName: "miniOsd"
+        readonly property bool shown: osd.miniShown
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.top: parent.top
+        anchors.topMargin: root.hubReserved.top + CortetsuDesign.spacingStandard - (shown ? 0 : 12)
+        visible: opacity > 0
+        opacity: shown ? 1 : 0
+        z: 50
+        kind: osd.compactKind
+        value: osd.miniValue
+        maximum: osd.miniMaximum
+        available: osd.miniAvailable
+        muted: osd.miniMuted
+        name: osd.miniName
+        detail: osd.miniDetail
+        art: osd.miniArt
+
+        Behavior on opacity {
+            NumberAnimation { duration: CortetsuDesign.motionFastMs; easing.type: Easing.OutCubic }
+        }
+        Behavior on anchors.topMargin {
+            NumberAnimation { duration: CortetsuDesign.motionFastMs; easing.type: Easing.OutCubic }
+        }
+    }
+
     Notifications.Wrapper {
         id: notifications
         screenState: root.screenState
@@ -133,12 +163,17 @@ Item {
         anchors.bottom: parent.bottom
         anchors.right: parent.right
     }
+    // The notification center: as tall as its content, on the Hub's edge
+    // (above a bottom Hub, below a top one), never the full screen height.
     Sidebar.Wrapper {
         id: sidebar
         screenState: root.screenState
         hubReserved: root.hubReserved
-        anchors.top: parent.top
-        anchors.bottom: parent.bottom
+        availableHeight: root.height - 16 - root.hubReserved.top - root.hubReserved.bottom
+        anchors.top: fromBottom ? undefined : parent.top
+        anchors.bottom: fromBottom ? parent.bottom : undefined
+        anchors.topMargin: 8 + root.hubReserved.top
+        anchors.bottomMargin: Math.max(8, root.hubReserved.bottom)
         anchors.right: root.screenState?.utilities ? utilities.left : parent.right
     }
 }

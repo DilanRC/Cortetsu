@@ -13,14 +13,19 @@ Item {
 
     // What the Hub takes from each edge (Panels sets it per screen).
     property var hubReserved: ({ top: 0, bottom: CortetsuDesign.bottomHubHeight, left: 0, right: 0 })
+    // The room between the Hub and the opposite edge; the center is as tall
+    // as its content up to this, and scrolls past it.
+    property real availableHeight: 800
+    // Sits on the Hub's edge when the Hub takes the top or the bottom, so it
+    // opens out of the Hub rather than at the far end of the screen.
+    readonly property bool fromBottom: hubReserved.bottom > 0
 
     visible: offsetScale < 1
-    // Right-edge drawer: full height, clear of the Hub on whichever edge it
-    // sits, sliding in from the edge it is opened from.
-    anchors.topMargin: 8 + hubReserved.top
-    anchors.bottomMargin: Math.max(8, hubReserved.bottom)
+    // Right-edge drawer, clear of the Hub on whichever edge it sits, sliding
+    // in from that edge.
     anchors.rightMargin: (8 + hubReserved.right) * (1 - offsetScale) + (-implicitWidth - 8) * offsetScale
-    implicitWidth: Math.min(420, parent.width - 16)
+    implicitWidth: content.item?.implicitWidth ?? 420
+    implicitHeight: content.item?.implicitHeight ?? 0
     opacity: Math.min(1, (1 - offsetScale) * 2)
 
     Behavior on offsetScale {
@@ -31,10 +36,18 @@ Item {
         }
     }
 
+    // The ink ground is drawn behind it at this geometry (ContentWindow's
+    // PanelBg), so the center's size is the material's size.
     Loader {
         id: content
         anchors.fill: parent
         active: root.shouldBeActive || root.visible
-        sourceComponent: Content { screenState: root.screenState }
+        sourceComponent: Content {
+            screenState: root.screenState
+            maxHeight: root.availableHeight
+            // Wide view on a screen with room for the side column next to
+            // the list and the Hub's own reach.
+            wide: (root.parent?.width ?? 0) >= 1600
+        }
     }
 }
