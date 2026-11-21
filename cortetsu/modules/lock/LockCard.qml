@@ -9,8 +9,14 @@ import "../../utils"
 import "../../theme"
 import "../CortetsuTypography.js" as CortetsuTypography
 
-// What the lock screen shows. It only reads PAM state: keys, focus and the
-// release stay in LockSurface, so this can be rendered without a session lock.
+// What the lock screen shows: a whole scene (07-lockscreen, with the
+// composition of Nebula's LockScene studied, not copied): the mark over a
+// horizon of light, the clock, who is locked, the password capsule, what
+// plays on the left, who wrote on the right, and the state of the machine
+// in a bar at the foot. After a quiet while the scene goes ambient: the
+// secondary parts dim, the clock stays. Keys never wait for that: they go
+// to LockSurface, which owns focus, PAM and the release, so this item only
+// reads PAM state and can be rendered without a session lock.
 Item {
     id: root
 
@@ -51,29 +57,113 @@ Item {
     }
 
     // Wide screens carry what is playing and who wrote on either side of
-    // the clock; a narrow one keeps only the centre.
+    // the clock; a narrow one keeps only the centre and the bar.
     readonly property bool wings: width >= 1240
+    // The scene is drawn for 1920×1080 and follows the screen's height.
+    readonly property real unit: Math.max(0.72, Math.min(1.25, height / 1080))
 
-    // A halo of the accent behind the mark: the light the scene is lit by.
+    // Ambient: nothing typed and nothing wrong for a while. Any key (the
+    // buffer changes) or a pointer move brings the scene back at once.
+    property bool ambient: false
+    property real secondaryOpacity: ambient ? 0.38 : 1
+    Behavior on secondaryOpacity {
+        enabled: !CortetsuDesign.reducedMotion
+        NumberAnimation { duration: CortetsuDesign.motionPanelMs; easing.type: Easing.OutCubic }
+    }
+    function wake(): void {
+        root.ambient = false;
+        ambientTimer.restart();
+    }
+    Timer {
+        id: ambientTimer
+        interval: 20000
+        running: true
+        onTriggered: root.ambient = root.pam.buffer.length === 0 && root.pam.state === 0 && !root.checking
+    }
+    Connections {
+        target: root.pam
+        function onBufferChanged(): void { root.wake(); }
+        function onStateChanged(): void { root.wake(); }
+    }
+    HoverHandler { onPointChanged: root.wake() }
+
+    // --- Light: a halo behind the mark and a horizon under it ------------
     CortetsuInkPanel {
-        x: center.x + center.width / 2 - width / 2
+        x: root.width / 2 - width / 2
         y: center.y + mark.y + mark.height / 2 - height / 2
-        width: 560
-        height: 560
+        width: 640 * root.unit
+        height: width
         radius: width / 2
         groundAlpha: 0
         grain: 0
         hairline: false
         marks: false
         wash: root.rejected ? CortetsuDesign.colorVermillion : CortetsuDesign.colorPrimary
-        washAlpha: CortetsuDesign.materialHeroWashAlpha
+        washAlpha: CortetsuDesign.materialHeroWashAlpha * 1.4
         washX: 0.5
         washY: 0.5
     }
 
+    // A planet's rim: a very large circle whose top edge passes just under
+    // the mark, lit along its edge and fading inwards.
+    Item {
+        objectName: "lockHorizon"
+        anchors.fill: parent
+        clip: true
+        Rectangle {
+            readonly property real diameter: root.width * 2.2
+            width: diameter
+            height: diameter
+            radius: diameter / 2
+            x: root.width / 2 - diameter / 2
+            y: center.y + mark.y + mark.height * 0.78
+            border.width: 2
+            border.color: Qt.alpha(root.rejected ? CortetsuDesign.colorVermillion : CortetsuDesign.colorPrimary, 0.55)
+            gradient: Gradient {
+                GradientStop { position: 0; color: Qt.alpha(root.rejected ? CortetsuDesign.colorVermillion : CortetsuDesign.colorPrimary, 0.16) }
+                GradientStop { position: 0.08; color: Qt.alpha(CortetsuDesign.colorSumi, 0.30) }
+                GradientStop { position: 1; color: Qt.alpha(CortetsuDesign.colorSumi, 0.30) }
+            }
+        }
+    }
+
+    // --- Brand, top left --------------------------------------------------
+    RowLayout {
+        objectName: "lockBrand"
+        x: 40 * root.unit
+        y: 32 * root.unit
+        spacing: CortetsuDesign.spacingStandard
+        opacity: root.secondaryOpacity
+        CortetsuEvolvingMark {
+            phase: "Ascended"
+            animated: false
+            monochrome: true
+            monochromeColor: CortetsuDesign.colorWashi
+            Layout.preferredWidth: 30
+            Layout.preferredHeight: 30
+        }
+        CortetsuText {
+            text: "Cortetsu"
+            textSize: CortetsuTypography.titleSmallPx
+            font.weight: Font.DemiBold
+        }
+        Rectangle {
+            Layout.preferredWidth: 1
+            Layout.preferredHeight: 26
+            color: Qt.alpha(CortetsuDesign.colorWashi, 0.24)
+        }
+        CortetsuText {
+            text: qsTr("Sesión bloqueada")
+            textSize: CortetsuTypography.labelSmallPx
+            color: CortetsuDesign.colorOnSurfaceVariant
+        }
+    }
+
+    // --- Wings --------------------------------------------------------------
     LockMedia {
         objectName: "lockMedia"
         visible: root.wings && !!player
+        opacity: root.secondaryOpacity
         anchors.right: center.left
         anchors.rightMargin: CortetsuDesign.spacingSection * 1.5
         y: center.y + clock.y + clock.height / 2 - height / 2
@@ -83,15 +173,19 @@ Item {
     LockMissed {
         objectName: "lockMissed"
         visible: root.wings && !CortetsuConfig.lockHideNotifs && apps.length > 0
+        opacity: root.secondaryOpacity
         anchors.left: center.right
         anchors.leftMargin: CortetsuDesign.spacingSection * 1.5
         y: center.y + clock.y + clock.height / 2 - height / 2
     }
 
+    // --- Centre -------------------------------------------------------------
     ColumnLayout {
         id: center
-        anchors.centerIn: parent
-        width: Math.min(parent.width - CortetsuDesign.spacingSection * 2, 480)
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.verticalCenter: parent.verticalCenter
+        anchors.verticalCenterOffset: -40 * root.unit
+        width: Math.min(parent.width - CortetsuDesign.spacingSection * 2, 520)
         spacing: CortetsuDesign.spacingStandard
 
         // The mark is the lock's emblem: large, and the one place where
@@ -103,57 +197,111 @@ Item {
             animated: !CortetsuDesign.reducedMotion
             monochrome: true
             monochromeColor: root.rejected ? CortetsuDesign.colorVermillion : CortetsuDesign.colorWashi
-            Layout.preferredWidth: 132
-            Layout.preferredHeight: 132
+            Layout.preferredWidth: 168 * root.unit
+            Layout.preferredHeight: 168 * root.unit
             Layout.alignment: Qt.AlignHCenter
-            Layout.bottomMargin: CortetsuDesign.spacingCompact
         }
 
-        // The clock is the focal point; the date and the user follow it.
+        // The clock is the focal point; the date follows it.
         CortetsuText {
             id: clock
+            objectName: "lockClock"
             Layout.alignment: Qt.AlignHCenter
+            Layout.topMargin: CortetsuDesign.spacingStandard
             text: Time.timeStr
-            textSize: CortetsuTypography.displayHeroPx * 2
+            textSize: Math.round(CortetsuTypography.displayHeroPx * 2.6 * root.unit)
             font.weight: Font.Light
             font.letterSpacing: 2
         }
 
         CortetsuText {
             Layout.alignment: Qt.AlignHCenter
-            Layout.bottomMargin: CortetsuDesign.spacingSpacious
+            Layout.topMargin: -CortetsuDesign.spacingCompact
+            Layout.bottomMargin: CortetsuDesign.spacingStandard
             text: CortetsuRegional.formatDate(Time.date, "longDay", true)
-            textSize: CortetsuTypography.titleSmallPx
+            textSize: CortetsuTypography.titleMediumPx
             color: CortetsuDesign.colorOnSurface
         }
 
-        CortetsuText {
+        // Who is locked: a capsule with the initial and the session.
+        Item {
+            objectName: "lockUser"
             Layout.alignment: Qt.AlignHCenter
             Layout.maximumWidth: parent.width
-            text: root.userLabel
-            textSize: CortetsuTypography.titleMediumPx
-            font.weight: Font.DemiBold
-            elide: Text.ElideRight
+            implicitWidth: Math.min(center.width, 340)
+            implicitHeight: 64
+
+            Rectangle {
+                anchors.fill: parent
+                radius: height / 2
+                color: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.55)
+                border.width: 1
+                border.color: Qt.alpha(CortetsuDesign.colorWashi, 0.12)
+            }
+            RowLayout {
+                id: userRow
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.leftMargin: 10
+                anchors.rightMargin: 30
+                anchors.verticalCenter: parent.verticalCenter
+                spacing: CortetsuDesign.spacingStandard
+                Rectangle {
+                    Layout.preferredWidth: 44
+                    Layout.preferredHeight: 44
+                    radius: width / 2
+                    color: CortetsuDesign.colorPrimaryContainer
+                    border.width: 1
+                    border.color: Qt.alpha(CortetsuDesign.colorPrimary, 0.5)
+                    CortetsuText {
+                        anchors.centerIn: parent
+                        text: root.userLabel.slice(0, 1).toLocaleUpperCase()
+                        textSize: CortetsuTypography.titleSmallPx
+                        font.weight: Font.DemiBold
+                        color: CortetsuDesign.colorOnPrimaryContainer
+                    }
+                }
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    Layout.preferredWidth: 1
+                    spacing: 0
+                    CortetsuText {
+                        Layout.fillWidth: true
+                        text: root.userLabel
+                        textSize: CortetsuTypography.bodyLargePx
+                        font.weight: Font.DemiBold
+                        elide: Text.ElideRight
+                    }
+                    CortetsuText {
+                        Layout.fillWidth: true
+                        text: qsTr("Sesión Wayland bloqueada")
+                        textSize: CortetsuTypography.labelSmallPx
+                        color: CortetsuDesign.colorOnSurfaceVariant
+                        elide: Text.ElideRight
+                    }
+                }
+            }
         }
 
         Rectangle {
             id: field
             objectName: "lockPasswordField"
             Layout.fillWidth: true
-            implicitHeight: 56
+            Layout.topMargin: CortetsuDesign.spacingCompact
+            implicitHeight: 60
             radius: height / 2
             color: Qt.alpha(CortetsuDesign.colorSurfaceGlassStrong, 0.78)
-            border.width: root.rejected ? 2 : 1
-            border.color: root.rejected ? CortetsuDesign.colorVermillion : Qt.alpha(CortetsuDesign.colorPrimary, 0.7)
+            border.width: root.rejected ? 2 : 1.5
+            border.color: root.rejected ? CortetsuDesign.colorVermillion : Qt.alpha(CortetsuDesign.colorPrimary, 0.8)
             transform: Translate { id: nudge }
 
             CortetsuIcon {
                 id: lockIcon
                 anchors.left: parent.left
-                anchors.leftMargin: CortetsuDesign.spacingStandard + 4
+                anchors.leftMargin: CortetsuDesign.spacingStandard + 8
                 anchors.verticalCenter: parent.verticalCenter
                 text: root.rejected ? "lock_reset" : "lock"
-                iconSize: CortetsuTypography.iconSmallPx
+                iconSize: CortetsuTypography.iconMediumPx
                 color: root.rejected ? CortetsuDesign.colorVermillion : CortetsuDesign.colorOnSurfaceVariant
             }
 
@@ -174,7 +322,7 @@ Item {
                 id: capsBadge
                 objectName: "lockCapsLock"
                 anchors.right: parent.right
-                anchors.rightMargin: CortetsuDesign.spacingStandard
+                anchors.rightMargin: CortetsuDesign.spacingStandard + 8
                 anchors.verticalCenter: parent.verticalCenter
                 visible: root.capsLock
                 text: qsTr("Bloq Mayús")
@@ -198,70 +346,107 @@ Item {
             }
         }
 
-        // Says what failed and what to do; empty while nothing went wrong.
-        CortetsuText {
-            objectName: "lockMessage"
-            Layout.alignment: Qt.AlignHCenter
-            Layout.maximumWidth: parent.width
-            Layout.preferredHeight: implicitHeight
-            horizontalAlignment: Text.AlignHCenter
-            wrapMode: Text.WordWrap
-            opacity: root.pam.state > 0 && !root.checking ? 1 : 0
-            // Too many attempts is its own state: it used to be shadowed by
-            // the wrong-password text and was never shown.
-            text: root.lockedOut
-                ? qsTr("Demasiados intentos. Espera antes de volver a probar.")
-                : root.failed
-                    ? qsTr("Contraseña incorrecta. Inténtalo de nuevo.")
-                    : qsTr("La autenticación no está disponible")
-            textSize: CortetsuTypography.bodySmallPx
-            color: CortetsuDesign.colorVermillion
-        }
-
-        // Context, not controls: one quiet bar of glass.
+        // Under the field: what went wrong, or that PAM is ready.
         Item {
-            Layout.alignment: Qt.AlignHCenter
-            Layout.topMargin: CortetsuDesign.spacingCompact
-            implicitWidth: status.implicitWidth + CortetsuDesign.spacingSpacious * 2
-            implicitHeight: status.implicitHeight + CortetsuDesign.spacingStandard * 2
+            Layout.fillWidth: true
+            implicitHeight: Math.max(message.implicitHeight, ready.implicitHeight)
 
-            Rectangle {
-                anchors.fill: parent
-                radius: height / 2
-                color: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.62)
-                border.width: 1
-                border.color: Qt.alpha(CortetsuDesign.colorWashi, 0.10)
+            CortetsuText {
+                id: message
+                objectName: "lockMessage"
+                width: parent.width
+                horizontalAlignment: Text.AlignHCenter
+                wrapMode: Text.WordWrap
+                opacity: root.pam.state > 0 && !root.checking ? 1 : 0
+                // Too many attempts is its own state: it used to be shadowed by
+                // the wrong-password text and was never shown.
+                text: root.lockedOut
+                    ? qsTr("Demasiados intentos. Espera antes de volver a probar.")
+                    : root.failed
+                        ? qsTr("Contraseña incorrecta. Inténtalo de nuevo.")
+                        : qsTr("La autenticación no está disponible")
+                textSize: CortetsuTypography.bodySmallPx
+                color: CortetsuDesign.colorVermillion
             }
+
+            RowLayout {
+                id: ready
+                objectName: "lockReady"
+                anchors.horizontalCenter: parent.horizontalCenter
+                visible: root.pam.state === 0 && !root.accepted
+                opacity: root.secondaryOpacity
+                spacing: CortetsuDesign.spacingCompact
+                Rectangle {
+                    Layout.preferredWidth: 7
+                    Layout.preferredHeight: 7
+                    radius: 3.5
+                    color: root.checking ? CortetsuDesign.colorWarning : CortetsuDesign.colorSuccess
+                }
+                CortetsuText {
+                    text: root.checking ? qsTr("PAM comprueba la contraseña") : qsTr("Escribe para desbloquear · Intro confirma")
+                    textSize: CortetsuTypography.labelSmallPx
+                    color: CortetsuDesign.colorOnSurfaceVariant
+                }
+            }
+        }
+    }
+
+    // --- The machine, at the foot: battery, network, keyboard -------------
+    Item {
+        objectName: "lockStatusBar"
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 36 * root.unit
+        implicitWidth: status.implicitWidth + CortetsuDesign.spacingSpacious * 2
+        implicitHeight: 64
+        opacity: root.secondaryOpacity
+
+        Rectangle {
+            anchors.fill: parent
+            radius: height / 2
+            color: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.62)
+            border.width: 1
+            border.color: Qt.alpha(CortetsuDesign.colorWashi, 0.10)
+        }
 
         RowLayout {
             id: status
             anchors.centerIn: parent
-            spacing: CortetsuDesign.spacingSpacious
+            spacing: CortetsuDesign.spacingSection
 
             Repeater {
                 model: [
-                    { icon: CortetsuPower.hasBattery ? Icons.getBatteryIcon(CortetsuPower.value, root.batteryCharging) : "power", text: root.batteryLabel },
-                    { icon: CortetsuNetwork.activeEthernet ? "cable" : (CortetsuNetwork.active ? "wifi" : "wifi_off"), text: root.networkLabel },
-                    { icon: "keyboard", text: root.keyboardLayout + (root.numLock ? qsTr(" · Bloq Num") : "") }
+                    { icon: CortetsuPower.hasBattery ? Icons.getBatteryIcon(CortetsuPower.value, root.batteryCharging) : "power",
+                      text: root.batteryLabel, detail: CortetsuPower.hasBattery ? (root.batteryCharging ? qsTr("Cargando") : qsTr("Con batería")) : qsTr("Sin batería") },
+                    { icon: CortetsuNetwork.activeEthernet ? "cable" : (CortetsuNetwork.active ? "wifi" : "wifi_off"),
+                      text: root.networkLabel, detail: CortetsuNetwork.activeEthernet || CortetsuNetwork.active ? qsTr("Conectada") : qsTr("Desconectada") },
+                    { icon: "keyboard", text: root.keyboardLayout, detail: root.numLock ? qsTr("Bloq Num activo") : qsTr("Distribución") }
                 ]
                 delegate: RowLayout {
                     required property var modelData
-                    spacing: CortetsuDesign.spacingCompact
+                    spacing: CortetsuDesign.spacingStandard
                     CortetsuIcon {
                         text: parent.modelData.icon
-                        iconSize: CortetsuTypography.iconSmallPx
-                        color: CortetsuDesign.colorOnSurfaceVariant
+                        iconSize: CortetsuTypography.iconMediumPx
+                        color: CortetsuDesign.colorOnSurface
                     }
-                    CortetsuText {
-                        Layout.maximumWidth: 160
-                        text: parent.modelData.text
-                        textSize: CortetsuTypography.labelSmallPx
-                        color: CortetsuDesign.colorOnSurfaceVariant
-                        elide: Text.ElideRight
+                    ColumnLayout {
+                        spacing: 0
+                        CortetsuText {
+                            Layout.maximumWidth: 200
+                            text: parent.parent.modelData.text
+                            textSize: CortetsuTypography.bodySmallPx
+                            font.weight: Font.DemiBold
+                            elide: Text.ElideRight
+                        }
+                        CortetsuText {
+                            text: parent.parent.modelData.detail
+                            textSize: CortetsuTypography.labelSmallPx
+                            color: CortetsuDesign.colorOnSurfaceVariant
+                        }
                     }
                 }
             }
-        }
         }
     }
 }

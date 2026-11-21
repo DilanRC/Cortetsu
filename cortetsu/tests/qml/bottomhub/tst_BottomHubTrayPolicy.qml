@@ -1,6 +1,7 @@
 import QtQuick
 import QtTest
 import "../../../modules/BottomHubTray.js" as TrayPolicy
+import "../../../utils/TrayIconName.js" as TrayIconName
 
 TestCase {
     name: "BottomHubTrayPolicy"
@@ -23,17 +24,17 @@ TestCase {
     // straight to Image when the theme lacks NAME; the name and the app's
     // folder are read apart so they can be looked up.
     function test_named_tray_icons_are_split_into_name_and_folder() {
-        const spotify = TrayPolicy.namedIcon("image://icon/spotify-linux-32?path=/opt/spotify/icons");
+        const spotify = TrayIconName.namedIcon("image://icon/spotify-linux-32?path=/opt/spotify/icons");
         compare(spotify.name, "spotify-linux-32");
         compare(spotify.dir, "/opt/spotify/icons");
-        const themed = TrayPolicy.namedIcon("image://icon/nm-signal-75");
+        const themed = TrayIconName.namedIcon("image://icon/nm-signal-75");
         compare(themed.name, "nm-signal-75");
         compare(themed.dir, "");
-        compare(TrayPolicy.namedIcon("image://icon/").name, "");
-        compare(TrayPolicy.namedIcon("image://qspixmap/zapzap/0"), null);
-        compare(TrayPolicy.namedIcon("file:///tmp/a.png"), null);
-        compare(TrayPolicy.namedIcon(""), null);
-        compare(TrayPolicy.namedIcon("image://icon/a%20b?path=/x%20y").dir, "/x y");
+        compare(TrayIconName.namedIcon("image://icon/").name, "");
+        compare(TrayIconName.namedIcon("image://qspixmap/zapzap/0"), null);
+        compare(TrayIconName.namedIcon("file:///tmp/a.png"), null);
+        compare(TrayIconName.namedIcon(""), null);
+        compare(TrayIconName.namedIcon("image://icon/a%20b?path=/x%20y").dir, "/x y");
     }
 
     function test_tooltip_prefers_localized_title_and_falls_back_safely() {

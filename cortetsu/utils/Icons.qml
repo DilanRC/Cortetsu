@@ -3,7 +3,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Services.Notifications
-import "../modules/BottomHubTray.js" as BottomHubTray
+import "TrayIconName.js" as TrayIconName
 
 Singleton {
     readonly property var categoryIcons: ({WebBrowser:"web", Printing:"print", Security:"security", Network:"chat", Development:"code", IDE:"code", Audio:"music_note", Music:"music_note", Player:"music_note", Recorder:"mic", Game:"sports_esports", FileManager:"files", Settings:"settings", TerminalEmulator:"terminal", Utility:"build", Monitor:"monitor_heart", Video:"videocam", Graphics:"photo_library", TV:"tv", System:"host", Office:"content_paste"})
@@ -78,7 +78,7 @@ Singleton {
     // then the app's folder (where SNI apps keep PNGs), then the app's
     // desktop entry. Pixmaps and files pass through untouched.
     function getTrayIcon(id: string, icon: string): string {
-        const named = BottomHubTray.namedIcon(icon);
+        const named = TrayIconName.namedIcon(icon);
         if (!named)
             return String(icon ?? "").length > 0 ? String(icon) : getAppIcon(id, "application-x-executable");
         const themed = named.name ? Quickshell.iconPath(named.name, true) : "";
