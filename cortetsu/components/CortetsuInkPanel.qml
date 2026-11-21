@@ -125,6 +125,22 @@ Item {
         border.color: Qt.alpha(root.edge, CortetsuDesign.materialHairlineAlpha)
     }
 
+    // Ink: glass catches light along its top edge, brightest in the middle
+    // and gone before the corners.
+    Rectangle {
+        visible: root.ink && root.hairline
+        x: root.radius
+        width: root.width - root.radius * 2
+        y: 0
+        height: 1
+        gradient: Gradient {
+            orientation: Gradient.Horizontal
+            GradientStop { position: 0; color: "transparent" }
+            GradientStop { position: 0.5; color: Qt.alpha(Qt.tint(CortetsuDesign.colorWashi, Qt.alpha(root.wash, 0.35)), 0.32 * root.transparencyFactor) }
+            GradientStop { position: 1; color: "transparent" }
+        }
+    }
+
     // Washi: the top edge of the sheet catches the light.
     Rectangle {
         visible: root.washi

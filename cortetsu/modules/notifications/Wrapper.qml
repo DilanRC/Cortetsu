@@ -14,7 +14,9 @@ Item {
 
     implicitWidth: 320
     implicitHeight: list.implicitHeight
-    visible: Notifs.popups().length > 0
+    // With the sidebar open the same notification is listed there; a popup
+    // on top of it would cover its header (clear all, DND).
+    visible: Notifs.popups().length > 0 && !(screenState?.sidebar ?? false)
 
     Column {
         id: list

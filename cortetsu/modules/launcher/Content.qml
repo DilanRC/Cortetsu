@@ -20,6 +20,9 @@ Item {
     property string category: "home"
     readonly property bool browsing: search.text.length === 0
     readonly property bool showCategories: browsing && Apps.categories.length > 2
+    // The side column (commands, recent apps) while browsing.
+    readonly property bool showSide: browsing && !list.showWallpapers
+    readonly property int sideWidth: 280
 
     function cycleCategory(step: int): void {
         const ids = Apps.categories.map(item => item.id);
@@ -53,14 +56,14 @@ Item {
             pendingWallpaperPath = target;
     }
 
-    implicitWidth: listWrapper.width + padding * 2
-    implicitHeight:
+    implicitWidth: listWrapper.width + padding * 2 + (showSide ? sideWidth + CortetsuDesign.spacingStandard : 0)
+    implicitHeight: Math.max(showSide ? side.implicitHeight + padding * 2 : 0,
         padding +
         search.implicitHeight +
         CortetsuDesign.spacingStandard +
         (root.showCategories ? categoryRow.implicitHeight + CortetsuDesign.spacingCompact : 0) +
         listWrapper.implicitHeight +
-        padding
+        padding)
 
     CortetsuPopupSurface {
         anchors.fill: parent
@@ -80,7 +83,7 @@ Item {
         anchors.right: parent.right
         anchors.topMargin: root.padding
         anchors.leftMargin: root.padding
-        anchors.rightMargin: root.padding
+        anchors.rightMargin: root.padding + (root.showSide ? root.sideWidth + CortetsuDesign.spacingStandard : 0)
         placeholderText: qsTr("Buscar aplicaciones o comandos…")
 
         onAccepted: {
@@ -212,7 +215,7 @@ Item {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.leftMargin: root.padding
-        anchors.rightMargin: root.padding
+        anchors.rightMargin: root.padding + (root.showSide ? root.sideWidth + CortetsuDesign.spacingStandard : 0)
         spacing: CortetsuDesign.spacingUnit
 
         Repeater {
@@ -237,7 +240,8 @@ Item {
         implicitHeight: list.height
         anchors.top: root.showCategories ? categoryRow.bottom : search.bottom
         anchors.topMargin: root.showCategories ? CortetsuDesign.spacingCompact : CortetsuDesign.spacingStandard
-        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.left: parent.left
+        anchors.leftMargin: root.padding
 
         ContentList {
             id: list
@@ -253,6 +257,26 @@ Item {
             category: root.category
             padding: root.padding
             rounding: root.rounding
+        }
+    }
+
+    LauncherSide {
+        id: side
+        objectName: "launcherSide"
+        visible: root.showSide
+        width: root.sideWidth
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        anchors.right: parent.right
+        anchors.margins: root.padding
+        screenState: root.screenState
+        onQuery: text => {
+            search.text = text;
+            root.focusSearch();
+        }
+        onOpenSurface: name => {
+            SurfacePolicy.closeOn(root.screenState, "launcher");
+            SurfacePolicy.open(CortetsuShellState.allStates(), root.screenState, name);
         }
     }
 }

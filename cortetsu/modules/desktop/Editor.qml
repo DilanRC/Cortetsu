@@ -460,7 +460,6 @@ FocusScope {
                         delegate: CortetsuListRow {
                             required property var modelData
                             Layout.fillWidth: true
-                            compact: true
                             icon: modelData.icon
                             title: modelData.title
                             subtitle: modelData.detail

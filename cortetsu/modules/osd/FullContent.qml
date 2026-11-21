@@ -268,7 +268,6 @@ Item {
                     delegate: CortetsuListRow {
                         required property var modelData
                         Layout.fillWidth: true
-                        compact: true
                         icon: modelData === CortetsuAudio.sink ? "radio_button_checked" : "radio_button_unchecked"
                         title: root.nodeName(modelData)
                         selected: modelData === CortetsuAudio.sink
@@ -287,7 +286,6 @@ Item {
                     delegate: CortetsuListRow {
                         required property var modelData
                         Layout.fillWidth: true
-                        compact: true
                         icon: modelData === CortetsuAudio.source ? "radio_button_checked" : "radio_button_unchecked"
                         title: root.nodeName(modelData)
                         selected: modelData === CortetsuAudio.source

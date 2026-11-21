@@ -63,8 +63,8 @@ Item {
             animated: !CortetsuDesign.reducedMotion
             monochrome: true
             monochromeColor: root.rejected ? CortetsuDesign.colorVermillion : CortetsuDesign.colorWashi
-            Layout.preferredWidth: 96
-            Layout.preferredHeight: 96
+            Layout.preferredWidth: 132
+            Layout.preferredHeight: 132
             Layout.alignment: Qt.AlignHCenter
             Layout.bottomMargin: CortetsuDesign.spacingCompact
         }
@@ -73,16 +73,17 @@ Item {
         CortetsuText {
             Layout.alignment: Qt.AlignHCenter
             text: Time.timeStr
-            textSize: CortetsuTypography.displayHeroPx * 1.5
-            font.weight: Font.DemiBold
+            textSize: CortetsuTypography.displayHeroPx * 2
+            font.weight: Font.Light
+            font.letterSpacing: 2
         }
 
         CortetsuText {
             Layout.alignment: Qt.AlignHCenter
             Layout.bottomMargin: CortetsuDesign.spacingSpacious
             text: CortetsuRegional.formatDate(Time.date, "longDay", true)
-            textSize: CortetsuTypography.bodyPx
-            color: CortetsuDesign.colorOnSurfaceVariant
+            textSize: CortetsuTypography.titleSmallPx
+            color: CortetsuDesign.colorOnSurface
         }
 
         CortetsuText {
@@ -98,15 +99,25 @@ Item {
             id: field
             objectName: "lockPasswordField"
             Layout.fillWidth: true
-            implicitHeight: 52
-            radius: CortetsuDesign.radiusMedium
-            color: Qt.alpha(CortetsuDesign.colorSurfaceGlassStrong, 0.92)
-            border.width: 1
-            border.color: root.rejected ? CortetsuDesign.colorVermillion : CortetsuDesign.colorIndicator
+            implicitHeight: 56
+            radius: height / 2
+            color: Qt.alpha(CortetsuDesign.colorSurfaceGlassStrong, 0.78)
+            border.width: root.rejected ? 2 : 1
+            border.color: root.rejected ? CortetsuDesign.colorVermillion : Qt.alpha(CortetsuDesign.colorPrimary, 0.7)
             transform: Translate { id: nudge }
 
-            CortetsuText {
+            CortetsuIcon {
+                id: lockIcon
                 anchors.left: parent.left
+                anchors.leftMargin: CortetsuDesign.spacingStandard + 4
+                anchors.verticalCenter: parent.verticalCenter
+                text: root.rejected ? "lock_reset" : "lock"
+                iconSize: CortetsuTypography.iconSmallPx
+                color: root.rejected ? CortetsuDesign.colorVermillion : CortetsuDesign.colorOnSurfaceVariant
+            }
+
+            CortetsuText {
+                anchors.left: lockIcon.right
                 anchors.right: capsBadge.visible ? capsBadge.left : parent.right
                 anchors.margins: CortetsuDesign.spacingStandard
                 anchors.verticalCenter: parent.verticalCenter
@@ -166,10 +177,24 @@ Item {
             color: CortetsuDesign.colorVermillion
         }
 
-        // Context, not controls: one quiet line.
-        RowLayout {
+        // Context, not controls: one quiet bar of glass.
+        Item {
             Layout.alignment: Qt.AlignHCenter
-            Layout.maximumWidth: parent.width
+            Layout.topMargin: CortetsuDesign.spacingCompact
+            implicitWidth: status.implicitWidth + CortetsuDesign.spacingSpacious * 2
+            implicitHeight: status.implicitHeight + CortetsuDesign.spacingStandard * 2
+
+            Rectangle {
+                anchors.fill: parent
+                radius: height / 2
+                color: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.62)
+                border.width: 1
+                border.color: Qt.alpha(CortetsuDesign.colorWashi, 0.10)
+            }
+
+        RowLayout {
+            id: status
+            anchors.centerIn: parent
             spacing: CortetsuDesign.spacingSpacious
 
             Repeater {
@@ -195,6 +220,7 @@ Item {
                     }
                 }
             }
+        }
         }
     }
 }
