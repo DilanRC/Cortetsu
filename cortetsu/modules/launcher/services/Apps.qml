@@ -73,7 +73,7 @@ QtObject {
         if (category === "all")
             return all.slice().sort((a, b) => String(a.name).localeCompare(String(b.name)));
         if (category === "favourites")
-            return favourites();
+            return root.favourites();
         if (category === "recent")
             return recentIds.map(id => all.find(entry => entry.id === id)).filter(entry => !!entry);
         if (category === "homeRest") {
@@ -89,11 +89,11 @@ QtObject {
             const index = recentIds.indexOf(id);
             return index < 0 ? Number.MAX_SAFE_INTEGER : index;
         };
-        const favourites = all.filter(favourite);
+        const pinned = all.filter(favourite);
         const recent = all.filter(entry => !favourite(entry) && recentIds.includes(entry.id))
             .sort((a, b) => recentRank(a.id) - recentRank(b.id));
         const rest = all.filter(entry => !favourite(entry) && !recentIds.includes(entry.id));
-        return favourites.concat(recent, rest);
+        return pinned.concat(recent, rest);
     }
 
     // Launch history: runtime state, not a preference, so it lives in the

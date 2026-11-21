@@ -129,6 +129,16 @@ ShellRoot {
             if (root.step === 0 && root.scans > 0 && list.count === 6 && root.cellFor("aa-last")) {
                 root.checkOrder(["zz-first", "cc", "dd", "kk", "steam", "aa-last"]);
                 root.check(list.currentIndex === 0, `the grid opened with ${list.currentIndex} selected`);
+                // The expanded launcher's views (a local const once shadowed
+                // favourites() and the Favoritos view threw).
+                try {
+                    root.check(Apps.browse("all").length === 6, "the Aplicaciones view lost applications");
+                    root.check(Array.isArray(Apps.browse("favourites")), "the Favoritos view is not a list");
+                    root.check(Array.isArray(Apps.browse("recent")), "the Recientes view is not a list");
+                    root.check(Apps.browse("homeRest").length === 6 - Apps.favourites().length, "Inicio without favourites lost applications");
+                } catch (error) {
+                    root.check(false, `a launcher view threw: ${error}`);
+                }
                 list.currentIndex = 3;
                 root.selectedId = list.currentItem.modelData.id;
                 root.steamCell = root.cellFor("steam");
