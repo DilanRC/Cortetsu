@@ -36,6 +36,13 @@ RowLayout {
         if (next)
             next.forceActiveFocus(Qt.TabFocusReason);
     }
+    // The control drops its focus first: the dashboard is a FocusScope, and
+    // forceActiveFocus on it would hand the keys straight back to the
+    // control that still holds the scope's focus.
+    function leave(item: Item): void {
+        item.focus = false;
+        leaveRequested();
+    }
 
     readonly property var profiles: [PowerProfile.PowerSaver, PowerProfile.Balanced]
         .concat(PowerProfiles.hasPerformanceProfile ? [PowerProfile.Performance] : [])
@@ -62,7 +69,7 @@ RowLayout {
         objectName: "dashDnd"
         Keys.onLeftPressed: root.step(dnd, -1)
         Keys.onRightPressed: root.step(dnd, 1)
-        Keys.onUpPressed: root.leaveRequested()
+        Keys.onUpPressed: root.leave(dnd)
         compact: true
         icon: Notifs.dnd ? "do_not_disturb_on" : "notifications"
         label: qsTr("No molestar")
@@ -76,7 +83,7 @@ RowLayout {
         objectName: "dashGameMode"
         Keys.onLeftPressed: root.step(game, -1)
         Keys.onRightPressed: root.step(game, 1)
-        Keys.onUpPressed: root.leaveRequested()
+        Keys.onUpPressed: root.leave(game)
         compact: true
         icon: "sports_esports"
         label: GameMode.busy ? qsTr("Aplicando…") : qsTr("Modo juego")
@@ -92,7 +99,7 @@ RowLayout {
         objectName: "dashPowerProfile"
         Keys.onLeftPressed: root.step(profile, -1)
         Keys.onRightPressed: root.step(profile, 1)
-        Keys.onUpPressed: root.leaveRequested()
+        Keys.onUpPressed: root.leave(profile)
         compact: true
         icon: root.profileIcons[PowerProfiles.profile] ?? "balance"
         label: root.profileLabels[PowerProfiles.profile] ?? qsTr("Energía")
@@ -107,7 +114,7 @@ RowLayout {
         objectName: "dashContext"
         Keys.onLeftPressed: root.step(context, -1)
         Keys.onRightPressed: root.step(context, 1)
-        Keys.onUpPressed: root.leaveRequested()
+        Keys.onUpPressed: root.leave(context)
         compact: true
         icon: CortetsuContexts.active?.icon ?? "tune"
         label: CortetsuContexts.active ? qsTr("Salir de %1").arg(CortetsuContexts.active.name) : qsTr("Contextos")

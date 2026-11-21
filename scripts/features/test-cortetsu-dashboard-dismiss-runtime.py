@@ -11,6 +11,8 @@ closes it instead:
 - shortcut open: leaving the panel does not close it;
 - a click outside closes it, a click on an empty part of the panel does not;
 - Escape closes it;
+- on Inicio, Down enters the quick controls, Left/Right move between them
+  and stop at the ends, Up returns the arrows to the zones;
 - on a narrow screen with no weather and no player it fits and says so,
   without filler text or "--" readings.
 
@@ -61,6 +63,12 @@ ShellRoot {
     function click(x, y) { events.mouseClick(layer, x, y, Qt.LeftButton, Qt.NoModifier, -1); }
     // A point on the panel's own background: its top-left padding.
     function onPanel() { return layer.panel.mapToItem(layer, 6, 6); }
+    function named(name) {
+        let found = null;
+        (function walk(item) { if (!found && item.objectName === name) found = item; for (const kid of item.children ?? []) walk(kid); })(layer.panel);
+        return found;
+    }
+    function key(code) { events.keyClick(code, Qt.NoModifier, -1); return true; }
 
     readonly property var steps: [
         () => window.active,
@@ -83,6 +91,22 @@ ShellRoot {
                 const right = note && zone ? note.mapToItem(zone, note.width, 0).x : -1;
                 verify(zone && Math.abs(right - zone.width) <= 1, `the notes end at the zone edge: ${right} of ${zone?.width}`);
                 state.dashboard = false; return true; },
+        // Quick controls of Inicio: Down enters the first, Left and Right
+        // move between them and stop at the ends, Up gives the keys back to
+        // the zones.
+        () => { state.dashboardTab = 0; state.dashboard = true; return true; },
+        () => layer.panel.activeFocus || layer.activeFocus,
+        () => key(Qt.Key_Down),
+        () => { verify(root.named("dashDnd")?.activeFocus, "Down focuses No molestar"); verify(state.dashboardTab === 0, "Down keeps the zone"); return key(Qt.Key_Left); },
+        () => { verify(root.named("dashDnd")?.activeFocus, "Left stops at the first control"); return key(Qt.Key_Right); },
+        () => { verify(root.named("dashGameMode")?.activeFocus, "Right moves to Modo juego"); verify(state.dashboardTab === 0, "Right inside the controls keeps the zone"); return key(Qt.Key_Right); },
+        () => key(Qt.Key_Right),
+        () => key(Qt.Key_Right),
+        () => { verify(root.named("dashContext")?.activeFocus, "Right stops at the last control"); return key(Qt.Key_Left); },
+        () => { verify(root.named("dashPowerProfile")?.activeFocus, "Left moves back to the power profile"); return key(Qt.Key_Up); },
+        () => { verify(!root.named("dashPowerProfile")?.activeFocus, "Up leaves the controls"); return key(Qt.Key_Right); },
+        () => { verify(state.dashboardTab === 1, `after Up, Right moves zones again: ${state.dashboardTab}`); return key(Qt.Key_Down); },
+        () => { verify(!root.named("dashDnd")?.activeFocus, "Down outside Inicio does nothing"); state.dashboard = false; state.dashboardTab = 0; return true; },
         // Shortcut open.
         () => { state.dashboardOpenedBy = ""; state.dashboard = true; const p = onPanel(); move(p.x, p.y); return true; },
         () => { move(4, 990); return true; },
@@ -167,8 +191,8 @@ with tempfile.TemporaryDirectory(prefix="cortetsu-dashboard-") as temporary:
     result = subprocess.run(["quickshell", "-p", str(folder / "shell.qml")], env=env,
                             capture_output=True, text=True, timeout=90)
     output = result.stdout + result.stderr
-    assert "DASH_RUNTIME_PASS 13" in output, output
+    assert "DASH_RUNTIME_PASS 23" in output, output
     for marker in ("DASH_FAIL", "TypeError", "ReferenceError", "Binding loop", "is not a type"):
         assert marker not in output, output
 
-print("PASS: the dashboard switches zones by keyboard in one fixed frame, closes on a click outside and on Escape, and stays for a click inside")
+print("PASS: the dashboard switches zones by keyboard in one fixed frame, walks the quick controls with the arrows, closes on a click outside and on Escape, and stays for a click inside")
