@@ -169,6 +169,15 @@ Singleton {
     IpcHandler {
         target: "orbital"
         function state(monitor: string): string { return JSON.stringify(root.output(monitor)); }
+        // Play on `monitor` what `source` has saved (as choosing it there in
+        // the panel would).
+        function copy(source: string, monitor: string): bool {
+            const saved = root.preferences.monitors?.[source];
+            if (!saved?.location)
+                return false;
+            root.ensure();
+            return root.apply(monitor, Object.assign({}, saved));
+        }
         function replay(monitor: string, pauseOnBattery: bool): bool {
             const saved = root.preferences.monitors?.[monitor];
             if (!saved?.location)
