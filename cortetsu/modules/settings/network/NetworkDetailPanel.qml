@@ -9,6 +9,7 @@ import "../.."
 import "../../../theme"
 import "../../CortetsuTypography.js" as CortetsuTypography
 import "../controls"
+import "../../desktop" as Desktop
 
 // What can be read and done about the selection: the link's addresses and
 // its actions when connected, the way in when it is not, and the stored
@@ -215,5 +216,83 @@ ColumnLayout {
         textSize: CortetsuTypography.bodySmallPx
         color: CortetsuDesign.colorSuccess
         wrapMode: Text.WordWrap
+    }
+
+    // 01-settings: how much went through, from the kernel's counters (all
+    // interfaces since boot) and the last minute of downloads. Sampled only
+    // while this page shows.
+    SettingsGroup {
+        objectName: "networkUsage"
+        title: qsTr("Uso de la red")
+        icon: "data_usage"
+        detail: qsTr("Desde que se encendió el equipo, en todas las interfaces")
+
+        Desktop.ServiceUse { target: NetworkUsage; active: root.visible }
+
+        RowLayout {
+            Layout.fillWidth: true
+            Layout.margins: CortetsuDesign.spacingStandard
+            spacing: CortetsuDesign.spacingSection
+            Repeater {
+                model: [[qsTr("Descarga"), "arrow_downward", NetworkUsage.downloadTotal], [qsTr("Subida"), "arrow_upward", NetworkUsage.uploadTotal]]
+                delegate: RowLayout {
+                    required property var modelData
+                    spacing: CortetsuDesign.spacingCompact
+                    CortetsuIcon { text: parent.modelData[1]; iconSize: CortetsuTypography.iconMediumPx; color: CortetsuDesign.colorPrimary }
+                    ColumnLayout {
+                        spacing: 0
+                        CortetsuText {
+                            text: { const b = parent.parent.modelData[2]; return b >= 1073741824 ? qsTr("%1 GB").arg((b / 1073741824).toFixed(1)) : qsTr("%1 MB").arg(Math.round(b / 1048576)); }
+                            textSize: CortetsuTypography.titleSmallPx
+                            font.weight: Font.DemiBold
+                        }
+                        CortetsuText { text: parent.parent.modelData[0]; textSize: CortetsuTypography.labelSmallPx; color: CortetsuDesign.colorOnSurfaceVariant }
+                    }
+                }
+            }
+            Item { Layout.fillWidth: true }
+            // The last minute of download speed, one bar per sample.
+            Row {
+                Layout.alignment: Qt.AlignBottom
+                spacing: 3
+                readonly property real peak: Math.max(1, ...(NetworkUsage.downloadHistory.length ? NetworkUsage.downloadHistory : [1]))
+                Repeater {
+                    model: NetworkUsage.downloadHistory.slice(-16)
+                    delegate: Rectangle {
+                        required property real modelData
+                        anchors.bottom: parent.bottom
+                        width: 5
+                        height: Math.max(3, 36 * modelData / parent.peak)
+                        radius: 2
+                        color: CortetsuDesign.colorPrimary
+                    }
+                }
+            }
+        }
+    }
+
+    // 01-settings: the theme, chosen here as in Ajustes → Personalización.
+    SettingsGroup {
+        objectName: "networkTheme"
+        title: qsTr("Tema y apariencia")
+        icon: "palette"
+        detail: qsTr("Se aplica al momento en todo Cortetsu")
+
+        RowLayout {
+            Layout.fillWidth: true
+            Layout.margins: CortetsuDesign.spacingCompact
+            spacing: CortetsuDesign.spacingCompact
+            Repeater {
+                model: [["ink", qsTr("Ink"), "dark_mode"], ["washi", qsTr("Washi"), "light_mode"], ["kurogane", qsTr("Kurogane"), "hardware"]]
+                delegate: CortetsuButton {
+                    required property var modelData
+                    pill: true
+                    active: CortetsuConfig.themeId === modelData[0]
+                    icon: modelData[2]
+                    label: modelData[1]
+                    onClicked: CortetsuConfig.selectTheme(modelData[0])
+                }
+            }
+        }
     }
 }

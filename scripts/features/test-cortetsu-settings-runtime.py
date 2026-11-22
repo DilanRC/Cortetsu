@@ -703,7 +703,9 @@ ShellRoot {
             verify(page("networkHero").visible && find(page("networkHero"), "networkHeroName").text === "Casa", "the hero names the network in use");
             verify(page("connectionState").visible && !page("connectionJoin").visible && value("networkAddress") === "192.168.0.2",
                 "a connected network shows its link, not a way in");
-            verify(content.page.implicitHeight < 520, `the page is as tall as its content (${content.page.implicitHeight})`);
+            // With the usage and theme cards of 01-settings the content is ~730 px;
+            // the bound still catches a page stretched to fill the window.
+            verify(content.page.implicitHeight < 760, `the page is as tall as its content (${content.page.implicitHeight})`);
             memo.forget = page("forgetNetwork");
             find(memo.forget, "action").forceActiveFocus();
             key(Qt.Key_Return);
