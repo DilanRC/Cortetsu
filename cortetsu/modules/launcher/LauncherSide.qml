@@ -9,6 +9,8 @@ import "../../components"
 import "../../theme"
 import "../CortetsuTypography.js" as CortetsuTypography
 import "services"
+import "../desktop" as Desktop
+import "../../services" as Services
 
 // The launcher's side column while browsing: the commands the search box
 // understands, and what was launched lately. Both read real state; neither
@@ -150,4 +152,36 @@ ColumnLayout {
     }
 
     Item { Layout.fillHeight: true }
+
+    // Sistema (03-launcher): CPU, memory and disk as rings. The probes run
+    // only while the launcher is open (ServiceUse releases them on close).
+    SideCard {
+        objectName: "launcherSystem"
+        icon: "monitor_heart"
+        title: qsTr("Sistema")
+
+        Desktop.ServiceUse { target: Services.Cpu; active: root.visible && (root.screenState?.launcher ?? false) }
+        Desktop.ServiceUse { target: Services.Memory; active: root.visible && (root.screenState?.launcher ?? false) }
+        Desktop.ServiceUse { target: Services.Storage; active: root.visible && (root.screenState?.launcher ?? false) }
+
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: CortetsuDesign.spacingCompact
+            Repeater {
+                model: [
+                    { label: qsTr("CPU"), value: Services.Cpu.percentage },
+                    { label: qsTr("RAM"), value: Services.Memory.total > 0 ? Services.Memory.percentage : -1 },
+                    { label: qsTr("Disco"), value: Services.Storage.primaryDisk ? Services.Storage.percentage : -1 }
+                ]
+                delegate: CortetsuRingGauge {
+                    required property var modelData
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 64
+                    Layout.preferredWidth: 64
+                    value: modelData.value
+                    label: modelData.label
+                }
+            }
+        }
+    }
 }
