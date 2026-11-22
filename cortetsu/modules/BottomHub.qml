@@ -244,6 +244,10 @@ Scope {
         function show(): void { hubRoot.setShown(true); }
         function hide(): void { hubRoot.setShown(false); }
         function isShown(): bool { return hubRoot.shown; }
+        // The same changes as Ajustes → Hub, for scripted QA: "" is every
+        // monitor without its own anchor.
+        function setAnchor(monitor: string, id: string): void { CortetsuConfig.bottomHub.setAnchor(monitor, id); }
+        function setOffset(monitor: string, px: int): void { CortetsuConfig.bottomHub.setOffset(monitor, px); }
         // Read-only: the bell of the focused screen in layout coordinates
         // ("x y width height"), so pointer tests click it like a person.
         function notificationsButton(): string {
