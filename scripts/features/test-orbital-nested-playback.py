@@ -110,6 +110,20 @@ def main() -> int:
                 return found
 
             # A private session bus: the renderer needs one, as on the desktop.
+            # A damaged or newer orbital.json stops the supervisor with a
+            # reason and is never rewritten.
+            state_dir = base / "state" / "cortetsu"
+            state_dir.mkdir(parents=True, exist_ok=True)
+            for name, body in (("corrupt", "{not json"), ("version", '{"version": 99}'), ("unknown field", '{"version": 1, "surprise": true}')):
+                (state_dir / "orbital.json").write_text(body)
+                run = subprocess.run(["dbus-run-session", "--", str(binary), "cortetsu-orbital", "session"], env=env,
+                                     input="", text=True, capture_output=True, timeout=15)
+                check(run.returncode != 0 and "preserved" in run.stderr + run.stdout,
+                      f"orbital.json {name}: the supervisor did not stop with a reason ({run.returncode}: {run.stderr.strip()[:160]})")
+                check((state_dir / "orbital.json").read_text() == body, f"orbital.json {name} was rewritten")
+            (state_dir / "orbital.json").unlink()
+            print("OK persistence: damaged, newer and unknown files stop the supervisor and stay intact", flush=True)
+
             supervisor = subprocess.Popen(["dbus-run-session", "--", str(binary), "cortetsu-orbital", "session"], env=env, cwd=base,
                                           stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                           text=True, bufsize=1, start_new_session=True)
@@ -191,17 +205,85 @@ def main() -> int:
                 check(not renderer or not Path(f"/proc/{renderer[0][2]}").exists()
                       or "Z" in Path(f"/proc/{renderer[0][2]}/stat").read_text().split()[2], f"{kind}: the renderer process is still running")
 
+            def play(project: Path) -> bool:
+                send({"op": "apply", "monitor": monitor, "selection": {"location": str(project), "muted": True, "fps": 15,
+                                                                       "gpu": "integrated", "assets": str(ASSETS)}})
+                wait(lambda e: e.get("event") == "snapshot" and output().get("state") == "preparing", 10)
+                send({"op": "covered", "monitor": monitor, "generation": output().get("generation")})
+                wait(lambda e: e.get("event") == "snapshot" and output().get("state") == "applying", 20)
+                send({"op": "revealed", "monitor": monitor, "generation": output().get("generation")})
+                return wait(lambda e: e.get("event") == "snapshot" and output().get("state") == "active", 10) is not None
+
+            # kill -9 of the renderer: restarted twice within 120 s, then an
+            # error and the static wallpaper. Only our own renderer's PID.
+            check(play(projects[0]), "could not start the renderer for the crash test")
+            for attempt in (1, 2, 3):
+                pid = output().get("pid")
+                check(bool(pid), f"crash {attempt}: no renderer PID")
+                if not pid:
+                    break
+                os.kill(pid, 9)
+                if attempt < 3:
+                    # The restart is a new apply: cover, renderer, reveal.
+                    back = wait(lambda e: e.get("event") == "snapshot" and output().get("state") == "preparing", 20)
+                    check(back is not None, f"crash {attempt}: the renderer was not restarted ({output()})")
+                    send({"op": "covered", "monitor": monitor, "generation": output().get("generation")})
+                    wait(lambda e: e.get("event") == "snapshot" and output().get("state") == "applying", 20)
+                    send({"op": "revealed", "monitor": monitor, "generation": output().get("generation")})
+                    again = wait(lambda e: e.get("event") == "snapshot" and output().get("state") == "active", 10)
+                    check(again is not None and output().get("restarts") == attempt,
+                          f"crash {attempt}: not active again with {attempt} restart(s) ({output()})")
+                else:
+                    failed = wait(lambda e: e.get("event") == "snapshot" and output().get("state") == "error", 20)
+                    check(failed is not None and "restart limit" in str(output().get("error")),
+                          f"the third crash did not end in the restart-limit error ({output()})")
+            if not [f for f in failures if f.startswith("crash") or "third crash" in f]:
+                print("OK crash: two restarts, then the restart-limit error", flush=True)
+
+            # Another client presenting the wallpaper: refused, and left alone.
+            # Launched the way a user or another tool would, not through Orbital.
+            almamu = Path("/opt/linux-wallpaperengine")
+            foreign = subprocess.Popen(["dbus-run-session", "--", str(almamu / "linux-wallpaperengine"),
+                                        "--screen-root", monitor, "--bg", str(projects[0]), "--layer", "background",
+                                        "--fps", "5", "--hwdec", "no", "--silent", "--disable-mouse", "--assets-dir", str(ASSETS)],
+                                       env=dict(env, LD_LIBRARY_PATH=str(almamu / "lib"), XDG_SESSION_TYPE="wayland"), cwd=almamu,
+                                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
+            try:
+                seen = time.monotonic() + 20
+                # Its surface: the engine's namespace, not a PID of the supervisor's.
+                def theirs():
+                    return [l for l in layers() if l[1] == "linux-wallpaperengine"]
+                while time.monotonic() < seen and not theirs():
+                    time.sleep(0.5)
+                check(bool(theirs()), "the foreign renderer never mapped")
+                send({"op": "apply", "monitor": monitor, "selection": {"location": str(projects[0]), "assets": str(ASSETS)}})
+                refused = wait(lambda e: e.get("event") == "error" and e.get("code") == "foreign-owner", 10)
+                check(refused is not None, "a foreign owner was not refused")
+                check(output().get("state") != "preparing", "the supervisor began a transition over a foreign owner")
+                time.sleep(1)
+                check(foreign.poll() is None and bool(theirs()), "the supervisor touched the foreign renderer")
+                if not [f for f in failures if "foreign" in f]:
+                    print("OK foreign owner: refused, its process untouched", flush=True)
+            finally:
+                # Its own session (start_new_session): the group is ours alone.
+                os.killpg(foreign.pid, 9)
+                foreign.wait(timeout=10)
+            gone = time.monotonic() + 5
+            while time.monotonic() < gone and [l for l in layers() if l[1] == "linux-wallpaperengine"]:
+                time.sleep(0.25)
+
             # EOF: the supervisor leaves and takes its renderers with it.
-            send({"op": "apply", "monitor": monitor, "selection": {"location": str(projects[0]), "muted": True, "fps": 15, "assets": str(ASSETS)}})
-            wait(lambda e: e.get("event") == "snapshot" and output().get("state") == "preparing", 10)
-            send({"op": "covered", "monitor": monitor, "generation": output().get("generation")})
-            wait(lambda e: e.get("event") == "snapshot" and output().get("state") == "applying", 20)
-            send({"op": "revealed", "monitor": monitor, "generation": output().get("generation")})
-            wait(lambda e: e.get("event") == "snapshot" and output().get("state") == "active", 10)
+            play(projects[0])
+            own = output().get("pid")
+            check(output().get("state") == "active" and bool(own), f"the last apply did not play ({output()})")
             supervisor.stdin.close()
             supervisor.wait(timeout=10)
-            time.sleep(1)
-            check(not [l for l in layers() if l[1] == "linux-wallpaperengine"], "a renderer survived the supervisor")
+            gone = time.monotonic() + 5
+            while time.monotonic() < gone and [l for l in layers() if l[1] == "linux-wallpaperengine"]:
+                time.sleep(0.25)
+            check(not [l for l in layers() if l[1] == "linux-wallpaperengine"], "a renderer surface survived the supervisor")
+            check(not own or not Path(f"/proc/{own}").exists() or "Z" in Path(f"/proc/{own}/stat").read_text().split()[2],
+                  "the renderer process survived the supervisor")
         finally:
             if supervisor and supervisor.poll() is None:
                 supervisor.kill()
@@ -217,7 +299,7 @@ def main() -> int:
     if failures:
         print(f"FAIL: {len(failures)} Orbital playback checks")
         return 1
-    print(f"PASS: Orbital plays {', '.join(p.name for p in projects)} in a nested Hyprland: cover first, one renderer surface, busy refused, stop and EOF leave nothing behind")
+    print(f"PASS: Orbital plays {', '.join(p.name for p in projects)} in a nested Hyprland: cover first, one renderer surface, busy refused, two crash restarts then the limit, a foreign owner refused and left alone, damaged or newer preferences kept, stop and EOF leave nothing behind")
     return 0
 
 
