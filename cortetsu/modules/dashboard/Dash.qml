@@ -69,6 +69,8 @@ FocusScope {
     CortetsuInkPanel {
         anchors.fill: parent
         radius: CortetsuDesign.radiusSurface
+        // It sits over windows: text behind it must never read through.
+        groundAlpha: Math.max(0.92, CortetsuDesign.materialGroundAlpha)
         washX: 0.02
         washY: 0
     }

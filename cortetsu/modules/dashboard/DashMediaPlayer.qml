@@ -114,16 +114,17 @@ Item {
             Layout.fillHeight: true
             spacing: CortetsuDesign.spacingCompact
 
-            DashCover { size: 232; art: player.art }
+            DashCover { size: 200; art: player.art }
             Item { Layout.preferredHeight: CortetsuDesign.spacingCompact }
             DashInk {
                 Layout.fillWidth: true
                 text: player.active?.trackTitle || qsTr("Pista sin título")
                 textSize: CortetsuTypography.inkTitlePx
                 font.weight: Font.Normal
+                // One line: the dashboard has a fixed height, and a second
+                // line pushed the controls out of it.
                 elide: Text.ElideRight
-                maximumLineCount: 2
-                wrapMode: Text.Wrap
+                maximumLineCount: 1
             }
             CortetsuText {
                 Layout.fillWidth: true
@@ -143,10 +144,6 @@ Item {
                     height: parent.height
                     width: Math.max(height * 3, parent.width * (player.active && player.active.length > 0 ? player.active.position / player.active.length : 0))
                 }
-            }
-            DashLevelMeter {
-                Layout.fillWidth: true
-                running: !!player.active && player.active.isPlaying && player.dashboardOpen
             }
             RowLayout {
                 Layout.fillWidth: true

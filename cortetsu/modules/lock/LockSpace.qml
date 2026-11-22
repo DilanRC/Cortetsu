@@ -1,19 +1,36 @@
 import QtQuick
 import "../../theme"
+import "../../components"
 
 // Deep space over the static wallpaper (Nebula's lock composition, drawn
-// here from scratch): a dark veil, clouds of the accent colour and a field
-// of stars. Painted once per size and colour; it never animates, so it
+// here from scratch): a dark veil, clouds of the accent colour (ink washes)
+// and a field of stars painted once per size. Nothing animates, so it
 // costs nothing while the screen is locked.
 Item {
     id: root
 
     property color tone: CortetsuDesign.colorPrimary
-    property color glow: CortetsuDesign.colorIndicator
 
     Rectangle {
         anchors.fill: parent
         color: Qt.rgba(0.02, 0.02, 0.06, 0.78)
+    }
+
+    // Clouds: soft washes of the accent, through the one owner of washes.
+    Repeater {
+        model: [[0.22, 0.30, 0.14], [0.80, 0.24, 0.12], [0.55, 0.80, 0.10]]
+        delegate: CortetsuInkPanel {
+            required property var modelData
+            anchors.fill: parent
+            groundAlpha: 0
+            grain: 0
+            hairline: false
+            marks: false
+            wash: root.tone
+            washAlpha: modelData[2]
+            washX: modelData[0]
+            washY: modelData[1]
+        }
     }
 
     Canvas {
@@ -21,24 +38,10 @@ Item {
         anchors.fill: parent
         onWidthChanged: requestPaint()
         onHeightChanged: requestPaint()
-        Connections {
-            target: root
-            function onToneChanged(): void { sky.requestPaint(); }
-        }
         onPaint: {
             const ctx = getContext("2d");
             ctx.reset();
             const w = width, h = height;
-            // Clouds: wide soft radial glows of the accent.
-            const clouds = [[0.22, 0.30, 0.42, 0.20], [0.80, 0.24, 0.36, 0.16], [0.55, 0.78, 0.50, 0.14], [0.10, 0.85, 0.30, 0.10]];
-            for (const c of clouds) {
-                const g = ctx.createRadialGradient(w * c[0], h * c[1], 0, w * c[0], h * c[1], Math.max(w, h) * c[2]);
-                g.addColorStop(0, Qt.alpha(root.tone, c[3]));
-                g.addColorStop(0.5, Qt.alpha(root.glow, c[3] * 0.35));
-                g.addColorStop(1, "transparent");
-                ctx.fillStyle = g;
-                ctx.fillRect(0, 0, w, h);
-            }
             // Stars: a fixed pseudo-random field, the same on every paint.
             let seed = 7;
             const next = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
