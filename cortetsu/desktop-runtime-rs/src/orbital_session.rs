@@ -21,6 +21,7 @@ const ALMAMU_DIR: &str = "/opt/linux-wallpaperengine";
 const MESA_EGL_VENDOR: &str = "/usr/share/glvnd/egl_vendor.d/50_mesa.json";
 const TRANSITION_TIMEOUT: Duration = Duration::from_secs(15);
 const COVER_TIMEOUT: Duration = Duration::from_secs(3);
+const TICK_FAILURE_LIMIT: u32 = 3;
 const HEARTBEAT_TIMEOUT: Duration = Duration::from_secs(30);
 const RESTART_WINDOW: Duration = Duration::from_secs(120);
 const RESTART_LIMIT: usize = 2;
@@ -326,6 +327,13 @@ impl Output {
 
 struct Session {
     outputs: BTreeMap<String, Output>,
+    /// What each monitor was playing when it disconnected, to play again when
+    /// it comes back in this session (whatever restoreOnStart says, which is
+    /// about starting the shell).
+    lost: BTreeMap<String, Selection>,
+    /// Hyprland queries that failed in a row; right after a resume it can
+    /// take a moment to answer, so one failure is not a broken compositor.
+    tick_failures: u32,
     prefs: Preferences,
     path: PathBuf,
     battery: bool,
@@ -531,13 +539,22 @@ impl Session {
         let monitors = hypr("monitors")?;
         let monitors = monitors.as_array().ok_or("invalid monitor response")?;
         let names: Vec<&str> = monitors.iter().filter_map(|m| m["name"].as_str()).collect();
-        // Disconnected or disabled monitors drop their renderer with their Output.
-        self.outputs.retain(|name, _| names.contains(&name.as_str()));
+        // Disconnected or disabled monitors drop their renderer with their
+        // Output; what one was playing waits for it in `lost`.
+        let gone: Vec<String> = self.outputs.keys().filter(|name| !names.contains(&name.as_str())).cloned().collect();
+        for name in gone {
+            if let Some(out) = self.outputs.remove(&name)
+                && matches!(out.phase, Phase::Preparing | Phase::Applying | Phase::Active | Phase::Paused)
+                && let Some(selection) = out.selection.clone() {
+                self.lost.insert(name, selection);
+            }
+        }
         let mut starts: Vec<(String, Selection)> = Vec::new();
         for name in &names {
             if self.outputs.contains_key(*name) { continue; }
             self.outputs.insert((*name).into(), Output::default());
-            if let Some(s) = self.prefs.monitors.get(*name).filter(|s| s.restore_on_start) { starts.push(((*name).into(), s.clone())); }
+            if let Some(s) = self.lost.remove(*name) { starts.push(((*name).into(), s)); }
+            else if let Some(s) = self.prefs.monitors.get(*name).filter(|s| s.restore_on_start) { starts.push(((*name).into(), s.clone())); }
         }
         let layers = hypr("layers")?;
         let mut generation = self.generation;
@@ -672,7 +689,7 @@ pub fn main() -> Result<i32> {
             }
         }
     });
-    let mut session = Session { outputs: BTreeMap::new(), prefs, path, battery: false, hold: false, last_heartbeat: Instant::now(),
+    let mut session = Session { outputs: BTreeMap::new(), lost: BTreeMap::new(), tick_failures: 0, prefs, path, battery: false, hold: false, last_heartbeat: Instant::now(),
         generation: 0, last_tick: common::now(), last_snapshot: String::new() };
     session.tick()?;
     session.emit()?;
@@ -693,10 +710,18 @@ pub fn main() -> Result<i32> {
             Err(mpsc::RecvTimeoutError::Timeout) => {},
         }
         if tick.elapsed() >= session.cadence() {
-            if let Err(e) = session.tick() {
-                let g = session.next_generation();
-                for out in session.outputs.values_mut() {
-                    if matches!(out.phase, Phase::Preparing | Phase::Applying | Phase::Active) { out.fail(g, "compositor", &e); }
+            match session.tick() {
+                Ok(()) => session.tick_failures = 0,
+                // Three failures in a row (a few seconds) before giving up:
+                // after a resume Hyprland may not answer at once.
+                Err(e) => {
+                    session.tick_failures += 1;
+                    if session.tick_failures >= TICK_FAILURE_LIMIT {
+                        let g = session.next_generation();
+                        for out in session.outputs.values_mut() {
+                            if matches!(out.phase, Phase::Preparing | Phase::Applying | Phase::Active) { out.fail(g, "compositor", &e); }
+                        }
+                    }
                 }
             }
             tick = Instant::now();

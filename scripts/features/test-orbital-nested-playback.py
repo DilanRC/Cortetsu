@@ -272,6 +272,43 @@ def main() -> int:
             while time.monotonic() < gone and [l for l in layers() if l[1] == "linux-wallpaperengine"]:
                 time.sleep(0.25)
 
+            # A monitor that goes away while playing gets its wallpaper back
+            # when it returns in the same session (a virtual output here).
+            if play(projects[0]):
+                hyprctl_out = lambda *args: subprocess.run(["hyprctl", "output", *args], env=env, capture_output=True, text=True, timeout=10)
+                created = hyprctl_out("create", "headless", "QA-1").returncode == 0
+                if created:
+                    end = time.monotonic() + 10
+                    while time.monotonic() < end and "QA-1" not in (last.get("outputs") or {}):
+                        wait(lambda e: e.get("event") == "snapshot", 3)
+                    # restoreOnStart off, as after a Stop: coming back in the
+                    # session must not depend on it.
+                    send({"op": "apply", "monitor": "QA-1", "selection": {"location": str(projects[0]), "muted": True, "fps": 15, "gpu": "integrated", "assets": str(ASSETS), "restoreOnStart": False}})
+                    other = lambda: (last.get("outputs") or {}).get("QA-1", {})
+                    wait(lambda e: e.get("event") == "snapshot" and other().get("state") == "preparing", 10)
+                    send({"op": "covered", "monitor": "QA-1", "generation": other().get("generation")})
+                    wait(lambda e: e.get("event") == "snapshot" and other().get("state") == "applying", 20)
+                    send({"op": "revealed", "monitor": "QA-1", "generation": other().get("generation")})
+                    wait(lambda e: e.get("event") == "snapshot" and other().get("state") == "active", 10)
+                    check(other().get("state") == "active", f"the second output did not play ({other()})")
+                    hyprctl_out("remove", "QA-1")
+                    wait(lambda e: e.get("event") == "snapshot" and "QA-1" not in (last.get("outputs") or {}), 15)
+                    check(output().get("state") == "active", "removing the second output touched the first")
+                    hyprctl_out("create", "headless", "QA-1")
+                    back = wait(lambda e: e.get("event") == "snapshot" and other().get("state") == "preparing", 20)
+                    check(back is not None, f"a returning output did not get its wallpaper back ({other()})")
+                    if back:
+                        send({"op": "covered", "monitor": "QA-1", "generation": other().get("generation")})
+                        wait(lambda e: e.get("event") == "snapshot" and other().get("state") == "applying", 20)
+                        send({"op": "revealed", "monitor": "QA-1", "generation": other().get("generation")})
+                        wait(lambda e: e.get("event") == "snapshot" and other().get("state") == "active", 10)
+                        check(other().get("state") == "active", f"the returning output is not playing ({other()})")
+                    hyprctl_out("remove", "QA-1")
+                    if not [f for f in failures if "output" in f]:
+                        print("OK reconnect: a returning output plays its wallpaper again; the other is untouched", flush=True)
+                else:
+                    print("SKIP reconnect: this Hyprland cannot create a virtual output", flush=True)
+
             # EOF: the supervisor leaves and takes its renderers with it.
             play(projects[0])
             own = output().get("pid")
@@ -299,7 +336,7 @@ def main() -> int:
     if failures:
         print(f"FAIL: {len(failures)} Orbital playback checks")
         return 1
-    print(f"PASS: Orbital plays {', '.join(p.name for p in projects)} in a nested Hyprland: cover first, one renderer surface, busy refused, two crash restarts then the limit, a foreign owner refused and left alone, damaged or newer preferences kept, stop and EOF leave nothing behind")
+    print(f"PASS: Orbital plays {', '.join(p.name for p in projects)} in a nested Hyprland: cover first, one renderer surface, busy refused, two crash restarts then the limit, a returning output restored, a foreign owner refused and left alone, damaged or newer preferences kept, stop and EOF leave nothing behind")
     return 0
 
 
