@@ -29,6 +29,7 @@ CHECKS = (
     "test-cortetsu-idle-runtime.py",
     "test-gamemode-runtime.py",
     "test-keybind-editor-runtime.py",
+    "test-orbital-nested-playback.py",
 )
 
 

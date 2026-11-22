@@ -587,7 +587,11 @@ impl Session {
             if matches!(out.phase, Phase::Preparing | Phase::Applying) && out.since.elapsed() > TRANSITION_TIMEOUT {
                 let diagnostic = out.child.as_ref().map(Owned::diagnostic).unwrap_or_default();
                 generation += 1;
-                out.fail(generation, "transition-timeout", format!("no renderer surface on this monitor after 15 seconds\n{diagnostic}"));
+                // Applying means the surface is there and only the static
+                // cover never confirmed it lifted; say which wait ran out.
+                let waited = if out.phase == Phase::Applying { "the renderer presents, but the static cover did not confirm it lifted within 15 seconds" }
+                    else { "no renderer surface on this monitor after 15 seconds" };
+                out.fail(generation, "transition-timeout", format!("{waited}\n{diagnostic}"));
                 continue;
             }
             if out.phase == Phase::Active
