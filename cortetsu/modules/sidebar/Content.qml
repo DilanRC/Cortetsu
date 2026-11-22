@@ -37,7 +37,8 @@ Item {
         return CortetsuNotifications.history.filter(entry => !live.has(String(entry.id)));
     }
     property string query: ""
-    // "all" | "active" | "history"
+    // "all" | "active" (still shown as a toast) | "earlier" (left the screen);
+    // the saved list of another session shows under "all" only.
     property string filter: "all"
     // Groups the user folded, by app name.
     property var folded: ({})

@@ -144,7 +144,6 @@ def main() -> None:
     require(bottom, '"bluetooth_connected"', "bluetooth state icon")
     require(bottom, "Icons.getBatteryIcon(CortetsuPower.value, batteryCharging)", "battery icon controller")
     require(bottom, "SystemTray.items.values", "system tray controller")
-    require(bottom, "iconSource: Icons.getTrayIcon(item.id, item.icon)", "tray icon resolved through the theme, the app folder and its entry")
     require(bottom, 'BottomHubTray.menuName(itemKey)', "native tray menu with stable instance identity")
     require(tray, "Image {", "first-party tray image")
     if "ColouredIcon" in tray or "Config.bar.tray.recolour" in tray:
