@@ -79,7 +79,7 @@ ShellRoot {
         () => grabs === 1,
         () => { pam.buffer = "secret"; return true; },
         () => { verify(card.markPhase === "Ascended", "typing does not change the mark");
-                verify(shown("• • • • • • "), "typed characters show as dots");
+                verify((() => { const dots = find(card, c => c.objectName === "lockTypedDots"); return dots && dots.visible && dots.children.length >= 6; })(), "typed characters show as one dot each");
                 grab("typing"); return true; },
         () => grabs === 2,
         // Enter: PAM takes the buffer and is checking; a previous error must not show.

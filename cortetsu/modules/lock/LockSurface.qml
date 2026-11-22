@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Effects
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
@@ -62,14 +63,25 @@ WlSessionLockSurface {
         fillMode: Image.PreserveAspectCrop
         asynchronous: true
         cache: true
-        sourceSize.width: root.width
-        sourceSize.height: root.height
+        // Half size and blurred (Nebula's backdrop): the lock is a scene in
+        // front of the wallpaper, not a frame around it.
+        sourceSize.width: root.width / 2
+        sourceSize.height: root.height / 2
         visible: status === Image.Ready
+        layer.enabled: true
+        layer.effect: MultiEffect {
+            autoPaddingEnabled: false
+            blurEnabled: true
+            blur: 1
+            blurMax: 40
+        }
     }
 
     Rectangle {
         anchors.fill: parent
-        color: Qt.alpha(CortetsuDesign.colorSumi, 0.72)
+        // Nebula keeps the wallpaper in view, tinted by the accent; the
+        // cards carry the contrast.
+        color: Qt.alpha(Qt.rgba(0.02, 0.02, 0.06, 1), 0.5)
     }
 
     Item {

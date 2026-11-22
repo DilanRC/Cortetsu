@@ -8,6 +8,7 @@ import "../../services"
 import "../../utils"
 import "../../theme"
 import "../CortetsuTypography.js" as CortetsuTypography
+import "../desktop" as Desktop
 
 // What the lock screen shows: a whole scene (07-lockscreen, with the
 // composition of Nebula's LockScene studied, not copied): the mark over a
@@ -53,8 +54,7 @@ Item {
         function onFlashMsg(): void {
             if (root.rejected && !CortetsuDesign.reducedMotion)
                 shake.restart();
-            if (root.rejected)
-                cookie.flashRejected();
+
         }
     }
 
@@ -87,26 +87,18 @@ Item {
     }
     HoverHandler { onPointChanged: root.wake() }
 
-    LockSpace {
+    LockSky {
         anchors.fill: parent
-        tone: root.rejected ? CortetsuDesign.colorVermillion : CortetsuDesign.colorPrimary
+        centerY: center.y + 110 * root.unit
     }
 
-    // --- Brand, top left --------------------------------------------------
+    // --- Brand and user, top left ---------------------------------------------
     RowLayout {
         objectName: "lockBrand"
         x: 40 * root.unit
         y: 32 * root.unit
         spacing: CortetsuDesign.spacingStandard
         opacity: root.secondaryOpacity
-        CortetsuEvolvingMark {
-            phase: "Ascended"
-            animated: false
-            monochrome: true
-            monochromeColor: CortetsuDesign.colorWashi
-            Layout.preferredWidth: 30
-            Layout.preferredHeight: 30
-        }
         CortetsuText {
             text: "Cortetsu"
             textSize: CortetsuTypography.titleSmallPx
@@ -115,12 +107,12 @@ Item {
         Rectangle {
             Layout.preferredWidth: 1
             Layout.preferredHeight: 26
-            color: Qt.alpha(CortetsuDesign.colorWashi, 0.24)
+            color: Qt.alpha(CortetsuDesign.colorWashi, 0.3)
         }
         CortetsuIcon {
             text: "person"
             iconSize: CortetsuTypography.iconSmallPx
-            color: CortetsuDesign.colorOnSurfaceVariant
+            color: CortetsuDesign.colorWashi
         }
         CortetsuText {
             text: root.userLabel
@@ -129,24 +121,102 @@ Item {
             font.weight: Font.DemiBold
             elide: Text.ElideRight
         }
-        CortetsuText {
-            text: qsTr("· sesión bloqueada")
-            textSize: CortetsuTypography.labelSmallPx
-            color: CortetsuDesign.colorOnSurfaceVariant
+    }
+
+    // --- Above the clock: sky, moon, battery (Nebula's bubbles) -------------
+    // The moon's age from a known new moon (2000-01-06 18:14 UTC); a real
+    // computation, not a picture.
+    readonly property real moonAge: {
+        void Time.date;
+        const days = (Date.now() - Date.UTC(2000, 0, 6, 18, 14)) / 86400000;
+        return ((days % 29.530588853) + 29.530588853) % 29.530588853;
+    }
+    readonly property string moonGlyph: ["🌑", "🌒", "🌓", "🌔", "🌕", "🌖", "🌗", "🌘"][Math.round(moonAge / 29.530588853 * 8) % 8]
+
+    Row {
+        objectName: "lockBubbles"
+        x: (root.width - width) / 2
+        y: center.y - height - 24 * root.unit
+        spacing: 22 * root.unit
+        opacity: root.secondaryOpacity
+        LockBubble {
+            visible: !!Weather.cc
+            glyph: Weather.icon
+            text: Weather.temp
+        }
+        LockBubble {
+            glyph: root.moonGlyph
+            text: qsTr("Luna")
+        }
+        LockBubble {
+            visible: CortetsuPower.hasBattery
+            ring: CortetsuPower.value
         }
     }
 
-    // --- Centre: the clock disc, the password, the machine ----------------
-    LockCookie {
-        id: cookie
-        objectName: "lockCookie"
-        width: Math.round(340 * root.unit)
-        height: width
+    // --- Centre: the mark, large, and the time ----------------------------
+    ColumnLayout {
+        id: center
+        objectName: "lockCenter"
         x: (root.width - width) / 2
-        y: root.height * 0.42 - height / 2
-        phase: root.markPhase
-        rejected: root.rejected
-        accepted: root.accepted
+        y: root.height * 0.40 - height / 2
+        spacing: 0
+
+        Item {
+            Layout.alignment: Qt.AlignHCenter
+            Layout.preferredWidth: 220 * root.unit
+            Layout.preferredHeight: 220 * root.unit
+
+            LockBlackHole {
+                anchors.centerIn: parent
+                width: parent.width * 0.7
+                height: width
+                playing: !!Players.active?.isPlaying
+                tone: root.accepted ? CortetsuDesign.colorSuccess : root.rejected ? CortetsuDesign.colorVermillion : CortetsuDesign.colorPrimary
+            }
+
+            // Acceptance lights a halo around the mark before the release.
+            Rectangle {
+                objectName: "lockAcceptedHalo"
+                anchors.centerIn: parent
+                width: parent.width * (root.accepted ? 1.5 : 1.1)
+                height: width
+                radius: width / 2
+                color: Qt.alpha(root.accepted ? CortetsuDesign.colorSuccess : root.rejected ? CortetsuDesign.colorVermillion : CortetsuDesign.colorPrimary,
+                    root.accepted ? 0.22 : root.rejected ? 0.2 : 0.10)
+                border.width: root.accepted ? 3 : 0
+                border.color: Qt.alpha(CortetsuDesign.colorSuccess, 0.6)
+                Behavior on width { enabled: !CortetsuDesign.reducedMotion; NumberAnimation { duration: 700; easing.type: Easing.OutCubic } } // design-lint: allow token-literal-duration: fits the 900 ms hold
+                Behavior on color { ColorAnimation { duration: 200 } } // design-lint: allow token-literal-duration: a state flash
+            }
+            CortetsuEvolvingMark {
+                id: mark
+                objectName: "lockMark"
+                anchors.fill: parent
+                phase: root.markPhase
+                animated: !CortetsuDesign.reducedMotion
+                monochrome: true
+                monochromeColor: root.rejected ? CortetsuDesign.colorVermillion
+                    : root.accepted ? CortetsuDesign.colorSuccess : CortetsuDesign.colorWashi
+            }
+        }
+        CortetsuText {
+            objectName: "lockClock"
+            Layout.alignment: Qt.AlignHCenter
+            Layout.topMargin: 8 * root.unit
+            text: Time.timeStr
+            textSize: Math.round(84 * root.unit)
+            font.weight: Font.DemiBold
+            font.features: ({ "tnum": 1 })
+            style: Text.Raised
+            styleColor: Qt.alpha(CortetsuDesign.colorSumi, 0.4)
+        }
+        CortetsuText {
+            Layout.alignment: Qt.AlignHCenter
+            text: CortetsuRegional.formatDate(Time.date, "longDay", true)
+            textSize: CortetsuTypography.titleSmallPx
+            color: Qt.alpha(CortetsuDesign.colorWashi, 0.85)
+        }
     }
 
     LockMusicCard {
@@ -154,8 +224,8 @@ Item {
         visible: root.wings && !!player
         opacity: root.secondaryOpacity
         width: Math.round(300 * root.unit)
-        x: cookie.x - width - 48 * root.unit
-        y: cookie.y + cookie.height / 2 - height / 2
+        x: center.x - width - 70 * root.unit
+        y: center.y + center.height / 2 - height / 2
         onHandBackFocus: root.focusRequested()
     }
 
@@ -163,15 +233,16 @@ Item {
         objectName: "lockMissed"
         visible: root.wings && !CortetsuConfig.lockHideNotifs && apps.length > 0
         opacity: root.secondaryOpacity
-        x: cookie.x + cookie.width + 48 * root.unit
-        y: cookie.y + cookie.height / 2 - height / 2
+        width: Math.round(320 * root.unit)
+        x: center.x + center.width + 70 * root.unit
+        y: center.y + center.height / 2 - height / 2
     }
 
     ColumnLayout {
         id: entry
         x: (root.width - width) / 2
-        y: cookie.y + cookie.height + 28 * root.unit
-        width: Math.min(root.width - CortetsuDesign.spacingSection * 2, 380)
+        y: center.y + center.height + 24 * root.unit
+        width: Math.min(root.width - CortetsuDesign.spacingSection * 2, 340)
         spacing: CortetsuDesign.spacingCompact
 
         Rectangle {
@@ -205,10 +276,38 @@ Item {
                 text: root.accepted ? qsTr("Desbloqueando…")
                     : root.checking ? qsTr("Comprobando…")
                     : root.pam.buffer.length ? "• ".repeat(root.pam.buffer.length) : qsTr("Contraseña")
+                // Typed characters show as coloured dots (below); the text
+                // stays for screen readers and the tests.
+                opacity: root.pam.buffer.length && !root.checking && !root.accepted ? 0 : 1
                 textSize: CortetsuTypography.bodyLargePx
                 color: root.accepted ? CortetsuDesign.colorSuccess
                     : root.pam.buffer.length ? CortetsuDesign.colorOnSurface : CortetsuDesign.colorOnSurfaceVariant
                 elide: Text.ElideLeft
+            }
+
+            // One dot per character, in the scheme's colours, popping in
+            // (Nebula's input), at most twelve.
+            Row {
+                objectName: "lockTypedDots"
+                anchors.left: lockIcon.right
+                anchors.leftMargin: CortetsuDesign.spacingStandard
+                anchors.verticalCenter: parent.verticalCenter
+                spacing: 6
+                visible: root.pam.buffer.length > 0 && !root.checking && !root.accepted
+                Repeater {
+                    model: Math.min(root.pam.buffer.length, 12)
+                    delegate: Rectangle {
+                        required property int index
+                        width: 14
+                        height: 14
+                        radius: [7, 4, 7][index % 3]
+                        rotation: index % 3 === 1 ? 45 : 0
+                        color: [CortetsuDesign.colorPrimary, CortetsuDesign.colorIndicator, CortetsuDesign.colorSecondary][index % 3]
+                        scale: 0
+                        Component.onCompleted: scale = 1
+                        Behavior on scale { enabled: !CortetsuDesign.reducedMotion; NumberAnimation { duration: 260; easing.type: Easing.OutBack } } // design-lint: allow token-literal-duration: a dot popping in
+                    }
+                }
             }
 
             // Caps Lock matters while typing a password, so it sits in the field.
@@ -287,13 +386,89 @@ Item {
         }
     }
 
-    LockStatsPanel {
+    // The machine under the password (Nebula's usage cards): two rows of
+    // three real readings with a minute of history; probes run only while
+    // the lock is on screen.
+    Desktop.ServiceUse { target: Cpu; active: root.visible }
+    Desktop.ServiceUse { target: Gpu; active: root.visible }
+    Desktop.ServiceUse { target: Memory; active: root.visible }
+    Desktop.ServiceUse { target: Storage; active: root.visible }
+    Desktop.ServiceUse { target: NetworkUsage; active: root.visible }
+
+    Grid {
         objectName: "lockStatusBar"
+        columns: 3
+        spacing: 14 * root.unit
         x: (root.width - width) / 2
-        y: Math.min(root.height - height - 28 * root.unit, entry.y + entry.height + 28 * root.unit)
+        y: Math.min(root.height - height - 24 * root.unit, entry.y + entry.height + 26 * root.unit)
         opacity: root.secondaryOpacity
-        batteryLabel: root.batteryLabel + (root.batteryCharging ? qsTr(" · cargando") : "")
-        networkLabel: root.networkLabel
-        keyboardLabel: root.keyboardLayout + (root.numLock ? qsTr(" · Bloq Num") : "")
+
+        LockUsageCard { label: qsTr("CPU"); icon: "memory"; fraction: Cpu.percentage; text: `${Math.round(Cpu.percentage * 100)} %`
+            subText: Cpu.temperature > 0 ? qsTr("%1 °C").arg(Math.round(Cpu.temperature)) : "" }
+        LockUsageCard {
+            label: qsTr("GPU"); icon: "developer_board"
+            fraction: Gpu.type !== Gpu.noneType ? Gpu.percentage : -1
+            text: Gpu.type !== Gpu.noneType ? `${Math.round(Gpu.percentage * 100)} %` : qsTr("En reposo")
+        }
+        LockUsageCard { label: qsTr("Memoria"); icon: "memory_alt"; fill: CortetsuDesign.colorIndicator
+            fraction: Memory.total > 0 ? Memory.percentage : -1; text: Memory.total > 0 ? `${Math.round(Memory.percentage * 100)} %` : "—"
+            subText: Memory.total > 0 ? qsTr("%1 GB en uso").arg((Memory.used / 1048576).toFixed(1)) : "" }
+        LockUsageCard {
+            label: CortetsuPower.hasBattery ? qsTr("Batería") : qsTr("Energía"); icon: CortetsuPower.hasBattery ? Icons.getBatteryIcon(CortetsuPower.value, root.batteryCharging) : "power"
+            fraction: CortetsuPower.hasBattery ? CortetsuPower.value : -1
+            text: CortetsuPower.hasBattery ? root.batteryLabel.replace(qsTr("Batería "), "") : qsTr("Enchufado")
+            subText: CortetsuPower.hasBattery && root.batteryCharging ? qsTr("Cargando") : ""
+        }
+        LockUsageCard {
+            label: qsTr("Disco"); icon: "hard_drive"; fill: CortetsuDesign.colorSecondary
+            fraction: Storage.primaryDisk ? Storage.percentage : -1
+            text: Storage.primaryDisk ? `${Math.round(Storage.percentage * 100)} %` : "—"
+            subText: Storage.primaryDisk ? (Storage.primaryDisk.mount ?? "") : ""
+        }
+        LockUsageCard {
+            visible: false
+            label: qsTr("Temperatura"); icon: "thermostat"
+            fraction: Cpu.temperature > 0 ? Math.min(1, Cpu.temperature / 100) : -1
+            text: Cpu.temperature > 0 ? qsTr("%1 °C").arg(Math.round(Cpu.temperature)) : "—"
+        }
+        LockUsageCard {
+            id: netCard
+            function speed(bytes: real): string {
+                return bytes >= 1048576 ? qsTr("%1 MB/s").arg((bytes / 1048576).toFixed(1)) : qsTr("%1 KB/s").arg(Math.round(bytes / 1024));
+            }
+            label: root.networkLabel; icon: CortetsuNetwork.activeEthernet ? "cable" : (CortetsuNetwork.active ? "wifi" : "wifi_off")
+            fill: CortetsuDesign.colorIndicator
+            fraction: -1
+            text: ""
+            // Nebula's speed pills: down and up, each with its arrow.
+            Column {
+                x: 12
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: 12
+                spacing: 6
+                Repeater {
+                    model: [["arrow_downward", NetworkUsage.downloadSpeed], ["arrow_upward", NetworkUsage.uploadSpeed]]
+                    delegate: Rectangle {
+                        required property var modelData
+                        width: 150
+                        height: 26
+                        radius: 13
+                        color: Qt.alpha(CortetsuDesign.colorSurfaceGlassStrong, 0.7)
+                        Rectangle {
+                            x: 3; anchors.verticalCenter: parent.verticalCenter
+                            width: 20; height: 20; radius: 10
+                            color: Qt.alpha(CortetsuDesign.colorIndicator, 0.22)
+                            CortetsuIcon { anchors.centerIn: parent; text: parent.parent.modelData[0]; iconSize: 13; color: CortetsuDesign.colorIndicator }
+                        }
+                        CortetsuText {
+                            x: 30; anchors.verticalCenter: parent.verticalCenter
+                            text: netCard.speed(parent.modelData[1])
+                            textSize: CortetsuTypography.labelSmallPx
+                            font.features: ({ "tnum": 1 })
+                        }
+                    }
+                }
+            }
+        }
     }
 }

@@ -29,60 +29,66 @@ Item {
     }
 
     visible: !CortetsuConfig.lockHideNotifs && apps.length > 0
-    implicitWidth: 300
-    implicitHeight: column.implicitHeight + CortetsuDesign.spacingStandard * 2
+    implicitWidth: 320
+    implicitHeight: column.implicitHeight
 
-    Rectangle {
-        anchors.fill: parent
-        radius: CortetsuDesign.radiusLarge
-        color: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.62)
-        border.width: 1
-        border.color: Qt.alpha(CortetsuDesign.colorWashi, 0.10)
-    }
-
-    ColumnLayout {
+    // One pill per app (Nebula's notification wing): its initial in a disc,
+    // its name and how many. Never what they said.
+    Column {
         id: column
-        anchors.fill: parent
-        anchors.margins: CortetsuDesign.spacingStandard
-        spacing: CortetsuDesign.spacingCompact
-
-        RowLayout {
-            spacing: CortetsuDesign.spacingCompact
-            CortetsuIcon {
-                text: "notifications"
-                iconSize: CortetsuTypography.iconSmallPx
-                color: CortetsuDesign.colorPrimary
-            }
-            CortetsuText {
-                text: qsTr("Avisos")
-                textSize: CortetsuTypography.bodyPx
-                font.weight: Font.DemiBold
-            }
-        }
+        width: parent.width
+        spacing: 14
 
         Repeater {
             model: root.apps
-            delegate: RowLayout {
+            delegate: Item {
+                id: pill
                 required property var modelData
-                Layout.fillWidth: true
-                spacing: CortetsuDesign.spacingCompact
-                CortetsuText {
-                    Layout.fillWidth: true
-                    text: modelData.name
-                    textSize: CortetsuTypography.bodySmallPx
-                    elide: Text.ElideRight
+                width: column.width
+                height: 72
+
+                Rectangle {
+                    anchors.fill: parent
+                    radius: height / 2
+                    color: Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.88)
+                    border.width: 1
+                    border.color: Qt.alpha(CortetsuDesign.colorPrimary, 0.3)
                 }
                 Rectangle {
-                    implicitWidth: Math.max(implicitHeight, countText.implicitWidth + 12)
-                    implicitHeight: 22
-                    radius: height / 2
-                    color: Qt.alpha(CortetsuDesign.colorIndicator, 0.24)
+                    id: disc
+                    x: 12
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: 48
+                    height: 48
+                    radius: 24
+                    color: Qt.alpha(CortetsuDesign.colorWashi, 0.9)
                     CortetsuText {
-                        id: countText
                         anchors.centerIn: parent
-                        text: String(modelData.count)
-                        textSize: CortetsuTypography.labelSmallPx
+                        text: pill.modelData.name.slice(0, 1).toLocaleUpperCase()
+                        textSize: CortetsuTypography.titleSmallPx
                         font.weight: Font.DemiBold
+                        color: CortetsuDesign.colorPrimaryContainer
+                    }
+                }
+                Column {
+                    anchors.left: disc.right
+                    anchors.leftMargin: 14
+                    anchors.right: parent.right
+                    anchors.rightMargin: 20
+                    anchors.verticalCenter: parent.verticalCenter
+                    CortetsuText {
+                        width: parent.width
+                        text: pill.modelData.name
+                        textSize: CortetsuTypography.bodyPx
+                        font.weight: Font.DemiBold
+                        color: CortetsuDesign.colorOnPrimaryContainer
+                        elide: Text.ElideRight
+                    }
+                    CortetsuText {
+                        width: parent.width
+                        text: pill.modelData.count === 1 ? qsTr("1 aviso") : qsTr("%1 avisos").arg(pill.modelData.count)
+                        textSize: CortetsuTypography.labelSmallPx
+                        color: Qt.alpha(CortetsuDesign.colorOnPrimaryContainer, 0.75)
                     }
                 }
             }

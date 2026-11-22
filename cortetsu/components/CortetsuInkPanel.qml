@@ -33,6 +33,9 @@ Item {
     // Where the wash bleeds from, in fractions of the panel.
     property real washX: 0.05
     property real washY: 0.0
+    // How far the wash reaches, as a fraction of the panel's longer side.
+    // 0.5 from the centre fades out exactly at the edge of a round panel.
+    property real washReach: root.washi ? 0.6 : 0.75
     property real grain: CortetsuDesign.materialGrain
     property bool hairline: true
     property color edge: CortetsuDesign.colorWashi
@@ -98,7 +101,7 @@ Item {
             fillGradient: RadialGradient {
                 centerX: root.width * root.washX; centerY: root.height * root.washY
                 focalX: centerX; focalY: centerY
-                centerRadius: Math.max(root.width, root.height) * (root.washi ? 0.6 : 0.75)
+                centerRadius: Math.max(root.width, root.height) * root.washReach
                 GradientStop { position: 0; color: Qt.alpha(root.wash, root.washAlpha * root.transparencyFactor) }
                 GradientStop { position: 0.5; color: Qt.alpha(root.wash, root.washAlpha * root.transparencyFactor * 0.35) }
                 GradientStop { position: 1; color: "transparent" }
