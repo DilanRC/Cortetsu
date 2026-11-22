@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import Quickshell
 import QtQuick.Layouts
 import "../../components"
 import ".."
@@ -16,16 +17,36 @@ Item {
     readonly property var apps: {
         void Notifs.revision;
         const counts = {};
+        const icons = {};
         const order = [];
         for (const item of Notifs.notClosed()) {
             const name = item?.appName || qsTr("Aplicación");
             if (!(name in counts)) {
                 counts[name] = 0;
                 order.push(name);
+                icons[name] = root.iconFor(item);
             }
             counts[name]++;
         }
-        return order.slice(0, 4).map(name => ({ name, count: counts[name] }));
+        return order.slice(0, 4).map(name => ({ name, count: counts[name], icon: icons[name] }));
+    }
+
+    // The app's own icon: the one it sent, else its desktop entry's; ""
+    // when neither exists (the pill then shows the initial).
+    function iconFor(item: var): string {
+        const sent = String(item?.appIcon ?? "");
+        if (sent.startsWith("/") || sent.startsWith("file://"))
+            return sent.startsWith("/") ? `file://${sent}` : sent;
+        for (const name of [sent, item?.hints?.["desktop-entry"], item?.appName]) {
+            const value = String(name ?? "").trim();
+            if (!value)
+                continue;
+            const entry = DesktopEntries.heuristicLookup(value);
+            const found = Quickshell.iconPath(entry?.icon || value, true);
+            if (found)
+                return found;
+        }
+        return "";
     }
 
     visible: !CortetsuConfig.lockHideNotifs && apps.length > 0
@@ -62,8 +83,20 @@ Item {
                     height: 48
                     radius: 24
                     color: Qt.alpha(CortetsuDesign.colorWashi, 0.9)
+                    Image {
+                        id: appIcon
+                        anchors.centerIn: parent
+                        width: 32
+                        height: 32
+                        sourceSize.width: 64
+                        sourceSize.height: 64
+                        asynchronous: true
+                        source: pill.modelData.icon
+                        visible: status === Image.Ready
+                    }
                     CortetsuText {
                         anchors.centerIn: parent
+                        visible: !appIcon.visible
                         text: pill.modelData.name.slice(0, 1).toLocaleUpperCase()
                         textSize: CortetsuTypography.titleSmallPx
                         font.weight: Font.DemiBold

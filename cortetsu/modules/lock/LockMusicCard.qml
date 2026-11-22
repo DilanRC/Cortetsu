@@ -18,7 +18,7 @@ Item {
     signal handBackFocus()
 
     implicitWidth: 300
-    implicitHeight: column.implicitHeight + 36 + 86
+    implicitHeight: column.implicitHeight + 36 + 92
 
     Rectangle {
         anchors.fill: parent
@@ -104,29 +104,106 @@ Item {
         }
     }
 
-    // Bars at the foot: the spectrum when cava runs, otherwise how far into
-    // the track it is. Never invented motion.
-    Row {
+    // Keeps the position fresh while the lock shows; MPRIS only reports it
+    // when asked.
+    Timer {
+        running: root.visible && !!root.player?.isPlaying
+        interval: 1000
+        repeat: true
+        onTriggered: root.player.positionChanged()
+    }
+    Component.onCompleted: Lyrics.consumers += 1
+    Component.onDestruction: Lyrics.consumers -= 1
+
+    function clock(seconds: real): string {
+        const s = Math.max(0, Math.floor(seconds));
+        return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+    }
+
+    // The foot: the line being sung, then a real seek bar (drag or click to
+    // move through the track, when the player allows it) with its times.
+    Column {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: parent.bottom
-        anchors.margins: 22
-        height: 64
-        spacing: 3
-        readonly property int count: 20
-        readonly property real played: (root.player?.length ?? 0) > 0 ? root.player.position / root.player.length : 0
-        Repeater {
-            model: parent.count
-            delegate: Rectangle {
-                required property int index
-                readonly property real level: CortetsuSpectrum.available
-                    ? (CortetsuSpectrum.values[Math.floor(index * CortetsuSpectrum.values.length / 20)] ?? 0) / 100
-                    : (index + 1) / 20 <= parent.played ? 1 : 0.25
-                width: (parent.width - parent.spacing * 19) / 20
-                height: Math.max(4, 64 * (CortetsuSpectrum.available ? level : 0.35 + 0.25 * Math.sin(index * 0.9)) * (CortetsuSpectrum.available ? 1 : level))
-                anchors.bottom: parent.bottom
-                radius: width / 2
-                color: Qt.alpha(CortetsuDesign.colorOnPrimaryContainer, 0.85)
+        anchors.margins: 18
+        spacing: 8
+
+        CortetsuText {
+            objectName: "lockLyricLine"
+            width: parent.width
+            visible: text.length > 0
+            text: Lyrics.currentLine
+            horizontalAlignment: Text.AlignHCenter
+            textSize: CortetsuTypography.bodySmallPx
+            font.italic: true
+            color: CortetsuDesign.colorOnPrimaryContainer
+            wrapMode: Text.WordWrap
+            maximumLineCount: 2
+            elide: Text.ElideRight
+        }
+
+        RowLayout {
+            width: parent.width
+            spacing: 8
+            readonly property real length: root.player?.length ?? 0
+            readonly property real progress: length > 0 ? Math.min(1, (root.player?.position ?? 0) / length) : 0
+
+            CortetsuText {
+                text: root.clock(seek.pressed ? seek.preview * parent.length : (root.player?.position ?? 0))
+                textSize: CortetsuTypography.labelSmallPx
+                font.features: ({ "tnum": 1 })
+                color: Qt.alpha(CortetsuDesign.colorOnPrimaryContainer, 0.8)
+            }
+            Item {
+                id: seekBox
+                Layout.fillWidth: true
+                Layout.preferredHeight: 18
+                readonly property real shown: seek.pressed ? seek.preview : parent.progress
+                Rectangle {
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: parent.width
+                    height: 4
+                    radius: 2
+                    color: Qt.alpha(CortetsuDesign.colorOnPrimaryContainer, 0.3)
+                    Rectangle {
+                        width: parent.width * seekBox.shown
+                        height: parent.height
+                        radius: 2
+                        color: CortetsuDesign.colorOnPrimaryContainer
+                    }
+                }
+                Rectangle {
+                    objectName: "lockSeekKnob"
+                    width: seek.pressed || seek.containsMouse ? 14 : 10
+                    height: width
+                    radius: width / 2
+                    x: parent.width * seekBox.shown - width / 2
+                    anchors.verticalCenter: parent.verticalCenter
+                    color: CortetsuDesign.colorOnPrimaryContainer
+                }
+                MouseArea {
+                    id: seek
+                    objectName: "lockSeek"
+                    anchors.fill: parent
+                    enabled: !!root.player?.canSeek && (root.player?.length ?? 0) > 0
+                    hoverEnabled: true
+                    cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+                    property real preview: 0
+                    function at(x: real): real { return Math.max(0, Math.min(1, x / width)); }
+                    onPressed: mouse => preview = at(mouse.x)
+                    onPositionChanged: mouse => { if (pressed) preview = at(mouse.x); }
+                    onReleased: mouse => {
+                        root.player.position = at(mouse.x) * root.player.length;
+                        root.handBackFocus();
+                    }
+                }
+            }
+            CortetsuText {
+                text: root.clock(parent.length)
+                textSize: CortetsuTypography.labelSmallPx
+                font.features: ({ "tnum": 1 })
+                color: Qt.alpha(CortetsuDesign.colorOnPrimaryContainer, 0.8)
             }
         }
     }

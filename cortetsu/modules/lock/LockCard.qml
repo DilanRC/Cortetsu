@@ -471,4 +471,13 @@ Item {
             }
         }
     }
+
+    // Power and the greeter, at the bottom left (Nebula keeps them there).
+    LockSessionControls {
+        objectName: "lockSessionControls"
+        x: 40 * root.unit
+        y: root.height - height - 32 * root.unit
+        opacity: root.secondaryOpacity
+        onHandBackFocus: root.focusRequested()
+    }
 }

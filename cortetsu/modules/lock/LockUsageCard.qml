@@ -54,7 +54,12 @@ Item {
         }
     }
 
-    readonly property color ink: root.level > 0.55 ? CortetsuDesign.colorOnPrimary : CortetsuDesign.colorOnSurface
+    // Text takes the colour of what is under it: white keeps 4.5:1 only on
+    // a fill darker than luminance 0.18 (WCAG); above that, dark ink. The
+    // light fill, light on a dark one) once the fill reaches it.
+    readonly property color fillInk: CortetsuDesign.luminance(root.fill) > 0.18 ? "#14121c" : "#f4f1fb"
+    readonly property color ink: root.fraction >= 0 && root.level > 0.2 ? root.fillInk : CortetsuDesign.colorOnSurface
+    readonly property color headInk: root.fraction >= 0 && root.level > 0.72 ? root.fillInk : CortetsuDesign.colorOnSurfaceVariant
 
     Row {
         x: 14
@@ -66,17 +71,21 @@ Item {
             radius: 12
             color: Qt.alpha(root.fill, 0.28)
             CortetsuIcon {
-                anchors.centerIn: parent
+                // Fill the disc and centre the glyph in it: the icon font's
+                // own box is not square, so centring the item was off.
+                anchors.fill: parent
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
                 text: root.icon
                 iconSize: 15
-                color: CortetsuDesign.colorOnSurface
+                color: root.headInk
             }
         }
         CortetsuText {
             anchors.verticalCenter: parent.verticalCenter
             text: root.label
             textSize: CortetsuTypography.labelSmallPx
-            color: root.level > 0.78 ? Qt.alpha(root.ink, 0.85) : CortetsuDesign.colorOnSurfaceVariant
+            color: root.headInk
             width: Math.min(implicitWidth, root.width - 58)
             elide: Text.ElideRight
         }
