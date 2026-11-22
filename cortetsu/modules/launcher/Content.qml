@@ -318,9 +318,10 @@ Item {
             pill: true
             activeFocusOnTab: false
             icon: "swap_vert"
-            label: CortetsuConfig.launcherSort === "recent" ? qsTr("Recientes primero") : qsTr("Nombre (A‑Z)")
-            tooltipText: qsTr("Ordenar")
-            onClicked: CortetsuConfig.launcherSort = CortetsuConfig.launcherSort === "recent" ? "name" : "recent"
+            label: CortetsuConfig.launcherSort === "recent" ? qsTr("Recientes primero")
+                : CortetsuConfig.launcherSort === "name-desc" ? qsTr("Nombre (Z‑A)") : qsTr("Nombre (A‑Z)")
+            tooltipText: qsTr("Ordenar: A‑Z, Z‑A o recientes primero")
+            onClicked: CortetsuConfig.launcherSort = ({ "name": "name-desc", "name-desc": "recent", "recent": "name" })[CortetsuConfig.launcherSort] ?? "name"
         }
         CortetsuButton {
             objectName: "launcherGridView"

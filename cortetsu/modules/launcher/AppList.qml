@@ -93,9 +93,10 @@ GridView {
                 return Apps.search(text);
             // «Ordenar»: by name, or what was opened recently first.
             const browsed = Apps.browse(root.category);
-            return CortetsuConfig.launcherSort === "recent" ? Apps.recentFirst(browsed)
-                : root.category === "home" || root.category === "homeRest" || root.category === "recent" ? browsed
-                : browsed.slice().sort((a, b) => String(a.name).localeCompare(String(b.name)));
+            if (CortetsuConfig.launcherSort === "recent")
+                return Apps.recentFirst(browsed);
+            const byName = browsed.slice().sort((a, b) => String(a.name).localeCompare(String(b.name), undefined, { sensitivity: "base" }) || String(a.id).localeCompare(String(b.id)));
+            return CortetsuConfig.launcherSort === "name-desc" ? byName.reverse() : byName;
         }
     }
 

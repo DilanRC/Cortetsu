@@ -316,7 +316,7 @@ QtObject {
     property bool quickSettingsExpanded: false
     onQuickSettingsExpandedChanged: if (loaded) save()
     // Launcher browsing (03-launcher): apps as a list instead of a grid,
-    // and "name" or "recent" order.
+    // and "name", "name-desc" or "recent" order.
     property bool launcherListView: false
     onLauncherListViewChanged: if (loaded) save()
     property string launcherSort: "name"
@@ -606,7 +606,7 @@ QtObject {
                 if (typeof data[key] === "boolean") root[key] = data[key];
             for (const key of ["lockMaxFprintTries", "lockMaxHowdyTries"])
                 if (Number.isInteger(data[key])) root[key] = Math.max(1, Math.min(20, data[key]));
-            if (["name", "recent"].includes(data.launcherSort))
+            if (["name", "name-desc", "recent"].includes(data.launcherSort))
                 launcherSort = data.launcherSort;
             if (typeof data.toastFullscreen === "string" && ["off", "important", "all"].includes(data.toastFullscreen))
                 toastFullscreen = data.toastFullscreen;
