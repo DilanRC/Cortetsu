@@ -58,6 +58,7 @@ esas piezas se comprueban en Agent Realms (`cortetsu realm up .`).
 | Orbital, protocolo del supervisor | — | binario instalado, estado privado | Scene y Video compatibles; Image → flujo estático; proyecto roto, ruta inexistente, JSON inválido, monitor inexistente y línea > 64 KiB con su motivo; segundo supervisor bloqueado sin tocar el primero; EOF sale limpio sin escribir `orbital.json` | ejecución manual registrada | Hecho |
 | Orbital, reproducción real | — | `test-orbital-nested-playback.py` en `nested-regressions.py` | Video `1129108416` y Scene `1182650930` llegan a Activo solo con su superficie en la salida; `busy` rechazado; stop y EOF no dejan motor ni superficie. El mensaje de `transition-timeout` ahora distingue «sin superficie» de «cubierta sin confirmar» | Hyprland anidado en WS 9, Mesa | Hecho |
 | Orbital, fallos y propiedad | — | misma prueba anidada | `kill -9` del motor: dos reinicios en 120 s y al tercero «restart limit»; motor lanzado fuera de Orbital: `foreign-owner`, su proceso intacto; `orbital.json` corrupto, de versión 99 o con campo desconocido: el supervisor se detiene con motivo y no reescribe el archivo; `--volume`/`--silent` nunca juntos (prueba unitaria) | `test-orbital-nested-playback.py` | Hecho |
+| Orbital en la sesión real | — | fondo animado activo en eDP‑1 (proyecto `3499970162`, 30 FPS, `--hwdec no`, GPU integrada) | dGPU NVIDIA en `suspended` durante la reproducción; motor: 26 % de un núcleo, 197 MiB RSS, con AC | `/sys/bus/pci/devices/0000:01:00.0/power/runtime_status`, `/proc` | Medido |
 | Hub: ocho anclajes con el centro abierto | 04 | IPC `bottomHub setAnchor/setOffset` | El centro sigue abierto y se recoloca junto a la campana, hacia dentro, en los ocho | `hub-eight-anchors-center-open-realm` | Hecho |
 | Hub: autohide, pantalla completa | 04 | `tst_BottomHubAutoHide` (6); capa `top` bajo ventanas en pantalla completa; centro y ajustes rápidos no se abren sobre ellas (`BottomHub.qml:363-373`) | — | pruebas QML | Hecho (pantalla completa por política del compositor, sin prueba anidada propia) |
 | Ajustes rápidos amplio | 02 | Columna de navegación (Resumen, Conectividad, Audio, Notificaciones, Energía, Acciones), tres columnas de tarjetas, tarjeta de notificaciones, conmutador persistido | Solo columna única | `test-cortetsu-quick-settings-runtime.py`, realm `quick-settings-three-columns` | Hecho |
@@ -103,5 +104,5 @@ con los 503,8 MiB de cgroup del arranque).
 - Bandeja con Spotify y apps de Chrome abiertas (ahora no hay ningún SNI
   registrado): comprobar que no aparece el damero.
 - Teclas multimedia físicas y OSD de medios con un reproductor real.
-- Orbital en hardware: dGPU suspendida durante Scene/Video, batería, DPMS,
-  suspensión y dos salidas físicas; procedimiento en `QA_POSTERIOR.md`.
+- Orbital en hardware: batería, DPMS, suspensión y dos salidas físicas
+  (la dGPU suspendida durante la reproducción ya está medida).
