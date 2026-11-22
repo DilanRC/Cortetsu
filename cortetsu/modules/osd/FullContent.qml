@@ -843,11 +843,11 @@ Item {
                 stacked: true
                 Layout.fillWidth: true
                 label: qsTr("Orbital")
-                detail: Orbital.activeOn(root.screen.name) ? qsTr("Animado en %1").arg(root.screen.name)
-                    : Orbital.output(root.screen.name).state === "error" ? qsTr("Error · fondo estático")
+                detail: Orbital.activeOn((root.screen?.name ?? "")) ? qsTr("Animado en %1").arg((root.screen?.name ?? ""))
+                    : Orbital.output((root.screen?.name ?? "")).state === "error" ? qsTr("Error · fondo estático")
                     : qsTr("Fondos de Steam")
-                highlighted: Orbital.activeOn(root.screen.name)
-                warning: Orbital.output(root.screen.name).state === "error"
+                highlighted: Orbital.activeOn((root.screen?.name ?? ""))
+                warning: Orbital.output((root.screen?.name ?? "")).state === "error"
                 icon: "animation"
                 onActivated: { root.closeQsd(); Orbital.requestSteam(); WallpaperController.open(root.screen); }
             }

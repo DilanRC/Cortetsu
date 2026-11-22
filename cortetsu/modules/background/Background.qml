@@ -16,7 +16,7 @@ Variants {
         // Orbital ownership handshake: this surface is the static cover. It
         // confirms each frame where the cover is opaque ("covered") or lifted
         // ("revealed") so the supervisor never leaves the monitor uncovered.
-        readonly property var orbital: Orbital.output(modelData.name)
+        readonly property var orbital: Orbital.output(modelData?.name ?? "")
         readonly property bool animated: Orbital.available && orbital.reveal === true
         readonly property bool participating: (orbital.generation ?? 0) > 0 && (orbital.state !== "stopped" || orbital.covered !== true)
         property string acknowledged: ""
