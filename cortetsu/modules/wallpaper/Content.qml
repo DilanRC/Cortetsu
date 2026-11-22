@@ -291,7 +291,8 @@ FocusScope {
     }
 
     function openManager(): void {
-        steamLibrary = Orbital.takeSteamRequest();
+        // The wide library is the default view; the orbit is the compact option.
+        steamLibrary = Orbital.takeSteamRequest() || !CortetsuConfig.wallpaperCompact;
         // The catalog is read on demand; there is no background rescan.
         CortetsuWallpapers.reload();
         presentationReady = false;
@@ -473,8 +474,9 @@ FocusScope {
         id: panelSurface
         z: 1
         anchors.centerIn: parent
-        width: Math.min(parent.width - 48, 1040)
-        height: Math.min(parent.height - 48, 760)
+        // The library takes most of the screen; the compact orbit keeps its size.
+        width: root.steamLibrary ? Math.min(parent.width - 48, 1760) : Math.min(parent.width - 48, 1040)
+        height: root.steamLibrary ? Math.min(parent.height - 48, 1000) : Math.min(parent.height - 48, 760)
         radius: CortetsuDesign.wallUtilitySurfaceRadius
 
         // Clicks and wheel turns inside the panel never reach the dismiss area.
@@ -583,10 +585,12 @@ FocusScope {
                 anchors.rightMargin: CortetsuDesign.spacingCompact
                 anchors.verticalCenter: parent.verticalCenter
                 compact: true
-                label: qsTr("Steam")
-                icon: "library_books"
+                // Back to the wide library (images and Steam together), remembered.
+                label: qsTr("Vista amplia")
+                icon: "open_in_full"
                 onClicked: {
                     root.cancelPreview();
+                    CortetsuConfig.wallpaperCompact = false;
                     root.steamLibrary = true;
                 }
             }
@@ -882,10 +886,13 @@ FocusScope {
         z: 3
         active: root.steamLibrary
         sourceComponent: SteamLibrary {
+            // «Vista compacta»: the orbit, remembered.
             onBack: {
+                CortetsuConfig.wallpaperCompact = true;
                 root.steamLibrary = false;
                 keyTarget.forceActiveFocus();
             }
+            onCloseRequested: root.cancel()
         }
     }
 }

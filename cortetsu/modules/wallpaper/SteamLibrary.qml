@@ -7,11 +7,19 @@ import ".."
 import "../../components"
 import "../../theme"
 import "../../services"
+import "../CortetsuTypography.js" as CortetsuTypography
 
 FocusScope {
     id: root
     signal back()
+    signal closeRequested()
     property var entries: []
+    // One library: the static images of the wallpaper folder next to the
+    // Steam Workshop projects, filtered and searched together.
+    readonly property var staticEntries: CortetsuWallpapers.list.map(item => ({
+        title: item.name.replace(/\.[^.]+$/, ""), type: "image", source: "static",
+        location: item.path, preview: item.path }))
+    readonly property var allEntries: root.staticEntries.concat(root.entries)
     property var assets: []
     property bool favoritesOnly: false
     property string collection: ""
@@ -20,7 +28,7 @@ FocusScope {
     property string query: ""
     property string kind: "all"
     property var selected: null
-    readonly property var filtered: entries.filter(entry =>
+    readonly property var filtered: allEntries.filter(entry =>
         (!favoritesOnly || (Orbital.preferences.favorites || []).includes(entry.location)) &&
         (!collection || (Orbital.preferences.collections?.[collection] || []).includes(entry.location)) &&
         (kind === "all" || entry.type === kind) &&
@@ -72,15 +80,33 @@ FocusScope {
     Row {
         id: toolbar
         spacing: CortetsuDesign.spacingCompact
-        CortetsuButton { compact: true; label: qsTr("Volver"); icon: "arrow_back"; onClicked: root.back() }
+        CortetsuText {
+            anchors.verticalCenter: parent.verticalCenter
+            text: qsTr("Fondos")
+            textSize: CortetsuTypography.titleMediumPx
+            font.weight: Font.DemiBold
+            rightPadding: CortetsuDesign.spacingStandard
+        }
         CortetsuSearchBar {
             id: search
-            width: Math.max(120, root.width - 290)
+            width: Math.max(160, Math.min(520, root.width - 760))
             compact: true
-            placeholderText: qsTr("Buscar en Steam")
+            placeholderText: qsTr("Buscar fondos")
             onTextChanged: root.query = text
         }
-        CortetsuButton { compact: true; label: qsTr("Actualizar"); icon: "refresh"; disabled: scan.running; onClicked: root.reload() }
+        CortetsuButton { compact: true; label: qsTr("Actualizar"); icon: "refresh"; disabled: scan.running; onClicked: { CortetsuWallpapers.reload(); root.reload(); } }
+        // The Workshop itself lives in Steam: it opens there, where
+        // subscribing downloads into the library this view reads.
+        CortetsuButton {
+            objectName: "steamWorkshop"
+            compact: true
+            label: qsTr("Steam Workshop")
+            icon: "storefront"
+            tooltipText: qsTr("Abre la Workshop de Wallpaper Engine en Steam; lo que suscribas aparece aquí al actualizar")
+            onClicked: Quickshell.execDetached(["xdg-open", "steam://url/SteamWorkshopPage/431960"])
+        }
+        CortetsuButton { compact: true; label: qsTr("Vista compacta"); icon: "close_fullscreen"; onClicked: root.back() }
+        CortetsuButton { compact: true; label: ""; icon: "close"; tooltipText: qsTr("Cerrar"); onClicked: root.closeRequested() }
     }
 
     Flow {
@@ -128,7 +154,9 @@ FocusScope {
         wrapMode: Text.Wrap
         maximumLineCount: 3
         elide: Text.ElideRight
-        text: scan.running ? qsTr("Leyendo bibliotecas de Steam…") : root.errorText || (root.entries.length ? qsTr("%1 fondos descargados · Selecciona un fondo para reproducirlo").arg(root.entries.length) : qsTr("No se encontraron fondos descargados de Wallpaper Engine."))
+        text: scan.running ? qsTr("Leyendo bibliotecas de Steam…") : root.errorText
+            || qsTr("%1 imágenes · %2 de Steam Workshop · Pulsa un fondo para ver sus opciones; doble clic en una imagen la aplica")
+                .arg(root.staticEntries.length).arg(root.entries.length)
         color: CortetsuDesign.colorOnSurfaceVariant
     }
 
@@ -138,44 +166,104 @@ FocusScope {
         anchors.topMargin: CortetsuDesign.spacingStandard
         anchors.left: parent.left
         anchors.bottom: parent.bottom
-        width: root.selected ? parent.width * 0.58 : parent.width
+        width: root.selected ? parent.width * 0.68 : parent.width
         clip: true
-        cellWidth: width / Math.max(1, Math.floor(width / 190))
-        cellHeight: 150
+        cellWidth: width / Math.max(1, Math.floor(width / 280))
+        cellHeight: cellWidth
         model: root.filtered
+        // The whole card is the target: picture, title and type together.
         delegate: Item {
             id: cell
             required property var modelData
+            readonly property bool isStatic: modelData.source === "static"
+            readonly property bool current: isStatic && modelData.location === CortetsuWallpapers.actualCurrent
+            readonly property bool chosen: root.selected === modelData
             width: grid.cellWidth
             height: grid.cellHeight
-            Image {
-                anchors.top: parent.top
-                anchors.horizontalCenter: parent.horizontalCenter
-                width: parent.width - 12
-                height: 104
-                source: cell.modelData.preview ? "file://" + cell.modelData.preview.split("/").map(encodeURIComponent).join("/") : ""
-                sourceSize.width: 320
-                fillMode: Image.PreserveAspectFit
-                asynchronous: true
-                CortetsuText { anchors.centerIn: parent; visible: parent.status !== Image.Ready; text: qsTr("Sin portada") }
-            }
-            CortetsuButton {
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.bottom: parent.bottom
-                anchors.margins: 6
-                compact: true
-                label: ""
-                tooltipText: cell.modelData.title || qsTr("Sin título")
-                active: root.selected === cell.modelData
-                onClicked: root.selected = cell.modelData
-                CortetsuText {
+
+            Item {
+                id: card
+                anchors.fill: parent
+                anchors.margins: 8
+                scale: cardMouse.pressed ? 0.98 : 1
+                Behavior on scale { NumberAnimation { duration: CortetsuDesign.motionFastMs } }
+
+                CortetsuRoundedImage {
+                    id: picture
                     anchors.fill: parent
-                    anchors.margins: 6
-                    verticalAlignment: Text.AlignVCenter
-                    elide: Text.ElideRight
+                    radius: 16
+                    source: cell.modelData.preview ? "file://" + cell.modelData.preview.split("/").map(encodeURIComponent).join("/") : ""
+                }
+                Rectangle {
+                    anchors.fill: parent
+                    radius: 16
+                    visible: picture.status !== Image.Ready
+                    color: CortetsuDesign.colorSurfaceHigh
+                    CortetsuText { anchors.centerIn: parent; text: qsTr("Sin portada"); color: CortetsuDesign.colorOnSurfaceVariant }
+                }
+                // The title over a dark fade at the foot of the picture.
+                Rectangle {
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.bottom: parent.bottom
+                    height: 64
+                    radius: 16
+                    gradient: Gradient {
+                        GradientStop { position: 0; color: "transparent" }
+                        GradientStop { position: 1; color: Qt.rgba(0, 0, 0, 0.78) }
+                    }
+                }
+                CortetsuText {
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.bottom: parent.bottom
+                    anchors.margins: 12
                     text: cell.modelData.title || qsTr("Sin título")
-                    color: root.selected === cell.modelData ? CortetsuDesign.colorOnPrimary : CortetsuDesign.colorOnSurface
+                    textSize: CortetsuTypography.bodyPx
+                    font.weight: Font.DemiBold
+                    color: "white"
+                    elide: Text.ElideRight
+                }
+                // What it is, and a dot when it is the wallpaper now.
+                Rectangle {
+                    x: 10
+                    y: 10
+                    height: 22
+                    width: kindText.implicitWidth + 16
+                    radius: 11
+                    color: Qt.rgba(0, 0, 0, 0.55)
+                    CortetsuText {
+                        id: kindText
+                        anchors.centerIn: parent
+                        text: ({ image: qsTr("Imagen"), scene: qsTr("Escena"), video: qsTr("Vídeo"), web: qsTr("Web") })[cell.modelData.type] ?? qsTr("Otro")
+                        textSize: CortetsuTypography.labelSmallPx
+                        color: "white"
+                    }
+                }
+                Rectangle {
+                    visible: cell.current
+                    anchors.top: parent.top
+                    anchors.right: parent.right
+                    anchors.margins: 12
+                    width: 10
+                    height: 10
+                    radius: 5
+                    color: CortetsuDesign.colorSuccess
+                }
+                Rectangle {
+                    anchors.fill: parent
+                    radius: 16
+                    color: "transparent"
+                    border.width: cell.chosen ? 3 : cardMouse.containsMouse ? 1.5 : 0
+                    border.color: cell.chosen ? CortetsuDesign.colorPrimary : Qt.alpha(CortetsuDesign.colorWashi, 0.5)
+                }
+                MouseArea {
+                    id: cardMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: root.selected = cell.modelData
+                    onDoubleClicked: if (cell.isStatic) CortetsuWallpapers.apply(cell.modelData.location)
                 }
             }
         }
@@ -200,12 +288,28 @@ FocusScope {
             width: parent.width
             spacing: CortetsuDesign.spacingStandard
             CortetsuText { width: parent.width; wrapMode: Text.Wrap; text: root.selected?.title || qsTr("Sin título"); font.bold: true }
-            CortetsuText { width: parent.width; wrapMode: Text.Wrap; text: root.selected ? qsTr("Tipo: %1\nFuente: %2\nCompatibilidad: %3").arg(root.selected.type || qsTr("Desconocido")).arg(root.selected.source === "steam" ? "Steam Workshop" : qsTr("Carpeta personalizada")).arg(root.selected.compatibility === "read-error" ? qsTr("Error de lectura")
+            CortetsuText { visible: root.selected?.source !== "static"; width: parent.width; wrapMode: Text.Wrap; text: root.selected ? qsTr("Tipo: %1\nFuente: %2\nCompatibilidad: %3").arg(root.selected.type || qsTr("Desconocido")).arg(root.selected.source === "steam" ? "Steam Workshop" : qsTr("Carpeta personalizada")).arg(root.selected.compatibility === "read-error" ? qsTr("Error de lectura")
                 : Orbital.inspections[root.selected.location]?.supported === true ? qsTr("Reproducible con Almamu Wayland")
                 : Orbital.inspections[root.selected.location] ? qsTr("No reproducible") : qsTr("Comprobando…")) : "" }
             CortetsuText { width: parent.width; wrapMode: Text.WrapAnywhere; text: root.selected?.location || ""; color: CortetsuDesign.colorOnSurfaceVariant }
             CortetsuText { width: parent.width; wrapMode: Text.Wrap; text: (root.selected?.errors || []).join("\n") }
-            SteamPlayback { width: parent.width; entry: root.selected; assets: root.assets }
+            // A static image: shown large, applied as the wallpaper.
+            CortetsuRoundedImage {
+                visible: root.selected?.source === "static"
+                width: parent.width
+                height: width * 9 / 16
+                radius: 14
+                source: visible ? "file://" + String(root.selected?.location ?? "").split("/").map(encodeURIComponent).join("/") : ""
+            }
+            CortetsuButton {
+                visible: root.selected?.source === "static"
+                active: true
+                icon: "wallpaper"
+                label: root.selected?.location === CortetsuWallpapers.actualCurrent ? qsTr("Es el fondo actual") : qsTr("Aplicar")
+                disabled: root.selected?.location === CortetsuWallpapers.actualCurrent || CortetsuWallpapers.applying
+                onClicked: CortetsuWallpapers.apply(root.selected.location)
+            }
+            SteamPlayback { visible: root.selected?.source !== "static"; width: parent.width; entry: root.selected?.source !== "static" ? root.selected : null; assets: root.assets }
         }
     }
 }
