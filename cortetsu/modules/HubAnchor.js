@@ -200,3 +200,25 @@ function reserved(id, thickness) {
         right: edge === "right" ? thickness : 0
     };
 }
+
+// Where a packed Hub (a corner anchor) starts along its edge. `offset` moves
+// it away from its own end, in pixels; it never leaves the usable length.
+// Spread anchors ignore it: their three slots are defined by the edge.
+function packedStart(pack, length, edgeGap, packedLength, offset) {
+    const room = Math.max(0, length - edgeGap * 2 - packedLength);
+    const shift = clamp(Number.isFinite(offset) ? offset : 0, 0, room);
+    return pack === "end" ? length - edgeGap - packedLength - shift : edgeGap + shift;
+}
+
+// Per-monitor offsets with everything not a finite, non-negative number dropped.
+function sanitizeOffsets(value) {
+    const out = {};
+    if (!value || typeof value !== "object" || Array.isArray(value))
+        return out;
+    for (const name of Object.keys(value)) {
+        const px = value[name];
+        if (name.length > 0 && name.length <= 64 && typeof px === "number" && Number.isFinite(px) && px >= 0)
+            out[name] = Math.min(8192, Math.round(px));
+    }
+    return out;
+}

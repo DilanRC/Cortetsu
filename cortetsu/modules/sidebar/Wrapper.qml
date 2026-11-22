@@ -16,14 +16,15 @@ Item {
     // The room between the Hub and the opposite edge; the center is as tall
     // as its content up to this, and scrolls past it.
     property real availableHeight: 800
-    // Sits on the Hub's edge when the Hub takes the top or the bottom, so it
-    // opens out of the Hub rather than at the far end of the screen.
-    readonly property bool fromBottom: hubReserved.bottom > 0
+    // The way it opens, away from the Hub (HubAnchor.popoutTravel); it
+    // slides in from the Hub's side.
+    property var travel: ({ x: 0, y: 1 })
 
     visible: offsetScale < 1
-    // Right-edge drawer, clear of the Hub on whichever edge it sits, sliding
-    // in from that edge.
-    anchors.rightMargin: (8 + hubReserved.right) * (1 - offsetScale) + (-implicitWidth - 8) * offsetScale
+    transform: Translate {
+        x: root.travel.x * 28 * root.offsetScale
+        y: root.travel.y * 28 * root.offsetScale
+    }
     implicitWidth: content.item?.implicitWidth ?? 420
     implicitHeight: content.item?.implicitHeight ?? 0
     opacity: Math.min(1, (1 - offsetScale) * 2)

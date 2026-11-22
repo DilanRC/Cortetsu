@@ -22,6 +22,9 @@ PersistentProperties {
     property bool utilities
     property bool settings
     property bool sidebar
+    // Where the Hub's system island (the bell) sits along the Hub's edge, in
+    // screen coordinates; -1 without a Hub. The notification center opens there.
+    property real sidebarAlong: -1
     property int dashboardTab
     property date dashboardDate: new Date()
 

@@ -160,4 +160,23 @@ TestCase {
         compare(HubAnchor.reserved("middle-right", 60), { top: 0, bottom: 0, left: 0, right: 60 });
         compare(HubAnchor.reserved("junk", 60), { top: 0, bottom: 60, left: 0, right: 0 });
     }
+
+    // A corner Hub moves along its edge, never past the usable length.
+    function test_packed_offset_moves_along_the_edge_and_stays_inside() {
+        const anchor = HubAnchor;
+        compare(anchor.packedStart("start", 1920, 8, 600, 0), 8);
+        compare(anchor.packedStart("start", 1920, 8, 600, 300), 308);
+        compare(anchor.packedStart("start", 1920, 8, 600, 99999), 1920 - 8 - 600);
+        compare(anchor.packedStart("end", 1920, 8, 600, 0), 1920 - 8 - 600);
+        compare(anchor.packedStart("end", 1920, 8, 600, 300), 1920 - 8 - 600 - 300);
+        compare(anchor.packedStart("end", 1920, 8, 600, 99999), 8);
+        compare(anchor.packedStart("start", 1920, 8, 600, NaN), 8);
+        compare(anchor.packedStart("start", 500, 8, 600, 100), 8);
+    }
+
+    function test_offsets_drop_what_is_not_a_distance() {
+        const out = HubAnchor.sanitizeOffsets({ "eDP-1": 240.4, "HDMI-A-1": -3, "x": "12", "": 5, "DP-1": Infinity });
+        compare(JSON.stringify(out), JSON.stringify({ "eDP-1": 240 }));
+        compare(JSON.stringify(HubAnchor.sanitizeOffsets([1, 2])), "{}");
+    }
 }

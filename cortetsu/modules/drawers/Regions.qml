@@ -41,11 +41,12 @@ Region {
         width: (panel?.width ?? 0) * (1 - (root.panels.session?.offsetScale ?? 1)) + root.borderThickness + sidebarRegion.width
     }
 
+    // Wherever the center opened (out of the Hub's system island), only
+    // while it is shown.
     R {
         id: sidebarRegion
         panel: root.panels.sidebar
-        x: root.win.width - width
-        width: (panel?.width ?? 0) * (1 - (root.panels.sidebar?.offsetScale ?? 1)) + root.borderThickness
+        width: (root.panels.sidebar?.offsetScale ?? 1) < 1 ? (panel?.width ?? 0) : 0
     }
 
     R {

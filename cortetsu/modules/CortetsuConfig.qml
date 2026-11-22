@@ -47,6 +47,18 @@ QtObject {
         function anchorFor(monitorName: string): string {
             return HubAnchor.forMonitor(anchor, anchors, monitorName);
         }
+        // How far a corner Hub sits from its corner along its edge, in
+        // pixels, per monitor (HubAnchor.packedStart keeps it on screen).
+        property var offsets: ({})
+        onOffsetsChanged: if (root.loaded) root.save()
+        function offsetFor(monitorName: string): real {
+            return offsets[monitorName] ?? 0;
+        }
+        function setOffset(monitorName: string, px: real): void {
+            const next = Object.assign({}, offsets);
+            next[monitorName] = Math.max(0, Math.min(8192, Math.round(px)));
+            offsets = HubAnchor.sanitizeOffsets(next);
+        }
         // "" as the monitor sets the anchor of every monitor without its own.
         function setAnchor(monitorName: string, id: string): void {
             if (!HubAnchor.valid(id))
@@ -528,6 +540,7 @@ QtObject {
                 // An unknown anchor reads as the bottom, never as nowhere.
                 bottomHub.anchor = HubAnchor.normalize(data.bottomHub.anchor);
                 bottomHub.anchors = HubAnchor.sanitizeMap(data.bottomHub.anchors);
+                bottomHub.offsets = HubAnchor.sanitizeOffsets(data.bottomHub.offsets);
                 if (typeof data.bottomHub.windowPreviews === "boolean")
                     bottomHub.windowPreviews = data.bottomHub.windowPreviews;
                 if (typeof data.bottomHub.windowThumbnails === "boolean")
@@ -865,6 +878,7 @@ QtObject {
             bottomHub: {
                 anchor: bottomHub.anchor,
                 anchors: bottomHub.anchors,
+                offsets: bottomHub.offsets,
                 windowPreviews: bottomHub.windowPreviews,
                 windowThumbnails: bottomHub.windowThumbnails,
                 spacing: bottomHub.spacing,

@@ -188,7 +188,9 @@ Item {
         return Math.max(0, steps > 0 ? steps - gap : 0);
     }
     readonly property bool spread: place.pack === "spread"
-    readonly property real packedStart: place.pack === "end" ? length - edgeGap - packedLength : edgeGap
+    // A corner Hub's distance from its corner (Ajustes → Hub, per monitor).
+    property real offset: 0
+    readonly property real packedStart: HubAnchor.packedStart(place.pack, length, edgeGap, packedLength, offset)
 
     // Every position below is read from lengths only, never from another
     // island's position: a pack, edge or order change cannot form a loop.

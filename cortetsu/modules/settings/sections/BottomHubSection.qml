@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import "../../HubAnchor.js" as HubAnchor
 import QtQuick.Layouts
 import "../../../components"
 import "../../../services"
@@ -56,6 +57,22 @@ SettingsColumns {
             actionLabel: qsTr("Mover")
             actionIcon: "open_with"
             onActivated: HubEditState.begin(root.anchorMonitor.length > 0 ? root.anchorMonitor : (CortetsuShellState.forActive()?.modelData?.name ?? ""))
+        }
+
+        // A corner Hub can slide along its edge, away from its corner; the
+        // spread anchors fill the edge and have nothing to slide.
+        SettingSliderRow {
+            readonly property string monitor: root.anchorMonitor.length > 0
+                ? root.anchorMonitor : (CortetsuShellState.forActive()?.modelData?.name ?? "")
+            objectName: "hubOffset"
+            visible: HubAnchor.describe(CortetsuConfig.bottomHub.anchorFor(monitor)).pack !== "spread"
+            title: qsTr("Distancia a la esquina · %1").arg(monitor)
+            valueText: qsTr("%1 px").arg(CortetsuConfig.bottomHub.offsetFor(monitor))
+            from: 0
+            to: 1200
+            step: 8
+            value: CortetsuConfig.bottomHub.offsetFor(monitor)
+            onMoved: value => CortetsuConfig.bottomHub.setOffset(monitor, value)
         }
 
         SettingActionRow {

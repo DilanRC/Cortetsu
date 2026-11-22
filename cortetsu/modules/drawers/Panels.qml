@@ -163,17 +163,22 @@ Item {
         anchors.bottom: parent.bottom
         anchors.right: parent.right
     }
-    // The notification center: as tall as its content, on the Hub's edge
-    // (above a bottom Hub, below a top one), never the full screen height.
+    // The notification center: as tall as its content, opening out of the
+    // Hub's system island towards the middle of the screen, wherever the Hub
+    // sits (HubAnchor.popoutPosition, the same rule as the attached popouts).
     Sidebar.Wrapper {
         id: sidebar
+        readonly property string hubAnchorId: CortetsuConfig.bottomHub.anchorFor(root.screen?.name ?? "")
+        // The island's position in screen coordinates, to this item's.
+        readonly property real along: (root.screenState?.sidebarAlong ?? -1) < 0 ? -1
+            : root.screenState.sidebarAlong - (HubAnchor.describe(hubAnchorId).vertical ? root.y : root.x)
+        readonly property var spot: HubAnchor.popoutPosition(hubAnchorId, along, width, height,
+            root.width, root.height, CortetsuDesign.bottomHubHeight, 8, 8)
         screenState: root.screenState
         hubReserved: root.hubReserved
+        travel: HubAnchor.popoutTravel(hubAnchorId)
         availableHeight: root.height - 16 - root.hubReserved.top - root.hubReserved.bottom
-        anchors.top: fromBottom ? undefined : parent.top
-        anchors.bottom: fromBottom ? parent.bottom : undefined
-        anchors.topMargin: 8 + root.hubReserved.top
-        anchors.bottomMargin: Math.max(8, root.hubReserved.bottom)
-        anchors.right: root.screenState?.utilities ? utilities.left : parent.right
+        x: spot.x
+        y: spot.y
     }
 }

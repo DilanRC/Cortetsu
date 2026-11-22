@@ -1034,10 +1034,20 @@ Scope {
                 ? (modelData?.height ?? 0) - hubMargin * 2
                 : bottomHubView.thickness + innerRoom
 
+            // The notification center opens out of the system island, so it
+            // follows the Hub wherever it is moved.
+            Binding {
+                target: win.screenState
+                property: "sidebarAlong"
+                when: !!win.screenState && bottomHubView.statusLength > 0
+                value: win.alongScreen(bottomHubView.statusAt + bottomHubView.statusLength / 2)
+            }
+
             CortetsuBottomHubView {
                 id: bottomHubView
 
                 anchor: win.hubAnchor
+                offset: CortetsuConfig.bottomHub.offsetFor(win.screen?.name ?? "")
                 x: win.hubPlace.edge === "right" ? win.width - width : 0
                 y: win.hubPlace.edge === "bottom" ? win.height - height : 0
                 width: win.hubVertical ? thickness : win.width
