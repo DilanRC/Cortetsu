@@ -48,6 +48,7 @@ esas piezas se comprueban en Agent Realms (`cortetsu realm up .`).
 | Variantes por contenido | 05 | `notifications/NotificationKind.js` (categoría FDO, `value`, urgencia, `desktop-entry` de MPRIS) | Icono por palabras del título → por metadatos | Escenario: progreso, mensaje, captura, red, urgente | Hecho |
 | Modo privado | 05 | `CortetsuConfig.notificationPrivate`: oculta título, cuerpo e imagen en avisos, centro e historial | — | Escenario | Hecho |
 | Launcher expandido | 03 | `LauncherNav` (vistas reales), `LauncherFavourites`, `Apps.browse` con `all/favourites/recent/homeRest` | Sin navegación ni fila de favoritos | Realm `launcher.png` | Hecho |
+| Bloqueo: PAM real en la sesión | 07 | — | Contraseña errónea: Monster en rojo, borde y mensaje; correcta: Cosmic verde, halo, «Desbloqueando…» | 16 capturas en vivo (`lock-live-rejected-monster`, `lock-live-accepted-cosmic`) | Hecho |
 | Bloqueo rico | 07 + Nebula | `lock/LockCard.qml`: marca con halo y horizonte, reloj, cápsula de usuario y de contraseña, estado PAM, alas, barra inferior, modo ambiente | Escena plana | `test-cortetsu-lock-card-runtime.py`, `test-cortetsu-lock-runtime.py`, escenario `lock-after.png` | Hecho (PAM con credenciales reales: lo prueba el propietario) |
 | Hub movible a lo largo del borde | 04 | `HubAnchor.packedStart/sanitizeOffsets`, `bottomHub.offsets` por monitor, «Distancia a la esquina» en Ajustes → Hub | Solo ocho anclajes fijos → desplazamiento acotado al área útil | `tst_HubAnchor` (562), realm `hop2` (abajo‑izquierda +400 px) | Hecho |
 | Centro de notificaciones sigue al Hub | 04, 05 | `ScreenState.sidebarAlong` publicado por el Hub; `HubAnchor.popoutPosition`; región de entrada en su posición | Abría siempre en el borde derecho | Realm `hop2`, `hop3` (lateral derecho) | Hecho |
@@ -69,6 +70,9 @@ esas piezas se comprueban en Agent Realms (`cortetsu realm up .`).
 | Biblioteca de fondos | — | Imágenes y Workshop en una biblioteca amplia, tarjetas clicables, botón Steam Workshop, vista compacta opcional | Steam separado, había que pulsar el nombre | sesión real: 40 imágenes + 153 Workshop, `wallpaper-library-realm.png` | Hecho |
 | Ajustes rápidos amplio | 02 | Columna de navegación (Resumen, Conectividad, Audio, Notificaciones, Energía, Acciones), tres columnas de tarjetas, tarjeta de notificaciones, conmutador persistido | Solo columna única | `test-cortetsu-quick-settings-runtime.py`, realm `quick-settings-three-columns` | Hecho |
 | Widgets | 08 | Reloj protagonista sin caja; tarjetas con icono y nombre; anillos de CPU/GPU/memoria con temperatura; widget Monitores con datos de Hyprland y acceso a Ajustes → Pantalla; clima en español desde el código WMO | Tarjetas sin cabecera, barras, sin monitores, «Clear» en inglés | realm `widgets`, `widgets-rings-monitors` | Hecho |
+| Teclas multimedia (camino MPRIS) | 06 | — | Play, siguiente, volumen y pausa: una cápsula por cambio, con portada, título y artista reales, bajo el Hub superior; suprimida sobre ventanas a pantalla completa, por política | `mini-osd-media-volume-live` | Hecho |
+| Hub sobre una ventana a pantalla completa (sesión real) | 04 | — | Con kitty en `fullscreen 2` el Hub no se ve en ninguna captura | capturas de la sesión | Observado |
+| Bandeja con apps reales | 04 | `Icons.getTrayIcon`: pixmap de revisión 0 = sin icono; respaldo por id, tooltip y título, búsqueda por nombre visible y `/usr/share/pixmaps` | Linux Wallpaper Engine (Electron) no publica icono: salía el damero | `tray-live-before-checker` → `tray-live-fixed`; IPC `bottomHub trayIcons` | Hecho |
 | Mini OSD en la sesión real | 06 | — | — | `wpctl` +1 % y brillo 95 % sobre eDP‑1, restaurados: `mini-osd-volume-live`, `mini-osd-brightness-live` | Hecho |
 | Matriz visual oficial | todas | `cortetsu realm qa .` | 155 comprobaciones, 0 fallos, 80 capturas (fondo oscuro/claro, transparencia, movimiento reducido); 5 avisos sin clasificar, todos `text-input-v3` de Qt | `qa-light-wallpaper-realm` | Hecho |
 | Tres temas | todas | `render-cortetsu-theme-surfaces.py` | Ink, Kurogane y Washi conservan su identidad; cápsulas en los tres | `surfaces-ink-kurogane-washi-harness`, `pills-ink-washi-kurogane-stage` | Hecho |
@@ -106,9 +110,6 @@ con los 503,8 MiB de cgroup del arranque).
 
 ## Pendiente (solo lo que exige al propietario)
 
-- PAM con la contraseña real: fallo → Monster, éxito → Cosmic, en la sesión.
-- Bandeja con Spotify y apps de Chrome abiertas (ahora no hay ningún SNI
-  registrado): comprobar que no aparece el damero.
-- Teclas multimedia físicas y OSD de medios con un reproductor real.
+- Teclas multimedia pulsadas físicamente (el camino MPRIS que siguen ya está verificado en vivo).
 - Orbital en hardware: batería, DPMS, suspensión y dos salidas físicas
   (la dGPU suspendida durante la reproducción ya está medida).

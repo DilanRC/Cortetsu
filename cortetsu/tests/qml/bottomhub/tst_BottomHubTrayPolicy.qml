@@ -35,6 +35,11 @@ TestCase {
         compare(TrayIconName.namedIcon("file:///tmp/a.png"), null);
         compare(TrayIconName.namedIcon(""), null);
         compare(TrayIconName.namedIcon("image://icon/a%20b?path=/x%20y").dir, "/x y");
+        // Seen live: an item with no pixmap arrives at revision 0.
+        verify(TrayIconName.emptyPixmap("image://qspixmap/1/0"));
+        verify(!TrayIconName.emptyPixmap("image://qspixmap/2/1"));
+        verify(!TrayIconName.emptyPixmap("image://qspixmap/3/10"));
+        verify(!TrayIconName.emptyPixmap("image://icon/x"));
     }
 
     function test_tooltip_prefers_localized_title_and_falls_back_safely() {

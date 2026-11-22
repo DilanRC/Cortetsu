@@ -85,12 +85,22 @@ Singleton {
             const name = String(raw ?? "").trim();
             if (!name)
                 continue;
-            const entry = DesktopEntries.heuristicLookup(name);
+            // By id or class first, then by the name people see (a tray
+            // tooltip says «Linux Wallpaper Engine», not its desktop id).
+            const entry = DesktopEntries.heuristicLookup(name)
+                ?? DesktopEntries.applications.values.find(app => app.name === name) ?? null;
             for (const candidate of [entry?.icon, name]) {
                 const found = candidate ? Quickshell.iconPath(candidate, true) : "";
                 if (found)
                     return found;
             }
+            // An installed app whose icon is a loose file in the standard
+            // pixmaps folder, outside every icon theme.
+            const loose = String(entry?.icon ?? "");
+            if (loose.startsWith("/"))
+                return `file://${loose}`;
+            if (loose)
+                return `file:///usr/share/pixmaps/${loose}.png`;
         }
         return "";
     }
@@ -106,7 +116,7 @@ Singleton {
         const fallback = () => existingIcon([id].concat(titles ?? []))
             || Quickshell.iconPath("application-x-executable", true) || "";
         if (!named)
-            return String(icon ?? "").length > 0 ? String(icon) : fallback();
+            return String(icon ?? "").length > 0 && !TrayIconName.emptyPixmap(icon) ? String(icon) : fallback();
         const themed = named.name ? Quickshell.iconPath(named.name, true) : "";
         if (themed)
             return themed;

@@ -179,7 +179,7 @@ Item {
             Rectangle {
                 objectName: "lockAcceptedHalo"
                 anchors.centerIn: parent
-                width: parent.width * (root.accepted ? 1.5 : 1.1)
+                width: parent.width * (root.accepted ? 1.25 : 1.1)
                 height: width
                 radius: width / 2
                 color: Qt.alpha(root.accepted ? CortetsuDesign.colorSuccess : root.rejected ? CortetsuDesign.colorVermillion : CortetsuDesign.colorPrimary,

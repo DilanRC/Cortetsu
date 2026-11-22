@@ -58,7 +58,7 @@ Item {
     // a fill darker than luminance 0.18 (WCAG); above that, dark ink. The
     // light fill, light on a dark one) once the fill reaches it.
     readonly property color fillInk: CortetsuDesign.luminance(root.fill) > 0.18 ? "#14121c" : "#f4f1fb"
-    readonly property color ink: root.fraction >= 0 && root.level > 0.2 ? root.fillInk : CortetsuDesign.colorOnSurface
+    readonly property color ink: root.fraction >= 0 && root.level > 0.1 ? root.fillInk : CortetsuDesign.colorOnSurface
     readonly property color headInk: root.fraction >= 0 && root.level > 0.72 ? root.fillInk : CortetsuDesign.colorOnSurfaceVariant
 
     Row {

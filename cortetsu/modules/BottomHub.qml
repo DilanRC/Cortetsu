@@ -246,6 +246,12 @@ Scope {
         function isShown(): bool { return hubRoot.shown; }
         // The same changes as Ajustes → Hub, for scripted QA: "" is every
         // monitor without its own anchor.
+        // Read-only: each tray item's id, the icon Quickshell hands over and
+        // the one the Hub draws, for diagnosing a broken tray icon.
+        function trayIcons(): string {
+            return JSON.stringify(SystemTray.items.values.map(item => ({ id: item.id, title: item.tooltipTitle || item.title,
+                icon: String(item.icon), shown: Icons.getTrayIcon(item.id, item.icon, [item.tooltipTitle, item.title]) })));
+        }
         function setAnchor(monitor: string, id: string): void { CortetsuConfig.bottomHub.setAnchor(monitor, id); }
         function setOffset(monitor: string, px: int): void { CortetsuConfig.bottomHub.setOffset(monitor, px); }
         // Read-only: the bell of the focused screen in layout coordinates
