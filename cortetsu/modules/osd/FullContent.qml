@@ -132,17 +132,26 @@ Item {
         return node?.description || node?.nickname || node?.name || qsTr("Dispositivo sin nombre");
     }
 
-    ColumnLayout {
+    // Wide layout (02-quick-settings): the cards two to a row, the header
+    // and the actions across both; only where the screen has the room.
+    readonly property bool expanded: CortetsuConfig.quickSettingsExpanded && (root.screen?.width ?? 0) >= 1440
+    readonly property int span: root.expanded ? 2 : 1
+
+    GridLayout {
         id: body
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.top: parent.top
-        spacing: CortetsuDesign.spacingCompact + 2
+        columns: root.span
+        uniformCellWidths: true
+        rowSpacing: CortetsuDesign.spacingCompact + 2
+        columnSpacing: CortetsuDesign.spacingStandard
 
         // Identity once, small and still: the mark is the product's
         // signature here, not a reaction to the pointer.
         RowLayout {
             Layout.fillWidth: true
+            Layout.columnSpan: root.span
             Layout.bottomMargin: 2
             spacing: CortetsuDesign.spacingStandard
 
@@ -176,6 +185,17 @@ Item {
             }
 
             CortetsuButton {
+                objectName: "quickExpand"
+                visible: (root.screen?.width ?? 0) >= 1440
+                compact: true
+                active: root.expanded
+                icon: root.expanded ? "close_fullscreen" : "open_in_full"
+                label: ""
+                tooltipText: root.expanded ? qsTr("Vista compacta") : qsTr("Vista amplia")
+                onClicked: CortetsuConfig.quickSettingsExpanded = !CortetsuConfig.quickSettingsExpanded
+            }
+
+            CortetsuButton {
                 compact: true
                 icon: "settings"
                 label: ""
@@ -195,6 +215,7 @@ Item {
         // --- Audio: the output, its level and, on demand, every device ----
 
         QuickCard {
+            Layout.alignment: Qt.AlignTop
             objectName: "quickAudio"
             Layout.fillWidth: true
             icon: "graphic_eq"
@@ -401,6 +422,7 @@ Item {
         // --- Connections: the Wi-Fi link leads, the radios follow ---------
 
         QuickCard {
+            Layout.alignment: Qt.AlignTop
             Layout.fillWidth: true
             icon: "lan"
             title: qsTr("Red y conexiones")
@@ -469,6 +491,7 @@ Item {
         // --- Energy: the battery line and the profile it runs on ----------
 
         QuickCard {
+            Layout.alignment: Qt.AlignTop
             Layout.fillWidth: true
             attention: CortetsuPower.critical
 
@@ -538,6 +561,7 @@ Item {
         // --- Now playing: only while a player exists -----------------------
 
         QuickCard {
+            Layout.alignment: Qt.AlignTop
             objectName: "quickMedia"
             Layout.fillWidth: true
             visible: !!root.player
@@ -649,8 +673,9 @@ Item {
         GridLayout {
             objectName: "quickActions"
             Layout.fillWidth: true
+            Layout.columnSpan: root.span
             Layout.topMargin: 2
-            columns: 3
+            columns: root.expanded ? 6 : 3
             rowSpacing: CortetsuDesign.spacingCompact
             columnSpacing: CortetsuDesign.spacingCompact
             uniformCellWidths: true

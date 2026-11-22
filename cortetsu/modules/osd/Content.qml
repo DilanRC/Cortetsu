@@ -16,7 +16,7 @@ Item {
     required property ShellScreen screen
     property bool hovered: false
 
-    implicitWidth: 520
+    implicitWidth: content.expanded ? 1060 : 520
     implicitHeight: content.implicitHeight + CortetsuDesign.spacingSection * 2
 
     HoverHandler {
