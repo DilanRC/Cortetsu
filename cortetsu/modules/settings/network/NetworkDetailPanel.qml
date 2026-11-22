@@ -231,7 +231,10 @@ ColumnLayout {
 
         RowLayout {
             Layout.fillWidth: true
-            Layout.margins: CortetsuDesign.spacingStandard
+            Layout.leftMargin: CortetsuDesign.spacingStandard
+            Layout.rightMargin: CortetsuDesign.spacingStandard
+            Layout.topMargin: 4
+            Layout.bottomMargin: 4
             spacing: CortetsuDesign.spacingSection
             Repeater {
                 model: [[qsTr("Descarga"), "arrow_downward", NetworkUsage.downloadTotal], [qsTr("Subida"), "arrow_upward", NetworkUsage.uploadTotal]]
@@ -280,7 +283,9 @@ ColumnLayout {
 
         RowLayout {
             Layout.fillWidth: true
-            Layout.margins: CortetsuDesign.spacingCompact
+            Layout.leftMargin: CortetsuDesign.spacingCompact
+            Layout.topMargin: 2
+            Layout.bottomMargin: 2
             spacing: CortetsuDesign.spacingCompact
             Repeater {
                 model: [["ink", qsTr("Ink"), "dark_mode"], ["washi", qsTr("Washi"), "light_mode"], ["kurogane", qsTr("Kurogane"), "hardware"]]
