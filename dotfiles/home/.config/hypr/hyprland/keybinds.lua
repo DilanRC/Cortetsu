@@ -177,7 +177,11 @@ create_bind(vars.kbCloseWindow, hl.dsp.window.close())
 -- Special workspace toggles
 create_bind(vars.kbSpecialWs, fn.toggle("specialws"))
 create_bind(vars.kbSystemMonitorWs, fn.toggle("sysmon"))
-create_bind(vars.kbMusicWs, fn.toggle("music"))
+-- SUPER+M: Spotify as an ordinary window on this workspace (it used to open
+-- in special:music, drawn over every window).
+create_bind(vars.kbMusicWs, fn.focus_or_launch(
+    { { class = "Spotify" }, { initial_title = "Spotify" }, { initial_title = "Spotify Free" } },
+    { "spotify" }))
 create_bind(vars.kbCommunicationWs, fn.toggle("communication"))
 create_bind(vars.kbTodoWs, fn.toggle("todo"))
 

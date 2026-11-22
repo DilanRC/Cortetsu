@@ -101,8 +101,10 @@ local function default_config()
             whatsapp = { enable = true, match = { { class = "whatsapp" } }, move = true },
         },
         music = {
+            -- Spotify is an ordinary window (SUPER+M, keybinds.lua), not part
+            -- of the music special workspace.
             spotify = {
-                enable  = true,
+                enable  = false,
                 match   = { { class = "Spotify" }, { initial_title = "Spotify" }, { initial_title = "Spotify Free" } },
                 command = { "spicetify", "watch", "-s" },
                 move    = true,
@@ -249,6 +251,24 @@ local function place_apps(apps, special_workspace)
     end
 end
 
+-- An app as an ordinary window: if it runs, bring it to the active
+-- workspace (even out of a special one) and focus it; else start it there.
+local function focus_or_launch(match, command)
+    return function()
+        local running, found = get_clients(hl.get_windows() or {}, { match = match }, "")
+        if not running then
+            return hl.dispatch(hl.dsp.exec_cmd(shell_join(command)))
+        end
+        local target = found[1].window
+        local active = hl.get_active_workspace()
+        local here = target.workspace and active and target.workspace.id == active.id
+        if not here and active then
+            hl.dispatch(hl.dsp.window.move({ window = target, workspace = active.id, follow = true }))
+        end
+        return hl.dispatch(hl.dsp.focus({ window = target }))
+    end
+end
+
 local function toggle(special_workspace)
     return function()
         local active_workspace = hl.get_active_special_workspace()
@@ -285,4 +305,5 @@ return {
     wsaction             = wsaction,
     move_actions         = move_actions,
     toggle               = toggle,
+    focus_or_launch      = focus_or_launch,
 }
