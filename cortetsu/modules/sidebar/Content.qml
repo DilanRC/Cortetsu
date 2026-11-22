@@ -45,7 +45,9 @@ Item {
         const needle = root.query.trim().toLocaleLowerCase();
         if (needle.length === 0)
             return root.history;
-        return root.history.filter(entry => [entry.summary, entry.body, entry.appName]
+        // Private mode searches who sent it only: matching the hidden text
+        // would tell, through the count, what it says.
+        return root.history.filter(entry => (CortetsuConfig.notificationPrivate ? [entry.appName] : [entry.summary, entry.body, entry.appName])
             .some(value => typeof value === "string" && value.toLocaleLowerCase().includes(needle)));
     }
     // How many live notifications each app has, for its group heading.
