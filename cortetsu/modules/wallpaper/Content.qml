@@ -473,6 +473,8 @@ FocusScope {
     CortetsuInkPanel {
         id: panelSurface
         z: 1
+        // It covers windows: text behind it must never read through.
+        groundAlpha: Math.max(0.92, CortetsuDesign.materialGroundAlpha)
         anchors.centerIn: parent
         // The library takes most of the screen; the compact orbit keeps its size.
         width: root.steamLibrary ? Math.min(parent.width - 48, 1760) : Math.min(parent.width - 48, 1040)
