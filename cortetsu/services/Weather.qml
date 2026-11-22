@@ -18,7 +18,22 @@ Singleton {
     readonly property int refreshInterval: refreshTimer.interval
 
     readonly property string icon: cc ? weatherIcon(cc.weatherCode) : "󰖐"
-    readonly property string description: cc?.weatherDesc ?? qsTr("Sin pronóstico")
+    // The sky in words, from the WMO code: the provider's text is English.
+    readonly property string description: cc ? weatherText(cc.weatherCode, cc.weatherDesc) : qsTr("Sin pronóstico")
+    function weatherText(code, fallback): string {
+        const c = Number(code);
+        if (c === 0) return qsTr("Despejado");
+        if (c === 1) return qsTr("Mayormente despejado");
+        if (c === 2) return qsTr("Parcialmente nublado");
+        if (c === 3) return qsTr("Nublado");
+        if ([45, 48].includes(c)) return qsTr("Niebla");
+        if ([51, 53, 55, 56, 57].includes(c)) return qsTr("Llovizna");
+        if ([61, 63, 65, 66, 67].includes(c)) return qsTr("Lluvia");
+        if ([80, 81, 82].includes(c)) return qsTr("Chubascos");
+        if ([71, 73, 75, 77, 85, 86].includes(c)) return qsTr("Nieve");
+        if ([95, 96, 99].includes(c)) return qsTr("Tormenta");
+        return String(fallback ?? "") || qsTr("Sin pronóstico");
+    }
     readonly property string temp: formatTemp(cc?.tempC)
     readonly property string feelsLike: formatTemp(cc?.feelsLikeC)
     readonly property int humidity: cc?.humidity ?? 0

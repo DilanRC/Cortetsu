@@ -42,16 +42,45 @@ Item {
     Accessible.role: Accessible.Grouping
     Accessible.name: DesktopWidgets.info(type)?.title ?? type
 
+    // 08-widgets: the clock stands on the wallpaper, the protagonist; every
+    // other widget is a card with its icon and name over its content.
+    readonly property bool framed: type !== "clock"
+    readonly property real headerHeight: framed ? px(30) : 0
+
     CortetsuSurface {
+        visible: root.framed
         anchors.fill: parent
         radiusValue: CortetsuDesign.radiusLarge
         baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlass, 0.82)
         outlined: true
     }
 
+    RowLayout {
+        objectName: "desktopWidgetHeader"
+        visible: root.framed
+        x: root.pad
+        y: root.pad
+        width: root.width - root.pad * 2
+        height: root.headerHeight
+        spacing: root.px(CortetsuDesign.spacingCompact)
+        CortetsuIcon {
+            text: DesktopWidgets.info(root.type)?.icon ?? ""
+            iconSize: root.px(CortetsuTypography.iconSmallPx)
+            color: CortetsuDesign.colorPrimary
+        }
+        CortetsuText {
+            Layout.fillWidth: true
+            text: DesktopWidgets.info(root.type)?.title ?? ""
+            textSize: root.px(CortetsuTypography.bodyPx)
+            font.weight: Font.DemiBold
+            elide: Text.ElideRight
+        }
+    }
+
     Loader {
         anchors.fill: parent
         anchors.margins: root.pad
+        anchors.topMargin: root.pad + root.headerHeight
         sourceComponent: ({
             clock: clockView, date: dateView, weather: weatherView, battery: batteryView,
             system: systemView, storage: storageView, network: networkView, media: mediaView, note: noteView
@@ -65,8 +94,11 @@ Item {
             spacing: root.px(2)
             CortetsuText {
                 Layout.fillWidth: true
+                horizontalAlignment: Text.AlignHCenter
+                style: Text.Raised
+                styleColor: Qt.alpha(CortetsuDesign.colorSumi, 0.5)
                 text: CortetsuRegional.useSecondPrecision ? `${Time.hourStr}:${Time.minuteStr}:${Time.secondStr}` : `${Time.hourStr}:${Time.minuteStr}`
-                textSize: root.px(CortetsuTypography.displayMediumPx)
+                textSize: root.px(CortetsuTypography.displayHeroPx * 1.5)
                 font.family: CortetsuDesign.fontHeading
                 font.weight: Font.Light
                 font.features: ({ "tnum": 1 })
@@ -76,6 +108,9 @@ Item {
             CortetsuText {
                 Layout.fillWidth: true
                 visible: root.item?.showDate !== false
+                horizontalAlignment: Text.AlignHCenter
+                style: Text.Raised
+                styleColor: Qt.alpha(CortetsuDesign.colorSumi, 0.5)
                 text: CortetsuRegional.formatDate(Time.date, "longDay", true) + (Time.amPmStr ? ` · ${Time.amPmStr}` : "")
                 textSize: root.px(CortetsuTypography.bodyLargePx)
                 color: CortetsuDesign.colorOnSurfaceVariant

@@ -18,8 +18,8 @@ var types = ["clock", "date", "weather", "battery", "system", "storage", "networ
 var sizes = ["s", "m", "l"];
 var scales = { s: 0.8, m: 1, l: 1.3 };
 var baseSizes = {
-    clock: [320, 136], date: [272, 264], weather: [300, 156], battery: [232, 124],
-    system: [300, 188], storage: [300, 132], network: [300, 132], media: [348, 132], note: [264, 200]
+    clock: [360, 156], date: [272, 294], weather: [300, 186], battery: [232, 154],
+    system: [300, 218], storage: [300, 162], network: [300, 162], media: [348, 162], note: [264, 230]
 };
 
 function validType(type) {
