@@ -49,6 +49,12 @@ esas piezas se comprueban en Agent Realms (`cortetsu realm up .`).
 | Modo privado | 05 | `CortetsuConfig.notificationPrivate`: oculta título, cuerpo e imagen en avisos, centro e historial | — | Escenario | Hecho |
 | Launcher expandido | 03 | `LauncherNav` (vistas reales), `LauncherFavourites`, `Apps.browse` con `all/favourites/recent/homeRest` | Sin navegación ni fila de favoritos | Realm `launcher.png` | Hecho |
 | Bloqueo rico | 07 + Nebula | `lock/LockCard.qml`: marca con halo y horizonte, reloj, cápsula de usuario y de contraseña, estado PAM, alas, barra inferior, modo ambiente | Escena plana | `test-cortetsu-lock-card-runtime.py`, `test-cortetsu-lock-runtime.py`, escenario `lock-after.png` | Hecho (PAM con credenciales reales: lo prueba el propietario) |
+| Hub movible a lo largo del borde | 04 | `HubAnchor.packedStart/sanitizeOffsets`, `bottomHub.offsets` por monitor, «Distancia a la esquina» en Ajustes → Hub | Solo ocho anclajes fijos → desplazamiento acotado al área útil | `tst_HubAnchor` (562), realm `hop2` (abajo‑izquierda +400 px) | Hecho |
+| Centro de notificaciones sigue al Hub | 04, 05 | `ScreenState.sidebarAlong` publicado por el Hub; `HubAnchor.popoutPosition`; región de entrada en su posición | Abría siempre en el borde derecho | Realm `hop2`, `hop3` (lateral derecho) | Hecho |
+| Vista «Favoritos» del Launcher | 03 | `Apps.browse` | Un `const favourites` local sombreaba la función: `ReferenceError` | `test-cortetsu-launcher-apps-runtime.py` (rojo sin el arreglo) | Corregido |
+| Ajustes → Wi‑Fi | 01 | Ya existente: héroe, propiedades, copiar contraseña, desconectar, olvidar | Sin «Uso de la red»: no hay contador real | `test-cortetsu-settings-runtime.py` + render `page-wifi.png` | Conforme |
+| Capa de `cortetsu-background` | — | `bottom` siempre | Sesión real: `bottom` solo la contiene a ella, `background` vacía; widgets dentro de la misma ventana | `hyprctl layers -j` | Sin regresión con Orbital apagado |
+| Orbital, compilación y pruebas | — | `desktop-runtime-rs` | `orbital_session.rs` compila; 105 pruebas en verde | `cargo test` | Hecho; reproducción real pendiente (abajo) |
 
 ## Adaptaciones deliberadas
 
@@ -60,7 +66,19 @@ esas piezas se comprueban en Agent Realms (`cortetsu realm up .`).
 - Favoritos: sin botón «Añadir» en la fila; fijar sigue siendo el clic
   derecho sobre una app (no existe un selector que justifique el botón).
 
-## Próximo paso
+## Instalación
 
-Ajustes (01) y Ajustes rápidos (02) contra su referencia; desplazamiento fino
-del Hub; auditoría Orbital; widgets (08).
+Push → instalar → recargar → journal, por revisión: `abf0174a`, `605a91c1`,
+`c865c69b` (actual). Generación anterior conservada; `cortetsu rollback`.
+Medición en reposo tras dos recargas suaves: 0,1 % de CPU, RSS 594 MiB
+(las recargas suaves retienen memoria del motor anterior; no es comparable
+con los 503,8 MiB de cgroup del arranque).
+
+## Pendiente
+
+- Ajustes rápidos expandido (02): el compacto sigue la gramática; falta la
+  vista grande con navegación lateral.
+- Widgets (08): comparar composición y edición.
+- Orbital: reproducción Scene/Video en un Hyprland anidado, cambio por
+  monitor, pausas y recuperación (procedimiento en `QA_POSTERIOR.md`).
+- Sesión física: ver «Cierre Premium sobria» en `QA_POSTERIOR.md`.
