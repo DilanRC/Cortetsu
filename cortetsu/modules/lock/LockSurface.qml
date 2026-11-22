@@ -110,7 +110,9 @@ WlSessionLockSurface {
 
     Timer {
         id: unlockTransition
-        interval: CortetsuDesign.motionStandardMs
+        // PAM already accepted: the scene holds Cosmic long enough to be
+        // seen, then the lock is released. Nothing here decides the unlock.
+        interval: CortetsuDesign.reducedMotion ? 0 : 900
         repeat: false
         onTriggered: pam.releaseAfterSuccess()
     }

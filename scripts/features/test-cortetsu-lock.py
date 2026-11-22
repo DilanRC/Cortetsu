@@ -6,7 +6,7 @@ surface_only = (ROOT / "cortetsu/modules/lock/LockSurface.qml").read_text(encodi
 # LockSurface owns keys, focus and PAM; LockCard draws what they show.
 card = (ROOT / "cortetsu/modules/lock/LockCard.qml").read_text(encoding="utf-8")
 # The keyboard probe lives in Lock.qml: one for every surface.
-surface = surface_only + card + lock
+surface = surface_only + card + lock + (ROOT / "cortetsu/modules/lock/LockStatsPanel.qml").read_text(encoding="utf-8")
 pam = (ROOT / "cortetsu/base/modules/lock/Pam.qml").read_text(encoding="utf-8")
 shell = (ROOT / "cortetsu/shell.qml").read_text(encoding="utf-8")
 
@@ -34,7 +34,7 @@ for marker in (
     "unlockTransition",
     "pam.releaseAfterSuccess",
     "if (pam.successPending)",
-    "interval: CortetsuDesign.motionStandardMs",
+    "interval: CortetsuDesign.reducedMotion ? 0 : 900",
     'command: ["hyprctl", "-j", "devices"]',
     "active_keymap",
     "capsLock",
