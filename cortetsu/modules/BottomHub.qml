@@ -640,7 +640,7 @@ Scope {
                     id: item.id,
                     needsAttention: item.status === Status.NeedsAttention,
                     title: BottomHubTray.tooltipFor(item),
-                    iconSource: Icons.getTrayIcon(item.id, item.icon),
+                    iconSource: Icons.getTrayIcon(item.id, item.icon, [item.tooltipTitle, item.title]),
                     onlyMenu: item.onlyMenu,
                     hasMenu: item.hasMenu
                 }))

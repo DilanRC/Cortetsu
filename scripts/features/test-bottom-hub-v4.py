@@ -44,7 +44,7 @@ def main() -> None:
         "anchors.right: statusSegment.visible ? statusSegment.left : parent.right",
         "tray separado de sistema y adaptable al segmento oculto",
     )
-    require(HUB, "iconSource: Icons.getTrayIcon(item.id, item.icon)", "icono SNI resuelto por tema, carpeta de la app y entrada")
+    require(HUB, "iconSource: Icons.getTrayIcon(item.id, item.icon, [item.tooltipTitle, item.title])", "icono SNI resuelto por tema, carpeta de la app y entrada")
     require(HUB, 'Icons.getAppIcon(item.entry?.icon || item.className, "application-x-executable")', "iconos de entradas desktop y clase")
     require(HUB, "function desktopEntryForClient(client): var", "asociación de ventanas con entradas desktop")
     require(VIEW, "readonly property var dockDelegateModel: ScriptModel", "modelo persistente del dock")

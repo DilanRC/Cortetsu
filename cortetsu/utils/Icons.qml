@@ -77,16 +77,42 @@ Singleton {
     // for a name it cannot find, so a name is looked up first: the theme,
     // then the app's folder (where SNI apps keep PNGs), then the app's
     // desktop entry. Pixmaps and files pass through untouched.
-    function getTrayIcon(id: string, icon: string): string {
+    // The first of `names` that the icon theme (or a desktop entry it
+    // names) really has, as a path; "" when none does. Unlike iconPath with
+    // a fallback, a missing name never reaches Image as image://icon/NAME.
+    function existingIcon(names: var): string {
+        for (const raw of names) {
+            const name = String(raw ?? "").trim();
+            if (!name)
+                continue;
+            const entry = DesktopEntries.heuristicLookup(name);
+            for (const candidate of [entry?.icon, name]) {
+                const found = candidate ? Quickshell.iconPath(candidate, true) : "";
+                if (found)
+                    return found;
+            }
+        }
+        return "";
+    }
+
+    // A tray item's icon as Qt can draw it. Quickshell hands a named icon as
+    // image://icon/NAME (with ?path=DIR when the app ships its own folder);
+    // the icon provider paints a magenta checker for a name it cannot find.
+    // Order: the theme, the app's folder, then the app by id, tooltip title
+    // and title (Electron apps such as Linux Wallpaper Engine send no icon
+    // at all), then a generic application icon. Pixmaps and files pass.
+    function getTrayIcon(id: string, icon: string, titles: var): string {
         const named = TrayIconName.namedIcon(icon);
+        const fallback = () => existingIcon([id].concat(titles ?? []))
+            || Quickshell.iconPath("application-x-executable", true) || "";
         if (!named)
-            return String(icon ?? "").length > 0 ? String(icon) : getAppIcon(id, "application-x-executable");
+            return String(icon ?? "").length > 0 ? String(icon) : fallback();
         const themed = named.name ? Quickshell.iconPath(named.name, true) : "";
         if (themed)
             return themed;
         if (named.name && named.dir)
             return `file://${named.dir}/${named.name}.png`;
-        return getAppIcon(id, "application-x-executable");
+        return fallback();
     }
     function getBatteryIcon(percentage: real, charging = false): string {
         if (percentage === 1) return charging ? "battery_charging_full" : "battery_full";
