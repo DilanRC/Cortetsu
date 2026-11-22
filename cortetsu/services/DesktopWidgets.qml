@@ -25,7 +25,8 @@ QtObject {
         { type: "storage", title: qsTr("Almacenamiento"), icon: "hard_drive", detail: qsTr("Uso del disco principal"), available: true },
         { type: "network", title: qsTr("Red"), icon: "network_check", detail: qsTr("Descarga y subida en este momento"), available: true },
         { type: "media", title: qsTr("Multimedia"), icon: "music_note", detail: qsTr("Lo que suena, con sus controles"), available: true },
-        { type: "note", title: qsTr("Nota"), icon: "sticky_note_2", detail: qsTr("Texto propio en el escritorio"), available: true }
+        { type: "note", title: qsTr("Nota"), icon: "sticky_note_2", detail: qsTr("Texto propio en el escritorio"), available: true },
+        { type: "monitors", title: qsTr("Monitores"), icon: "desktop_windows", detail: qsTr("Pantallas conectadas, resolución y frecuencia"), available: true }
     ]
 
     readonly property var items: CortetsuConfig.desktopWidgets

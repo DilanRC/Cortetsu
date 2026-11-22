@@ -10,6 +10,8 @@ import "../../theme"
 import "../CortetsuTypography.js" as CortetsuTypography
 import "../calendar/CalendarModel.js" as CalendarModel
 import "DesktopLayout.js" as DesktopLayout
+import "../settings" as SettingsModule
+import "../CortetsuOverlayPolicy.js" as OverlayPolicy
 
 // One desktop widget, drawn the same on the desktop and in the editor. It
 // reads its data from the shell's services and never invents a value: a
@@ -83,7 +85,7 @@ Item {
         anchors.topMargin: root.pad + root.headerHeight
         sourceComponent: ({
             clock: clockView, date: dateView, weather: weatherView, battery: batteryView,
-            system: systemView, storage: storageView, network: networkView, media: mediaView, note: noteView
+            system: systemView, storage: storageView, network: networkView, media: mediaView, note: noteView, monitors: monitorsView
         })[root.type] ?? null
     }
 
@@ -310,36 +312,116 @@ Item {
                     : { label: qsTr("GPU"), seen: false, value: -1, extra: qsTr("En reposo") };
             }
 
-            Repeater {
-                model: Gpu.type !== Gpu.noneType || Gpu.dgpuAsleep ? 3 : 2
-
-                delegate: ColumnLayout {
-                    id: metric
-                    required property int index
-                    readonly property var modelData: system.metric(index)
-                    Layout.fillWidth: true
-                    spacing: root.px(3)
-                    RowLayout {
+            // 08-widgets: one ring per metric, its value inside, the
+            // temperature (or why there is none) under it.
+            RowLayout {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                spacing: root.px(CortetsuDesign.spacingCompact)
+                Repeater {
+                    model: Gpu.type !== Gpu.noneType || Gpu.dgpuAsleep ? 3 : 2
+                    delegate: ColumnLayout {
+                        id: metric
+                        required property int index
+                        readonly property var modelData: system.metric(Gpu.type !== Gpu.noneType || Gpu.dgpuAsleep ? [0, 2, 1][index] : index)
                         Layout.fillWidth: true
+                        spacing: root.px(2)
+                        CortetsuRingGauge {
+                            Layout.alignment: Qt.AlignHCenter
+                            Layout.preferredWidth: root.px(72)
+                            Layout.preferredHeight: root.px(72)
+                            value: metric.modelData.seen ? metric.modelData.value : -1
+                            label: metric.modelData.label
+                            pending: metric.modelData.extra && !metric.modelData.seen ? "—" : "…"
+                        }
                         CortetsuText {
-                            Layout.fillWidth: true
-                            text: metric.modelData.label
-                            textSize: root.px(CortetsuTypography.bodySmallPx)
+                            Layout.alignment: Qt.AlignHCenter
+                            text: metric.modelData.extra || " "
+                            textSize: root.px(CortetsuTypography.labelSmallPx)
                             color: CortetsuDesign.colorOnSurfaceVariant
                         }
-                        CortetsuText {
-                            readonly property var data: metric.modelData
-                            text: data.seen ? `${Math.round(data.value * 100)} %${data.extra ? " · " + data.extra : ""}`
-                                : data.extra || qsTr("Leyendo…")
-                            textSize: root.px(CortetsuTypography.bodySmallPx)
-                            font.features: ({ "tnum": 1 })
+                    }
+                }
+            }
+        }
+    }
+
+    // --- Monitors (08-widgets): every connected output as Hyprland reports
+    // it; the controls live in Ajustes → Pantalla, one click away.
+    Component {
+        id: monitorsView
+        ColumnLayout {
+            spacing: root.px(CortetsuDesign.spacingCompact)
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: root.px(CortetsuDesign.spacingCompact)
+                Repeater {
+                    model: CortetsuHypr.monitors.values.filter(monitor => !(monitor.lastIpcObject?.disabled ?? false)).slice(0, 3)
+                    delegate: Item {
+                        id: output
+                        required property var modelData
+                        readonly property var info: modelData.lastIpcObject ?? {}
+                        readonly property bool current: CortetsuHypr.focusedMonitor?.name === modelData.name
+                        Layout.fillWidth: true
+                        implicitHeight: root.px(84)
+                        CortetsuSurface {
+                            anchors.fill: parent
+                            radiusValue: CortetsuDesign.radiusMedium
+                            active: output.current
+                            baseColor: Qt.alpha(CortetsuDesign.colorSurfaceGlassStrong, 0.5)
+                            activeColor: Qt.alpha(CortetsuDesign.colorPrimaryContainer, 0.55)
+                        }
+                        ColumnLayout {
+                            anchors.fill: parent
+                            anchors.margins: root.px(10)
+                            spacing: 0
+                            RowLayout {
+                                Layout.fillWidth: true
+                                CortetsuIcon {
+                                    text: (output.info.name ?? "").startsWith("eDP") ? "laptop" : "monitor"
+                                    iconSize: root.px(CortetsuTypography.iconSmallPx)
+                                    color: output.current ? CortetsuDesign.colorPrimary : CortetsuDesign.colorOnSurfaceVariant
+                                }
+                                CortetsuText {
+                                    Layout.fillWidth: true
+                                    text: output.modelData.name
+                                    textSize: root.px(CortetsuTypography.bodySmallPx)
+                                    font.weight: Font.DemiBold
+                                    elide: Text.ElideRight
+                                }
+                            }
+                            CortetsuText {
+                                Layout.fillWidth: true
+                                text: `${output.info.width ?? output.modelData.width} × ${output.info.height ?? output.modelData.height}`
+                                    + (output.info.refreshRate ? ` · ${Math.round(output.info.refreshRate)} Hz` : "")
+                                textSize: root.px(CortetsuTypography.labelSmallPx)
+                                font.features: ({ "tnum": 1 })
+                                elide: Text.ElideRight
+                            }
+                            CortetsuText {
+                                Layout.fillWidth: true
+                                text: output.current ? qsTr("Activa · escala %1").arg(output.info.scale ?? 1) : qsTr("Escala %1").arg(output.info.scale ?? 1)
+                                textSize: root.px(CortetsuTypography.labelSmallPx)
+                                color: CortetsuDesign.colorOnSurfaceVariant
+                                elide: Text.ElideRight
+                            }
                         }
                     }
-                    CortetsuProgressBar {
-                        Layout.fillWidth: true
-                        value: metric.modelData.seen ? metric.modelData.value : -1
-                        fillColor: metric.modelData.value > 0.9 ? CortetsuDesign.colorVermillion : CortetsuDesign.colorPrimary
-                    }
+                }
+            }
+            CortetsuButton {
+                compact: true
+                pill: true
+                enabled: !root.editing
+                icon: "tune"
+                label: qsTr("Ajustes de pantalla")
+                onClicked: {
+                    const state = CortetsuShellState.forActive();
+                    if (!state)
+                        return;
+                    SettingsModule.SettingsController.select("display");
+                    if (!state.settings)
+                        OverlayPolicy.open(CortetsuShellState.allStates(), state, "settings");
                 }
             }
         }

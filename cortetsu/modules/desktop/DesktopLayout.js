@@ -14,12 +14,13 @@ var snapReach = 10;
 var maxWidgets = 24;
 var maxNoteLength = 4000;
 
-var types = ["clock", "date", "weather", "battery", "system", "storage", "network", "media", "note"];
+var types = ["clock", "date", "weather", "battery", "system", "storage", "network", "media", "note", "monitors"];
 var sizes = ["s", "m", "l"];
 var scales = { s: 0.8, m: 1, l: 1.3 };
 var baseSizes = {
     clock: [360, 156], date: [272, 294], weather: [300, 186], battery: [232, 154],
-    system: [300, 218], storage: [300, 162], network: [300, 162], media: [348, 162], note: [264, 230]
+    system: [320, 218], storage: [300, 162], network: [300, 162], media: [348, 162], note: [264, 230],
+    monitors: [420, 200]
 };
 
 function validType(type) {
