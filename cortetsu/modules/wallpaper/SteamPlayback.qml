@@ -104,6 +104,29 @@ Column {
         restore = s?.restoreOnStart ?? true;
         values = s && entry && s.location === entry.location ? (s.properties || {}) : ({});
     }
+    readonly property bool canApply: Orbital.available && root.supported && root.engineReady && !root.busy && !!root.monitor && root.assets.length > 0
+    // A double click in the library asks for this: apply as soon as the
+    // project is known to play (its inspection may still be on its way).
+    property bool applyPending: false
+    function applyWhenReady(): void {
+        root.applyPending = true;
+        root.tryPendingApply();
+    }
+    function tryPendingApply(): void {
+        if (!root.applyPending || !root.entry)
+            return;
+        if (root.verdict && root.verdict.supported !== true) {
+            root.applyPending = false;
+            return;
+        }
+        if (root.canApply) {
+            root.applyPending = false;
+            Orbital.apply(root.monitor, root.selection());
+        }
+    }
+    onCanApplyChanged: tryPendingApply()
+    onVerdictChanged: tryPendingApply()
+
     function selection(): var {
         return { location: entry.location, backend: "almamu-wayland", assets: assets[0] || "", fps, volume, muted,
             scaling, gpu, properties: values, pauseOnBattery: battery, pauseFullscreen: fullscreen, restoreOnStart: restore };
@@ -118,7 +141,8 @@ Column {
     }
 
     onMonitorChanged: loadPreferences()
-    onEntryChanged: { loadPreferences(); if (entry) Orbital.inspect(entry.location); }
+    // A pending double-click apply belongs to the card that asked for it.
+    onEntryChanged: { applyPending = false; loadPreferences(); if (entry) Orbital.inspect(entry.location); }
     Component.onCompleted: Orbital.ensure()
     Connections {
         target: Orbital
@@ -177,6 +201,21 @@ Column {
                 text: root.pauseLabels[root.output.pauseReason] || ""
                 color: CortetsuDesign.colorOnSurfaceVariant
                 textSize: CortetsuTypography.bodySmallPx
+            }
+            // Applied, then paused at once because the laptop is unplugged:
+            // say so, and offer to play anyway (it stays remembered).
+            CortetsuButton {
+                objectName: "orbitalPlayOnBattery"
+                visible: root.phase === "paused" && root.output.pauseReason === "battery"
+                compact: true
+                pill: true
+                icon: "battery_alert"
+                label: qsTr("Reproducir también con batería")
+                disabled: !root.canApply && !root.showsThis
+                onClicked: {
+                    root.battery = false;
+                    Orbital.apply(root.monitor, root.selection());
+                }
             }
             CortetsuText {
                 width: parent.width

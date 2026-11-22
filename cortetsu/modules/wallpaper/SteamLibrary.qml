@@ -155,7 +155,7 @@ FocusScope {
         maximumLineCount: 3
         elide: Text.ElideRight
         text: scan.running ? qsTr("Leyendo bibliotecas de Steam…") : root.errorText
-            || qsTr("%1 imágenes · %2 de Steam Workshop · Pulsa un fondo para ver sus opciones; doble clic en una imagen la aplica")
+            || qsTr("%1 imágenes · %2 de Steam Workshop · Pulsa un fondo para ver sus opciones; doble clic lo aplica")
                 .arg(root.staticEntries.length).arg(root.entries.length)
         color: CortetsuDesign.colorOnSurfaceVariant
     }
@@ -263,7 +263,16 @@ FocusScope {
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
                     onClicked: root.selected = cell.modelData
-                    onDoubleClicked: if (cell.isStatic) CortetsuWallpapers.apply(cell.modelData.location)
+                    // Double click applies: an image as the wallpaper, a Steam
+                    // project on this monitor with its saved settings.
+                    onDoubleClicked: {
+                        if (cell.isStatic)
+                            CortetsuWallpapers.apply(cell.modelData.location);
+                        else {
+                            root.selected = cell.modelData;
+                            Qt.callLater(() => playback.applyWhenReady());
+                        }
+                    }
                 }
             }
         }
@@ -309,7 +318,7 @@ FocusScope {
                 disabled: root.selected?.location === CortetsuWallpapers.actualCurrent || CortetsuWallpapers.applying
                 onClicked: CortetsuWallpapers.apply(root.selected.location)
             }
-            SteamPlayback { visible: root.selected?.source !== "static"; width: parent.width; entry: root.selected?.source !== "static" ? root.selected : null; assets: root.assets }
+            SteamPlayback { id: playback; visible: root.selected?.source !== "static"; width: parent.width; entry: root.selected?.source !== "static" ? root.selected : null; assets: root.assets }
         }
     }
 }
