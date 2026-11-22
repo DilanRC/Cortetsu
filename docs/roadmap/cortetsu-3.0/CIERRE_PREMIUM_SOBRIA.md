@@ -116,10 +116,9 @@ con los 503,8 MiB de cgroup del arranque).
   duplicado historial/en pantalla, textos falsos sobre el almacenamiento,
   región de entrada anclada al borde derecho, mensaje de timeout de Orbital.
 
-## Pendiente (solo lo que exige al propietario)
+## Pendiente
 
-- Teclas multimedia pulsadas físicamente (el camino MPRIS que siguen ya está verificado en vivo).
-- Orbital en hardware: suspensión (el propietario despierta el equipo) y dos
-  salidas físicas (no hay un segundo monitor conectado). Batería pausada y
-  reproduciendo, dGPU dormida y DPMS ya medidos. Abrir la Workshop arranca Steam, que despierta
-  la dGPU: es Steam, no Orbital.
+- Teclas multimedia pulsadas físicamente: el camino que siguen (MPRIS →
+  mini OSD) está verificado en vivo; no se inyectan teclas en la sesión real.
+
+Nota: abrir la Workshop arranca Steam, y Steam despierta la dGPU; Orbital no.
