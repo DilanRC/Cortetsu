@@ -64,6 +64,7 @@ esas piezas se comprueban en Agent Realms (`cortetsu realm up .`).
 | Orbital, fallos y propiedad | — | misma prueba anidada | `kill -9` del motor: dos reinicios en 120 s y al tercero «restart limit»; motor lanzado fuera de Orbital: `foreign-owner`, su proceso intacto; `orbital.json` corrupto, de versión 99 o con campo desconocido: el supervisor se detiene con motivo y no reescribe el archivo; `--volume`/`--silent` nunca juntos (prueba unitaria) | `test-orbital-nested-playback.py` | Hecho |
 | Orbital en la sesión real | — | fondo animado activo en eDP‑1 (proyecto `3499970162`, 30 FPS, `--hwdec no`, GPU integrada) | dGPU NVIDIA en `suspended` durante la reproducción; motor: 26 % de un núcleo, 197 MiB RSS, con AC | `/sys/bus/pci/devices/0000:01:00.0/power/runtime_status`, `/proc` | Medido |
 | Orbital con batería (sesión real) | — | `pauseOnBattery` (por defecto) | Desenchufado (descargando, 100 %): el motor queda dormido, 0 % de CPU en 20 s; equipo a 27,8 W. La dGPU estaba activa por Steam (abierto desde «Steam Workshop»), no por el motor, que no tiene abierto ningún `/dev/nvidia*` | `/proc`, `power_now`, `fuser /dev/nvidia*` | Medido |
+| Orbital y DPMS (sesión real) | — | — | Un ciclo apagar/encender pantalla con Orbital pausado por batería: mismo PID del motor, capas sin cambios (cubierta estática), pantalla de vuelta, journal sin errores | `hyprctl` y journal | Hecho |
 | Hub: ocho anclajes con el centro abierto | 04 | IPC `bottomHub setAnchor/setOffset` | El centro sigue abierto y se recoloca junto a la campana, hacia dentro, en los ocho | `hub-eight-anchors-center-open-realm` | Hecho |
 | Hub: autohide, pantalla completa | 04 | `tst_BottomHubAutoHide` (6); `test-cortetsu-hub-fullscreen-nested.py`: shell real en Hyprland anidado, Hub en la capa `top` (la que cubre una ventana a pantalla completa), ventana en `fullscreen 2`, el centro de notificaciones no se abre encima | — | pruebas QML y anidada | Hecho |
 | Ajustes → Wi‑Fi completo | 01 | Tarjetas «Uso de la red» (contadores del kernel desde el arranque y último minuto) y «Tema y apariencia» (Ink/Washi/Kurogane) | Faltaban las dos tarjetas del concepto | `test-cortetsu-settings-runtime.py`, `settings-wifi-harness.png` | Hecho |
@@ -112,6 +113,7 @@ con los 503,8 MiB de cgroup del arranque).
 ## Pendiente (solo lo que exige al propietario)
 
 - Teclas multimedia pulsadas físicamente (el camino MPRIS que siguen ya está verificado en vivo).
-- Orbital en hardware: DPMS, suspensión y dos salidas físicas (batería y
-  dGPU dormida ya medidas). Abrir la Workshop arranca Steam, que despierta
+- Orbital en hardware: suspensión (necesita que el propietario despierte el
+  equipo) y dos salidas físicas (no hay un segundo monitor conectado).
+  Batería, dGPU dormida y DPMS ya medidos. Abrir la Workshop arranca Steam, que despierta
   la dGPU: es Steam, no Orbital.
