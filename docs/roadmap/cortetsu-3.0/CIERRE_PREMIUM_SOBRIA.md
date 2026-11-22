@@ -54,7 +54,12 @@ esas piezas se comprueban en Agent Realms (`cortetsu realm up .`).
 | Vista «Favoritos» del Launcher | 03 | `Apps.browse` | Un `const favourites` local sombreaba la función: `ReferenceError` | `test-cortetsu-launcher-apps-runtime.py` (rojo sin el arreglo) | Corregido |
 | Ajustes → Wi‑Fi | 01 | Ya existente: héroe, propiedades, copiar contraseña, desconectar, olvidar | Sin «Uso de la red»: no hay contador real | `test-cortetsu-settings-runtime.py` + render `page-wifi.png` | Conforme |
 | Capa de `cortetsu-background` | — | `bottom` siempre | Sesión real: `bottom` solo la contiene a ella, `background` vacía; widgets dentro de la misma ventana | `hyprctl layers -j` | Sin regresión con Orbital apagado |
-| Orbital, compilación y pruebas | — | `desktop-runtime-rs` | `orbital_session.rs` compila; 105 pruebas en verde | `cargo test` | Hecho; reproducción real pendiente (abajo) |
+| Orbital, compilación y pruebas | — | `desktop-runtime-rs` | `orbital_session.rs` compila; 105 pruebas en verde | `cargo test` | Hecho |
+| Orbital, protocolo del supervisor | — | binario instalado, estado privado | Scene y Video compatibles; Image → flujo estático; proyecto roto, ruta inexistente, JSON inválido, monitor inexistente y línea > 64 KiB con su motivo; segundo supervisor bloqueado sin tocar el primero; EOF sale limpio sin escribir `orbital.json` | ejecución manual registrada | Hecho |
+| Orbital, reproducción real | — | `test-orbital-nested-playback.py` en `nested-regressions.py` | Video `1129108416` y Scene `1182650930` llegan a Activo solo con su superficie en la salida; `busy` rechazado; stop y EOF no dejan motor ni superficie. El mensaje de `transition-timeout` ahora distingue «sin superficie» de «cubierta sin confirmar» | Hyprland anidado en WS 9, Mesa | Hecho |
+| Ajustes rápidos amplio | 02 | `osd/FullContent` en rejilla de dos columnas, acciones de seis en fila, conmutador persistido | Solo columna única | `test-cortetsu-quick-settings-runtime.py`, realm `quick-settings-wide` | Hecho |
+| Widgets | 08 | Reloj protagonista sin caja; tarjetas con icono y nombre; clima en español desde el código WMO | Tarjetas sin cabecera; «Clear» en inglés | realm `widgets`, `test-weather-refresh.py` | Hecho |
+| Pills en los tres temas | 03 | — | — | escenario `pills-ink-washi-kurogane` | Hecho |
 
 ## Adaptaciones deliberadas
 
@@ -74,11 +79,25 @@ Medición en reposo tras dos recargas suaves: 0,1 % de CPU, RSS 594 MiB
 (las recargas suaves retienen memoria del motor anterior; no es comparable
 con los 503,8 MiB de cgroup del arranque).
 
+## Revisión
+
+Corrección y mantenibilidad revisadas por el mismo agente, en secuencia y
+sin subagentes (preferencia registrada): no hay independencia entre revisor y
+autor. Hallazgos corregidos durante la misión: bucle de polish de
+`CortetsuTabBar`, bucle de layout del centro de notificaciones (congelaba el
+shell), `ReferenceError` en la vista Favoritos, duplicado historial/en
+pantalla, textos falsos sobre el almacenamiento, región de entrada del centro
+anclada al borde derecho, mensaje de timeout de Orbital engañoso.
+
 ## Pendiente
 
-- Ajustes rápidos expandido (02): el compacto sigue la gramática; falta la
-  vista grande con navegación lateral.
-- Widgets (08): comparar composición y edición.
-- Orbital: reproducción Scene/Video en un Hyprland anidado, cambio por
-  monitor, pausas y recuperación (procedimiento en `QA_POSTERIOR.md`).
-- Sesión física: ver «Cierre Premium sobria» en `QA_POSTERIOR.md`.
+- Sesión física (teclas multimedia y de brillo, bandeja con Spotify/Chrome,
+  PAM real, `showOnHover`): «Cierre Premium sobria» en `QA_POSTERIOR.md`.
+- Orbital en la sesión física: GPU (dGPU suspendida durante Scene/Video),
+  batería, DPMS, suspensión y dos salidas reales; propietario externo y
+  `kill -9` del motor (escenarios de la sección Orbital de `QA_POSTERIOR.md`).
+- Ajustes rápidos: la referencia muestra tres columnas con navegación
+  lateral; la vista amplia es de dos columnas sin navegación propia (las
+  páginas de detalle siguen en Ajustes).
+- Widgets: anillos de rendimiento y monitores del concepto 08 no se
+  implementaron; los widgets existentes muestran sus datos reales en barras.
