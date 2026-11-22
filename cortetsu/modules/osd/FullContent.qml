@@ -135,7 +135,13 @@ Item {
     // Wide layout (02-quick-settings): the cards two to a row, the header
     // and the actions across both; only where the screen has the room.
     readonly property bool expanded: CortetsuConfig.quickSettingsExpanded && (root.screen?.width ?? 0) >= 1440
-    readonly property int span: root.expanded ? 2 : 1
+    readonly property int span: root.expanded ? 3 : 1
+    // Wide layout's navigation (Content.qml): "summary" shows every card,
+    // a domain shows only its own.
+    property string section: "summary"
+    function shows(id: string): bool {
+        return !root.expanded || root.section === "summary" || root.section === id;
+    }
 
     GridLayout {
         id: body
@@ -217,6 +223,7 @@ Item {
         QuickCard {
             Layout.alignment: Qt.AlignTop
             objectName: "quickAudio"
+            visible: root.shows("audio")
             Layout.fillWidth: true
             icon: "graphic_eq"
             title: qsTr("Audio")
@@ -424,6 +431,8 @@ Item {
         QuickCard {
             Layout.alignment: Qt.AlignTop
             Layout.fillWidth: true
+            objectName: "quickNetwork"
+            visible: root.shows("network")
             icon: "lan"
             title: qsTr("Red y conexiones")
             actionTooltip: qsTr("Red en Ajustes")
@@ -493,6 +502,8 @@ Item {
         QuickCard {
             Layout.alignment: Qt.AlignTop
             Layout.fillWidth: true
+            objectName: "quickPower"
+            visible: root.shows("power")
             attention: CortetsuPower.critical
 
             // The battery line and the profile it runs on, in one row.
@@ -564,7 +575,7 @@ Item {
             Layout.alignment: Qt.AlignTop
             objectName: "quickMedia"
             Layout.fillWidth: true
-            visible: !!root.player
+            visible: !!root.player && root.shows("media")
             icon: root.player?.isPlaying ? "graphic_eq" : "play_circle"
             title: qsTr("Medios")
             detail: root.player ? Players.getIdentity(root.player) : ""
@@ -670,12 +681,51 @@ Item {
 
         // --- Actions: icon over label, three to a row ----------------------
 
+        // Wide layout: notifications get a card of their own.
+        QuickCard {
+            objectName: "quickNotifications"
+            Layout.alignment: Qt.AlignTop
+            Layout.fillWidth: true
+            visible: root.expanded && root.shows("notifications")
+            icon: "notifications"
+            title: qsTr("Notificaciones")
+            detail: CortetsuNotifications.dnd ? qsTr("No molestar activo") : qsTr("Los avisos aparecen en pantalla")
+            actionTooltip: qsTr("Ajustes de notificaciones")
+            onActionRequested: root.openSettingsPage("notifications")
+
+            Repeater {
+                model: [
+                    { title: qsTr("No molestar"), detail: qsTr("Llegan al centro sin aparecer"), on: CortetsuNotifications.dnd, set: value => CortetsuNotifications.setDnd(value) },
+                    { title: qsTr("Modo privado"), detail: qsTr("Quién avisa, no lo que dice"), on: CortetsuConfig.notificationPrivate, set: value => CortetsuConfig.notificationPrivate = value },
+                    { title: qsTr("Avisos de reproducción"), detail: qsTr("Un aviso al cambiar de pista"), on: CortetsuConfig.toastNowPlaying, set: value => { CortetsuConfig.toastNowPlaying = value; CortetsuConfig.save(); } }
+                ]
+                delegate: RowLayout {
+                    required property var modelData
+                    Layout.fillWidth: true
+                    spacing: CortetsuDesign.spacingStandard
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        Layout.preferredWidth: 1
+                        spacing: 0
+                        CortetsuText { Layout.fillWidth: true; text: parent.parent.modelData.title; textSize: CortetsuTypography.bodySmallPx; font.weight: Font.DemiBold; elide: Text.ElideRight }
+                        CortetsuText { Layout.fillWidth: true; text: parent.parent.modelData.detail; textSize: CortetsuTypography.labelSmallPx; color: CortetsuDesign.colorOnSurfaceVariant; elide: Text.ElideRight }
+                    }
+                    CortetsuToggle {
+                        accessibleName: parent.modelData.title
+                        checked: parent.modelData.on
+                        onToggled: checked => parent.modelData.set(checked)
+                    }
+                }
+            }
+        }
+
         GridLayout {
             objectName: "quickActions"
+            visible: root.shows("actions")
             Layout.fillWidth: true
             Layout.columnSpan: root.span
             Layout.topMargin: 2
-            columns: root.expanded ? 6 : 3
+            columns: root.expanded ? 9 : 3
             rowSpacing: CortetsuDesign.spacingCompact
             columnSpacing: CortetsuDesign.spacingCompact
             uniformCellWidths: true
