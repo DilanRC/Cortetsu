@@ -64,6 +64,12 @@ QtObject {
     // Views of the expanded launcher's navigation: "all" by name,
     // "favourites", "recent" (newest first) and "homeRest" (the home order
     // without the favourites, which have their own row above it).
+    // The same apps with the recently opened ones first (newest first).
+    function recentFirst(list: var): var {
+        const rank = id => { const at = recentIds.indexOf(id); return at < 0 ? Number.MAX_SAFE_INTEGER : at; };
+        return list.slice().sort((a, b) => rank(a.id) - rank(b.id) || String(a.name).localeCompare(String(b.name)));
+    }
+
     function favourites(): var {
         return entries().filter(entry => Strings.testRegexList(CortetsuConfig.favouriteApps, entry.id));
     }

@@ -49,11 +49,14 @@ GridView {
         case "variant":
             return 3;
         default:
-            return width >= 700 ? 6 : width >= 570 ? 5 : 4;
+            return root.listView ? 2 : width >= 700 ? 6 : width >= 570 ? 5 : 4;
         }
     }
 
-    readonly property int visibleRows: state === "calc" ? 1 : 4
+    // List view (03-launcher's «Ver»): two columns of rows, icon beside name.
+    readonly property bool listView: CortetsuConfig.launcherListView && state !== "actions" && state !== "files"
+        && state !== "calc" && state !== "emoji" && state !== "scheme" && state !== "variant"
+    readonly property int visibleRows: state === "calc" ? 1 : root.listView ? 8 : 4
 
     function stateForText(text: string): string {
         const prefix = CortetsuConfig.actionPrefix;
@@ -86,7 +89,13 @@ GridView {
                 return [];
             return M3Variants.query(text);
         default:
-            return text.length === 0 ? Apps.browse(root.category) : Apps.search(text);
+            if (text.length > 0)
+                return Apps.search(text);
+            // «Ordenar»: by name, or what was opened recently first.
+            const browsed = Apps.browse(root.category);
+            return CortetsuConfig.launcherSort === "recent" ? Apps.recentFirst(browsed)
+                : root.category === "home" || root.category === "homeRest" || root.category === "recent" ? browsed
+                : browsed.slice().sort((a, b) => String(a.name).localeCompare(String(b.name)));
         }
     }
 
@@ -215,8 +224,8 @@ GridView {
         case "variant":
             return 116;
         default:
-            // The icon and two lines of name.
-            return 116;
+            // The icon and two lines of name; a row in the list view.
+            return root.listView ? 56 : 116;
         }
     }
 
@@ -295,12 +304,11 @@ GridView {
             }
 
             IconImage {
-                anchors.horizontalCenter: parent.horizontalCenter
-                anchors.top: parent.top
-                anchors.topMargin: 13
-
-                width: 52
-                height: 52
+                id: appIcon
+                width: root.listView ? 34 : 52
+                height: width
+                x: root.listView ? 16 : (parent.width - width) / 2
+                y: root.listView ? (parent.height - height) / 2 : 13
 
                 source: Quickshell.iconPath(
                     app.modelData?.icon,
@@ -322,25 +330,22 @@ GridView {
             }
 
             CortetsuText {
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.bottom: parent.bottom
-
-                anchors.leftMargin: 9
-                anchors.rightMargin: 9
-                anchors.bottomMargin: 6
+                x: root.listView ? appIcon.x + appIcon.width + 12 : 9
+                y: root.listView ? (parent.height - height) / 2 : parent.height - height - 6
+                width: parent.width - x - (root.listView ? 36 : 9)
 
                 objectName: "appName"
                 text: app.modelData?.name ?? ""
-                font.pixelSize: CortetsuTypography.labelSmallPx
+                font.pixelSize: root.listView ? CortetsuTypography.bodySmallPx : CortetsuTypography.labelSmallPx
 
-                // A long name takes a second line before it is cut short.
-                horizontalAlignment: Text.AlignHCenter
-                verticalAlignment: Text.AlignTop
-                height: Math.ceil(font.pixelSize * 2.6)
-                wrapMode: Text.WordWrap
+                // A long name takes a second line before it is cut short; a
+                // row keeps it on one.
+                horizontalAlignment: root.listView ? Text.AlignLeft : Text.AlignHCenter
+                verticalAlignment: root.listView ? Text.AlignVCenter : Text.AlignTop
+                height: root.listView ? implicitHeight : Math.ceil(font.pixelSize * 2.6)
+                wrapMode: root.listView ? Text.NoWrap : Text.WordWrap
                 elide: Text.ElideRight
-                maximumLineCount: 2
+                maximumLineCount: root.listView ? 1 : 2
             }
 
             /*

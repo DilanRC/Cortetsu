@@ -2,11 +2,13 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Layouts
 import Quickshell
 import ".."
 import "../../components"
 import "../../theme"
 import "../CortetsuOverlayPolicy.js" as SurfacePolicy
+import "../CortetsuTypography.js" as CortetsuTypography
 import "../CortetsuSearchBar.qml"
 import "services"
 
@@ -73,6 +75,7 @@ Item {
         CortetsuDesign.spacingStandard +
         (root.showCategories ? categoryRow.implicitHeight + CortetsuDesign.spacingCompact : 0) +
         (root.showFavourites ? favourites.implicitHeight + CortetsuDesign.spacingStandard : 0) +
+        (root.showSide ? listHeader.implicitHeight + CortetsuDesign.spacingCompact : 0) +
         listWrapper.implicitHeight +
         padding)
 
@@ -284,12 +287,71 @@ Item {
         onManageRequested: root.category = "favourites"
     }
 
+    // «Aplicaciones · N», then how they are ordered and shown (03-launcher).
+    RowLayout {
+        id: listHeader
+        objectName: "launcherListHeader"
+        visible: root.showSide
+        anchors.top: root.showFavourites ? favourites.bottom : root.showCategories ? categoryRow.bottom : search.bottom
+        anchors.topMargin: root.showFavourites ? CortetsuDesign.spacingStandard
+            : root.showCategories ? CortetsuDesign.spacingCompact : CortetsuDesign.spacingStandard
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.leftMargin: root.padding + root.navInset
+        anchors.rightMargin: root.padding + (root.showSide ? root.sideWidth + CortetsuDesign.spacingStandard : 0)
+        spacing: CortetsuDesign.spacingCompact
+        CortetsuIcon {
+            text: "apps"
+            iconSize: CortetsuTypography.iconSmallPx
+            color: CortetsuDesign.colorPrimary
+        }
+        CortetsuText {
+            Layout.fillWidth: true
+            text: qsTr("Aplicaciones · %1").arg(list.currentList?.count ?? 0)
+            textSize: CortetsuTypography.bodyPx
+            font.weight: Font.DemiBold
+            elide: Text.ElideRight
+        }
+        CortetsuButton {
+            objectName: "launcherSort"
+            compact: true
+            pill: true
+            activeFocusOnTab: false
+            icon: "swap_vert"
+            label: CortetsuConfig.launcherSort === "recent" ? qsTr("Recientes primero") : qsTr("Nombre (A‑Z)")
+            tooltipText: qsTr("Ordenar")
+            onClicked: CortetsuConfig.launcherSort = CortetsuConfig.launcherSort === "recent" ? "name" : "recent"
+        }
+        CortetsuButton {
+            objectName: "launcherGridView"
+            compact: true
+            activeFocusOnTab: false
+            active: !CortetsuConfig.launcherListView
+            icon: "grid_view"
+            label: ""
+            tooltipText: qsTr("Ver en cuadrícula")
+            onClicked: CortetsuConfig.launcherListView = false
+        }
+        CortetsuButton {
+            objectName: "launcherListView"
+            compact: true
+            activeFocusOnTab: false
+            active: CortetsuConfig.launcherListView
+            icon: "view_list"
+            label: ""
+            tooltipText: qsTr("Ver en lista")
+            onClicked: CortetsuConfig.launcherListView = true
+        }
+    }
+
     Item {
         id: listWrapper
         implicitWidth: list.width
         implicitHeight: list.height
-        anchors.top: root.showFavourites ? favourites.bottom : root.showCategories ? categoryRow.bottom : search.bottom
-        anchors.topMargin: root.showFavourites ? CortetsuDesign.spacingStandard
+        anchors.top: root.showSide ? listHeader.bottom
+            : root.showFavourites ? favourites.bottom : root.showCategories ? categoryRow.bottom : search.bottom
+        anchors.topMargin: root.showSide ? CortetsuDesign.spacingCompact
+            : root.showFavourites ? CortetsuDesign.spacingStandard
             : root.showCategories ? CortetsuDesign.spacingCompact : CortetsuDesign.spacingStandard
         anchors.left: parent.left
         anchors.leftMargin: root.padding + root.navInset
@@ -304,7 +366,8 @@ Item {
                 search.implicitHeight -
                 root.padding * 3 -
                 (root.showCategories ? categoryRow.implicitHeight + CortetsuDesign.spacingCompact : 0) -
-                (root.showFavourites ? favourites.implicitHeight + CortetsuDesign.spacingStandard : 0)
+                (root.showFavourites ? favourites.implicitHeight + CortetsuDesign.spacingStandard : 0) -
+                (root.showSide ? listHeader.implicitHeight + CortetsuDesign.spacingCompact : 0)
             search: search
             category: root.showFavourites ? "homeRest" : root.category
             padding: root.padding
