@@ -57,8 +57,11 @@ esas piezas se comprueban en Agent Realms (`cortetsu realm up .`).
 | Orbital, compilación y pruebas | — | `desktop-runtime-rs` | `orbital_session.rs` compila; 105 pruebas en verde | `cargo test` | Hecho |
 | Orbital, protocolo del supervisor | — | binario instalado, estado privado | Scene y Video compatibles; Image → flujo estático; proyecto roto, ruta inexistente, JSON inválido, monitor inexistente y línea > 64 KiB con su motivo; segundo supervisor bloqueado sin tocar el primero; EOF sale limpio sin escribir `orbital.json` | ejecución manual registrada | Hecho |
 | Orbital, reproducción real | — | `test-orbital-nested-playback.py` en `nested-regressions.py` | Video `1129108416` y Scene `1182650930` llegan a Activo solo con su superficie en la salida; `busy` rechazado; stop y EOF no dejan motor ni superficie. El mensaje de `transition-timeout` ahora distingue «sin superficie» de «cubierta sin confirmar» | Hyprland anidado en WS 9, Mesa | Hecho |
-| Ajustes rápidos amplio | 02 | `osd/FullContent` en rejilla de dos columnas, acciones de seis en fila, conmutador persistido | Solo columna única | `test-cortetsu-quick-settings-runtime.py`, realm `quick-settings-wide` | Hecho |
-| Widgets | 08 | Reloj protagonista sin caja; tarjetas con icono y nombre; clima en español desde el código WMO | Tarjetas sin cabecera; «Clear» en inglés | realm `widgets`, `test-weather-refresh.py` | Hecho |
+| Ajustes rápidos amplio | 02 | Columna de navegación (Resumen, Conectividad, Audio, Notificaciones, Energía, Acciones), tres columnas de tarjetas, tarjeta de notificaciones, conmutador persistido | Solo columna única | `test-cortetsu-quick-settings-runtime.py`, realm `quick-settings-three-columns` | Hecho |
+| Widgets | 08 | Reloj protagonista sin caja; tarjetas con icono y nombre; anillos de CPU/GPU/memoria con temperatura; widget Monitores con datos de Hyprland y acceso a Ajustes → Pantalla; clima en español desde el código WMO | Tarjetas sin cabecera, barras, sin monitores, «Clear» en inglés | realm `widgets`, `widgets-rings-monitors` | Hecho |
+| Mini OSD en la sesión real | 06 | — | — | `wpctl` +1 % y brillo 95 % sobre eDP‑1, restaurados: `mini-osd-volume-live`, `mini-osd-brightness-live` | Hecho |
+| Matriz visual oficial | todas | `cortetsu realm qa .` | 155 comprobaciones, 0 fallos, 80 capturas (fondo oscuro/claro, transparencia, movimiento reducido); 5 avisos sin clasificar, todos `text-input-v3` de Qt | `qa-light-wallpaper-realm` | Hecho |
+| Tres temas | todas | `render-cortetsu-theme-surfaces.py` | Ink, Kurogane y Washi conservan su identidad; cápsulas en los tres | `surfaces-ink-kurogane-washi-harness`, `pills-ink-washi-kurogane-stage` | Hecho |
 | Pills en los tres temas | 03 | — | — | escenario `pills-ink-washi-kurogane` | Hecho |
 
 ## Adaptaciones deliberadas
@@ -81,23 +84,21 @@ con los 503,8 MiB de cgroup del arranque).
 
 ## Revisión
 
-Corrección y mantenibilidad revisadas por el mismo agente, en secuencia y
-sin subagentes (preferencia registrada): no hay independencia entre revisor y
-autor. Hallazgos corregidos durante la misión: bucle de polish de
-`CortetsuTabBar`, bucle de layout del centro de notificaciones (congelaba el
-shell), `ReferenceError` en la vista Favoritos, duplicado historial/en
-pantalla, textos falsos sobre el almacenamiento, región de entrada del centro
-anclada al borde derecho, mensaje de timeout de Orbital engañoso.
+- Independiente: Codex `gpt-6-luna`, solo lectura, sobre todo el diff
+  `5c2c09e0..HEAD`. Corrección: un P2 válido (la búsqueda del modo privado
+  comparaba el texto oculto y el contador lo delataba), corregido en
+  `09c5463e`. Mantenibilidad: dos P3 válidos (comentario de filtros
+  desfasado, aserción literal duplicada), corregidos en `1ed70116`.
+- Del autor, durante la misión: bucle de polish de `CortetsuTabBar`, bucle de
+  layout del centro (congelaba el shell), `ReferenceError` en Favoritos,
+  duplicado historial/en pantalla, textos falsos sobre el almacenamiento,
+  región de entrada anclada al borde derecho, mensaje de timeout de Orbital.
 
-## Pendiente
+## Pendiente (solo lo que exige al propietario)
 
-- Sesión física (teclas multimedia y de brillo, bandeja con Spotify/Chrome,
-  PAM real, `showOnHover`): «Cierre Premium sobria» en `QA_POSTERIOR.md`.
-- Orbital en la sesión física: GPU (dGPU suspendida durante Scene/Video),
-  batería, DPMS, suspensión y dos salidas reales; propietario externo y
-  `kill -9` del motor (escenarios de la sección Orbital de `QA_POSTERIOR.md`).
-- Ajustes rápidos: la referencia muestra tres columnas con navegación
-  lateral; la vista amplia es de dos columnas sin navegación propia (las
-  páginas de detalle siguen en Ajustes).
-- Widgets: anillos de rendimiento y monitores del concepto 08 no se
-  implementaron; los widgets existentes muestran sus datos reales en barras.
+- PAM con la contraseña real: fallo → Monster, éxito → Cosmic, en la sesión.
+- Bandeja con Spotify y apps de Chrome abiertas (ahora no hay ningún SNI
+  registrado): comprobar que no aparece el damero.
+- Teclas multimedia físicas y OSD de medios con un reproductor real.
+- Orbital en hardware: dGPU suspendida durante Scene/Video, batería, DPMS,
+  suspensión y dos salidas físicas; procedimiento en `QA_POSTERIOR.md`.
