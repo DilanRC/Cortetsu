@@ -15,9 +15,6 @@ Item {
         visible: false
         asynchronous: true
         cache: false
-        // A new source keeps the old picture until it is ready: covers
-        // changing with the track do not flash the empty state.
-        retainWhileLoading: true
         fillMode: Image.PreserveAspectCrop
         sourceSize.width: Math.ceil(root.width * 2)
         sourceSize.height: Math.ceil(root.height * 2)

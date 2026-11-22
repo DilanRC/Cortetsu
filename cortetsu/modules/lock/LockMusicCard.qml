@@ -44,9 +44,11 @@ Item {
                 anchors.fill: parent
                 radius: width / 2
                 color: Qt.alpha(CortetsuDesign.colorSumi, 0.4)
+                // The note only when there is no cover at all; while the next
+                // track's cover loads, the disc stays as it is.
                 CortetsuIcon {
                     anchors.centerIn: parent
-                    visible: cover.status !== Image.Ready
+                    visible: cover.status === Image.Error || String(cover.source).length === 0
                     text: "music_note"
                     iconSize: 56
                     color: CortetsuDesign.colorOnPrimaryContainer

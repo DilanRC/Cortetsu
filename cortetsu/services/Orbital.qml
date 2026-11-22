@@ -163,4 +163,18 @@ Singleton {
         triggeredOnStart: true
         onTriggered: root.heartbeat()
     }
+
+    // Scripted QA, the same actions as the panel: what a monitor shows, and
+    // replay its saved animated wallpaper with the battery pause on or off.
+    IpcHandler {
+        target: "orbital"
+        function state(monitor: string): string { return JSON.stringify(root.output(monitor)); }
+        function replay(monitor: string, pauseOnBattery: bool): bool {
+            const saved = root.preferences.monitors?.[monitor];
+            if (!saved?.location)
+                return false;
+            root.ensure();
+            return root.apply(monitor, Object.assign({}, saved, { pauseOnBattery }));
+        }
+    }
 }
