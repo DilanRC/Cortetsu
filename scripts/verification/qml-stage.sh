@@ -18,6 +18,8 @@ mkdir -p "$work"
 rsync -a --delete --exclude target --exclude tests "$repo/cortetsu/" "$work/rt/"
 state="$work/state"; rm -rf "$state" "$work/cfg" "$work/cache"; mkdir -p "$state/cortetsu" "$work/cfg" "$work/cache"
 [ -n "${SEED:-}" ] && cp -r "$SEED/." "$state/"
+# PREFS='{"themeId":"kurogane"}' becomes the private preferences.json.
+[ -n "${PREFS:-}" ] && mkdir -p "$work/cfg/cortetsu" && printf '%s' "$PREFS" > "$work/cfg/cortetsu/preferences.json"
 {
     echo 'import QtQuick'; echo 'import Quickshell'
     grep '^import' "$body"
