@@ -30,6 +30,7 @@ CHECKS = (
     "test-gamemode-runtime.py",
     "test-keybind-editor-runtime.py",
     "test-orbital-nested-playback.py",
+    "test-cortetsu-hub-fullscreen-nested.py",
 )
 
 

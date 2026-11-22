@@ -2,7 +2,7 @@
 
 Generado por `scripts/verification/feature-contracts-index.py`; no editar a mano.
 
-51 comprobaciones se ejecutan en una suite (`cortetsu test`,
+52 comprobaciones se ejecutan en una suite (`cortetsu test`,
 `build-regressions.sh`, `nested-regressions.py`, `test-feature-contracts.sh`).
 Las otras 200 son contratos archivados de migraciones anteriores
 (F0–F9): nada las ejecuta en HEAD y muchas describen código que ya pasó al
@@ -21,6 +21,7 @@ comportamiento actual y añadirla a una suite.
 - `test-cortetsu-contexts-runtime.py`
 - `test-cortetsu-dashboard-dismiss-runtime.py`
 - `test-cortetsu-hub-controls-runtime.py`
+- `test-cortetsu-hub-fullscreen-nested.py`
 - `test-cortetsu-hub-islands-runtime.py`
 - `test-cortetsu-idle-runtime.py`
 - `test-cortetsu-ink-material.py`
